@@ -1,25 +1,18 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.report.Report;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * {@link cz.cesnet.shongo.controller.notification.ConfigurableNotification} for changes in allocation of {@link cz.cesnet.shongo.controller.request.ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocationFailedNotification extends ConfigurableNotification
+public class AllocationFailedNotification extends AbstractReservationRequestNotification
 {
     private Interval requestedSlot;
 
@@ -31,14 +24,19 @@ public class AllocationFailedNotification extends ConfigurableNotification
      * Constructor.
      *
      * @param reservationRequest
+     * @param configuration
      */
-    public AllocationFailedNotification(ReservationRequest reservationRequest)
+    public AllocationFailedNotification(ReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
     {
-        super();
+        super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest.getSpecification());
         this.reason = reservationRequest.getReportText(Report.MessageType.USER);
+        for (PersonInformation administrator : configuration.getAdministrators()) {
+            addRecipient(administrator, true);
+        }
     }
 
     public Interval getRequestedSlot()
@@ -63,6 +61,15 @@ public class AllocationFailedNotification extends ConfigurableNotification
         renderContext.addParameter("target", target);
 
         StringBuilder titleBuilder = new StringBuilder();
+        if (configuration.isAdministrator()) {
+            String reservationRequestId = getReservationRequestId();
+            if (reservationRequestId != null) {
+                titleBuilder.append("[");
+                titleBuilder.append(reservationRequestId);
+                titleBuilder.append("] ");
+            }
+
+        }
         titleBuilder.append(renderContext.message("allocationFailed"));
 
         NotificationMessage message = renderMessageFromTemplate(

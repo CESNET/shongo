@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationNotification extends ConfigurableNotification
+public class ReservationNotification extends AbstractReservationRequestNotification
 {
     private Type type;
 
@@ -32,16 +32,6 @@ public class ReservationNotification extends ConfigurableNotification
     private Set<String> owners = new HashSet<String>();
 
     private Interval slot;
-
-    private String reservationRequestId;
-
-    private String reservationRequestUrl;
-
-    private String reservationRequestDescription;
-
-    private DateTime reservationRequestUpdatedAt;
-
-    private String reservationRequestUpdatedBy;
 
     private Target target;
 
@@ -56,7 +46,7 @@ public class ReservationNotification extends ConfigurableNotification
     public ReservationNotification(Type type, Reservation reservation, AbstractReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
     {
-        super(authorizationManager.getUserSettingsProvider());
+        super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 
         EntityIdentifier reservationId = new EntityIdentifier(reservation);
 
@@ -65,14 +55,6 @@ public class ReservationNotification extends ConfigurableNotification
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, authorizationManager.getEntityManager());
         this.owners.addAll(authorizationManager.getUserIdsWithRole(reservationId, Role.OWNER));
-
-        if (reservationRequest != null) {
-            this.reservationRequestId = EntityIdentifier.formatId(reservationRequest);
-            this.reservationRequestUrl = configuration.getReservationRequestUrl(this.reservationRequestId);
-            this.reservationRequestDescription = reservationRequest.getDescription();
-            this.reservationRequestUpdatedAt = reservationRequest.getUpdatedAt();
-            this.reservationRequestUpdatedBy = reservationRequest.getUpdatedBy();
-        }
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);
@@ -103,66 +85,41 @@ public class ReservationNotification extends ConfigurableNotification
         return target;
     }
 
-    public String getReservationRequestId()
-    {
-        return reservationRequestId;
-    }
-
-    public String getReservationRequestUrl()
-    {
-        return reservationRequestUrl;
-    }
-
-    public String getReservationRequestDescription()
-    {
-        return reservationRequestDescription;
-    }
-
-    public DateTime getReservationRequestUpdatedAt()
-    {
-        return reservationRequestUpdatedAt;
-    }
-
-    public String getReservationRequestUpdatedBy()
-    {
-        return reservationRequestUpdatedBy;
-    }
-
     @Override
     protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
         renderContext.addParameter("target", target);
 
-        StringBuilder nameBuilder = new StringBuilder();
+        StringBuilder titleBuilder = new StringBuilder();
         if (configuration.isAdministrator()) {
-            nameBuilder.append("[");
-            nameBuilder.append(target.getResourceName());
-            nameBuilder.append("] [");
-            nameBuilder.append(renderContext.message("target.type." + target.getType()));
-            nameBuilder.append("] ");
-            nameBuilder.append(renderContext.message("reservation.type." + type));
-            nameBuilder.append(" ");
-            nameBuilder.append(renderContext.message("reservation"));
-            nameBuilder.append(" ");
-            nameBuilder.append(renderContext.formatInterval(slot));
+            titleBuilder.append("[");
+            titleBuilder.append(target.getResourceName());
+            titleBuilder.append("] [");
+            titleBuilder.append(renderContext.message("target.type." + target.getType()));
+            titleBuilder.append("] ");
+            titleBuilder.append(renderContext.message("reservation.type." + type));
+            titleBuilder.append(" ");
+            titleBuilder.append(renderContext.message("reservation"));
+            titleBuilder.append(" ");
+            titleBuilder.append(renderContext.formatInterval(slot));
         }
         else {
-            nameBuilder.append(renderContext.message("reservation.type." + type));
-            nameBuilder.append(" ");
-            nameBuilder.append(renderContext.message("reservation"));
-            nameBuilder.append(" - ");
-            nameBuilder.append(renderContext.message("target.type." + target.getType()));
+            titleBuilder.append(renderContext.message("reservation.type." + type));
+            titleBuilder.append(" ");
+            titleBuilder.append(renderContext.message("reservation"));
+            titleBuilder.append(" - ");
+            titleBuilder.append(renderContext.message("target.type." + target.getType()));
         }
 
         String templateFileName;
-        if (configuration instanceof ReservationRequestNotification.Configuration) {
+        if (configuration instanceof ParentConfiguration) {
             templateFileName = "reservation-request-reservation.ftl";
         }
         else {
             templateFileName = "reservation.ftl";
         }
-        return renderMessageFromTemplate(renderContext, nameBuilder.toString(), templateFileName);
+        return renderMessageFromTemplate(renderContext, titleBuilder.toString(), templateFileName);
     }
 
     /**

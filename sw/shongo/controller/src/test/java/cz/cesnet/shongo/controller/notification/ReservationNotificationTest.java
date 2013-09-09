@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
@@ -32,6 +33,35 @@ public class ReservationNotificationTest extends AbstractControllerTest
         super.onInit();
 
         getController().addNotificationExecutor(notificationExecutor);
+
+        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>(){{
+            add(new PersonInformation()
+            {
+                @Override
+                public String getFullName()
+                {
+                    return "admin";
+                }
+
+                @Override
+                public String getRootOrganization()
+                {
+                    return null;
+                }
+
+                @Override
+                public String getPrimaryEmail()
+                {
+                    return "martin.srom@cesnet.cz";
+                }
+
+                @Override
+                public String toString()
+                {
+                    return getFullName();
+                }
+            });
+        }});
     }
 
     /**
@@ -52,7 +82,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
         mcu.setAllocatable(true);
-        mcu.addAdministrator(new OtherPerson("Martin Srom", "cheater@seznam.cz"));
+        mcu.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
@@ -84,9 +114,55 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         runScheduler();
 
-        // 4x admin: new, deleted, new, deleted
-        // 4x user: changes(failed), changes (new), changes (deleted, new), changes (deleted)
-        Assert.assertEquals(8, notificationExecutor.getNotificationCount());
+        // 1x system-admin: allocation-failed
+        // 4x resource-admin: new, deleted, new, deleted
+        // 4x user: changes(allocation-failed), changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(9, notificationExecutor.getNotificationCount());
+    }
+
+    /**
+     * Test permanent room.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPermanentRoom() throws Exception
+    {
+        DeviceResource aliasProvider = new DeviceResource();
+        aliasProvider.addTechnology(Technology.H323);
+        aliasProvider.addTechnology(Technology.SIP);
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.addCapability(new RoomProviderCapability(10));
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withPermanentRoom());
+        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withPermanentRoom());
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Alias Reservation Request");
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withPermanentRoom());
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
+                reservationRequestId);
+        ((AliasSpecification) reservationRequest.getSpecification()).setAliasTypes(new HashSet<AliasType>()
+        {{
+                add(AliasType.SIP_URI);
+            }});
+        reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+
+        // 1x system-admin: allocation-failed
+        // 2x resource-admin: new, deleted
+        // 3x user: changes (allocation-failed), changes (new), changes (deleted)
+        Assert.assertEquals(6, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -102,7 +178,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
-        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "cheater@seznam.cz"));
+        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();

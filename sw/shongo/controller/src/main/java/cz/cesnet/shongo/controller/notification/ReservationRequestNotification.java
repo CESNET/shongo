@@ -95,7 +95,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
     protected ConfigurableNotification.Configuration createConfiguration(Locale locale, DateTimeZone timeZone,
             boolean administrator)
     {
-        return new Configuration(locale, timeZone, administrator);
+        return new ParentConfiguration(locale, timeZone, administrator);
     }
 
     @Override
@@ -123,27 +123,5 @@ public class ReservationRequestNotification extends ConfigurableNotification
             message.appendChildMessage(childMessage);
         }
         return message;
-    }
-
-    /**
-     * {@link Configuration} for {@link ReservationRequestNotification}.
-     * <p/>
-     * We need a new class of {@link ConfigurableNotification.Configuration} because we want
-     * the child {@link ReservationNotification}s to render in a different way when they are rendered from this class
-     * (rendered content is cached by equal {@link ConfigurableNotification.Configuration}s).
-     */
-    public static class Configuration extends ConfigurableNotification.Configuration
-    {
-        /**
-         * Constructor.
-         *
-         * @param locale        sets the {@link #locale}
-         * @param timeZone      sets the {@link #timeZone}
-         * @param administrator sets the {@link #administrator}
-         */
-        public Configuration(Locale locale, DateTimeZone timeZone, boolean administrator)
-        {
-            super(locale, timeZone, administrator);
-        }
     }
 }

@@ -102,6 +102,15 @@ public class AliasSpecification extends Specification
     }
 
     /**
+     * @return this {@link AliasSpecification} with {@link #permanentRoom} set to {@code true}
+     */
+    public AliasSpecification withPermanentRoom()
+    {
+        setPermanentRoom(true);
+        return this;
+    }
+
+    /**
      * @return {@link #technologies}
      */
     public Set<Technology> getTechnologies()

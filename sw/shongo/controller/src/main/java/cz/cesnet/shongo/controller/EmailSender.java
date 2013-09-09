@@ -170,7 +170,7 @@ public class EmailSender
             recipientString.append(recipient.toString());
         }
 
-        logger.debug("Sending email '{}' from '{}' to '{}'...\n", new Object[]{subject, sender, recipientString});
+        logger.debug("Sending email '{}' from '{}' to '{}'...", new Object[]{subject, sender, recipientString});
         Transport.send(message);
     }
 

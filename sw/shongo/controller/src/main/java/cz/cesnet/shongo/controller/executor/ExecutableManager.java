@@ -123,62 +123,71 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param referenceDateTime which represents now
+     * @param maxAttemptCount
      * @return list of {@link Executable}s which should be started for given {@code referenceDateTime}
      */
-    public List<Executable> listExecutablesForStart(DateTime referenceDateTime)
+    public List<Executable> listExecutablesForStart(DateTime referenceDateTime, int maxAttemptCount)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:notStartedStates)"
                         + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
                         + " AND (executable.slotStart <= :startingDateTime AND executable.slotEnd >= :startingDateTime)"
-                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
+                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
+                        + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
                 .setParameter("startingDateTime", referenceDateTime)
                 .setParameter("notStartedStates", EnumSet.of(Executable.State.NOT_STARTED))
                 .setParameter("startingFailedState", Executable.State.STARTING_FAILED)
+                .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
         return executables;
     }
 
     /**
      * @param referenceDateTime in which the {@link Executable}s must take place
+     * @param maxAttemptCount
      * @return list of {@link Executable}s which are in one of given {@code states}
      *         and take place at given {@code dateTime}
      */
-    public List<Executable> listExecutablesForUpdate(DateTime referenceDateTime)
+    public List<Executable> listExecutablesForUpdate(DateTime referenceDateTime, int maxAttemptCount)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE executable.state IN(:states)"
                         + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
-                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
+                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
+                        + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
                 .setParameter("states", EnumSet.of(Executable.State.MODIFIED))
+                .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
         return executables;
     }
 
     /**
      * @param referenceDateTime which represents now
+     * @param maxAttemptCount
      * @return list of {@link Executable}s which should be stopped for given {@code referenceDateTime}
      */
-    public List<Executable> listExecutablesForStop(DateTime referenceDateTime)
+    public List<Executable> listExecutablesForStop(DateTime referenceDateTime, int maxAttemptCount)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:startedStates)"
                         + "        OR (executable.nextAttempt != NULL AND executable.state = :stoppingFailedState))"
                         + " AND (executable.slotStart > :stoppingDateTime OR executable.slotEnd <= :stoppingDateTime)"
-                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
+                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
+                        + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
                 .setParameter("stoppingDateTime", referenceDateTime)
                 .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED,
                         Executable.State.MODIFIED))
                 .setParameter("stoppingFailedState", Executable.State.STOPPING_FAILED)
+                .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
         return executables;
     }
@@ -189,8 +198,9 @@ public class ExecutableManager extends AbstractManager
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
      *
      * @param authorizationManager
+     * @return true whether some {@link Executable} has been deleted, false otherwise
      */
-    public void deleteAllNotReferenced(AuthorizationManager authorizationManager)
+    public boolean deleteAllNotReferenced(AuthorizationManager authorizationManager)
     {
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
@@ -210,6 +220,7 @@ public class ExecutableManager extends AbstractManager
         for (Executable executable : executables) {
             delete(executable, authorizationManager);
         }
+        return executables.size() > 0;
     }
 
     /**

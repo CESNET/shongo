@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.apache.commons.configuration.CombinedConfiguration;
@@ -7,6 +8,8 @@ import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
 import org.joda.time.Period;
+
+import java.util.*;
 
 /**
  * Configuration for the {@link Controller}.
@@ -190,5 +193,58 @@ public class Configuration extends CombinedConfiguration
             return null;
         }
         return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
+    }
+
+    /**
+     * List of administrators.
+     */
+    private List<PersonInformation> administrators;
+
+    /**
+     * @return set of {@link #ADMINISTRATOR_EMAIL}
+     */
+    public List<PersonInformation> getAdministrators()
+    {
+        if (administrators == null) {
+            administrators = new LinkedList<PersonInformation>();
+            for (Object item : getList(Configuration.ADMINISTRATOR_EMAIL)) {
+                final String administratorEmail = (String) item;
+                administrators.add(new PersonInformation()
+                {
+                    @Override
+                    public String getFullName()
+                    {
+                        return "administrator";
+                    }
+
+                    @Override
+                    public String getRootOrganization()
+                    {
+                        return null;
+                    }
+
+                    @Override
+                    public String getPrimaryEmail()
+                    {
+                        return (String) administratorEmail;
+                    }
+
+                    @Override
+                    public String toString()
+                    {
+                        return getFullName();
+                    }
+                });
+            }
+        }
+        return administrators;
+    }
+
+    /**
+     * @param administrators sets the {@link #administrators}
+     */
+    public void setAdministrators(List<PersonInformation> administrators)
+    {
+        this.administrators = administrators;
     }
 }

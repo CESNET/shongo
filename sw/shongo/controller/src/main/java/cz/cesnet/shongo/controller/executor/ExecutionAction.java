@@ -253,13 +253,13 @@ public abstract class ExecutionAction extends Thread
             }
             else {
                 executable.setNextAttempt(null);
+                executable.setAttemptCount(executable.getAttemptCount() + 1);
 
                 ExecutableReport lastReport = executable.getLastReport();
                 if (lastReport != null && lastReport.getResolution().equals(Report.Resolution.TRY_AGAIN)) {
                     Executor executor = getExecutor();
-                    if ((executable.getAttemptCount() + 1) < executor.getMaxAttemptCount()) {
+                    if (executable.getAttemptCount() < executor.getMaxAttemptCount()) {
                         executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
-                        executable.setAttemptCount(executable.getAttemptCount() + 1);
                     }
                 }
                 return false;

@@ -328,4 +328,27 @@ public abstract class ConfigurableNotification extends AbstractNotification
             return result;
         }
     }
+
+    /**
+     * {@link Configuration} for parent {@link ConfigurableNotification}s which have child {@link ConfigurableNotification}s
+     * which should be able to detect whether they are rendering as standalone or inside parent notification.
+     * <p/>
+     * We need a new class of {@link ConfigurableNotification.Configuration} because we want
+     * the child {@link ConfigurableNotification}s to render in a different way when they are rendered from parent notification class
+     * (rendered content is cached by equal {@link ConfigurableNotification.Configuration}s).
+     */
+    public static class ParentConfiguration extends Configuration
+    {
+        /**
+         * Constructor.
+         *
+         * @param locale        sets the {@link #locale}
+         * @param timeZone      sets the {@link #timeZone}
+         * @param administrator sets the {@link #administrator}
+         */
+        public ParentConfiguration(Locale locale, DateTimeZone timeZone, boolean administrator)
+        {
+            super(locale, timeZone, administrator);
+        }
+    }
 }

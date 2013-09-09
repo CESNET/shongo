@@ -16,13 +16,16 @@ ${context.message(indent, "target.type")}: ${context.message("target.type." + ta
 <#---->
 <#-- Alias -->
 <#elseif target.class.simpleName == "Alias">
+<#if target.technologies?has_content>
+${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
+</#if>
 <#list target.aliases?sort_by(['type']) as alias>
 <@formatAlias alias=alias/><#t>
 </#list>
 <#---->
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
-${context.message(indent, "target.room.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
+${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if context.administrator>
 ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}

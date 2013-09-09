@@ -172,35 +172,36 @@ public class Executor extends Component
     /**
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
-     * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
+     * @param dateTime specifies date/time which should be used as "now" executing {@link Reservation}s
      * @return {@link cz.cesnet.shongo.controller.executor.ExecutionResult}
      */
-    public ExecutionResult execute(DateTime referenceDateTime)
+    public ExecutionResult execute(DateTime dateTime)
     {
         // Globally synchronized (see ThreadLock documentation)
         //logger.info("Executor waiting for lock...............................");
         synchronized (ThreadLock.class) {
             //logger.info("Executor lock acquired...     (((((");
 
-            logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
+            logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(dateTime));
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             try {
                 // Create execution plan
-                DateTime stopDateTime = referenceDateTime.minus(executableEnd);
+                DateTime start = dateTime.plus(executableStart);
+                DateTime stop = dateTime.plus(executableEnd);
                 ExecutionPlan executionPlan = new ExecutionPlan(this);
-                for (Executable executable : executableManager.listExecutablesForStart(stopDateTime)) {
+                for (Executable executable : executableManager.listExecutablesForStart(start, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));
                     Migration migration = executable.getMigration();
                     if (migration != null) {
                         executionPlan.addExecutionAction(new ExecutionAction.MigrationAction(migration));
                     }
                 }
-                for (Executable executable : executableManager.listExecutablesForUpdate(stopDateTime)) {
+                for (Executable executable : executableManager.listExecutablesForUpdate(dateTime, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable));
                 }
-                for (Executable executable : executableManager.listExecutablesForStop(stopDateTime)) {
+                for (Executable executable : executableManager.listExecutablesForStop(stop, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StopExecutableAction(executable));
                 }
                 executionPlan.build();

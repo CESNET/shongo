@@ -14,8 +14,6 @@ import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
-import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -73,7 +71,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     public void init(Configuration configuration)
     {
         this.
-        checkDependency(cache, Cache.class);
+                checkDependency(cache, Cache.class);
         super.init(configuration);
     }
 
@@ -88,11 +86,16 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     {
         logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
+        cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
+        timer.start();
+
+        int reservationsDeleted = 0;
+        int reservationRequestsAllocated = 0;
+
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
-        UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
         try {
             // Set of notifications
             NotificationSet notifications = new NotificationSet();
@@ -105,6 +108,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 notifications.addNotification(reservation, ReservationNotification.Type.DELETED, authorizationManager);
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
+                reservationsDeleted++;
             }
 
             // Delete all allocations which should be deleted
@@ -196,15 +200,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        // Report allocation failure to domain admin
-                        SchedulerException schedulerException = (SchedulerException) exception;
-                        SchedulerReport report = schedulerException.getTopReport();
-                        Reporter.reportAllocationFailed(reservationRequest,
-                                report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
-
                         authorizationManager.beginTransaction(authorization);
-                        notifications.addNotificationWithReservationRequest(
-                                new AllocationFailedNotification(reservationRequest),
+                        notifications.addNotificationWithReservationRequest(new AllocationFailedNotification(
+                                reservationRequest, authorizationManager, getConfiguration()),
                                 reservationRequest, authorizationManager);
                         authorizationManager.commitTransaction();
                     }
@@ -213,6 +211,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                         Reporter.reportInternalError(Reporter.SCHEDULER, exception);
                     }
                 }
+                reservationRequestsAllocated++;
             }
 
             authorizationManager.beginTransaction(authorization);
@@ -238,6 +237,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
             Reporter.reportInternalError(Reporter.SCHEDULER, exception);
         }
+
+        if (reservationsDeleted > 0 || reservationRequestsAllocated > 0) {
+            logger.info("Scheduling done in {} ms (allocated: {}, deleted: {}).", new Object[]{
+                    timer.stop(), reservationRequestsAllocated, reservationsDeleted
+            });
+        }
     }
 
     /**
@@ -250,7 +255,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     private static void allocateReservationRequest(ReservationRequest reservationRequest,
             SchedulerContext schedulerContext, NotificationSet notificationSet) throws SchedulerException
     {
-        logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
+        logger.debug("Allocating reservation request '{}'...", reservationRequest.getId());
 
         EntityManager entityManager = schedulerContext.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

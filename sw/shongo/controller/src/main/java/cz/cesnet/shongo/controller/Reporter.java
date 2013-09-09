@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,24 +205,6 @@ public class Reporter
     }
 
     /**
-     * Report internal error.
-     *
-     * @param reportContext
-     * @param message
-     */
-    public static void reportAllocationFailed(ReportContext reportContext, String message)
-    {
-        StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append("Allocation of ");
-        nameBuilder.append(reportContext.getReportContextName());
-        nameBuilder.append(" failed");
-        String name = nameBuilder.toString();
-        logger.error(name);
-        sendReportEmail(getAdministratorEmails(), name,
-                getAdministratorEmailContent(message, reportContext, null, null));
-    }
-
-    /**
      * Report error.
      *
      * @param title
@@ -258,7 +240,7 @@ public class Reporter
     /**
      * @return list of administrator email addresses
      */
-    private static Set<String> getAdministratorEmails()
+    private static Collection<String> getAdministratorEmails()
     {
         if (!Controller.hasInstance()) {
             logger.warn("Cannot get administrator emails because controller doesn't exist.");
@@ -266,8 +248,11 @@ public class Reporter
         }
         Configuration configuration = Controller.getInstance().getConfiguration();
         Set<String> administratorEmails = new HashSet<String>();
-        for (Object item : configuration.getList(Configuration.ADMINISTRATOR_EMAIL)) {
-            administratorEmails.add((String) item);
+        for (PersonInformation administrator : configuration.getAdministrators()) {
+            String administratorEmail = administrator.getPrimaryEmail();
+            if (administratorEmail != null) {
+                administratorEmails.add(administratorEmail);
+            }
         }
         return administratorEmails;
     }

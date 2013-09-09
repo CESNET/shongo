@@ -67,9 +67,9 @@
         <lookahead>P31D</lookahead>
     </worker>
 
-    <!-- Executor periodically checks compartments for execution -->
+    <!-- Executor periodically checks executables for execution -->
     <executor>
-        <!-- Period in which the executor is periodically checking compartments -->
+        <!-- Period in which the executor is periodically checking executables -->
         <period>PT15S</period>
         <!-- Configuration for each executable -->
         <executable>

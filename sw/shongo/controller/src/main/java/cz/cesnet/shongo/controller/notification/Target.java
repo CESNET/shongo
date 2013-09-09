@@ -151,6 +151,15 @@ public abstract class Target
                 aliases.add(alias);
             }
             technologies.addAll(aliasSpecification.getTechnologies());
+            if (technologies.isEmpty()) {
+                for (cz.cesnet.shongo.controller.resource.Alias alias : aliases) {
+                    Technology technology = alias.getTechnology();
+                    if (technology.equals(Technology.ALL)) {
+                        continue;
+                    }
+                    technologies.add(technology);
+                }
+            }
             if (aliasSpecification.isPermanentRoom()) {
                 permanentRoom = true;
             }
@@ -176,6 +185,11 @@ public abstract class Target
         public boolean isPermanentRoom()
         {
             return permanentRoom;
+        }
+
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
         }
 
         public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
