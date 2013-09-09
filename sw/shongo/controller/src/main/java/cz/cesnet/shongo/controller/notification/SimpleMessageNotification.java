@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 
+import java.util.Locale;
+
 /**
  * {@link Notification} for simple message.
  *
@@ -34,6 +36,6 @@ public class SimpleMessageNotification extends AbstractNotification
     @Override
     protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
     {
-        return new NotificationMessage(name, message);
+        return new NotificationMessage(Locale.getDefault().getLanguage(), name, message);
     }
 }

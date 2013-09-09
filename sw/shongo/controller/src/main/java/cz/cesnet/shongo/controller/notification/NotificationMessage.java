@@ -28,6 +28,8 @@ public class NotificationMessage
         put(UserSettings.LOCALE_CZECH.getLanguage(), "ČESKÁ VERZE");
     }};
 
+    private Set<String> languages = new HashSet<String>();
+
     private String title;
 
     private StringBuilder content = new StringBuilder();
@@ -36,10 +38,21 @@ public class NotificationMessage
     {
     }
 
-    public NotificationMessage(String title, String content)
+    public NotificationMessage(String language, String title, String content)
     {
+        this.languages.add(language);
         this.title = title;
         this.content.append(StringUtils.stripEnd(content, null));
+    }
+
+    public String getPrimaryLanguage()
+    {
+        return languages.iterator().next();
+    }
+
+    public Set<String> getLanguages()
+    {
+        return languages;
     }
 
     public String getTitle()
@@ -52,20 +65,20 @@ public class NotificationMessage
         return content.toString();
     }
 
-    public void appendMessage(NotificationMessage message, ConfigurableNotification.Configuration configuration)
+    public void appendMessage(NotificationMessage message)
     {
         if (content.length() > 0) {
             content.append("\n\n");
         }
 
-        String languageString = LANGUAGE_STRING.get(configuration.getLocale().getLanguage());
+        String languageString = LANGUAGE_STRING.get(message.getPrimaryLanguage());
         appendLine(languageString);
 
+        languages.addAll(message.getLanguages());
         if (title == null) {
             title = message.getTitle();
         }
         else {
-
             appendLine(message.getTitle());
         }
         content.append("\n");
@@ -87,7 +100,7 @@ public class NotificationMessage
         content.append("\n");
     }
 
-    public void appendChildMessage(NotificationMessage configurationMessage)
+    public void appendChildMessage(NotificationMessage message)
     {
         if (content.length() > 0) {
             content.append("\n\n");
@@ -95,11 +108,11 @@ public class NotificationMessage
         String indent = "  ";
         StringBuilder childContent = new StringBuilder();
         childContent.append(indent);
-        childContent.append(configurationMessage.getTitle());
+        childContent.append(message.getTitle());
         childContent.append("\n");
-        childContent.append(configurationMessage.getTitle().replaceAll(".", "-"));
+        childContent.append(message.getTitle().replaceAll(".", "-"));
         childContent.append("\n");
-        childContent.append(configurationMessage.getContent());
+        childContent.append(message.getContent());
         content.append(childContent.toString().replaceAll("\n", "\n" + indent));
     }
 }

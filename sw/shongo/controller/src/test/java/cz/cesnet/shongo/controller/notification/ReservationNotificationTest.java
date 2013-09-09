@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 

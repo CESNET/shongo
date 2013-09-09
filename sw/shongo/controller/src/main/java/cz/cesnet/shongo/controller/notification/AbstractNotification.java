@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.MessageSource;
 import freemarker.template.Configuration;
@@ -103,7 +104,7 @@ public abstract class AbstractNotification implements Notification
             templateParameters.put(parameter.getKey(), parameter.getValue());
         }
         String content = renderTemplate(fileName, templateParameters);
-        return new NotificationMessage(title, content);
+        return new NotificationMessage(renderContext.getLanguage(), title, content);
     }
 
     @Override
@@ -173,6 +174,14 @@ public abstract class AbstractNotification implements Notification
         public RenderContext(MessageSource messageSource)
         {
             this.messageSource = messageSource;
+        }
+
+        /**
+         * @return {@link Locale#language}
+         */
+        public String getLanguage()
+        {
+            return Locale.getDefault().getLanguage();
         }
 
         /**

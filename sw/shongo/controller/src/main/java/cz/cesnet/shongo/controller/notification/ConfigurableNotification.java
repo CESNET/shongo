@@ -163,7 +163,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
             NotificationMessage notificationMessage = new NotificationMessage();
             for (Configuration configuration : configurations) {
                 NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration);
-                notificationMessage.appendMessage(configurationMessage, configuration);
+                notificationMessage.appendMessage(configurationMessage);
             }
             return notificationMessage;
         }
@@ -229,6 +229,12 @@ public abstract class ConfigurableNotification extends AbstractNotification
         public boolean isAdministrator()
         {
             return configuration.isAdministrator();
+        }
+
+        @Override
+        public String getLanguage()
+        {
+            return configuration.getLocale().getLanguage();
         }
 
         @Override
