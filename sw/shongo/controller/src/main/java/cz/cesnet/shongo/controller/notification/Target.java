@@ -95,6 +95,11 @@ public abstract class Target
 
             values.add(reservation.getValue());
         }
+
+        public Set<String> getValues()
+        {
+            return values;
+        }
     }
 
     public static class Alias extends Target
@@ -111,7 +116,10 @@ public abstract class Target
             permanentRoom = true;
             for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
                 aliases.add(alias);
-                technologies.add(alias.getTechnology());
+                Technology technology = alias.getTechnology();
+                if (!technology.equals(Technology.ALL)) {
+                    technologies.add(technology);
+                }
             }
         }
 
@@ -154,10 +162,9 @@ public abstract class Target
             if (technologies.isEmpty()) {
                 for (cz.cesnet.shongo.controller.resource.Alias alias : aliases) {
                     Technology technology = alias.getTechnology();
-                    if (technology.equals(Technology.ALL)) {
-                        continue;
+                    if (!technology.equals(Technology.ALL)) {
+                        technologies.add(technology);
                     }
-                    technologies.add(technology);
                 }
             }
             if (aliasSpecification.isPermanentRoom()) {
@@ -178,7 +185,10 @@ public abstract class Target
 
             for (cz.cesnet.shongo.controller.resource.Alias alias : aliasReservation.getAliases()) {
                 aliases.add(alias);
-                technologies.add(alias.getTechnology());
+                Technology technology = alias.getTechnology();
+                if (!technology.equals(Technology.ALL)) {
+                    technologies.add(technology);
+                }
             }
         }
 

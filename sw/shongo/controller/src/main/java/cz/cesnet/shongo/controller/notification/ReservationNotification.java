@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -35,6 +36,8 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
 
     private Target target;
 
+    private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
+
     /**
      * Constructor.
      *
@@ -49,15 +52,21 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 
         EntityIdentifier reservationId = new EntityIdentifier(reservation);
+        EntityManager entityManager = authorizationManager.getEntityManager();
 
         this.type = type;
         this.id = reservationId.toId();
         this.slot = reservation.getSlot();
-        this.target = Target.createInstance(reservation, authorizationManager.getEntityManager());
+        this.target = Target.createInstance(reservation, entityManager);
         this.owners.addAll(authorizationManager.getUserIdsWithRole(reservationId, Role.OWNER));
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);
+
+        // Add child targets
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            addChildTargets(childReservation, entityManager);
+        }
     }
 
     public Type getType()
@@ -83,6 +92,11 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     public Target getTarget()
     {
         return target;
+    }
+
+    public Map<String, Target> getChildTargetByReservation()
+    {
+        return childTargetByReservation;
     }
 
     @Override
@@ -149,6 +163,21 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
             addAdministratorRecipientsForReservation(childReservation);
+        }
+    }
+
+    /**
+     * Add to {@link #childTargetByReservation} from given {@code reservation}.
+     *
+     * @param reservation
+     * @param entityManager
+     */
+    private void addChildTargets(Reservation reservation, EntityManager entityManager)
+    {
+        Target target = Target.createInstance(reservation, entityManager);
+        childTargetByReservation.put(EntityIdentifier.formatId(reservation), target);
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            addChildTargets(childReservation, entityManager);
         }
     }
 

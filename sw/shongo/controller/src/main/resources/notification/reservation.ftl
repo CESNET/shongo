@@ -5,32 +5,8 @@
 <#---->
 <#if context.administrator>
 ${context.message(indent, "reservation.id")}: ${notification.id}
-<#if target.resourceName?? && target.resourceId??>
-${context.message(indent, "target.resourceId")}: ${target.resourceName} (${target.resourceId})
 </#if>
-</#if>
-<#---->
-${context.message(indent, "target.type")}: ${context.message("target.type." + target.type)}
-<#-- Value -->
-<#if target.class.simpleName == "Value">
-<#---->
-<#-- Alias -->
-<#elseif target.class.simpleName == "Alias">
-<#if target.technologies?has_content>
-${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
-</#if>
-<#list target.aliases?sort_by(['type']) as alias>
-<@formatAlias alias=alias/><#t>
-</#list>
-<#---->
-<#-- Room -->
-<#elseif target.class.simpleName == "Room">
-${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
-${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
-<#if context.administrator>
-${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
-</#if>
-</#if>
+<@formatTarget target=target/><#t>
 <#---->
 ${context.message(indent, "reservation.slot")}: ${context.formatInterval(notification.slot)}
 <#if context.timeZone != "UTC">
@@ -49,7 +25,49 @@ ${context.message(indent, "reservationRequest.updatedBy")}: ${context.formatUser
 <#if notification.reservationRequestDescription??>
 ${context.message(indent, "reservationRequest.description")}: ${notification.reservationRequestDescription}
 </#if>
+<#if context.administrator>
+<#list notification.childTargetByReservation?keys as childReservation>
+
+${context.message(indent, "reservation.id")}: ${childReservation}
+<@formatTarget target=notification.childTargetByReservation[childReservation]/><#t>
+</#list>
+</#if>
 <#---->
+<#---------------------->
+<#-- Macro for target -->
+<#--                  -->
+<#-- @param target    -->
+<#---------------------->
+<#macro formatTarget target>
+<#if context.administrator && target.resourceName?? && target.resourceId??>
+${context.message(indent, "target.resourceId")}: ${target.resourceName} (${target.resourceId})
+</#if>
+<#---->
+${context.message(indent, "target.type")}: ${context.message("target.type." + target.type)}
+<#-- Value -->
+<#if target.class.simpleName == "Value">
+<#if target.values?has_content>
+${context.message(indent, "target.value.values")}: <#list target.values as value>${value}<#if value_has_next>, </#if></#list>
+</#if>
+<#---->
+<#-- Alias -->
+<#elseif target.class.simpleName == "Alias">
+<#if target.technologies?has_content>
+${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
+</#if>
+<#list target.aliases?sort_by(['type']) as alias>
+<@formatAlias alias=alias/><#t>
+</#list>
+<#---->
+<#-- Room -->
+<#elseif target.class.simpleName == "Room">
+${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
+${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
+<#if context.administrator>
+${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
+</#if>
+</#if>
+</#macro>
 <#-------------------------------->
 <#-- Macro for formatting alias -->
 <#--                            -->
