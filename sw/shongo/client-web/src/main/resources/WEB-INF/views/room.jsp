@@ -17,7 +17,16 @@
     }
 </script>
 
-<h1><spring:message code="views.room.heading" arguments="${room.name}"/></h1>
+<h1>
+<c:choose>
+    <c:when test="${room.permanentRoom}">
+        <spring:message code="views.room.heading" arguments="${room.name}"/>
+    </c:when>
+    <c:otherwise>
+        <spring:message code="views.room.headingAdhoc"/>
+    </c:otherwise>
+</c:choose>
+</h1>
 
 <div ng-app="jsp:room">
 
@@ -25,6 +34,9 @@
 
         <dt><spring:message code="views.room.technology"/>:</dt>
         <dd>${room.technology.title}</dd>
+
+        <dt><spring:message code="views.room.name"/>:</dt>
+        <dd>${room.name}</dd>
 
         <dt><spring:message code="views.room.slot"/>:</dt>
         <dd>

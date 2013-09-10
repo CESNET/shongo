@@ -28,6 +28,8 @@ public class RoomModel
 
     private String reservationRequestId;
 
+    private boolean permanentRoom;
+
     private Interval slot;
 
     private TechnologyModel technology;
@@ -65,6 +67,8 @@ public class RoomModel
         this.licenseCount = roomExecutable.getLicenseCount();
 
         if (this.licenseCount == 0) {
+            permanentRoom = true;
+
             // Get license count from active usage
             ExecutableListRequest request = new ExecutableListRequest();
             request.setSecurityToken(cacheProvider.getSecurityToken());
@@ -102,6 +106,11 @@ public class RoomModel
     public String getReservationRequestId()
     {
         return reservationRequestId;
+    }
+
+    public boolean isPermanentRoom()
+    {
+        return permanentRoom;
     }
 
     public Interval getSlot()
