@@ -303,15 +303,10 @@ sub get_reservation_request()
     if ( defined($response) ) {
         my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($response);
         if ( $reservation_request->{'class'} eq 'ReservationRequestSet' ) {
-
-            my $response = Shongo::ClientCli->instance()->secure_hash_request('Reservation.listChildReservationRequests',{
-                'reservationRequestId' => RPC::XML::string->new($id)
+            my $response = Shongo::ClientCli->instance()->secure_hash_request('Reservation.listReservationRequests',{
+                'parentReservationRequestId' => RPC::XML::string->new($id)
             });
-            $reservation_request->{'reservationRequests'} = [];
-            foreach my $child_reservation_request (@{$response->{'items'}}) {
-                $child_reservation_request = Shongo::ClientCli::API::ReservationRequest->from_hash($child_reservation_request);
-                push(@{$reservation_request->{'reservationRequests'}}, $child_reservation_request);
-            }
+            $reservation_request->{'reservationRequests'} = $response->{'items'};
         }
         if ( defined($reservation_request) ) {
             console_print_text($reservation_request);
