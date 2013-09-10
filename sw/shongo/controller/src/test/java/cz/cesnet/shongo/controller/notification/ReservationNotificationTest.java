@@ -180,7 +180,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
     {
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
-        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
         aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
@@ -190,13 +190,15 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setDescription("Alias Reservation Request");
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("$"));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
-        ((AliasSpecification) reservationRequest.getSpecification()).setAliasTypes(new HashSet<AliasType>()
+        AliasSpecification aliasSpecification = (AliasSpecification) reservationRequest.getSpecification();
+        aliasSpecification.setValue(null);
+        aliasSpecification.setAliasTypes(new HashSet<AliasType>()
         {{
                 add(AliasType.SIP_URI);
             }});

@@ -75,7 +75,7 @@ public class MessageSource
     {
         int argumentIndex = 0;
         for (Object argument : arguments) {
-            message = message.replaceAll("\\{" + argumentIndex +"\\}", argument.toString());
+            message = message.replaceAll("\\{" + argumentIndex +"\\}", Matcher.quoteReplacement(argument.toString()));
             argumentIndex++;
         }
         return message;
