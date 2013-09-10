@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.client.web.support.NavigationPage;
+
 import java.util.HashMap;
 import java.util.Map;
 

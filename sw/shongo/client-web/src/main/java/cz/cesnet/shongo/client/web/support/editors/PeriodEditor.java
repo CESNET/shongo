@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.editors;
+package cz.cesnet.shongo.client.web.support.editors;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;

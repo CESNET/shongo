@@ -1,6 +1,5 @@
-package cz.cesnet.shongo.client.web.editors;
+package cz.cesnet.shongo.client.web.support.editors;
 
-import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import org.joda.time.DateTimeZone;
 import org.springframework.util.StringUtils;
 

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.BreadcrumbItem;
+import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;

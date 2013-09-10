@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.client.web.controllers.AbstractWizardController;
+import cz.cesnet.shongo.client.web.support.NavigationPage;
+
 /**
- * Represents a {@link NavigationPage} for {@link cz.cesnet.shongo.client.web.controllers.AbstractWizardController}.
+ * Represents a {@link NavigationPage} for {@link AbstractWizardController}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

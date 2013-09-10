@@ -1,9 +1,9 @@
-package cz.cesnet.shongo.client.web.interceptors;
+package cz.cesnet.shongo.client.web.support.interceptors;
 
-import cz.cesnet.shongo.client.web.Breadcrumb;
-import cz.cesnet.shongo.client.web.BreadcrumbProvider;
+import cz.cesnet.shongo.client.web.support.Breadcrumb;
+import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.ClientWebNavigation;
-import cz.cesnet.shongo.client.web.NavigationPage;
+import cz.cesnet.shongo.client.web.support.NavigationPage;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Interceptor for detection of current {@link cz.cesnet.shongo.client.web.NavigationPage}.
+ * Interceptor for detection of current {@link cz.cesnet.shongo.client.web.support.NavigationPage}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

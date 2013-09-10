@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web;
+package cz.cesnet.shongo.client.web.support;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.interceptors;
+package cz.cesnet.shongo.client.web.support.interceptors;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

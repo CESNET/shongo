@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.tiles;
+package cz.cesnet.shongo.client.web.support.tiles;
 
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;

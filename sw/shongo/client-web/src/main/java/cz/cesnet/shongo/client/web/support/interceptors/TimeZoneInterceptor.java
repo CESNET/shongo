@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.interceptors;
+package cz.cesnet.shongo.client.web.support.interceptors;
 
 import com.google.common.base.Strings;
 import org.joda.time.DateTimeZone;

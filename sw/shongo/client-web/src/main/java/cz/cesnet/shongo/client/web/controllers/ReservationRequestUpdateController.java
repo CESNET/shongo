@@ -3,9 +3,9 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
-import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
-import cz.cesnet.shongo.client.web.editors.PeriodEditor;
+import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
+import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModificationModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controller for creating/modifying reservation requests.

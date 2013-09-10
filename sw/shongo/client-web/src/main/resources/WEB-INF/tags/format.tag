@@ -22,7 +22,7 @@
     if (styleShort) {
         formatType = DateTimeFormatter.Type.SHORT;
     }
-    DateTimeZone timeZone = cz.cesnet.shongo.client.web.interceptors.TimeZoneInterceptor.getDateTimeZone(session);
+    DateTimeZone timeZone = cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor.getDateTimeZone(session);
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(formatType, response.getLocale(), timeZone);
     if (value instanceof ReadablePartial) {
         value = dateTimeFormatter.formatDate((ReadablePartial) value);

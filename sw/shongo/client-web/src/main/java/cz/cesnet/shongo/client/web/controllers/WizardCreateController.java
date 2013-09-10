@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.*;
-import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
-import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
+import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.SecurityToken;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web;
+package cz.cesnet.shongo.client.web.support;
 
 /**
  * {@link Breadcrumb} provider.

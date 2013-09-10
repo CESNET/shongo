@@ -14,9 +14,9 @@
     <mvc:annotation-driven ignoreDefaultModelOnRedirect="true">
         <mvc:argument-resolvers>
             <!-- Enables SecurityToken as method arguments -->
-            <bean class="cz.cesnet.shongo.client.web.auth.OpenIDConnectHandlerMethodArgumentResolver"/>
+            <bean class="cz.cesnet.shongo.client.web.support.resolvers.SecurityTokenHandlerMethodArgumentResolver"/>
             <!-- Enables DateTimeZone as method arguments -->
-            <bean class="cz.cesnet.shongo.client.web.interceptors.TimeZoneHandlerMethodArgumentResolver"/>
+            <bean class="cz.cesnet.shongo.client.web.support.resolvers.TimeZoneHandlerMethodArgumentResolver"/>
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 
@@ -26,9 +26,9 @@
     <mvc:resources mapping="/js/**" location="/js/"/>
 
     <!-- Configure view resolver for Apache Tiles -->
-    <bean id="tilesViewResolver" class="cz.cesnet.shongo.client.web.tiles.TilesViewResolver">
+    <bean id="tilesViewResolver" class="cz.cesnet.shongo.client.web.support.tiles.TilesViewResolver">
         <property name="order" value="1" />
-        <property name="viewClass" value="cz.cesnet.shongo.client.web.tiles.TilesView"/>
+        <property name="viewClass" value="cz.cesnet.shongo.client.web.support.tiles.TilesView"/>
         <property name="requestContextAttribute" value="requestContext"/>
         <property name="exposedContextBeanNames">
             <list>
@@ -64,12 +64,12 @@
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
             <property name="paramName" value="lang"/>
         </bean>
-        <bean id="timeZoneInterceptor" class="cz.cesnet.shongo.client.web.interceptors.TimeZoneInterceptor"/>
-        <bean id="navigationInterceptor" class="cz.cesnet.shongo.client.web.interceptors.NavigationInterceptor"/>
+        <bean id="timeZoneInterceptor" class="cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor"/>
+        <bean id="navigationInterceptor" class="cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor"/>
     </mvc:interceptors>
 
     <!-- i18n message source -->
-    <bean id="messageSource" class="cz.cesnet.shongo.client.web.ReflectiveResourceBundleMessageSource">
+    <bean id="messageSource" class="cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource">
         <property name="basenames">
             <list>
                 <value>/WEB-INF/i18n/message</value>

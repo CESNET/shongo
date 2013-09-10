@@ -4,6 +4,10 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.support.Breadcrumb;
+import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -42,7 +46,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     private MessageSource messages;
 
     /**
-     * {@link Breadcrumb} for the {@link #handleDetailView}
+     * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDetailView}
      */
     private Breadcrumb breadcrumb;
 

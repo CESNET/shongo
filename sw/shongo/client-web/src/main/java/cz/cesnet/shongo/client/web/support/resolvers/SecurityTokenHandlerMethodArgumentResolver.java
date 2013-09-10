@@ -1,6 +1,6 @@
-package cz.cesnet.shongo.client.web.auth;
+package cz.cesnet.shongo.client.web.support.resolvers;
 
-import cz.cesnet.shongo.client.web.annotations.AccessToken;
+import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -9,11 +9,11 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
- * {@link HandlerMethodArgumentResolver} for OpenID Connect access token.
+ * {@link HandlerMethodArgumentResolver} for {@link SecurityToken} (from OpenID Connect access token).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class OpenIDConnectHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
+public class SecurityTokenHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
     @Override
     public boolean supportsParameter(MethodParameter methodParameter)

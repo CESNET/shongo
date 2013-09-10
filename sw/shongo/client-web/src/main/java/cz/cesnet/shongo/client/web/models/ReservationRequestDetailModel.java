@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 

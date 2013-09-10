@@ -1,12 +1,10 @@
-package cz.cesnet.shongo.client.web.interceptors;
+package cz.cesnet.shongo.client.web.support.resolvers;
 
-import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor;
 import org.joda.time.DateTimeZone;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 

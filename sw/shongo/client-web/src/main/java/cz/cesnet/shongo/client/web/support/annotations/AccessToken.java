@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.annotations;
+package cz.cesnet.shongo.client.web.support.annotations;
 
 import java.lang.annotation.*;
 

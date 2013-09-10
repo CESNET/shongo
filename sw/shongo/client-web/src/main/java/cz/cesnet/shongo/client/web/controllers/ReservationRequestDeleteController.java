@@ -2,11 +2,12 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.support.Breadcrumb;
+import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
+import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +31,7 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
     private ReservationService reservationService;
 
     /**
-     * {@link Breadcrumb} for the {@link #handleDeleteView}
+     * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDeleteView}
      */
     private Breadcrumb breadcrumb;
 

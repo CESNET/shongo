@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.Page;
+import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.WizardPage;
 import org.springframework.web.servlet.ModelAndView;
 
