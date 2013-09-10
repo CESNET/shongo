@@ -22,6 +22,9 @@ ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if target.name??>
 ${context.message(indent, "target.room.name")}: ${target.name}
 </#if>
+<#if target.pin??>
+${context.message(indent, "target.room.pin")}: ${target.pin}
+</#if>
 <#if target.aliases?has_content>
 ${context.message(indent, "target.room.aliases")}:
 <@formatAliases aliases=target.aliases/>

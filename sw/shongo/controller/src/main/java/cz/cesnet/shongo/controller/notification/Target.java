@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.H323RoomSetting;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -229,6 +231,8 @@ public abstract class Target
 
         private int availableLicenseCount;
 
+        private String pin;
+
         private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
@@ -239,6 +243,14 @@ public abstract class Target
             for (AliasSpecification aliasSpecification : roomSpecification.getAliasSpecifications()) {
                 if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
                     name = aliasSpecification.getValue();
+                }
+            }
+            for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
+                if (roomSetting instanceof H323RoomSetting) {
+                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                    if (h323RoomSetting.getPin() != null) {
+                        pin = h323RoomSetting.getPin();
+                    }
                 }
             }
         }
@@ -252,6 +264,14 @@ public abstract class Target
             technologies.addAll(roomConfiguration.getTechnologies());
             licenseCount = roomConfiguration.getLicenseCount();
             availableLicenseCount = roomProviderCapability.getLicenseCount();
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+                if (roomSetting instanceof H323RoomSetting) {
+                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                    if (h323RoomSetting.getPin() != null) {
+                        pin = h323RoomSetting.getPin();
+                    }
+                }
+            }
 
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
@@ -300,6 +320,11 @@ public abstract class Target
         public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
         {
             return aliases;
+        }
+
+        public String getPin()
+        {
+            return pin;
         }
 
         @Override

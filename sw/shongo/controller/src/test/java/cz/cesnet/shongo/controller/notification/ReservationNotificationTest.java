@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -95,8 +96,10 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new RoomSpecification(4000, new Technology[]{Technology.H323, Technology.SIP}));
+        RoomSpecification roomSpecification = new RoomSpecification(4000,
+                new Technology[]{Technology.H323, Technology.SIP});
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
