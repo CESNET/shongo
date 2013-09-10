@@ -100,7 +100,7 @@ public enum ReservationRequestState
             SpecificationType specificationType, String lastReservationId)
     {
         if (allocationState == null) {
-            return NOT_ALLOCATED;
+            return null;
         }
         switch (allocationState) {
             case ALLOCATED:

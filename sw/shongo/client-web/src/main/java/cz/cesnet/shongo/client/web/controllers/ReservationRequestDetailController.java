@@ -107,7 +107,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 item.put("user", user.getFullName());
                 item.put("type", historyItem.getType());
 
-                if (currentHistoryItem == null & historyItemId.equals(reservationRequestId)) {
+                if (historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
                     isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
