@@ -75,13 +75,13 @@ sub new()
         'item' => {
             'format' => sub() {
                 my ($reservation_request) = @_;
-                my $item = sprintf("%s (%s) %s\n",
+                my $item = sprintf("%s (%s) %s",
                     interval_format($reservation_request->{'earliestSlot'}),
                     $reservation_request->{'id'},
                     Shongo::ClientCli::API::ReservationRequest::get_state($reservation_request)
                 );
                 if ( $reservation_request->{'allocationState'} eq 'ALLOCATED' ) {
-                    $item .= sprintf("  " . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s", $reservation_request->{'lastReservationId'});
+                    $item .= sprintf("\n  " . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s", $reservation_request->{'lastReservationId'});
                 }
                 return $item;
             }
