@@ -191,10 +191,12 @@ public class WizardCreateController extends AbstractWizardController
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
-        ModelAndView modelAndView = getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
+        WizardView wizardView = getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        modelAndView.addObject("userRole", new UserRoleModel(cacheProvider));
-        return modelAndView;
+        wizardView.addObject("userRole", new UserRoleModel(cacheProvider));
+        wizardView.setNextPageUrl(null);
+        wizardView.setPreviousPageUrl(null);
+        return wizardView;
     }
 
     /**
@@ -213,7 +215,10 @@ public class WizardCreateController extends AbstractWizardController
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
             // Show form for adding new user role with validation errors
-            return getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
+            WizardView wizardView = getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
+            wizardView.setNextPageUrl(null);
+            wizardView.setPreviousPageUrl(null);
+            return wizardView;
         }
         userRole.setTemporaryId();
         userRole.setDeletable(true);

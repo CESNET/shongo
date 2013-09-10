@@ -243,6 +243,15 @@ public abstract class AbstractWizardController
         }
 
         /**
+         * @param url sets the {@link #actionPrevious#url}
+         */
+        public void setPreviousPageUrl(String url)
+        {
+            actionPrevious.setUrl(url);
+            updatePrimary();
+        }
+
+        /**
          * Update which action (previous/next) should be primary.
          */
         private void updatePrimary()
