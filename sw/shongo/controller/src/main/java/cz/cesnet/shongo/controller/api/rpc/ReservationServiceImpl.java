@@ -99,7 +99,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             Interval interval = request.getSlot();
             String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
-            SchedulerContext schedulerContext = new SchedulerContext(null, entityManager, interval);
+            SchedulerContext schedulerContext = new SchedulerContext(null, entityManager, authorization, interval);
             if (ignoredReservationRequestId != null) {
                 EntityIdentifier entityId = EntityIdentifier.parse(
                         ignoredReservationRequestId, EntityType.RESERVATION_REQUEST);
@@ -190,9 +190,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
@@ -237,7 +237,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         String reservationRequestId = reservationRequestApi.getId();
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
@@ -294,7 +294,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Revert changes to old reservation request
             entityManager.clear();
 
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             oldReservationRequest = reservationRequestManager.get(entityId.getPersistenceId());
@@ -332,9 +332,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
@@ -397,9 +397,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
@@ -445,9 +445,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =

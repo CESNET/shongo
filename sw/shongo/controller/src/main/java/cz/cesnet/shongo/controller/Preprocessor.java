@@ -98,10 +98,10 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
         reservationRequestSet.checkPersisted();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager, reservationRequestSet);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());

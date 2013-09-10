@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -156,12 +157,14 @@ public class SchedulerContext
      * Constructor.
      *
      * @param cache         sets the {@link #cache}
-     * @param entityManager which can be used
+     * @param entityManager which can be used or null
+     * @param authorization which can be used or null
      * @param requestedSlot sets the {@link #requestedSlot}
      */
-    public SchedulerContext(Cache cache, EntityManager entityManager, Interval requestedSlot)
+    public SchedulerContext(Cache cache, EntityManager entityManager, Authorization authorization,
+            Interval requestedSlot)
     {
-        this(requestedSlot.getStart(), cache, entityManager, new AuthorizationManager(entityManager));
+        this(requestedSlot.getStart(), cache, entityManager, new AuthorizationManager(entityManager, authorization));
         setRequestedSlot(requestedSlot);
     }
 

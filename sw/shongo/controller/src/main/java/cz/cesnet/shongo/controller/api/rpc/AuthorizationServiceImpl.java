@@ -103,9 +103,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.createAclRecord(userId, entityIdentifier, role);
@@ -129,14 +129,14 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
             if (!authorization.hasPermission(securityToken, aclRecord.getEntityId(), Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
             }
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
             authorizationManager.deleteAclRecord(aclRecord);
             entityManager.getTransaction().commit();
@@ -352,7 +352,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         authorization.checkUserExistence(newUserId);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
                     entityIdentifier.getPersistenceId());
@@ -362,7 +362,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             if (!authorization.isAdmin(securityToken)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
             if (entity instanceof Resource) {
                 Resource resource = (Resource) entity;

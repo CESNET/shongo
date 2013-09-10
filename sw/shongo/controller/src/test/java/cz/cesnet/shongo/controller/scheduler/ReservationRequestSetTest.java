@@ -262,10 +262,10 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             EntityManager entityManager = createEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
 
             // Delete reservation request
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
             ReservationRequestSet reservationRequestSet =
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId);

@@ -32,7 +32,7 @@ public class SchedulerContextTest
         AvailableReservation<Reservation> reusableReservation3 = AvailableReservation.create(new Reservation());
 
         // Init cache transaction
-        SchedulerContext schedulerContext = new SchedulerContext(null, null, interval);
+        SchedulerContext schedulerContext = new SchedulerContext(null, null, null, interval);
         schedulerContext.addReferencedResource(resource1);
         schedulerContext.addAllocatedReservation(allocatedReservation1);
         schedulerContext.addAvailableReservation(reusableReservation1);

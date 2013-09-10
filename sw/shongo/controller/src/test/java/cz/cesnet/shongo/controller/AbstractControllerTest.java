@@ -319,7 +319,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void runAuthorizationPropagation()
     {
         EntityManager entityManager = createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         authorizationManager.propagate(authorization);
         entityManager.close();
     }
@@ -359,6 +359,17 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         runPreprocessor();
         runScheduler();
+    }
+
+    /**
+     * Run {@link Preprocessor} and {@link Scheduler}.
+     *
+     * @param interval
+     */
+    protected void runPreprocessorAndScheduler(Interval interval)
+    {
+        runPreprocessor(interval);
+        runScheduler(interval);
     }
 
     /**

@@ -104,9 +104,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Create resource from API
@@ -189,9 +189,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Get the resource
@@ -331,7 +331,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, interval);
+                SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, authorization, interval);
                 AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());

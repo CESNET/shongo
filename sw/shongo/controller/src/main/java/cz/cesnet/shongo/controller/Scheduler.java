@@ -95,12 +95,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             // Set of notifications
             NotificationSet notifications = new NotificationSet();
 
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Delete all reservations which should be deleted
@@ -148,7 +148,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Allocate all reservation requests
             for (ReservationRequest reservationRequest : reservationRequests) {
                 try {
-                    authorizationManager.beginTransaction(authorization);
+                    authorizationManager.beginTransaction();
                     entityManager.getTransaction().begin();
 
                     // Reload the request (rollback may happened)
@@ -200,11 +200,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        authorizationManager.beginTransaction(authorization);
                         notifications.addNotificationWithReservationRequest(new AllocationFailedNotification(
                                 reservationRequest, authorizationManager, getConfiguration()),
                                 reservationRequest, authorizationManager);
-                        authorizationManager.commitTransaction();
                     }
                     else {
                         // Report allocation failure internal error
@@ -214,7 +212,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 reservationRequestsAllocated++;
             }
 
-            authorizationManager.beginTransaction(authorization);
+            authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             // Delete all executables which should be deleted
@@ -407,8 +405,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         /**
          * Map of {@link ReservationRequestNotification} by {@link AbstractReservationRequest}.
          */
-        Map<AbstractReservationRequest, ReservationRequestNotification> reservationRequestNotifications =
-                new HashMap<AbstractReservationRequest, ReservationRequestNotification>();
+        Map<Long, ReservationRequestNotification> reservationRequestNotifications =
+                new HashMap<Long, ReservationRequestNotification>();
 
         /**
          * @param notification to be added to the {@link #notifications}
@@ -466,13 +464,14 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             // Create or reuse reservation request notification
+            Long abstractReservationRequestId = abstractReservationRequest.getId();
             ReservationRequestNotification reservationRequestNotification =
-                    reservationRequestNotifications.get(abstractReservationRequest);
+                    reservationRequestNotifications.get(abstractReservationRequestId);
             if (reservationRequestNotification == null) {
                 reservationRequestNotification = new ReservationRequestNotification(
                         abstractReservationRequest, authorizationManager, getConfiguration());
                 notifications.add(reservationRequestNotification);
-                reservationRequestNotifications.put(abstractReservationRequest, reservationRequestNotification);
+                reservationRequestNotifications.put(abstractReservationRequestId, reservationRequestNotification);
             }
 
             // Add reservation notification to reservation request notification

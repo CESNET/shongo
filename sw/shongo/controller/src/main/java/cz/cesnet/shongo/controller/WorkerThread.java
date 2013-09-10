@@ -132,7 +132,7 @@ public class WorkerThread extends Thread
             Interval interval = new Interval(Temporal.nowRounded(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
             try {
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);

@@ -112,9 +112,6 @@
     <!-- Configuration of notifications -->
     <notification>
         <!--<reservation-request-url></reservation-request-url>-->
-        <reservation-request-url>
-            http://127.0.0.1:8182/reservation-request/${reservationRequestId}/detail
-        </reservation-request-url>
     </notification>
 
     <!-- Configuration of domain administrators-->

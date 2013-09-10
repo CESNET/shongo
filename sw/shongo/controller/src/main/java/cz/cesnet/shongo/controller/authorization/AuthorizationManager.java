@@ -33,6 +33,11 @@ public class AuthorizationManager extends AbstractManager
     private Transaction activeTransaction = null;
 
     /**
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
      * @see UserSettingsProvider
      */
     private UserSettingsProvider userSettingsProvider = null;
@@ -42,9 +47,11 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param entityManager sets the {@link #entityManager}
      */
-    public AuthorizationManager(EntityManager entityManager)
+    public AuthorizationManager(EntityManager entityManager, Authorization authorization)
     {
         super(entityManager);
+
+        this.authorization = authorization;
     }
 
     /**
@@ -187,23 +194,21 @@ public class AuthorizationManager extends AbstractManager
      */
     public UserInformation getUserInformation(String userId)
     {
-        if (activeTransaction == null) {
-            throw new IllegalStateException("No transaction is active.");
+        if (authorization == null) {
+            throw new IllegalArgumentException("Authorization must not be null.");
         }
-        return activeTransaction.authorization.getUserInformation(userId);
+        return authorization.getUserInformation(userId);
     }
 
     /**
      * Start new transaction for given {@code authorization} (for ACL cache).
-     *
-     * @param authorization for which the transaction should be started
      */
-    public void beginTransaction(Authorization authorization)
+    public void beginTransaction()
     {
         if (activeTransaction != null) {
             throw new IllegalStateException("Another transaction is already active.");
         }
-        activeTransaction = new Transaction(authorization);
+        activeTransaction = new Transaction();
     }
 
     /**
@@ -688,11 +693,6 @@ public class AuthorizationManager extends AbstractManager
     private class Transaction
     {
         /**
-         * @see Authorization
-         */
-        private Authorization authorization;
-
-        /**
          * Set of {@link AclRecord} which should be added to the {@link Authorization} cache.
          */
         private Set<AclRecord> addedAclRecords = new HashSet<AclRecord>();
@@ -704,15 +704,9 @@ public class AuthorizationManager extends AbstractManager
 
         /**
          * Constructor.
-         *
-         * @param authorization
          */
-        public Transaction(Authorization authorization)
+        public Transaction()
         {
-            if (authorization == null) {
-                throw new IllegalArgumentException("Authorization must not be null.");
-            }
-            this.authorization = authorization;
         }
 
         /**
@@ -729,6 +723,9 @@ public class AuthorizationManager extends AbstractManager
          */
         public void commit()
         {
+            if (authorization == null) {
+                throw new IllegalArgumentException("Authorization must not be null.");
+            }
             for (AclRecord aclRecord : addedAclRecords) {
                 authorization.addAclRecordToCache(aclRecord);
             }

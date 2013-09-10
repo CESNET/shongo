@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
@@ -295,6 +296,38 @@ public class ReservationNotificationTest extends AbstractControllerTest
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
         Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
+    }
+
+    /**
+     * Test periodic request.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPeriodic() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
+        aliasProvider.setAllocatable(true);
+        aliasProvider.setMaximumFuture("P1M");
+        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("Alias Reservation Request");
+        reservationRequest.addSlot("2012-01-01T12:00", "P1D");
+        reservationRequest.addSlot("2012-02-01T12:00", "P1D");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
+
+        // 1x system-admin: allocation-failed
+        // 1x resource-admin: new
+        // 1x user: changes (allocation-failed, new)
+        Assert.assertEquals(3, notificationExecutor.getNotificationCount());
     }
 
     /**

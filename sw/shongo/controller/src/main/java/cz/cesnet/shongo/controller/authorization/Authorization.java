@@ -443,7 +443,7 @@ public abstract class Authorization
         AclUserState aclUserState = new AclUserState();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             for (AclRecord aclRecord : authorizationManager.listAclRecords(userId)) {
                 aclUserState.addAclRecord(aclRecord);
@@ -466,7 +466,7 @@ public abstract class Authorization
     {
         AclEntityState aclEntityState = new AclEntityState();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             for (AclRecord aclRecord : authorizationManager.listAclRecords(entityId)) {
                 aclEntityState.addAclRecord(aclRecord);
