@@ -52,6 +52,14 @@ public class MessageSource
         return resourceBundle.getString(code);
     }
 
+    public String getMessage(String code, Object... arguments)
+    {
+        if (locale == null) {
+            throw new IllegalStateException("Default locale is not set.");
+        }
+        ResourceBundle resourceBundle = getResourceBundle(locale);
+        return formatMessage(resourceBundle.getString(code), arguments);
+    }
 
     public ResourceBundle getResourceBundle(Locale locale)
     {
@@ -61,6 +69,16 @@ public class MessageSource
             resourceBundleByLocale.put(locale, resourceBundle);
         }
         return resourceBundle;
+    }
+
+    public static String formatMessage(String message, Object... arguments)
+    {
+        int argumentIndex = 0;
+        for (Object argument : arguments) {
+            message = message.replaceAll("\\{" + argumentIndex +"\\}", argument.toString());
+            argumentIndex++;
+        }
+        return message;
     }
 
     private static class ReflectiveResourceBundle extends ResourceBundle

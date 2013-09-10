@@ -209,6 +209,16 @@ public abstract class Target
             return aliases;
         }
 
+        public String getRoomName()
+        {
+            for (cz.cesnet.shongo.controller.resource.Alias alias : aliases) {
+                if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                    return alias.getValue();
+                }
+            }
+            return null;
+        }
+
         @Override
         protected String getTypeName()
         {

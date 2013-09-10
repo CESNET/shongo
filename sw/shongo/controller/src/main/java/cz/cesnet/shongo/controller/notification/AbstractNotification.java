@@ -266,6 +266,19 @@ public abstract class AbstractNotification implements Notification
         }
 
         /**
+         * @param code
+         * @param arguments
+         * @return message for given {@code code}
+         */
+        public String message(String code, Object... arguments)
+        {
+            if (messageSource == null) {
+                throw new IllegalStateException("MessageSource is not set.");
+            }
+            return messageSource.getMessage(code, arguments);
+        }
+
+        /**
          * @param width
          * @param code
          * @return message for given {@code code}
