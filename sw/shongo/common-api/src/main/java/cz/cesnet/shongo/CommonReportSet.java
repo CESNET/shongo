@@ -40,7 +40,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-unknown-error";
+            return "unknown-error";
         }
 
         public UnknownErrorReport(String description)
@@ -73,7 +73,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -101,19 +101,28 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
-                case USER:
-                    message.append("Unknown error.");
-                    break;
                 default:
-                    message.append("Unknown error: ");
-                    message.append((description == null ? "null" : description));
-                    break;
+                switch (language) {
+                    default:
+                        return "Unknown error: ${description}";
+                }
+                case USER:
+                switch (language) {
+                    default:
+                        return "Unknown error.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -181,7 +190,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-type-mismatch";
+            return "type-mismatch";
         }
 
         public TypeMismatchReport(String requiredType, String presentType)
@@ -225,7 +234,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -255,19 +264,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Type mismatch. Present type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" doesn't match required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -342,7 +356,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-type-illegal-value";
+            return "type-illegal-value";
         }
 
         public TypeIllegalValueReport(String typeName, String value)
@@ -386,7 +400,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -416,19 +430,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("typeName", typeName);
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is illegal for type ");
-                    message.append((typeName == null ? "null" : typeName));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Value ${value} is illegal for type ${type}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -501,7 +520,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-undefined";
+            return "class-undefined";
         }
 
         public ClassUndefinedReport(String className)
@@ -534,7 +553,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -562,17 +581,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" is not defined.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Class ${class} is not defined.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -638,7 +663,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-instantiation-error";
+            return "class-instantiation-error";
         }
 
         public ClassInstantiationErrorReport(String className)
@@ -671,7 +696,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -699,17 +724,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" cannot be instanced.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Class ${class} cannot be instanced.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -777,7 +808,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-attribute-undefined";
+            return "class-attribute-undefined";
         }
 
         public ClassAttributeUndefinedReport(String className, String attribute)
@@ -821,7 +852,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -851,19 +882,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" is not defined in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Attribute ${attribute} is not defined in class ${class}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -942,7 +978,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-attribute-type-mismatch";
+            return "class-attribute-type-mismatch";
         }
 
         public ClassAttributeTypeMismatchReport(String className, String attribute, String requiredType, String presentType)
@@ -1008,7 +1044,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1042,23 +1078,26 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Type mismatch of value in attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(". Present type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" doesn't match required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1147,7 +1186,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-attribute-required";
+            return "class-attribute-required";
         }
 
         public ClassAttributeRequiredReport(String className, String attribute)
@@ -1191,7 +1230,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1221,19 +1260,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" wasn't present but it is required.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Attribute ${attribute} in class ${class} wasn't present but it is required.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1308,7 +1352,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-attribute-readonly";
+            return "class-attribute-readonly";
         }
 
         public ClassAttributeReadonlyReport(String className, String attribute)
@@ -1352,7 +1396,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1382,19 +1426,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Value for attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" was present but the attribute is read-only.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1469,7 +1518,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-class-collection-required";
+            return "class-collection-required";
         }
 
         public ClassCollectionRequiredReport(String className, String collection)
@@ -1513,7 +1562,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1543,19 +1592,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("collection", collection);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" wasn't present or was empty but it is required.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Collection ${collection} in class ${class} wasn't present or was empty but it is required.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1628,7 +1682,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-collection-item-null";
+            return "collection-item-null";
         }
 
         public CollectionItemNullReport(String collection)
@@ -1661,7 +1715,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1689,17 +1743,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("collection", collection);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Null item cannot be present in collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Null item cannot be present in collection ${collection}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1769,7 +1829,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-collection-item-type-mismatch";
+            return "collection-item-type-mismatch";
         }
 
         public CollectionItemTypeMismatchReport(String collection, String requiredType, String presentType)
@@ -1824,7 +1884,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1856,21 +1916,25 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("collection", collection);
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(" contains item of type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" which doesn't match the required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1952,7 +2016,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-entity-not-found";
+            return "entity-not-found";
         }
 
         public EntityNotFoundReport(String entity, String id)
@@ -1996,7 +2060,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2026,19 +2090,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" was not found.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Entity ${entity} with identifier ${id} was not found.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2113,7 +2182,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-entity-invalid";
+            return "entity-invalid";
         }
 
         public EntityInvalidReport(String entity, String reason)
@@ -2157,7 +2226,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2187,18 +2256,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" validation failed: ");
-                    message.append((reason == null ? "null" : reason));
-                    break;
+                switch (language) {
+                    default:
+                        return "Entity ${entity} validation failed: ${reason}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2273,7 +2348,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-entity-not-deletable-referenced";
+            return "entity-not-deletable-referenced";
         }
 
         public EntityNotDeletableReferencedReport(String entity, String id)
@@ -2317,7 +2392,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2347,19 +2422,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be deleted because it is still referenced.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2432,7 +2512,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "common-method-not-defined";
+            return "method-not-defined";
         }
 
         public MethodNotDefinedReport(String method)
@@ -2465,7 +2545,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2493,17 +2573,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("method", method);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Method ");
-                    message.append((method == null ? "null" : method));
-                    message.append(" is not defined.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Method ${method} is not defined.";
+                }
             }
-            return message.toString();
         }
     }
 

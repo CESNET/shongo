@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.generator;
 
+import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -98,7 +99,7 @@ public abstract class AbstractGenerator
     {
         if (configuration == null) {
             configuration = new Configuration();
-            configuration.setObjectWrapper(new DefaultObjectWrapper());
+            configuration.setObjectWrapper(new BeansWrapper());
             configuration.setClassForTemplateLoading(AbstractGenerator.class, "/");
         }
         return configuration;

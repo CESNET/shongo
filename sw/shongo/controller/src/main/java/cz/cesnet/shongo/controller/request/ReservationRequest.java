@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
-import cz.cesnet.shongo.controller.util.MapReportSerializer;
 import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;

@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.util.MapReportSerializer;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
@@ -379,7 +378,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     {
         ExecutableStateReport executableStateReport = new ExecutableStateReport();
         for (ExecutableReport report : getCachedSortedReports()) {
-            executableStateReport.addReport(new MapReportSerializer(report));
+            executableStateReport.addReport(new StateReportSerializer(report));
         }
         return executableStateReport;
     }

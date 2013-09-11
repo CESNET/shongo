@@ -14,7 +14,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CommandFailedReport")
-    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport implements SerializableReport
+    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         protected String command;
 
@@ -28,7 +28,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "executor-command-failed";
+            return "command-failed";
         }
 
         public CommandFailedReport(String command, cz.cesnet.shongo.JadeReport jadeReport)
@@ -75,20 +75,6 @@ public class ExecutorReportSet extends AbstractReportSet
             return jadeReport.getResolution();
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            command = (String) reportSerializer.getParameter("command", String.class);
-            jadeReport = (cz.cesnet.shongo.JadeReport) reportSerializer.getParameter("jadeReport", cz.cesnet.shongo.JadeReport.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("command", command);
-            reportSerializer.setParameter("jadeReport", jadeReport);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
@@ -98,18 +84,25 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("jadeReport", jadeReport);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" failed: ");
-                    message.append((jadeReport == null ? "null" : jadeReport.getReportDescription(messageType)));
-                    break;
+                switch (language) {
+                    default:
+                        return "Command ${command} failed: ${jadeReport}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -168,7 +161,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("RoomNotStartedReport")
-    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport implements SerializableReport
+    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         protected String roomName;
 
@@ -180,7 +173,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "executor-room-not-started";
+            return "room-not-started";
         }
 
         public RoomNotStartedReport(String roomName)
@@ -213,18 +206,6 @@ public class ExecutorReportSet extends AbstractReportSet
             return Resolution.TRY_AGAIN;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            roomName = (String) reportSerializer.getParameter("roomName", String.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("roomName", roomName);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
@@ -234,17 +215,24 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("roomName", roomName);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Cannot modify room ");
-                    message.append((roomName == null ? "null" : roomName));
-                    message.append(", because it has not been started yet.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Cannot modify room ${roomName}, because it has not been started yet.";
+                }
             }
-            return message.toString();
         }
     }
 

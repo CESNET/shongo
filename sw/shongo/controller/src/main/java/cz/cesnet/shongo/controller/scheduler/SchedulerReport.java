@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
-import cz.cesnet.shongo.controller.util.MapReportSerializer;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.SerializableReport;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
@@ -14,7 +14,7 @@ import java.util.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class SchedulerReport extends AbstractReport implements SerializableReport
+public abstract class SchedulerReport extends AbstractReport
 {
     /**
      * Persistent object must have an unique id.
@@ -165,82 +165,6 @@ public abstract class SchedulerReport extends AbstractReport implements Serializ
     }
 
     /**
-     * @return formatted text and help of the {@link cz.cesnet.shongo.report.AbstractReport}
-     */
-    @Transient
-    public String getMessageRecursive(MessageType messageType)
-    {
-        // Get child reports
-        List<SchedulerReport> childReports = new LinkedList<SchedulerReport>();
-        getMessageRecursiveChildren(messageType, childReports);
-
-        StringBuilder messageBuilder = new StringBuilder();
-        String message = null;
-        if (isVisible(messageType)) {
-            // Append prefix
-            message = getMessage(messageType);
-            messageBuilder.append("-");
-            switch (getType()) {
-                case ERROR:
-                    messageBuilder.append("[ERROR] ");
-                    break;
-                default:
-                    break;
-            }
-
-            // Append message
-            if (childReports.size() > 0) {
-                message = message.replace("\n", String.format("\n  |%" + (messageBuilder.length() - 3) + "s", ""));
-            }
-            else {
-                message = message.replace("\n", String.format("\n%" + messageBuilder.length() + "s", ""));
-            }
-            messageBuilder.append(message);
-
-            // Append child reports
-            int childReportsCount = childReports.size();
-            for (int index = 0; index < childReportsCount; index++) {
-                String childReportString = childReports.get(index).getMessageRecursive(messageType);
-                if (childReportString != null) {
-                    messageBuilder.append("\n  |");
-                    messageBuilder.append("\n  +-");
-                    childReportString = childReportString.replace("\n",
-                            (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
-                    messageBuilder.append(childReportString);
-                }
-            }
-        }
-        else {
-            for (SchedulerReport childReport : childReports) {
-                if (messageBuilder.length() > 0) {
-                    messageBuilder.append("\n\n");
-                }
-                messageBuilder.append(childReport.getMessageRecursive(messageType));
-            }
-
-        }
-        return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
-    }
-
-    /**
-     * Add all visible child {@link SchedulerReport}s to given {@code childReports}.
-     *
-     * @param messageType for the visibility check
-     * @param childReports where all child reports should be added
-     */
-    public void getMessageRecursiveChildren(MessageType messageType, Collection<SchedulerReport> childReports)
-    {
-        for (SchedulerReport childReport : this.childReports) {
-            if (childReport.isVisible(messageType)) {
-                childReports.add(childReport);
-            }
-            else {
-                childReport.getMessageRecursiveChildren(messageType, childReports);
-            }
-        }
-    }
-
-    /**
      * @param messageType
      * @return true if the {@link SchedulerReport} is visible in message of given {@code messageType},
      *         false otherwise
@@ -281,7 +205,7 @@ public abstract class SchedulerReport extends AbstractReport implements Serializ
         Map<String, Object> report = null;
         List<Map<String, Object>> childReports;
         if (isVisible(messageType)) {
-            report = new MapReportSerializer(this);
+            report = new StateReportSerializer(this);
             reports.add(report);
             childReports = new LinkedList<Map<String, Object>>();
         }

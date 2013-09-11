@@ -50,7 +50,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "${report.scopeName}-${report.id}";
+            return "${report.id}";
         }
     <#if (report.getAllDeclaredParams()?size > 0)>
 
@@ -131,7 +131,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(MessageType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -174,38 +174,44 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
         </#if>
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            <#list report.getAllDeclaredParams() as param>
+            parameters.put("${param.getVariableName()}", ${param.getVariableName()});
+            </#list>
+            return parameters;
+        }
+
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
+        </#if>
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
+        <#if report.getMessages()??>
             switch (messageType) {
-        <#if report.hasUserMessage()>
-                case USER:
-            <#list report.getUserMessage() as messageLine>
-                    message.append(${messageLine});
-            </#list>
-                    break;
-        </#if>
-        <#if report.hasDomainAdminMessage()>
-                case DOMAIN_ADMIN:
-            <#list report.getDomainAdminMessage() as messageLine>
-                    message.append(${messageLine});
-            </#list>
-                    break;
-        </#if>
-        <#if report.hasResourceAdminMessage()>
-                case RESOURCE_ADMIN:
-            <#list report.getResourceAdminMessage() as messageLine>
-                    message.append(${messageLine});
-            </#list>
-                    break;
-        </#if>
+            <#list report.getMessages().entrySet() as typeEntry>
+                <#if typeEntry.key??>
+                case ${typeEntry.key}:
+                <#else>
                 default:
-        <#list report.getMessage() as messageLine>
-                    message.append(${messageLine});
-        </#list>
-                    break;
+                </#if>
+                switch (language) {
+                <#list typeEntry.value.entrySet() as languageEntry>
+                    <#if languageEntry.key??>
+                    case ${languageEntry.key}:
+                    <#else>
+                    default:
+                    </#if>
+                        return "${languageEntry.value.replaceAll('"', '\\\\"')}";
+                </#list>
+                }
+            </#list>
             }
-            return message.toString();
+        <#else>
+            return null;
+        </#if>
         }
     </#if>
     <#if report.isPersistent()>

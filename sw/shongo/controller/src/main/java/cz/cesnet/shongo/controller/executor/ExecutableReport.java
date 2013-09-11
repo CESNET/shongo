@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class ExecutableReport extends AbstractReport implements SerializableReport
+public abstract class ExecutableReport extends AbstractReport
 {
     /**
      * Persistent object must have an unique id.

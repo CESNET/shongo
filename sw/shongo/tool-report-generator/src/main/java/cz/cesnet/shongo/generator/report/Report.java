@@ -3,10 +3,10 @@ package cz.cesnet.shongo.generator.report;
 import cz.cesnet.shongo.generator.Formatter;
 import cz.cesnet.shongo.generator.GeneratorException;
 import cz.cesnet.shongo.generator.TodoException;
+import cz.cesnet.shongo.generator.xml.ReportFor;
+import cz.cesnet.shongo.generator.xml.ReportMessage;
 
-import javax.lang.model.type.DeclaredType;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Represents a report.
@@ -206,29 +206,18 @@ public class Report
                 exception.setRuntime(report.getException().isRuntime());
             }
         }
+        if (this.report.isApiFault() == null) {
+            this.report.setApiFault(report.isApiFault());
+        }
         if (this.report.getApiFaultCode() == null) {
             this.report.setApiFaultCode(report.getApiFaultCode());
         }
 
-        if (this.report.getUser() == null) {
-            this.report.setUser(report.getUser());
-        }
-        else if (report.getUser() != null) {
-            throw new TodoException("Merge user");
-        }
-
-        if (this.report.getDomainAdmin() == null) {
-            this.report.setDomainAdmin(report.getDomainAdmin());
-        }
-        else if (report.getDomainAdmin() != null) {
-            throw new TodoException("Merge domain admin");
-        }
-
-        if (this.report.getResourceAdmin() == null) {
-            this.report.setResourceAdmin(report.getResourceAdmin());
-        }
-        else if (report.getResourceAdmin() != null) {
-            throw new TodoException("Merge resource admin");
+        List<ReportFor> thisReportVisible = this.report.getVisible();
+        for (ReportFor reportFor : report.getVisible()) {
+            if (!thisReportVisible.contains(reportFor)) {
+                thisReportVisible.add(reportFor);
+            }
         }
     }
 
@@ -306,39 +295,101 @@ public class Report
         }
     }
 
-    public boolean hasUserMessage()
+    public String getDefaultMessage()
     {
-        return report.getUser() != null && report.getUser().getMessage() != null;
+        Map<ReportFor, Map<String, String>> messages = getMessages();
+        if (messages != null) {
+            Map<String, String> messagesForType = messages.get(null);
+            if (messagesForType != null) {
+                return messagesForType.get(null);
+            }
+        }
+        return null;
     }
 
-    public boolean hasDomainAdminMessage()
-    {
-        return report.getDomainAdmin() != null && report.getDomainAdmin().getMessage() != null;
-    }
+    /**
+     * Messages.
+     */
+    private Map<ReportFor, Map<String, String>> messages = null;
 
-    public boolean hasResourceAdminMessage()
-    {
-        return report.getResourceAdmin() != null && report.getResourceAdmin().getMessage() != null;
-    }
+    private Set<ReportFor> MESSAGE_TYPES = new HashSet<ReportFor>() {{
+        add(ReportFor.DOMAIN_ADMIN);
+        add(ReportFor.RESOURCE_ADMIN);
+        add(ReportFor.USER);
+        add(null);
+    }};
+    private Map<String, String> MESSAGE_LANGUAGES = new HashMap<String, String>() {{
+        put("en", "ENGLISH");
+        put("cs", "CZECH");
+        put(null, null);
+    }};
 
-    public Collection<String> getUserMessage()
+    /**
+     * @return map of messages by type and language
+     */
+    public Map<ReportFor, Map<String, String>> getMessages()
     {
-        return processMessage(report.getUser().getMessage());
-    }
+        if (messages == null && !isAbstract()) {
+            messages = new LinkedHashMap<ReportFor, Map<String, String>>();
 
-    public Collection<String> getDomainAdminMessage()
-    {
-        return processMessage(report.getDomainAdmin().getMessage());
-    }
+            // For each type
+            for (ReportFor type : MESSAGE_TYPES) {
+                List<ReportMessage> reportMessages = new LinkedList<ReportMessage>();
+                for (ReportMessage reportMessage : report.getMessage()) {
+                    if ((type == null && reportMessage.getFor().size() == 0)
+                            || (type != null && reportMessage.getFor().contains(type))) {
+                        reportMessages.add(reportMessage);
+                    }
+                }
+                if (reportMessages.size() == 0) {
+                    continue;
+                }
 
-    public Collection<String> getResourceAdminMessage()
-    {
-        return processMessage(report.getResourceAdmin().getMessage());
-    }
+                Map<String, String> languageMessages = new LinkedHashMap<String, String>();
+                messages.put(type, languageMessages);
 
-    public Collection<String> getMessage()
-    {
-        return processMessage(report.getMessage());
+                // For each language
+                for (String language : MESSAGE_LANGUAGES.keySet()) {
+                    ReportMessage languageReportMessage = null;
+                    for (ReportMessage reportMessage : reportMessages) {
+                        if ((reportMessage.getLang() == null && language == null)
+                                || (reportMessage.getLang() != null && reportMessage.getLang().equals(language))) {
+                            languageReportMessage = reportMessage;
+                            break;
+                        }
+                    }
+                    if (languageReportMessage == null) {
+                        continue;
+                    }
+                    String message = languageReportMessage.getValue();
+                    message = Formatter.formatString(message);
+                    languageMessages.put(MESSAGE_LANGUAGES.get(language), message);
+                }
+                // Default language
+                if (!languageMessages.containsKey(null)) {
+                    String defaultLanguage = MESSAGE_LANGUAGES.get("en");
+                    if (languageMessages.containsKey(defaultLanguage)) {
+                        languageMessages.put(null, languageMessages.get(defaultLanguage));
+                        languageMessages.remove(defaultLanguage);
+                    }
+                    else {
+                        throw new TodoException("Report " + report.getId() + " no message for default language for " + type + ".");
+                    }
+                }
+            }
+            // Default type
+            if (!messages.containsKey(null)) {
+                ReportFor defaultReportFor = ReportFor.DOMAIN_ADMIN;
+                if (messages.containsKey(defaultReportFor)) {
+                    messages.put(null, messages.get(defaultReportFor));
+                    messages.remove(defaultReportFor);
+                }
+                else {
+                    throw new TodoException("Report " + report.getId() + " has no message for default type.");
+                }
+            }
+        }
+        return messages;
     }
 
     private Collection<String> processMessage(String message)
@@ -392,7 +443,7 @@ public class Report
 
     public String getJavaDoc()
     {
-        String description = report.getMessage();
+        String description = getDefaultMessage();
         if (description == null) {
             return null;
         }
@@ -462,11 +513,7 @@ public class Report
      */
     public boolean isApiFault()
     {
-        cz.cesnet.shongo.generator.xml.ReportUser reportUser = report.getUser();
-        if (reportUser != null && reportUser.isVisible() != null && reportUser.isVisible()) {
-            return reportUser.getVia() != null && reportUser.getVia().equals(cz.cesnet.shongo.generator.xml.ReportUserVia.API);
-        }
-        return false;
+        return  report.isApiFault() != null && report.isApiFault();
     }
 
     /**
@@ -531,20 +578,23 @@ public class Report
     public String getVisibleFlags()
     {
         StringBuilder visibleFlags = new StringBuilder();
-        if (report.getUser() != null && report.getUser().isVisible() != null && report.getUser().isVisible()) {
-            visibleFlags.append("VISIBLE_TO_USER");
-        }
-        if (report.getDomainAdmin() != null && report.getDomainAdmin().isVisible()) {
-            if (visibleFlags.length() > 0) {
-                visibleFlags.append(" | ");
+        List<ReportFor> visible = report.getVisible();
+        if (visible != null) {
+            if (visible.contains(ReportFor.USER)) {
+                visibleFlags.append("VISIBLE_TO_USER");
             }
-            visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
-        }
-        if (report.getResourceAdmin() != null && report.getResourceAdmin().isVisible()) {
-            if (visibleFlags.length() > 0) {
-                visibleFlags.append(" | ");
+            if (visible.contains(ReportFor.DOMAIN_ADMIN)) {
+                if (visibleFlags.length() > 0) {
+                    visibleFlags.append(" | ");
+                }
+                visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
             }
-            visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+            if (visible.contains(ReportFor.RESOURCE_ADMIN)) {
+                if (visibleFlags.length() > 0) {
+                    visibleFlags.append(" | ");
+                }
+                visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+            }
         }
         return (visibleFlags.length() > 0 ? visibleFlags.toString() : null);
     }

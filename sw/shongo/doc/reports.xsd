@@ -86,35 +86,25 @@
         <xs:attribute name="value" type="xs:string" use="required"/>
     </xs:complexType>
 
-    <xs:complexType name="report-user">
-        <xs:sequence>
-            <xs:element name="description" type="xs:string" minOccurs="0"/>
-            <xs:element name="message" type="xs:string" minOccurs="0"/>
-        </xs:sequence>
-        <xs:attribute name="visible" type="xs:boolean"/>
-        <xs:attribute name="via" type="report-user-via"/>
-    </xs:complexType>
-
-    <xs:simpleType name="report-user-via">
+    <xs:simpleType name="report-for">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="api"/>
+            <xs:enumeration value="domain-admin"/>
+            <xs:enumeration value="resource-admin"/>
+            <xs:enumeration value="user"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:complexType name="report-domain-admin">
-        <xs:sequence>
-            <xs:element name="description" type="xs:string" minOccurs="0"/>
-            <xs:element name="message" type="xs:string" minOccurs="0"/>
-        </xs:sequence>
-        <xs:attribute name="visible" type="xs:boolean"/>
-    </xs:complexType>
-
-    <xs:complexType name="report-resource-admin">
-        <xs:sequence>
-            <xs:element name="description" type="xs:string" minOccurs="0"/>
-            <xs:element name="message" type="xs:string" minOccurs="0"/>
-        </xs:sequence>
-        <xs:attribute name="visible" type="xs:boolean"/>
+    <xs:complexType name="report-message">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="lang" type="xs:string" use="optional"/>
+                <xs:attribute name="for" use="optional">
+                    <xs:simpleType>
+                        <xs:list itemType="report-for" />
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
 
     <xs:simpleType name="report-resolution-enum">
@@ -188,13 +178,15 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="message" type="xs:string" minOccurs="0" maxOccurs="1">
-                <xs:annotation>
-                    <xs:documentation>
-                        Message which will be displayed to users which can contain "${parameter}" variables.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:element>
+            <xs:sequence>
+                <xs:element name="message" type="report-message" minOccurs="0" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Message which will be displayed to users which can contain "${parameter}" variables.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
             <xs:element name="example" type="xs:string" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>
@@ -202,10 +194,24 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="user" type="report-user" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="domain-admin" type="report-domain-admin" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="resource-admin" type="report-resource-admin" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="visible" minOccurs="0" maxOccurs="1">
+                <xs:simpleType>
+                    <xs:restriction>
+                        <xs:simpleType>
+                            <xs:list itemType="report-for"/>
+                        </xs:simpleType>
+                        <xs:minLength value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
             <xs:element name="resolution" type="report-resolution" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="api-fault" type="xs:boolean" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Specifies whether report is api fault.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="serializable" type="xs:boolean" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>

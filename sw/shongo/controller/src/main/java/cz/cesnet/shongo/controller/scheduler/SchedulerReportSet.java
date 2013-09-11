@@ -10,11 +10,11 @@ import cz.cesnet.shongo.report.*;
 public class SchedulerReportSet extends AbstractReportSet
 {
     /**
-     * The {@link #resource}.
+     * Resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceReport")
-    public static class ResourceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ResourceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.resource.Resource resource;
 
@@ -26,7 +26,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource";
+            return "resource";
         }
 
         public ResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -54,40 +54,44 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    case CZECH:
+                        return "Zdroj ${resource}.";
+                    default:
+                        return "Resource ${resource}.";
+                }
             }
-            return message.toString();
         }
     }
 
     /**
-     * The {@link #resource} is not allocatable.
+     * The {@link #resource} is disabled for allocation.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAllocatableReport")
-    public static class ResourceNotAllocatableReport extends ResourceReport implements SerializableReport
+    public static class ResourceNotAllocatableReport extends ResourceReport
     {
         public ResourceNotAllocatableReport()
         {
@@ -97,7 +101,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-not-allocatable";
+            return "resource-not-allocatable";
         }
 
         public ResourceNotAllocatableReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -112,38 +116,35 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not allocatable.");
-                    break;
+                switch (language) {
+                    case CZECH:
+                        return "Rezervace zdroje ${resource} je zakázána.";
+                    default:
+                        return "The ${resource} is disabled for allocation.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -190,7 +191,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceAlreadyAllocatedReport")
-    public static class ResourceAlreadyAllocatedReport extends ResourceReport implements SerializableReport
+    public static class ResourceAlreadyAllocatedReport extends ResourceReport
     {
         public ResourceAlreadyAllocatedReport()
         {
@@ -200,7 +201,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-already-allocated";
+            return "resource-already-allocated";
         }
 
         public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -215,38 +216,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is already allocated.");
-                    break;
+                switch (language) {
+                    default:
+                        return "The ${resource} is already allocated.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -293,7 +289,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAvailableReport")
-    public static class ResourceNotAvailableReport extends ResourceReport implements SerializableReport
+    public static class ResourceNotAvailableReport extends ResourceReport
     {
         protected org.joda.time.DateTime maxDateTime;
 
@@ -305,7 +301,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-not-available";
+            return "resource-not-available";
         }
 
         public ResourceNotAvailableReport(cz.cesnet.shongo.controller.resource.Resource resource, org.joda.time.DateTime maxDateTime)
@@ -333,42 +329,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-            maxDateTime = (org.joda.time.DateTime) reportSerializer.getParameter("maxDateTime", org.joda.time.DateTime.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
-            reportSerializer.setParameter("maxDateTime", maxDateTime);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("maxDateTime", maxDateTime);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
-                    message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "The ${resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -422,7 +410,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotEndpointReport")
-    public static class ResourceNotEndpointReport extends ResourceReport implements SerializableReport
+    public static class ResourceNotEndpointReport extends ResourceReport
     {
         public ResourceNotEndpointReport()
         {
@@ -432,7 +420,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-not-endpoint";
+            return "resource-not-endpoint";
         }
 
         public ResourceNotEndpointReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -447,38 +435,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not endpoint.");
-                    break;
+                switch (language) {
+                    default:
+                        return "The ${resource} is not endpoint.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -525,7 +508,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceMultipleRequestedReport")
-    public static class ResourceMultipleRequestedReport extends ResourceReport implements SerializableReport
+    public static class ResourceMultipleRequestedReport extends ResourceReport
     {
         public ResourceMultipleRequestedReport()
         {
@@ -535,7 +518,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-multiple-requested";
+            return "resource-multiple-requested";
         }
 
         public ResourceMultipleRequestedReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -550,38 +533,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is requested multiple times.");
-                    break;
+                switch (language) {
+                    default:
+                        return "The ${resource} is requested multiple times.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -628,7 +606,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotFoundReport")
-    public static class ResourceNotFoundReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ResourceNotFoundReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected java.util.Set<cz.cesnet.shongo.Technology> technologies;
 
@@ -640,7 +618,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-resource-not-found";
+            return "resource-not-found";
         }
 
         public ResourceNotFoundReport(java.util.Set<cz.cesnet.shongo.Technology> technologies)
@@ -666,37 +644,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            technologies = (java.util.Set<cz.cesnet.shongo.Technology>) reportSerializer.getParameter("technologies", java.util.Set.class, cz.cesnet.shongo.Technology.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("technologies", technologies);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("No available resource was found for the following specification: Technologies: ");
-                    message.append((technologies == null ? "null" : technologies.toString()));
-                    break;
+                switch (language) {
+                    default:
+                        return "No available resource was found for the following specification: Technologies: ${technologies}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -748,7 +722,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ExecutableReusingReport")
-    public static class ExecutableReusingReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ExecutableReusingReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.executor.Executable executable;
 
@@ -760,7 +734,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-executable-reusing";
+            return "executable-reusing";
         }
 
         public ExecutableReusingReport(cz.cesnet.shongo.controller.executor.Executable executable)
@@ -788,31 +762,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            executable = (cz.cesnet.shongo.controller.executor.Executable) reportSerializer.getParameter("executable", cz.cesnet.shongo.controller.executor.Executable.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("executable", executable);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("executable", executable);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Reusing existing ");
-                    message.append((executable == null ? "null" : executable.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Reusing existing ${executable}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -821,7 +797,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CompartmentNotEnoughEndpointReport")
-    public static class CompartmentNotEnoughEndpointReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class CompartmentNotEnoughEndpointReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public CompartmentNotEnoughEndpointReport()
         {
@@ -831,7 +807,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-compartment-not-enough-endpoint";
+            return "compartment-not-enough-endpoint";
         }
 
         @javax.persistence.Transient
@@ -841,34 +817,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Not enough endpoints are requested for the compartment.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Not enough endpoints are requested for the compartment.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -913,7 +887,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CompartmentAssignAliasToExternalEndpointReport")
-    public static class CompartmentAssignAliasToExternalEndpointReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class CompartmentAssignAliasToExternalEndpointReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public CompartmentAssignAliasToExternalEndpointReport()
         {
@@ -923,7 +897,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-compartment-assign-alias-to-external-endpoint";
+            return "compartment-assign-alias-to-external-endpoint";
         }
 
         @javax.persistence.Transient
@@ -933,34 +907,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Cannot assign alias to allocated external endpoint.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Cannot assign alias to allocated external endpoint.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1002,7 +974,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ConnectionReport")
-    public static abstract class ConnectionReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static abstract class ConnectionReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.executor.Endpoint endpointFrom;
 
@@ -1016,7 +988,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-connection";
+            return "connection";
         }
 
         public ConnectionReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -1068,7 +1040,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ConnectionBetweenReport")
-    public static class ConnectionBetweenReport extends ConnectionReport implements SerializableReport
+    public static class ConnectionBetweenReport extends ConnectionReport
     {
         protected cz.cesnet.shongo.Technology technology;
 
@@ -1080,7 +1052,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-connection-between";
+            return "connection-between";
         }
 
         public ConnectionBetweenReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo, cz.cesnet.shongo.Technology technology)
@@ -1109,39 +1081,35 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            endpointFrom = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointFrom", cz.cesnet.shongo.controller.executor.Endpoint.class);
-            endpointTo = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointTo", cz.cesnet.shongo.controller.executor.Endpoint.class);
-            technology = (cz.cesnet.shongo.Technology) reportSerializer.getParameter("technology", cz.cesnet.shongo.Technology.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("endpointFrom", endpointFrom);
-            reportSerializer.setParameter("endpointTo", endpointTo);
-            reportSerializer.setParameter("technology", technology);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            parameters.put("technology", technology);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Creating connection between ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" and ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(" in technology ");
-                    message.append((technology == null ? "null" : technology.toString()));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1150,7 +1118,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ConnectionFromToReport")
-    public static class ConnectionFromToReport extends ConnectionReport implements SerializableReport
+    public static class ConnectionFromToReport extends ConnectionReport
     {
         public ConnectionFromToReport()
         {
@@ -1160,7 +1128,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-connection-from-to";
+            return "connection-from-to";
         }
 
         public ConnectionFromToReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -1176,35 +1144,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            endpointFrom = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointFrom", cz.cesnet.shongo.controller.executor.Endpoint.class);
-            endpointTo = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointTo", cz.cesnet.shongo.controller.executor.Endpoint.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("endpointFrom", endpointFrom);
-            reportSerializer.setParameter("endpointTo", endpointTo);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Creating connection from ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" to ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Creating connection from ${endpointFrom} to ${endpointTo}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1213,7 +1180,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ConnectionToMultipleReport")
-    public static class ConnectionToMultipleReport extends ConnectionReport implements SerializableReport
+    public static class ConnectionToMultipleReport extends ConnectionReport
     {
         public ConnectionToMultipleReport()
         {
@@ -1223,7 +1190,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-connection-to-multiple";
+            return "connection-to-multiple";
         }
 
         public ConnectionToMultipleReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -1239,35 +1206,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            endpointFrom = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointFrom", cz.cesnet.shongo.controller.executor.Endpoint.class);
-            endpointTo = (cz.cesnet.shongo.controller.executor.Endpoint) reportSerializer.getParameter("endpointTo", cz.cesnet.shongo.controller.executor.Endpoint.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("endpointFrom", endpointFrom);
-            reportSerializer.setParameter("endpointTo", endpointTo);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Cannot create connection from ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" to ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(", because the target represents multiple endpoints (not supported yet).");
-                    break;
+                switch (language) {
+                    default:
+                        return "Cannot create connection from ${endpointFrom} to ${endpointTo}, because the target represents multiple endpoints (not supported yet).";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1316,7 +1282,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
-    public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
@@ -1328,7 +1294,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-reservation-request-not-usable";
+            return "reservation-request-not-usable";
         }
 
         public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
@@ -1356,38 +1322,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            reservationRequest = (cz.cesnet.shongo.controller.request.AbstractReservationRequest) reportSerializer.getParameter("reservationRequest", cz.cesnet.shongo.controller.request.AbstractReservationRequest.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("reservationRequest", reservationRequest);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservationRequest", reservationRequest);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("No reservation is allocated for reused ");
-                    message.append((reservationRequest == null ? "null" : reservationRequest.getReportDescription(messageType)));
-                    message.append(" which can be used in requested time slot.");
-                    break;
+                switch (language) {
+                    default:
+                        return "No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1436,7 +1397,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationReport")
-    public static abstract class ReservationReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static abstract class ReservationReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.reservation.Reservation reservation;
 
@@ -1448,7 +1409,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-reservation";
+            return "reservation";
         }
 
         public ReservationReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
@@ -1475,7 +1436,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
-    public static class ReservationNotAvailableReport extends ReservationReport implements SerializableReport
+    public static class ReservationNotAvailableReport extends ReservationReport
     {
         protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest;
 
@@ -1487,7 +1448,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-reservation-not-available";
+            return "reservation-not-available";
         }
 
         public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
@@ -1516,42 +1477,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            reservation = (cz.cesnet.shongo.controller.reservation.Reservation) reportSerializer.getParameter("reservation", cz.cesnet.shongo.controller.reservation.Reservation.class);
-            reusedReservationRequest = (cz.cesnet.shongo.controller.request.AbstractReservationRequest) reportSerializer.getParameter("reusedReservationRequest", cz.cesnet.shongo.controller.request.AbstractReservationRequest.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("reservation", reservation);
-            reportSerializer.setParameter("reusedReservationRequest", reusedReservationRequest);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservation", reservation);
+            parameters.put("reusedReservationRequest", reusedReservationRequest);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The ");
-                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(" from reused ");
-                    message.append((reusedReservationRequest == null ? "null" : reusedReservationRequest.getReportDescription(messageType)));
-                    message.append(" is not available because it is already allocated for another reservation request in requested time slot.");
-                    break;
+                switch (language) {
+                    default:
+                        return "The ${reservation} from reused ${reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1605,7 +1558,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationReusingReport")
-    public static class ReservationReusingReport extends ReservationReport implements SerializableReport
+    public static class ReservationReusingReport extends ReservationReport
     {
         public ReservationReusingReport()
         {
@@ -1615,7 +1568,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-reservation-reusing";
+            return "reservation-reusing";
         }
 
         public ReservationReusingReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
@@ -1630,31 +1583,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            reservation = (cz.cesnet.shongo.controller.reservation.Reservation) reportSerializer.getParameter("reservation", cz.cesnet.shongo.controller.reservation.Reservation.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("reservation", reservation);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservation", reservation);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Reusing ");
-                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Reusing ${reservation}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1663,7 +1618,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ValueAlreadyAllocatedReport")
-    public static class ValueAlreadyAllocatedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ValueAlreadyAllocatedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected String value;
 
@@ -1675,7 +1630,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-value-already-allocated";
+            return "value-already-allocated";
         }
 
         public ValueAlreadyAllocatedReport(String value)
@@ -1701,38 +1656,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            value = (String) reportSerializer.getParameter("value", String.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("value", value);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is already allocated.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Value ${value} is already allocated.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1784,7 +1734,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ValueInvalidReport")
-    public static class ValueInvalidReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ValueInvalidReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected String value;
 
@@ -1796,7 +1746,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-value-invalid";
+            return "value-invalid";
         }
 
         public ValueInvalidReport(String value)
@@ -1822,38 +1772,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            value = (String) reportSerializer.getParameter("value", String.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("value", value);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is invalid.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Value ${value} is invalid.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1905,7 +1850,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ValueNotAvailableReport")
-    public static class ValueNotAvailableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class ValueNotAvailableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public ValueNotAvailableReport()
         {
@@ -1915,7 +1860,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-value-not-available";
+            return "value-not-available";
         }
 
         @javax.persistence.Transient
@@ -1925,34 +1870,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("No value is available.");
-                    break;
+                switch (language) {
+                    default:
+                        return "No value is available.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1997,7 +1940,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingResourceReport")
-    public static class AllocatingResourceReport extends ResourceReport implements SerializableReport
+    public static class AllocatingResourceReport extends ResourceReport
     {
         public AllocatingResourceReport()
         {
@@ -2007,7 +1950,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-resource";
+            return "allocating-resource";
         }
 
         public AllocatingResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -2022,31 +1965,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating the ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating the ${resource}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2058,7 +2003,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingAliasReport")
-    public static class AllocatingAliasReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class AllocatingAliasReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected java.util.Set<cz.cesnet.shongo.Technology> technologies;
 
@@ -2074,7 +2019,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-alias";
+            return "allocating-alias";
         }
 
         public AllocatingAliasReport(java.util.Set<cz.cesnet.shongo.Technology> technologies, java.util.Set<cz.cesnet.shongo.AliasType> aliasTypes, String value)
@@ -2124,45 +2069,35 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            technologies = (java.util.Set<cz.cesnet.shongo.Technology>) reportSerializer.getParameter("technologies", java.util.Set.class, cz.cesnet.shongo.Technology.class);
-            aliasTypes = (java.util.Set<cz.cesnet.shongo.AliasType>) reportSerializer.getParameter("aliasTypes", java.util.Set.class, cz.cesnet.shongo.AliasType.class);
-            value = (String) reportSerializer.getParameter("value", String.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("technologies", technologies);
-            reportSerializer.setParameter("aliasTypes", aliasTypes);
-            reportSerializer.setParameter("value", value);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            parameters.put("aliasTypes", aliasTypes);
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating alias for the following specification: \n  Technology: ");
-                    message.append(((technologies == null || technologies.isEmpty()) ? "Any" : technologies.toString()));
-                    message.append(" \n  Alias Type: ");
-                    message.append(((aliasTypes == null || aliasTypes.isEmpty()) ? "Any" : aliasTypes.toString()));
-                    message.append(" \n       Value: ");
-                    message.append((value == null ? "Any" : value));
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating alias for the following specification: \n  Technology: ${ifNull(technologies, \"Any\")} \n  Alias Type: ${ifNull(aliasTypes, \"Any\")} \n       Value: ${ifNull(value, \"Any\")}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2171,7 +2106,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingValueReport")
-    public static class AllocatingValueReport extends ResourceReport implements SerializableReport
+    public static class AllocatingValueReport extends ResourceReport
     {
         public AllocatingValueReport()
         {
@@ -2181,7 +2116,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-value";
+            return "allocating-value";
         }
 
         public AllocatingValueReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -2196,31 +2131,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            resource = (cz.cesnet.shongo.controller.resource.Resource) reportSerializer.getParameter("resource", cz.cesnet.shongo.controller.resource.Resource.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("resource", resource);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating value in the ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating value in the ${resource}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2231,7 +2168,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
-    public static class AllocatingRoomReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class AllocatingRoomReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies;
 
@@ -2245,7 +2182,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-room";
+            return "allocating-room";
         }
 
         public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies, Integer participantCount)
@@ -2283,41 +2220,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            technologies = (java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet>) reportSerializer.getParameter("technologies", java.util.List.class, cz.cesnet.shongo.controller.scheduler.TechnologySet.class);
-            participantCount = (Integer) reportSerializer.getParameter("participantCount", Integer.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("technologies", technologies);
-            reportSerializer.setParameter("participantCount", participantCount);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            parameters.put("participantCount", participantCount);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating room for the following specification: \n    Technology: ");
-                    message.append((technologies == null ? "null" : technologies.toString()));
-                    message.append(" \n  Participants: ");
-                    message.append((participantCount == null ? "null" : participantCount.toString()));
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating room for the following specification: \n    Technology: ${technologies} \n  Participants: ${participantCount}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2326,7 +2256,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingCompartmentReport")
-    public static class AllocatingCompartmentReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class AllocatingCompartmentReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public AllocatingCompartmentReport()
         {
@@ -2336,7 +2266,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-compartment";
+            return "allocating-compartment";
         }
 
         @javax.persistence.Transient
@@ -2346,27 +2276,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating compartment.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating compartment.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2375,7 +2310,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingExecutableReport")
-    public static class AllocatingExecutableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class AllocatingExecutableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public AllocatingExecutableReport()
         {
@@ -2385,7 +2320,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-allocating-executable";
+            return "allocating-executable";
         }
 
         @javax.persistence.Transient
@@ -2395,27 +2330,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Allocating executable.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Allocating executable.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2424,7 +2364,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationCheckingAvailabilityReport")
-    public static class SpecificationCheckingAvailabilityReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class SpecificationCheckingAvailabilityReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public SpecificationCheckingAvailabilityReport()
         {
@@ -2434,7 +2374,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-specification-checking-availability";
+            return "specification-checking-availability";
         }
 
         @javax.persistence.Transient
@@ -2444,27 +2384,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Checking specification availability report.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Checking specification availability report.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2473,7 +2418,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("FindingAvailableResourceReport")
-    public static class FindingAvailableResourceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class FindingAvailableResourceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public FindingAvailableResourceReport()
         {
@@ -2483,7 +2428,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-finding-available-resource";
+            return "finding-available-resource";
         }
 
         @javax.persistence.Transient
@@ -2493,27 +2438,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Finding available resource.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Finding available resource.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2522,7 +2472,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SortingResourcesReport")
-    public static class SortingResourcesReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class SortingResourcesReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public SortingResourcesReport()
         {
@@ -2532,7 +2482,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-sorting-resources";
+            return "sorting-resources";
         }
 
         @javax.persistence.Transient
@@ -2542,27 +2492,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.INFORMATION;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Sorting resources.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Sorting resources.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2571,7 +2526,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationNotReadyReport")
-    public static class SpecificationNotReadyReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class SpecificationNotReadyReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.request.Specification specification;
 
@@ -2583,7 +2538,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-specification-not-ready";
+            return "specification-not-ready";
         }
 
         public SpecificationNotReadyReport(cz.cesnet.shongo.controller.request.Specification specification)
@@ -2611,31 +2566,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            specification = (cz.cesnet.shongo.controller.request.Specification) reportSerializer.getParameter("specification", cz.cesnet.shongo.controller.request.Specification.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("specification", specification);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("specification", specification);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Specification ");
-                    message.append((specification == null ? "null" : specification.getReportDescription(messageType)));
-                    message.append(" is not ready.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Specification ${specification} is not ready.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2687,7 +2644,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("DurationLongerThanMaximumReport")
-    public static class DurationLongerThanMaximumReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class DurationLongerThanMaximumReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected org.joda.time.Period duration;
 
@@ -2701,7 +2658,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-duration-longer-than-maximum";
+            return "duration-longer-than-maximum";
         }
 
         public DurationLongerThanMaximumReport(org.joda.time.Period duration, org.joda.time.Period maximumDuration)
@@ -2741,42 +2698,34 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
-        @Override
-        public void readParameters(ReportSerializer reportSerializer)
-        {
-            duration = (org.joda.time.Period) reportSerializer.getParameter("duration", org.joda.time.Period.class);
-            maximumDuration = (org.joda.time.Period) reportSerializer.getParameter("maximumDuration", org.joda.time.Period.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("duration", duration);
-            reportSerializer.setParameter("maximumDuration", maximumDuration);
-        }
-
         @javax.persistence.Transient
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("duration", duration);
+            parameters.put("maximumDuration", maximumDuration);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Duration ");
-                    message.append((duration == null ? "null" : duration.toString()));
-                    message.append(" is longer than maximum ");
-                    message.append((maximumDuration == null ? "null" : maximumDuration.toString()));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Duration ${duration} is longer than maximum ${maximumDuration}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2835,7 +2784,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationNotAllocatableReport")
-    public static class SpecificationNotAllocatableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class SpecificationNotAllocatableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.request.Specification specification;
 
@@ -2847,7 +2796,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-specification-not-allocatable";
+            return "specification-not-allocatable";
         }
 
         public SpecificationNotAllocatableReport(cz.cesnet.shongo.controller.request.Specification specification)
@@ -2875,31 +2824,33 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-            specification = (cz.cesnet.shongo.controller.request.Specification) reportSerializer.getParameter("specification", cz.cesnet.shongo.controller.request.Specification.class);
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
-            reportSerializer.setParameter("specification", specification);
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("specification", specification);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("The specification ");
-                    message.append((specification == null ? "null" : specification.getClass().getSimpleName()));
-                    message.append(" is not supposed to be allocated.");
-                    break;
+                switch (language) {
+                    default:
+                        return "The specification ${className(specification)} is not supposed to be allocated.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -2951,7 +2902,7 @@ public class SchedulerReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("UserNotOwnerReport")
-    public static class UserNotOwnerReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport implements SerializableReport
+    public static class UserNotOwnerReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         public UserNotOwnerReport()
         {
@@ -2961,7 +2912,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "scheduler-user-not-owner";
+            return "user-not-owner";
         }
 
         @javax.persistence.Transient
@@ -2971,27 +2922,32 @@ public class SchedulerReportSet extends AbstractReportSet
             return Report.Type.ERROR;
         }
 
+        @javax.persistence.Transient
         @Override
-        public void readParameters(ReportSerializer reportSerializer)
+        public int getVisibleFlags()
         {
-        }
-
-        @Override
-        public void writeParameters(ReportSerializer reportSerializer)
-        {
+            return VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("User is not resource owner.");
-                    break;
+                switch (language) {
+                    default:
+                        return "User is not resource owner.";
+                }
             }
-            return message.toString();
         }
     }
 

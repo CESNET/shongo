@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.report;
 
+import java.util.Map;
+
 /**
  * Represents a error/warning/information/debug message in Shongo which should be reported to user,
  * resource administrator and/or domain administrator.
@@ -8,6 +10,9 @@ package cz.cesnet.shongo.report;
  */
 public abstract class AbstractReport implements Report, Reportable
 {
+    @Override
+    public abstract String getUniqueId();
+
     @Override
     public String getName()
     {
@@ -18,14 +23,17 @@ public abstract class AbstractReport implements Report, Reportable
     public abstract Type getType();
 
     @Override
-    public abstract String getMessage(MessageType messageType);
+    public abstract Map<String, Object> getParameters();
+
+    @Override
+    public abstract String getMessage(MessageType messageType, Language language);
 
     /**
      * @return {@link MessageType#DOMAIN_ADMIN} report message
      */
     public final String getMessage()
     {
-        return getMessage(AbstractReport.MessageType.DOMAIN_ADMIN);
+        return getMessage(MessageType.DOMAIN_ADMIN, Language.ENGLISH);
     }
 
     @Override
@@ -58,6 +66,6 @@ public abstract class AbstractReport implements Report, Reportable
     @Override
     public String getReportDescription(MessageType messageType)
     {
-        return getMessage(messageType);
+        return getMessage(messageType, Language.ENGLISH);
     }
 }

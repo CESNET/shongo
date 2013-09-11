@@ -208,12 +208,12 @@
             <message>
                 Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}
             </message>
+            <message for="user">
+                Command ${command} ended with error.
+            </message>
             <example>
                 TODO:
             </example>
-            <user>
-                <message>Command ${command} ended with error.</message>
-            </user>
             <resolution>stop</resolution>
         </report>
 
@@ -240,6 +240,7 @@
     <scope name="common">
 
         <template>
+            <api-fault>true</api-fault>
             <api-fault-code>0</api-fault-code>
             <exception runtime="true"/>
         </template>
@@ -256,13 +257,11 @@
             <message>
                 Unknown error: ${description}
             </message>
+            <message for="user">Unknown error.</message>
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api">
-                <message>Unknown error.</message>
-            </user>
-            <domain-admin visible="true"/>
+            <visible>domain-admin user</visible>
         </report>
 
         <report>
@@ -281,7 +280,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -306,7 +305,7 @@
                 -Partial Date/Time
                 -DeviceResource.Mode
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -324,7 +323,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -342,7 +341,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -361,7 +360,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -383,7 +382,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -402,7 +401,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -421,7 +420,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -440,7 +439,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -458,7 +457,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -479,7 +478,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -498,7 +497,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -517,7 +516,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -536,7 +535,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -554,7 +553,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
     </scope>
@@ -562,6 +561,7 @@
     <scope name="controller">
 
         <template>
+            <api-fault>true</api-fault>
             <api-fault-code>100</api-fault-code>
             <exception runtime="true"/>
         </template>
@@ -581,7 +581,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -600,7 +600,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -615,8 +615,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
-            <domain-admin visible="true"/>
+            <visible>domain-admin user</visible>
         </report>
 
         <report>
@@ -634,8 +633,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
-            <domain-admin visible="true"/>
+            <visible>domain-admin user</visible>
         </report>
 
         <report>
@@ -653,7 +651,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -673,9 +671,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
-            <domain-admin visible="true"/>
-            <resource-admin visible="true"/>
+            <visible>domain-admin resource-admin user</visible>
         </report>
 
         <report>
@@ -693,7 +689,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -712,7 +708,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -731,7 +727,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -749,7 +745,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -767,7 +763,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -785,7 +781,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -803,7 +799,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -821,7 +817,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -836,7 +832,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="api"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -851,7 +847,7 @@
             <message>
                 Reservation request with identifier ${id} cannot be reused.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
     </scope>
@@ -859,7 +855,7 @@
     <scope name="scheduler">
 
         <template extends="cz.cesnet.shongo.controller.scheduler.SchedulerReport">
-            <serializable>true</serializable>
+            <visible>domain-admin</visible>
             <persistent>true</persistent>
             <exception base-class="cz.cesnet.shongo.controller.scheduler.SchedulerException"/>
         </template>
@@ -877,8 +873,11 @@
             <description>
                 TODO:
             </description>
-            <message>
-                The ${resource}.
+            <message lang="en">
+                Resource ${resource}.
+            </message>
+            <message lang="cs">
+                Zdroj ${resource}.
             </message>
         </report>
 
@@ -888,10 +887,13 @@
             <description>
                 TODO:
             </description>
-            <message>
-                The ${resource} is not allocatable.
+            <message lang="en">
+                The ${resource} is disabled for allocation.
             </message>
-            <user visible="true"/>
+            <message lang="cs">
+                Rezervace zdroje ${resource} je zakázána.
+            </message>
+            <visible>user</visible>
         </report>
 
         <report extends="resource">
@@ -903,7 +905,7 @@
             <message>
                 The ${resource} is already allocated.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report extends="resource">
@@ -919,7 +921,7 @@
                 The ${resource} is not available for the requested time slot.
                 The maximum date/time for which the resource can be allocated is ${maxDateTime}.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report extends="resource">
@@ -931,7 +933,7 @@
             <message>
                 The ${resource} is not endpoint.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report extends="resource">
@@ -943,7 +945,7 @@
             <message>
                 The ${resource} is requested multiple times.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -959,7 +961,7 @@
                 No available resource was found for the following specification:
                   Technologies: ${technologies}
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
 
@@ -995,7 +997,7 @@
             <message>
                 Not enough endpoints are requested for the compartment.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -1007,7 +1009,7 @@
             <message>
                 Cannot assign alias to allocated external endpoint.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
 
@@ -1077,7 +1079,7 @@
             <message>
                 No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report abstract="true">
@@ -1100,7 +1102,7 @@
                 The ${reservation} from reused ${reusedReservationRequest} is not available because it is already
                 allocated for another reservation request in requested time slot.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report extends="reservation">
@@ -1131,7 +1133,7 @@
             <message>
                 Value ${value} is already allocated.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -1146,7 +1148,7 @@
             <message>
                 Value ${value} is invalid.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -1158,7 +1160,7 @@
             <message>
                 No value is available.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
 
@@ -1194,7 +1196,6 @@
                 \n  Alias Type: ${ifNull(aliasTypes, "Any")}
                 \n       Value: ${ifNull(value, "Any")}
             </message>
-            <user visible="true"/>
         </report>
 
         <report extends="resource">
@@ -1223,7 +1224,7 @@
                 \n    Technology: ${technologies}
                 \n  Participants: ${participantCount}
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -1318,7 +1319,7 @@
             <message>
                 Duration ${duration} is longer than maximum ${maximumDuration}.
             </message>
-            <user visible="true"/>
+            <visible>user</visible>
         </report>
 
         <report>
@@ -1351,7 +1352,7 @@
     <scope name="executor">
 
         <template extends="cz.cesnet.shongo.controller.executor.ExecutableReport">
-            <serializable>true</serializable>
+            <visible>domain-admin resource-admin</visible>
             <persistent>true</persistent>
         </template>
 
@@ -1369,9 +1370,8 @@
                 Command ${command} failed: ${jadeReport}
             </message>
             <example>
+                TODO:
             </example>
-            <domain-admin visible="true"/>
-            <resource-admin visible="true"/>
             <resolution param="jadeReport"/>
         </report>
 
@@ -1388,9 +1388,8 @@
                 Cannot modify room ${roomName}, because it has not been started yet.
             </message>
             <example>
+                TODO:
             </example>
-            <domain-admin visible="true"/>
-            <resource-admin visible="true"/>
             <resolution>try-again</resolution>
         </report>
 

@@ -23,7 +23,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-unknown-error";
+            return "unknown-error";
         }
 
         public UnknownErrorReport(String description)
@@ -66,16 +66,23 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Unknown error: ");
-                    message.append((description == null ? "null" : description));
-                    break;
+                switch (language) {
+                    default:
+                        return "Unknown error: ${description}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -136,7 +143,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-agent-not-found";
+            return "agent-not-found";
         }
 
         public AgentNotFoundReport(String receiverAgent)
@@ -179,17 +186,23 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" is not available now.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Receiver agent ${receiverAgent} is not available now.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -250,7 +263,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-agent-not-started";
+            return "agent-not-started";
         }
 
         public AgentNotStartedReport(String senderAgent)
@@ -293,17 +306,23 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("senderAgent", senderAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Sender agent ");
-                    message.append((senderAgent == null ? "null" : senderAgent));
-                    message.append(" is not started yet.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Sender agent ${senderAgent} is not started yet.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -350,9 +369,6 @@ public class JadeReportSet extends AbstractReportSet
         }
     }
 
-    /**
-     * Abstract command error.
-     */
     public static abstract class CommandAbstractErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String command;
@@ -364,7 +380,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-abstract-error";
+            return "command-abstract-error";
         }
 
         public CommandAbstractErrorReport(String command)
@@ -423,7 +439,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-unknown-error";
+            return "command-unknown-error";
         }
 
         public CommandUnknownErrorReport(String command, String description)
@@ -469,18 +485,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Unknown error in command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(": ");
-                    message.append((description == null ? "null" : description));
-                    break;
+                switch (language) {
+                    default:
+                        return "Unknown error in command ${command}: ${description}";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -543,7 +565,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-timeout";
+            return "command-timeout";
         }
 
         public CommandTimeoutReport(String command, String receiverAgent)
@@ -589,19 +611,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" send to ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" has timeout.");
-                    break;
+                switch (language) {
+                    default:
+                        return "Command ${command} send to ${receiverAgent} has timeout.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -664,7 +691,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-not-supported";
+            return "command-not-supported";
         }
 
         public CommandNotSupportedReport(String command, String receiverAgent)
@@ -710,19 +737,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" doesn't implement command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Receiver agent ${receiverAgent} doesn't implement command ${command}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -785,7 +817,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-refused";
+            return "command-refused";
         }
 
         public CommandRefusedReport(String command, String receiverAgent)
@@ -831,19 +863,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" has refused command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Receiver agent ${receiverAgent} has refused command ${command}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -906,7 +943,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-not-understood";
+            return "command-not-understood";
         }
 
         public CommandNotUnderstoodReport(String command, String receiverAgent)
@@ -952,19 +989,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" didn't understand command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Receiver agent ${receiverAgent} didn't understand command ${command}.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1029,7 +1071,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-failed";
+            return "command-failed";
         }
 
         public CommandFailedReport(String command, String receiverAgent, String reason)
@@ -1088,25 +1130,30 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
-                case USER:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" ended with error.");
-                    break;
                 default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" failed to perform command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(": ");
-                    message.append((reason == null ? "null" : reason));
-                    break;
+                switch (language) {
+                    default:
+                        return "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}";
+                }
+                case USER:
+                switch (language) {
+                    default:
+                        return "Command ${command} ended with error.";
+                }
             }
-            return message.toString();
         }
     }
 
@@ -1176,7 +1223,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "jade-command-result-decoding-failed";
+            return "command-result-decoding-failed";
         }
 
         public CommandResultDecodingFailedReport(String command, String senderAgent)
@@ -1222,19 +1269,24 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("senderAgent", senderAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType, Language language)
+        {
             switch (messageType) {
                 default:
-                    message.append("Sender agent ");
-                    message.append((senderAgent == null ? "null" : senderAgent));
-                    message.append(" cannot decode response from command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
+                switch (language) {
+                    default:
+                        return "Sender agent ${senderAgent} cannot decode response from command ${command}.";
+                }
             }
-            return message.toString();
         }
     }
 

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.report;
 
+import java.util.Map;
+
 /**
  * Represents a error/warning/information/debug message in Shongo which should be reported to user,
  * resource administrator and/or domain administrator.
@@ -24,10 +26,15 @@ public interface Report
     public Type getType();
 
     /**
+     * @return {@link Map} of parameters of this {@link Report}
+     */
+    public Map<String, Object> getParameters();
+
+    /**
      * @param messageType
      * @return report message of given {@code messageType}
      */
-    public String getMessage(MessageType messageType);
+    public String getMessage(MessageType messageType, Language language);
 
     /**
      * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
@@ -62,6 +69,42 @@ public interface Report
          * Message for resource administrator.
          */
         RESOURCE_ADMIN
+    }
+
+    /**
+     * Enumeration of all possible languages for messages.
+     */
+    public static enum Language
+    {
+        CZECH("cs"),
+
+        /**
+         * Message for domain administrator.
+         */
+        ENGLISH("en");
+
+        /**
+         * Language code.
+         */
+        private String language;
+
+        /**
+         * Constructor.
+         *
+         * @param language sets the {@link #language}
+         */
+        private Language(String language)
+        {
+            this.language = language;
+        }
+
+        /**
+         * @return {@link #language}
+         */
+        public String getLanguage()
+        {
+            return language;
+        }
     }
 
     /**
