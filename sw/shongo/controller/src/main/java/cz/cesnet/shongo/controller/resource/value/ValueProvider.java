@@ -88,7 +88,7 @@ public abstract class ValueProvider extends PersistentObject
             valueProvider = new FilteredValueProvider(capability);
         }
         else {
-            throw new TodoImplementException(api.getClass().getName());
+            throw new TodoImplementException(api.getClass());
         }
         valueProvider.fromApi(api, entityManager);
         return valueProvider;

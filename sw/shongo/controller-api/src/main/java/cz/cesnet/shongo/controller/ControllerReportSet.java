@@ -28,12 +28,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * User {@link #user} doesn't exist.
      */
-    public static class UserNotExistReport extends Report implements ApiFault
+    public static class UserNotExistReport extends AbstractReport implements ApiFault
     {
         protected String user;
 
         public UserNotExistReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-user-not-exist";
         }
 
         public UserNotExistReport(String user)
@@ -88,7 +94,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -159,7 +165,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
      */
-    public static class AclInvalidRoleReport extends Report implements ApiFault
+    public static class AclInvalidRoleReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -167,6 +173,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public AclInvalidRoleReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-acl-invalid-role";
         }
 
         public AclInvalidRoleReport(String entity, String role)
@@ -234,7 +246,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -314,10 +326,16 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Security token is missing but is required.
      */
-    public static class SecurityMissingTokenReport extends Report implements ApiFault
+    public static class SecurityMissingTokenReport extends AbstractReport implements ApiFault
     {
         public SecurityMissingTokenReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-security-missing-token";
         }
 
         @Override
@@ -355,7 +373,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
@@ -417,12 +435,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Invalid security token {@link #token}.
      */
-    public static class SecurityInvalidTokenReport extends Report implements ApiFault
+    public static class SecurityInvalidTokenReport extends AbstractReport implements ApiFault
     {
         protected String token;
 
         public SecurityInvalidTokenReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-security-invalid-token";
         }
 
         public SecurityInvalidTokenReport(String token)
@@ -477,7 +501,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
@@ -548,12 +572,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * You are not authorized to {@link #action}.
      */
-    public static class SecurityNotAuthorizedReport extends Report implements ApiFault
+    public static class SecurityNotAuthorizedReport extends AbstractReport implements ApiFault
     {
         protected String action;
 
         public SecurityNotAuthorizedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-security-not-authorized";
         }
 
         public SecurityNotAuthorizedReport(String action)
@@ -608,7 +638,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -679,7 +709,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Command {@link #command} for device {@link #device} failed: {@link #jadeReport}
      */
-    public static class DeviceCommandFailedReport extends Report implements ApiFault, ResourceReport
+    public static class DeviceCommandFailedReport extends AbstractReport implements ApiFault, ResourceReport
     {
         protected String device;
 
@@ -689,6 +719,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public DeviceCommandFailedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-device-command-failed";
         }
 
         public DeviceCommandFailedReport(String device, String command, cz.cesnet.shongo.JadeReport jadeReport)
@@ -775,7 +811,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
@@ -863,12 +899,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} is invalid.
      */
-    public static class IdentifierInvalidReport extends Report implements ApiFault
+    public static class IdentifierInvalidReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public IdentifierInvalidReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-identifier-invalid";
         }
 
         public IdentifierInvalidReport(String id)
@@ -923,7 +965,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -994,7 +1036,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} doesn't belong to domain {@link #requiredDomain}.
      */
-    public static class IdentifierInvalidDomainReport extends Report implements ApiFault
+    public static class IdentifierInvalidDomainReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
@@ -1002,6 +1044,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidDomainReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-identifier-invalid-domain";
         }
 
         public IdentifierInvalidDomainReport(String id, String requiredDomain)
@@ -1069,7 +1117,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1149,7 +1197,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} isn't of required type {@link #requiredType}.
      */
-    public static class IdentifierInvalidTypeReport extends Report implements ApiFault
+    public static class IdentifierInvalidTypeReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
@@ -1157,6 +1205,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidTypeReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-identifier-invalid-type";
         }
 
         public IdentifierInvalidTypeReport(String id, String requiredType)
@@ -1224,7 +1278,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1304,12 +1358,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be modified.
      */
-    public static class ReservationRequestNotModifiableReport extends Report implements ApiFault
+    public static class ReservationRequestNotModifiableReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotModifiableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-not-modifiable";
         }
 
         public ReservationRequestNotModifiableReport(String id)
@@ -1364,7 +1424,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1435,12 +1495,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be deleted.
      */
-    public static class ReservationRequestNotDeletableReport extends Report implements ApiFault
+    public static class ReservationRequestNotDeletableReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotDeletableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-not-deletable";
         }
 
         public ReservationRequestNotDeletableReport(String id)
@@ -1495,7 +1561,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1566,12 +1632,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be reverted.
      */
-    public static class ReservationRequestNotRevertibleReport extends Report implements ApiFault
+    public static class ReservationRequestNotRevertibleReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotRevertibleReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-not-revertible";
         }
 
         public ReservationRequestNotRevertibleReport(String id)
@@ -1626,7 +1698,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1697,12 +1769,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} has already been modified.
      */
-    public static class ReservationRequestAlreadyModifiedReport extends Report implements ApiFault
+    public static class ReservationRequestAlreadyModifiedReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestAlreadyModifiedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-already-modified";
         }
 
         public ReservationRequestAlreadyModifiedReport(String id)
@@ -1757,7 +1835,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1828,12 +1906,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} is deleted.
      */
-    public static class ReservationRequestDeletedReport extends Report implements ApiFault
+    public static class ReservationRequestDeletedReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestDeletedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-deleted";
         }
 
         public ReservationRequestDeletedReport(String id)
@@ -1888,7 +1972,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1959,10 +2043,16 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request time slot must not be empty.
      */
-    public static class ReservationRequestEmptyDurationReport extends Report implements ApiFault
+    public static class ReservationRequestEmptyDurationReport extends AbstractReport implements ApiFault
     {
         public ReservationRequestEmptyDurationReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-empty-duration";
         }
 
         @Override
@@ -2000,7 +2090,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -2062,12 +2152,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be reused.
      */
-    public static class ReservationRequestNotReusableReport extends Report
+    public static class ReservationRequestNotReusableReport extends AbstractReport
     {
         protected String id;
 
         public ReservationRequestNotReusableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "controller-reservation-request-not-reusable";
         }
 
         public ReservationRequestNotReusableReport(String id)
@@ -2092,7 +2188,7 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }

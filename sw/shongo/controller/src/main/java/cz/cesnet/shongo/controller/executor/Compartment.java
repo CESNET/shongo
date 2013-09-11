@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.api.CompartmentExecutable;
 import cz.cesnet.shongo.controller.api.ConnectionExecutable;
 import cz.cesnet.shongo.controller.api.EndpointExecutable;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -110,13 +110,13 @@ public class Compartment extends Executable
     }
 
     @Override
-    public CompartmentExecutable toApi(Report.MessageType messageType)
+    public CompartmentExecutable toApi(AbstractReport.MessageType messageType)
     {
         return (CompartmentExecutable) super.toApi(messageType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
     {
         super.toApi(executableApi, messageType);
 
@@ -138,7 +138,6 @@ public class Compartment extends Executable
             connectionApi.setEndpointToId(EntityIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
-            connectionApi.setStateReport(getReportText(messageType));
             compartmentApi.addConnection(connectionApi);
         }
     }

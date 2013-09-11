@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -17,13 +16,12 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a re-used {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} for different
@@ -101,7 +99,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             return resourceRoomEndpoint.getResource();
         }
         else {
-            throw new TodoImplementException(roomEndpoint.getClass().getName());
+            throw new TodoImplementException(roomEndpoint.getClass());
         }
     }
 
@@ -112,7 +110,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
     {
         UsedRoomExecutable usedRoomExecutableEndpointApi =
                 (UsedRoomExecutable) executableApi;
@@ -120,7 +118,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         usedRoomExecutableEndpointApi.setId(EntityIdentifier.formatId(this));
         usedRoomExecutableEndpointApi.setSlot(getSlot());
         usedRoomExecutableEndpointApi.setState(getState().toApi());
-        usedRoomExecutableEndpointApi.setStateReport(getReportText(messageType));
+        usedRoomExecutableEndpointApi.setStateReport(getExecutableStateReport(messageType));
         usedRoomExecutableEndpointApi.setRoomExecutableId(EntityIdentifier.formatId(roomEndpoint));
 
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
@@ -175,7 +173,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription(AbstractReport.MessageType messageType)
     {
         return roomEndpoint.getReportDescription(messageType);
     }

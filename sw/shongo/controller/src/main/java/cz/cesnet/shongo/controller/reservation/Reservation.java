@@ -2,16 +2,12 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -396,7 +392,7 @@ public class Reservation extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription(AbstractReport.MessageType messageType)
     {
         return String.format("reservation '%s'", EntityIdentifier.formatId(this));
     }
@@ -480,7 +476,7 @@ public class Reservation extends PersistentObject implements Reportable
     {
         Class<? extends Reservation> reservationClass = CLASS_BY_API.get(reservationApiClass);
         if (reservationClass == null) {
-            throw new TodoImplementException(reservationApiClass.getCanonicalName());
+            throw new TodoImplementException(reservationApiClass);
         }
         return reservationClass;
     }

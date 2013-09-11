@@ -190,7 +190,7 @@ public class ClassHelper
             return new HashSet<T>(collection);
         }
         else {
-            throw new TodoImplementException(collection.getClass().getName());
+            throw new TodoImplementException(collection.getClass());
         }
     }
 }

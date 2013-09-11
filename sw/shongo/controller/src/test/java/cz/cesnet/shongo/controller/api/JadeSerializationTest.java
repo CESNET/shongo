@@ -151,7 +151,7 @@ public class JadeSerializationTest extends AbstractControllerTest
                 Assert.assertEquals("test", room.getAliases().get(1).getValue());
             }
             else {
-                throw new TodoImplementException(command.getClass().getName());
+                throw new TodoImplementException(command.getClass());
             }
             return null;
         }

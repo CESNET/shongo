@@ -43,6 +43,15 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public ${report.getClassName()}()
         {
         }
+
+    <#if report.isPersistent()>
+        @javax.persistence.Transient
+    </#if>
+        @Override
+        public String getUniqueId()
+        {
+            return "${report.scopeName}-${report.id}";
+        }
     <#if (report.getAllDeclaredParams()?size > 0)>
 
         public ${report.getClassName()}(<@formatMethodParameters parameters=report.getAllDeclaredParams()/>)
@@ -137,7 +146,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public void readParameters(ReportSerializer reportSerializer)
         {
             <#list report.getAllDeclaredParams() as param>
-            ${param.getVariableName()} = (${param.getTypeClassName()}) reportSerializer.getParameter("${param.getVariableName()}", ${param.getTypeClassName()}.class);
+            ${param.getVariableName()} = (${param.getTypeClassName()}) reportSerializer.getParameter("${param.getVariableName()}", <#if param.type.collection>${param.type.collectionClassName}.class, ${param.type.elementTypeClassName}.class<#else>${param.typeClassName}.class</#if>);
             </#list>
         }
 
@@ -155,7 +164,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
             </#if>
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return ${report.getVisibleFlags()};
         }

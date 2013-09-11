@@ -32,6 +32,16 @@ public class TodoImplementException extends RuntimeException
     /**
      * Constructor.
      *
+     * @param enumValue which should be implemented
+     */
+    public TodoImplementException(Enum enumValue)
+    {
+        this.description = enumValue.getClass().getCanonicalName() + "." + enumValue.toString();
+    }
+
+    /**
+     * Constructor.
+     *
      * @param description description what should be implemented
      */
     public TodoImplementException(String description)

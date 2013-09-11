@@ -56,6 +56,16 @@ public abstract class Type
         return false;
     }
 
+    public String getCollectionClassName()
+    {
+        return null;
+    }
+
+    public String getElementTypeClassName()
+    {
+        return null;
+    }
+
     @Override
     public String toString()
     {
@@ -179,6 +189,16 @@ public abstract class Type
         public String getClassName()
         {
             return super.getClassName() + "<" + elementType.getClassName() + ">";
+        }
+
+        public String getCollectionClassName()
+        {
+            return super.getClassName();
+        }
+
+        public String getElementTypeClassName()
+        {
+            return elementType.getClassName();
         }
 
         @Override

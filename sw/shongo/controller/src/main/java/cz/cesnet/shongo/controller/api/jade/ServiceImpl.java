@@ -117,7 +117,7 @@ public class ServiceImpl implements Service
                 }
                 break;
             default:
-                throw new TodoImplementException(targetType.toString());
+                throw new TodoImplementException(targetType);
         }
 
         SimpleMessageNotification simpleMessageNotification = new SimpleMessageNotification(title, message);

@@ -40,7 +40,7 @@ public abstract class Person extends PersistentObject implements Cloneable
             person = new UserPerson();
         }
         else {
-            throw new TodoImplementException(api.getClass().getSimpleName());
+            throw new TodoImplementException(api.getClass());
         }
         person.fromApi(api);
         return person;

@@ -11,8 +11,14 @@ import java.util.Locale;
  */
 public class MessageProvider
 {
+    /**
+     * {@link MessageSource} to be used for retrieving messages.
+     */
     private final MessageSource messageSource;
 
+    /**
+     * {@link Locale} to be used for the {@link #messageSource}
+     */
     private final Locale locale;
 
     /**
@@ -25,6 +31,14 @@ public class MessageProvider
     {
         this.messageSource = messageSource;
         this.locale = locale;
+    }
+
+    /**
+     * @return {@link #locale}
+     */
+    public Locale getLocale()
+    {
+        return locale;
     }
 
     /**

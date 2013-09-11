@@ -14,7 +14,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CommandFailedReport")
-    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
+    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport implements SerializableReport
     {
         protected String command;
 
@@ -22,6 +22,13 @@ public class ExecutorReportSet extends AbstractReportSet
 
         public CommandFailedReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executor-command-failed";
         }
 
         public CommandFailedReport(String command, cz.cesnet.shongo.JadeReport jadeReport)
@@ -68,9 +75,23 @@ public class ExecutorReportSet extends AbstractReportSet
             return jadeReport.getResolution();
         }
 
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            jadeReport = (cz.cesnet.shongo.JadeReport) reportSerializer.getParameter("jadeReport", cz.cesnet.shongo.JadeReport.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("jadeReport", jadeReport);
+        }
+
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
@@ -147,12 +168,19 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("RoomNotStartedReport")
-    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
+    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport implements SerializableReport
     {
         protected String roomName;
 
         public RoomNotStartedReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executor-room-not-started";
         }
 
         public RoomNotStartedReport(String roomName)
@@ -185,9 +213,21 @@ public class ExecutorReportSet extends AbstractReportSet
             return Resolution.TRY_AGAIN;
         }
 
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            roomName = (String) reportSerializer.getParameter("roomName", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("roomName", roomName);
+        }
+
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }

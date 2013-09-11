@@ -37,7 +37,7 @@ public class CodeGenerator extends AbstractGenerator
                 scopeGenerator.setTemplate(template);
             }
             for (cz.cesnet.shongo.generator.xml.Report report : scope.getReport()) {
-                scopeGenerator.addReport(new Report(report));
+                scopeGenerator.addReport(new Report(scope.getName(), report));
             }
         }
 

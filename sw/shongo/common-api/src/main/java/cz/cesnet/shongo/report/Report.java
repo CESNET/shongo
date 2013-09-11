@@ -6,71 +6,38 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Report implements Reportable
+public interface Report
 {
+    /**
+     * @return unique id of the report
+     */
+    public String getUniqueId();
+
     /**
      * @return name of the report
      */
-    public String getName()
-    {
-        return getClass().getSimpleName();
-    }
+    public String getName();
 
     /**
      * @return report message
      */
-    public abstract Type getType();
+    public Type getType();
 
     /**
      * @param messageType
      * @return report message of given {@code messageType}
      */
-    public abstract String getMessage(MessageType messageType);
-
-    /**
-     * @return {@link MessageType#DOMAIN_ADMIN} report message
-     */
-    public final String getMessage()
-    {
-        return getMessage(Report.MessageType.DOMAIN_ADMIN);
-    }
+    public String getMessage(MessageType messageType);
 
     /**
      * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
      */
-    protected int getVisibleFlags()
-    {
-        return 0;
-    }
-
-    /**
-     * @param visibleFlags
-     * @return true whether this {@link Report} contains given {@code visibleFlags}
-     */
-    public final boolean isVisible(int visibleFlags)
-    {
-        return (getVisibleFlags() & visibleFlags) == visibleFlags;
-    }
+    public int getVisibleFlags();
 
     /**
      * @return {@link Resolution}
      */
-    public Resolution getResolution()
-    {
-        return Resolution.DEFAULT;
-    }
-
-    @Override
-    public String toString()
-    {
-        return getMessage();
-    }
-
-    @Override
-    public String getReportDescription(MessageType messageType)
-    {
-        return getMessage(messageType);
-    }
+    public Resolution getResolution();
 
     public static final int VISIBLE_TO_USER = 1;
     public static final int VISIBLE_TO_DOMAIN_ADMIN = 2;
@@ -98,7 +65,7 @@ public abstract class Report implements Reportable
     }
 
     /**
-     * Enumeration of all possible {@link Report} types.
+     * Enumeration of all possible {@link cz.cesnet.shongo.report.Report} types.
      */
     public static enum Type
     {
@@ -124,7 +91,7 @@ public abstract class Report implements Reportable
     }
 
     /**
-     * Represents what does the {@link Report} mean to action which cause it.
+     * Represents what does the {@link cz.cesnet.shongo.report.Report} mean to action which cause it.
      */
     public static enum Resolution
     {
@@ -134,12 +101,12 @@ public abstract class Report implements Reportable
         DEFAULT,
 
         /**
-         * Means that the action which cause the {@link Report} should be tried again.
+         * Means that the action which cause the {@link cz.cesnet.shongo.report.Report} should be tried again.
          */
         TRY_AGAIN,
 
         /**
-         * Means that the action which cause the {@link Report} should not be tried again
+         * Means that the action which cause the {@link cz.cesnet.shongo.report.Report} should not be tried again
          */
         STOP
     }

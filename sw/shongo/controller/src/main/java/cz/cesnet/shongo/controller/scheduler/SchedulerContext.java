@@ -899,7 +899,7 @@ public class SchedulerContext
                         }
                         break;
                     default:
-                        throw new TodoImplementException(objectType.toString());
+                        throw new TodoImplementException(objectType);
                 }
             }
 

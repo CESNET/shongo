@@ -40,7 +40,7 @@ public abstract class RoomSetting extends PersistentObject
             roomSetting = new cz.cesnet.shongo.controller.common.AdobeConnectRoomSetting();
         }
         else {
-            throw new TodoImplementException(api.getClass().getCanonicalName());
+            throw new TodoImplementException(api.getClass());
         }
         roomSetting.fromApi(api);
         return roomSetting;

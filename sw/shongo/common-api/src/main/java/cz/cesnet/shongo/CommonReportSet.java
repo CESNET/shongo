@@ -29,12 +29,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends Report implements ApiFault
+    public static class UnknownErrorReport extends AbstractReport implements ApiFault
     {
         protected String description;
 
         public UnknownErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-unknown-error";
         }
 
         public UnknownErrorReport(String description)
@@ -89,7 +95,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
@@ -162,7 +168,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class TypeMismatchReport extends Report implements ApiFault
+    public static class TypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String requiredType;
 
@@ -170,6 +176,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public TypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-type-mismatch";
         }
 
         public TypeMismatchReport(String requiredType, String presentType)
@@ -237,7 +249,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -317,7 +329,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport extends Report implements ApiFault
+    public static class TypeIllegalValueReport extends AbstractReport implements ApiFault
     {
         protected String typeName;
 
@@ -325,6 +337,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public TypeIllegalValueReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-type-illegal-value";
         }
 
         public TypeIllegalValueReport(String typeName, String value)
@@ -392,7 +410,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -472,12 +490,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport extends Report implements ApiFault
+    public static class ClassUndefinedReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
         public ClassUndefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-undefined";
         }
 
         public ClassUndefinedReport(String className)
@@ -532,7 +556,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -603,12 +627,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport extends Report implements ApiFault
+    public static class ClassInstantiationErrorReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
         public ClassInstantiationErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-instantiation-error";
         }
 
         public ClassInstantiationErrorReport(String className)
@@ -663,7 +693,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -734,7 +764,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport extends Report implements ApiFault
+    public static class ClassAttributeUndefinedReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -742,6 +772,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeUndefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-attribute-undefined";
         }
 
         public ClassAttributeUndefinedReport(String className, String attribute)
@@ -809,7 +845,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -889,7 +925,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault
+    public static class ClassAttributeTypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -901,6 +937,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeTypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-attribute-type-mismatch";
         }
 
         public ClassAttributeTypeMismatchReport(String className, String attribute, String requiredType, String presentType)
@@ -994,7 +1036,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1092,7 +1134,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport extends Report implements ApiFault
+    public static class ClassAttributeRequiredReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1100,6 +1142,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeRequiredReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-attribute-required";
         }
 
         public ClassAttributeRequiredReport(String className, String attribute)
@@ -1167,7 +1215,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1247,7 +1295,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport extends Report implements ApiFault
+    public static class ClassAttributeReadonlyReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1255,6 +1303,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeReadonlyReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-attribute-readonly";
         }
 
         public ClassAttributeReadonlyReport(String className, String attribute)
@@ -1322,7 +1376,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1402,7 +1456,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport extends Report implements ApiFault
+    public static class ClassCollectionRequiredReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1410,6 +1464,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassCollectionRequiredReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-class-collection-required";
         }
 
         public ClassCollectionRequiredReport(String className, String collection)
@@ -1477,7 +1537,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1557,12 +1617,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport extends Report implements ApiFault
+    public static class CollectionItemNullReport extends AbstractReport implements ApiFault
     {
         protected String collection;
 
         public CollectionItemNullReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-collection-item-null";
         }
 
         public CollectionItemNullReport(String collection)
@@ -1617,7 +1683,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1688,7 +1754,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} contains item of type {@link #presentType} which doesn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
+    public static class CollectionItemTypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String collection;
 
@@ -1698,6 +1764,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public CollectionItemTypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-collection-item-type-mismatch";
         }
 
         public CollectionItemTypeMismatchReport(String collection, String requiredType, String presentType)
@@ -1778,7 +1850,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -1867,7 +1939,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport extends Report implements ApiFault
+    public static class EntityNotFoundReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -1875,6 +1947,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotFoundReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-entity-not-found";
         }
 
         public EntityNotFoundReport(String entity, String id)
@@ -1942,7 +2020,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -2022,7 +2100,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends Report implements ApiFault
+    public static class EntityInvalidReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -2030,6 +2108,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityInvalidReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-entity-invalid";
         }
 
         public EntityInvalidReport(String entity, String reason)
@@ -2097,7 +2181,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -2176,7 +2260,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault
+    public static class EntityNotDeletableReferencedReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -2184,6 +2268,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotDeletableReferencedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-entity-not-deletable-referenced";
         }
 
         public EntityNotDeletableReferencedReport(String entity, String id)
@@ -2251,7 +2341,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
@@ -2331,12 +2421,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Method {@link #method} is not defined.
      */
-    public static class MethodNotDefinedReport extends Report implements ApiFault
+    public static class MethodNotDefinedReport extends AbstractReport implements ApiFault
     {
         protected String method;
 
         public MethodNotDefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "common-method-not-defined";
         }
 
         public MethodNotDefinedReport(String method)
@@ -2391,7 +2487,7 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }

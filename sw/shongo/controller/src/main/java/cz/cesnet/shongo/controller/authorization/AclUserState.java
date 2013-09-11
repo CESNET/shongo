@@ -153,7 +153,7 @@ public class AclUserState
     public synchronized Set<Long> getEntitiesByPermission(EntityType entityType, Permission permission)
     {
         if (!permission.equals(Permission.READ)) {
-            throw new TodoImplementException(permission.getCode());
+            throw new TodoImplementException(permission);
         }
         Set<Long> entities = accessibleEntitiesByType.get(entityType);
         if (entities != null) {

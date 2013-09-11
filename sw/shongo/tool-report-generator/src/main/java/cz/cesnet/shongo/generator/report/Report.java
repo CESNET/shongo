@@ -16,6 +16,11 @@ import java.util.regex.Pattern;
 public class Report
 {
     /**
+     * Scope name.
+     */
+    private String scopeName;
+
+    /**
      * XML report data.
      */
     cz.cesnet.shongo.generator.xml.Report report;
@@ -75,8 +80,9 @@ public class Report
      *
      * @param report
      */
-    public Report(cz.cesnet.shongo.generator.xml.Report report)
+    public Report(String scopeName, cz.cesnet.shongo.generator.xml.Report report)
     {
+        this.scopeName = scopeName;
         this.report = report;
 
         if (report.getParams() != null) {
@@ -236,6 +242,11 @@ public class Report
         this.apiFaultCode = apiFaultCode;
     }
 
+    public String getScopeName()
+    {
+        return scopeName;
+    }
+
     public String getId()
     {
         return report.getId();
@@ -267,7 +278,7 @@ public class Report
         if (baseClassName != null) {
             return baseClassName;
         }
-        return "Report";
+        return "AbstractReport";
     }
 
     public String getConstantName()

@@ -859,6 +859,7 @@
     <scope name="scheduler">
 
         <template extends="cz.cesnet.shongo.controller.scheduler.SchedulerReport">
+            <serializable>true</serializable>
             <persistent>true</persistent>
             <exception base-class="cz.cesnet.shongo.controller.scheduler.SchedulerException"/>
         </template>
@@ -1350,6 +1351,7 @@
     <scope name="executor">
 
         <template extends="cz.cesnet.shongo.controller.executor.ExecutableReport">
+            <serializable>true</serializable>
             <persistent>true</persistent>
         </template>
 

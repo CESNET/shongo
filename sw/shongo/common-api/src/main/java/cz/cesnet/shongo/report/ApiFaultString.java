@@ -51,11 +51,13 @@ public class ApiFaultString implements ReportSerializer
     }
 
     /**
+     *
      * @param name
+     * @param elementTypes
      * @return value of parameter with given {@code name}
      */
     @Override
-    public Object getParameter(String name, Class type)
+    public Object getParameter(String name, Class type, Class... elementTypes)
     {
         if (String.class.equals(type)) {
             JsonNode value = jsonNode.get(name);
@@ -64,7 +66,7 @@ public class ApiFaultString implements ReportSerializer
             }
             return value.getTextValue();
         }
-        else if (Report.class.isAssignableFrom(type)) {
+        else if (AbstractReport.class.isAssignableFrom(type)) {
             ObjectNode value = (ObjectNode) jsonNode.get(name);
             if (value == null) {
                 return null;
@@ -87,7 +89,7 @@ public class ApiFaultString implements ReportSerializer
             }
         }
         else {
-            throw new TodoImplementException(type.getName());
+            throw new TodoImplementException(type);
         }
     }
 
@@ -112,7 +114,7 @@ public class ApiFaultString implements ReportSerializer
             jsonNode = mainJsonNode;
         }
         else if (value != null) {
-            throw new TodoImplementException(value.getClass().getName());
+            throw new TodoImplementException(value.getClass());
         }
     }
 

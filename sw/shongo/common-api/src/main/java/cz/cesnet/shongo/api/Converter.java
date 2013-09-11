@@ -55,7 +55,7 @@ public class Converter
             return convertIntervalToString((Interval) value);
         }
         else {
-            throw new TodoImplementException(value.toString());
+            throw new TodoImplementException(value.getClass());
         }
     }
 
@@ -76,7 +76,7 @@ public class Converter
         else if (value instanceof Integer) {
             return ((Integer) value) != 0;
         }
-        throw new TodoImplementException(value.getClass().getCanonicalName());
+        throw new TodoImplementException(value.getClass());
     }
 
     /**
@@ -93,7 +93,7 @@ public class Converter
         else if (value instanceof Integer) {
             return (Integer) value;
         }
-        throw new TodoImplementException(value.getClass().getCanonicalName());
+        throw new TodoImplementException(value.getClass());
     }
 
     /**
@@ -110,7 +110,7 @@ public class Converter
         else if (value instanceof Long) {
             return (Long) value;
         }
-        throw new TodoImplementException(value.getClass().getCanonicalName());
+        throw new TodoImplementException(value.getClass());
     }
 
     /**
@@ -148,7 +148,7 @@ public class Converter
             }
         }
         else {
-            throw new TodoImplementException(value.getClass().getCanonicalName());
+            throw new TodoImplementException(value.getClass());
         }
     }
 
@@ -617,7 +617,7 @@ public class Converter
             return collectionClass.cast(collection);
         }
         else {
-            throw new TodoImplementException(value.getClass().getCanonicalName());
+            throw new TodoImplementException(value.getClass());
         }
     }
 
@@ -689,7 +689,7 @@ public class Converter
             return map;
         }
         else {
-            throw new TodoImplementException(value.getClass().getCanonicalName());
+            throw new TodoImplementException(value.getClass());
         }
     }
 

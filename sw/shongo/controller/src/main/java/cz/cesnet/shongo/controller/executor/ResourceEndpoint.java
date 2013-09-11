@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -102,7 +102,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription(AbstractReport.MessageType messageType)
     {
         return getDeviceResource().getReportDescription(messageType);
     }

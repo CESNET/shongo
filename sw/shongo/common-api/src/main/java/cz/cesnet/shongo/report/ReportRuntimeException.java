@@ -1,16 +1,16 @@
 package cz.cesnet.shongo.report;
 
 /**
- * Represents a {@link RuntimeException} for {@link Report}.
+ * Represents a {@link RuntimeException} for {@link AbstractReport}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public abstract class ReportRuntimeException extends RuntimeException
 {
     /**
-     * {@link Report}.
+     * {@link AbstractReport}.
      */
-    protected Report report;
+    protected AbstractReport report;
 
     /**
      * Constructor.
@@ -30,9 +30,9 @@ public abstract class ReportRuntimeException extends RuntimeException
     }
 
     /**
-     * @return {@link Report}
+     * @return {@link AbstractReport}
      */
-    public Report getReport()
+    public AbstractReport getReport()
     {
         return report;
     }
@@ -40,7 +40,7 @@ public abstract class ReportRuntimeException extends RuntimeException
     /**
      * @param report sets the {@link #report}
      */
-    public void setReport(Report report)
+    public void setReport(AbstractReport report)
     {
         this.report = report;
     }

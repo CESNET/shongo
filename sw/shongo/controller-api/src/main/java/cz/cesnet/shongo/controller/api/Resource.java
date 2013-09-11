@@ -184,7 +184,7 @@ public class Resource extends IdentifiedComplexType
             this.maximumFuture = maximumFuture;
         }
         else {
-            throw new TodoImplementException(maximumFuture.getClass().getCanonicalName());
+            throw new TodoImplementException(maximumFuture.getClass());
         }
     }
 

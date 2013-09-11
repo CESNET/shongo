@@ -20,6 +20,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-unknown-error";
+        }
+
         public UnknownErrorReport(String description)
         {
             setDescription(description);
@@ -125,6 +131,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public AgentNotFoundReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-agent-not-found";
         }
 
         public AgentNotFoundReport(String receiverAgent)
@@ -235,6 +247,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-agent-not-started";
+        }
+
         public AgentNotStartedReport(String senderAgent)
         {
             setSenderAgent(senderAgent);
@@ -343,6 +361,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-abstract-error";
+        }
+
         public CommandAbstractErrorReport(String command)
         {
             setCommand(command);
@@ -394,6 +418,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public CommandUnknownErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-unknown-error";
         }
 
         public CommandUnknownErrorReport(String command, String description)
@@ -508,6 +538,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public CommandTimeoutReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-timeout";
         }
 
         public CommandTimeoutReport(String command, String receiverAgent)
@@ -625,6 +661,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-not-supported";
+        }
+
         public CommandNotSupportedReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -738,6 +780,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public CommandRefusedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-refused";
         }
 
         public CommandRefusedReport(String command, String receiverAgent)
@@ -855,6 +903,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-not-understood";
+        }
+
         public CommandNotUnderstoodReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -970,6 +1024,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public CommandFailedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-failed";
         }
 
         public CommandFailedReport(String command, String receiverAgent, String reason)
@@ -1111,6 +1171,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public CommandResultDecodingFailedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "jade-command-result-decoding-failed";
         }
 
         public CommandResultDecodingFailedReport(String command, String senderAgent)

@@ -4,7 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Reportable;
 
 import javax.persistence.*;
@@ -133,7 +133,7 @@ public abstract class Specification extends PersistentObject implements Reportab
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription(AbstractReport.MessageType messageType)
     {
         return getClass().getSimpleName();
     }
@@ -236,7 +236,7 @@ public abstract class Specification extends PersistentObject implements Reportab
     {
         Class<? extends Specification> specificationClass = CLASS_BY_API.get(specificationApiClass);
         if (specificationClass == null) {
-            throw new TodoImplementException(specificationApiClass.getCanonicalName());
+            throw new TodoImplementException(specificationApiClass);
         }
         return specificationClass;
     }

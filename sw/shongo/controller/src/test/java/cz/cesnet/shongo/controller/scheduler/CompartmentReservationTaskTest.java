@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -365,7 +365,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                         }
 
                         @Override
-                        public String getReportDescription(Report.MessageType messageType)
+                        public String getReportDescription(AbstractReport.MessageType messageType)
                         {
                             return "simple endpoint";
                         }

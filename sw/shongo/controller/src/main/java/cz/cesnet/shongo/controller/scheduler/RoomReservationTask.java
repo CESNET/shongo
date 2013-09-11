@@ -224,7 +224,7 @@ public class RoomReservationTask extends ReservationTask
                     roomEndpointResourceId = ((UsedRoomEndpoint) roomEndpoint).getResource().getId();
                 }
                 else {
-                    throw new TodoImplementException(roomEndpoint.getClass().getName());
+                    throw new TodoImplementException(roomEndpoint.getClass());
                 }
                 if (!roomEndpointResourceId.equals(deviceResource.getId())) {
                     continue;

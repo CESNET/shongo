@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -256,7 +256,7 @@ public abstract class ExecutionAction extends Thread
                 executable.setAttemptCount(executable.getAttemptCount() + 1);
 
                 ExecutableReport lastReport = executable.getLastReport();
-                if (lastReport != null && lastReport.getResolution().equals(Report.Resolution.TRY_AGAIN)) {
+                if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
                     Executor executor = getExecutor();
                     if (executable.getAttemptCount() < executor.getMaxAttemptCount()) {
                         executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));

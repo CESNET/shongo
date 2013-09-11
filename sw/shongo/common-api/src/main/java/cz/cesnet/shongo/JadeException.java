@@ -27,7 +27,7 @@ public abstract class JadeException extends ReportException
     }
 
     /**
-     * @return {@link cz.cesnet.shongo.report.Report}
+     * @return {@link cz.cesnet.shongo.report.AbstractReport}
      */
     public abstract JadeReport getReport();
 }

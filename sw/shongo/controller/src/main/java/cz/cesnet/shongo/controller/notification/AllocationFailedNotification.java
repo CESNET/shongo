@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.Interval;
+
+import java.util.Locale;
 
 /**
  * {@link cz.cesnet.shongo.controller.notification.ConfigurableNotification} for changes in allocation of {@link cz.cesnet.shongo.controller.request.ReservationRequest}.
@@ -18,7 +20,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
     private Target target;
 
-    private String reason;
+    private AllocationStateReport reason;
 
     /**
      * Constructor.
@@ -33,7 +35,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest.getSpecification());
-        this.reason = reservationRequest.getReportText(Report.MessageType.USER);
+        this.reason = reservationRequest.getAllocationStateReport(AbstractReport.MessageType.USER);
         for (PersonInformation administrator : configuration.getAdministrators()) {
             addRecipient(administrator, true);
         }
@@ -49,16 +51,12 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         return target;
     }
 
-    public String getReason()
-    {
-        return reason;
-    }
-
     @Override
     protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
         renderContext.addParameter("target", target);
+        renderContext.addParameter("reason", reason.toString(configuration.getLocale()));
 
         StringBuilder titleBuilder = new StringBuilder();
         if (configuration.isAdministrator()) {

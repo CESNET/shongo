@@ -126,7 +126,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
                         deletedReservationNotifications++;
                         break;
                     default:
-                        throw new TodoImplementException(reservationNotification.getType().toString());
+                        throw new TodoImplementException(reservationNotification.getType());
                 }
             }
             else {

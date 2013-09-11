@@ -457,15 +457,15 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     }
 
     /**
-     * Method invocation throws exception with {@link Report} which isn't {@link ApiFault}.
+     * Method invocation throws exception with {@link cz.cesnet.shongo.report.AbstractReport} which isn't {@link ApiFault}.
      */
     private static class ReportXmlRpcException extends XmlRpcException
     {
         private RequestContext requestContext;
 
-        private Report report;
+        private AbstractReport report;
 
-        public ReportXmlRpcException(RequestContext requestContext, Report report, Throwable throwable)
+        public ReportXmlRpcException(RequestContext requestContext, AbstractReport report, Throwable throwable)
         {
             super(null, throwable);
             this.requestContext = requestContext;
@@ -477,7 +477,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             return requestContext;
         }
 
-        public Report getReport()
+        public AbstractReport getReport()
         {
             return report;
         }
@@ -626,7 +626,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             // Report not API fault
             if (throwable instanceof ReportXmlRpcException) {
                 ReportXmlRpcException reportXmlRpcException = (ReportXmlRpcException) throwable;
-                Report report = reportXmlRpcException.getReport();
+                AbstractReport report = reportXmlRpcException.getReport();
                 apiFault = new CommonReportSet.UnknownErrorReport(report.getMessage());
                 throwable = reportXmlRpcException.getCause();
 

@@ -34,7 +34,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Allocation state
             allocationState = reservationRequest.getAllocationState();
-            allocationStateReport = reservationRequest.getAllocationStateReport();
+            allocationStateReport = reservationRequest.getAllocationStateReport().toString(messageProvider.getLocale());
 
             // Executable state, reservation and room
             ExecutableState executableState = null;

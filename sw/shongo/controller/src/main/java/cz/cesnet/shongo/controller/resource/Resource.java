@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Reportable;
 import org.joda.time.DateTime;
 
@@ -397,7 +397,7 @@ public class Resource extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription(AbstractReport.MessageType messageType)
     {
         return String.format("resource '%s'", EntityIdentifier.formatId(this));
     }

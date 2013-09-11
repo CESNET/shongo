@@ -4,11 +4,13 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.controller.util.MapReportSerializer;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -229,17 +231,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return report string containing report header and all {@link #reports}
      */
     @Transient
-    public String getReportText(Report.MessageType messageType)
+    public AllocationStateReport getAllocationStateReport(AbstractReport.MessageType messageType)
     {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (SchedulerReport report : reports) {
-            if (stringBuilder.length() > 0) {
-                stringBuilder.append("\n");
-                stringBuilder.append("\n");
-            }
-            stringBuilder.append(report.getMessageRecursive(messageType));
-        }
-        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
+        return SchedulerReport.getAllocationStateReport(reports, messageType);
     }
 
     /**
@@ -343,13 +337,13 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Report.MessageType messageType)
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(AbstractReport.MessageType messageType)
     {
         return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(messageType);
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, AbstractReport.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
@@ -359,7 +353,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         }
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setAllocationState(allocationState.toApi());
-        reservationRequestApi.setAllocationStateReport(getReportText(messageType));
+        reservationRequestApi.setAllocationStateReport(getAllocationStateReport(messageType));
         for (Reservation reservation : getAllocation().getReservations()) {
             reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
         }
@@ -428,7 +422,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 case ALLOCATION_FAILED:
                     return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATION_FAILED;
                 default:
-                    throw new TodoImplementException(toString());
+                    throw new TodoImplementException(this);
             }
         }
     }
