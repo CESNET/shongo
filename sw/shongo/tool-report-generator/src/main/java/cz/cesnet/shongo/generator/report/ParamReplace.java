@@ -2,10 +2,7 @@ package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.GeneratorException;
 import cz.cesnet.shongo.generator.PatternParser;
-import org.apache.commons.jexl2.Expression;
-import org.apache.commons.jexl2.JexlContext;
-import org.apache.commons.jexl2.JexlEngine;
-import org.apache.commons.jexl2.NamespaceResolver;
+import org.apache.commons.jexl2.*;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -17,22 +14,24 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-abstract class ParamReplace extends PatternParser implements PatternParser.Callback
+public class ParamReplace extends PatternParser implements PatternParser.Callback
 {
     private static final Pattern MESSAGE_PARAM_PATTERN = Pattern.compile("\\$\\{([^\\$]+)\\}");
 
     private static JexlEngine jexlEngine = new JexlEngine();
 
-    private JexlContext jexlContext = new Context();
+    private Context context;
 
     private Collection<String> stringParts = new LinkedList<String>();
 
     private final Report report;
 
-    public ParamReplace(String text, final Report report)
+    public ParamReplace(String text, final Report report, Context context)
     {
         super(MESSAGE_PARAM_PATTERN);
         this.report = report;
+        this.context = context;
+        this.context.paramReplace = this;
         this.stringParts = parse(text, this);
     }
 
@@ -60,9 +59,12 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
     public final String processMatch(MatchResult match)
     {
         Expression expression = jexlEngine.createExpression(match.group(1));
-        Object result = expression.evaluate(jexlContext);
-        if (result instanceof Param) {
-            return processParam((Param) result);
+        Object result = expression.evaluate(context);
+        if (result == null) {
+            throw new GeneratorException("Expression can't be evaluated '" + match.group(1) + "'.");
+        }
+        else if (result instanceof Param) {
+            return context.processParam((Param) result);
         }
         else if (result instanceof String) {
             return (String) result;
@@ -72,42 +74,10 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
         }
     }
 
-    /**
-     * @param param to be replaced
-     * @return string which should be used for given param
-     */
-    protected abstract String processParam(Param param);
-
-    /**
-     * @param param
-     * @param defaultValue
-     * @return result for the expression
-     */
-    protected Object processParamIfEmpty(Param param, String defaultValue)
+    public static abstract class Context implements NamespaceResolver, JexlContext
     {
-        return param;
-    }
+        private ParamReplace paramReplace;
 
-    /**
-     * @param param
-     * @return result for the expression
-     */
-    protected Object processParamClassName(Param param)
-    {
-        return param;
-    }
-
-    /**
-     * @param param
-     * @return result for the expression
-     */
-    protected Object processParamUser(Param param)
-    {
-        return param;
-    }
-
-    public class Context implements NamespaceResolver, JexlContext
-    {
         @Override
         public Object resolveNamespace(String name)
         {
@@ -121,9 +91,10 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
         @Override
         public Object get(String variableName)
         {
-            Param param = report.getParam(variableName);
+            Param param = paramReplace.report.getParam(variableName.split("\\.")[0]);
             if (param == null) {
-                throw new GeneratorException("Param '%s' not found in report '%s'.", variableName, report.getId());
+                throw new GeneratorException("Param '%s' not found in report '%s'.",
+                        variableName, paramReplace.report.getId());
             }
             return param;
         }
@@ -137,22 +108,31 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
         @Override
         public boolean has(String variableName)
         {
-            return report.getParam(variableName) != null;
+            return paramReplace.report.getParam(variableName) != null;
         }
 
-        public Object ifEmpty(Param param, String defaultValue)
+        /**
+         * @param param to be replaced
+         * @return string which should be used for given param
+         */
+        public abstract String processParam(Param param);
+
+        /**
+         * @param param
+         * @return result for the expression
+         */
+        protected Object processParamClassName(Param param)
         {
-            return processParamIfEmpty(param, defaultValue);
+            return param;
         }
 
-        public Object className(Param param)
+        /**
+         * @param param
+         * @return result for the expression
+         */
+        protected Object processParamUser(Param param)
         {
-            return processParamClassName(param);
-        }
-
-        public Object user(Param param)
-        {
-            return processParamUser(param);
+            return param;
         }
     }
 

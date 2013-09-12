@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.report;
 
+import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractEntityReport;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -61,7 +64,7 @@ public abstract class ReportSetMessages
             messageFormat = getMessageFormat(reportId, userType, language);
             messageFormatById.put(messageId, messageFormat);
         }
-        return messageFormat.format(parameters);
+        return messageFormat.format(userType, language, parameters);
     }
 
     private MessageFormat getMessageFormat(String reportId, Report.UserType userType, Report.Language language)
@@ -139,18 +142,50 @@ public abstract class ReportSetMessages
             throw new TodoImplementException("Illegal expression '" + expression + "'.");
         }
 
-        public String format(Map<String, Object> parameters)
+        public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
         {
             StringBuilder stringBuilder = new StringBuilder();
             for (Component component : components) {
-                stringBuilder.append(component.format(parameters));
+                stringBuilder.append(component.format(userType, language, parameters));
             }
             return stringBuilder.toString();
         }
 
         private static abstract class Component
         {
-            public abstract String format(Map<String, Object> parameters);
+            public abstract Object getValue(Map<String, Object> parameters);
+
+            public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
+            {
+                Object value = getValue(parameters);
+                if (value == null) {
+                    return null;
+                }
+                else if (value instanceof String) {
+                    return (String) value;
+                }
+                else if (value instanceof Object[]) {
+                    StringBuilder collectionBuilder = new StringBuilder();
+                    for (Object item : (Object[]) value) {
+                        if (collectionBuilder.length() > 0) {
+                            collectionBuilder.append(", ");
+                        }
+                        collectionBuilder.append(item);
+                    }
+                    return collectionBuilder.toString();
+                }
+                else if (value instanceof Collection) {
+                    StringBuilder collectionBuilder = new StringBuilder();
+                    for (Object item : (Collection) value) {
+                        if (collectionBuilder.length() > 0) {
+                            collectionBuilder.append(", ");
+                        }
+                        collectionBuilder.append(item);
+                    }
+                    return collectionBuilder.toString();
+                }
+                return value.toString();
+            }
         }
 
         private static class StringComponent extends Component
@@ -162,9 +197,8 @@ public abstract class ReportSetMessages
                 this.string = string;
             }
 
-
             @Override
-            public String format(Map<String, Object> parameters)
+            public Object getValue(Map<String, Object> parameters)
             {
                 return string;
             }
@@ -180,7 +214,7 @@ public abstract class ReportSetMessages
             }
 
             @Override
-            public String format(Map<String, Object> parameters)
+            public Object getValue(Map<String, Object> parameters)
             {
                 int index = 0;
                 while (index < components.length) {
@@ -188,30 +222,7 @@ public abstract class ReportSetMessages
                     Object value = parameters.get(component);
                     index++;
                     if (index == components.length) {
-                        if (value == null) {
-                            return null;
-                        }
-                        else if (value instanceof Object[]) {
-                            StringBuilder collectionBuilder = new StringBuilder();
-                            for (Object item : (Object[]) value) {
-                                if (collectionBuilder.length() > 0) {
-                                    collectionBuilder.append(", ");
-                                }
-                                collectionBuilder.append(item);
-                            }
-                            return collectionBuilder.toString();
-                        }
-                        else if (value instanceof Collection) {
-                            StringBuilder collectionBuilder = new StringBuilder();
-                            for (Object item : (Collection) value) {
-                                if (collectionBuilder.length() > 0) {
-                                    collectionBuilder.append(", ");
-                                }
-                                collectionBuilder.append(item);
-                            }
-                            return collectionBuilder.toString();
-                        }
-                        return value.toString();
+                        return value;
                     }
                     else {
                         if (value instanceof Map) {
@@ -236,10 +247,16 @@ public abstract class ReportSetMessages
                 if (name.equals("ifEmpty")) {
                     type = Type.IF_EMPTY;
                 }
+                else if (name.equals("jadeReportMessage")) {
+                    type = Type.JADE_REPORT;
+                }
                 else {
                     throw new TodoImplementException("Function '" + name + "' not implemented.");
                 }
                 for (String param : params) {
+                    if (param == null) {
+                        continue;
+                    }
                     if (param.startsWith("\"") && param.endsWith("\"")) {
                         this.params.add(new StringComponent(param.substring(1, param.length() - 1)));
                     }
@@ -250,18 +267,50 @@ public abstract class ReportSetMessages
             }
 
             @Override
-            public String format(Map<String, Object> parameters)
+            public Object getValue(Map<String, Object> parameters)
             {
                 switch (type) {
                     case IF_EMPTY:
-                        String param1 = params.get(0).format(parameters);
-                        String param2 = params.get(1).format(parameters);
+                        return params.get(0).getValue(parameters);
+                    case JADE_REPORT:
+                        return params.get(0).getValue(parameters);
+                    default:
+                        throw new TodoImplementException(type);
+                }
+            }
+
+            @Override
+            public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
+            {
+                switch (type) {
+                    case IF_EMPTY:
+                    {
+                        String param1 = params.get(0).format(userType, language, parameters);
+                        String param2 = params.get(1).format(userType, language, parameters);
                         if (param1 != null && !param1.isEmpty()) {
                             return param1;
                         }
                         else {
                             return param2;
                         }
+                    }
+                    case JADE_REPORT:
+                    {
+                        Object param1 = params.get(0).getValue(parameters);
+                        if (param1 instanceof JadeReport) {
+                            JadeReport jadeReport = (JadeReport) param1;
+                            return jadeReport.getMessage(userType, language);
+                        }
+                        else if (param1 instanceof Map){
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> jadeReport = (Map<String, Object>) param1;
+                            String jadeReportId = (String) jadeReport.get(AbstractEntityReport.ID);
+                            return JadeReportSet.getMessage(jadeReportId, userType, language, jadeReport);
+                        }
+                        else {
+                            throw new TodoImplementException(param1.getClass());
+                        }
+                    }
                     default:
                         throw new TodoImplementException(type);
                 }
@@ -269,7 +318,8 @@ public abstract class ReportSetMessages
 
             private static enum Type
             {
-                IF_EMPTY
+                IF_EMPTY,
+                JADE_REPORT
             }
         }
     }

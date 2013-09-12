@@ -49,6 +49,11 @@ public class CommonReportSet extends AbstractReportSet
         addMessage("method-not-defined", new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
     }};
 
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, parameters);
+    }
+
     /**
      * Unknown error: {@link #description}
      */

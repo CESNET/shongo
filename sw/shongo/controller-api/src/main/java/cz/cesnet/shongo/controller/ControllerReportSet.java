@@ -35,7 +35,7 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage("security-missing-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
         addMessage("security-invalid-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
         addMessage("security-not-authorized", new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
-        addMessage("device-command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReport}");
+        addMessage("device-command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReportMessage(jadeReport)}");
         addMessage("identifier-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} is invalid.");
         addMessage("identifier-invalid-domain", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} doesn't belong to domain ${requiredDomain}.");
         addMessage("identifier-invalid-type", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} isn't of required type ${requiredType}.");
@@ -47,6 +47,11 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
         addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
     }};
+
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, parameters);
+    }
 
     /**
      * User {@link #user} doesn't exist.

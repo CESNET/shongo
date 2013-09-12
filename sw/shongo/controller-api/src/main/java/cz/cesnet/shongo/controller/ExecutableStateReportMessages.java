@@ -13,17 +13,10 @@ public class ExecutableStateReportMessages
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} failed: ${jadeReport}");
+        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} failed: ${jadeReportMessage(jadeReport)}");
         addMessage("room-not-started", new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot modify room ${roomName}, because it has not been started yet.");
     }};
 
-    /**
-     * @param reportId
-     * @param userType
-     * @param language
-     * @param parameters
-     * @return message for the report with given {@code uniqueId}
-     */
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
     {
         return MESSAGES.getMessage(reportId, userType, language, parameters);

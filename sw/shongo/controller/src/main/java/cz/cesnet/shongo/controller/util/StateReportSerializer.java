@@ -28,6 +28,7 @@ public class StateReportSerializer extends HashMap<String, Object>
     public StateReportSerializer(Report report)
     {
         put(AbstractEntityReport.ID, report.getUniqueId());
+        put(AbstractEntityReport.TYPE, report.getType());
         if (report instanceof ExecutableReport) {
             ExecutableReport executableReport = (ExecutableReport) report;
             put(ExecutableStateReport.DATE_TIME, executableReport.getDateTime());

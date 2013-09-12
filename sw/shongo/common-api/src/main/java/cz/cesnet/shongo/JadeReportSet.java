@@ -27,6 +27,11 @@ public class JadeReportSet extends AbstractReportSet
         addMessage("command-result-decoding-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
     }};
 
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, parameters);
+    }
+
     /**
      * Unknown error: {@link #description}
      */

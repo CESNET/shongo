@@ -674,7 +674,7 @@
                 TODO:
             </description>
             <message>
-                Command ${command} for device ${device} failed: ${jadeReport}
+                Command ${command} for device ${device} failed: ${jadeReportMessage(jadeReport)}
             </message>
             <example>
                 TODO:
@@ -882,10 +882,10 @@
                 TODO:
             </description>
             <message lang="en">
-                Resource ${resource}.
+                Resource ${resource.id}.
             </message>
             <message lang="cs">
-                Zdroj ${resource}.
+                Zdroj ${resource.id}.
             </message>
         </report>
 
@@ -896,10 +896,10 @@
                 TODO:
             </description>
             <message lang="en">
-                The ${resource} is disabled for allocation.
+                The resource ${resource.id} is disabled for allocation.
             </message>
             <message lang="cs">
-                Rezervace zdroje ${resource} je zakázána.
+                Rezervace zdroje ${resource.id} je zakázána.
             </message>
             <visible>user</visible>
         </report>
@@ -911,7 +911,7 @@
                 TODO:
             </description>
             <message>
-                The ${resource} is already allocated.
+                The resource ${resource.id} is already allocated.
             </message>
             <visible>user</visible>
         </report>
@@ -926,7 +926,7 @@
                 TODO:
             </description>
             <message>
-                The ${resource} is not available for the requested time slot.
+                The resource ${resource.id} is not available for the requested time slot.
                 The maximum date/time for which the resource can be allocated is ${maxDateTime}.
             </message>
             <visible>user</visible>
@@ -939,7 +939,7 @@
                 TODO:
             </description>
             <message>
-                The ${resource} is not endpoint.
+                The resource ${resource.id} is not endpoint.
             </message>
             <visible>user</visible>
         </report>
@@ -951,7 +951,7 @@
                 TODO:
             </description>
             <message>
-                The ${resource} is requested multiple times.
+                The resource ${resource.id} is requested multiple times.
             </message>
             <visible>user</visible>
         </report>
@@ -1183,7 +1183,7 @@
                 TODO:
             </description>
             <message>
-                Allocating the ${resource}.
+                Allocating the resource ${resource.id}.
             </message>
         </report>
 
@@ -1214,7 +1214,7 @@
                 TODO:
             </description>
             <message>
-                Allocating value in the ${resource}.
+                Allocating value in the resource ${resource.id}.
             </message>
         </report>
 
@@ -1376,7 +1376,7 @@
                 TODO:
             </description>
             <message>
-                Command ${command} failed: ${jadeReport}
+                Command ${command} failed: ${jadeReportMessage(jadeReport)}
             </message>
             <example>
                 TODO:

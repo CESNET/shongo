@@ -3,10 +3,7 @@ package cz.cesnet.shongo.api;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.Report;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a report for an entity.
@@ -16,6 +13,7 @@ import java.util.Map;
 public abstract class AbstractEntityReport extends AbstractComplexType
 {
     public static final String ID = "id";
+    public static final String TYPE = "type";
     public static final String CHILDREN = "children";
 
     /**
@@ -89,6 +87,53 @@ public abstract class AbstractEntityReport extends AbstractComplexType
         userType = dataMap.getEnum(USER_TYPE, Report.UserType.class);
         for (Object report : dataMap.getList(REPORTS, Object.class)) {
             reports.add(Converter.convertToMap(report, String.class, Object.class));
+        }
+    }
+
+    /**
+     * @param report
+     * @return type of given {@code report}
+     */
+    protected static Report.Type getReportType(Map<String, Object> report)
+    {
+        Object value = report.get(TYPE);
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof Report.Type) {
+            return (Report.Type) value;
+        }
+        else {
+            return Report.Type.valueOf(value.toString());
+        }
+    }
+
+    /**
+     * @param report
+     * @return list of children from given {@code report}
+     */
+    protected static Collection<Map<String, Object>> getReportChildren(Map<String, Object> report)
+    {
+        Object children = report.get(CHILDREN);
+        if (children == null) {
+            return Collections.emptyList();
+        }
+        else if (children instanceof Collection) {
+            @SuppressWarnings("unchecked")
+            Collection<Map<String, Object>> childReports = (Collection) children;
+            return childReports;
+        }
+        else if (children instanceof Object[]) {
+            Collection<Map<String, Object>> childReports = new LinkedList<Map<String, Object>>();
+            for (Object child : (Object[]) children) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> childReport = (Map) child;
+                childReports.add(childReport);
+            }
+            return childReports;
+        }
+        else {
+            throw new TodoImplementException(children.getClass());
         }
     }
 }

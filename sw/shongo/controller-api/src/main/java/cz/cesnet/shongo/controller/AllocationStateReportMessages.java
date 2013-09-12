@@ -13,14 +13,14 @@ public class AllocationStateReportMessages
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("resource", new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource}.");
-        addMessage("resource", new Report.UserType[]{}, Report.Language.CZECH, "Zdroj ${resource}.");
-        addMessage("resource-not-allocatable", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource} is disabled for allocation.");
-        addMessage("resource-not-allocatable", new Report.UserType[]{}, Report.Language.CZECH, "Rezervace zdroje ${resource} je zakázána.");
-        addMessage("resource-already-allocated", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource} is already allocated.");
-        addMessage("resource-not-available", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
-        addMessage("resource-not-endpoint", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource} is not endpoint.");
-        addMessage("resource-multiple-requested", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource} is requested multiple times.");
+        addMessage("resource", new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource.id}.");
+        addMessage("resource", new Report.UserType[]{}, Report.Language.CZECH, "Zdroj ${resource.id}.");
+        addMessage("resource-not-allocatable", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource.id} is disabled for allocation.");
+        addMessage("resource-not-allocatable", new Report.UserType[]{}, Report.Language.CZECH, "Rezervace zdroje ${resource.id} je zakázána.");
+        addMessage("resource-already-allocated", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource.id} is already allocated.");
+        addMessage("resource-not-available", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
+        addMessage("resource-not-endpoint", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource.id} is not endpoint.");
+        addMessage("resource-multiple-requested", new Report.UserType[]{}, Report.Language.ENGLISH, "The ${resource.id} is requested multiple times.");
         addMessage("resource-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "No available resource was found for the following specification: Technologies: ${technologies}");
         addMessage("executable-reusing", new Report.UserType[]{}, Report.Language.ENGLISH, "Reusing existing ${executable}.");
         addMessage("compartment-not-enough-endpoint", new Report.UserType[]{}, Report.Language.ENGLISH, "Not enough endpoints are requested for the compartment.");
@@ -34,9 +34,9 @@ public class AllocationStateReportMessages
         addMessage("value-already-allocated", new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is already allocated.");
         addMessage("value-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is invalid.");
         addMessage("value-not-available", new Report.UserType[]{}, Report.Language.ENGLISH, "No value is available.");
-        addMessage("allocating-resource", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating the ${resource}.");
+        addMessage("allocating-resource", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating the ${resource.id}.");
         addMessage("allocating-alias", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating alias for the following specification: \n  Technology: ${ifEmpty(technologies, \"Any\")} \n  Alias Type: ${ifEmpty(aliasTypes, \"Any\")} \n       Value: ${ifEmpty(value, \"Any\")}");
-        addMessage("allocating-value", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating value in the ${resource}.");
+        addMessage("allocating-value", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating value in the ${resource.id}.");
         addMessage("allocating-room", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating room for the following specification: \n    Technology: ${technologies} \n  Participants: ${participantCount}");
         addMessage("allocating-compartment", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating compartment.");
         addMessage("allocating-executable", new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating executable.");
@@ -49,13 +49,6 @@ public class AllocationStateReportMessages
         addMessage("user-not-owner", new Report.UserType[]{}, Report.Language.ENGLISH, "User is not resource owner.");
     }};
 
-    /**
-     * @param reportId
-     * @param userType
-     * @param language
-     * @param parameters
-     * @return message for the report with given {@code uniqueId}
-     */
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
     {
         return MESSAGES.getMessage(reportId, userType, language, parameters);

@@ -71,6 +71,6 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest reservationRequest = (ReservationRequest)
                 reservationService.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
 
-        System.err.print(reservationRequest.getAllocationStateReport().toString(UserSettings.LOCALE_CZECH));
+        System.err.println(reservationRequest.getAllocationStateReport().toString(UserSettings.LOCALE_CZECH).trim());
     }
 }

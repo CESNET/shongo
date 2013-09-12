@@ -374,19 +374,7 @@ public class Report
         description = Formatter.formatString(description);
         description = description.replace("\\n", "\n     * ");
 
-        description = new ParamReplace(description, this){
-            @Override
-            public String processParam(Param param)
-            {
-                return "{@link #" + param.getValue() + "}";
-            }
-
-            @Override
-            protected Object processParamClassName(Param param)
-            {
-                return "of class {@link #" + param.getValue() + "}";
-            }
-        }.getString();
+        description = new ParamReplace(description, this, new JavaDocContext()).getString();
 
         return description;
     }
@@ -560,4 +548,41 @@ public class Report
         return resourceIdParam;
     }
 
+    /**
+     * {@link ParamReplace.Context} for {@link #getJavaDoc()}.
+     */
+    public static class JavaDocContext extends ParamReplace.Context
+    {
+        @Override
+        public String processParam(Param param)
+        {
+            return "{@link #" + param.getValue() + "}";
+        }
+
+        @Override
+        protected Object processParamClassName(Param param)
+        {
+            return "of class {@link #" + param.getValue() + "}";
+        }
+
+        public Object ifEmpty(Param param, String defaultValue)
+        {
+            return processParam(param);
+        }
+
+        public Object jadeReportMessage(Param param)
+        {
+            return processParam(param);
+        }
+
+        public Object className(Param param)
+        {
+            return processParamClassName(param);
+        }
+
+        public Object user(Param param)
+        {
+            return processParamUser(param);
+        }
+    }
 }

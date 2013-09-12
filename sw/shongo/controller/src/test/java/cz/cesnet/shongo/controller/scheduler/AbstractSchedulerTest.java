@@ -75,7 +75,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
     protected void createResource(Resource resource)
     {
         resource.setUserId(Authorization.ROOT_USER_ID);
-        resource.setName("resource");
+        resource.setName("newResource");
 
         entityManager.getTransaction().begin();
         cache.addResource(resource, entityManager);
