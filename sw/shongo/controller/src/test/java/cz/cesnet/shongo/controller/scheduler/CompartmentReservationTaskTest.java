@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -362,12 +363,6 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                                 aliases.add(alias);
                             }
                             return aliases;
-                        }
-
-                        @Override
-                        public String getReportDescription(AbstractReport.MessageType messageType)
-                        {
-                            return "simple endpoint";
                         }
                     };
 

@@ -72,17 +72,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    case CZECH:
-                        return "Zdroj ${resource}.";
-                    default:
-                        return "Resource ${resource}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource", userType, language, getParameters());
         }
     }
 
@@ -134,17 +126,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    case CZECH:
-                        return "Rezervace zdroje ${resource} je zakázána.";
-                    default:
-                        return "The ${resource} is disabled for allocation.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-allocatable", userType, language, getParameters());
         }
     }
 
@@ -234,15 +218,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The ${resource} is already allocated.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-already-allocated", userType, language, getParameters());
         }
     }
 
@@ -348,15 +326,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The ${resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-available", userType, language, getParameters());
         }
     }
 
@@ -453,15 +425,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The ${resource} is not endpoint.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-endpoint", userType, language, getParameters());
         }
     }
 
@@ -551,15 +517,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The ${resource} is requested multiple times.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-multiple-requested", userType, language, getParameters());
         }
     }
 
@@ -662,15 +622,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "No available resource was found for the following specification: Technologies: ${technologies}";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-found", userType, language, getParameters());
         }
     }
 
@@ -780,15 +734,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reusing existing ${executable}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("executable-reusing", userType, language, getParameters());
         }
     }
 
@@ -834,15 +782,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Not enough endpoints are requested for the compartment.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("compartment-not-enough-endpoint", userType, language, getParameters());
         }
     }
 
@@ -924,15 +866,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Cannot assign alias to allocated external endpoint.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("compartment-assign-alias-to-external-endpoint", userType, language, getParameters());
         }
     }
 
@@ -1101,15 +1037,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-between", userType, language, getParameters());
         }
     }
 
@@ -1163,15 +1093,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Creating connection from ${endpointFrom} to ${endpointTo}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-from-to", userType, language, getParameters());
         }
     }
 
@@ -1225,15 +1149,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Cannot create connection from ${endpointFrom} to ${endpointTo}, because the target represents multiple endpoints (not supported yet).";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-to-multiple", userType, language, getParameters());
         }
     }
 
@@ -1340,15 +1258,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-not-usable", userType, language, getParameters());
         }
     }
 
@@ -1496,15 +1408,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The ${reservation} from reused ${reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-not-available", userType, language, getParameters());
         }
     }
 
@@ -1601,15 +1507,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reusing ${reservation}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-reusing", userType, language, getParameters());
         }
     }
 
@@ -1674,15 +1574,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Value ${value} is already allocated.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-already-allocated", userType, language, getParameters());
         }
     }
 
@@ -1790,15 +1684,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Value ${value} is invalid.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-invalid", userType, language, getParameters());
         }
     }
 
@@ -1887,15 +1775,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "No value is available.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-not-available", userType, language, getParameters());
         }
     }
 
@@ -1983,15 +1865,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating the ${resource}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-resource", userType, language, getParameters());
         }
     }
 
@@ -2073,7 +1949,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public int getVisibleFlags()
         {
-            return VISIBLE_TO_DOMAIN_ADMIN;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
@@ -2089,15 +1965,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating alias for the following specification: \n  Technology: ${ifNull(technologies, \"Any\")} \n  Alias Type: ${ifNull(aliasTypes, \"Any\")} \n       Value: ${ifNull(value, \"Any\")}";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-alias", userType, language, getParameters());
         }
     }
 
@@ -2149,15 +2019,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating value in the ${resource}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-value", userType, language, getParameters());
         }
     }
 
@@ -2239,15 +2103,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating room for the following specification: \n    Technology: ${technologies} \n  Participants: ${participantCount}";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-room", userType, language, getParameters());
         }
     }
 
@@ -2293,15 +2151,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating compartment.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-compartment", userType, language, getParameters());
         }
     }
 
@@ -2347,15 +2199,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Allocating executable.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-executable", userType, language, getParameters());
         }
     }
 
@@ -2401,15 +2247,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Checking specification availability report.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-checking-availability", userType, language, getParameters());
         }
     }
 
@@ -2455,15 +2295,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Finding available resource.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("finding-available-resource", userType, language, getParameters());
         }
     }
 
@@ -2509,15 +2343,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Sorting resources.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("sorting-resources", userType, language, getParameters());
         }
     }
 
@@ -2584,15 +2412,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Specification ${specification} is not ready.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-not-ready", userType, language, getParameters());
         }
     }
 
@@ -2717,15 +2539,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Duration ${duration} is longer than maximum ${maximumDuration}.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("duration-longer-than-maximum", userType, language, getParameters());
         }
     }
 
@@ -2780,7 +2596,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The specification of class {@link #specification} is not supposed to be allocated.
+     * The specification {@link #specification} is not supposed to be allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationNotAllocatableReport")
@@ -2842,15 +2658,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "The specification ${className(specification)} is not supposed to be allocated.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-not-allocatable", userType, language, getParameters());
         }
     }
 
@@ -2939,15 +2749,9 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "User is not resource owner.";
-                }
-            }
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("user-not-owner", userType, language, getParameters());
         }
     }
 

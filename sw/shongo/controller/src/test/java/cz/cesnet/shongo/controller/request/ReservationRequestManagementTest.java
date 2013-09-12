@@ -514,7 +514,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         result = getReservationService().checkAvailability(availabilityCheckRequest);
-        Assert.assertEquals(String.class, result.getClass());
+        Assert.assertEquals(AllocationStateReport.class, result.getClass());
 
         try {
             availabilityCheckRequest.setSpecification(new RoomSpecification(1, Technology.H323));

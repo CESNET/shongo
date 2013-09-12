@@ -7,8 +7,8 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -23,7 +23,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject implements Reportable, Reporter.ReportContext
+public abstract class Executable extends PersistentObject implements ReportableSimple, Reporter.ReportContext
 {
     /**
      * Interval start date/time.
@@ -374,9 +374,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
      * @return formatted {@link #reports} as string
      */
     @Transient
-    protected ExecutableStateReport getExecutableStateReport(AbstractReport.MessageType messageType)
+    protected ExecutableStateReport getExecutableStateReport(Report.UserType userType)
     {
-        ExecutableStateReport executableStateReport = new ExecutableStateReport();
+        ExecutableStateReport executableStateReport = new ExecutableStateReport(userType);
         for (ExecutableReport report : getCachedSortedReports()) {
             executableStateReport.addReport(new StateReportSerializer(report));
         }
@@ -393,9 +393,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
 
     @Transient
     @Override
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public String getReportDescription()
     {
-        return String.format("executable '%s'", EntityIdentifier.formatId(this));
+        return EntityIdentifier.formatId(this);
     }
 
     @Transient
@@ -417,17 +417,17 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     public final cz.cesnet.shongo.controller.api.Executable toApi(boolean admin)
     {
-        return toApi(admin ? AbstractReport.MessageType.DOMAIN_ADMIN : AbstractReport.MessageType.USER);
+        return toApi(admin ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
     }
 
     /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public cz.cesnet.shongo.controller.api.Executable toApi(AbstractReport.MessageType messageType)
+    public cz.cesnet.shongo.controller.api.Executable toApi(Report.UserType userType)
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
         executableApi.setId(EntityIdentifier.formatId(this));
-        toApi(executableApi, messageType);
+        toApi(executableApi, userType);
         return executableApi;
     }
 
@@ -443,16 +443,16 @@ public abstract class Executable extends PersistentObject implements Reportable,
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
      *
      * @param executableApi which should be filled from this {@link Executable}
-     * @param messageType
+     * @param userType
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
         executableApi.setId(EntityIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
-        executableApi.setStateReport(getExecutableStateReport(messageType));
+        executableApi.setStateReport(getExecutableStateReport(userType));
         if (migration != null) {
-            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(messageType));
+            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(userType));
         }
     }
 

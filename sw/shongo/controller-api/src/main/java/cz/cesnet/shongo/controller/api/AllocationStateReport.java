@@ -1,36 +1,54 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.controller.AllocationStateReportMessages;
 import cz.cesnet.shongo.report.Report;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
- * {@link AbstractStateReport} for {@link AllocationState}.
+ * {@link cz.cesnet.shongo.api.AbstractEntityReport} for {@link AllocationState}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocationStateReport extends AbstractStateReport
+public class AllocationStateReport extends AbstractEntityReport
 {
+    /**
+     * Constructor.
+     */
+    public AllocationStateReport()
+    {
+        super(null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userType sets the {@link #userType}
+     */
+    public AllocationStateReport(Report.UserType userType)
+    {
+        super(userType);
+    }
+
     @Override
     public String toString(Locale locale)
     {
-        /*StringBuilder stringBuilder = new StringBuilder();
-        for (SchedulerReport report : reports) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map<String, Object> report : reports) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
             }
-            stringBuilder.append(report.getMessageRecursive(messageType));
+            String reportId = (String) report.get(ID);
+            String message = AllocationStateReportMessages.getMessage(
+                    reportId, getUserType(), Report.Language.fromLocale(locale), report);
+            stringBuilder.append(message);
         }
-        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);*/
-        throw new TodoImplementException();
+        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
 
-    /*public String getMessageRecursive(Report.MessageType messageType)
+    /*public String getMessageRecursive(Report.UserType messageType)
     {
         // Get child reports
         List<SchedulerReport> childReports = new LinkedList<SchedulerReport>();
@@ -84,7 +102,7 @@ public class AllocationStateReport extends AbstractStateReport
         return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
     }
 
-    public void getMessageRecursiveChildren(Report.MessageType messageType, Collection<SchedulerReport> childReports)
+    public void getMessageRecursiveChildren(Report.UserType messageType, Collection<SchedulerReport> childReports)
     {
         for (SchedulerReport childReport : this.childReports) {
             if (childReport.isVisible(messageType)) {

@@ -10,6 +10,24 @@ import cz.cesnet.shongo.report.*;
 public class JadeReportSet extends AbstractReportSet
 {
     /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage("agent-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} is not available now.");
+        addMessage("agent-not-started", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} is not started yet.");
+        addMessage("command-abstract-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Abstract command error.");
+        addMessage("command-unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error in command ${command}: ${description}");
+        addMessage("command-timeout", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} send to ${receiverAgent} has timeout.");
+        addMessage("command-not-supported", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} doesn't implement command ${command}.");
+        addMessage("command-refused", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} has refused command ${command}.");
+        addMessage("command-not-understood", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} didn't understand command ${command}.");
+        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}");
+        addMessage("command-failed", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Command ${command} ended with error.");
+        addMessage("command-result-decoding-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
+    }};
+
+    /**
      * Unknown error: {@link #description}
      */
     public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
@@ -74,15 +92,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Unknown error: ${description}";
-                }
-            }
+            return MESSAGES.getMessage("unknown-error", userType, language, getParameters());
         }
     }
 
@@ -194,15 +206,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Receiver agent ${receiverAgent} is not available now.";
-                }
-            }
+            return MESSAGES.getMessage("agent-not-found", userType, language, getParameters());
         }
     }
 
@@ -314,15 +320,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Sender agent ${senderAgent} is not started yet.";
-                }
-            }
+            return MESSAGES.getMessage("agent-not-started", userType, language, getParameters());
         }
     }
 
@@ -369,6 +369,9 @@ public class JadeReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Abstract command error.
+     */
     public static abstract class CommandAbstractErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String command;
@@ -494,15 +497,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Unknown error in command ${command}: ${description}";
-                }
-            }
+            return MESSAGES.getMessage("command-unknown-error", userType, language, getParameters());
         }
     }
 
@@ -620,15 +617,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Command ${command} send to ${receiverAgent} has timeout.";
-                }
-            }
+            return MESSAGES.getMessage("command-timeout", userType, language, getParameters());
         }
     }
 
@@ -746,15 +737,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Receiver agent ${receiverAgent} doesn't implement command ${command}.";
-                }
-            }
+            return MESSAGES.getMessage("command-not-supported", userType, language, getParameters());
         }
     }
 
@@ -872,15 +857,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Receiver agent ${receiverAgent} has refused command ${command}.";
-                }
-            }
+            return MESSAGES.getMessage("command-refused", userType, language, getParameters());
         }
     }
 
@@ -998,15 +977,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Receiver agent ${receiverAgent} didn't understand command ${command}.";
-                }
-            }
+            return MESSAGES.getMessage("command-not-understood", userType, language, getParameters());
         }
     }
 
@@ -1140,20 +1113,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}";
-                }
-                case USER:
-                switch (language) {
-                    default:
-                        return "Command ${command} ended with error.";
-                }
-            }
+            return MESSAGES.getMessage("command-failed", userType, language, getParameters());
         }
     }
 
@@ -1278,15 +1240,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Sender agent ${senderAgent} cannot decode response from command ${command}.";
-                }
-            }
+            return MESSAGES.getMessage("command-result-decoding-failed", userType, language, getParameters());
         }
     }
 

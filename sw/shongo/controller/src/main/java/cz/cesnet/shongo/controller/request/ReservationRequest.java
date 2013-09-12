@@ -9,7 +9,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
-import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -230,9 +230,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return report string containing report header and all {@link #reports}
      */
     @Transient
-    public AllocationStateReport getAllocationStateReport(AbstractReport.MessageType messageType)
+    public AllocationStateReport getAllocationStateReport(Report.UserType userType)
     {
-        return SchedulerReport.getAllocationStateReport(reports, messageType);
+        return SchedulerReport.getAllocationStateReport(reports, userType);
     }
 
     /**
@@ -336,13 +336,13 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(AbstractReport.MessageType messageType)
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Report.UserType userType)
     {
-        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(messageType);
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(userType);
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, AbstractReport.MessageType messageType)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.UserType userType)
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
@@ -352,11 +352,11 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         }
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setAllocationState(allocationState.toApi());
-        reservationRequestApi.setAllocationStateReport(getAllocationStateReport(messageType));
+        reservationRequestApi.setAllocationStateReport(getAllocationStateReport(userType));
         for (Reservation reservation : getAllocation().getReservations()) {
             reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
         }
-        super.toApi(api, messageType);
+        super.toApi(api, userType);
     }
 
     @Override

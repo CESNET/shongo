@@ -2,22 +2,48 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.controller.AllocationStateReportMessages;
+import cz.cesnet.shongo.controller.ExecutableStateReportMessages;
+import cz.cesnet.shongo.report.Report;
+import org.joda.time.DateTime;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
- * {@link AbstractStateReport} for {@link ExecutableState}.
+ * {@link cz.cesnet.shongo.api.AbstractEntityReport} for {@link ExecutableState}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutableStateReport extends AbstractStateReport
+public class ExecutableStateReport extends AbstractEntityReport
 {
+    public static final String DATE_TIME = "dateTime";
+
+    /**
+     * Constructor.
+     */
+    public ExecutableStateReport()
+    {
+        super(null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userType sets the {@link #userType}
+     */
+    public ExecutableStateReport(Report.UserType userType)
+    {
+        super(userType);
+    }
+
     @Override
     public String toString(Locale locale)
     {
-        /*int count = 0;
         StringBuilder stringBuilder = new StringBuilder();
-        for (ExecutableReport report : getCachedSortedReports()) {
+        int count = 0;
+        for (Map<String, Object> report : reports) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
@@ -28,13 +54,14 @@ public class ExecutableStateReport extends AbstractStateReport
                 stringBuilder.append(" more");
                 break;
             }
-            String dateTime = Temporal.formatDateTime(report.getDateTime());
+            String reportId = (String) report.get(ID);
+            String message = ExecutableStateReportMessages.getMessage(
+                    reportId, getUserType(), Report.Language.fromLocale(locale), report);
             stringBuilder.append("[");
-            stringBuilder.append(dateTime);
+            stringBuilder.append(Temporal.formatDateTime(new DateTime(report.get(DATE_TIME))));
             stringBuilder.append("] ");
-            stringBuilder.append(report.getMessage(messageType));
+            stringBuilder.append(message);
         }
-        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);*/
-        throw new TodoImplementException();
+        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
 }

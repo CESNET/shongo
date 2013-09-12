@@ -27,6 +27,29 @@ public class CommonReportSet extends AbstractReportSet
     public static final int METHOD_NOT_DEFINED_REPORT = 15;
 
     /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage("unknown-error", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Unknown error.");
+        addMessage("type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage("type-illegal-value", new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is illegal for type ${type}.");
+        addMessage("class-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} is not defined.");
+        addMessage("class-instantiation-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} cannot be instanced.");
+        addMessage("class-attribute-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} is not defined in class ${class}.");
+        addMessage("class-attribute-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage("class-attribute-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} in class ${class} wasn't present but it is required.");
+        addMessage("class-attribute-readonly", new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.");
+        addMessage("class-collection-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
+        addMessage("collection-item-null", new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
+        addMessage("collection-item-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
+        addMessage("entity-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} was not found.");
+        addMessage("entity-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
+        addMessage("entity-not-deletable-referenced", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
+        addMessage("method-not-defined", new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
+    }};
+
+    /**
      * Unknown error: {@link #description}
      */
     public static class UnknownErrorReport extends AbstractReport implements ApiFault
@@ -73,7 +96,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -109,20 +132,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Unknown error: ${description}";
-                }
-                case USER:
-                switch (language) {
-                    default:
-                        return "Unknown error.";
-                }
-            }
+            return MESSAGES.getMessage("unknown-error", userType, language, getParameters());
         }
     }
 
@@ -234,7 +246,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -273,15 +285,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.";
-                }
-            }
+            return MESSAGES.getMessage("type-mismatch", userType, language, getParameters());
         }
     }
 
@@ -400,7 +406,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -439,15 +445,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Value ${value} is illegal for type ${type}.";
-                }
-            }
+            return MESSAGES.getMessage("type-illegal-value", userType, language, getParameters());
         }
     }
 
@@ -553,7 +553,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -589,15 +589,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Class ${class} is not defined.";
-                }
-            }
+            return MESSAGES.getMessage("class-undefined", userType, language, getParameters());
         }
     }
 
@@ -696,7 +690,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -732,15 +726,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Class ${class} cannot be instanced.";
-                }
-            }
+            return MESSAGES.getMessage("class-instantiation-error", userType, language, getParameters());
         }
     }
 
@@ -852,7 +840,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -891,15 +879,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Attribute ${attribute} is not defined in class ${class}.";
-                }
-            }
+            return MESSAGES.getMessage("class-attribute-undefined", userType, language, getParameters());
         }
     }
 
@@ -1044,7 +1026,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1089,15 +1071,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.";
-                }
-            }
+            return MESSAGES.getMessage("class-attribute-type-mismatch", userType, language, getParameters());
         }
     }
 
@@ -1230,7 +1206,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1269,15 +1245,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Attribute ${attribute} in class ${class} wasn't present but it is required.";
-                }
-            }
+            return MESSAGES.getMessage("class-attribute-required", userType, language, getParameters());
         }
     }
 
@@ -1396,7 +1366,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1435,15 +1405,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.";
-                }
-            }
+            return MESSAGES.getMessage("class-attribute-readonly", userType, language, getParameters());
         }
     }
 
@@ -1562,7 +1526,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1601,15 +1565,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Collection ${collection} in class ${class} wasn't present or was empty but it is required.";
-                }
-            }
+            return MESSAGES.getMessage("class-collection-required", userType, language, getParameters());
         }
     }
 
@@ -1715,7 +1673,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1751,15 +1709,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Null item cannot be present in collection ${collection}.";
-                }
-            }
+            return MESSAGES.getMessage("collection-item-null", userType, language, getParameters());
         }
     }
 
@@ -1884,7 +1836,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1926,15 +1878,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.";
-                }
-            }
+            return MESSAGES.getMessage("collection-item-type-mismatch", userType, language, getParameters());
         }
     }
 
@@ -2060,7 +2006,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2099,15 +2045,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Entity ${entity} with identifier ${id} was not found.";
-                }
-            }
+            return MESSAGES.getMessage("entity-not-found", userType, language, getParameters());
         }
     }
 
@@ -2226,7 +2166,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2265,15 +2205,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Entity ${entity} validation failed: ${reason}";
-                }
-            }
+            return MESSAGES.getMessage("entity-invalid", userType, language, getParameters());
         }
     }
 
@@ -2392,7 +2326,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2431,15 +2365,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.";
-                }
-            }
+            return MESSAGES.getMessage("entity-not-deletable-referenced", userType, language, getParameters());
         }
     }
 
@@ -2545,7 +2473,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2581,15 +2509,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Method ${method} is not defined.";
-                }
-            }
+            return MESSAGES.getMessage("method-not-defined", userType, language, getParameters());
         }
     }
 

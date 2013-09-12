@@ -8,7 +8,8 @@ import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.ReportableComplex;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -21,7 +22,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Resource extends PersistentObject implements Reportable
+public class Resource extends PersistentObject implements ReportableComplex
 {
     /**
      * User-id of an user who created the {@link Resource}.
@@ -397,9 +398,12 @@ public class Resource extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public Map<String, Object> getReportDescription()
     {
-        return String.format("resource '%s'", EntityIdentifier.formatId(this));
+        Map<String, Object> reportDescription = new HashMap<String, Object>();
+        reportDescription.put("id", EntityIdentifier.formatId(this));
+        reportDescription.put("name", name);
+        return reportDescription;
     }
 
     /**

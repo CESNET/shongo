@@ -20,7 +20,7 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
-import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -107,15 +107,15 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public RoomExecutable toApi(AbstractReport.MessageType messageType)
+    public RoomExecutable toApi(Report.UserType userType)
     {
-        return (RoomExecutable) super.toApi(messageType);
+        return (RoomExecutable) super.toApi(userType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        super.toApi(executableApi, messageType);
+        super.toApi(executableApi, userType);
 
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;
@@ -195,9 +195,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public String getDescription()
     {
-        return String.format("room in %s", getDeviceResource().getReportDescription(messageType));
+        return String.format("room in %s", getDeviceResource().getReportDescription());
     }
 
     @Override

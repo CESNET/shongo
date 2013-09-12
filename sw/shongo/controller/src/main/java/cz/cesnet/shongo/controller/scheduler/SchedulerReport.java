@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
@@ -165,31 +164,31 @@ public abstract class SchedulerReport extends AbstractReport
     }
 
     /**
-     * @param messageType
-     * @return true if the {@link SchedulerReport} is visible in message of given {@code messageType},
+     * @param userType
+     * @return true if the {@link SchedulerReport} is visible in message of given {@code userType},
      *         false otherwise
      */
-    public boolean isVisible(MessageType messageType)
+    public boolean isVisible(UserType userType)
     {
-        return !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
+        return !userType.equals(UserType.USER) || isVisible(VISIBLE_TO_USER);
     }
 
     @Override
     public String toString()
     {
-        return toAllocationStateReport(MessageType.DOMAIN_ADMIN).toString();
+        return toAllocationStateReport(UserType.DOMAIN_ADMIN).toString();
     }
 
     /**
-     * @param messageType
-     * @return this {@link SchedulerReport} as {@link AllocationStateReport} for given {@code messageType}
+     * @param userType
+     * @return this {@link SchedulerReport} as {@link AllocationStateReport} for given {@code userType}
      */
-    public AllocationStateReport toAllocationStateReport(MessageType messageType)
+    public AllocationStateReport toAllocationStateReport(UserType userType)
     {
         List<Map<String, Object>> reports = new LinkedList<Map<String, Object>>();
-        toMap(reports, messageType);
+        toMap(reports, userType);
 
-        AllocationStateReport allocationStateReport = new AllocationStateReport();
+        AllocationStateReport allocationStateReport = new AllocationStateReport(userType);
         for (Map<String, Object> report : reports) {
             allocationStateReport.addReport(report);
         }
@@ -197,14 +196,14 @@ public abstract class SchedulerReport extends AbstractReport
     }
 
     /**
-     * @param reports to be filled by reports as maps
-     * @param messageType to be used
+     * @param reports     to be filled by reports as maps
+     * @param userType to be used
      */
-    private void toMap(List<Map<String, Object>> reports, MessageType messageType)
+    private void toMap(List<Map<String, Object>> reports, UserType userType)
     {
         Map<String, Object> report = null;
         List<Map<String, Object>> childReports;
-        if (isVisible(messageType)) {
+        if (isVisible(userType)) {
             report = new StateReportSerializer(this);
             reports.add(report);
             childReports = new LinkedList<Map<String, Object>>();
@@ -214,7 +213,7 @@ public abstract class SchedulerReport extends AbstractReport
         }
         if (this.childReports.size() > 0) {
             for (SchedulerReport childReport : this.childReports) {
-                childReport.toMap(childReports, messageType);
+                childReport.toMap(childReports, userType);
             }
             if (report != null && childReports.size() > 0) {
                 report.put(AllocationStateReport.CHILDREN, childReports);
@@ -223,18 +222,18 @@ public abstract class SchedulerReport extends AbstractReport
     }
 
     /**
-     * @param reports to be used
-     * @param messageType to be used
-     * @return given {@code reports} as {@link AllocationStateReport} for given {@code messageType}
+     * @param reports     to be used
+     * @param userType to be used
+     * @return given {@code reports} as {@link AllocationStateReport} for given {@code userType}
      */
-    public static AllocationStateReport getAllocationStateReport(List<SchedulerReport> reports, MessageType messageType)
+    public static AllocationStateReport getAllocationStateReport(List<SchedulerReport> reports, UserType userType)
     {
         List<Map<String, Object>> reportMaps = new LinkedList<Map<String, Object>>();
         for (SchedulerReport report : reports) {
-            report.toMap(reportMaps, messageType);
+            report.toMap(reportMaps, userType);
         }
 
-        AllocationStateReport allocationStateReport = new AllocationStateReport();
+        AllocationStateReport allocationStateReport = new AllocationStateReport(userType);
         for (Map<String, Object> report : reportMaps) {
             allocationStateReport.addReport(report);
         }

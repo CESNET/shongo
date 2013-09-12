@@ -8,7 +8,8 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -23,7 +24,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Reservation extends PersistentObject implements Reportable
+public class Reservation extends PersistentObject implements ReportableSimple
 {
     /**
      * {@link Allocation} for which the {@link Reservation} is allocated.
@@ -392,9 +393,9 @@ public class Reservation extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public String getReportDescription()
     {
-        return String.format("reservation '%s'", EntityIdentifier.formatId(this));
+        return EntityIdentifier.formatId(this);
     }
 
     /**

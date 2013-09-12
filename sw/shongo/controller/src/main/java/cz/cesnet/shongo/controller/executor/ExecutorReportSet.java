@@ -94,15 +94,9 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Command ${command} failed: ${jadeReport}";
-                }
-            }
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("command-failed", userType, language, getParameters());
         }
     }
 
@@ -224,15 +218,9 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Cannot modify room ${roomName}, because it has not been started yet.";
-                }
-            }
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("room-not-started", userType, language, getParameters());
         }
     }
 

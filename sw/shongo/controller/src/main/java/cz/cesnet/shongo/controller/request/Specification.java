@@ -4,8 +4,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.ReportableSimple;
 
 import javax.persistence.*;
 import java.util.*;
@@ -20,7 +20,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Specification extends PersistentObject implements Reportable
+public abstract class Specification extends PersistentObject implements ReportableSimple
 {
     /**
      * Set of {@link Technology}s which are required/supported by this {@link Specification}.
@@ -133,7 +133,7 @@ public abstract class Specification extends PersistentObject implements Reportab
 
     @Override
     @Transient
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public String getReportDescription()
     {
         return getClass().getSimpleName();
     }

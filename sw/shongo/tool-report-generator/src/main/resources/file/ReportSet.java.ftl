@@ -19,6 +19,10 @@ public class ${scope.getClassName()} extends AbstractReportSet
 <#if (apiReportCount > 0)>
 
 </#if>
+<#if !scope.getMessagesFileName()??>
+<#include "ReportSetMessages.ftl">
+
+</#if>
 <#list scope.getReports() as report>
     <#if report.getJavaDoc()??>
     /**
@@ -131,7 +135,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -187,30 +191,12 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
         </#if>
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-        <#if report.getMessages()??>
-            switch (messageType) {
-            <#list report.getMessages().entrySet() as typeEntry>
-                <#if typeEntry.key??>
-                case ${typeEntry.key}:
-                <#else>
-                default:
-                </#if>
-                switch (language) {
-                <#list typeEntry.value.entrySet() as languageEntry>
-                    <#if languageEntry.key??>
-                    case ${languageEntry.key}:
-                    <#else>
-                    default:
-                    </#if>
-                        return "${languageEntry.value.replaceAll('"', '\\\\"')}";
-                </#list>
-                }
-            </#list>
-            }
+        <#if scope.messagesClassName??>
+            return ${scope.messagesClassPackage}.${scope.messagesClassName}.getMessage("${report.id}", userType, language, getParameters());
         <#else>
-            return null;
+            return MESSAGES.getMessage("${report.id}", userType, language, getParameters());
         </#if>
         }
     </#if>

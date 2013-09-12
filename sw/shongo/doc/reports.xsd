@@ -54,6 +54,14 @@
             <xs:element name="name" type="xs:string"/>
             <xs:element name="module" type="xs:string"/>
             <xs:element name="class-name" type="xs:string"/>
+            <xs:element name="messages" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="module" type="xs:string"/>
+                        <xs:element name="class-name" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -104,7 +105,7 @@ public class ExternalEndpointSet extends Endpoint
 
     @Override
     @Transient
-    public String getReportDescription(AbstractReport.MessageType messageType)
+    public String getDescription()
     {
         return String.format("external endpoint(%dx %s)", count, Technology.formatTechnologies(technologies));
     }

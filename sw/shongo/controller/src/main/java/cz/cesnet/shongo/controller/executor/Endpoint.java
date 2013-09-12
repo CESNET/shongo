@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public abstract class Endpoint extends Executable
     @Transient
     public String getDescription()
     {
-        return getReportDescription(AbstractReport.MessageType.DOMAIN_ADMIN);
+        return "endpoint " + getReportDescription();
     }
 
     /**
@@ -147,9 +147,9 @@ public abstract class Endpoint extends Executable
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        super.toApi(executableApi, messageType);
+        super.toApi(executableApi, userType);
 
         if (executableApi instanceof EndpointExecutable) {
             EndpointExecutable endpointApi =

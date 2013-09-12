@@ -26,12 +26,20 @@
             <name>scheduler</name>
             <module>controller</module>
             <class-name>cz.cesnet.shongo.controller.scheduler.SchedulerReportSet</class-name>
+            <messages>
+                <module>controller-api</module>
+                <class-name>cz.cesnet.shongo.controller.AllocationStateReportMessages</class-name>
+            </messages>
         </scope>
 
         <scope>
             <name>executor</name>
             <module>controller</module>
             <class-name>cz.cesnet.shongo.controller.executor.ExecutorReportSet</class-name>
+            <messages>
+                <module>controller-api</module>
+                <class-name>cz.cesnet.shongo.controller.ExecutableStateReportMessages</class-name>
+            </messages>
         </scope>
     </scopes>
 
@@ -1192,10 +1200,11 @@
             </description>
             <message>
                 Allocating alias for the following specification:
-                \n  Technology: ${ifNull(technologies, "Any")}
-                \n  Alias Type: ${ifNull(aliasTypes, "Any")}
-                \n       Value: ${ifNull(value, "Any")}
+                \n  Technology: ${ifEmpty(technologies, "Any")}
+                \n  Alias Type: ${ifEmpty(aliasTypes, "Any")}
+                \n       Value: ${ifEmpty(value, "Any")}
             </message>
+            <visible>user</visible>
         </report>
 
         <report extends="resource">
@@ -1332,7 +1341,7 @@
                 TODO:
             </description>
             <message>
-                The specification ${className(specification)} is not supposed to be allocated.
+                The specification ${specification} is not supposed to be allocated.
             </message>
         </report>
 

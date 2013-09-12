@@ -83,7 +83,7 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
      * @param defaultValue
      * @return result for the expression
      */
-    protected Object processParamIfNull(Param param, String defaultValue)
+    protected Object processParamIfEmpty(Param param, String defaultValue)
     {
         return param;
     }
@@ -140,9 +140,9 @@ abstract class ParamReplace extends PatternParser implements PatternParser.Callb
             return report.getParam(variableName) != null;
         }
 
-        public Object ifNull(Param param, String defaultValue)
+        public Object ifEmpty(Param param, String defaultValue)
         {
-            return processParamIfNull(param, defaultValue);
+            return processParamIfEmpty(param, defaultValue);
         }
 
         public Object className(Param param)

@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.api.CompartmentExecutable;
 import cz.cesnet.shongo.controller.api.ConnectionExecutable;
 import cz.cesnet.shongo.controller.api.EndpointExecutable;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -110,25 +110,25 @@ public class Compartment extends Executable
     }
 
     @Override
-    public CompartmentExecutable toApi(AbstractReport.MessageType messageType)
+    public CompartmentExecutable toApi(Report.UserType userType)
     {
-        return (CompartmentExecutable) super.toApi(messageType);
+        return (CompartmentExecutable) super.toApi(userType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, AbstractReport.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        super.toApi(executableApi, messageType);
+        super.toApi(executableApi, userType);
 
         CompartmentExecutable compartmentApi =
                 (CompartmentExecutable) executableApi;
         for (Endpoint endpoint : getEndpoints()) {
-            compartmentApi.addEndpoint((EndpointExecutable) endpoint.toApi(messageType));
+            compartmentApi.addEndpoint((EndpointExecutable) endpoint.toApi(userType));
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-                compartmentApi.addRoom(resourceRoomEndpoint.toApi(messageType));
+                compartmentApi.addRoom(resourceRoomEndpoint.toApi(userType));
             }
         }
         for (Connection connection : getConnections()) {

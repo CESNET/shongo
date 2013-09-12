@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.report;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -31,10 +32,10 @@ public interface Report
     public Map<String, Object> getParameters();
 
     /**
-     * @param messageType
-     * @return report message of given {@code messageType}
+     * @param userType
+     * @return report message of given {@code userType}
      */
-    public String getMessage(MessageType messageType, Language language);
+    public String getMessage(UserType userType, Language language);
 
     /**
      * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
@@ -53,7 +54,7 @@ public interface Report
     /**
      * Enumeration of all possible message types.
      */
-    public static enum MessageType
+    public static enum UserType
     {
         /**
          * Message for normal user.
@@ -104,6 +105,20 @@ public interface Report
         public String getLanguage()
         {
             return language;
+        }
+
+        /**
+         * @param locale
+         * @return {@link Language} for given {@code locale}
+         */
+        public static Language fromLocale(Locale locale)
+        {
+            if (locale.getLanguage().equals("cs")) {
+                return CZECH;
+            }
+            else {
+                return ENGLISH;
+            }
         }
     }
 

@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractReport implements Report, Reportable
+public abstract class AbstractReport implements Report
 {
     @Override
     public abstract String getUniqueId();
@@ -26,14 +26,14 @@ public abstract class AbstractReport implements Report, Reportable
     public abstract Map<String, Object> getParameters();
 
     @Override
-    public abstract String getMessage(MessageType messageType, Language language);
+    public abstract String getMessage(UserType userType, Language language);
 
     /**
-     * @return {@link MessageType#DOMAIN_ADMIN} report message
+     * @return {@link cz.cesnet.shongo.report.Report.UserType#DOMAIN_ADMIN} report message
      */
     public final String getMessage()
     {
-        return getMessage(MessageType.DOMAIN_ADMIN, Language.ENGLISH);
+        return getMessage(UserType.DOMAIN_ADMIN, Language.ENGLISH);
     }
 
     @Override
@@ -61,11 +61,5 @@ public abstract class AbstractReport implements Report, Reportable
     public String toString()
     {
         return getMessage();
-    }
-
-    @Override
-    public String getReportDescription(MessageType messageType)
-    {
-        return getMessage(messageType, Language.ENGLISH);
     }
 }

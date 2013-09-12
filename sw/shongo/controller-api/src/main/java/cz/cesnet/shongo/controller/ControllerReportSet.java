@@ -27,6 +27,28 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int RESERVATION_REQUEST_NOT_REUSABLE_REPORT = 115;
 
     /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("user-not-exist", new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
+        addMessage("acl-invalid-role", new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
+        addMessage("security-missing-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
+        addMessage("security-invalid-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
+        addMessage("security-not-authorized", new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
+        addMessage("device-command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReport}");
+        addMessage("identifier-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} is invalid.");
+        addMessage("identifier-invalid-domain", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} doesn't belong to domain ${requiredDomain}.");
+        addMessage("identifier-invalid-type", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} isn't of required type ${requiredType}.");
+        addMessage("reservation-request-not-modifiable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be modified.");
+        addMessage("reservation-request-not-deletable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be deleted.");
+        addMessage("reservation-request-not-revertible", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reverted.");
+        addMessage("reservation-request-already-modified", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} has already been modified.");
+        addMessage("reservation-request-deleted", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} is deleted.");
+        addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
+        addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
+    }};
+
+    /**
      * User {@link #user} doesn't exist.
      */
     public static class UserNotExistReport extends AbstractReport implements ApiFault
@@ -73,7 +95,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -109,15 +131,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "User ${user} doesn't exist.";
-                }
-            }
+            return MESSAGES.getMessage("user-not-exist", userType, language, getParameters());
         }
     }
 
@@ -229,7 +245,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -268,15 +284,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "ACL Role ${role} is invalid for entity ${entity}.";
-                }
-            }
+            return MESSAGES.getMessage("acl-invalid-role", userType, language, getParameters());
         }
     }
 
@@ -365,7 +375,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -398,15 +408,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Security token is missing but is required.";
-                }
-            }
+            return MESSAGES.getMessage("security-missing-token", userType, language, getParameters());
         }
     }
 
@@ -498,7 +502,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -534,15 +538,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Invalid security token ${token}.";
-                }
-            }
+            return MESSAGES.getMessage("security-invalid-token", userType, language, getParameters());
         }
     }
 
@@ -641,7 +639,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -677,15 +675,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "You are not authorized to ${action}.";
-                }
-            }
+            return MESSAGES.getMessage("security-not-authorized", userType, language, getParameters());
         }
     }
 
@@ -816,7 +808,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -858,15 +850,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Command ${command} for device ${device} failed: ${jadeReport}";
-                }
-            }
+            return MESSAGES.getMessage("device-command-failed", userType, language, getParameters());
         }
     }
 
@@ -979,7 +965,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1015,15 +1001,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Identifier ${id} is invalid.";
-                }
-            }
+            return MESSAGES.getMessage("identifier-invalid", userType, language, getParameters());
         }
     }
 
@@ -1135,7 +1115,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1174,15 +1154,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Identifier ${id} doesn't belong to domain ${requiredDomain}.";
-                }
-            }
+            return MESSAGES.getMessage("identifier-invalid-domain", userType, language, getParameters());
         }
     }
 
@@ -1301,7 +1275,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1340,15 +1314,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Identifier ${id} isn't of required type ${requiredType}.";
-                }
-            }
+            return MESSAGES.getMessage("identifier-invalid-type", userType, language, getParameters());
         }
     }
 
@@ -1454,7 +1422,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1490,15 +1458,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} cannot be modified.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-not-modifiable", userType, language, getParameters());
         }
     }
 
@@ -1597,7 +1559,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1633,15 +1595,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} cannot be deleted.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-not-deletable", userType, language, getParameters());
         }
     }
 
@@ -1740,7 +1696,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1776,15 +1732,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} cannot be reverted.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-not-revertible", userType, language, getParameters());
         }
     }
 
@@ -1883,7 +1833,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1919,15 +1869,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} has already been modified.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-already-modified", userType, language, getParameters());
         }
     }
 
@@ -2026,7 +1970,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2062,15 +2006,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} is deleted.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-deleted", userType, language, getParameters());
         }
     }
 
@@ -2152,7 +2090,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2185,15 +2123,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request time slot must not be empty.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-empty-duration", userType, language, getParameters());
         }
     }
 
@@ -2285,7 +2217,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER, Language.ENGLISH);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2321,15 +2253,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType, Language language)
+        public String getMessage(UserType userType, Language language)
         {
-            switch (messageType) {
-                default:
-                switch (language) {
-                    default:
-                        return "Reservation request with identifier ${id} cannot be reused.";
-                }
-            }
+            return MESSAGES.getMessage("reservation-request-not-reusable", userType, language, getParameters());
         }
     }
 

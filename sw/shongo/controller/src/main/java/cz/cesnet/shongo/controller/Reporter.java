@@ -63,7 +63,7 @@ public class Reporter
         if (reportContext != null) {
             name = reportContext.getReportContextName() + ": " + name;
         }
-        String domainAdminMessage = report.getMessage(Report.MessageType.DOMAIN_ADMIN, Report.Language.ENGLISH);
+        String domainAdminMessage = report.getMessage(Report.UserType.DOMAIN_ADMIN, Report.Language.ENGLISH);
         if (report.getType().equals(AbstractReport.Type.ERROR)) {
             logger.error(name + ": " + domainAdminMessage, throwable);
         }
@@ -121,7 +121,7 @@ public class Reporter
                 }
                 if (resourceAdministratorEmails.size() > 0) {
                     String resourceAdminMessage = report.getMessage(
-                            AbstractReport.MessageType.RESOURCE_ADMIN, Report.Language.ENGLISH);
+                            Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
                     sendReportEmail(resourceAdministratorEmails, name,
                             getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
                 }

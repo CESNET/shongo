@@ -29,7 +29,6 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
-import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -157,7 +156,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             catch (SchedulerException exception) {
                 // Specification cannot be allocated or reservation request cannot be reused in requested time slot
                 return exception.getReport().toAllocationStateReport(authorization.isAdmin(securityToken) ?
-                        AbstractReport.MessageType.DOMAIN_ADMIN : AbstractReport.MessageType.USER);
+                        Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
             }
 
             // Request is available

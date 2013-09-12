@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.api.AbstractStateReport;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.Reportable;
-import cz.cesnet.shongo.report.SerializableReport;
+import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.controller.api.ExecutableStateReport;
+import cz.cesnet.shongo.controller.executor.ExecutableReport;
+import cz.cesnet.shongo.controller.scheduler.TechnologySet;
+import cz.cesnet.shongo.report.*;
+import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,27 +27,43 @@ public class StateReportSerializer extends HashMap<String, Object>
      */
     public StateReportSerializer(Report report)
     {
-        put(AbstractStateReport.ID, report.getUniqueId());
+        put(AbstractEntityReport.ID, report.getUniqueId());
+        if (report instanceof ExecutableReport) {
+            ExecutableReport executableReport = (ExecutableReport) report;
+            put(ExecutableStateReport.DATE_TIME, executableReport.getDateTime());
+        }
         for (Map.Entry<String, Object> parameter : report.getParameters().entrySet()) {
             String name = parameter.getKey();
             Object value = parameter.getValue();
-            if (value instanceof String) {
+            if (value instanceof String || value instanceof Integer || value instanceof Enum) {
+                put(name, value);
+            }
+            else if (value instanceof DateTime) {
                 put(name, value);
             }
             else if (value instanceof Collection) {
                 Collection collection = (Collection) value;
+                for (Object item : collection) {
+                    if (item instanceof Collection) {
+                        ((Collection) item).size();
+                    }
+                }
                 if (!collection.isEmpty()) {
                     put(name, collection);
                 }
             }
-            else if (value instanceof SerializableReport) {
-                SerializableReport serializableReport = (SerializableReport) value;
-                Map<String, Object> childReport = new StateReportSerializer(serializableReport);
+            else if (value instanceof Report) {
+                Report reportValue = (Report) value;
+                Map<String, Object> childReport = new StateReportSerializer(reportValue);
                 put(name, childReport);
             }
-            else if (value instanceof Reportable) {
-                Reportable reportable = (Reportable) value;
-                put(name, reportable.getReportDescription(Report.MessageType.DOMAIN_ADMIN));
+            else if (value instanceof ReportableSimple) {
+                ReportableSimple reportable = (ReportableSimple) value;
+                put(name, reportable.getReportDescription());
+            }
+            else if (value instanceof ReportableComplex) {
+                ReportableComplex reportable = (ReportableComplex) value;
+                put(name, reportable.getReportDescription());
             }
             else if (value != null) {
                 throw new TodoImplementException(value.getClass());

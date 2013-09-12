@@ -121,6 +121,10 @@ public class Report
                 temporaryParams.add(paramTemporary);
             }
         }
+
+        for (ReportMessage message : report.getMessage()) {
+            message.setValue(Formatter.formatString(message.getValue()));
+        }
     }
 
     /**
@@ -297,102 +301,22 @@ public class Report
 
     public String getDefaultMessage()
     {
-        Map<ReportFor, Map<String, String>> messages = getMessages();
-        if (messages != null) {
-            Map<String, String> messagesForType = messages.get(null);
-            if (messagesForType != null) {
-                return messagesForType.get(null);
-            }
+        List<ReportMessage> messages = getMessages();
+        if (messages.size() == 0) {
+            return null;
         }
-        return null;
+        return messages.get(0).getValue();
     }
-
-    /**
-     * Messages.
-     */
-    private Map<ReportFor, Map<String, String>> messages = null;
-
-    private Set<ReportFor> MESSAGE_TYPES = new HashSet<ReportFor>() {{
-        add(ReportFor.DOMAIN_ADMIN);
-        add(ReportFor.RESOURCE_ADMIN);
-        add(ReportFor.USER);
-        add(null);
-    }};
-    private Map<String, String> MESSAGE_LANGUAGES = new HashMap<String, String>() {{
-        put("en", "ENGLISH");
-        put("cs", "CZECH");
-        put(null, null);
-    }};
 
     /**
      * @return map of messages by type and language
      */
-    public Map<ReportFor, Map<String, String>> getMessages()
+    public List<ReportMessage> getMessages()
     {
-        if (messages == null && !isAbstract()) {
-            messages = new LinkedHashMap<ReportFor, Map<String, String>>();
-
-            // For each type
-            for (ReportFor type : MESSAGE_TYPES) {
-                List<ReportMessage> reportMessages = new LinkedList<ReportMessage>();
-                for (ReportMessage reportMessage : report.getMessage()) {
-                    if ((type == null && reportMessage.getFor().size() == 0)
-                            || (type != null && reportMessage.getFor().contains(type))) {
-                        reportMessages.add(reportMessage);
-                    }
-                }
-                if (reportMessages.size() == 0) {
-                    continue;
-                }
-
-                Map<String, String> languageMessages = new LinkedHashMap<String, String>();
-                messages.put(type, languageMessages);
-
-                // For each language
-                for (String language : MESSAGE_LANGUAGES.keySet()) {
-                    ReportMessage languageReportMessage = null;
-                    for (ReportMessage reportMessage : reportMessages) {
-                        if ((reportMessage.getLang() == null && language == null)
-                                || (reportMessage.getLang() != null && reportMessage.getLang().equals(language))) {
-                            languageReportMessage = reportMessage;
-                            break;
-                        }
-                    }
-                    if (languageReportMessage == null) {
-                        continue;
-                    }
-                    String message = languageReportMessage.getValue();
-                    message = Formatter.formatString(message);
-                    languageMessages.put(MESSAGE_LANGUAGES.get(language), message);
-                }
-                // Default language
-                if (!languageMessages.containsKey(null)) {
-                    String defaultLanguage = MESSAGE_LANGUAGES.get("en");
-                    if (languageMessages.containsKey(defaultLanguage)) {
-                        languageMessages.put(null, languageMessages.get(defaultLanguage));
-                        languageMessages.remove(defaultLanguage);
-                    }
-                    else {
-                        throw new TodoException("Report " + report.getId() + " no message for default language for " + type + ".");
-                    }
-                }
-            }
-            // Default type
-            if (!messages.containsKey(null)) {
-                ReportFor defaultReportFor = ReportFor.DOMAIN_ADMIN;
-                if (messages.containsKey(defaultReportFor)) {
-                    messages.put(null, messages.get(defaultReportFor));
-                    messages.remove(defaultReportFor);
-                }
-                else {
-                    throw new TodoException("Report " + report.getId() + " has no message for default type.");
-                }
-            }
-        }
-        return messages;
+        return report.getMessage();
     }
 
-    private Collection<String> processMessage(String message)
+    /*private Collection<String> processMessage(String message)
     {
         if (message == null) {
             return Collections.emptyList();
@@ -413,7 +337,7 @@ public class Report
             }
 
             @Override
-            protected Object processParamIfNull(Param param, String defaultValue)
+            protected Object processParamIfEmpty(Param param, String defaultValue)
             {
                 if (param.getType().isCollection()) {
                     return "((" + param.getValue() + " == null || " + param.getValue() + ".isEmpty()) ? \"" + defaultValue + "\" : " + param.getValueMessage() + ")";
@@ -439,7 +363,7 @@ public class Report
                 return "(" + param.getValue() + " == null ? \"null\" : cz.cesnet.shongo.PersonInformation.Formatter.format(" + value + "))";
             }
         }.getStringParts();
-    }
+    }*/
 
     public String getJavaDoc()
     {

@@ -4,10 +4,8 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.Interval;
-
-import java.util.Locale;
 
 /**
  * {@link cz.cesnet.shongo.controller.notification.ConfigurableNotification} for changes in allocation of {@link cz.cesnet.shongo.controller.request.ReservationRequest}.
@@ -35,7 +33,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest.getSpecification());
-        this.reason = reservationRequest.getAllocationStateReport(AbstractReport.MessageType.USER);
+        this.reason = reservationRequest.getAllocationStateReport(Report.UserType.USER);
         for (PersonInformation administrator : configuration.getAdministrators()) {
             addRecipient(administrator, true);
         }
