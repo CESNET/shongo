@@ -138,16 +138,16 @@
             </c:if>
             <td>
                 <c:if test="${detailUrl != null}">
-                    <a href="${detailUrl}" tabindex="4"><spring:message code="views.list.action.show"/></a>
+                    <a href="${detailUrl}" tabindex="4"> <b class="icon-eye-open"></b></a>
                 </c:if>
                     <span ng-show="reservationRequest.writable">
                         <c:if test="${modifyUrl != null}">
                             <c:if test="${detailUrl != null}">| </c:if>
-                            <a href="${modifyUrl}" tabindex="4"><spring:message code="views.list.action.modify"/></a>
+                            <a href="${modifyUrl}" tabindex="4"> <b class="icon-pencil"></b></a>
                         </c:if>
                         <c:if test="${deleteUrl != null}">
                             <c:if test="${detailUrl != null || modifyUrl != null}">| </c:if>
-                            <a href="${deleteUrl}" tabindex="4"><spring:message code="views.list.action.delete"/></a>
+                            <a href="${deleteUrl}" tabindex="4"> <b class="icon-trash"></b></a>
                         </c:if>
                     </span>
             </td>

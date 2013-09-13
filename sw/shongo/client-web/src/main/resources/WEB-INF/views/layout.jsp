@@ -116,6 +116,7 @@
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <b><security:authentication property="principal.fullName"/></b>
+                            <b class="icon-cog"></b>
                             <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
