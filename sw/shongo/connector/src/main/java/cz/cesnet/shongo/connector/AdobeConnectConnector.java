@@ -572,6 +572,15 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             room.setAliases(aliasList);
 
+            // options
+            AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
+            String pin = sco.getChildText("meeting-passcode");
+            if (pin != null) {
+                adobeConnectRoomSetting.setPin(pin);
+            }
+            room.addRoomSetting(adobeConnectRoomSetting);
+
+
         }
         catch (RequestFailedCommandException ex) {
             if (ex.getCode().equals("no-data")) {
@@ -751,6 +760,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             else if (room.getLicenseCount() == 0) {
                 endMeeting(roomId);
             }
+
+            // Set passcode (pin)
+            RequestAttributeList passcodeAttributes = new RequestAttributeList();
+            passcodeAttributes.add("acl-id",roomId);
+            passcodeAttributes.add("field-id","meeting-passcode");
+
+            String pin = "";
+            AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
+            if (adobeConnectRoomSetting != null) {
+                pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
+            }
+
+            passcodeAttributes.add("value",pin);
+
+            request("acl-field-update",passcodeAttributes);
 
             //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 

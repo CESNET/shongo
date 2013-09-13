@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
@@ -375,6 +376,10 @@ public class ReservationRequestModel
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     roomPin = h323RoomSetting.getPin();
                 }
+                if (roomSetting instanceof AdobeConnectRoomSetting) {
+                    AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
+                    roomPin = adobeConnectRoomSetting.getPin();
+                }
             }
             AliasSpecification aliasSpecification = roomSpecification.getAliasSpecificationByType(AliasType.ROOM_NAME);
             if (aliasSpecification != null) {
@@ -514,6 +519,11 @@ public class ReservationRequestModel
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
+                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && roomPin != null) {
+                    AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
+                    adobeConnectRoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+                }
                 return roomSpecification;
             }
             case PERMANENT_ROOM: {
@@ -546,6 +556,11 @@ public class ReservationRequestModel
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
+                }
+                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && roomPin != null) {
+                    AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
+                    adobeConnectRoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
                 return roomSpecification;
             }

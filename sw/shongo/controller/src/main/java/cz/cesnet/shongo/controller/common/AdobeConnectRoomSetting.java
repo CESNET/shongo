@@ -11,10 +11,32 @@ import javax.persistence.Entity;
 @Entity
 public class AdobeConnectRoomSetting extends RoomSetting
 {
+    /**
+     * The PIN which must be entered by participant to join to the room.
+     */
+    private String pin;
+
+    /**
+     * @return {@link #pin}
+     */
+    public String getPin()
+    {
+        return pin;
+    }
+
+    /**
+     * @param pin sets the {@link #pin}
+     */
+    public void setPin(String pin)
+    {
+        this.pin = pin;
+    }
+
     @Override
     public RoomSetting clone()
     {
         AdobeConnectRoomSetting roomSetting = new AdobeConnectRoomSetting();
+        roomSetting.setPin(getPin());
         return roomSetting;
     }
 
@@ -31,6 +53,11 @@ public class AdobeConnectRoomSetting extends RoomSetting
 
         cz.cesnet.shongo.api.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
                 (cz.cesnet.shongo.api.AdobeConnectRoomSetting) roomSettingApi;
+
+        if (pin != null) {
+            roomSettingAdobeConnectApi.setPin(pin);
+        }
+
     }
 
     @Override
@@ -40,5 +67,8 @@ public class AdobeConnectRoomSetting extends RoomSetting
 
         cz.cesnet.shongo.api.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
                 (cz.cesnet.shongo.api.AdobeConnectRoomSetting) roomSettingApi;
+
+        setPin(roomSettingAdobeConnectApi.getPin());
+
     }
 }

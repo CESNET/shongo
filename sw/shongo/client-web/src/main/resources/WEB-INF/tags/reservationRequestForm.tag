@@ -336,7 +336,7 @@
         </c:if>
 
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            <div class="control-group" ng-show="technology == 'H323_SIP'" class="hide">
+            <div class="control-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
                 <form:label class="control-label" path="roomPin">
                     <spring:message code="views.reservationRequest.specification.roomPin"/>:
                 </form:label>

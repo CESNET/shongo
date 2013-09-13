@@ -7,4 +7,34 @@ package cz.cesnet.shongo.api;
  */
 public class AdobeConnectRoomSetting extends RoomSetting
 {
+    /**
+     * The PIN that must be entered to get to the room.
+     */
+    private String pin;
+
+    /**
+     * @return {@link #pin}
+     */
+    public String getPin()
+    {
+        return pin;
+    }
+
+    /**
+     * @param pin sets the {@link #pin}
+     */
+    public void setPin(String pin)
+    {
+        this.pin = pin;
+    }
+
+    /**
+     * @param pin sets the {@link #pin}
+     * @return this {@link H323RoomSetting}
+     */
+    public AdobeConnectRoomSetting withPin(String pin)
+    {
+        setPin(pin);
+        return this;
+    }
 }
