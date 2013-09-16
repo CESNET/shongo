@@ -259,6 +259,50 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
+     * Set room access mode (public, protected, private). Mode in AC v8.*, v9.0, v9.1 are "view-hidden" (public), "remove" (protected), "denied" (private)
+     *
+     * @param roomId
+     * @param mode
+     */
+    protected void setRoomAccessMode(String roomId, String mode) throws CommandException
+    {
+        RequestAttributeList accessModeAttributes = new RequestAttributeList();
+        accessModeAttributes.add("acl-id",roomId);
+        accessModeAttributes.add("principal-id","public-access");
+        accessModeAttributes.add("permission-id",mode);
+
+        request("permissions-update", accessModeAttributes);
+    }
+
+    /**
+     * Make room public (Anyone who has the URL for the meeting can enter the ro
+     om).
+     * @param roomId
+     */
+    public void makeRoomPublic(String roomId) throws CommandException
+    {
+        setRoomAccessMode(roomId,"view-hidden");
+    }
+
+    /**
+     * Make room public (Only registered users and accepted guests can enter the room).
+     * @param roomId
+     */
+    public void makeRoomProtected(String roomId) throws CommandException
+    {
+        setRoomAccessMode(roomId,"remove");
+    }
+
+    /**
+     * Make room public (Only registered users and participants can enter).
+     * @param roomId
+     */
+    public void makeRoomPrivate(String roomId) throws CommandException
+    {
+        setRoomAccessMode(roomId,"denied");
+    }
+
+    /**
      * This method is not supported, cause the AC XML API (secret one) is not working
      *
      * @throws cz.cesnet.shongo.api.jade.CommandUnsupportedException
@@ -776,6 +820,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             request("acl-field-update",passcodeAttributes);
 
+            // Set room access mode public if pin is set, else new meeting is set to default access mode (protected)
+            if (!pin.isEmpty()) {
+                makeRoomPublic(roomId);
+            }
+
             //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 
             return roomId;
@@ -819,6 +868,29 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
 
         request("sco-update", attributes);
+
+        // Set passcode (pin)
+        RequestAttributeList passcodeAttributes = new RequestAttributeList();
+        passcodeAttributes.add("acl-id",roomId);
+        passcodeAttributes.add("field-id","meeting-passcode");
+
+        String pin = "";
+        AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
+        if (adobeConnectRoomSetting != null) {
+            pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
+        }
+
+        passcodeAttributes.add("value",pin);
+
+        request("acl-field-update",passcodeAttributes);
+
+        // Set room access mode public if pin is set, else set to default (protected)
+        if (pin.isEmpty()) {
+            makeRoomProtected(roomId);
+        } else {
+            makeRoomPublic(roomId);
+        }
+
         return roomId;
     }
 
