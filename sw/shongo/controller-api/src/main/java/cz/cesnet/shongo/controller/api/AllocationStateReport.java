@@ -170,7 +170,20 @@ public class AllocationStateReport extends AbstractEntityReport
     {
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
-            if (identifier.equals(AllocationStateReportMessages.VALUE_ALREADY_ALLOCATED)) {
+            if (parentReports.size() == 0) {
+                if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_NOT_USABLE)) {
+                    return new ReusementInvalidSlot(
+                            Converter.convertToString(report.get("reservationRequest")),
+                            Converter.convertToInterval(report.get("interval")));
+                }
+                else if (identifier.equals(AllocationStateReportMessages.RESERVATION_ALREADY_USED)) {
+                    return new ReusementAlreadyUsed(
+                            Converter.convertToString(report.get("reservationRequest")),
+                            Converter.convertToString(report.get("usageReservationRequest")),
+                            Converter.convertToInterval(report.get("usageInterval")));
+                }
+            }
+            else if (identifier.equals(AllocationStateReportMessages.VALUE_ALREADY_ALLOCATED)) {
                 Map<String, Object> parentReport = findParentReport(
                         parentReports, AllocationStateReportMessages.ALLOCATING_ALIAS);
                 if (parentReport != null) {
@@ -219,6 +232,9 @@ public class AllocationStateReport extends AbstractEntityReport
         return null;
     }
 
+    /**
+     * Alias of specified {@link #aliasType} and {@link #value} is already allocated in specified {@link #interval}.
+     */
     public static class AliasAlreadyAllocated extends UserError
     {
         private AliasType aliasType;
@@ -243,6 +259,9 @@ public class AllocationStateReport extends AbstractEntityReport
         }
     }
 
+    /**
+     * Alias of specified {@link #aliasType} has no more available values in specified {@link #interval}.
+     */
     public static class AliasNotAvailable extends UserError
     {
         private AliasType aliasType;
@@ -261,6 +280,67 @@ public class AllocationStateReport extends AbstractEntityReport
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
             return MESSAGE_SOURCE.getMessage("aliasNotAvailable." + this.aliasType, locale,
                     dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Time slot from reused reservation request doesn't contain the whole requested time slot
+     * (usage time slot must be fully contained).
+     */
+    public static class ReusementInvalidSlot extends UserError
+    {
+        private String reusedReservationRequestId;
+
+        private Interval reusedReservationRequestSlot;
+
+        public ReusementInvalidSlot(String reusedReservationRequestId, Interval reusedReservationRequestSlot)
+        {
+            this.reusedReservationRequestId = reusedReservationRequestId;
+            this.reusedReservationRequestSlot = reusedReservationRequestSlot;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
+            String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
+                    "reusementInvalidSlot.reusedReservationRequest", locale, reusedReservationRequestId);
+            String reusedReservationRequestSlot = dateTimeFormatter.formatInterval(this.reusedReservationRequestSlot);
+            return MESSAGE_SOURCE.getMessage("reusementInvalidSlot", locale,
+                    reusedReservationRequest, reusedReservationRequestSlot);
+        }
+    }
+
+    /**
+     * Reused reservation request is already used in requested time slot (usages must not intersect in time).
+     */
+    public static class ReusementAlreadyUsed extends UserError
+    {
+        private String reusedReservationRequestId;
+
+        private String usageReservationRequestId;
+
+        private Interval usageReservationRequestSlot;
+
+        public ReusementAlreadyUsed(String reusedReservationRequestId, String usageReservationRequestId,
+                Interval usageReservationRequestSlot)
+        {
+            this.reusedReservationRequestId = reusedReservationRequestId;
+            this.usageReservationRequestId = usageReservationRequestId;
+            this.usageReservationRequestSlot = usageReservationRequestSlot;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
+            String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
+                    "reusementAlreadyUsed.reusedReservationRequest", locale, reusedReservationRequestId);
+            String usageReservationRequest = MESSAGE_SOURCE.getMessage(
+                    "reusementAlreadyUsed.usageReservationRequest", locale, usageReservationRequestId);
+            String usageReservationRequestSlot = dateTimeFormatter.formatInterval(this.usageReservationRequestSlot);
+            return MESSAGE_SOURCE.getMessage("reusementAlreadyUsed", locale,
+                    reusedReservationRequest, usageReservationRequest, usageReservationRequestSlot);
         }
     }
 }

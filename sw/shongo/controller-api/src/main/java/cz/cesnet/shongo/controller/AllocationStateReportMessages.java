@@ -23,7 +23,7 @@ public class AllocationStateReportMessages
     public static final String CONNECTION_FROM_TO = "connection-from-to";
     public static final String CONNECTION_TO_MULTIPLE = "connection-to-multiple";
     public static final String RESERVATION_REQUEST_NOT_USABLE = "reservation-request-not-usable";
-    public static final String RESERVATION_NOT_AVAILABLE = "reservation-not-available";
+    public static final String RESERVATION_ALREADY_USED = "reservation-already-used";
     public static final String RESERVATION_REUSING = "reservation-reusing";
     public static final String VALUE_ALREADY_ALLOCATED = "value-already-allocated";
     public static final String VALUE_INVALID = "value-invalid";
@@ -61,8 +61,8 @@ public class AllocationStateReportMessages
         addMessage(CONNECTION_BETWEEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.");
         addMessage(CONNECTION_FROM_TO, new Report.UserType[]{}, Report.Language.ENGLISH, "Creating connection from ${endpointFrom} to ${endpointTo}.");
         addMessage(CONNECTION_TO_MULTIPLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot create connection from ${endpointFrom} to ${endpointTo}, because the target represents multiple endpoints (not supported yet).");
-        addMessage(RESERVATION_REQUEST_NOT_USABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.");
-        addMessage(RESERVATION_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The ${reservation} from reused ${reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.");
+        addMessage(RESERVATION_REQUEST_NOT_USABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Requested time slot doesn't correspond to '${interval}' from reused reservation request '${reservationRequest}'.");
+        addMessage(RESERVATION_ALREADY_USED, new Report.UserType[]{}, Report.Language.ENGLISH, "Reused reservation request '${reservationRequest}' is not available because it's reservation '${reservation}' is already used in reservation request '${usageReservationRequest}' for '${usageInterval}'.");
         addMessage(RESERVATION_REUSING, new Report.UserType[]{}, Report.Language.ENGLISH, "Reusing ${reservation}.");
         addMessage(VALUE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is already allocated in interval ${interval}.");
         addMessage(VALUE_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is invalid.");

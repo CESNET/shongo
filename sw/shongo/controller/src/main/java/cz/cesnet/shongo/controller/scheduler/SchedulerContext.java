@@ -991,14 +991,16 @@ public class SchedulerContext
 
         // Find reusable reservation
         Reservation reusableReservation = null;
+        Interval reservationInterval = null;
         for (Reservation reservation : allocation.getReservations()) {
-            if (reservation.getSlot().contains(requestedSlot)) {
+            reservationInterval = reservation.getSlot();
+            if (reservationInterval.contains(requestedSlot)) {
                 reusableReservation = reservation;
                 break;
             }
         }
         if (reusableReservation == null) {
-            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest);
+            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest, reservationInterval);
         }
 
         // Check the reusable reservation
@@ -1007,7 +1009,12 @@ public class SchedulerContext
                 reservationManager.getExistingReservations(reusableReservation, requestedSlot);
         applyAvailableReservations(existingReservations);
         if (existingReservations.size() > 0) {
-            throw new SchedulerReportSet.ReservationNotAvailableException(reusableReservation, reservationRequest);
+            ExistingReservation existingReservation = existingReservations.get(0);
+            Interval usageSlot = existingReservation.getSlot();
+            Reservation usageReservation = existingReservation.getTopReservation();
+            AbstractReservationRequest usageReservationRequest = usageReservation.getReservationRequest();
+            throw new SchedulerReportSet.ReservationAlreadyUsedException(reusableReservation, reservationRequest,
+                    usageReservationRequest, usageSlot);
         }
         return reusableReservation;
     }

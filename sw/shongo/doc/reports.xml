@@ -1080,12 +1080,13 @@
             <classification severity="error"/>
             <params>
                 <param name="reservationRequest" type="AbstractReservationRequest"/>
+                <param name="interval" type="Interval"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.
+                Requested time slot doesn't correspond to '${interval}' from reused reservation request '${reservationRequest}'.
             </message>
             <visible>user</visible>
         </report>
@@ -1098,17 +1099,20 @@
         </report>
 
         <report extends="reservation">
-            <id>reservation-not-available</id>
+            <id>reservation-already-used</id>
             <classification severity="error"/>
             <params>
-                <param name="reusedReservationRequest" type="AbstractReservationRequest"/>
+                <param name="reservationRequest" type="AbstractReservationRequest"/>
+                <param name="usageReservationRequest" type="AbstractReservationRequest"/>
+                <param name="usageInterval" type="Interval"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                The ${reservation} from reused ${reusedReservationRequest} is not available because it is already
-                allocated for another reservation request in requested time slot.
+                Reused reservation request '${reservationRequest}' is not available because it's
+                reservation '${reservation}' is already used in reservation request '${usageReservationRequest}'
+                for '${usageInterval}'.
             </message>
             <visible>user</visible>
         </report>

@@ -1196,13 +1196,15 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * No reservation is allocated for reused {@link #reservationRequest} which can be used in requested time slot.
+     * Requested time slot doesn't correspond to '{@link #interval}' from reused reservation request '{@link #reservationRequest}'.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
     public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
+
+        protected org.joda.time.Interval interval;
 
         public ReservationRequestNotUsableReport()
         {
@@ -1215,9 +1217,10 @@ public class SchedulerReportSet extends AbstractReportSet
             return "reservation-request-not-usable";
         }
 
-        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             setReservationRequest(reservationRequest);
+            setInterval(interval);
         }
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
@@ -1231,6 +1234,18 @@ public class SchedulerReportSet extends AbstractReportSet
         public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
             this.reservationRequest = reservationRequest;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
         }
 
         @javax.persistence.Transient
@@ -1253,6 +1268,7 @@ public class SchedulerReportSet extends AbstractReportSet
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("reservationRequest", reservationRequest);
+            parameters.put("interval", interval);
             return parameters;
         }
 
@@ -1280,24 +1296,31 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             super(throwable);
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
+            report.setInterval(interval);
             this.report = report;
         }
 
         public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
             return getReport().getReservationRequest();
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1344,15 +1367,19 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #reservation} from reused {@link #reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.
+     * Reused reservation request '{@link #reservationRequest}' is not available because it's reservation '{@link #reservation}' is already used in reservation request '{@link #usageReservationRequest}' for '{@link #usageInterval}'.
      */
     @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
-    public static class ReservationNotAvailableReport extends ReservationReport
+    @javax.persistence.DiscriminatorValue("ReservationAlreadyUsedReport")
+    public static class ReservationAlreadyUsedReport extends ReservationReport
     {
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest;
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
-        public ReservationNotAvailableReport()
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest;
+
+        protected org.joda.time.Interval usageInterval;
+
+        public ReservationAlreadyUsedReport()
         {
         }
 
@@ -1360,26 +1387,53 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "reservation-not-available";
+            return "reservation-already-used";
         }
 
-        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public ReservationAlreadyUsedReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             setReservation(reservation);
-            setReusedReservationRequest(reusedReservationRequest);
+            setReservationRequest(reservationRequest);
+            setUsageReservationRequest(usageReservationRequest);
+            setUsageInterval(usageInterval);
         }
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "reusedreservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
+        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reusedReservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
         }
 
-        public void setReusedReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
-            this.reusedReservationRequest = reusedReservationRequest;
+            this.reservationRequest = reservationRequest;
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
+        }
+
+        public void setUsageReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest)
+        {
+            this.usageReservationRequest = usageReservationRequest;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usageinterval_start"),@javax.persistence.Column(name="usageinterval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return usageInterval;
+        }
+
+        public void setUsageInterval(org.joda.time.Interval usageInterval)
+        {
+            this.usageInterval = usageInterval;
         }
 
         @javax.persistence.Transient
@@ -1402,7 +1456,9 @@ public class SchedulerReportSet extends AbstractReportSet
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("reservation", reservation);
-            parameters.put("reusedReservationRequest", reusedReservationRequest);
+            parameters.put("reservationRequest", reservationRequest);
+            parameters.put("usageReservationRequest", usageReservationRequest);
+            parameters.put("usageInterval", usageInterval);
             return parameters;
         }
 
@@ -1410,52 +1466,66 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language)
         {
-            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-not-available", userType, language, getParameters());
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-already-used", userType, language, getParameters());
         }
     }
 
     /**
-     * Exception for {@link ReservationNotAvailableReport}.
+     * Exception for {@link ReservationAlreadyUsedReport}.
      */
-    public static class ReservationNotAvailableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    public static class ReservationAlreadyUsedException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
     {
-        public ReservationNotAvailableException(ReservationNotAvailableReport report)
+        public ReservationAlreadyUsedException(ReservationAlreadyUsedReport report)
         {
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, ReservationNotAvailableReport report)
+        public ReservationAlreadyUsedException(Throwable throwable, ReservationAlreadyUsedReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public ReservationAlreadyUsedException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
-            ReservationNotAvailableReport report = new ReservationNotAvailableReport();
+            ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
             report.setReservation(reservation);
-            report.setReusedReservationRequest(reusedReservationRequest);
+            report.setReservationRequest(reservationRequest);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public ReservationAlreadyUsedException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             super(throwable);
-            ReservationNotAvailableReport report = new ReservationNotAvailableReport();
+            ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
             report.setReservation(reservation);
-            report.setReusedReservationRequest(reusedReservationRequest);
+            report.setReservationRequest(reservationRequest);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return getReport().getReusedReservationRequest();
+            return getReport().getReservationRequest();
+        }
+
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return getReport().getUsageReservationRequest();
+        }
+
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return getReport().getUsageInterval();
         }
 
         @Override
-        public ReservationNotAvailableReport getReport()
+        public ReservationAlreadyUsedReport getReport()
         {
-            return (ReservationNotAvailableReport) report;
+            return (ReservationAlreadyUsedReport) report;
         }
     }
 
@@ -2860,7 +2930,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ConnectionToMultipleReport.class);
         addReportClass(ReservationRequestNotUsableReport.class);
         addReportClass(ReservationReport.class);
-        addReportClass(ReservationNotAvailableReport.class);
+        addReportClass(ReservationAlreadyUsedReport.class);
         addReportClass(ReservationReusingReport.class);
         addReportClass(ValueAlreadyAllocatedReport.class);
         addReportClass(ValueInvalidReport.class);

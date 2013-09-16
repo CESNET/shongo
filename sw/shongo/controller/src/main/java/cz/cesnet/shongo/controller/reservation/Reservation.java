@@ -71,7 +71,8 @@ public class Reservation extends PersistentObject implements ReportableSimple
     @Transient
     public AbstractReservationRequest getTopReservationRequest()
     {
-        AbstractReservationRequest abstractReservationRequest = getReservationRequest();
+        Reservation topReservation = getTopReservation();
+        AbstractReservationRequest abstractReservationRequest = topReservation.getReservationRequest();
         if (abstractReservationRequest != null && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             Allocation parentAllocation = reservationRequest.getParentAllocation();
@@ -237,6 +238,19 @@ public class Reservation extends PersistentObject implements ReportableSimple
                 this.parentReservation.addChildReservation(this);
             }
         }
+    }
+
+    /**
+     * @return top parent {@link Reservation}
+     */
+    @Transient
+    public Reservation getTopReservation()
+    {
+        Reservation reservation = this;
+        while (reservation.getParentReservation() != null) {
+            reservation = reservation.getParentReservation();
+        }
+        return reservation;
     }
 
     /**

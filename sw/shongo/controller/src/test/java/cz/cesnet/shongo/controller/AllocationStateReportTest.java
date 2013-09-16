@@ -16,14 +16,71 @@ import java.util.Locale;
  */
 public class AllocationStateReportTest extends AbstractControllerTest
 {
+    /**
+     * Test {@link AllocationStateReport.ReusementInvalidSlot}
+     */
     @Test
-    public void testReusedReservationRequestSlot() throws Exception
+    public void testReusedReservationRequestInvalidSlot() throws Exception
     {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationRequest reservationRequestFirst = new ReservationRequest();
+        reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestFirst.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequestFirst.setReusement(ReservationRequestReusement.OWNED);
+        String reservationRequestFirstId = allocate(reservationRequestFirst);
+        checkAllocated(reservationRequestFirstId);
+
+        ReservationRequest reservationRequestSecond = new ReservationRequest();
+        reservationRequestSecond.setSlot("2013-01-01T00:00", "P1Y");
+        reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSecond.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequestSecond.setReusedReservationRequestId(reservationRequestFirstId);
+        String reservationRequestSecondId = allocate(reservationRequestSecond);
+        checkAllocationFailed(reservationRequestSecondId);
+
+        finish(reservationRequestSecondId, AllocationStateReport.ReusementInvalidSlot.class);
     }
 
+    /**
+     * Test {@link AllocationStateReport.ReusementAlreadyUsed}
+     */
     @Test
     public void testReusedReservationRequestAlreadyUsed() throws Exception
     {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationRequest reservationRequestFirst = new ReservationRequest();
+        reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestFirst.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequestFirst.setReusement(ReservationRequestReusement.OWNED);
+        String reservationRequestFirstId = allocate(reservationRequestFirst);
+        checkAllocated(reservationRequestFirstId);
+
+        ReservationRequest reservationRequestSecond = new ReservationRequest();
+        reservationRequestSecond.setSlot("2012-03-01T00:00", "P6M");
+        reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSecond.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequestSecond.setReusedReservationRequestId(reservationRequestFirstId);
+        allocateAndCheck(reservationRequestSecond);
+
+        ReservationRequest reservationRequestThird = new ReservationRequest();
+        reservationRequestThird.setSlot("2012-06-01T00:00", "P1M");
+        reservationRequestThird.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestThird.setSpecification(new ResourceSpecification(resourceId));
+        reservationRequestThird.setReusedReservationRequestId(reservationRequestFirstId);
+        String reservationRequestThirdId = allocate(reservationRequestThird);
+        checkAllocationFailed(reservationRequestThirdId);
+
+        finish(reservationRequestThirdId, AllocationStateReport.ReusementAlreadyUsed.class);
     }
 
     @Test
@@ -79,6 +136,9 @@ public class AllocationStateReportTest extends AbstractControllerTest
         finish(reservationRequestSecondId, AllocationStateReport.AliasAlreadyAllocated.class);
     }
 
+    /**
+     * Test {@link AllocationStateReport.AliasAlreadyAllocated}
+     */
     @Test
     public void testAliasValueAlreadyAllocated() throws Exception
     {
@@ -105,6 +165,9 @@ public class AllocationStateReportTest extends AbstractControllerTest
         finish(reservationRequestSecondId, AllocationStateReport.AliasAlreadyAllocated.class);
     }
 
+    /**
+     * Test {@link AllocationStateReport.AliasNotAvailable}
+     */
     @Test
     public void testAliasValueNotAvailable() throws Exception
     {
@@ -131,6 +194,12 @@ public class AllocationStateReportTest extends AbstractControllerTest
         finish(reservationRequestSecondId, AllocationStateReport.AliasNotAvailable.class);
     }
 
+    /**
+     * Perform check.
+     *
+     * @param reservationRequestId
+     * @param requiredType
+     */
     private void finish(String reservationRequestId, Class<? extends AllocationStateReport.UserError> requiredType)
     {
         Locale locale = UserSettings.LOCALE_CZECH;
