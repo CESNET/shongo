@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.AllocationStateReportMessages;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
@@ -182,6 +183,10 @@ public class AllocationStateReport extends AbstractEntityReport
                             Converter.convertToString(report.get("usageReservationRequest")),
                             Converter.convertToInterval(report.get("usageInterval")));
                 }
+                else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_AVAILABLE)) {
+                    return new MaximumFutureExceeded(
+                            Converter.convertToDateTime(report.get("maxDateTime")));
+                }
             }
             else if (identifier.equals(AllocationStateReportMessages.VALUE_ALREADY_ALLOCATED)) {
                 Map<String, Object> parentReport = findParentReport(
@@ -233,53 +238,23 @@ public class AllocationStateReport extends AbstractEntityReport
     }
 
     /**
-     * Alias of specified {@link #aliasType} and {@link #value} is already allocated in specified {@link #interval}.
+     * Requested time slot is too far in future.
      */
-    public static class AliasAlreadyAllocated extends UserError
+    public static class MaximumFutureExceeded extends UserError
     {
-        private AliasType aliasType;
+        private DateTime maxDateTime;
 
-        private String value;
-
-        private Interval interval;
-
-        public AliasAlreadyAllocated(AliasType aliasType, String value, Interval interval)
+        public MaximumFutureExceeded(DateTime maxDateTime)
         {
-            this.aliasType = aliasType;
-            this.value = value;
-            this.interval = interval;
+            this.maxDateTime = maxDateTime;
         }
 
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
-            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
-            return MESSAGE_SOURCE.getMessage("aliasAlreadyAllocated." + this.aliasType, locale, value,
-                    dateTimeFormatter.formatInterval(interval));
-        }
-    }
-
-    /**
-     * Alias of specified {@link #aliasType} has no more available values in specified {@link #interval}.
-     */
-    public static class AliasNotAvailable extends UserError
-    {
-        private AliasType aliasType;
-
-        private Interval interval;
-
-        public AliasNotAvailable(AliasType aliasType, Interval interval)
-        {
-            this.aliasType = aliasType;
-            this.interval = interval;
-        }
-
-        @Override
-        public String getMessage(Locale locale, DateTimeZone timeZone)
-        {
-            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
-            return MESSAGE_SOURCE.getMessage("aliasNotAvailable." + this.aliasType, locale,
-                    dateTimeFormatter.formatInterval(interval));
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            String maxDateTime = dateTimeFormatter.formatDateTime(this.maxDateTime);
+            return MESSAGE_SOURCE.getMessage("maximumFutureExceeded", locale, maxDateTime);
         }
     }
 
@@ -302,7 +277,7 @@ public class AllocationStateReport extends AbstractEntityReport
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
-            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
                     "reusementInvalidSlot.reusedReservationRequest", locale, reusedReservationRequestId);
             String reusedReservationRequestSlot = dateTimeFormatter.formatInterval(this.reusedReservationRequestSlot);
@@ -333,7 +308,7 @@ public class AllocationStateReport extends AbstractEntityReport
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
-            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale);
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
                     "reusementAlreadyUsed.reusedReservationRequest", locale, reusedReservationRequestId);
             String usageReservationRequest = MESSAGE_SOURCE.getMessage(
@@ -341,6 +316,57 @@ public class AllocationStateReport extends AbstractEntityReport
             String usageReservationRequestSlot = dateTimeFormatter.formatInterval(this.usageReservationRequestSlot);
             return MESSAGE_SOURCE.getMessage("reusementAlreadyUsed", locale,
                     reusedReservationRequest, usageReservationRequest, usageReservationRequestSlot);
+        }
+    }
+
+    /**
+     * Alias of specified {@link #aliasType} and {@link #value} is already allocated in specified {@link #interval}.
+     */
+    public static class AliasAlreadyAllocated extends UserError
+    {
+        private AliasType aliasType;
+
+        private String value;
+
+        private Interval interval;
+
+        public AliasAlreadyAllocated(AliasType aliasType, String value, Interval interval)
+        {
+            this.aliasType = aliasType;
+            this.value = value;
+            this.interval = interval;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("aliasAlreadyAllocated." + this.aliasType, locale, value,
+                    dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Alias of specified {@link #aliasType} has no more available values in specified {@link #interval}.
+     */
+    public static class AliasNotAvailable extends UserError
+    {
+        private AliasType aliasType;
+
+        private Interval interval;
+
+        public AliasNotAvailable(AliasType aliasType, Interval interval)
+        {
+            this.aliasType = aliasType;
+            this.interval = interval;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("aliasNotAvailable." + this.aliasType, locale,
+                    dateTimeFormatter.formatInterval(interval));
         }
     }
 }

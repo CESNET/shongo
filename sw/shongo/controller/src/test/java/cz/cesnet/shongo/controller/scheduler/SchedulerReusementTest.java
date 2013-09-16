@@ -450,6 +450,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest1Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest2Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestSetId);
+        runScheduler();
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
     }
 

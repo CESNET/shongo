@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,6 +87,49 @@ public class AllocationStateReportTest extends AbstractControllerTest
     @Test
     public void testExceedMaximumFuture() throws Exception
     {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        resource.setMaximumFuture(new DateTime("2012-11-01T00:00"));
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        finish(reservationRequestId, AllocationStateReport.MaximumFutureExceeded.class);
+    }
+
+    @Test
+    public void testExceedMaximumFutureMultiple() throws Exception
+    {
+        DeviceResource roomProviderFirst = new DeviceResource();
+        roomProviderFirst.setName("roomProvider1");
+        roomProviderFirst.setAllocatable(true);
+        roomProviderFirst.addTechnology(Technology.H323);
+        roomProviderFirst.addCapability(new RoomProviderCapability(10));
+        roomProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
+        getResourceService().createResource(SECURITY_TOKEN, roomProviderFirst);
+
+        DeviceResource roomProviderSecond = new DeviceResource();
+        roomProviderSecond.setName("roomProvider2");
+        roomProviderSecond.setAllocatable(true);
+        roomProviderSecond.addTechnology(Technology.H323);
+        roomProviderSecond.addCapability(new RoomProviderCapability(20));
+        roomProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
+        getResourceService().createResource(SECURITY_TOKEN, roomProviderSecond);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        finish(reservationRequestId, AllocationStateReport.MaximumFutureExceeded.class);
     }
 
     @Test
@@ -202,15 +246,15 @@ public class AllocationStateReportTest extends AbstractControllerTest
      */
     private void finish(String reservationRequestId, Class<? extends AllocationStateReport.UserError> requiredType)
     {
-        Locale locale = UserSettings.LOCALE_CZECH;
         ReservationService reservationService = getReservationService();
         ReservationRequest reservationRequest = (ReservationRequest)
                 reservationService.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
         AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
         AllocationStateReport.UserError userError = allocationStateReport.toUserError();
-        System.err.println(userError.getMessage(locale));
+        System.err.println(userError.getMessage(UserSettings.LOCALE_ENGLISH));
+        System.err.println(userError.getMessage(UserSettings.LOCALE_CZECH));
         if (userError.isUnknown()) {
-            System.err.println(allocationStateReport.toString(locale).trim());
+            System.err.println(allocationStateReport.toString(UserSettings.LOCALE_ENGLISH).trim());
         }
         Assert.assertEquals(requiredType, userError.getClass());
     }
