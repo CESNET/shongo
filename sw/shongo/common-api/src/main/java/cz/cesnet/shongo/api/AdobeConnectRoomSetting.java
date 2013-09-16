@@ -37,4 +37,22 @@ public class AdobeConnectRoomSetting extends RoomSetting
         setPin(pin);
         return this;
     }
+
+    public static final String PIN = "pin";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(PIN, pin);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        pin = dataMap.getString(PIN);
+    }
+
 }
