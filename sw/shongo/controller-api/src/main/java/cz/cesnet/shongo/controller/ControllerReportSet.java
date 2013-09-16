@@ -9,22 +9,22 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int USER_NOT_EXIST_REPORT = 100;
-    public static final int ACL_INVALID_ROLE_REPORT = 101;
-    public static final int SECURITY_MISSING_TOKEN_REPORT = 102;
-    public static final int SECURITY_INVALID_TOKEN_REPORT = 103;
-    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 104;
-    public static final int DEVICE_COMMAND_FAILED_REPORT = 105;
-    public static final int IDENTIFIER_INVALID_REPORT = 106;
-    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 107;
-    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 108;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 109;
-    public static final int RESERVATION_REQUEST_NOT_DELETABLE_REPORT = 110;
-    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT = 111;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 112;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 113;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 114;
-    public static final int RESERVATION_REQUEST_NOT_REUSABLE_REPORT = 115;
+    public static final int USER_NOT_EXIST = 100;
+    public static final int ACL_INVALID_ROLE = 101;
+    public static final int SECURITY_MISSING_TOKEN = 102;
+    public static final int SECURITY_INVALID_TOKEN = 103;
+    public static final int SECURITY_NOT_AUTHORIZED = 104;
+    public static final int DEVICE_COMMAND_FAILED = 105;
+    public static final int IDENTIFIER_INVALID = 106;
+    public static final int IDENTIFIER_INVALID_DOMAIN = 107;
+    public static final int IDENTIFIER_INVALID_TYPE = 108;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 109;
+    public static final int RESERVATION_REQUEST_NOT_DELETABLE = 110;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE = 111;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED = 112;
+    public static final int RESERVATION_REQUEST_DELETED = 113;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION = 114;
+    public static final int RESERVATION_REQUEST_NOT_REUSABLE = 115;
 
     /**
      * Set of report messages.
@@ -94,7 +94,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return USER_NOT_EXIST_REPORT;
+            return USER_NOT_EXIST;
         }
 
         @Override
@@ -244,7 +244,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ACL_INVALID_ROLE_REPORT;
+            return ACL_INVALID_ROLE;
         }
 
         @Override
@@ -374,7 +374,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_MISSING_TOKEN_REPORT;
+            return SECURITY_MISSING_TOKEN;
         }
 
         @Override
@@ -501,7 +501,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_INVALID_TOKEN_REPORT;
+            return SECURITY_INVALID_TOKEN;
         }
 
         @Override
@@ -638,7 +638,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_NOT_AUTHORIZED_REPORT;
+            return SECURITY_NOT_AUTHORIZED;
         }
 
         @Override
@@ -807,7 +807,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return DEVICE_COMMAND_FAILED_REPORT;
+            return DEVICE_COMMAND_FAILED;
         }
 
         @Override
@@ -964,7 +964,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_REPORT;
+            return IDENTIFIER_INVALID;
         }
 
         @Override
@@ -1114,7 +1114,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_DOMAIN_REPORT;
+            return IDENTIFIER_INVALID_DOMAIN;
         }
 
         @Override
@@ -1274,7 +1274,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_TYPE_REPORT;
+            return IDENTIFIER_INVALID_TYPE;
         }
 
         @Override
@@ -1421,7 +1421,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT;
+            return RESERVATION_REQUEST_NOT_MODIFIABLE;
         }
 
         @Override
@@ -1558,7 +1558,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_DELETABLE_REPORT;
+            return RESERVATION_REQUEST_NOT_DELETABLE;
         }
 
         @Override
@@ -1695,7 +1695,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT;
+            return RESERVATION_REQUEST_NOT_REVERTIBLE;
         }
 
         @Override
@@ -1832,7 +1832,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT;
+            return RESERVATION_REQUEST_ALREADY_MODIFIED;
         }
 
         @Override
@@ -1969,7 +1969,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_DELETED_REPORT;
+            return RESERVATION_REQUEST_DELETED;
         }
 
         @Override
@@ -2089,7 +2089,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_EMPTY_DURATION_REPORT;
+            return RESERVATION_REQUEST_EMPTY_DURATION;
         }
 
         @Override
@@ -2216,7 +2216,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_REUSABLE_REPORT;
+            return RESERVATION_REQUEST_NOT_REUSABLE;
         }
 
         @Override

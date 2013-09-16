@@ -79,7 +79,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is disabled for allocation.
+     * The resource {@link #resource} is disabled for allocation.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAllocatableReport")
@@ -171,7 +171,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is already allocated.
+     * The resource {@link #resource} is already allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceAlreadyAllocatedReport")
@@ -263,7 +263,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
+     * The resource {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAvailableReport")
@@ -378,7 +378,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is not endpoint.
+     * The resource {@link #resource} is not endpoint.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotEndpointReport")
@@ -470,7 +470,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is requested multiple times.
+     * The resource {@link #resource} is requested multiple times.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceMultipleRequestedReport")
@@ -1514,13 +1514,15 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Value {@link #value} is already allocated.
+     * Value {@link #value} is already allocated in interval {@link #interval}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ValueAlreadyAllocatedReport")
     public static class ValueAlreadyAllocatedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected String value;
+
+        protected org.joda.time.Interval interval;
 
         public ValueAlreadyAllocatedReport()
         {
@@ -1533,9 +1535,10 @@ public class SchedulerReportSet extends AbstractReportSet
             return "value-already-allocated";
         }
 
-        public ValueAlreadyAllocatedReport(String value)
+        public ValueAlreadyAllocatedReport(String value, org.joda.time.Interval interval)
         {
             setValue(value);
+            setInterval(interval);
         }
 
         @javax.persistence.Column
@@ -1547,6 +1550,18 @@ public class SchedulerReportSet extends AbstractReportSet
         public void setValue(String value)
         {
             this.value = value;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
         }
 
         @javax.persistence.Transient
@@ -1569,6 +1584,7 @@ public class SchedulerReportSet extends AbstractReportSet
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("value", value);
+            parameters.put("interval", interval);
             return parameters;
         }
 
@@ -1596,24 +1612,31 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ValueAlreadyAllocatedException(String value)
+        public ValueAlreadyAllocatedException(String value, org.joda.time.Interval interval)
         {
             ValueAlreadyAllocatedReport report = new ValueAlreadyAllocatedReport();
             report.setValue(value);
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ValueAlreadyAllocatedException(Throwable throwable, String value)
+        public ValueAlreadyAllocatedException(Throwable throwable, String value, org.joda.time.Interval interval)
         {
             super(throwable);
             ValueAlreadyAllocatedReport report = new ValueAlreadyAllocatedReport();
             report.setValue(value);
+            report.setInterval(interval);
             this.report = report;
         }
 
         public String getValue()
         {
             return getReport().getValue();
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1740,6 +1763,8 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ValueNotAvailableReport")
     public static class ValueNotAvailableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
+        protected org.joda.time.Interval interval;
+
         public ValueNotAvailableReport()
         {
         }
@@ -1749,6 +1774,23 @@ public class SchedulerReportSet extends AbstractReportSet
         public String getUniqueId()
         {
             return "value-not-available";
+        }
+
+        public ValueNotAvailableReport(org.joda.time.Interval interval)
+        {
+            setInterval(interval);
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
         }
 
         @javax.persistence.Transient
@@ -1770,6 +1812,7 @@ public class SchedulerReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("interval", interval);
             return parameters;
         }
 
@@ -1797,17 +1840,24 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ValueNotAvailableException()
+        public ValueNotAvailableException(org.joda.time.Interval interval)
         {
             ValueNotAvailableReport report = new ValueNotAvailableReport();
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ValueNotAvailableException(Throwable throwable)
+        public ValueNotAvailableException(Throwable throwable, org.joda.time.Interval interval)
         {
             super(throwable);
             ValueNotAvailableReport report = new ValueNotAvailableReport();
+            report.setInterval(interval);
             this.report = report;
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1818,7 +1868,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating the {@link #resource}.
+     * Allocating the resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingResourceReport")
@@ -1972,7 +2022,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating value in the {@link #resource}.
+     * Allocating value in the resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingValueReport")

@@ -1,7 +1,7 @@
 <%@ tag trimDirectiveWhitespaces="true" %>
 <%@ tag import="cz.cesnet.shongo.TodoImplementException" %>
 <%@ tag import="org.joda.time.*" %>
-<%@ tag import="cz.cesnet.shongo.client.web.models.DateTimeFormatter" %>
+<%@ tag import="cz.cesnet.shongo.util.DateTimeFormatter" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%@ attribute name="value" required="true" type="java.lang.Object" %>

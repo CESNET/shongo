@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.executor.ExecutableReport;
 import cz.cesnet.shongo.controller.scheduler.TechnologySet;
 import cz.cesnet.shongo.report.*;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public class StateReportSerializer extends HashMap<String, Object>
             if (value instanceof String || value instanceof Integer || value instanceof Enum) {
                 put(name, value);
             }
-            else if (value instanceof DateTime) {
+            else if (value instanceof DateTime || value instanceof Interval) {
                 put(name, value);
             }
             else if (value instanceof Collection) {

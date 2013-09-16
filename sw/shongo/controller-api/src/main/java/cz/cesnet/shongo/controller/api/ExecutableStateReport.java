@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractEntityReport;
-import cz.cesnet.shongo.controller.AllocationStateReportMessages;
 import cz.cesnet.shongo.controller.ExecutableStateReportMessages;
 import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 
 import java.util.Locale;
@@ -41,6 +39,7 @@ public class ExecutableStateReport extends AbstractEntityReport
     @Override
     public String toString(Locale locale)
     {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG).with(locale);
         StringBuilder stringBuilder = new StringBuilder();
         int count = 0;
         for (Map<String, Object> report : reports) {
@@ -58,7 +57,7 @@ public class ExecutableStateReport extends AbstractEntityReport
             String message = ExecutableStateReportMessages.getMessage(
                     reportId, getUserType(), Report.Language.fromLocale(locale), report);
             stringBuilder.append("[");
-            stringBuilder.append(Temporal.formatDateTime(new DateTime(report.get(DATE_TIME))));
+            stringBuilder.append(dateTimeFormatter.formatDateTime(new DateTime(report.get(DATE_TIME))));
             stringBuilder.append("] ");
             stringBuilder.append(message);
         }

@@ -346,16 +346,16 @@ public class AliasSpecification extends Specification
                     reservationManager.getValueReservations(targetValueProvider, slot);
             schedulerContext.applyValueReservations(targetValueProvider.getId(), valueReservations);
 
-            Set<String> usedValues = new HashSet<String>();
+            Map<String, Interval> usedValues = new HashMap<String, Interval>();
             for (ValueReservation allocatedValue : valueReservations) {
-                usedValues.add(allocatedValue.getValue());
+                usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
             }
             try {
                 if (value != null) {
-                    valueProvider.generateValue(usedValues, value);
+                    valueProvider.generateValue(usedValues.keySet(), value);
                 }
                 else {
-                    valueProvider.generateValue(usedValues);
+                    valueProvider.generateValue(usedValues.keySet());
                 }
             }
             catch (ValueProvider.InvalidValueException exception) {
@@ -363,11 +363,16 @@ public class AliasSpecification extends Specification
                 continue;
             }
             catch (ValueProvider.ValueAlreadyAllocatedException exception) {
-                resourceReport.addChildReport(new SchedulerReportSet.ValueAlreadyAllocatedReport(value));
+                Interval interval = usedValues.get(value);
+                resourceReport.addChildReport(new SchedulerReportSet.ValueAlreadyAllocatedReport(value, interval));
                 continue;
             }
             catch (ValueProvider.NoAvailableValueException exception) {
-                resourceReport.addChildReport(new SchedulerReportSet.ValueNotAvailableReport());
+                Interval overlapInterval = slot;
+                for (Interval interval : usedValues.values()) {
+                    overlapInterval = overlapInterval.overlap(interval);
+                }
+                resourceReport.addChildReport(new SchedulerReportSet.ValueNotAvailableReport(overlapInterval));
                 continue;
             }
 

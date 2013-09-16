@@ -9,5 +9,11 @@ import cz.cesnet.shongo.report.*;
 */
 public class ${scope.messagesClassName}
 {
+<#list scope.reports as report>
+<#if !report.abstract>
+    public static final String ${report.constantName} = "${report.id}";
+</#if>
+</#list>
+
 <#include "ReportSetMessages.ftl">
 }

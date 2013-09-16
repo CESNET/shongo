@@ -9,22 +9,22 @@ import cz.cesnet.shongo.report.*;
  */
 public class CommonReportSet extends AbstractReportSet
 {
-    public static final int UNKNOWN_ERROR_REPORT = 0;
-    public static final int TYPE_MISMATCH_REPORT = 1;
-    public static final int TYPE_ILLEGAL_VALUE_REPORT = 2;
-    public static final int CLASS_UNDEFINED_REPORT = 3;
-    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 4;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 5;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 6;
-    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 7;
-    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 8;
-    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 9;
-    public static final int COLLECTION_ITEM_NULL_REPORT = 10;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 11;
-    public static final int ENTITY_NOT_FOUND_REPORT = 12;
-    public static final int ENTITY_INVALID_REPORT = 13;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 14;
-    public static final int METHOD_NOT_DEFINED_REPORT = 15;
+    public static final int UNKNOWN_ERROR = 0;
+    public static final int TYPE_MISMATCH = 1;
+    public static final int TYPE_ILLEGAL_VALUE = 2;
+    public static final int CLASS_UNDEFINED = 3;
+    public static final int CLASS_INSTANTIATION_ERROR = 4;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED = 5;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH = 6;
+    public static final int CLASS_ATTRIBUTE_REQUIRED = 7;
+    public static final int CLASS_ATTRIBUTE_READONLY = 8;
+    public static final int CLASS_COLLECTION_REQUIRED = 9;
+    public static final int COLLECTION_ITEM_NULL = 10;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH = 11;
+    public static final int ENTITY_NOT_FOUND = 12;
+    public static final int ENTITY_INVALID = 13;
+    public static final int ENTITY_NOT_DELETABLE_REFERENCED = 14;
+    public static final int METHOD_NOT_DEFINED = 15;
 
     /**
      * Set of report messages.
@@ -95,7 +95,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return UNKNOWN_ERROR_REPORT;
+            return UNKNOWN_ERROR;
         }
 
         @Override
@@ -245,7 +245,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_MISMATCH_REPORT;
+            return TYPE_MISMATCH;
         }
 
         @Override
@@ -405,7 +405,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_ILLEGAL_VALUE_REPORT;
+            return TYPE_ILLEGAL_VALUE;
         }
 
         @Override
@@ -552,7 +552,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_UNDEFINED_REPORT;
+            return CLASS_UNDEFINED;
         }
 
         @Override
@@ -689,7 +689,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_INSTANTIATION_ERROR_REPORT;
+            return CLASS_INSTANTIATION_ERROR;
         }
 
         @Override
@@ -839,7 +839,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_UNDEFINED_REPORT;
+            return CLASS_ATTRIBUTE_UNDEFINED;
         }
 
         @Override
@@ -1025,7 +1025,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT;
+            return CLASS_ATTRIBUTE_TYPE_MISMATCH;
         }
 
         @Override
@@ -1205,7 +1205,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_REQUIRED_REPORT;
+            return CLASS_ATTRIBUTE_REQUIRED;
         }
 
         @Override
@@ -1365,7 +1365,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_READONLY_REPORT;
+            return CLASS_ATTRIBUTE_READONLY;
         }
 
         @Override
@@ -1525,7 +1525,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_COLLECTION_REQUIRED_REPORT;
+            return CLASS_COLLECTION_REQUIRED;
         }
 
         @Override
@@ -1672,7 +1672,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_NULL_REPORT;
+            return COLLECTION_ITEM_NULL;
         }
 
         @Override
@@ -1835,7 +1835,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_TYPE_MISMATCH_REPORT;
+            return COLLECTION_ITEM_TYPE_MISMATCH;
         }
 
         @Override
@@ -2005,7 +2005,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_FOUND_REPORT;
+            return ENTITY_NOT_FOUND;
         }
 
         @Override
@@ -2165,7 +2165,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_INVALID_REPORT;
+            return ENTITY_INVALID;
         }
 
         @Override
@@ -2325,7 +2325,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_DELETABLE_REFERENCED_REPORT;
+            return ENTITY_NOT_DELETABLE_REFERENCED;
         }
 
         @Override
@@ -2472,7 +2472,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return METHOD_NOT_DEFINED_REPORT;
+            return METHOD_NOT_DEFINED;
         }
 
         @Override

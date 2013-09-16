@@ -118,22 +118,8 @@ public abstract class AbstractEntityReport extends AbstractComplexType
         if (children == null) {
             return Collections.emptyList();
         }
-        else if (children instanceof Collection) {
-            @SuppressWarnings("unchecked")
-            Collection<Map<String, Object>> childReports = (Collection) children;
-            return childReports;
-        }
-        else if (children instanceof Object[]) {
-            Collection<Map<String, Object>> childReports = new LinkedList<Map<String, Object>>();
-            for (Object child : (Object[]) children) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> childReport = (Map) child;
-                childReports.add(childReport);
-            }
-            return childReports;
-        }
-        else {
-            throw new TodoImplementException(children.getClass());
-        }
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> childMaps = (List) Converter.convertToList(children, Map.class);
+        return childMaps;
     }
 }

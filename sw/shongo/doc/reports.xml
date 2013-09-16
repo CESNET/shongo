@@ -1134,12 +1134,13 @@
             <classification severity="error"/>
             <params>
                 <param name="value" type="String"/>
+                <param name="interval" type="Interval"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                Value ${value} is already allocated.
+                Value ${value} is already allocated in interval ${interval}.
             </message>
             <visible>user</visible>
         </report>
@@ -1162,6 +1163,9 @@
         <report>
             <id>value-not-available</id>
             <classification severity="error"/>
+            <params>
+                <param name="interval" type="Interval"/>
+            </params>
             <description>
                 TODO:
             </description>

@@ -276,7 +276,7 @@ public class Report
 
     public String getConstantName()
     {
-        return Formatter.formatConstant(getName());
+        return Formatter.formatConstant(getId());
     }
 
     public String getType()

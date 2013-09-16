@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web.models;
+package cz.cesnet.shongo.util;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -9,7 +9,7 @@ import org.joda.time.format.DateTimeFormat;
 import java.util.Locale;
 
 /**
- * Date/time formatter.
+ * Formatter of date/times to user.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -98,6 +98,16 @@ public class DateTimeFormatter
      * @param locale
      * @return {@link DateTimeFormatter} for given {@code locale}
      */
+    public DateTimeFormatter with(Locale locale)
+    {
+        return new DateTimeFormatter(this, locale, this.dateTimeZone);
+    }
+
+    /**
+     * @param locale
+     * @param dateTimeZone
+     * @return {@link DateTimeFormatter} for given {@code locale} and {@code dateTimeZone}
+     */
     public DateTimeFormatter with(Locale locale, DateTimeZone dateTimeZone)
     {
         return new DateTimeFormatter(this, locale, dateTimeZone);
@@ -109,6 +119,9 @@ public class DateTimeFormatter
      */
     public String formatTime(DateTime dateTime)
     {
+        if (dateTime == null) {
+            return "";
+        }
         return timeFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
@@ -118,6 +131,9 @@ public class DateTimeFormatter
      */
     public String formatDate(DateTime dateTime)
     {
+        if (dateTime == null) {
+            return "";
+        }
         return dateFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
@@ -127,6 +143,9 @@ public class DateTimeFormatter
      */
     public String formatDate(ReadablePartial readablePartial)
     {
+        if (readablePartial == null) {
+            return "";
+        }
         return dateFormatter.print(readablePartial);
     }
 
@@ -136,6 +155,9 @@ public class DateTimeFormatter
      */
     public String formatDateTime(DateTime dateTime)
     {
+        if (dateTime == null) {
+            return "";
+        }
         return dateTimeFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
@@ -145,6 +167,9 @@ public class DateTimeFormatter
      */
     public String formatInterval(Interval interval)
     {
+        if (interval == null) {
+            return "";
+        }
         StringBuilder stringBuilder = new StringBuilder();
         DateTime start = interval.getStart().withZone(dateTimeZone);
         DateTime end = interval.getEnd().withZone(dateTimeZone);
@@ -169,6 +194,9 @@ public class DateTimeFormatter
      */
     public String formatIntervalDate(Interval interval)
     {
+        if (interval == null) {
+            return "";
+        }
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(dateFormatter.print(interval.getStart().withZone(dateTimeZone)));
         stringBuilder.append(" - ");
@@ -182,6 +210,9 @@ public class DateTimeFormatter
      */
     public String formatIntervalMultiLine(Interval interval)
     {
+        if (interval == null) {
+            return "";
+        }
         StringBuilder stringBuilder = new StringBuilder();
         DateTime start = interval.getStart().withZone(dateTimeZone);
         DateTime end = interval.getEnd().withZone(dateTimeZone);

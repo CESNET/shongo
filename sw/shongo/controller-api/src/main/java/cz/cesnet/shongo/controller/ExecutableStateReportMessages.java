@@ -9,12 +9,15 @@ import cz.cesnet.shongo.report.*;
 */
 public class ExecutableStateReportMessages
 {
+    public static final String COMMAND_FAILED = "command-failed";
+    public static final String ROOM_NOT_STARTED = "room-not-started";
+
     /**
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} failed: ${jadeReportMessage(jadeReport)}");
-        addMessage("room-not-started", new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot modify room ${roomName}, because it has not been started yet.");
+        addMessage(COMMAND_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} failed: ${jadeReportMessage(jadeReport)}");
+        addMessage(ROOM_NOT_STARTED, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot modify room ${roomName}, because it has not been started yet.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)

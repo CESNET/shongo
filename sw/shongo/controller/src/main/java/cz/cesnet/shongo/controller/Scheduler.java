@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -14,6 +13,7 @@ import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -84,7 +84,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      */
     public void run(Interval interval, EntityManager entityManager)
     {
-        logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
+        logger.debug("Running scheduler for interval '{}'...", dateTimeFormatter.formatInterval(interval));
 
         cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
         timer.start();

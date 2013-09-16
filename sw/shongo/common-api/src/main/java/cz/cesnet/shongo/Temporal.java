@@ -262,45 +262,4 @@ public class Temporal
         final int roundedMinutes = ((int) Math.ceil(millisSinceHour / 60000.0 / minutes)) * minutes;
         return hour.plusMinutes(roundedMinutes);
     }
-
-    /**
-     * @param dateTime to be formatted
-     * @return formatted given {@code dateTime} to {@link String}
-     */
-    public static String formatDateTime(DateTime dateTime)
-    {
-        if (dateTime == null) {
-            return "null";
-        }
-        return dateTimeFormatter.print(dateTime);
-    }
-
-    /**
-     * @param period to be formatted
-     * @return formatted given {@code period} to {@link String}
-     */
-    public static String formatPeriod(Period period)
-    {
-        if (period == null) {
-            return "null";
-        }
-        return periodFormatter.print(period);
-    }
-
-    /**
-     * @param interval to be formatted
-     * @return formatted given {@code interval} to string
-     */
-    public static String formatInterval(Interval interval)
-    {
-        if (interval == null) {
-            return "null";
-        }
-        StringBuilder builder = new StringBuilder();
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
-        builder.append(formatter.print(interval.getStart()));
-        builder.append(", ");
-        builder.append(interval.toPeriod().normalizedStandard().toString());
-        return builder.toString();
-    }
 }

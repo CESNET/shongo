@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Locale;
 
 /**
  * Tests for {@link AllocationStateReport}.
@@ -13,6 +16,26 @@ import org.junit.Test;
  */
 public class AllocationStateReportTest extends AbstractControllerTest
 {
+    @Test
+    public void testReusedReservationRequestSlot() throws Exception
+    {
+    }
+
+    @Test
+    public void testReusedReservationRequestAlreadyUsed() throws Exception
+    {
+    }
+
+    @Test
+    public void testExceedMaximumFuture() throws Exception
+    {
+    }
+
+    @Test
+    public void testExceedRoomCapacity() throws Exception
+    {
+    }
+
     @Test
     public void testAliasValueAlreadyAllocated() throws Exception
     {
@@ -30,13 +53,13 @@ public class AllocationStateReportTest extends AbstractControllerTest
         Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
-        reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestSecond.setSlot("2012-06-01T00:00", "P1M");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSecond.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("test"));
         String reservationRequestSecondId = allocate(reservationRequestSecond);
         checkAllocationFailed(reservationRequestSecondId);
 
-        finish(reservationRequestSecondId);
+        finish(reservationRequestSecondId, AllocationStateReport.AliasAlreadyAllocated.class);
     }
 
     @Test
@@ -56,21 +79,27 @@ public class AllocationStateReportTest extends AbstractControllerTest
         Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
-        reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestSecond.setSlot("2012-06-01T00:00", "P1Y");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSecond.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         String reservationRequestSecondId = allocate(reservationRequestSecond);
         checkAllocationFailed(reservationRequestSecondId);
 
-        finish(reservationRequestSecondId);
+        finish(reservationRequestSecondId, AllocationStateReport.AliasNotAvailable.class);
     }
 
-    private void finish(String reservationRequestId)
+    private void finish(String reservationRequestId, Class<? extends AllocationStateReport.AllocationError> requiredType)
     {
+        Locale locale = UserSettings.LOCALE_CZECH;
         ReservationService reservationService = getReservationService();
         ReservationRequest reservationRequest = (ReservationRequest)
                 reservationService.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
-
-        System.err.println(reservationRequest.getAllocationStateReport().toString(UserSettings.LOCALE_CZECH).trim());
+        AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
+        AllocationStateReport.AllocationError allocationError = allocationStateReport.toAllocationError();
+        System.err.println(allocationError.getMessage(locale));
+        if (allocationError.isUnknown()) {
+            System.err.println(allocationStateReport.toString(locale).trim());
+        }
+        Assert.assertEquals(requiredType, allocationError.getClass());
     }
 }

@@ -12,10 +12,7 @@ import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.joda.time.Interval;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for a {@link cz.cesnet.shongo.controller.reservation.AliasReservation}.
@@ -60,7 +57,7 @@ public class ValueReservationTask extends ReservationTask
     {
         validateReservationSlot(ValueReservation.class);
 
-        final Interval interval = getInterval();
+        final Interval slot = getInterval();
         final Cache cache = getCache();
         final ResourceCache resourceCache = cache.getResourceCache();
 
@@ -77,7 +74,7 @@ public class ValueReservationTask extends ReservationTask
         }
 
         // Already used values for targetValueProvider in the interval
-        Set<String> usedValues = getUsedValues(targetValueProvider, interval);
+        Map<String, Interval> usedValues = getUsedValues(targetValueProvider, slot);
 
         // Get available value reservations
         List<AvailableReservation<ValueReservation>> availableValueReservations =
@@ -97,7 +94,7 @@ public class ValueReservationTask extends ReservationTask
             }
 
             // Original reservation slot must contain requested slot
-            if (!originalReservation.getSlot().contains(interval)) {
+            if (!originalReservation.getSlot().contains(slot)) {
                 continue;
             }
 
@@ -112,7 +109,7 @@ public class ValueReservationTask extends ReservationTask
             // Create new existing value reservation
             addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
             ExistingReservation existingValueReservation = new ExistingReservation();
-            existingValueReservation.setSlot(interval);
+            existingValueReservation.setSlot(slot);
             existingValueReservation.setReservation(originalReservation);
             return existingValueReservation;
         }
@@ -130,12 +127,12 @@ public class ValueReservationTask extends ReservationTask
             }
             // Generate new value
             if (requestedValue != null) {
-                value = valueProvider.generateValue(usedValues, requestedValue);
+                value = valueProvider.generateValue(usedValues.keySet(), requestedValue);
             }
             else {
-                value = valueProvider.generateValue(usedValues);
+                value = valueProvider.generateValue(usedValues.keySet());
             }
-            valueReservation.setSlot(interval);
+            valueReservation.setSlot(slot);
             valueReservation.setValueProvider(targetValueProvider);
             valueReservation.setValue(value);
             return valueReservation;
@@ -144,10 +141,14 @@ public class ValueReservationTask extends ReservationTask
             throw new SchedulerReportSet.ValueInvalidException(requestedValue);
         }
         catch (ValueProvider.ValueAlreadyAllocatedException exception) {
-            throw new SchedulerReportSet.ValueAlreadyAllocatedException(requestedValue);
+            throw new SchedulerReportSet.ValueAlreadyAllocatedException(requestedValue, usedValues.get(requestedValue));
         }
         catch (ValueProvider.NoAvailableValueException exception) {
-            throw new SchedulerReportSet.ValueNotAvailableException();
+            Interval overlapInterval = slot;
+            for (Interval interval : usedValues.values()) {
+                overlapInterval = overlapInterval.overlap(interval);
+            }
+            throw new SchedulerReportSet.ValueNotAvailableException(overlapInterval);
         }
     }
 
@@ -156,17 +157,16 @@ public class ValueReservationTask extends ReservationTask
      * @param interval      for which interval
      * @return set of used values for given {@code valueProvider} in given {@code interval}
      */
-    private Set<String> getUsedValues(ValueProvider valueProvider, Interval interval)
+    private Map<String, Interval> getUsedValues(ValueProvider valueProvider, Interval interval)
     {
-        Set<String> usedValues;
+        Map<String, Interval> usedValues = new HashMap<String, Interval>();
         ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
         Long valueProviderId = valueProvider.getId();
         List<ValueReservation> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
         schedulerContext.applyValueReservations(valueProviderId, allocatedValues);
-        usedValues = new HashSet<String>();
         for (ValueReservation allocatedValue : allocatedValues) {
-            usedValues.add(allocatedValue.getValue());
+            usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
         }
         return usedValues;
     }
