@@ -172,7 +172,12 @@ public class ReservationRequestNotification extends ConfigurableNotification
             childrenTypes.put("reservationRequest.child.modified", modifiedReservationNotifications);
             childrenTypes.put("reservationRequest.child.deleted", deletedReservationNotifications);
 
-            resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.partialSuccess"));
+            if (allocationFailedNotifications > 0) {
+                resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.partialSuccess"));
+            }
+            else {
+                resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.success"));
+            }
             resultDescriptionBuilder.append(" (");
             resultDescriptionBuilder.append(renderContext.message("reservationRequest.child"));
             resultDescriptionBuilder.append(": ");

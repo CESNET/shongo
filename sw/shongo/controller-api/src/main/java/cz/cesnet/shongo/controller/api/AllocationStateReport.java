@@ -51,25 +51,25 @@ public class AllocationStateReport extends AbstractEntityReport
     }
 
     /**
-     * @return {@link AllocationError} detected from this {@link AllocationStateReport}
+     * @return {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} detected from this {@link AllocationStateReport}
      */
-    public AllocationError toAllocationError()
+    public UserError toUserError()
     {
-        AllocationError allocationError = findAllocationError(reports, new Stack<Map<String, Object>>());
-        if (allocationError == null) {
-            allocationError = new AllocationError();
+        UserError userError = findAllocationError(reports, new Stack<Map<String, Object>>());
+        if (userError == null) {
+            userError = new UserError();
         }
-        return allocationError;
+        return userError;
     }
 
     /**
      * Represents an allocation error which can be detected from {@link AllocationStateReport} and which can be
      * formatted to user in a user-friendly way.
      */
-    public static class AllocationError
+    public static class UserError
     {
         /**
-         * To be used for {@link AllocationError} messages.
+         * To be used for {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} messages.
          */
         protected static final MessageSource MESSAGE_SOURCE = new MessageSource("allocation-error");
 
@@ -82,7 +82,7 @@ public class AllocationStateReport extends AbstractEntityReport
         /**
          * @param locale
          * @param timeZone
-         * @return message for this {@link AllocationError} and for given {@code locale} and {@code timeZone}
+         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} and for given {@code locale} and {@code timeZone}
          */
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
@@ -91,7 +91,7 @@ public class AllocationStateReport extends AbstractEntityReport
 
         /**
          * @param locale
-         * @return message for this {@link AllocationError} and for given {@code locale}
+         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} and for given {@code locale}
          */
         public final String getMessage(Locale locale)
         {
@@ -99,7 +99,7 @@ public class AllocationStateReport extends AbstractEntityReport
         }
 
         /**
-         * @return message for this {@link AllocationError}
+         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError}
          */
         public final String getMessage()
         {
@@ -108,7 +108,7 @@ public class AllocationStateReport extends AbstractEntityReport
 
         public boolean isUnknown()
         {
-            return getClass().equals(AllocationError.class);
+            return getClass().equals(UserError.class);
         }
     }
 
@@ -164,9 +164,9 @@ public class AllocationStateReport extends AbstractEntityReport
     /**
      * @param reports
      * @param parentReports
-     * @return {@link AllocationError} for given {@code reports} and {@code parentReports}
+     * @return {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} for given {@code reports} and {@code parentReports}
      */
-    private AllocationError findAllocationError(Collection<Map<String, Object>> reports, Stack<Map<String, Object>> parentReports)
+    private UserError findAllocationError(Collection<Map<String, Object>> reports, Stack<Map<String, Object>> parentReports)
     {
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
@@ -195,9 +195,9 @@ public class AllocationStateReport extends AbstractEntityReport
             }
 
             parentReports.push(report);
-            AllocationError allocationError = findAllocationError(getReportChildren(report), parentReports);
-            if (allocationError != null) {
-                return allocationError;
+            UserError userError = findAllocationError(getReportChildren(report), parentReports);
+            if (userError != null) {
+                return userError;
             }
             parentReports.pop();
         }
@@ -219,7 +219,7 @@ public class AllocationStateReport extends AbstractEntityReport
         return null;
     }
 
-    public static class AliasAlreadyAllocated extends AllocationError
+    public static class AliasAlreadyAllocated extends UserError
     {
         private AliasType aliasType;
 
@@ -243,7 +243,7 @@ public class AllocationStateReport extends AbstractEntityReport
         }
     }
 
-    public static class AliasNotAvailable extends AllocationError
+    public static class AliasNotAvailable extends UserError
     {
         private AliasType aliasType;
 

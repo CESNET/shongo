@@ -206,6 +206,25 @@ public class Reporter
     }
 
     /**
+     * Other report.
+     *
+     * @param reportContext
+     * @param message
+     */
+    public static void reportOther(ReportContext reportContext, String title, String message)
+    {
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append("[");
+        nameBuilder.append(reportContext.getReportContextName());
+        nameBuilder.append("] ");
+        nameBuilder.append(title);
+        String name = nameBuilder.toString();
+        logger.error(name);
+        sendReportEmail(getAdministratorEmails(), name,
+                getAdministratorEmailContent(message, reportContext, null, null));
+    }
+
+    /**
      * Report error.
      *
      * @param title

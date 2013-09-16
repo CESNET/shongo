@@ -90,8 +90,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
         timer.start();
 
-        int reservationsDeleted = 0;
+        int reservationRequestsFailed = 0;
         int reservationRequestsAllocated = 0;
+        int reservationsDeleted = 0;
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -173,8 +174,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
+
+                    reservationRequestsAllocated++;
                 }
                 catch (Exception exception) {
+                    reservationRequestsFailed++;
+
                     // Allocation of reservation request has failed and thus rollback transaction
                     if (authorizationManager.isTransactionActive()) {
                         authorizationManager.rollbackTransaction();
@@ -210,7 +215,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                         Reporter.reportInternalError(Reporter.SCHEDULER, exception);
                     }
                 }
-                reservationRequestsAllocated++;
             }
 
             authorizationManager.beginTransaction();
@@ -238,8 +242,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         if (reservationsDeleted > 0 || reservationRequestsAllocated > 0) {
-            logger.info("Scheduling done in {} ms (allocated: {}, deleted: {}).", new Object[]{
-                    timer.stop(), reservationRequestsAllocated, reservationsDeleted
+            logger.info("Scheduling done in {} ms (failed: {}, allocated: {}, deleted: {}).", new Object[]{
+                    timer.stop(), reservationRequestsFailed, reservationRequestsAllocated, reservationsDeleted
             });
         }
     }

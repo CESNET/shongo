@@ -157,7 +157,11 @@ public abstract class ReportSetMessages
 
             public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
             {
-                Object value = getValue(parameters);
+                return formatValue(getValue(parameters), false);
+            }
+
+            protected static String formatValue(Object value, boolean nested)
+            {
                 if (value == null) {
                     return null;
                 }
@@ -170,7 +174,11 @@ public abstract class ReportSetMessages
                         if (collectionBuilder.length() > 0) {
                             collectionBuilder.append(", ");
                         }
-                        collectionBuilder.append(item);
+                        collectionBuilder.append(formatValue(item, true));
+                    }
+                    if (nested) {
+                        collectionBuilder.insert(0, "[");
+                        collectionBuilder.append("]");
                     }
                     return collectionBuilder.toString();
                 }
@@ -180,7 +188,11 @@ public abstract class ReportSetMessages
                         if (collectionBuilder.length() > 0) {
                             collectionBuilder.append(", ");
                         }
-                        collectionBuilder.append(item);
+                        collectionBuilder.append(formatValue(item, true));
+                    }
+                    if (nested) {
+                        collectionBuilder.insert(0, "[");
+                        collectionBuilder.append("]");
                     }
                     return collectionBuilder.toString();
                 }
