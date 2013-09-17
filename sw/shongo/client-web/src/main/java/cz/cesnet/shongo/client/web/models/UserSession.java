@@ -1,13 +1,19 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Locale;
 
 /**
@@ -15,7 +21,7 @@ import java.util.Locale;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class UserSession
+public class UserSession implements Serializable
 {
     private static Logger logger = LoggerFactory.getLogger(UserSession.class);
 
@@ -41,8 +47,8 @@ public class UserSession
      */
     public UserSession()
     {
-        this.locale = Locale.getDefault();
-        this.timeZone = DateTimeZone.getDefault();
+        this.locale = null;
+        this.timeZone = null;
         this.admin = false;
     }
 
@@ -126,17 +132,30 @@ public class UserSession
             locale = request.getLocale();
         }
         setLocale(locale);
+        setTimeZone(userSettings.getTimeZone());
+        setAdmin(userSettings.getAdminMode());
+        update(request, securityToken.getUserInformation());
+    }
 
-        // Set time zone
-        DateTimeZone dateTimeZone = userSettings.getTimeZone();
-        setTimeZone(dateTimeZone);
+    /**
+     * Store changes to given {@code request}.
+     *
+     * @param request
+     * @param userInformation
+     */
+    public void update(HttpServletRequest request, UserInformation userInformation)
+    {
+        if (userInformation == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof OpenIDConnectAuthenticationToken) {
+                userInformation = ((OpenIDConnectAuthenticationToken) authentication).getPrincipal();
+            }
+        }
 
-        // Set admin
-        boolean admin = userSettings.getAdminMode();
-        setAdmin(admin);
-
-        logger.info("Setting (locale: {}, timezone: {}, admin: {}) for user {}...", new Object[]{
-                locale, dateTimeZone, admin, securityToken.getUserId()
+        logger.info("Setting (locale: {}, timezone: {}, admin: {}) for {}...", new Object[]{
+                locale, timeZone, admin, (userInformation != null ? userInformation : "anonymous")
         });
+
+        WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);
     }
 }

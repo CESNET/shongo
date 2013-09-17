@@ -13,7 +13,6 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Interceptor for detection of timezone.
@@ -40,6 +39,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
                 // Set new time zone
                 DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
                 userSession.setTimeZone(dateTimeZone);
+                userSession.update(request, null);
 
                 logger.debug("Set timezone {} to session {}.", dateTimeZone, userSession.toString());
 

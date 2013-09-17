@@ -264,7 +264,7 @@
                     <dd class="allocation-state">
                         <tag:help label="{{allocationState.label}}" labelClass="{{allocationState.code}}">
                             <span>{{allocationState.help}}</span>
-                            <pre ng-show="allocationState.code == 'ALLOCATION_FAILED' && allocationState.report">{{allocationState.report}}</pre>
+                            <pre ng-show="allocationState.report">{{allocationState.report}}</pre>
                         </tag:help>
                     </dd>
                 </div>

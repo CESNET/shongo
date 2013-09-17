@@ -487,7 +487,6 @@ public class AllocationStateReport extends AbstractEntityReport
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
-            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             return MESSAGE_SOURCE.getMessage("roomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
         }
     }

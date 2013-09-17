@@ -21,6 +21,8 @@ public class LocaleResolver extends SessionLocaleResolver
         Locale locale = userSession.getLocale();
         if (locale == null) {
             locale = determineDefaultLocale(request);
+            userSession.setLocale(locale);
+            userSession.update(request, null);
         }
         return locale;
     }
@@ -29,6 +31,9 @@ public class LocaleResolver extends SessionLocaleResolver
     public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale)
     {
         UserSession userSession = UserSession.getInstance(request);
-        userSession.setLocale(locale);
+        if (!locale.equals(userSession.getLocale())) {
+            userSession.setLocale(locale);
+            userSession.update(request, null);
+        }
     }
 }

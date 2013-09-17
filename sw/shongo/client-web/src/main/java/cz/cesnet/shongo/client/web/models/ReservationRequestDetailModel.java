@@ -21,7 +21,8 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     private RoomModel room;
 
     public ReservationRequestDetailModel(AbstractReservationRequest abstractReservationRequest, Reservation reservation,
-            CacheProvider cacheProvider, MessageProvider messageProvider, ExecutableService executableService)
+            CacheProvider cacheProvider, MessageProvider messageProvider, ExecutableService executableService,
+            UserSession userSession)
     {
         super(abstractReservationRequest);
 
@@ -34,7 +35,18 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Allocation state
             allocationState = reservationRequest.getAllocationState();
-            allocationStateReport = reservationRequest.getAllocationStateReport().toString(messageProvider.getLocale(), messageProvider.getTimeZone());
+
+            if (AllocationState.ALLOCATION_FAILED.equals(allocationState)) {
+                AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
+                if (userSession.isAdmin()) {
+                    this.allocationStateReport = allocationStateReport.toString(
+                            messageProvider.getLocale(), messageProvider.getTimeZone());
+                }
+                else {
+                    this.allocationStateReport = allocationStateReport.toUserError().getMessage(
+                            messageProvider.getLocale(), messageProvider.getTimeZone());
+                }
+            }
 
             // Executable state, reservation and room
             ExecutableState executableState = null;
@@ -43,7 +55,8 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                 AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
                 if (roomExecutable != null) {
                     executableState = roomExecutable.getState();
-                    room = new RoomModel(roomExecutable, getId(), cacheProvider, messageProvider, executableService);
+                    room = new RoomModel(roomExecutable, getId(), cacheProvider,
+                            messageProvider, executableService, userSession);
                 }
             }
 

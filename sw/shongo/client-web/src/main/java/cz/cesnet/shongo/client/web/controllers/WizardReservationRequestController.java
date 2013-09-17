@@ -4,6 +4,7 @@ import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
@@ -81,11 +82,12 @@ public class WizardReservationRequestController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestDetail(
-            Locale locale,
-            DateTimeZone timeZone,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
 
@@ -98,7 +100,8 @@ public class WizardReservationRequestController extends AbstractWizardController
 
         // Create reservation request model
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
+                abstractReservationRequest, reservation, cacheProvider,
+                messageProvider, executableService, userSession);
 
         // Get user roles
         AclRecordListRequest request = new AclRecordListRequest();

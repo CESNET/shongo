@@ -8,6 +8,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.models.RoomModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
@@ -51,8 +52,7 @@ public class RoomController
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
     public String handleRoomManagement(
-            Locale locale,
-            DateTimeZone timeZone,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String executableId, Model model)
     {
@@ -78,8 +78,11 @@ public class RoomController
         }
 
         // Room model
-        RoomModel roomModel = new RoomModel(roomExecutable, new CacheProvider(cache, securityToken),
-                new MessageProvider(messageSource, locale, timeZone), executableService);
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        MessageProvider messageProvider = new MessageProvider(
+                messageSource, userSession.getLocale(), userSession.getTimeZone());
+        RoomModel roomModel = new RoomModel(
+                roomExecutable, cacheProvider, messageProvider, executableService, userSession);
         model.addAttribute("room", roomModel);
 
         // Runtime room

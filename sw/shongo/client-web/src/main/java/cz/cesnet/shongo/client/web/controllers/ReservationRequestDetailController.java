@@ -69,12 +69,13 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public String handleDetailView(
-            Locale locale,
-            DateTimeZone timeZone,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String id,
             Model model)
     {
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
 
@@ -153,7 +154,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
         // Create reservation request model
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
+                abstractReservationRequest, reservation, cacheProvider,
+                messageProvider, executableService, userSession);
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
@@ -175,11 +177,14 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE, method = RequestMethod.GET)
     @ResponseBody
     public Map handleDetailState(
-            Locale locale,
-            DateTimeZone timeZone,
+            UserSession userSession,
+
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
 
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
@@ -188,7 +193,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         final MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
         final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
-                messageProvider, executableService);
+                messageProvider, executableService, userSession);
         final RoomModel roomModel = reservationRequestModel.getRoom();
 
         Map<String, Object> data = new HashMap<String, Object>();

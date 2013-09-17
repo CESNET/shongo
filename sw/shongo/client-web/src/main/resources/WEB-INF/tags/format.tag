@@ -2,6 +2,7 @@
 <%@ tag import="cz.cesnet.shongo.TodoImplementException" %>
 <%@ tag import="org.joda.time.*" %>
 <%@ tag import="cz.cesnet.shongo.util.DateTimeFormatter" %>
+<%@ tag import="cz.cesnet.shongo.client.web.models.UserSession" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%@ attribute name="value" required="true" type="java.lang.Object" %>
@@ -22,7 +23,7 @@
     if (styleShort) {
         formatType = DateTimeFormatter.Type.SHORT;
     }
-    DateTimeZone timeZone = cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor.getDateTimeZone(session);
+    DateTimeZone timeZone = UserSession.getInstance(request).getTimeZone();
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(formatType, response.getLocale(), timeZone);
     if (value instanceof ReadablePartial) {
         value = dateTimeFormatter.formatDate((ReadablePartial) value);
