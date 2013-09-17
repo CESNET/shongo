@@ -378,6 +378,142 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * The resource {@link #resource} has available only {@link #availableLicenseCount} from {@link #maxLicenseCount} licenses.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceRoomCapacityExceededReport")
+    public static class ResourceRoomCapacityExceededReport extends ResourceReport
+    {
+        protected Integer availableLicenseCount;
+
+        protected Integer maxLicenseCount;
+
+        public ResourceRoomCapacityExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-room-capacity-exceeded";
+        }
+
+        public ResourceRoomCapacityExceededReport(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            setResource(resource);
+            setAvailableLicenseCount(availableLicenseCount);
+            setMaxLicenseCount(maxLicenseCount);
+        }
+
+        @javax.persistence.Column
+        public Integer getAvailableLicenseCount()
+        {
+            return availableLicenseCount;
+        }
+
+        public void setAvailableLicenseCount(Integer availableLicenseCount)
+        {
+            this.availableLicenseCount = availableLicenseCount;
+        }
+
+        @javax.persistence.Column
+        public Integer getMaxLicenseCount()
+        {
+            return maxLicenseCount;
+        }
+
+        public void setMaxLicenseCount(Integer maxLicenseCount)
+        {
+            this.maxLicenseCount = maxLicenseCount;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("availableLicenseCount", availableLicenseCount);
+            parameters.put("maxLicenseCount", maxLicenseCount);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-room-capacity-exceeded", userType, language, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceRoomCapacityExceededReport}.
+     */
+    public static class ResourceRoomCapacityExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceRoomCapacityExceededException(ResourceRoomCapacityExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(Throwable throwable, ResourceRoomCapacityExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
+            report.setResource(resource);
+            report.setAvailableLicenseCount(availableLicenseCount);
+            report.setMaxLicenseCount(maxLicenseCount);
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            super(throwable);
+            ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
+            report.setResource(resource);
+            report.setAvailableLicenseCount(availableLicenseCount);
+            report.setMaxLicenseCount(maxLicenseCount);
+            this.report = report;
+        }
+
+        public Integer getAvailableLicenseCount()
+        {
+            return getReport().getAvailableLicenseCount();
+        }
+
+        public Integer getMaxLicenseCount()
+        {
+            return getReport().getMaxLicenseCount();
+        }
+
+        @Override
+        public ResourceRoomCapacityExceededReport getReport()
+        {
+            return (ResourceRoomCapacityExceededReport) report;
+        }
+    }
+
+    /**
      * The resource {@link #resource} is not endpoint.
      */
     @javax.persistence.Entity
@@ -2582,140 +2718,6 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Duration {@link #duration} is longer than maximum {@link #maximumDuration}.
-     */
-    @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("DurationLongerThanMaximumReport")
-    public static class DurationLongerThanMaximumReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
-    {
-        protected org.joda.time.Period duration;
-
-        protected org.joda.time.Period maximumDuration;
-
-        public DurationLongerThanMaximumReport()
-        {
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getUniqueId()
-        {
-            return "duration-longer-than-maximum";
-        }
-
-        public DurationLongerThanMaximumReport(org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            setDuration(duration);
-            setMaximumDuration(maximumDuration);
-        }
-
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
-        public org.joda.time.Period getDuration()
-        {
-            return duration;
-        }
-
-        public void setDuration(org.joda.time.Period duration)
-        {
-            this.duration = duration;
-        }
-
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
-        public org.joda.time.Period getMaximumDuration()
-        {
-            return maximumDuration;
-        }
-
-        public void setMaximumDuration(org.joda.time.Period maximumDuration)
-        {
-            this.maximumDuration = maximumDuration;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public Type getType()
-        {
-            return Report.Type.ERROR;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public int getVisibleFlags()
-        {
-            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public java.util.Map<String, Object> getParameters()
-        {
-            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("duration", duration);
-            parameters.put("maximumDuration", maximumDuration);
-            return parameters;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getMessage(UserType userType, Language language)
-        {
-            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("duration-longer-than-maximum", userType, language, getParameters());
-        }
-    }
-
-    /**
-     * Exception for {@link DurationLongerThanMaximumReport}.
-     */
-    public static class DurationLongerThanMaximumException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
-    {
-        public DurationLongerThanMaximumException(DurationLongerThanMaximumReport report)
-        {
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(Throwable throwable, DurationLongerThanMaximumReport report)
-        {
-            super(throwable);
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            DurationLongerThanMaximumReport report = new DurationLongerThanMaximumReport();
-            report.setDuration(duration);
-            report.setMaximumDuration(maximumDuration);
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(Throwable throwable, org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            super(throwable);
-            DurationLongerThanMaximumReport report = new DurationLongerThanMaximumReport();
-            report.setDuration(duration);
-            report.setMaximumDuration(maximumDuration);
-            this.report = report;
-        }
-
-        public org.joda.time.Period getDuration()
-        {
-            return getReport().getDuration();
-        }
-
-        public org.joda.time.Period getMaximumDuration()
-        {
-            return getReport().getMaximumDuration();
-        }
-
-        @Override
-        public DurationLongerThanMaximumReport getReport()
-        {
-            return (DurationLongerThanMaximumReport) report;
-        }
-    }
-
-    /**
      * The specification {@link #specification} is not supposed to be allocated.
      */
     @javax.persistence.Entity
@@ -2828,6 +2830,140 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Duration {@link #duration} is longer than maximum {@link #maxDuration}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("MaximumDurationExceededReport")
+    public static class MaximumDurationExceededReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected org.joda.time.Period duration;
+
+        protected org.joda.time.Period maxDuration;
+
+        public MaximumDurationExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "maximum-duration-exceeded";
+        }
+
+        public MaximumDurationExceededReport(org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            setDuration(duration);
+            setMaxDuration(maxDuration);
+        }
+
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
+        public org.joda.time.Period getDuration()
+        {
+            return duration;
+        }
+
+        public void setDuration(org.joda.time.Period duration)
+        {
+            this.duration = duration;
+        }
+
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
+        public org.joda.time.Period getMaxDuration()
+        {
+            return maxDuration;
+        }
+
+        public void setMaxDuration(org.joda.time.Period maxDuration)
+        {
+            this.maxDuration = maxDuration;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("duration", duration);
+            parameters.put("maxDuration", maxDuration);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("maximum-duration-exceeded", userType, language, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link MaximumDurationExceededReport}.
+     */
+    public static class MaximumDurationExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public MaximumDurationExceededException(MaximumDurationExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(Throwable throwable, MaximumDurationExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            MaximumDurationExceededReport report = new MaximumDurationExceededReport();
+            report.setDuration(duration);
+            report.setMaxDuration(maxDuration);
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(Throwable throwable, org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            super(throwable);
+            MaximumDurationExceededReport report = new MaximumDurationExceededReport();
+            report.setDuration(duration);
+            report.setMaxDuration(maxDuration);
+            this.report = report;
+        }
+
+        public org.joda.time.Period getDuration()
+        {
+            return getReport().getDuration();
+        }
+
+        public org.joda.time.Period getMaxDuration()
+        {
+            return getReport().getMaxDuration();
+        }
+
+        @Override
+        public MaximumDurationExceededReport getReport()
+        {
+            return (MaximumDurationExceededReport) report;
+        }
+    }
+
+    /**
      * User is not resource owner.
      */
     @javax.persistence.Entity
@@ -2918,6 +3054,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceNotAllocatableReport.class);
         addReportClass(ResourceAlreadyAllocatedReport.class);
         addReportClass(ResourceNotAvailableReport.class);
+        addReportClass(ResourceRoomCapacityExceededReport.class);
         addReportClass(ResourceNotEndpointReport.class);
         addReportClass(ResourceMultipleRequestedReport.class);
         addReportClass(ResourceNotFoundReport.class);
@@ -2945,8 +3082,8 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(FindingAvailableResourceReport.class);
         addReportClass(SortingResourcesReport.class);
         addReportClass(SpecificationNotReadyReport.class);
-        addReportClass(DurationLongerThanMaximumReport.class);
         addReportClass(SpecificationNotAllocatableReport.class);
+        addReportClass(MaximumDurationExceededReport.class);
         addReportClass(UserNotOwnerReport.class);
     }
 }

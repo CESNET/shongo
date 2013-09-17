@@ -933,6 +933,22 @@
         </report>
 
         <report extends="resource">
+            <id>resource-room-capacity-exceeded</id>
+            <classification severity="error"/>
+            <params>
+                <param name="availableLicenseCount" type="Integer"/>
+                <param name="maxLicenseCount" type="Integer"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report extends="resource">
             <id>resource-not-endpoint</id>
             <classification severity="error"/>
             <description>
@@ -1324,22 +1340,6 @@
         </report>
 
         <report>
-            <id>duration-longer-than-maximum</id>
-            <classification severity="error"/>
-            <params>
-                <param name="duration" type="Period"/>
-                <param name="maximumDuration" type="Period"/>
-            </params>
-            <description>
-                TODO:
-            </description>
-            <message>
-                Duration ${duration} is longer than maximum ${maximumDuration}.
-            </message>
-            <visible>user</visible>
-        </report>
-
-        <report>
             <id>specification-not-allocatable</id>
             <classification severity="error"/>
             <params>
@@ -1351,6 +1351,22 @@
             <message>
                 The specification ${specification} is not supposed to be allocated.
             </message>
+        </report>
+
+        <report>
+            <id>maximum-duration-exceeded</id>
+            <classification severity="error"/>
+            <params>
+                <param name="duration" type="Period"/>
+                <param name="maxDuration" type="Period"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Duration ${duration} is longer than maximum ${maxDuration}.
+            </message>
+            <visible>user</visible>
         </report>
 
         <report>

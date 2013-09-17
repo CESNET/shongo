@@ -769,7 +769,6 @@ public class SchedulerContext
     {
         int usedLicenseCount = 0;
         if (cache.getResourceCache().isResourceAvailable(roomProviderCapability.getResource(), this)) {
-
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, requestedSlot);

@@ -104,22 +104,49 @@ public class AllocationStateReportTest extends AbstractControllerTest
     }
 
     @Test
-    public void testExceedMaximumFutureMultiple() throws Exception
+    public void testExceedMaximumFutureAlias() throws Exception
+    {
+        Resource aliasProviderFirst = new Resource();
+        aliasProviderFirst.setName("aliasProvider1");
+        aliasProviderFirst.setAllocatable(true);
+        aliasProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
+        aliasProviderFirst.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProviderFirst);
+
+        Resource aliasProviderSecond = new Resource();
+        aliasProviderSecond.setName("aliasProvider2");
+        aliasProviderSecond.setAllocatable(true);
+        aliasProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
+        aliasProviderSecond.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProviderSecond);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        finish(reservationRequestId, AllocationStateReport.MaximumFutureExceeded.class);
+    }
+
+    @Test
+    public void testExceedMaximumFutureRoom() throws Exception
     {
         DeviceResource roomProviderFirst = new DeviceResource();
         roomProviderFirst.setName("roomProvider1");
         roomProviderFirst.setAllocatable(true);
+        roomProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
         roomProviderFirst.addTechnology(Technology.H323);
         roomProviderFirst.addCapability(new RoomProviderCapability(10));
-        roomProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
         getResourceService().createResource(SECURITY_TOKEN, roomProviderFirst);
 
         DeviceResource roomProviderSecond = new DeviceResource();
         roomProviderSecond.setName("roomProvider2");
         roomProviderSecond.setAllocatable(true);
+        roomProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
         roomProviderSecond.addTechnology(Technology.H323);
         roomProviderSecond.addCapability(new RoomProviderCapability(20));
-        roomProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
         getResourceService().createResource(SECURITY_TOKEN, roomProviderSecond);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -150,19 +177,27 @@ public class AllocationStateReportTest extends AbstractControllerTest
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
-        finish(reservationRequestId, AllocationStateReport.AliasAlreadyAllocated.class);
+        finish(reservationRequestId, AllocationStateReport.MaximumDurationExceeded.class);
     }
 
     @Test
     public void testExceedRoomCapacity() throws Exception
     {
-        DeviceResource roomProvider = new DeviceResource();
-        roomProvider.setName("roomProvider");
-        roomProvider.setAllocatable(true);
-        roomProvider.addTechnology(Technology.H323);
-        roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
-        roomProvider.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+        DeviceResource roomProviderFirst = new DeviceResource();
+        roomProviderFirst.setName("roomProvider1");
+        roomProviderFirst.setAllocatable(true);
+        roomProviderFirst.addTechnology(Technology.H323);
+        roomProviderFirst.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        roomProviderFirst.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        getResourceService().createResource(SECURITY_TOKEN, roomProviderFirst);
+
+        DeviceResource roomProviderSecond = new DeviceResource();
+        roomProviderSecond.setName("roomProvider2");
+        roomProviderSecond.setAllocatable(true);
+        roomProviderSecond.addTechnology(Technology.H323);
+        roomProviderSecond.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        roomProviderSecond.addCapability(new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME}));
+        getResourceService().createResource(SECURITY_TOKEN, roomProviderSecond);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "PT1H");
@@ -177,7 +212,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         String reservationRequestSecondId = allocate(reservationRequestSecond);
         checkAllocationFailed(reservationRequestSecondId);
 
-        finish(reservationRequestSecondId, AllocationStateReport.AliasAlreadyAllocated.class);
+        finish(reservationRequestSecondId, AllocationStateReport.RoomCapacityExceeded.class);
     }
 
     /**

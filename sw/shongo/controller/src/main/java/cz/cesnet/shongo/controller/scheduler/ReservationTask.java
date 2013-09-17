@@ -339,11 +339,11 @@ public abstract class ReservationTask
 
     /**
      * @param type to be validated
-     * @throws SchedulerReportSet.DurationLongerThanMaximumException
+     * @throws SchedulerReportSet.MaximumDurationExceededException
      *          when the validation failed
      */
     protected void validateReservationSlot(Class<? extends Reservation> type)
-            throws SchedulerReportSet.DurationLongerThanMaximumException
+            throws SchedulerReportSet.MaximumDurationExceededException
     {
 
     }
@@ -361,15 +361,15 @@ public abstract class ReservationTask
      *
      * @param slot            to be checked
      * @param maximumDuration maximum allowed duration
-     * @throws SchedulerReportSet.DurationLongerThanMaximumException
+     * @throws SchedulerReportSet.MaximumDurationExceededException
      *
      */
     protected static void checkMaximumDuration(Interval slot, Period maximumDuration)
-            throws SchedulerReportSet.DurationLongerThanMaximumException
+            throws SchedulerReportSet.MaximumDurationExceededException
     {
         Period duration = Temporal.getIntervalDuration(slot);
         if (Temporal.isPeriodLongerThan(duration, maximumDuration)) {
-            throw new SchedulerReportSet.DurationLongerThanMaximumException(duration, maximumDuration);
+            throw new SchedulerReportSet.MaximumDurationExceededException(duration, maximumDuration);
         }
     }
 

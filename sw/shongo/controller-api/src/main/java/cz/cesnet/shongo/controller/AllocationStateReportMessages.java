@@ -13,6 +13,7 @@ public class AllocationStateReportMessages
     public static final String RESOURCE_NOT_ALLOCATABLE = "resource-not-allocatable";
     public static final String RESOURCE_ALREADY_ALLOCATED = "resource-already-allocated";
     public static final String RESOURCE_NOT_AVAILABLE = "resource-not-available";
+    public static final String RESOURCE_ROOM_CAPACITY_EXCEEDED = "resource-room-capacity-exceeded";
     public static final String RESOURCE_NOT_ENDPOINT = "resource-not-endpoint";
     public static final String RESOURCE_MULTIPLE_REQUESTED = "resource-multiple-requested";
     public static final String RESOURCE_NOT_FOUND = "resource-not-found";
@@ -38,8 +39,8 @@ public class AllocationStateReportMessages
     public static final String FINDING_AVAILABLE_RESOURCE = "finding-available-resource";
     public static final String SORTING_RESOURCES = "sorting-resources";
     public static final String SPECIFICATION_NOT_READY = "specification-not-ready";
-    public static final String DURATION_LONGER_THAN_MAXIMUM = "duration-longer-than-maximum";
     public static final String SPECIFICATION_NOT_ALLOCATABLE = "specification-not-allocatable";
+    public static final String MAXIMUM_DURATION_EXCEEDED = "maximum-duration-exceeded";
     public static final String USER_NOT_OWNER = "user-not-owner";
 
     /**
@@ -52,6 +53,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.CZECH, "Rezervace zdroje ${resource.id} je zakázána.");
         addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated.");
         addMessage(RESOURCE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
+        addMessage(RESOURCE_ROOM_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.");
         addMessage(RESOURCE_NOT_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not endpoint.");
         addMessage(RESOURCE_MULTIPLE_REQUESTED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is requested multiple times.");
         addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No available resource was found for the following specification: Technologies: ${technologies}");
@@ -77,8 +79,8 @@ public class AllocationStateReportMessages
         addMessage(FINDING_AVAILABLE_RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Finding available resource.");
         addMessage(SORTING_RESOURCES, new Report.UserType[]{}, Report.Language.ENGLISH, "Sorting resources.");
         addMessage(SPECIFICATION_NOT_READY, new Report.UserType[]{}, Report.Language.ENGLISH, "Specification ${specification} is not ready.");
-        addMessage(DURATION_LONGER_THAN_MAXIMUM, new Report.UserType[]{}, Report.Language.ENGLISH, "Duration ${duration} is longer than maximum ${maximumDuration}.");
         addMessage(SPECIFICATION_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The specification ${specification} is not supposed to be allocated.");
+        addMessage(MAXIMUM_DURATION_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "Duration ${duration} is longer than maximum ${maxDuration}.");
         addMessage(USER_NOT_OWNER, new Report.UserType[]{}, Report.Language.ENGLISH, "User is not resource owner.");
     }};
 

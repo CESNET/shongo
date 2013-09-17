@@ -10,6 +10,7 @@ import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import java.util.*;
 
@@ -107,9 +108,25 @@ public class AllocationStateReport extends AbstractEntityReport
             return getMessage(Locale.getDefault(), DateTimeZone.getDefault());
         }
 
+        /**
+         * @return true whether this {@link UserError} doesn't represent a specific error,
+         *         false otherwise
+         */
         public boolean isUnknown()
         {
             return getClass().equals(UserError.class);
+        }
+
+        /**
+         * @param userErrorType
+         * @return whether this {@link UserError} has lower priority than given {@code userErrorType},
+         */
+        public static <T extends UserError> boolean hasHigherPriorityThan(T userErrorType)
+        {
+            if (userErrorType == null) {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -167,11 +184,28 @@ public class AllocationStateReport extends AbstractEntityReport
      * @param parentReports
      * @return {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} for given {@code reports} and {@code parentReports}
      */
-    private UserError findAllocationError(Collection<Map<String, Object>> reports, Stack<Map<String, Object>> parentReports)
+    private UserError findAllocationError(Collection<Map<String, Object>> reports,
+            Stack<Map<String, Object>> parentReports)
     {
+        UserError userError = null;
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
-            if (parentReports.size() == 0) {
+            if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
+                return new MaximumDurationExceeded(Converter.convertToPeriod(report.get("maxDuration")));
+            }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_AVAILABLE)) {
+                DateTime dateTime = Converter.convertToDateTime(report.get("maxDateTime"));
+                if (userError instanceof MaximumFutureExceeded) {
+                    MaximumFutureExceeded maximumFutureExceeded = (MaximumFutureExceeded) userError;
+                    if (dateTime.isAfter(maximumFutureExceeded.getMaxDateTime())) {
+                        maximumFutureExceeded.setMaxDateTime(dateTime);
+                    }
+                }
+                else if (MaximumFutureExceeded.hasHigherPriorityThan(userError)) {
+                    userError = new MaximumFutureExceeded(dateTime);
+                }
+            }
+            else if (parentReports.size() == 0) {
                 if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_NOT_USABLE)) {
                     return new ReusementInvalidSlot(
                             Converter.convertToString(report.get("reservationRequest")),
@@ -182,10 +216,6 @@ public class AllocationStateReport extends AbstractEntityReport
                             Converter.convertToString(report.get("reservationRequest")),
                             Converter.convertToString(report.get("usageReservationRequest")),
                             Converter.convertToInterval(report.get("usageInterval")));
-                }
-                else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_AVAILABLE)) {
-                    return new MaximumFutureExceeded(
-                            Converter.convertToDateTime(report.get("maxDateTime")));
                 }
             }
             else if (identifier.equals(AllocationStateReportMessages.VALUE_ALREADY_ALLOCATED)) {
@@ -211,13 +241,30 @@ public class AllocationStateReport extends AbstractEntityReport
                     }
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_ROOM_CAPACITY_EXCEEDED)) {
+                Integer availableLicenseCount = Converter.convertToInteger(report.get("availableLicenseCount"));
+                Integer maxLicenseCount = Converter.convertToInteger(report.get("maxLicenseCount"));
+                if (userError instanceof RoomCapacityExceeded) {
+                    RoomCapacityExceeded roomCapacityExceeded = (RoomCapacityExceeded) userError;
+                    if (availableLicenseCount > maxLicenseCount) {
+                        roomCapacityExceeded.setAvailableLicenseCount(availableLicenseCount);
+                        roomCapacityExceeded.setMaxLicenseCount(maxLicenseCount);
+                    }
+                }
+                else if (RoomCapacityExceeded.hasHigherPriorityThan(userError)) {
+                    userError = new RoomCapacityExceeded(availableLicenseCount, maxLicenseCount);
+                }
+            }
 
             parentReports.push(report);
-            UserError userError = findAllocationError(getReportChildren(report), parentReports);
-            if (userError != null) {
-                return userError;
+            UserError childUserError = findAllocationError(getReportChildren(report), parentReports);
+            if (childUserError != null) {
+                return childUserError;
             }
             parentReports.pop();
+        }
+        if (userError != null) {
+            return userError;
         }
         return null;
     }
@@ -249,12 +296,43 @@ public class AllocationStateReport extends AbstractEntityReport
             this.maxDateTime = maxDateTime;
         }
 
+        public DateTime getMaxDateTime()
+        {
+            return maxDateTime;
+        }
+
+        public void setMaxDateTime(DateTime maxDateTime)
+        {
+            this.maxDateTime = maxDateTime;
+        }
+
         @Override
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             String maxDateTime = dateTimeFormatter.formatDateTime(this.maxDateTime);
             return MESSAGE_SOURCE.getMessage("maximumFutureExceeded", locale, maxDateTime);
+        }
+    }
+
+    /**
+     * Requested time slot is too long.
+     */
+    public static class MaximumDurationExceeded extends UserError
+    {
+        private Period maxDuration;
+
+        public MaximumDurationExceeded(Period maxDuration)
+        {
+            this.maxDuration = maxDuration;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            String maxDuration = dateTimeFormatter.formatDuration(this.maxDuration);
+            return MESSAGE_SOURCE.getMessage("maximumDurationExceeded", locale, maxDuration);
         }
     }
 
@@ -367,6 +445,49 @@ public class AllocationStateReport extends AbstractEntityReport
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             return MESSAGE_SOURCE.getMessage("aliasNotAvailable." + this.aliasType, locale,
                     dateTimeFormatter.formatInterval(interval));
+        }
+    }
+
+    /**
+     * Room capacity exceeded.
+     */
+    public static class RoomCapacityExceeded extends UserError
+    {
+        private Integer availableLicenseCount;
+
+        private Integer maxLicenseCount;
+
+        public RoomCapacityExceeded(Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            this.availableLicenseCount = availableLicenseCount;
+            this.maxLicenseCount = maxLicenseCount;
+        }
+
+        public Integer getAvailableLicenseCount()
+        {
+            return availableLicenseCount;
+        }
+
+        public void setAvailableLicenseCount(Integer availableLicenseCount)
+        {
+            this.availableLicenseCount = availableLicenseCount;
+        }
+
+        public Integer getMaxLicenseCount()
+        {
+            return maxLicenseCount;
+        }
+
+        public void setMaxLicenseCount(Integer maxLicenseCount)
+        {
+            this.maxLicenseCount = maxLicenseCount;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
+            return MESSAGE_SOURCE.getMessage("roomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
         }
     }
 }
