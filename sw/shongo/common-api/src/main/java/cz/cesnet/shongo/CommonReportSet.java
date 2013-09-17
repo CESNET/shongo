@@ -49,9 +49,9 @@ public class CommonReportSet extends AbstractReportSet
         addMessage("method-not-defined", new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
     }};
 
-    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
-        return MESSAGES.getMessage(reportId, userType, language, parameters);
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
     }
 
     /**
@@ -137,9 +137,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("unknown-error", userType, language, getParameters());
+            return MESSAGES.getMessage("unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -290,9 +290,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("type-mismatch", userType, language, getParameters());
+            return MESSAGES.getMessage("type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -450,9 +450,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("type-illegal-value", userType, language, getParameters());
+            return MESSAGES.getMessage("type-illegal-value", userType, language, timeZone, getParameters());
         }
     }
 
@@ -594,9 +594,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-undefined", userType, language, getParameters());
+            return MESSAGES.getMessage("class-undefined", userType, language, timeZone, getParameters());
         }
     }
 
@@ -731,9 +731,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-instantiation-error", userType, language, getParameters());
+            return MESSAGES.getMessage("class-instantiation-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -884,9 +884,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-attribute-undefined", userType, language, getParameters());
+            return MESSAGES.getMessage("class-attribute-undefined", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1076,9 +1076,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-attribute-type-mismatch", userType, language, getParameters());
+            return MESSAGES.getMessage("class-attribute-type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1250,9 +1250,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-attribute-required", userType, language, getParameters());
+            return MESSAGES.getMessage("class-attribute-required", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1410,9 +1410,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-attribute-readonly", userType, language, getParameters());
+            return MESSAGES.getMessage("class-attribute-readonly", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1570,9 +1570,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("class-collection-required", userType, language, getParameters());
+            return MESSAGES.getMessage("class-collection-required", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1714,9 +1714,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("collection-item-null", userType, language, getParameters());
+            return MESSAGES.getMessage("collection-item-null", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1883,9 +1883,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("collection-item-type-mismatch", userType, language, getParameters());
+            return MESSAGES.getMessage("collection-item-type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2050,9 +2050,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-not-found", userType, language, getParameters());
+            return MESSAGES.getMessage("entity-not-found", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2210,9 +2210,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-invalid", userType, language, getParameters());
+            return MESSAGES.getMessage("entity-invalid", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2370,9 +2370,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-not-deletable-referenced", userType, language, getParameters());
+            return MESSAGES.getMessage("entity-not-deletable-referenced", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2514,9 +2514,9 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("method-not-defined", userType, language, getParameters());
+            return MESSAGES.getMessage("method-not-defined", userType, language, timeZone, getParameters());
         }
     }
 

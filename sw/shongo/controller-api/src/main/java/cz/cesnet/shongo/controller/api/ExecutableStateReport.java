@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ExecutableStateReportMessages;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.Locale;
 import java.util.Map;
@@ -37,9 +38,9 @@ public class ExecutableStateReport extends AbstractEntityReport
     }
 
     @Override
-    public String toString(Locale locale)
+    public String toString(Locale locale, DateTimeZone timeZone)
     {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG).with(locale);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG).with(locale, timeZone);
         StringBuilder stringBuilder = new StringBuilder();
         int count = 0;
         for (Map<String, Object> report : reports) {
@@ -55,7 +56,7 @@ public class ExecutableStateReport extends AbstractEntityReport
             }
             String reportId = (String) report.get(ID);
             String message = ExecutableStateReportMessages.getMessage(
-                    reportId, getUserType(), Report.Language.fromLocale(locale), report);
+                    reportId, getUserType(), Report.Language.fromLocale(locale), timeZone, report);
             stringBuilder.append("[");
             stringBuilder.append(dateTimeFormatter.formatDateTime(new DateTime(report.get(DATE_TIME))));
             stringBuilder.append("] ");

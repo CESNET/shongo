@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.report.Report;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
 import java.util.Locale;
@@ -58,11 +59,12 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
         Locale locale = configuration.getLocale();
+        DateTimeZone timeZone = configuration.getTimeZone();
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
         renderContext.addParameter("target", target);
-        renderContext.addParameter("userError", this.userError.getMessage(locale, configuration.getTimeZone()));
+        renderContext.addParameter("userError", this.userError.getMessage(locale, timeZone));
         if (configuration.isAdministrator()) {
-            renderContext.addParameter("adminReport", adminReport.toString(locale));
+            renderContext.addParameter("adminReport", adminReport.toString(locale, timeZone));
         }
 
         StringBuilder titleBuilder = new StringBuilder();

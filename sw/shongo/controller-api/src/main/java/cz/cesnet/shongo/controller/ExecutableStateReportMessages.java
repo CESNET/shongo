@@ -20,8 +20,8 @@ public class ExecutableStateReportMessages
         addMessage(ROOM_NOT_STARTED, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot modify room ${roomName}, because it has not been started yet.");
     }};
 
-    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
-        return MESSAGES.getMessage(reportId, userType, language, parameters);
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
     }
 }

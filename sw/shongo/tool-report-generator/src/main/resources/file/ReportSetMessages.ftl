@@ -12,7 +12,7 @@
 </#list>
     }};
 
-    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
-        return MESSAGES.getMessage(reportId, userType, language, parameters);
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
     }

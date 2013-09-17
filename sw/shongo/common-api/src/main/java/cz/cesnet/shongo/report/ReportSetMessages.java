@@ -4,6 +4,10 @@ import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.util.DateTimeFormatter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -50,7 +54,8 @@ public abstract class ReportSetMessages
         userTypeMessages.put(language, message);
     }
 
-    public synchronized String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public synchronized String getMessage(String reportId, Report.UserType userType, Report.Language language,
+            DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
         StringBuilder messageIdBuilder = new StringBuilder();
         messageIdBuilder.append(reportId);
@@ -64,7 +69,7 @@ public abstract class ReportSetMessages
             messageFormat = getMessageFormat(reportId, userType, language);
             messageFormatById.put(messageId, messageFormat);
         }
-        return messageFormat.format(userType, language, parameters);
+        return messageFormat.format(userType, language, timeZone, parameters);
     }
 
     private MessageFormat getMessageFormat(String reportId, Report.UserType userType, Report.Language language)
@@ -142,25 +147,30 @@ public abstract class ReportSetMessages
             throw new TodoImplementException("Illegal expression '" + expression + "'.");
         }
 
-        public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
+        public String format(Report.UserType userType, Report.Language language, DateTimeZone timeZone, Map<String, Object> parameters)
         {
             StringBuilder stringBuilder = new StringBuilder();
             for (Component component : components) {
-                stringBuilder.append(component.format(userType, language, parameters));
+                stringBuilder.append(component.format(userType, language, timeZone, parameters));
             }
             return stringBuilder.toString();
         }
 
         private static abstract class Component
         {
+            private static final DateTimeFormatter DATE_TIME_FORMATTER =
+                    DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
+
             public abstract Object getValue(Map<String, Object> parameters);
 
-            public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
+            public String format(Report.UserType userType, Report.Language language, DateTimeZone timeZone,
+                    Map<String, Object> parameters)
             {
-                return formatValue(getValue(parameters), false);
+                Object value = getValue(parameters);
+                return formatValue(value, language, timeZone, false);
             }
 
-            protected static String formatValue(Object value, boolean nested)
+            protected static String formatValue(Object value, Report.Language language, DateTimeZone timeZone, boolean nested)
             {
                 if (value == null) {
                     return null;
@@ -168,13 +178,21 @@ public abstract class ReportSetMessages
                 else if (value instanceof String) {
                     return (String) value;
                 }
+                else if (value instanceof DateTime) {
+                    DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(language.toLocale(), timeZone);
+                    return dateTimeFormatter.formatDateTime((DateTime) value);
+                }
+                else if (value instanceof Interval) {
+                    DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(language.toLocale(), timeZone);
+                    return dateTimeFormatter.formatInterval((Interval) value);
+                }
                 else if (value instanceof Object[]) {
                     StringBuilder collectionBuilder = new StringBuilder();
                     for (Object item : (Object[]) value) {
                         if (collectionBuilder.length() > 0) {
                             collectionBuilder.append(", ");
                         }
-                        collectionBuilder.append(formatValue(item, true));
+                        collectionBuilder.append(formatValue(item, language, timeZone, true));
                     }
                     if (nested) {
                         collectionBuilder.insert(0, "[");
@@ -188,7 +206,7 @@ public abstract class ReportSetMessages
                         if (collectionBuilder.length() > 0) {
                             collectionBuilder.append(", ");
                         }
-                        collectionBuilder.append(formatValue(item, true));
+                        collectionBuilder.append(formatValue(item, language, timeZone, true));
                     }
                     if (nested) {
                         collectionBuilder.insert(0, "[");
@@ -292,13 +310,14 @@ public abstract class ReportSetMessages
             }
 
             @Override
-            public String format(Report.UserType userType, Report.Language language, Map<String, Object> parameters)
+            public String format(Report.UserType userType, Report.Language language, DateTimeZone timeZone,
+                    Map<String, Object> parameters)
             {
                 switch (type) {
                     case IF_EMPTY:
                     {
-                        String param1 = params.get(0).format(userType, language, parameters);
-                        String param2 = params.get(1).format(userType, language, parameters);
+                        String param1 = params.get(0).format(userType, language, timeZone, parameters);
+                        String param2 = params.get(1).format(userType, language, timeZone, parameters);
                         if (param1 != null && !param1.isEmpty()) {
                             return param1;
                         }
@@ -317,7 +336,7 @@ public abstract class ReportSetMessages
                             @SuppressWarnings("unchecked")
                             Map<String, Object> jadeReport = (Map<String, Object>) param1;
                             String jadeReportId = (String) jadeReport.get(AbstractEntityReport.ID);
-                            return JadeReportSet.getMessage(jadeReportId, userType, language, jadeReport);
+                            return JadeReportSet.getMessage(jadeReportId, userType, language, timeZone, jadeReport);
                         }
                         else {
                             throw new TodoImplementException(param1.getClass());

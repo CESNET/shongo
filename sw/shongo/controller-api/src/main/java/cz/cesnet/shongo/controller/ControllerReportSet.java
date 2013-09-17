@@ -48,9 +48,9 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
     }};
 
-    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
-        return MESSAGES.getMessage(reportId, userType, language, parameters);
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
     }
 
     /**
@@ -136,9 +136,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("user-not-exist", userType, language, getParameters());
+            return MESSAGES.getMessage("user-not-exist", userType, language, timeZone, getParameters());
         }
     }
 
@@ -289,9 +289,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("acl-invalid-role", userType, language, getParameters());
+            return MESSAGES.getMessage("acl-invalid-role", userType, language, timeZone, getParameters());
         }
     }
 
@@ -413,9 +413,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("security-missing-token", userType, language, getParameters());
+            return MESSAGES.getMessage("security-missing-token", userType, language, timeZone, getParameters());
         }
     }
 
@@ -543,9 +543,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("security-invalid-token", userType, language, getParameters());
+            return MESSAGES.getMessage("security-invalid-token", userType, language, timeZone, getParameters());
         }
     }
 
@@ -680,9 +680,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("security-not-authorized", userType, language, getParameters());
+            return MESSAGES.getMessage("security-not-authorized", userType, language, timeZone, getParameters());
         }
     }
 
@@ -855,9 +855,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("device-command-failed", userType, language, getParameters());
+            return MESSAGES.getMessage("device-command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1006,9 +1006,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("identifier-invalid", userType, language, getParameters());
+            return MESSAGES.getMessage("identifier-invalid", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1159,9 +1159,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("identifier-invalid-domain", userType, language, getParameters());
+            return MESSAGES.getMessage("identifier-invalid-domain", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1319,9 +1319,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("identifier-invalid-type", userType, language, getParameters());
+            return MESSAGES.getMessage("identifier-invalid-type", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1463,9 +1463,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-not-modifiable", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-not-modifiable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1600,9 +1600,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-not-deletable", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-not-deletable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1737,9 +1737,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-not-revertible", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-not-revertible", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1874,9 +1874,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-already-modified", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-already-modified", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2011,9 +2011,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-deleted", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-deleted", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2128,9 +2128,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-empty-duration", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-empty-duration", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2258,9 +2258,9 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("reservation-request-not-reusable", userType, language, getParameters());
+            return MESSAGES.getMessage("reservation-request-not-reusable", userType, language, timeZone, getParameters());
         }
     }
 

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.report;
 
+import org.joda.time.DateTimeZone;
+
 import java.util.Map;
 
 /**
@@ -26,14 +28,30 @@ public abstract class AbstractReport implements Report
     public abstract Map<String, Object> getParameters();
 
     @Override
-    public abstract String getMessage(UserType userType, Language language);
+    public abstract String getMessage(UserType userType, Language language, DateTimeZone timeZone);
+
+    /**
+     * @see #getMessage(cz.cesnet.shongo.report.Report.UserType, cz.cesnet.shongo.report.Report.Language)
+     */
+    public final String getMessage(UserType userType, Language language)
+    {
+        return getMessage(userType, language, DateTimeZone.getDefault());
+    }
+
+    /**
+     * @see #getMessage(cz.cesnet.shongo.report.Report.UserType, cz.cesnet.shongo.report.Report.Language)
+     */
+    public final String getMessage(UserType userType)
+    {
+        return getMessage(userType, Language.ENGLISH, DateTimeZone.getDefault());
+    }
 
     /**
      * @return {@link cz.cesnet.shongo.report.Report.UserType#DOMAIN_ADMIN} report message
      */
     public final String getMessage()
     {
-        return getMessage(UserType.DOMAIN_ADMIN, Language.ENGLISH);
+        return getMessage(UserType.DOMAIN_ADMIN, Language.ENGLISH, DateTimeZone.getDefault());
     }
 
     @Override

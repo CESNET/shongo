@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.support;
 
+import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 
 import java.util.Locale;
@@ -22,6 +23,25 @@ public class MessageProvider
     private final Locale locale;
 
     /**
+     * {@link DateTimeZone} to be used for message formatting.
+     */
+    private final DateTimeZone timeZone;
+
+    /**
+     * Constructor.
+     *
+     * @param messageSource sets the {@link #messageSource}
+     * @param locale        sets the {@link #locale}
+     * @param timeZone      sets the {@link #timeZone}
+     */
+    public MessageProvider(MessageSource messageSource, Locale locale, DateTimeZone timeZone)
+    {
+        this.messageSource = messageSource;
+        this.locale = locale;
+        this.timeZone = timeZone;
+    }
+
+    /**
      * Constructor.
      *
      * @param messageSource sets the {@link #messageSource}
@@ -29,8 +49,7 @@ public class MessageProvider
      */
     public MessageProvider(MessageSource messageSource, Locale locale)
     {
-        this.messageSource = messageSource;
-        this.locale = locale;
+        this(messageSource, locale, DateTimeZone.getDefault());
     }
 
     /**
@@ -48,5 +67,13 @@ public class MessageProvider
     public String getMessage(String code)
     {
         return messageSource.getMessage(code, null, locale);
+    }
+
+    /**
+     * @return {@link #timeZone}
+     */
+    public DateTimeZone getTimeZone()
+    {
+        return timeZone;
     }
 }

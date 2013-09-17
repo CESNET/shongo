@@ -2,6 +2,7 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.Report;
+import org.joda.time.DateTimeZone;
 
 import java.util.*;
 
@@ -55,17 +56,27 @@ public abstract class AbstractEntityReport extends AbstractComplexType
 
     /**
      * @param locale
-     * @return {@link AbstractEntityReport} as string for given {@code locale}
+     * @param timeZone
+     * @return {@link AbstractEntityReport} as string for given {@code locale} and {@code timeZone}
      */
-    public String toString(Locale locale)
+    public String toString(Locale locale, DateTimeZone timeZone)
     {
         throw new TodoImplementException();
     }
 
-    @Override
-    public String toString()
+    /**
+     * @param locale
+     * @return {@link AbstractEntityReport} as string for given {@code locale}
+     */
+    public final String toString(Locale locale)
     {
-        return toString(Locale.getDefault());
+        return toString(locale, DateTimeZone.getDefault());
+    }
+
+    @Override
+    public final String toString()
+    {
+        return toString(Locale.getDefault(), DateTimeZone.getDefault());
     }
 
     private static final String USER_TYPE = "userType";

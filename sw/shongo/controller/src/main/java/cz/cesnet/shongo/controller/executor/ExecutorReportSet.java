@@ -94,9 +94,9 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("command-failed", userType, language, getParameters());
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -218,9 +218,9 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("room-not-started", userType, language, getParameters());
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("room-not-started", userType, language, timeZone, getParameters());
         }
     }
 

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.report;
 
+import org.joda.time.DateTimeZone;
+
 import java.util.Locale;
 import java.util.Map;
 
@@ -33,9 +35,11 @@ public interface Report
 
     /**
      * @param userType
+     * @param language
+     * @param timeZone
      * @return report message of given {@code userType}
      */
-    public String getMessage(UserType userType, Language language);
+    public String getMessage(UserType userType, Language language, DateTimeZone timeZone);
 
     /**
      * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
@@ -105,6 +109,14 @@ public interface Report
         public String getLanguage()
         {
             return language;
+        }
+
+        /**
+         * @return {@link Locale}
+         */
+        public Locale toLocale()
+        {
+            return new Locale(language);
         }
 
         /**

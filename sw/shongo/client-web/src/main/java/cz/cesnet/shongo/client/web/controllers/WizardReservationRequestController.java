@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,11 +82,12 @@ public class WizardReservationRequestController extends AbstractWizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestDetail(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messageSource, locale);
+        MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =

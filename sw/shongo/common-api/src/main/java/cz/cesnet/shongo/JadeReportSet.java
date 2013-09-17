@@ -27,9 +27,9 @@ public class JadeReportSet extends AbstractReportSet
         addMessage("command-result-decoding-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
     }};
 
-    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, java.util.Map<String, Object> parameters)
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
     {
-        return MESSAGES.getMessage(reportId, userType, language, parameters);
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
     }
 
     /**
@@ -97,9 +97,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("unknown-error", userType, language, getParameters());
+            return MESSAGES.getMessage("unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -211,9 +211,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("agent-not-found", userType, language, getParameters());
+            return MESSAGES.getMessage("agent-not-found", userType, language, timeZone, getParameters());
         }
     }
 
@@ -325,9 +325,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("agent-not-started", userType, language, getParameters());
+            return MESSAGES.getMessage("agent-not-started", userType, language, timeZone, getParameters());
         }
     }
 
@@ -502,9 +502,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-unknown-error", userType, language, getParameters());
+            return MESSAGES.getMessage("command-unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -622,9 +622,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-timeout", userType, language, getParameters());
+            return MESSAGES.getMessage("command-timeout", userType, language, timeZone, getParameters());
         }
     }
 
@@ -742,9 +742,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-not-supported", userType, language, getParameters());
+            return MESSAGES.getMessage("command-not-supported", userType, language, timeZone, getParameters());
         }
     }
 
@@ -862,9 +862,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-refused", userType, language, getParameters());
+            return MESSAGES.getMessage("command-refused", userType, language, timeZone, getParameters());
         }
     }
 
@@ -982,9 +982,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-not-understood", userType, language, getParameters());
+            return MESSAGES.getMessage("command-not-understood", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1118,9 +1118,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-failed", userType, language, getParameters());
+            return MESSAGES.getMessage("command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1245,9 +1245,9 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("command-result-decoding-failed", userType, language, getParameters());
+            return MESSAGES.getMessage("command-result-decoding-failed", userType, language, timeZone, getParameters());
         }
     }
 

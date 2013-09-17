@@ -70,12 +70,13 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public String handleDetailView(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String id,
             Model model)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messages, locale);
+        MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -184,7 +185,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
 
-        final MessageProvider messageProvider = new MessageProvider(messages, locale);
+        final MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
         final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
                 messageProvider, executableService);

@@ -191,12 +191,12 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
         </#if>
         @Override
-        public String getMessage(UserType userType, Language language)
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
         <#if scope.messagesClassName??>
-            return ${scope.messagesClassPackage}.${scope.messagesClassName}.getMessage("${report.id}", userType, language, getParameters());
+            return ${scope.messagesClassPackage}.${scope.messagesClassName}.getMessage("${report.id}", userType, language, timeZone, getParameters());
         <#else>
-            return MESSAGES.getMessage("${report.id}", userType, language, getParameters());
+            return MESSAGES.getMessage("${report.id}", userType, language, timeZone, getParameters());
         </#if>
         }
     </#if>

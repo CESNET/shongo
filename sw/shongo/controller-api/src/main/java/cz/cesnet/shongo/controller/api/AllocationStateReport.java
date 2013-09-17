@@ -40,14 +40,14 @@ public class AllocationStateReport extends AbstractEntityReport
     }
 
     @Override
-    public String toString(Locale locale)
+    public String toString(Locale locale, DateTimeZone timeZone)
     {
         StringBuilder stringBuilder = new StringBuilder();
         for (Map<String, Object> report : reports) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n\n");
             }
-            stringBuilder.append(getReportMessage(report, locale));
+            stringBuilder.append(getReportMessage(report, locale, timeZone));
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
@@ -133,16 +133,17 @@ public class AllocationStateReport extends AbstractEntityReport
     /**
      * @param report
      * @param locale
+     * @param timeZone
      * @return string message for given {@code report} and {@code locale}
      */
-    private String getReportMessage(Map<String, Object> report, Locale locale)
+    private String getReportMessage(Map<String, Object> report, Locale locale, DateTimeZone timeZone)
     {
         StringBuilder messageBuilder = new StringBuilder();
 
         // Append prefix
         String reportId = (String) report.get(ID);
         String message = AllocationStateReportMessages.getMessage(
-                reportId, getUserType(), Report.Language.fromLocale(locale), report);
+                reportId, getUserType(), Report.Language.fromLocale(locale), timeZone, report);
         messageBuilder.append("-");
         Report.Type reportType = getReportType(report);
         switch (reportType) {
@@ -167,7 +168,7 @@ public class AllocationStateReport extends AbstractEntityReport
         // Append child reports
         for (Iterator<Map<String, Object>> iterator = childReports.iterator(); iterator.hasNext(); ) {
             Map<String, Object> childReport = iterator.next();
-            String childReportString = getReportMessage(childReport, locale);
+            String childReportString = getReportMessage(childReport, locale, timeZone);
             if (childReportString != null) {
                 messageBuilder.append("\n  |");
                 messageBuilder.append("\n  +-");

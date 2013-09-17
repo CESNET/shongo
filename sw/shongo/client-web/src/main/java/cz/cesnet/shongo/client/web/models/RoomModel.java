@@ -88,7 +88,7 @@ public class RoomModel
 
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
-        this.stateReport = roomExecutable.getStateReport().toString(messageProvider.getLocale());
+        this.stateReport = roomExecutable.getStateReport().toString(messageProvider.getLocale(), messageProvider.getTimeZone());
     }
 
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,

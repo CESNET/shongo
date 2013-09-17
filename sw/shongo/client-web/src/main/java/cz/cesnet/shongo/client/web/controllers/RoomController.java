@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
+import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -51,6 +52,7 @@ public class RoomController
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
     public String handleRoomManagement(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String executableId, Model model)
     {
@@ -77,7 +79,7 @@ public class RoomController
 
         // Room model
         RoomModel roomModel = new RoomModel(roomExecutable, new CacheProvider(cache, securityToken),
-                new MessageProvider(messageSource, locale), executableService);
+                new MessageProvider(messageSource, locale, timeZone), executableService);
         model.addAttribute("room", roomModel);
 
         // Runtime room
