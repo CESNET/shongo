@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.support.resolvers;
 
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor;
 import org.joda.time.DateTimeZone;
 import org.springframework.core.MethodParameter;
@@ -28,6 +29,7 @@ public class TimeZoneHandlerMethodArgumentResolver implements HandlerMethodArgum
             NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception
     {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-        return TimeZoneInterceptor.getDateTimeZone(request.getSession());
+        UserSession userSession = UserSession.getInstance(request);
+        return userSession.getTimeZone();
     }
 }

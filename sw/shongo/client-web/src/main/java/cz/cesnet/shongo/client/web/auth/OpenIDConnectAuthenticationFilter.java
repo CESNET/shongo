@@ -4,7 +4,9 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.controllers.UserController;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
@@ -61,23 +63,17 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     private AuthorizationService authorizationService;
 
     /**
-     * @see LocaleResolver
-     */
-    private LocaleResolver localeResolver;
-
-    /**
      * Constructor.
      *
      * @param configuration sets the {@link #configuration}
      * @param authorizationService sets the {@link #authorizationService}
      */
     protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration,
-            AuthorizationService authorizationService, LocaleResolver localeResolver)
+            AuthorizationService authorizationService)
     {
         super(ClientWebUrl.LOGIN);
         this.configuration = configuration;
         this.authorizationService = authorizationService;
-        this.localeResolver = localeResolver;
     }
 
     @Override
@@ -190,7 +186,9 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         AuthenticationManager authenticationManager = this.getAuthenticationManager();
         Authentication authentication =  authenticationManager.authenticate(authenticationToken);
         SecurityToken securityToken = authenticationToken.getSecurityToken();
-        UserController.loadUserSettings(securityToken, authorizationService, request, response, localeResolver);
+        UserSettings userSettings = authorizationService.getUserSettings(securityToken);
+        UserSession userSession = UserSession.getInstance(request);
+        userSession.loadUserSettings(userSettings, request, securityToken);
         return authentication;
     }
 

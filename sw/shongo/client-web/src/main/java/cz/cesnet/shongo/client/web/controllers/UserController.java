@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
@@ -90,7 +91,8 @@ public class UserController
     {
         authorizationService.updateUserSettings(securityToken, userSettings);
         sessionStatus.setComplete();
-        UserController.loadUserSettings(securityToken, authorizationService, request, response, null);
+        UserSession userSession = UserSession.getInstance(request);
+        userSession.loadUserSettings(userSettings, request, securityToken);
         return "redirect:" + ClientWebUrl.HOME;
     }
 
@@ -136,44 +138,5 @@ public class UserController
             @PathVariable(value = "userId") String userId)
     {
         return cache.getUserInformation(securityToken, userId);
-    }
-
-    /**
-     * Load language and time zone from user settings.
-     *
-     * @param securityToken
-     * @param authorizationService
-     * @param request
-     * @param response
-     * @param localeResolver
-     */
-    public static void loadUserSettings(SecurityToken securityToken, AuthorizationService authorizationService,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            LocaleResolver localeResolver)
-    {
-        UserSettings userSettings = authorizationService.getUserSettings(securityToken);
-
-        // Set language
-        if (localeResolver == null) {
-            localeResolver = RequestContextUtils.getLocaleResolver(request);
-        }
-        if (localeResolver == null) {
-            throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
-        }
-        Locale locale;
-        if (userSettings.getLocale() != null) {
-            locale = userSettings.getLocale();
-        }
-        else {
-            locale = request.getLocale();
-        }
-        logger.info("Setting locale {} for user {}...", locale, securityToken.getUserId());
-        localeResolver.setLocale(request, response, locale);
-
-        // Set time zone
-        DateTimeZone dateTimeZone = userSettings.getTimeZone();
-        logger.info("Setting timezone {} for user {}...", dateTimeZone, securityToken.getUserId());
-        TimeZoneInterceptor.setDateTimeZone(request.getSession(), dateTimeZone);
     }
 }

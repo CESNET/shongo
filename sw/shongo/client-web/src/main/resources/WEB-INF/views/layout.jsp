@@ -115,7 +115,7 @@
                 <security:authorize access="isAuthenticated()">
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <b><security:authentication property="principal.fullName"/></b>
+                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.user.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
                             <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
@@ -134,7 +134,7 @@
                 <%-- Timezone --%>
                 <li>
                     <spring:message code="views.layout.timezone" var="timeZoneTitle"/>
-                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.timeZone)" var="timeZone"/>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.user.timeZone)" var="timeZone"/>
                     <span class="navbar-text" id="timezone" title="${timeZoneTitle}">${timeZone}</span>
                 </li>
 

@@ -27,7 +27,7 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
             Object controller = handlerMethod.getBean();
 
             // Create breadcrumb if it doesn't exist (it may exist when forward is processing)
-            Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB);
+            Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE);
             if (breadcrumb == null) {
                 // Determine navigation page by current URL
                 NavigationPage navigationPage = null;
@@ -49,7 +49,7 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
                 }
             }
             if (breadcrumb != null) {
-                request.setAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB, breadcrumb);
+                request.setAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE, breadcrumb);
             }
         }
         return true;
@@ -61,7 +61,7 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
      */
     public static NavigationPage getNavigationPage(HttpServletRequest request)
     {
-        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB);
+        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE);
         if (breadcrumb != null) {
             return breadcrumb.getNavigationPage();
         }

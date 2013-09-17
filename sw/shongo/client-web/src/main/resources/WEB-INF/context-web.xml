@@ -59,6 +59,11 @@
     <!-- Exception handler -->
     <bean class="cz.cesnet.shongo.client.web.ClientWebHandlerExceptionResolver"/>
 
+    <!-- Resolves the locale from user’s session -->
+    <bean id="localeResolver" class="cz.cesnet.shongo.client.web.support.resolvers.LocaleResolver">
+        <property name="defaultLocale" value="en"/>
+    </bean>
+
     <!-- Initialize interceptors -->
     <mvc:interceptors>
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
