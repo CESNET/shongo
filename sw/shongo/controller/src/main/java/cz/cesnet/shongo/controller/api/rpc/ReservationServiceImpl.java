@@ -337,19 +337,20 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if (!(abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest)) {
+            if(!abstractReservationRequest.getState().equals(
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE)) {
                 throw new ControllerReportSet.ReservationRequestNotRevertibleException(
                         EntityIdentifier.formatId(abstractReservationRequest));
             }
 
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
-                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-            if (reservationRequest.getAllocationState().equals(
-                    cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.ALLOCATED)
-                    || !reservationRequest.getState().equals(
-                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE)) {
-                throw new ControllerReportSet.ReservationRequestNotRevertibleException(
-                        EntityIdentifier.formatId(abstractReservationRequest));
+            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+                if ( reservationRequest.getAllocationState().equals(
+                        cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.ALLOCATED)) {
+                    throw new ControllerReportSet.ReservationRequestNotRevertibleException(
+                            EntityIdentifier.formatId(abstractReservationRequest));
+                }
             }
 
             if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {

@@ -115,19 +115,22 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                     isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
 
-                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
-                item.put("state", state);
-                if (state != null) {
+                AllocationState allocationState = historyItem.getAllocationState();
+                if (allocationState != null) {
+                    boolean isAllocated = allocationState.equals(AllocationState.ALLOCATED);
                     // Reservation is visible only for reservation requests until first allocated reservation request
-                    if (state.isAllocated() && currentHistoryItem == null) {
+                    if (isAllocated && currentHistoryItem == null) {
                         hasVisibleReservation = false;
                     }
 
                     // First not-allocated is revertible
-                    if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
+                    if (!isAllocated && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
                 }
+
+                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
+                item.put("state", state);
 
                 history.add(item);
             }
