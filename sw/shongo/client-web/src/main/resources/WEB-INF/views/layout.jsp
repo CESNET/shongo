@@ -23,10 +23,21 @@
 <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %></c:set>
 
 <%
-    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
-            (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
-    uriBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
-    pageContext.setAttribute("urlLanguage", uriBuilder.build().toUriString());
+    String requestUri = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+
+    // URL for changing language
+    UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUri);
+    languageUrlBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
+    pageContext.setAttribute("languageUrl", languageUrlBuilder.build().toUriString());
+
+    // URL for changing user settings
+    StringBuilder userSettingsUrlBuilder = new StringBuilder();
+    userSettingsUrlBuilder.append(ClientWebUrl.USER_SETTINGS);
+    if (!requestUri.equals("/")) {
+        userSettingsUrlBuilder.append("?from=");
+        userSettingsUrlBuilder.append(requestUri);
+    }
+    pageContext.setAttribute("userSettingsUrl", userSettingsUrlBuilder.toString());
 %>
 
 <%-- Header --%>
@@ -141,8 +152,8 @@
                 <%-- Language selection --%>
                 <li>
                     <span class="navbar-text">
-                        <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
-                        <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                        <a id="language-english" href="${languageUrl.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
+                        <a id="language-czech" href="${languageUrl.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
                     </span>
                 </li>
             </ul>
