@@ -62,6 +62,9 @@ ${context.message(indent, "target.technologies")}: <#list target.technologies as
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
 ${context.message(indent, "target.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
+<#if target.name??>
+${context.message(indent, "target.room.name")}: ${target.name}
+</#if>
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if context.administrator>
 ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
