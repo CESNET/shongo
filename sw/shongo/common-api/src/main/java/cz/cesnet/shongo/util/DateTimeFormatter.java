@@ -224,7 +224,7 @@ public class DateTimeFormatter
         DateTime start = interval.getStart().withZone(dateTimeZone);
         DateTime end = interval.getEnd().withZone(dateTimeZone);
         if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
-            stringBuilder.append("<div class=\"date-time\"><table><tr><td>");
+            stringBuilder.append("<div class='date-time'><table><tr><td>");
             stringBuilder.append(dateFormatter.print(start));
             stringBuilder.append("</td><td>");
             stringBuilder.append(timeFormatter.print(start));

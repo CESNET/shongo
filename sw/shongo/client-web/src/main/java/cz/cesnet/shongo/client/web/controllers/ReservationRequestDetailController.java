@@ -216,6 +216,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             data.put("roomSlot", formatter.formatIntervalMultiLine(roomModel.getSlot()));
             data.put("roomName", roomModel.getName());
             data.put("roomLicenseCount", roomModel.getLicenseCount());
+            data.put("roomAliases", roomModel.getAliases());
+            data.put("roomAliasesDescription", roomModel.getAliasesDescription());
             data.put("roomState", new HashMap<String, Object>(){{
                 RoomState roomState = roomModel.getState();
                 put("code", roomState);
