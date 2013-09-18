@@ -1,3 +1,4 @@
+
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
