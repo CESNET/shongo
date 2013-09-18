@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,11 +16,17 @@ import java.util.regex.Pattern;
  */
 public class MessageSource
 {
+    private static Logger logger = LoggerFactory.getLogger(ReflectiveResourceBundle.class);
+
+    private static Map<String, ReflectiveResourceBundle> resourceBundles =
+            new HashMap<String, ReflectiveResourceBundle>();
+
     private String baseFileName;
 
     private Locale locale;
 
-    private Map<Locale, ResourceBundle> resourceBundleByLocale = new HashMap<Locale, ResourceBundle>();
+    private Map<Locale, ReflectiveResourceBundle> resourceBundleByLocale =
+            new HashMap<Locale, ReflectiveResourceBundle>();
 
     public MessageSource(String baseFileName)
     {
@@ -54,8 +61,9 @@ public class MessageSource
 
     public String getMessage(String code, Locale locale, Object... arguments)
     {
-        ResourceBundle resourceBundle = getResourceBundle(locale);
-        return formatMessage(resourceBundle.getString(code), arguments);
+        ReflectiveResourceBundle resourceBundle = getResourceBundle(locale);
+        MessageFormat messageFormat = resourceBundle.getMessageFormat(code);
+        return messageFormat.format(arguments);
     }
 
     public String getMessage(String code, Object... arguments)
@@ -63,49 +71,68 @@ public class MessageSource
         if (locale == null) {
             throw new IllegalStateException("Default locale is not set.");
         }
-        ResourceBundle resourceBundle = getResourceBundle(locale);
-        return formatMessage(resourceBundle.getString(code), arguments);
+        ReflectiveResourceBundle resourceBundle = getResourceBundle(locale);
+        MessageFormat messageFormat = resourceBundle.getMessageFormat(code);
+        return messageFormat.format(arguments);
     }
 
-    public ResourceBundle getResourceBundle(Locale locale)
+    public ReflectiveResourceBundle getResourceBundle(Locale locale)
     {
-        ResourceBundle resourceBundle = resourceBundleByLocale.get(locale);
+        ReflectiveResourceBundle resourceBundle = resourceBundleByLocale.get(locale);
         if (resourceBundle == null) {
-            resourceBundle = new ReflectiveResourceBundle(ResourceBundle.getBundle(baseFileName, locale));
+            synchronized (MessageSource.class) {
+                String key = baseFileName + "_" + locale;
+                resourceBundle = resourceBundles.get(key);
+                if (resourceBundle == null) {
+                    logger.debug("Loading resource bundle '{}' for locale '{}'...", baseFileName, locale);
+                    resourceBundle = new ReflectiveResourceBundle(ResourceBundle.getBundle(baseFileName, locale));
+                    resourceBundles.put(key, resourceBundle);
+                }
+                else {
+                    logger.debug("Using cached resource bundle '{}' for locale '{}'...", baseFileName, locale);
+                }
+            }
             resourceBundleByLocale.put(locale, resourceBundle);
         }
         return resourceBundle;
     }
 
-    public static String formatMessage(String message, Object... arguments)
-    {
-        int argumentIndex = 0;
-        for (Object argument : arguments) {
-            message = message.replaceAll("\\{" + argumentIndex +"\\}", Matcher.quoteReplacement(argument.toString()));
-            argumentIndex++;
-        }
-        return message;
-    }
-
     private static class ReflectiveResourceBundle extends ResourceBundle
     {
-        private static Logger logger = LoggerFactory.getLogger(ReflectiveResourceBundle.class);
-
         private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([\\w\\.\\-]+)\\}");
 
-        private Map<String, String> cache = new HashMap<String, String>();
+        private final Map<String, String> stringCache = new HashMap<String, String>();
 
-        private ResourceBundle resourceBundle;
+        private final Map<String, MessageFormat> messageFormatCache = new HashMap<String, MessageFormat>();
+
+        private final ResourceBundle resourceBundle;
 
         private ReflectiveResourceBundle(ResourceBundle resourceBundle)
         {
             this.resourceBundle = resourceBundle;
         }
 
-        @Override
-        protected Object handleGetObject(String code)
+        public synchronized MessageFormat getMessageFormat(String code)
         {
-            String message = cache.get(code);
+            MessageFormat messageFormat = messageFormatCache.get(code);
+            if (messageFormat == null) {
+                String message = getString(code);
+                messageFormat = new MessageFormat((message != null ? message : ""), getLocale());
+                messageFormatCache.put(code, messageFormat);
+            }
+            return messageFormat;
+        }
+
+        @Override
+        public Locale getLocale()
+        {
+            return resourceBundle.getLocale();
+        }
+
+        @Override
+        protected synchronized Object handleGetObject(String code)
+        {
+            String message = stringCache.get(code);
             if (message != null) {
                 return message;
             }
@@ -120,7 +147,9 @@ public class MessageSource
                 throw new RuntimeException("Encoding not supported", exception);
             }
             message = evaluateMessage(message);
-            cache.put(code, message);
+            synchronized (stringCache) {
+                stringCache.put(code, message);
+            }
             return message;
         }
 
