@@ -61,11 +61,6 @@
                           labelClass="{{childReservationRequest.state}}"
                           tooltipId="child-reservation-request-state-tooltip-{{$index}}">
                     <span>{{childReservationRequest.stateHelp}}</span>
-                    <div ng-switch on="isEmpty(childReservationRequest.stateReport)">
-                        <div ng-switch-when="false">
-                            <pre>{{childReservationRequest.stateReport}}</pre>
-                        </div>
-                    </div>
                 </tag:help>
             </td>
             <td ng-controller="HtmlController">

@@ -27,17 +27,16 @@
             $scope.state = {
                 code: "${reservationRequestDetail.state}",
                 label: "<spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}"/>",
-                help: "<spring:message code="help.reservationRequest.state.${reservationRequestDetail.state}"/>"
+                help: "${reservationRequestDetail.stateHelp}"
             };
         </c:if>
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.allocationState != null}">
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.allocationStateReport)" var="allocationStateReport"/>
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.allocationStateHelp)" var="allocationStateHelp"/>
             // Default AllocationState
             $scope.allocationState = {
                 code: "${reservationRequestDetail.allocationState}",
-                report: "${allocationStateReport}",
                 label: "<spring:message code="views.reservationRequest.allocationState.${reservationRequestDetail.allocationState}"/>",
-                help: "<spring:message code="help.reservationRequest.allocationState.${reservationRequestDetail.allocationState}"/>"
+                help: "${allocationStateHelp}"
             };
         </c:if>
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.room != null}">
@@ -55,17 +54,9 @@
             $scope.roomState = {
                 code: "${reservationRequestDetail.room.state}",
                 started: ${reservationRequestDetail.room.state.started},
-                report: "${roomStateReport}",
                 label: "<spring:message code="views.executable.roomState.${reservationRequestDetail.room.state}"/>",
-                help: "<%--
-                --%><c:choose><%--
-                    --%><c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}"><%--
-                        --%><spring:message code="help.executable.roomState.USED_ROOM.${reservationRequestDetail.room.state}"/><%--
-                    --%></c:when><%--
-                    --%><c:otherwise><%--
-                        --%><spring:message code="help.executable.roomState.${reservationRequestDetail.room.state}"/><%--
-                    --%></c:otherwise><%--
-                --%></c:choose>"
+                help: "${reservationRequestDetail.roomStateHelp}",
+                report: "${roomStateReport}"
             };
         </c:if>
         <c:if test="${isActive}">
@@ -237,7 +228,7 @@
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
             <tag:help label="{{state.label}}" labelClass="{{state.code}}">
-                {{state.help}}
+                <span ng-bind-html="html(state.help)"></span>
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
             <span ng-show="roomId != null && roomState.started">
@@ -283,8 +274,7 @@
                     <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
                     <dd class="allocation-state">
                         <tag:help label="{{allocationState.label}}" labelClass="{{allocationState.code}}">
-                            <span>{{allocationState.help}}</span>
-                            <pre ng-show="allocationState.report">{{allocationState.report}}</pre>
+                            <span ng-bind-html="html(allocationState.help)"></span>
                         </tag:help>
                     </dd>
                 </div>

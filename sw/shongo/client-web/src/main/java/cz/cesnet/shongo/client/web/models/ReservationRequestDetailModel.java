@@ -14,11 +14,15 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 {
     private ReservationRequestState state;
 
+    private String stateHelp;
+
     private AllocationState allocationState;
 
-    private String allocationStateReport;
+    private String allocationStateHelp;
 
     private RoomModel room;
+
+    private String roomStateHelp;
 
     public ReservationRequestDetailModel(AbstractReservationRequest abstractReservationRequest, Reservation reservation,
             CacheProvider cacheProvider, MessageProvider messageProvider, ExecutableService executableService,
@@ -35,16 +39,27 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Allocation state
             allocationState = reservationRequest.getAllocationState();
+            if (allocationState != null) {
+                allocationStateHelp = messageProvider.getMessage("help.reservationRequest.allocationState." + allocationState);
 
-            if (AllocationState.ALLOCATION_FAILED.equals(allocationState)) {
-                AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
-                if (userSession.isAdmin()) {
-                    this.allocationStateReport = allocationStateReport.toString(
-                            messageProvider.getLocale(), messageProvider.getTimeZone());
-                }
-                else {
-                    this.allocationStateReport = allocationStateReport.toUserError().getMessage(
-                            messageProvider.getLocale(), messageProvider.getTimeZone());
+                if (allocationState.equals(AllocationState.ALLOCATION_FAILED)) {
+                    AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
+                    StringBuilder allocationStateHelpBuilder = new StringBuilder();
+                    if (userSession.isAdmin()) {
+                        allocationStateHelpBuilder.append(allocationStateHelp);
+                        allocationStateHelpBuilder.append("<pre>");
+                        allocationStateHelpBuilder.append(allocationStateReport.toString(
+                                messageProvider.getLocale(), messageProvider.getTimeZone()));
+                        allocationStateHelpBuilder.append("</pre>");
+                    }
+                    else {
+                        allocationStateHelpBuilder.append("<strong>");
+                        allocationStateHelpBuilder.append(allocationStateReport.toUserError().getMessage(
+                                messageProvider.getLocale(), messageProvider.getTimeZone()));
+                        allocationStateHelpBuilder.append("</strong><br/>");
+                        allocationStateHelpBuilder.append(allocationStateHelp);
+                    }
+                    allocationStateHelp = allocationStateHelpBuilder.toString();
                 }
             }
 
@@ -57,6 +72,13 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                     executableState = roomExecutable.getState();
                     room = new RoomModel(roomExecutable, getId(), cacheProvider,
                             messageProvider, executableService, userSession);
+                    RoomState roomState = room.getState();
+                    if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+                        roomStateHelp = messageProvider.getMessage("help.executable.roomState.USED_ROOM." + roomState);
+                    }
+                    else {
+                        roomStateHelp = messageProvider.getMessage("help.executable.roomState." + roomState);
+                    }
                 }
             }
 
@@ -65,6 +87,20 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                     (room != null ? room.getUsageState() : null),
                     abstractReservationRequest.getType(), getSpecificationType(),
                     (reservation != null ? reservation.getId() : null));
+
+            // Set help for reservation request state
+            if (AllocationState.ALLOCATION_FAILED.equals(allocationState)) {
+                // Use allocation failed help
+                stateHelp = allocationStateHelp;
+            }
+            else if (room != null && RoomState.FAILED.equals(room.getState())) {
+                // Use room failed help
+                stateHelp = roomStateHelp;
+            }
+            else if (allocationState != null) {
+                // Use original reservation request state help
+                stateHelp = messageProvider.getMessage("help.reservationRequest.state." + state);
+            }
         }
     }
 
@@ -73,18 +109,28 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
         return state;
     }
 
+    public String getStateHelp()
+    {
+        return stateHelp;
+    }
+
     public AllocationState getAllocationState()
     {
         return allocationState;
     }
 
-    public String getAllocationStateReport()
+    public String getAllocationStateHelp()
     {
-        return allocationStateReport;
+        return allocationStateHelp;
     }
 
     public RoomModel getRoom()
     {
         return room;
+    }
+
+    public String getRoomStateHelp()
+    {
+        return roomStateHelp;
     }
 }

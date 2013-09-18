@@ -204,14 +204,13 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             ReservationRequestState state = reservationRequestModel.getState();
             put("code", state);
             put("label", messageProvider.getMessage("views.reservationRequest.state." + state));
-            put("help", messageProvider.getMessage("help.reservationRequest.state." + state));
+            put("help", reservationRequestModel.getStateHelp());
         }});
         data.put("allocationState", new HashMap<String, Object>(){{
             AllocationState allocationState = reservationRequestModel.getAllocationState();
             put("code", allocationState);
-            put("report", reservationRequestModel.getAllocationStateReport());
             put("label", messageProvider.getMessage("views.reservationRequest.allocationState." + allocationState));
-            put("help", messageProvider.getMessage("help.reservationRequest.allocationState." + allocationState));
+            put("help", reservationRequestModel.getAllocationStateHelp());
         }});
         if (roomModel != null) {
             DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.LONG, locale, timeZone);
@@ -227,12 +226,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 put("started", roomState.isStarted());
                 put("report", roomModel.getStateReport());
                 put("label", messageProvider.getMessage("views.executable.roomState." + roomState));
-                if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-                    put("help", messageProvider.getMessage("help.executable.roomState.USED_ROOM." + roomState));
-                }
-                else {
-                    put("help", messageProvider.getMessage("help.executable.roomState." + roomState));
-                }
+                put("help", reservationRequestModel.getRoomStateHelp());
             }});
         }
         return data;

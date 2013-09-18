@@ -49,7 +49,7 @@
             <spring:message code="help.executable.roomState.${room.state}" var="roomStateHelp"/>
             <tag:help label="${roomStateLabel}" labelClass="${room.state}">
                 <span>${roomStateHelp}</span>
-                <c:if test="${!room.state.available && not empty room.stateReport}">
+                <c:if test="${not empty room.stateReport}">
                     <pre>${room.stateReport}</pre>
                 </c:if>
             </tag:help>
