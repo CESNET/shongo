@@ -519,7 +519,7 @@ public class ReservationRequestModel
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && roomPin != null) {
+                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && !Strings.isNullOrEmpty(roomPin)) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
                     adobeConnectRoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
