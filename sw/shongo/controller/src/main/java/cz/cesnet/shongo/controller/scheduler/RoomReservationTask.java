@@ -216,7 +216,7 @@ public class RoomReservationTask extends ReservationTask
                 }
                 roomProvider.addRoomProviderVariant(roomProviderVariant);
             }
-            if (roomProvider == null) {
+            if (roomProvider == null || roomProvider.getRoomProviderVariants().size() == 0) {
                 // No technology variant is available in the room provider
                 continue;
             }

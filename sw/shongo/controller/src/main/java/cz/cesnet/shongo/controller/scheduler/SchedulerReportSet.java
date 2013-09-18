@@ -1332,7 +1332,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Requested time slot doesn't correspond to '{@link #interval}' from reused reservation request '{@link #reservationRequest}'.
+     * Requested time slot doesn't correspond to {@link #interval} from reused reservation request {@link #reservationRequest}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
@@ -1503,7 +1503,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Reused reservation request '{@link #reservationRequest}' is not available because it's reservation '{@link #reservation}' is already used in reservation request '{@link #usageReservationRequest}' for '{@link #usageInterval}'.
+     * Reused reservation request {@link #reservationRequest} is not available because it's reservation {@link #reservation} is already used in reservation request {@link #usageReservationRequest} for {@link #usageInterval}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationAlreadyUsedReport")

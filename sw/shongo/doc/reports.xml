@@ -884,9 +884,6 @@
             <message lang="en">
                 Resource ${resource.id}.
             </message>
-            <message lang="cs">
-                Zdroj ${resource.id}.
-            </message>
         </report>
 
         <report extends="resource">
@@ -897,9 +894,6 @@
             </description>
             <message lang="en">
                 The resource ${resource.id} is disabled for allocation.
-            </message>
-            <message lang="cs">
-                Rezervace zdroje ${resource.id} je zakázána.
             </message>
             <visible>user</visible>
         </report>
@@ -1102,7 +1096,7 @@
                 TODO:
             </description>
             <message>
-                Requested time slot doesn't correspond to '${interval}' from reused reservation request '${reservationRequest}'.
+                Requested time slot doesn't correspond to ${interval} from reused reservation request ${reservationRequest}.
             </message>
             <visible>user</visible>
         </report>
@@ -1126,9 +1120,9 @@
                 TODO:
             </description>
             <message>
-                Reused reservation request '${reservationRequest}' is not available because it's
-                reservation '${reservation}' is already used in reservation request '${usageReservationRequest}'
-                for '${usageInterval}'.
+                Reused reservation request ${reservationRequest} is not available because it's
+                reservation ${reservation} is already used in reservation request ${usageReservationRequest}
+                for ${usageInterval}.
             </message>
             <visible>user</visible>
         </report>
