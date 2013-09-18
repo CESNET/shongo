@@ -23,11 +23,12 @@
         // Default requested slot
         $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.stateHelp)" var="stateHelp"/>
             // Default ReservationRequestState
             $scope.state = {
                 code: "${reservationRequestDetail.state}",
                 label: "<spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}"/>",
-                help: "${reservationRequestDetail.stateHelp}"
+                help: "${stateHelp}"
             };
         </c:if>
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.allocationState != null}">
