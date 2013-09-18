@@ -120,7 +120,9 @@
                 <span ng-bind-html="html(reservationRequest.earliestSlot)"></span>
                 <span ng-show="reservationRequest.futureSlotCount">
                     <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
-                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})" style="vertical-align: top;">
+                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})"
+                              style="vertical-align: top;"
+                              tooltipId="${listName}-slot-tooltip-{{$index}}">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>
