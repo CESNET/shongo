@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -19,6 +20,7 @@ import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -33,6 +35,8 @@ public class ClientWeb
 
     public static void main(final String[] arguments) throws Exception
     {
+        Locale.setDefault(UserSettings.LOCALE_ENGLISH);
+
         // Setup class-path for JAR file
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         if (classLoader instanceof URLClassLoader) {

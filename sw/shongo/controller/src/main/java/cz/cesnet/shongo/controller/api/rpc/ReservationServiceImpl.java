@@ -92,7 +92,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public Object checkAvailability(AvailabilityCheckRequest request)
     {
-        authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -123,43 +124,39 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
 
-            // Check specification
-            Specification specificationApi = request.getSpecification();
-            if (specificationApi != null) {
-                cz.cesnet.shongo.controller.request.Specification specification =
-                        cz.cesnet.shongo.controller.request.Specification
-                                .createFromApi(specificationApi, entityManager);
-                Throwable cause = null;
-                if (specification instanceof SpecificationCheckAvailability) {
-                    SpecificationCheckAvailability checkAvailability = (SpecificationCheckAvailability) specification;
-                    try {
+            try {
+                // Check specification
+                Specification specificationApi = request.getSpecification();
+                if (specificationApi != null) {
+                    cz.cesnet.shongo.controller.request.Specification specification =
+                            cz.cesnet.shongo.controller.request.Specification
+                                    .createFromApi(specificationApi, entityManager);
+                    if (specification instanceof SpecificationCheckAvailability) {
+                        SpecificationCheckAvailability checkAvailability = (SpecificationCheckAvailability) specification;
+
                         checkAvailability.checkAvailability(schedulerContext);
                     }
-                    catch (SchedulerException exception) {
-                        // Specification cannot be allocated in requested time slot
-                        return exception.getReport().getMessageRecursive(Report.MessageType.USER);
+                    else {
+                        throw new RuntimeException(
+                                String.format("Specification '%s' cannot be checked for availability.",
+                                        specificationApi.getClass().getSimpleName()));
                     }
                 }
-                else {
-                    throw new RuntimeException(String.format("Specification '%s' cannot be checked for availability.",
-                            specificationApi.getClass().getSimpleName()), cause);
-                }
-            }
 
-            // Check reservation request reusability
-            String reservationRequestId = request.getReservationRequestId();
-            if (reservationRequestId != null) {
-                EntityIdentifier entityId = EntityIdentifier.parse(
-                        reservationRequestId, EntityType.RESERVATION_REQUEST);
-                cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
-                        reservationRequestManager.get(entityId.getPersistenceId());
-                try {
+                // Check reservation request reusability
+                String reservationRequestId = request.getReservationRequestId();
+                if (reservationRequestId != null) {
+                    EntityIdentifier entityId = EntityIdentifier.parse(
+                            reservationRequestId, EntityType.RESERVATION_REQUEST);
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
+                            reservationRequestManager.get(entityId.getPersistenceId());
                     schedulerContext.getReusableReservation(reservationRequest.getAllocation());
                 }
-                catch (SchedulerException exception) {
-                    // Reservation request cannot be reused in requested time slot
-                    return exception.getReport().getMessageRecursive(Report.MessageType.USER);
-                }
+            }
+            catch (SchedulerException exception) {
+                // Specification cannot be allocated or reservation request cannot be reused in requested time slot
+                return exception.getReport().toAllocationStateReport(authorization.isAdmin(securityToken) ?
+                        Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
             }
 
             // Request is available
@@ -340,19 +337,20 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if (!(abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest)) {
+            if(!abstractReservationRequest.getState().equals(
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE)) {
                 throw new ControllerReportSet.ReservationRequestNotRevertibleException(
                         EntityIdentifier.formatId(abstractReservationRequest));
             }
 
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
-                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-            if (reservationRequest.getAllocationState().equals(
-                    cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.ALLOCATED)
-                    || !reservationRequest.getState().equals(
-                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE)) {
-                throw new ControllerReportSet.ReservationRequestNotRevertibleException(
-                        EntityIdentifier.formatId(abstractReservationRequest));
+            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+                if ( reservationRequest.getAllocationState().equals(
+                        cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.ALLOCATED)) {
+                    throw new ControllerReportSet.ReservationRequestNotRevertibleException(
+                            EntityIdentifier.formatId(abstractReservationRequest));
+                }
             }
 
             if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
@@ -640,7 +638,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "reservation_request_summary.created_by";
                         break;
                     default:
-                        throw new TodoImplementException(sort.toString());
+                        throw new TodoImplementException(sort);
                 }
             }
             else {
@@ -833,7 +831,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "reservation.slotStart";
                         break;
                     default:
-                        throw new TodoImplementException(sort.toString());
+                        throw new TodoImplementException(sort);
                 }
             }
             else {
@@ -887,7 +885,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                                 }
                             }
                             else {
-                                throw new TodoImplementException(childReservation.getClass().getName());
+                                throw new TodoImplementException(childReservation.getClass());
                             }
                         }
                         if (!technologyFound) {
@@ -895,7 +893,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         }
                     }
                     else {
-                        throw new TodoImplementException(reservation.getClass().getName());
+                        throw new TodoImplementException(reservation.getClass());
                     }
                 }
             }

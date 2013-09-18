@@ -196,7 +196,7 @@ public abstract class DateTimeSlot extends PersistentObject implements Cloneable
             dateTimeSlot = new PeriodicDateTimeSlot();
         }
         else {
-            throw new TodoImplementException(slotApi.getClass().getName());
+            throw new TodoImplementException(slotApi.getClass());
         }
         dateTimeSlot.fromApi(slotApi);
         return dateTimeSlot;

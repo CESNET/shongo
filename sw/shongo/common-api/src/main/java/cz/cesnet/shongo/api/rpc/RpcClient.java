@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.report.AbstractReportSet;
 import cz.cesnet.shongo.report.ApiFault;
 import cz.cesnet.shongo.report.ApiFaultString;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.AbstractReport;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -84,7 +84,7 @@ public class RpcClient
      */
     public void addReportSet(AbstractReportSet reportSet)
     {
-        for (Class<? extends Report> reportClass : reportSet.getReportClasses()) {
+        for (Class<? extends AbstractReport> reportClass : reportSet.getReportClasses()) {
             if (ApiFault.class.isAssignableFrom(reportClass)) {
                 @SuppressWarnings("unchecked")
                 Class<? extends ApiFault> apiReportClass = (Class<? extends ApiFault>) reportClass;
@@ -96,7 +96,7 @@ public class RpcClient
 
     /**
      * @param code
-     * @return {@link Report} for given {@code code}
+     * @return {@link cz.cesnet.shongo.report.AbstractReport} for given {@code code}
      */
     public Class<? extends ApiFault> getApiFaultClass(int code)
     {

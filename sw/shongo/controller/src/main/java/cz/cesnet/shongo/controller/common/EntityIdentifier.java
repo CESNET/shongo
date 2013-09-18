@@ -240,7 +240,7 @@ public class EntityIdentifier
             case EXECUTABLE:
                 return Executable.class;
             default:
-                throw new TodoImplementException(entityType.toString());
+                throw new TodoImplementException(entityType);
         }
     }
 

@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import org.apache.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
@@ -113,6 +117,20 @@ public class ErrorModel
         }
 
         content.append("\n\nCONFIGURATION\n\n");
+
+        // User
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof OpenIDConnectAuthenticationToken) {
+            UserInformation userInformation = ((OpenIDConnectAuthenticationToken) authentication).getPrincipal();
+            content.append("  User: ");
+            content.append(userInformation.getFullName());
+            content.append(" (");
+            content.append(userInformation.getPrimaryEmail());
+            content.append(")");
+            content.append("\n");
+        }
+
+        // User agent
         content.append("  User-Agent: ");
         content.append(request.getHeader(HttpHeaders.USER_AGENT));
         content.append("\n");

@@ -78,9 +78,7 @@ public class NotificationMessage
         if (title == null) {
             title = message.getTitle();
         }
-        else {
-            appendLine(message.getTitle());
-        }
+        appendLine(message.getTitle());
         content.append("\n");
         content.append(message.getContent());
     }

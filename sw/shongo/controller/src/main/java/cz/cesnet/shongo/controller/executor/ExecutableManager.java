@@ -316,10 +316,7 @@ public class ExecutableManager extends AbstractManager
                 .getResultList();
         Set<Reservation> topReservations = new HashSet<Reservation>();
         for (Reservation reservation : reservations) {
-            while (reservation.getParentReservation() != null) {
-                reservation = reservation.getParentReservation();
-            }
-            topReservations.add(reservation);
+            topReservations.add(reservation.getTopReservation());
         }
         if (topReservations.size() > 0) {
             return topReservations.iterator().next();

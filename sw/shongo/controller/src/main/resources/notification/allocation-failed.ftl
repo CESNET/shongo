@@ -18,4 +18,9 @@ ${context.message(indent, "reservationRequest.description")}: ${notification.res
 </#if>
 ${context.message(indent, 'allocationFailed.requestedSlot')}: ${context.formatInterval(notification.requestedSlot)}
 <#include "target.ftl">
-${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, notification.reason)}
+<#if adminReport??>
+${context.message(indent, 'allocationFailed.userError')}: ${context.indentNextLines(indent + 2, userError)}
+${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, adminReport)}
+<#else>
+${context.message(indent, 'allocationFailed.reason')}: ${context.indentNextLines(indent + 2, userError)}
+</#if>

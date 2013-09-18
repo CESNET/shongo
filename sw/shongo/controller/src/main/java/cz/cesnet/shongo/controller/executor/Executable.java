@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -23,7 +23,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject implements Reportable, Reporter.ReportContext
+public abstract class Executable extends PersistentObject implements ReportableSimple, Reporter.ReportContext
 {
     /**
      * Interval start date/time.
@@ -374,28 +374,13 @@ public abstract class Executable extends PersistentObject implements Reportable,
      * @return formatted {@link #reports} as string
      */
     @Transient
-    protected String getReportText(Report.MessageType messageType)
+    protected ExecutableStateReport getExecutableStateReport(Report.UserType userType)
     {
-        int count = 0;
-        StringBuilder stringBuilder = new StringBuilder();
+        ExecutableStateReport executableStateReport = new ExecutableStateReport(userType);
         for (ExecutableReport report : getCachedSortedReports()) {
-            if (stringBuilder.length() > 0) {
-                stringBuilder.append("\n");
-                stringBuilder.append("\n");
-            }
-            if (++count > 5) {
-                stringBuilder.append("... ");
-                stringBuilder.append(reports.size() - count + 1);
-                stringBuilder.append(" more");
-                break;
-            }
-            String dateTime = Temporal.formatDateTime(report.getDateTime());
-            stringBuilder.append("[");
-            stringBuilder.append(dateTime);
-            stringBuilder.append("] ");
-            stringBuilder.append(report.getMessage(messageType));
+            executableStateReport.addReport(new StateReportSerializer(report));
         }
-        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
+        return executableStateReport;
     }
 
     @PrePersist
@@ -408,9 +393,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
 
     @Transient
     @Override
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription()
     {
-        return String.format("executable '%s'", EntityIdentifier.formatId(this));
+        return EntityIdentifier.formatId(this);
     }
 
     @Transient
@@ -432,17 +417,17 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     public final cz.cesnet.shongo.controller.api.Executable toApi(boolean admin)
     {
-        return toApi(admin ? Report.MessageType.DOMAIN_ADMIN : Report.MessageType.USER);
+        return toApi(admin ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
     }
 
     /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public cz.cesnet.shongo.controller.api.Executable toApi(Report.MessageType messageType)
+    public cz.cesnet.shongo.controller.api.Executable toApi(Report.UserType userType)
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
         executableApi.setId(EntityIdentifier.formatId(this));
-        toApi(executableApi, messageType);
+        toApi(executableApi, userType);
         return executableApi;
     }
 
@@ -451,23 +436,23 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        throw new TodoImplementException(getClass().getCanonicalName());
+        throw new TodoImplementException(getClass());
     }
 
     /**
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
      *
      * @param executableApi which should be filled from this {@link Executable}
-     * @param messageType
+     * @param userType
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
         executableApi.setId(EntityIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
-        executableApi.setStateReport(getReportText(messageType));
+        executableApi.setStateReport(getExecutableStateReport(userType));
         if (migration != null) {
-            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(messageType));
+            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(userType));
         }
     }
 
@@ -794,7 +779,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     {
         Set<Class<? extends Executable>> executableClass = CLASS_BY_API.get(executableApiClass);
         if (executableClass == null) {
-            throw new TodoImplementException(executableApiClass.getCanonicalName());
+            throw new TodoImplementException(executableApiClass);
         }
         return executableClass;
     }

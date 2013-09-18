@@ -23,7 +23,7 @@
     }
 
     // Set type
-    if (labelElement != null) {
+    if (type == null && labelElement != null) {
         type = "icon";
     }
     else if (type == null && label != null) {
@@ -38,7 +38,14 @@
 <c:choose>
     <c:when test="${type == 'text'}"><%--
     --%><span class="tooltip-container" style="${style}"><%--
-        --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}" style="${style}">${label}</span><%--
+        --%><c:choose><%--
+            --%><c:when test="${not empty labelElement}"><%--
+                --%><span tooltip="${tooltipId}" label="${labelElement}" style="margin-left: -1em;">&nbsp;</span><%--
+            --%></c:when><%--
+            --%><c:otherwise><%--
+                --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}" style="${style}">${label}</span><%--
+            --%></c:otherwise><%--
+        --%></c:choose><%--
         --%><jsp:doBody var="body"/>
             <c:if test="${not empty body}"><%--
             --%><div id="${tooltipId}" class="tooltip-content"><%--

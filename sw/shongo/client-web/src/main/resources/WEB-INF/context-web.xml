@@ -17,6 +17,8 @@
             <bean class="cz.cesnet.shongo.client.web.support.resolvers.SecurityTokenHandlerMethodArgumentResolver"/>
             <!-- Enables DateTimeZone as method arguments -->
             <bean class="cz.cesnet.shongo.client.web.support.resolvers.TimeZoneHandlerMethodArgumentResolver"/>
+            <!-- Enables UserSession as method arguments -->
+            <bean class="cz.cesnet.shongo.client.web.support.resolvers.UserSessionHandlerMethodArgumentResolver"/>
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 
@@ -58,6 +60,11 @@
 
     <!-- Exception handler -->
     <bean class="cz.cesnet.shongo.client.web.ClientWebHandlerExceptionResolver"/>
+
+    <!-- Resolves the locale from user’s session -->
+    <bean id="localeResolver" class="cz.cesnet.shongo.client.web.support.resolvers.LocaleResolver">
+        <property name="defaultLocale" value="en"/>
+    </bean>
 
     <!-- Initialize interceptors -->
     <mvc:interceptors>

@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.report;
 
 /**
- * Represents a {@link Report} whose parameters can be serialized.
+ * Represents a {@link AbstractReport} whose parameters can be serialized.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface SerializableReport
+public interface SerializableReport extends Report
 {
     /**
      * @param reportSerializer from which should be the {@link cz.cesnet.shongo.report.SerializableReport} parameters de-serialized

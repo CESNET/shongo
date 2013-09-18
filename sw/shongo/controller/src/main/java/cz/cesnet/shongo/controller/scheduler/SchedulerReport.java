@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.controller.api.AllocationStateReport;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
+import cz.cesnet.shongo.report.AbstractReport;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -14,7 +13,7 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class SchedulerReport extends Report
+public abstract class SchedulerReport extends AbstractReport
 {
     /**
      * Persistent object must have an unique id.
@@ -22,7 +21,7 @@ public abstract class SchedulerReport extends Report
     private Long id;
 
     /**
-     * Parent {@link Report} to which it belongs.
+     * Parent {@link cz.cesnet.shongo.report.AbstractReport} to which it belongs.
      */
     private SchedulerReport parentReport;
 
@@ -165,94 +164,79 @@ public abstract class SchedulerReport extends Report
     }
 
     /**
-     * @return formatted text and help of the {@link Report}
-     */
-    @Transient
-    public String getMessageRecursive(MessageType messageType)
-    {
-        // Get child reports
-        List<SchedulerReport> childReports = new LinkedList<SchedulerReport>();
-        getMessageRecursiveChildren(messageType, childReports);
-
-        StringBuilder messageBuilder = new StringBuilder();
-        String message = null;
-        if (getMessageRecursiveVisible(messageType)) {
-            // Append prefix
-            message = getMessage(messageType);
-            messageBuilder.append("-");
-            switch (getType()) {
-                case ERROR:
-                    messageBuilder.append("[ERROR] ");
-                    break;
-                default:
-                    break;
-            }
-
-            // Append message
-            if (childReports.size() > 0) {
-                message = message.replace("\n", String.format("\n  |%" + (messageBuilder.length() - 3) + "s", ""));
-            }
-            else {
-                message = message.replace("\n", String.format("\n%" + messageBuilder.length() + "s", ""));
-            }
-            messageBuilder.append(message);
-
-            // Append child reports
-            int childReportsCount = childReports.size();
-            for (int index = 0; index < childReportsCount; index++) {
-                String childReportString = childReports.get(index).getMessageRecursive(messageType);
-                if (childReportString != null) {
-                    messageBuilder.append("\n  |");
-                    messageBuilder.append("\n  +-");
-                    childReportString = childReportString.replace("\n",
-                            (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
-                    messageBuilder.append(childReportString);
-                }
-            }
-        }
-        else {
-            for (SchedulerReport childReport : childReports) {
-                if (messageBuilder.length() > 0) {
-                    messageBuilder.append("\n\n");
-                }
-                messageBuilder.append(childReport.getMessageRecursive(messageType));
-            }
-
-        }
-        return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
-    }
-
-    /**
-     * @param messageType
-     * @return true if the {@link SchedulerReport} is visible in message of given {@code messageType},
+     * @param userType
+     * @return true if the {@link SchedulerReport} is visible in message of given {@code userType},
      *         false otherwise
      */
-    public boolean getMessageRecursiveVisible(MessageType messageType)
+    public boolean isVisible(UserType userType)
     {
-        return !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
-    }
-
-    /**
-     * Add all visible child {@link SchedulerReport}s to given {@code childReports}.
-     *
-     * @param messageType for the visibility check
-     * @param childReports where all child reports should be added
-     */
-    public void getMessageRecursiveChildren(MessageType messageType, Collection<SchedulerReport> childReports)
-    {
-        for (SchedulerReport childReport : this.childReports) {
-            if (childReport.getMessageRecursiveVisible(messageType)) {
-                childReports.add(childReport);
-            }
-            else {
-                childReport.getMessageRecursiveChildren(messageType, childReports);
-            }
-        }
+        return !userType.equals(UserType.USER) || isVisible(VISIBLE_TO_USER);
     }
 
     @Override
     public String toString()
     {
-        return getMessageRecursive(MessageType.DOMAIN_ADMIN);
+        return toAllocationStateReport(UserType.DOMAIN_ADMIN).toString();
+    }
+
+    /**
+     * @param userType
+     * @return this {@link SchedulerReport} as {@link AllocationStateReport} for given {@code userType}
+     */
+    public AllocationStateReport toAllocationStateReport(UserType userType)
+    {
+        List<Map<String, Object>> reports = new LinkedList<Map<String, Object>>();
+        toMap(reports, userType);
+
+        AllocationStateReport allocationStateReport = new AllocationStateReport(userType);
+        for (Map<String, Object> report : reports) {
+            allocationStateReport.addReport(report);
+        }
+        return allocationStateReport;
+    }
+
+    /**
+     * @param reports     to be filled by reports as maps
+     * @param userType to be used
+     */
+    private void toMap(List<Map<String, Object>> reports, UserType userType)
+    {
+        Map<String, Object> report = null;
+        List<Map<String, Object>> childReports;
+        if (isVisible(userType)) {
+            report = new StateReportSerializer(this);
+            reports.add(report);
+            childReports = new LinkedList<Map<String, Object>>();
+        }
+        else {
+            childReports = reports;
+        }
+        if (this.childReports.size() > 0) {
+            for (SchedulerReport childReport : this.childReports) {
+                childReport.toMap(childReports, userType);
+            }
+            if (report != null && childReports.size() > 0) {
+                report.put(AllocationStateReport.CHILDREN, childReports);
+            }
+        }
+    }
+
+    /**
+     * @param reports     to be used
+     * @param userType to be used
+     * @return given {@code reports} as {@link AllocationStateReport} for given {@code userType}
+     */
+    public static AllocationStateReport getAllocationStateReport(List<SchedulerReport> reports, UserType userType)
+    {
+        List<Map<String, Object>> reportMaps = new LinkedList<Map<String, Object>>();
+        for (SchedulerReport report : reports) {
+            report.toMap(reportMaps, userType);
+        }
+
+        AllocationStateReport allocationStateReport = new AllocationStateReport(userType);
+        for (Map<String, Object> report : reportMaps) {
+            allocationStateReport.addReport(report);
+        }
+        return allocationStateReport;
     }
 }

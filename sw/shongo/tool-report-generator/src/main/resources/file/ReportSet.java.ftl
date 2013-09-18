@@ -19,6 +19,10 @@ public class ${scope.getClassName()} extends AbstractReportSet
 <#if (apiReportCount > 0)>
 
 </#if>
+<#if !scope.getMessagesFileName()??>
+<#include "ReportSetMessages.ftl">
+
+</#if>
 <#list scope.getReports() as report>
     <#if report.getJavaDoc()??>
     /**
@@ -42,6 +46,15 @@ public class ${scope.getClassName()} extends AbstractReportSet
     </#list>
         public ${report.getClassName()}()
         {
+        }
+
+    <#if report.isPersistent()>
+        @javax.persistence.Transient
+    </#if>
+        @Override
+        public String getUniqueId()
+        {
+            return "${report.id}";
         }
     <#if (report.getAllDeclaredParams()?size > 0)>
 
@@ -122,7 +135,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -137,7 +150,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public void readParameters(ReportSerializer reportSerializer)
         {
             <#list report.getAllDeclaredParams() as param>
-            ${param.getVariableName()} = (${param.getTypeClassName()}) reportSerializer.getParameter("${param.getVariableName()}", ${param.getTypeClassName()}.class);
+            ${param.getVariableName()} = (${param.getTypeClassName()}) reportSerializer.getParameter("${param.getVariableName()}", <#if param.type.collection>${param.type.collectionClassName}.class, ${param.type.elementTypeClassName}.class<#else>${param.typeClassName}.class</#if>);
             </#list>
         }
 
@@ -155,7 +168,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
             </#if>
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return ${report.getVisibleFlags()};
         }
@@ -165,38 +178,26 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
         </#if>
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-        <#if report.hasUserMessage()>
-                case USER:
-            <#list report.getUserMessage() as messageLine>
-                    message.append(${messageLine});
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            <#list report.getAllDeclaredParams() as param>
+            parameters.put("${param.getVariableName()}", ${param.getVariableName()});
             </#list>
-                    break;
+            return parameters;
+        }
+
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
         </#if>
-        <#if report.hasDomainAdminMessage()>
-                case DOMAIN_ADMIN:
-            <#list report.getDomainAdminMessage() as messageLine>
-                    message.append(${messageLine});
-            </#list>
-                    break;
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+        <#if scope.messagesClassName??>
+            return ${scope.messagesClassPackage}.${scope.messagesClassName}.getMessage("${report.id}", userType, language, timeZone, getParameters());
+        <#else>
+            return MESSAGES.getMessage("${report.id}", userType, language, timeZone, getParameters());
         </#if>
-        <#if report.hasResourceAdminMessage()>
-                case RESOURCE_ADMIN:
-            <#list report.getResourceAdminMessage() as messageLine>
-                    message.append(${messageLine});
-            </#list>
-                    break;
-        </#if>
-                default:
-        <#list report.getMessage() as messageLine>
-                    message.append(${messageLine});
-        </#list>
-                    break;
-            }
-            return message.toString();
         }
     </#if>
     <#if report.isPersistent()>

@@ -1,11 +1,15 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.report.Report;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+
+import java.util.Locale;
 
 /**
  * {@link cz.cesnet.shongo.controller.notification.ConfigurableNotification} for changes in allocation of {@link cz.cesnet.shongo.controller.request.ReservationRequest}.
@@ -18,7 +22,8 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
     private Target target;
 
-    private String reason;
+    private AllocationStateReport.UserError userError;
+    private AllocationStateReport adminReport;
 
     /**
      * Constructor.
@@ -33,7 +38,8 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest.getSpecification());
-        this.reason = reservationRequest.getReportText(Report.MessageType.USER);
+        this.userError = reservationRequest.getAllocationStateReport(Report.UserType.USER).toUserError();
+        this.adminReport = reservationRequest.getAllocationStateReport(Report.UserType.DOMAIN_ADMIN);
         for (PersonInformation administrator : configuration.getAdministrators()) {
             addRecipient(administrator, true);
         }
@@ -49,16 +55,17 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         return target;
     }
 
-    public String getReason()
-    {
-        return reason;
-    }
-
     @Override
     protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
+        Locale locale = configuration.getLocale();
+        DateTimeZone timeZone = configuration.getTimeZone();
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
         renderContext.addParameter("target", target);
+        renderContext.addParameter("userError", this.userError.getMessage(locale, timeZone));
+        if (configuration.isAdministrator()) {
+            renderContext.addParameter("adminReport", adminReport.toString(locale, timeZone));
+        }
 
         StringBuilder titleBuilder = new StringBuilder();
         if (configuration.isAdministrator()) {
@@ -71,6 +78,11 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
         }
         titleBuilder.append(renderContext.message("allocationFailed"));
+        if (configuration.isAdministrator() && this.userError.isUnknown()) {
+            titleBuilder.append(" (");
+            titleBuilder.append(renderContext.message("allocationFailed.userErrorUnknown"));
+            titleBuilder.append(")");
+        }
 
         NotificationMessage message = renderMessageFromTemplate(
                 renderContext, titleBuilder.toString(), "allocation-failed.ftl");

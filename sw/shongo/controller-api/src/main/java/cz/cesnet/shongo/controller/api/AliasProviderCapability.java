@@ -133,7 +133,7 @@ public class AliasProviderCapability extends Capability
             this.valueProvider = valueProvider;
         }
         else {
-            throw new TodoImplementException(valueProvider.getClass().getCanonicalName());
+            throw new TodoImplementException(valueProvider.getClass());
         }
     }
 
@@ -178,7 +178,7 @@ public class AliasProviderCapability extends Capability
             this.maximumFuture = maximumFuture;
         }
         else {
-            throw new TodoImplementException(maximumFuture.getClass().getCanonicalName());
+            throw new TodoImplementException(maximumFuture.getClass());
         }
     }
 

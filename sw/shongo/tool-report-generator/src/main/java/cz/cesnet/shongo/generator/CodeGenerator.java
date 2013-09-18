@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.generator;
 
 import cz.cesnet.shongo.generator.report.Report;
+import cz.cesnet.shongo.generator.xml.ScopeDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class CodeGenerator extends AbstractGenerator
                 scopeGenerator.setTemplate(template);
             }
             for (cz.cesnet.shongo.generator.xml.Report report : scope.getReport()) {
-                scopeGenerator.addReport(new Report(report));
+                scopeGenerator.addReport(new Report(scope.getName(), report));
             }
         }
 
@@ -103,6 +104,9 @@ public class CodeGenerator extends AbstractGenerator
             parameters.put("scope", scopeGenerator);
 
             renderFile(scopeGenerator.getFileName(), "ReportSet.java.ftl", parameters);
+            if (scopeGenerator.getMessagesFileName() != null) {
+                renderFile(scopeGenerator.getMessagesFileName(), "ReportSetMessages.java.ftl", parameters);
+            }
         }
     }
 
@@ -175,6 +179,52 @@ public class CodeGenerator extends AbstractGenerator
         public String getClassPackage()
         {
             String className = scopeDeclaration.getClassName();
+            int index = className.lastIndexOf(".");
+            if (index == -1) {
+                throw new GeneratorException("Class name '%s' doesn't contain package.", className);
+            }
+            return className.substring(0, index);
+        }
+
+        public String getMessagesFileName()
+        {
+            ScopeDeclaration.Messages messages = scopeDeclaration.getMessages();
+            if (messages == null || messages.getClassName() == null) {
+                return null;
+            }
+            String module = messages.getModule();
+            if (module == null) {
+                module = scopeDeclaration.getModule();
+            }
+            StringBuilder fileName = new StringBuilder();
+            fileName.append(module);
+            fileName.append("/src/main/java/");
+            fileName.append(messages.getClassName().replace(".", "/"));
+            fileName.append(".java");
+            return fileName.toString();
+        }
+
+        public String getMessagesClassName()
+        {
+            ScopeDeclaration.Messages messages = scopeDeclaration.getMessages();
+            if (messages == null || messages.getClassName() == null) {
+                return null;
+            }
+            String className = messages.getClassName();
+            int index = className.lastIndexOf(".");
+            if (index == -1) {
+                throw new GeneratorException("Class name '%s' doesn't contain package.", className);
+            }
+            return className.substring(index + 1);
+        }
+
+        public String getMessagesClassPackage()
+        {
+            ScopeDeclaration.Messages messages = scopeDeclaration.getMessages();
+            if (messages == null || messages.getClassName() == null) {
+                return null;
+            }
+            String className = messages.getClassName();
             int index = className.lastIndexOf(".");
             if (index == -1) {
                 throw new GeneratorException("Class name '%s' doesn't contain package.", className);

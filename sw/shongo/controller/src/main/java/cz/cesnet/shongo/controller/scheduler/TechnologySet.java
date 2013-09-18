@@ -4,7 +4,9 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -13,7 +15,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class TechnologySet extends PersistentObject
+public class TechnologySet extends PersistentObject implements Collection<Technology>
 {
     /**
      * Set of technologies.
@@ -61,5 +63,96 @@ public class TechnologySet extends PersistentObject
     public String toString()
     {
         return Technology.formatTechnologies(technologies);
+    }
+
+    @Transient
+    @Override
+    public int size()
+    {
+        return technologies.size();
+    }
+
+    @Transient
+    @Override
+    public boolean isEmpty()
+    {
+        return technologies.isEmpty();
+    }
+
+    @Transient
+    @Override
+    public boolean contains(Object o)
+    {
+        return technologies.contains(o);
+    }
+
+    @Transient
+    @Override
+    public Iterator iterator()
+    {
+        return technologies.iterator();
+    }
+
+    @Transient
+    @Override
+    public Object[] toArray()
+    {
+        return technologies.toArray();
+    }
+
+    @Transient
+    @Override
+    public boolean add(Technology o)
+    {
+        return technologies.add(o);
+    }
+
+    @Transient
+    @Override
+    public boolean remove(Object o)
+    {
+        return technologies.remove(o);
+    }
+
+    @Transient
+    @Override
+    public boolean containsAll(Collection<?> c)
+    {
+        return technologies.containsAll(c);
+    }
+
+    @Transient
+    @Override
+    public boolean addAll(Collection c)
+    {
+        return technologies.addAll(c);
+    }
+
+    @Transient
+    @Override
+    public boolean removeAll(Collection<?> c)
+    {
+        return technologies.removeAll(c);
+    }
+
+    @Transient
+    @Override
+    public boolean retainAll(Collection<?> c)
+    {
+        return technologies.retainAll(c);
+    }
+
+    @Transient
+    @Override
+    public void clear()
+    {
+        technologies.clear();
+    }
+
+    @Transient
+    @Override
+    public Object[] toArray(Object[] a)
+    {
+        return technologies.toArray(a);
     }
 }

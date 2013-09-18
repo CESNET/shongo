@@ -3,10 +3,10 @@ package cz.cesnet.shongo.generator.report;
 import cz.cesnet.shongo.generator.Formatter;
 import cz.cesnet.shongo.generator.GeneratorException;
 import cz.cesnet.shongo.generator.TodoException;
+import cz.cesnet.shongo.generator.xml.ReportFor;
+import cz.cesnet.shongo.generator.xml.ReportMessage;
 
-import javax.lang.model.type.DeclaredType;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Represents a report.
@@ -15,6 +15,11 @@ import java.util.regex.Pattern;
  */
 public class Report
 {
+    /**
+     * Scope name.
+     */
+    private String scopeName;
+
     /**
      * XML report data.
      */
@@ -75,8 +80,9 @@ public class Report
      *
      * @param report
      */
-    public Report(cz.cesnet.shongo.generator.xml.Report report)
+    public Report(String scopeName, cz.cesnet.shongo.generator.xml.Report report)
     {
+        this.scopeName = scopeName;
         this.report = report;
 
         if (report.getParams() != null) {
@@ -114,6 +120,10 @@ public class Report
                 // Add temporary param
                 temporaryParams.add(paramTemporary);
             }
+        }
+
+        for (ReportMessage message : report.getMessage()) {
+            message.setValue(Formatter.formatString(message.getValue()));
         }
     }
 
@@ -200,29 +210,18 @@ public class Report
                 exception.setRuntime(report.getException().isRuntime());
             }
         }
+        if (this.report.isApiFault() == null) {
+            this.report.setApiFault(report.isApiFault());
+        }
         if (this.report.getApiFaultCode() == null) {
             this.report.setApiFaultCode(report.getApiFaultCode());
         }
 
-        if (this.report.getUser() == null) {
-            this.report.setUser(report.getUser());
-        }
-        else if (report.getUser() != null) {
-            throw new TodoException("Merge user");
-        }
-
-        if (this.report.getDomainAdmin() == null) {
-            this.report.setDomainAdmin(report.getDomainAdmin());
-        }
-        else if (report.getDomainAdmin() != null) {
-            throw new TodoException("Merge domain admin");
-        }
-
-        if (this.report.getResourceAdmin() == null) {
-            this.report.setResourceAdmin(report.getResourceAdmin());
-        }
-        else if (report.getResourceAdmin() != null) {
-            throw new TodoException("Merge resource admin");
+        List<ReportFor> thisReportVisible = this.report.getVisible();
+        for (ReportFor reportFor : report.getVisible()) {
+            if (!thisReportVisible.contains(reportFor)) {
+                thisReportVisible.add(reportFor);
+            }
         }
     }
 
@@ -234,6 +233,11 @@ public class Report
     public void setApiFaultCode(int apiFaultCode)
     {
         this.apiFaultCode = apiFaultCode;
+    }
+
+    public String getScopeName()
+    {
+        return scopeName;
     }
 
     public String getId()
@@ -267,12 +271,12 @@ public class Report
         if (baseClassName != null) {
             return baseClassName;
         }
-        return "Report";
+        return "AbstractReport";
     }
 
     public String getConstantName()
     {
-        return Formatter.formatConstant(getName());
+        return Formatter.formatConstant(getId());
     }
 
     public String getType()
@@ -295,42 +299,24 @@ public class Report
         }
     }
 
-    public boolean hasUserMessage()
+    public String getDefaultMessage()
     {
-        return report.getUser() != null && report.getUser().getMessage() != null;
+        List<ReportMessage> messages = getMessages();
+        if (messages.size() == 0) {
+            return null;
+        }
+        return messages.get(0).getValue();
     }
 
-    public boolean hasDomainAdminMessage()
+    /**
+     * @return map of messages by type and language
+     */
+    public List<ReportMessage> getMessages()
     {
-        return report.getDomainAdmin() != null && report.getDomainAdmin().getMessage() != null;
+        return report.getMessage();
     }
 
-    public boolean hasResourceAdminMessage()
-    {
-        return report.getResourceAdmin() != null && report.getResourceAdmin().getMessage() != null;
-    }
-
-    public Collection<String> getUserMessage()
-    {
-        return processMessage(report.getUser().getMessage());
-    }
-
-    public Collection<String> getDomainAdminMessage()
-    {
-        return processMessage(report.getDomainAdmin().getMessage());
-    }
-
-    public Collection<String> getResourceAdminMessage()
-    {
-        return processMessage(report.getResourceAdmin().getMessage());
-    }
-
-    public Collection<String> getMessage()
-    {
-        return processMessage(report.getMessage());
-    }
-
-    private Collection<String> processMessage(String message)
+    /*private Collection<String> processMessage(String message)
     {
         if (message == null) {
             return Collections.emptyList();
@@ -351,7 +337,7 @@ public class Report
             }
 
             @Override
-            protected Object processParamIfNull(Param param, String defaultValue)
+            protected Object processParamIfEmpty(Param param, String defaultValue)
             {
                 if (param.getType().isCollection()) {
                     return "((" + param.getValue() + " == null || " + param.getValue() + ".isEmpty()) ? \"" + defaultValue + "\" : " + param.getValueMessage() + ")";
@@ -377,30 +363,18 @@ public class Report
                 return "(" + param.getValue() + " == null ? \"null\" : cz.cesnet.shongo.PersonInformation.Formatter.format(" + value + "))";
             }
         }.getStringParts();
-    }
+    }*/
 
     public String getJavaDoc()
     {
-        String description = report.getMessage();
+        String description = getDefaultMessage();
         if (description == null) {
             return null;
         }
         description = Formatter.formatString(description);
         description = description.replace("\\n", "\n     * ");
 
-        description = new ParamReplace(description, this){
-            @Override
-            public String processParam(Param param)
-            {
-                return "{@link #" + param.getValue() + "}";
-            }
-
-            @Override
-            protected Object processParamClassName(Param param)
-            {
-                return "of class {@link #" + param.getValue() + "}";
-            }
-        }.getString();
+        description = new ParamReplace(description, this, new JavaDocContext()).getString();
 
         return description;
     }
@@ -451,11 +425,7 @@ public class Report
      */
     public boolean isApiFault()
     {
-        cz.cesnet.shongo.generator.xml.ReportUser reportUser = report.getUser();
-        if (reportUser != null && reportUser.isVisible() != null && reportUser.isVisible()) {
-            return reportUser.getVia() != null && reportUser.getVia().equals(cz.cesnet.shongo.generator.xml.ReportUserVia.API);
-        }
-        return false;
+        return  report.isApiFault() != null && report.isApiFault();
     }
 
     /**
@@ -520,20 +490,23 @@ public class Report
     public String getVisibleFlags()
     {
         StringBuilder visibleFlags = new StringBuilder();
-        if (report.getUser() != null && report.getUser().isVisible() != null && report.getUser().isVisible()) {
-            visibleFlags.append("VISIBLE_TO_USER");
-        }
-        if (report.getDomainAdmin() != null && report.getDomainAdmin().isVisible()) {
-            if (visibleFlags.length() > 0) {
-                visibleFlags.append(" | ");
+        List<ReportFor> visible = report.getVisible();
+        if (visible != null) {
+            if (visible.contains(ReportFor.USER)) {
+                visibleFlags.append("VISIBLE_TO_USER");
             }
-            visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
-        }
-        if (report.getResourceAdmin() != null && report.getResourceAdmin().isVisible()) {
-            if (visibleFlags.length() > 0) {
-                visibleFlags.append(" | ");
+            if (visible.contains(ReportFor.DOMAIN_ADMIN)) {
+                if (visibleFlags.length() > 0) {
+                    visibleFlags.append(" | ");
+                }
+                visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
             }
-            visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+            if (visible.contains(ReportFor.RESOURCE_ADMIN)) {
+                if (visibleFlags.length() > 0) {
+                    visibleFlags.append(" | ");
+                }
+                visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+            }
         }
         return (visibleFlags.length() > 0 ? visibleFlags.toString() : null);
     }
@@ -575,4 +548,41 @@ public class Report
         return resourceIdParam;
     }
 
+    /**
+     * {@link ParamReplace.Context} for {@link #getJavaDoc()}.
+     */
+    public static class JavaDocContext extends ParamReplace.Context
+    {
+        @Override
+        public String processParam(Param param)
+        {
+            return "{@link #" + param.getValue() + "}";
+        }
+
+        @Override
+        protected Object processParamClassName(Param param)
+        {
+            return "of class {@link #" + param.getValue() + "}";
+        }
+
+        public Object ifEmpty(Param param, String defaultValue)
+        {
+            return processParam(param);
+        }
+
+        public Object jadeReportMessage(Param param)
+        {
+            return processParam(param);
+        }
+
+        public Object className(Param param)
+        {
+            return processParamClassName(param);
+        }
+
+        public Object user(Param param)
+        {
+            return processParamUser(param);
+        }
+    }
 }

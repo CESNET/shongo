@@ -47,12 +47,13 @@ public class ParamTemporary extends Param
 
     public String getCode()
     {
-        return new ParamReplace(reportParamTemporary.getValue(), report){
+        return new ParamReplace(reportParamTemporary.getValue(), report, new ParamReplace.Context()
+        {
             @Override
             public String processParam(Param param)
             {
                 return param.getValue();
             }
-        }.getString();
+        }).getString();
     }
 }

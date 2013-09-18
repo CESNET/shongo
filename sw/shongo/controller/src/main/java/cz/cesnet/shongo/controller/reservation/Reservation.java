@@ -2,17 +2,14 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.Reportable;
+import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -27,7 +24,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Reservation extends PersistentObject implements Reportable
+public class Reservation extends PersistentObject implements ReportableSimple
 {
     /**
      * {@link Allocation} for which the {@link Reservation} is allocated.
@@ -74,7 +71,8 @@ public class Reservation extends PersistentObject implements Reportable
     @Transient
     public AbstractReservationRequest getTopReservationRequest()
     {
-        AbstractReservationRequest abstractReservationRequest = getReservationRequest();
+        Reservation topReservation = getTopReservation();
+        AbstractReservationRequest abstractReservationRequest = topReservation.getReservationRequest();
         if (abstractReservationRequest != null && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             Allocation parentAllocation = reservationRequest.getParentAllocation();
@@ -243,6 +241,19 @@ public class Reservation extends PersistentObject implements Reportable
     }
 
     /**
+     * @return top parent {@link Reservation}
+     */
+    @Transient
+    public Reservation getTopReservation()
+    {
+        Reservation reservation = this;
+        while (reservation.getParentReservation() != null) {
+            reservation = reservation.getParentReservation();
+        }
+        return reservation;
+    }
+
+    /**
      * @return {@link #childReservations}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentReservation")
@@ -396,9 +407,9 @@ public class Reservation extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getReportDescription()
     {
-        return String.format("reservation '%s'", EntityIdentifier.formatId(this));
+        return EntityIdentifier.formatId(this);
     }
 
     /**
@@ -480,7 +491,7 @@ public class Reservation extends PersistentObject implements Reportable
     {
         Class<? extends Reservation> reservationClass = CLASS_BY_API.get(reservationApiClass);
         if (reservationClass == null) {
-            throw new TodoImplementException(reservationApiClass.getCanonicalName());
+            throw new TodoImplementException(reservationApiClass);
         }
         return reservationClass;
     }

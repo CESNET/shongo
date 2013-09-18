@@ -45,7 +45,7 @@ public class Reporter
      * @param reportContext in which the {@code report} has been created
      * @param report to be reported
      */
-    public static void report(ReportContext reportContext, Report report)
+    public static void report(ReportContext reportContext, AbstractReport report)
     {
         report(reportContext, report, null);
     }
@@ -57,27 +57,27 @@ public class Reporter
      * @param report    to be reported
      * @param throwable to be reported with the {@code report}
      */
-    public static void report(ReportContext reportContext, Report report, Throwable throwable)
+    public static void report(ReportContext reportContext, AbstractReport report, Throwable throwable)
     {
         String name = report.getName();
         if (reportContext != null) {
             name = reportContext.getReportContextName() + ": " + name;
         }
-        String domainAdminMessage = report.getMessage(Report.MessageType.DOMAIN_ADMIN);
-        if (report.getType().equals(Report.Type.ERROR)) {
+        String domainAdminMessage = report.getMessage(Report.UserType.DOMAIN_ADMIN, Report.Language.ENGLISH);
+        if (report.getType().equals(AbstractReport.Type.ERROR)) {
             logger.error(name + ": " + domainAdminMessage, throwable);
         }
-        else if (report.getType().equals(Report.Type.WARNING)) {
+        else if (report.getType().equals(AbstractReport.Type.WARNING)) {
             logger.warn(name + ": " + domainAdminMessage, throwable);
         }
-        else if (report.getType().equals(Report.Type.INFORMATION)) {
+        else if (report.getType().equals(AbstractReport.Type.INFORMATION)) {
             logger.info(name + ": " + domainAdminMessage, throwable);
         }
         else {
             logger.debug(name + ": " + domainAdminMessage, throwable);
         }
 
-        if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN) || report.isVisible(Report.VISIBLE_TO_RESOURCE_ADMIN)) {
+        if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN) || report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN)) {
             // Get resource which is referenced by report
             Resource resource = null;
             EntityManager entityManager = null;
@@ -105,14 +105,14 @@ public class Reporter
             }
 
             Set<String> domainAdministratorEmails = new HashSet<String>();
-            if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN)) {
+            if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)) {
                 domainAdministratorEmails.addAll(getAdministratorEmails());
                 sendReportEmail(domainAdministratorEmails, name,
                         getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
             }
 
             Set<String> resourceAdministratorEmails = new HashSet<String>();
-            if (report.isVisible(Report.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
+            if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
                 for (Person resourceAdministrator : resource.getAdministrators()) {
                     String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
                     if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {
@@ -120,7 +120,8 @@ public class Reporter
                     }
                 }
                 if (resourceAdministratorEmails.size() > 0) {
-                    String resourceAdminMessage = report.getMessage(Report.MessageType.RESOURCE_ADMIN);
+                    String resourceAdminMessage = report.getMessage(
+                            Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
                     sendReportEmail(resourceAdministratorEmails, name,
                             getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
                 }
@@ -141,9 +142,9 @@ public class Reporter
     public static void reportApiFault(ReportContext reportContext, ApiFault apiFault, Throwable throwable)
     {
         // Get report for the API fault
-        Report apiFaultReport;
-        if (apiFault instanceof Report) {
-            apiFaultReport = (Report) apiFault;
+        AbstractReport apiFaultReport;
+        if (apiFault instanceof AbstractReport) {
+            apiFaultReport = (AbstractReport) apiFault;
         }
         else if (apiFault instanceof ReportException) {
             ReportException reportException = (ReportException) apiFault;
@@ -202,6 +203,25 @@ public class Reporter
     public static void reportInternalError(ReportContext reportContext, Exception exception)
     {
         reportInternalError(reportContext, null, exception);
+    }
+
+    /**
+     * Other report.
+     *
+     * @param reportContext
+     * @param message
+     */
+    public static void reportOther(ReportContext reportContext, String title, String message)
+    {
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append("[");
+        nameBuilder.append(reportContext.getReportContextName());
+        nameBuilder.append("] ");
+        nameBuilder.append(title);
+        String name = nameBuilder.toString();
+        logger.error(name);
+        sendReportEmail(getAdministratorEmails(), name,
+                getAdministratorEmailContent(message, reportContext, null, null));
     }
 
     /**
@@ -418,7 +438,7 @@ public class Reporter
     };
 
     /**
-     * Represents an context in which a {@link cz.cesnet.shongo.report.Report} was created.
+     * Represents an context in which a {@link cz.cesnet.shongo.report.AbstractReport} was created.
      */
     public static interface ReportContext
     {

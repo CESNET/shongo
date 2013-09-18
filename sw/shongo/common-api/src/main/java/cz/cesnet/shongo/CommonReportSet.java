@@ -9,32 +9,66 @@ import cz.cesnet.shongo.report.*;
  */
 public class CommonReportSet extends AbstractReportSet
 {
-    public static final int UNKNOWN_ERROR_REPORT = 0;
-    public static final int TYPE_MISMATCH_REPORT = 1;
-    public static final int TYPE_ILLEGAL_VALUE_REPORT = 2;
-    public static final int CLASS_UNDEFINED_REPORT = 3;
-    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 4;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 5;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 6;
-    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 7;
-    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 8;
-    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 9;
-    public static final int COLLECTION_ITEM_NULL_REPORT = 10;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 11;
-    public static final int ENTITY_NOT_FOUND_REPORT = 12;
-    public static final int ENTITY_INVALID_REPORT = 13;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 14;
-    public static final int METHOD_NOT_DEFINED_REPORT = 15;
+    public static final int UNKNOWN_ERROR = 0;
+    public static final int TYPE_MISMATCH = 1;
+    public static final int TYPE_ILLEGAL_VALUE = 2;
+    public static final int CLASS_UNDEFINED = 3;
+    public static final int CLASS_INSTANTIATION_ERROR = 4;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED = 5;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH = 6;
+    public static final int CLASS_ATTRIBUTE_REQUIRED = 7;
+    public static final int CLASS_ATTRIBUTE_READONLY = 8;
+    public static final int CLASS_COLLECTION_REQUIRED = 9;
+    public static final int COLLECTION_ITEM_NULL = 10;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH = 11;
+    public static final int ENTITY_NOT_FOUND = 12;
+    public static final int ENTITY_INVALID = 13;
+    public static final int ENTITY_NOT_DELETABLE_REFERENCED = 14;
+    public static final int METHOD_NOT_DEFINED = 15;
+
+    /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage("unknown-error", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Unknown error.");
+        addMessage("type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage("type-illegal-value", new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is illegal for type ${type}.");
+        addMessage("class-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} is not defined.");
+        addMessage("class-instantiation-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} cannot be instanced.");
+        addMessage("class-attribute-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} is not defined in class ${class}.");
+        addMessage("class-attribute-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage("class-attribute-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} in class ${class} wasn't present but it is required.");
+        addMessage("class-attribute-readonly", new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.");
+        addMessage("class-collection-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
+        addMessage("collection-item-null", new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
+        addMessage("collection-item-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
+        addMessage("entity-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} was not found.");
+        addMessage("entity-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
+        addMessage("entity-not-deletable-referenced", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
+        addMessage("method-not-defined", new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
+    }};
+
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
+    }
 
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends Report implements ApiFault
+    public static class UnknownErrorReport extends AbstractReport implements ApiFault
     {
         protected String description;
 
         public UnknownErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "unknown-error";
         }
 
         public UnknownErrorReport(String description)
@@ -61,13 +95,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return UNKNOWN_ERROR_REPORT;
+            return UNKNOWN_ERROR;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -89,25 +123,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                case USER:
-                    message.append("Unknown error.");
-                    break;
-                default:
-                    message.append("Unknown error: ");
-                    message.append((description == null ? "null" : description));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -162,7 +194,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class TypeMismatchReport extends Report implements ApiFault
+    public static class TypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String requiredType;
 
@@ -170,6 +202,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public TypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "type-mismatch";
         }
 
         public TypeMismatchReport(String requiredType, String presentType)
@@ -207,13 +245,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_MISMATCH_REPORT;
+            return TYPE_MISMATCH;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -237,25 +275,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Type mismatch. Present type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" doesn't match required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -317,7 +354,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport extends Report implements ApiFault
+    public static class TypeIllegalValueReport extends AbstractReport implements ApiFault
     {
         protected String typeName;
 
@@ -325,6 +362,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public TypeIllegalValueReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "type-illegal-value";
         }
 
         public TypeIllegalValueReport(String typeName, String value)
@@ -362,13 +405,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_ILLEGAL_VALUE_REPORT;
+            return TYPE_ILLEGAL_VALUE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -392,25 +435,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is illegal for type ");
-                    message.append((typeName == null ? "null" : typeName));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("typeName", typeName);
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("type-illegal-value", userType, language, timeZone, getParameters());
         }
     }
 
@@ -472,12 +514,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport extends Report implements ApiFault
+    public static class ClassUndefinedReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
         public ClassUndefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-undefined";
         }
 
         public ClassUndefinedReport(String className)
@@ -504,13 +552,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_UNDEFINED_REPORT;
+            return CLASS_UNDEFINED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -532,23 +580,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" is not defined.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-undefined", userType, language, timeZone, getParameters());
         }
     }
 
@@ -603,12 +651,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport extends Report implements ApiFault
+    public static class ClassInstantiationErrorReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
         public ClassInstantiationErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-instantiation-error";
         }
 
         public ClassInstantiationErrorReport(String className)
@@ -635,13 +689,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_INSTANTIATION_ERROR_REPORT;
+            return CLASS_INSTANTIATION_ERROR;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -663,23 +717,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" cannot be instanced.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-instantiation-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -734,7 +788,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport extends Report implements ApiFault
+    public static class ClassAttributeUndefinedReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -742,6 +796,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeUndefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-attribute-undefined";
         }
 
         public ClassAttributeUndefinedReport(String className, String attribute)
@@ -779,13 +839,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_UNDEFINED_REPORT;
+            return CLASS_ATTRIBUTE_UNDEFINED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -809,25 +869,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" is not defined in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-attribute-undefined", userType, language, timeZone, getParameters());
         }
     }
 
@@ -889,7 +948,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault
+    public static class ClassAttributeTypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -901,6 +960,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeTypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-attribute-type-mismatch";
         }
 
         public ClassAttributeTypeMismatchReport(String className, String attribute, String requiredType, String presentType)
@@ -960,13 +1025,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT;
+            return CLASS_ATTRIBUTE_TYPE_MISMATCH;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -994,29 +1059,26 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Type mismatch of value in attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(". Present type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" doesn't match required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-attribute-type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1092,7 +1154,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport extends Report implements ApiFault
+    public static class ClassAttributeRequiredReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1100,6 +1162,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeRequiredReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-attribute-required";
         }
 
         public ClassAttributeRequiredReport(String className, String attribute)
@@ -1137,13 +1205,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_REQUIRED_REPORT;
+            return CLASS_ATTRIBUTE_REQUIRED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1167,25 +1235,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" wasn't present but it is required.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-attribute-required", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1247,7 +1314,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport extends Report implements ApiFault
+    public static class ClassAttributeReadonlyReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1255,6 +1322,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeReadonlyReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-attribute-readonly";
         }
 
         public ClassAttributeReadonlyReport(String className, String attribute)
@@ -1292,13 +1365,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_READONLY_REPORT;
+            return CLASS_ATTRIBUTE_READONLY;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1322,25 +1395,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Value for attribute ");
-                    message.append((attribute == null ? "null" : attribute));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" was present but the attribute is read-only.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("attribute", attribute);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-attribute-readonly", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1402,7 +1474,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport extends Report implements ApiFault
+    public static class ClassCollectionRequiredReport extends AbstractReport implements ApiFault
     {
         protected String className;
 
@@ -1410,6 +1482,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassCollectionRequiredReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-collection-required";
         }
 
         public ClassCollectionRequiredReport(String className, String collection)
@@ -1447,13 +1525,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_COLLECTION_REQUIRED_REPORT;
+            return CLASS_COLLECTION_REQUIRED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1477,25 +1555,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(" in class ");
-                    message.append((className == null ? "null" : className));
-                    message.append(" wasn't present or was empty but it is required.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("className", className);
+            parameters.put("collection", collection);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-collection-required", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1557,12 +1634,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport extends Report implements ApiFault
+    public static class CollectionItemNullReport extends AbstractReport implements ApiFault
     {
         protected String collection;
 
         public CollectionItemNullReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "collection-item-null";
         }
 
         public CollectionItemNullReport(String collection)
@@ -1589,13 +1672,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_NULL_REPORT;
+            return COLLECTION_ITEM_NULL;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1617,23 +1700,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Null item cannot be present in collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("collection", collection);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("collection-item-null", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1688,7 +1771,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} contains item of type {@link #presentType} which doesn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
+    public static class CollectionItemTypeMismatchReport extends AbstractReport implements ApiFault
     {
         protected String collection;
 
@@ -1698,6 +1781,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public CollectionItemTypeMismatchReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "collection-item-type-mismatch";
         }
 
         public CollectionItemTypeMismatchReport(String collection, String requiredType, String presentType)
@@ -1746,13 +1835,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_TYPE_MISMATCH_REPORT;
+            return COLLECTION_ITEM_TYPE_MISMATCH;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1778,27 +1867,25 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Collection ");
-                    message.append((collection == null ? "null" : collection));
-                    message.append(" contains item of type ");
-                    message.append((presentType == null ? "null" : presentType));
-                    message.append(" which doesn't match the required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("collection", collection);
+            parameters.put("requiredType", requiredType);
+            parameters.put("presentType", presentType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("collection-item-type-mismatch", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1867,7 +1954,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport extends Report implements ApiFault
+    public static class EntityNotFoundReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -1875,6 +1962,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotFoundReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "entity-not-found";
         }
 
         public EntityNotFoundReport(String entity, String id)
@@ -1912,13 +2005,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_FOUND_REPORT;
+            return ENTITY_NOT_FOUND;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1942,25 +2035,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" was not found.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("entity-not-found", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2022,7 +2114,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends Report implements ApiFault
+    public static class EntityInvalidReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -2030,6 +2122,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityInvalidReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "entity-invalid";
         }
 
         public EntityInvalidReport(String entity, String reason)
@@ -2067,13 +2165,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_INVALID_REPORT;
+            return ENTITY_INVALID;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2097,24 +2195,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" validation failed: ");
-                    message.append((reason == null ? "null" : reason));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("entity-invalid", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2176,7 +2274,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault
+    public static class EntityNotDeletableReferencedReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -2184,6 +2282,12 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotDeletableReferencedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "entity-not-deletable-referenced";
         }
 
         public EntityNotDeletableReferencedReport(String entity, String id)
@@ -2221,13 +2325,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_DELETABLE_REFERENCED_REPORT;
+            return ENTITY_NOT_DELETABLE_REFERENCED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2251,25 +2355,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(" with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be deleted because it is still referenced.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("entity-not-deletable-referenced", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2331,12 +2434,18 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Method {@link #method} is not defined.
      */
-    public static class MethodNotDefinedReport extends Report implements ApiFault
+    public static class MethodNotDefinedReport extends AbstractReport implements ApiFault
     {
         protected String method;
 
         public MethodNotDefinedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "method-not-defined";
         }
 
         public MethodNotDefinedReport(String method)
@@ -2363,13 +2472,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return METHOD_NOT_DEFINED_REPORT;
+            return METHOD_NOT_DEFINED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2391,23 +2500,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Method ");
-                    message.append((method == null ? "null" : method));
-                    message.append(" is not defined.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("method", method);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("method-not-defined", userType, language, timeZone, getParameters());
         }
     }
 

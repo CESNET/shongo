@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.common.MessageSource;
+import cz.cesnet.shongo.util.MessageSource;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;

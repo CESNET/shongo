@@ -17,7 +17,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -514,7 +513,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         result = getReservationService().checkAvailability(availabilityCheckRequest);
-        Assert.assertEquals(String.class, result.getClass());
+        Assert.assertEquals(AllocationStateReport.class, result.getClass());
 
         try {
             availabilityCheckRequest.setSpecification(new RoomSpecification(1, Technology.H323));

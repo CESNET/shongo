@@ -33,9 +33,9 @@ public class ReservationRequest extends AbstractReservationRequest
     private AllocationState allocationState;
 
     /**
-     * Description of the {@link #allocationState}.
+     * {@link AllocationStateReport} for the {@link #allocationState}.
      */
-    private String allocationStateReport;
+    private AllocationStateReport allocationStateReport;
 
     /**
      * Allocated {@link Reservation}s.
@@ -142,7 +142,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #allocationStateReport}
      */
-    public String getAllocationStateReport()
+    public AllocationStateReport getAllocationStateReport()
     {
         return allocationStateReport;
     }
@@ -150,7 +150,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @param allocationStateReport sets the {@link #allocationStateReport}
      */
-    public void setAllocationStateReport(String allocationStateReport)
+    public void setAllocationStateReport(AllocationStateReport allocationStateReport)
     {
         this.allocationStateReport = allocationStateReport;
     }
@@ -229,7 +229,7 @@ public class ReservationRequest extends AbstractReservationRequest
         parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         slot = dataMap.getIntervalRequired(SLOT);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
-        allocationStateReport = dataMap.getString(ALLOCATION_STATE_REPORT);
+        allocationStateReport = dataMap.getComplexType(ALLOCATION_STATE_REPORT, AllocationStateReport.class);
         reservationIds = dataMap.getList(RESERVATION_IDS, String.class);
     }
 }

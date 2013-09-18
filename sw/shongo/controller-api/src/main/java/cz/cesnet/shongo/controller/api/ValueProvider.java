@@ -177,7 +177,7 @@ public abstract class ValueProvider extends IdentifiedComplexType
                 this.valueProvider = valueProvider;
             }
             else {
-                throw new TodoImplementException(valueProvider.getClass().getCanonicalName());
+                throw new TodoImplementException(valueProvider.getClass());
             }
         }
 

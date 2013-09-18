@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.support.interceptors;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,10 +9,10 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.InternalResourceView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Interceptor for detection of timezone.
@@ -22,29 +23,29 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 {
     private static Logger logger = LoggerFactory.getLogger(TimeZoneInterceptor.class);
 
-    public final static String SESSION_TIME_ZONE = "timeZone";
-    private final static String SESSION_REQUEST_URL = "previousUrl";
+    private final static String REQUEST_URL_SESSION_ATTRIBUTE = "requestedUrl";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
-        HttpSession session = request.getSession();
-        DateTimeZone dateTimeZone = (DateTimeZone) session.getAttribute(SESSION_TIME_ZONE);
+        UserSession userSession = UserSession.getInstance(request);
+
         // If timezone is not set retrieve it
-        if (dateTimeZone == null) {
+        if (userSession.getTimeZone() == null) {
             String timeZoneOffset = request.getParameter("time-zone-offset");
-            String requestUrl = (String) session.getAttribute(SESSION_REQUEST_URL);
+            String requestUrl = (String) WebUtils.getSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE);
             if (!Strings.isNullOrEmpty(timeZoneOffset)) {
                 // Set new time zone
-                dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
-                setDateTimeZone(session, dateTimeZone);
+                DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
+                userSession.setTimeZone(dateTimeZone);
+                userSession.update(request, null);
 
-                logger.debug("Set timezone {} to session {}.", dateTimeZone, session.getId());
+                logger.debug("Set timezone {} to session {}.", dateTimeZone, userSession.toString());
 
                 if (requestUrl != null) {
                     // Redirect to original request url
-                    session.removeAttribute(SESSION_REQUEST_URL);
+                    WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, null);
                     response.sendRedirect(requestUrl);
                     return false;
                 }
@@ -76,7 +77,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
                         previousUrl.append("?");
                         previousUrl.append(queryString);
                     }
-                    session.setAttribute(SESSION_REQUEST_URL, previousUrl.toString());
+                    WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, previousUrl.toString());
                 }
 
                 // Render view for resolving timezone
@@ -88,16 +89,6 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
         else {
             return true;
         }
-    }
-
-    public static DateTimeZone getDateTimeZone(HttpSession session)
-    {
-        return (DateTimeZone) session.getAttribute(SESSION_TIME_ZONE);
-    }
-
-    public static void setDateTimeZone(HttpSession session, DateTimeZone dateTimeZone)
-    {
-        session.setAttribute(SESSION_TIME_ZONE, dateTimeZone);
     }
 }
 

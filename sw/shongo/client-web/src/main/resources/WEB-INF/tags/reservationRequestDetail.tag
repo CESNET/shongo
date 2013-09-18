@@ -21,7 +21,7 @@
 
     function DynamicStateController($scope, $resource, $sce, $timeout) {
         // Default requested slot
-        $scope.requestedSlot = '<tag:format value="${reservationRequest.slot}" multiline="true"/>';
+        $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
             // Default ReservationRequestState
             $scope.state = {
@@ -31,7 +31,7 @@
             };
         </c:if>
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.allocationState != null}">
-            <spring:eval expression="reservationRequestDetail.allocationStateReport != null ? reservationRequestDetail.allocationStateReport.replaceAll('\n','\\\\\\n') : null" var="allocationStateReport"/>
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.allocationStateReport)" var="allocationStateReport"/>
             // Default AllocationState
             $scope.allocationState = {
                 code: "${reservationRequestDetail.allocationState}",
@@ -41,13 +41,17 @@
             };
         </c:if>
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.room != null}">
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.aliases)" var="roomAliases"/>
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.aliasesDescription)" var="roomAliasesDescription"/>
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.stateReport)" var="roomStateReport"/>
             // Default room id and slot
             $scope.roomId = "${reservationRequestDetail.room.id}";
-            $scope.roomSlot = '<tag:format value="${reservationRequestDetail.room.slot}" multiline="true"/>';
+            $scope.roomSlot = "<tag:format value="${reservationRequestDetail.room.slot}" multiline="true"/>";
             $scope.roomName = "${reservationRequestDetail.room.name}";
             $scope.roomLicenseCount = "${reservationRequestDetail.room.licenseCount}";
+            $scope.roomAliases = "${roomAliases}";
+            $scope.roomAliasesDescription = "${roomAliasesDescription}";
             // Default  RoomState
-            <spring:eval expression="reservationRequestDetail.room.stateReport != null ? reservationRequestDetail.room.stateReport.replaceAll('\n','\\\\\\n') : null" var="roomStateReport"/>
             $scope.roomState = {
                 code: "${reservationRequestDetail.room.state}",
                 started: ${reservationRequestDetail.room.state.started},
@@ -66,8 +70,8 @@
         </c:if>
         <c:if test="${isActive}">
             // Refreshing resource
-            $scope.refreshResource = $resource('${detailStateUrl}', {reservationRequestId: '${reservationRequest.id}'}, {
-                get: {method: 'GET'}
+            $scope.refreshResource = $resource("${detailStateUrl}", {reservationRequestId: "${reservationRequest.id}"}, {
+                get: {method: "GET"}
             });
             // Initial refresh timeout in seconds
             $scope.refreshTimeout = 5;
@@ -90,6 +94,8 @@
                     $scope.roomSlot = result.roomSlot;
                     $scope.roomName = result.roomName;
                     $scope.roomLicenseCount = result.roomLicenseCount;
+                    $scope.roomAliases = result.roomAliases;
+                    $scope.roomAliasesDescription = result.roomAliasesDescription;
                     $scope.roomState = result.roomState;
                     $scope.allocatedSlot = result.allocatedSlot;
                     if (callback != null) {
@@ -135,6 +141,7 @@
 
 <dl class="dl-horizontal" ng-controller="DynamicStateController">
 
+    <%-- Type --%>
     <dt><spring:message code="views.reservationRequest.type"/>:</dt>
     <dd>
         <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
@@ -143,6 +150,7 @@
         </tag:help>
     </dd>
 
+    <%-- Event from request --%>
     <c:if test="${not empty reservationRequest.parentReservationRequestId}">
         <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
         <dd>
@@ -152,16 +160,19 @@
         </dd>
     </c:if>
 
+    <%-- Technology --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'ADHOC_ROOM'}">
         <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
         <dd>${reservationRequest.technology.title}</dd>
     </c:if>
 
+    <%-- Room name --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || (reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName)}">
         <dt><spring:message code="views.reservationRequest.specification.roomName"/>:</dt>
         <dd>${reservationRequest.roomName}</dd>
     </c:if>
 
+    <%-- For permanent room --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         <dt><spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:</dt>
         <dd>
@@ -178,11 +189,13 @@
         </dd>
     </c:if>
 
+    <%-- Number of participants --%>
     <c:if test="${reservationRequest.specificationType == 'ADHOC_ROOM' || reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         <dt><spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:</dt>
         <dd>${reservationRequest.roomParticipantCount}</dd>
     </c:if>
 
+    <%-- Requested/allocated time slot --%>
     <div ng-show="allocationState.code == 'ALLOCATED' && roomId">
         <dt><spring:message code="views.reservationRequest.room.slot"/>:</dt>
         <dd><span ng-bind-html="html(roomSlot)"></span></dd>
@@ -192,6 +205,7 @@
         <dd><span ng-bind-html="html(requestedSlot)"></span></dd>
     </div>
 
+    <%-- Periodicity --%>
     <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
@@ -202,19 +216,23 @@
         </dd>
     </c:if>
 
+    <%-- PIN --%>
     <c:if test="${not empty reservationRequest.roomPin}">
         <dt><spring:message code="views.reservationRequest.specification.roomPin"/>:</dt>
         <dd>${reservationRequest.roomPin}</dd>
     </c:if>
 
+    <%-- Description --%>
     <dt><spring:message code="views.reservationRequest.description"/>:</dt>
     <dd>${reservationRequest.description}</dd>
 
+    <%-- Purpose --%>
     <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
     <dd>
         <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
     </dd>
 
+    <%-- State --%>
     <div ng-show="state">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
@@ -235,22 +253,24 @@
         </dd>
     </div>
 
+    <%-- How to reach --%>
     <c:if test="${reservationRequestDetail != null && reservationRequestDetail.room != null}">
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <tag:help label="${reservationRequestDetail.room.aliases}">
-                <c:if test="${not empty reservationRequestDetail.room.aliasesDescription}">
-                    ${reservationRequestDetail.room.aliasesDescription}
-                </c:if>
-            </tag:help>
+            <tag:help labelElement="roomAliases" type="text">
+                <span ng-bind-html="html(roomAliasesDescription)"></span>
+            </tag:help><%--
+            --%><span id="roomAliases" ng-bind-html="html(roomAliases)" class="tooltip-label dotted"></span>
         </dd>
     </c:if>
 
+    <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
         <dd><tag:format value="${reservationRequest.dateTime}"/></dd>
     </c:if>
 
+    <%-- Show more detail --%>
     <c:if test="${reservationRequestDetail != null}">
 
         <div ng-controller="MoreDetailController">
@@ -264,7 +284,7 @@
                     <dd class="allocation-state">
                         <tag:help label="{{allocationState.label}}" labelClass="{{allocationState.code}}">
                             <span>{{allocationState.help}}</span>
-                            <pre ng-show="allocationState.code == 'ALLOCATION_FAILED' && allocationState.report">{{allocationState.report}}</pre>
+                            <pre ng-show="allocationState.report">{{allocationState.report}}</pre>
                         </tag:help>
                     </dd>
                 </div>

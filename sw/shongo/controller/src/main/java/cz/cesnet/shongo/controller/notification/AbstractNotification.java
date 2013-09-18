@@ -4,9 +4,9 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.MessageSource;
+import cz.cesnet.shongo.util.DateTimeFormatter;
+import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -428,7 +428,7 @@ public abstract class AbstractNotification implements Notification
             if (duration.equals(Temporal.PERIOD_INFINITY)) {
                 return "(infinity)";
             }
-            return PeriodFormat.getDefault().print(Temporal.roundPeriod(duration));
+            return PeriodFormat.getDefault().print(DateTimeFormatter.roundDuration(duration));
         }
 
         /**

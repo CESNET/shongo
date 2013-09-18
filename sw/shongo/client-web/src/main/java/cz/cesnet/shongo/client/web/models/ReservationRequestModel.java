@@ -514,7 +514,7 @@ public class ReservationRequestModel
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && !Strings.isNullOrEmpty(roomPin)) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
@@ -545,14 +545,14 @@ public class ReservationRequestModel
                     case ADOBE_CONNECT:
                         return roomNameSpecification;
                     default:
-                        throw new TodoImplementException(technology.toString());
+                        throw new TodoImplementException(technology);
                 }
             }
             case PERMANENT_ROOM_CAPACITY: {
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && !Strings.isNullOrEmpty(roomPin)) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
@@ -565,7 +565,7 @@ public class ReservationRequestModel
                 return roomSpecification;
             }
             default:
-                throw new TodoImplementException(specificationType.toString());
+                throw new TodoImplementException(specificationType);
         }
     }
 
@@ -598,7 +598,7 @@ public class ReservationRequestModel
                     case DAY:
                         return Period.days(durationCount);
                     default:
-                        throw new TodoImplementException(durationType.toString());
+                        throw new TodoImplementException(durationType);
                 }
             default:
                 throw new TodoImplementException("Reservation request duration.");
@@ -643,7 +643,7 @@ public class ReservationRequestModel
                     period = Period.weeks(1);
                     break;
                 default:
-                    throw new TodoImplementException(durationType.toString());
+                    throw new TodoImplementException(durationType);
             }
 
             // Create set of reservation requests

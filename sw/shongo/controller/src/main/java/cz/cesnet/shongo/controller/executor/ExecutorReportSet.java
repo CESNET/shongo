@@ -24,6 +24,13 @@ public class ExecutorReportSet extends AbstractReportSet
         {
         }
 
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "command-failed";
+        }
+
         public CommandFailedReport(String command, cz.cesnet.shongo.JadeReport jadeReport)
         {
             setCommand(command);
@@ -70,25 +77,26 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" failed: ");
-                    message.append((jadeReport == null ? "null" : jadeReport.getReportDescription(messageType)));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("jadeReport", jadeReport);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -155,6 +163,13 @@ public class ExecutorReportSet extends AbstractReportSet
         {
         }
 
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "room-not-started";
+        }
+
         public RoomNotStartedReport(String roomName)
         {
             setRoomName(roomName);
@@ -187,24 +202,25 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Cannot modify room ");
-                    message.append((roomName == null ? "null" : roomName));
-                    message.append(", because it has not been started yet.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("roomName", roomName);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("room-not-started", userType, language, timeZone, getParameters());
         }
     }
 

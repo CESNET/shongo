@@ -183,6 +183,15 @@ public class RoomReservationTask extends ReservationTask
         for (RoomProviderCapability roomProviderCapability : roomProviderCapabilities) {
             DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
 
+            // Check whether room provider can be allocated
+            try {
+                getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
+            }
+            catch (SchedulerException exception) {
+                addReport(exception.getReport());
+                continue;
+            }
+
             // Initialize room provider
             RoomProvider roomProvider = null;
             for (Set<Technology> technologies : technologyVariants) {
@@ -199,12 +208,15 @@ public class RoomReservationTask extends ReservationTask
                 }
                 RoomProviderVariant roomProviderVariant =
                         new RoomProviderVariant(roomProvider, participantCount, technologies);
-                if (availableRoom.getAvailableLicenseCount() < roomProviderVariant.getLicenseCount()) {
+                int availableLicenseCount = availableRoom.getAvailableLicenseCount();
+                if (availableLicenseCount < roomProviderVariant.getLicenseCount()) {
+                    addReport(new SchedulerReportSet.ResourceRoomCapacityExceededReport(
+                            deviceResource, availableLicenseCount, availableRoom.getMaximumLicenseCount()));
                     continue;
                 }
                 roomProvider.addRoomProviderVariant(roomProviderVariant);
             }
-            if (roomProvider == null) {
+            if (roomProvider == null || roomProvider.getRoomProviderVariants().size() == 0) {
                 // No technology variant is available in the room provider
                 continue;
             }
@@ -224,7 +236,7 @@ public class RoomReservationTask extends ReservationTask
                     roomEndpointResourceId = ((UsedRoomEndpoint) roomEndpoint).getResource().getId();
                 }
                 else {
-                    throw new TodoImplementException(roomEndpoint.getClass().getName());
+                    throw new TodoImplementException(roomEndpoint.getClass());
                 }
                 if (!roomEndpointResourceId.equals(deviceResource.getId())) {
                     continue;
@@ -355,9 +367,6 @@ public class RoomReservationTask extends ReservationTask
                 return existingValueReservation;
 
             }
-
-            // Check whether room provider can be allocated
-            getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
 
             // Allocate room reservation
             RoomReservation roomReservation = new RoomReservation();

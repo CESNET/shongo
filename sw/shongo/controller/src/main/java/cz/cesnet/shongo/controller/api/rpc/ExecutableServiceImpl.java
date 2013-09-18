@@ -172,7 +172,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "executable_summary.room_license_count";
                         break;
                     default:
-                        throw new TodoImplementException(sort.toString());
+                        throw new TodoImplementException(sort);
                 }
             }
             else {

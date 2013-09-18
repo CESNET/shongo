@@ -23,10 +23,21 @@
 <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %></c:set>
 
 <%
-    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
-            (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
-    uriBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
-    pageContext.setAttribute("urlLanguage", uriBuilder.build().toUriString());
+    String requestUri = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+
+    // URL for changing language
+    UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUri);
+    languageUrlBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
+    pageContext.setAttribute("languageUrl", languageUrlBuilder.build().toUriString());
+
+    // URL for changing user settings
+    StringBuilder userSettingsUrlBuilder = new StringBuilder();
+    userSettingsUrlBuilder.append(ClientWebUrl.USER_SETTINGS);
+    if (!requestUri.equals("/")) {
+        userSettingsUrlBuilder.append("?from=");
+        userSettingsUrlBuilder.append(requestUri);
+    }
+    pageContext.setAttribute("userSettingsUrl", userSettingsUrlBuilder.toString());
 %>
 
 <%-- Header --%>
@@ -115,9 +126,8 @@
                 <security:authorize access="isAuthenticated()">
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <b><security:authentication property="principal.fullName"/></b>
+                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.user.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
                             <b class="icon-cog"></b>
-                            <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
                             <li ng-controller="UserSettingsController">
@@ -135,15 +145,15 @@
                 <%-- Timezone --%>
                 <li>
                     <spring:message code="views.layout.timezone" var="timeZoneTitle"/>
-                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.timeZone)" var="timeZone"/>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.user.timeZone)" var="timeZone"/>
                     <span class="navbar-text" id="timezone" title="${timeZoneTitle}">${timeZone}</span>
                 </li>
 
                 <%-- Language selection --%>
                 <li>
                     <span class="navbar-text">
-                        <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
-                        <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                        <a id="language-english" href="${languageUrl.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
+                        <a id="language-czech" href="${languageUrl.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
                     </span>
                 </li>
             </ul>

@@ -1,76 +1,55 @@
 package cz.cesnet.shongo.report;
 
+import org.joda.time.DateTimeZone;
+
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * Represents a error/warning/information/debug message in Shongo which should be reported to user,
  * resource administrator and/or domain administrator.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Report implements Reportable
+public interface Report
 {
+    /**
+     * @return unique id of the report
+     */
+    public String getUniqueId();
+
     /**
      * @return name of the report
      */
-    public String getName()
-    {
-        return getClass().getSimpleName();
-    }
+    public String getName();
 
     /**
      * @return report message
      */
-    public abstract Type getType();
+    public Type getType();
 
     /**
-     * @param messageType
-     * @return report message of given {@code messageType}
+     * @return {@link Map} of parameters of this {@link Report}
      */
-    public abstract String getMessage(MessageType messageType);
+    public Map<String, Object> getParameters();
 
     /**
-     * @return {@link MessageType#DOMAIN_ADMIN} report message
+     * @param userType
+     * @param language
+     * @param timeZone
+     * @return report message of given {@code userType}
      */
-    public final String getMessage()
-    {
-        return getMessage(Report.MessageType.DOMAIN_ADMIN);
-    }
+    public String getMessage(UserType userType, Language language, DateTimeZone timeZone);
 
     /**
      * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
      */
-    protected int getVisibleFlags()
-    {
-        return 0;
-    }
-
-    /**
-     * @param visibleFlags
-     * @return true whether this {@link Report} contains given {@code visibleFlags}
-     */
-    public final boolean isVisible(int visibleFlags)
-    {
-        return (getVisibleFlags() & visibleFlags) == visibleFlags;
-    }
+    public int getVisibleFlags();
 
     /**
      * @return {@link Resolution}
      */
-    public Resolution getResolution()
-    {
-        return Resolution.DEFAULT;
-    }
-
-    @Override
-    public String toString()
-    {
-        return getMessage();
-    }
-
-    @Override
-    public String getReportDescription(MessageType messageType)
-    {
-        return getMessage(messageType);
-    }
+    public Resolution getResolution();
 
     public static final int VISIBLE_TO_USER = 1;
     public static final int VISIBLE_TO_DOMAIN_ADMIN = 2;
@@ -79,7 +58,7 @@ public abstract class Report implements Reportable
     /**
      * Enumeration of all possible message types.
      */
-    public static enum MessageType
+    public static enum UserType
     {
         /**
          * Message for normal user.
@@ -98,7 +77,65 @@ public abstract class Report implements Reportable
     }
 
     /**
-     * Enumeration of all possible {@link Report} types.
+     * Enumeration of all possible languages for messages.
+     */
+    public static enum Language
+    {
+        CZECH("cs"),
+
+        /**
+         * Message for domain administrator.
+         */
+        ENGLISH("en");
+
+        /**
+         * Language code.
+         */
+        private String language;
+
+        /**
+         * Constructor.
+         *
+         * @param language sets the {@link #language}
+         */
+        private Language(String language)
+        {
+            this.language = language;
+        }
+
+        /**
+         * @return {@link #language}
+         */
+        public String getLanguage()
+        {
+            return language;
+        }
+
+        /**
+         * @return {@link Locale}
+         */
+        public Locale toLocale()
+        {
+            return new Locale(language);
+        }
+
+        /**
+         * @param locale
+         * @return {@link Language} for given {@code locale}
+         */
+        public static Language fromLocale(Locale locale)
+        {
+            if (locale.getLanguage().equals("cs")) {
+                return CZECH;
+            }
+            else {
+                return ENGLISH;
+            }
+        }
+    }
+
+    /**
+     * Enumeration of all possible {@link cz.cesnet.shongo.report.Report} types.
      */
     public static enum Type
     {
@@ -124,7 +161,7 @@ public abstract class Report implements Reportable
     }
 
     /**
-     * Represents what does the {@link Report} mean to action which cause it.
+     * Represents what does the {@link cz.cesnet.shongo.report.Report} mean to action which cause it.
      */
     public static enum Resolution
     {
@@ -134,12 +171,12 @@ public abstract class Report implements Reportable
         DEFAULT,
 
         /**
-         * Means that the action which cause the {@link Report} should be tried again.
+         * Means that the action which cause the {@link cz.cesnet.shongo.report.Report} should be tried again.
          */
         TRY_AGAIN,
 
         /**
-         * Means that the action which cause the {@link Report} should not be tried again
+         * Means that the action which cause the {@link cz.cesnet.shongo.report.Report} should not be tried again
          */
         STOP
     }

@@ -32,7 +32,7 @@ public enum FilterType
                 filteredValue = filteredValue.replaceAll("[^a-z0-9_-]", "");
                 return filteredValue;
             default:
-                throw new TodoImplementException(filterType.toString());
+                throw new TodoImplementException(filterType);
         }
     }
 }

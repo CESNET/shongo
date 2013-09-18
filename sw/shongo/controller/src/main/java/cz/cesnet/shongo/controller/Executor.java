@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -182,7 +182,8 @@ public class Executor extends Component
         synchronized (ThreadLock.class) {
             //logger.info("Executor lock acquired...     (((((");
 
-            logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(dateTime));
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
+            logger.debug("Checking executables for execution at '{}'...", dateTimeFormatter.formatDateTime(dateTime));
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             ExecutableManager executableManager = new ExecutableManager(entityManager);

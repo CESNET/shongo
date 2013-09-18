@@ -6,21 +6,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents a set/group of {@link Report}s.
+ * Represents a set/group of {@link AbstractReport}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public abstract class AbstractReportSet
 {
     /**
-     * List of {@link Report} classes for this {@link AbstractReportSet}.
+     * List of {@link AbstractReport} classes for this {@link AbstractReportSet}.
      */
-    private List<Class<? extends Report>> reportClasses;
+    private List<Class<? extends AbstractReport>> reportClasses;
 
     /**
      * @param reportClass to be added to the {@link #reportClasses}
      */
-    protected final void addReportClass(Class<? extends Report> reportClass)
+    protected final void addReportClass(Class<? extends AbstractReport> reportClass)
     {
         reportClasses.add(reportClass);
     }
@@ -28,17 +28,17 @@ public abstract class AbstractReportSet
     /**
      * @return {@link #reportClasses}
      */
-    public final Collection<Class<? extends Report>> getReportClasses()
+    public final Collection<Class<? extends AbstractReport>> getReportClasses()
     {
         if (reportClasses == null) {
-            reportClasses = new LinkedList<Class<? extends Report>>();
+            reportClasses = new LinkedList<Class<? extends AbstractReport>>();
             fillReportClasses();
         }
         return Collections.unmodifiableCollection(reportClasses);
     }
 
     /**
-     * Add all {@link Report} classes to this {@link AbstractReportSet}.
+     * Add all {@link AbstractReport} classes to this {@link AbstractReportSet}.
      */
     protected abstract void fillReportClasses();
 }

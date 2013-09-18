@@ -107,7 +107,7 @@ public enum RoomState
             case STARTING_FAILED:
                 return RoomState.FAILED;
             default:
-                throw new TodoImplementException(roomState.toString());
+                throw new TodoImplementException(roomState);
         }
     }
 }

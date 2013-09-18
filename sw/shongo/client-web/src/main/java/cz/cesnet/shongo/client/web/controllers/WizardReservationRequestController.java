@@ -4,6 +4,7 @@ import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
@@ -12,6 +13,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,12 +82,14 @@ public class WizardReservationRequestController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestDetail(
-            Locale locale,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messageSource, locale);
+        MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -96,7 +100,8 @@ public class WizardReservationRequestController extends AbstractWizardController
 
         // Create reservation request model
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
+                abstractReservationRequest, reservation, cacheProvider,
+                messageProvider, executableService, userSession);
 
         // Get user roles
         AclRecordListRequest request = new AclRecordListRequest();

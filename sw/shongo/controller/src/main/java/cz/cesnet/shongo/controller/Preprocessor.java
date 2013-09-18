@@ -1,12 +1,10 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
@@ -72,7 +70,8 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
         intervalStart = intervalStart.withField(DateTimeFieldType.millisOfSecond(), 0);
         interval = new Interval(intervalStart, interval.toPeriod());
 
-        logger.debug("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
+        logger.debug("Running preprocessor for interval '{}'...", dateTimeFormatter.formatInterval(interval));
 
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

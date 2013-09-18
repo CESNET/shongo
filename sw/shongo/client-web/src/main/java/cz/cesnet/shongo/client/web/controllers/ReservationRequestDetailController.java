@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
@@ -68,13 +69,15 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public String handleDetailView(
-            Locale locale,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String id,
             Model model)
     {
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messages, locale);
+        MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -112,19 +115,22 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                     isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
 
-                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
-                item.put("state", state);
-                if (state != null) {
+                AllocationState allocationState = historyItem.getAllocationState();
+                if (allocationState != null) {
+                    boolean isAllocated = allocationState.equals(AllocationState.ALLOCATED);
                     // Reservation is visible only for reservation requests until first allocated reservation request
-                    if (state.isAllocated() && currentHistoryItem == null) {
+                    if (isAllocated && currentHistoryItem == null) {
                         hasVisibleReservation = false;
                     }
 
                     // First not-allocated is revertible
-                    if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
+                    if (!isAllocated && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
                 }
+
+                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
+                item.put("state", state);
 
                 history.add(item);
             }
@@ -151,7 +157,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
         // Create reservation request model
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
+                abstractReservationRequest, reservation, cacheProvider,
+                messageProvider, executableService, userSession);
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
@@ -173,20 +180,23 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE, method = RequestMethod.GET)
     @ResponseBody
     public Map handleDetailState(
-            Locale locale,
-            DateTimeZone timeZone,
+            UserSession userSession,
+
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+
+        Locale locale = userSession.getLocale();
+        DateTimeZone timeZone = userSession.getTimeZone();
 
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
 
-        final MessageProvider messageProvider = new MessageProvider(messages, locale);
+        final MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
         final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
-                messageProvider, executableService);
+                messageProvider, executableService, userSession);
         final RoomModel roomModel = reservationRequestModel.getRoom();
 
         Map<String, Object> data = new HashMap<String, Object>();
@@ -209,6 +219,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             data.put("roomSlot", formatter.formatIntervalMultiLine(roomModel.getSlot()));
             data.put("roomName", roomModel.getName());
             data.put("roomLicenseCount", roomModel.getLicenseCount());
+            data.put("roomAliases", roomModel.getAliases());
+            data.put("roomAliasesDescription", roomModel.getAliasesDescription());
             data.put("roomState", new HashMap<String, Object>(){{
                 RoomState roomState = roomModel.getState();
                 put("code", roomState);

@@ -127,7 +127,7 @@ public abstract class Endpoint extends Executable
     @Transient
     public String getDescription()
     {
-        return getReportDescription(Report.MessageType.DOMAIN_ADMIN);
+        return "endpoint " + getReportDescription();
     }
 
     /**
@@ -147,9 +147,9 @@ public abstract class Endpoint extends Executable
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        super.toApi(executableApi, messageType);
+        super.toApi(executableApi, userType);
 
         if (executableApi instanceof EndpointExecutable) {
             EndpointExecutable endpointApi =

@@ -104,7 +104,7 @@ public abstract class Capability extends PersistentObject
             capability = new AliasProviderCapability();
         }
         else {
-            throw new TodoImplementException(api.getClass().getName());
+            throw new TodoImplementException(api.getClass());
         }
         capability.fromApi(api, entityManager);
         return capability;

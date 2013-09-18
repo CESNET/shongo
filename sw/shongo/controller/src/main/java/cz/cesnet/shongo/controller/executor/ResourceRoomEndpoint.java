@@ -107,15 +107,15 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public RoomExecutable toApi(Report.MessageType messageType)
+    public RoomExecutable toApi(Report.UserType userType)
     {
-        return (RoomExecutable) super.toApi(messageType);
+        return (RoomExecutable) super.toApi(userType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        super.toApi(executableApi, messageType);
+        super.toApi(executableApi, userType);
 
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;
@@ -195,9 +195,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public String getReportDescription(Report.MessageType messageType)
+    public String getDescription()
     {
-        return String.format("room in %s", getDeviceResource().getReportDescription(messageType));
+        return String.format("room in %s", getDeviceResource().getReportDescription());
     }
 
     @Override

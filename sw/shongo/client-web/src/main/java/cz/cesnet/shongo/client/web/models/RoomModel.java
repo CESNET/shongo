@@ -49,7 +49,7 @@ public class RoomModel
     private ExecutableState usageState;
 
     public RoomModel(AbstractRoomExecutable roomExecutable, String reservationRequestId, CacheProvider cacheProvider,
-            MessageProvider messageProvider, ExecutableService executableService)
+            MessageProvider messageProvider, ExecutableService executableService, UserSession userSession)
     {
         this.messageProvider = messageProvider;
 
@@ -88,14 +88,16 @@ public class RoomModel
 
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
-        this.stateReport = roomExecutable.getStateReport();
+        if (userSession.isAdmin()) {
+            this.stateReport = roomExecutable.getStateReport().toString(messageProvider.getLocale(), messageProvider.getTimeZone());
+        }
     }
 
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
-            ExecutableService executableService)
+            ExecutableService executableService, UserSession userSession)
     {
         this(roomExecutable, cacheProvider.getReservationRequestIdByExecutable(roomExecutable),
-                cacheProvider, messageProvider, executableService);
+                cacheProvider, messageProvider, executableService, userSession);
     }
 
     public String getId()

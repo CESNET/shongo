@@ -10,6 +10,29 @@ import cz.cesnet.shongo.report.*;
 public class JadeReportSet extends AbstractReportSet
 {
     /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage("agent-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} is not available now.");
+        addMessage("agent-not-started", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} is not started yet.");
+        addMessage("command-abstract-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Abstract command error.");
+        addMessage("command-unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error in command ${command}: ${description}");
+        addMessage("command-timeout", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} send to ${receiverAgent} has timeout.");
+        addMessage("command-not-supported", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} doesn't implement command ${command}.");
+        addMessage("command-refused", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} has refused command ${command}.");
+        addMessage("command-not-understood", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} didn't understand command ${command}.");
+        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}");
+        addMessage("command-failed", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Command ${command} ended with error.");
+        addMessage("command-result-decoding-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
+    }};
+
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
+    }
+
+    /**
      * Unknown error: {@link #description}
      */
     public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
@@ -18,6 +41,12 @@ public class JadeReportSet extends AbstractReportSet
 
         public UnknownErrorReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "unknown-error";
         }
 
         public UnknownErrorReport(String description)
@@ -60,16 +89,17 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Unknown error: ");
-                    message.append((description == null ? "null" : description));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -127,6 +157,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "agent-not-found";
+        }
+
         public AgentNotFoundReport(String receiverAgent)
         {
             setReceiverAgent(receiverAgent);
@@ -167,17 +203,17 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" is not available now.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("agent-not-found", userType, language, timeZone, getParameters());
         }
     }
 
@@ -235,6 +271,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "agent-not-started";
+        }
+
         public AgentNotStartedReport(String senderAgent)
         {
             setSenderAgent(senderAgent);
@@ -275,17 +317,17 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Sender agent ");
-                    message.append((senderAgent == null ? "null" : senderAgent));
-                    message.append(" is not started yet.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("senderAgent", senderAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("agent-not-started", userType, language, timeZone, getParameters());
         }
     }
 
@@ -343,6 +385,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-abstract-error";
+        }
+
         public CommandAbstractErrorReport(String command)
         {
             setCommand(command);
@@ -396,6 +444,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-unknown-error";
+        }
+
         public CommandUnknownErrorReport(String command, String description)
         {
             setCommand(command);
@@ -439,18 +493,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Unknown error in command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(": ");
-                    message.append((description == null ? "null" : description));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("description", description);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-unknown-error", userType, language, timeZone, getParameters());
         }
     }
 
@@ -510,6 +564,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-timeout";
+        }
+
         public CommandTimeoutReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -553,19 +613,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" send to ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" has timeout.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-timeout", userType, language, timeZone, getParameters());
         }
     }
 
@@ -625,6 +684,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-not-supported";
+        }
+
         public CommandNotSupportedReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -668,19 +733,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" doesn't implement command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-not-supported", userType, language, timeZone, getParameters());
         }
     }
 
@@ -740,6 +804,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-refused";
+        }
+
         public CommandRefusedReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -783,19 +853,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" has refused command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-refused", userType, language, timeZone, getParameters());
         }
     }
 
@@ -855,6 +924,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-not-understood";
+        }
+
         public CommandNotUnderstoodReport(String command, String receiverAgent)
         {
             setCommand(command);
@@ -898,19 +973,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" didn't understand command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-not-understood", userType, language, timeZone, getParameters());
         }
     }
 
@@ -972,6 +1046,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-failed";
+        }
+
         public CommandFailedReport(String command, String receiverAgent, String reason)
         {
             setCommand(command);
@@ -1028,25 +1108,19 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                case USER:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" ended with error.");
-                    break;
-                default:
-                    message.append("Receiver agent ");
-                    message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" failed to perform command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(": ");
-                    message.append((reason == null ? "null" : reason));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("receiverAgent", receiverAgent);
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1113,6 +1187,12 @@ public class JadeReportSet extends AbstractReportSet
         {
         }
 
+        @Override
+        public String getUniqueId()
+        {
+            return "command-result-decoding-failed";
+        }
+
         public CommandResultDecodingFailedReport(String command, String senderAgent)
         {
             setCommand(command);
@@ -1156,19 +1236,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Sender agent ");
-                    message.append((senderAgent == null ? "null" : senderAgent));
-                    message.append(" cannot decode response from command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("command", command);
+            parameters.put("senderAgent", senderAgent);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("command-result-decoding-failed", userType, language, timeZone, getParameters());
         }
     }
 

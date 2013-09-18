@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.common;
+package cz.cesnet.shongo.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +50,12 @@ public class MessageSource
         }
         ResourceBundle resourceBundle = getResourceBundle(locale);
         return resourceBundle.getString(code);
+    }
+
+    public String getMessage(String code, Locale locale, Object... arguments)
+    {
+        ResourceBundle resourceBundle = getResourceBundle(locale);
+        return formatMessage(resourceBundle.getString(code), arguments);
     }
 
     public String getMessage(String code, Object... arguments)

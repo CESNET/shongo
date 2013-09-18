@@ -45,4 +45,18 @@ public class CommonModel
             bindingResult.rejectValue(field, errorCode);
         }
     }
+
+    /**
+     * @param string
+     * @return given {@code string} which can be used in double quoted string (e.g., "<string>")
+     */
+    public static String escapeDoubleQuotedString(String string)
+    {
+        if (string == null) {
+            return null;
+        }
+        string = string.replaceAll("\n", "\\\\n");
+        string = string.replaceAll("\"", "\\\\\"");
+        return string;
+    }
 }

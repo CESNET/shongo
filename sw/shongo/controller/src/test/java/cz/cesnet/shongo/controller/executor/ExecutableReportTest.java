@@ -95,7 +95,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         ExecutionResult result = executor.execute(dateTime);
 
         reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservation.getId());
-        Assert.assertTrue(reservation.getExecutable().getStateReport().contains("test test"));
+        Assert.assertTrue(reservation.getExecutable().getStateReport().toString().contains("test test"));
     }
 
     /**

@@ -9,31 +9,65 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int USER_NOT_EXIST_REPORT = 100;
-    public static final int ACL_INVALID_ROLE_REPORT = 101;
-    public static final int SECURITY_MISSING_TOKEN_REPORT = 102;
-    public static final int SECURITY_INVALID_TOKEN_REPORT = 103;
-    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 104;
-    public static final int DEVICE_COMMAND_FAILED_REPORT = 105;
-    public static final int IDENTIFIER_INVALID_REPORT = 106;
-    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 107;
-    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 108;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 109;
-    public static final int RESERVATION_REQUEST_NOT_DELETABLE_REPORT = 110;
-    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT = 111;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 112;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 113;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 114;
+    public static final int USER_NOT_EXIST = 100;
+    public static final int ACL_INVALID_ROLE = 101;
+    public static final int SECURITY_MISSING_TOKEN = 102;
+    public static final int SECURITY_INVALID_TOKEN = 103;
+    public static final int SECURITY_NOT_AUTHORIZED = 104;
+    public static final int DEVICE_COMMAND_FAILED = 105;
+    public static final int IDENTIFIER_INVALID = 106;
+    public static final int IDENTIFIER_INVALID_DOMAIN = 107;
+    public static final int IDENTIFIER_INVALID_TYPE = 108;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 109;
+    public static final int RESERVATION_REQUEST_NOT_DELETABLE = 110;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE = 111;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED = 112;
+    public static final int RESERVATION_REQUEST_DELETED = 113;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION = 114;
+    public static final int RESERVATION_REQUEST_NOT_REUSABLE = 115;
+
+    /**
+     * Set of report messages.
+     */
+    private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage("user-not-exist", new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
+        addMessage("acl-invalid-role", new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
+        addMessage("security-missing-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
+        addMessage("security-invalid-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
+        addMessage("security-not-authorized", new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
+        addMessage("device-command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReportMessage(jadeReport)}");
+        addMessage("identifier-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} is invalid.");
+        addMessage("identifier-invalid-domain", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} doesn't belong to domain ${requiredDomain}.");
+        addMessage("identifier-invalid-type", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} isn't of required type ${requiredType}.");
+        addMessage("reservation-request-not-modifiable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be modified.");
+        addMessage("reservation-request-not-deletable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be deleted.");
+        addMessage("reservation-request-not-revertible", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reverted.");
+        addMessage("reservation-request-already-modified", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} has already been modified.");
+        addMessage("reservation-request-deleted", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} is deleted.");
+        addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
+        addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
+    }};
+
+    public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
+    {
+        return MESSAGES.getMessage(reportId, userType, language, timeZone, parameters);
+    }
 
     /**
      * User {@link #user} doesn't exist.
      */
-    public static class UserNotExistReport extends Report implements ApiFault
+    public static class UserNotExistReport extends AbstractReport implements ApiFault
     {
         protected String user;
 
         public UserNotExistReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "user-not-exist";
         }
 
         public UserNotExistReport(String user)
@@ -60,13 +94,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return USER_NOT_EXIST_REPORT;
+            return USER_NOT_EXIST;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -88,23 +122,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("User ");
-                    message.append((user == null ? "null" : user));
-                    message.append(" doesn't exist.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("user", user);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("user-not-exist", userType, language, timeZone, getParameters());
         }
     }
 
@@ -159,7 +193,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
      */
-    public static class AclInvalidRoleReport extends Report implements ApiFault
+    public static class AclInvalidRoleReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
@@ -167,6 +201,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public AclInvalidRoleReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "acl-invalid-role";
         }
 
         public AclInvalidRoleReport(String entity, String role)
@@ -204,13 +244,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ACL_INVALID_ROLE_REPORT;
+            return ACL_INVALID_ROLE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -234,25 +274,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("ACL Role ");
-                    message.append((role == null ? "null" : role));
-                    message.append(" is invalid for entity ");
-                    message.append((entity == null ? "null" : entity));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("entity", entity);
+            parameters.put("role", role);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("acl-invalid-role", userType, language, timeZone, getParameters());
         }
     }
 
@@ -314,10 +353,16 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Security token is missing but is required.
      */
-    public static class SecurityMissingTokenReport extends Report implements ApiFault
+    public static class SecurityMissingTokenReport extends AbstractReport implements ApiFault
     {
         public SecurityMissingTokenReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "security-missing-token";
         }
 
         @Override
@@ -329,13 +374,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_MISSING_TOKEN_REPORT;
+            return SECURITY_MISSING_TOKEN;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -355,21 +400,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Security token is missing but is required.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("security-missing-token", userType, language, timeZone, getParameters());
         }
     }
 
@@ -417,12 +463,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Invalid security token {@link #token}.
      */
-    public static class SecurityInvalidTokenReport extends Report implements ApiFault
+    public static class SecurityInvalidTokenReport extends AbstractReport implements ApiFault
     {
         protected String token;
 
         public SecurityInvalidTokenReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "security-invalid-token";
         }
 
         public SecurityInvalidTokenReport(String token)
@@ -449,13 +501,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_INVALID_TOKEN_REPORT;
+            return SECURITY_INVALID_TOKEN;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -477,23 +529,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Invalid security token ");
-                    message.append((token == null ? "null" : token));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("token", token);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("security-invalid-token", userType, language, timeZone, getParameters());
         }
     }
 
@@ -548,12 +600,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * You are not authorized to {@link #action}.
      */
-    public static class SecurityNotAuthorizedReport extends Report implements ApiFault
+    public static class SecurityNotAuthorizedReport extends AbstractReport implements ApiFault
     {
         protected String action;
 
         public SecurityNotAuthorizedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "security-not-authorized";
         }
 
         public SecurityNotAuthorizedReport(String action)
@@ -580,13 +638,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_NOT_AUTHORIZED_REPORT;
+            return SECURITY_NOT_AUTHORIZED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -608,23 +666,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("You are not authorized to ");
-                    message.append((action == null ? "null" : action));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("action", action);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("security-not-authorized", userType, language, timeZone, getParameters());
         }
     }
 
@@ -679,7 +737,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Command {@link #command} for device {@link #device} failed: {@link #jadeReport}
      */
-    public static class DeviceCommandFailedReport extends Report implements ApiFault, ResourceReport
+    public static class DeviceCommandFailedReport extends AbstractReport implements ApiFault, ResourceReport
     {
         protected String device;
 
@@ -689,6 +747,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public DeviceCommandFailedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "device-command-failed";
         }
 
         public DeviceCommandFailedReport(String device, String command, cz.cesnet.shongo.JadeReport jadeReport)
@@ -743,13 +807,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return DEVICE_COMMAND_FAILED_REPORT;
+            return DEVICE_COMMAND_FAILED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -775,26 +839,25 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Command ");
-                    message.append((command == null ? "null" : command));
-                    message.append(" for device ");
-                    message.append((device == null ? "null" : device));
-                    message.append(" failed: ");
-                    message.append((jadeReport == null ? "null" : jadeReport.getReportDescription(messageType)));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("device", device);
+            parameters.put("command", command);
+            parameters.put("jadeReport", jadeReport);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("device-command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -863,12 +926,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} is invalid.
      */
-    public static class IdentifierInvalidReport extends Report implements ApiFault
+    public static class IdentifierInvalidReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public IdentifierInvalidReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "identifier-invalid";
         }
 
         public IdentifierInvalidReport(String id)
@@ -895,13 +964,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_REPORT;
+            return IDENTIFIER_INVALID;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -923,23 +992,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" is invalid.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("identifier-invalid", userType, language, timeZone, getParameters());
         }
     }
 
@@ -994,7 +1063,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} doesn't belong to domain {@link #requiredDomain}.
      */
-    public static class IdentifierInvalidDomainReport extends Report implements ApiFault
+    public static class IdentifierInvalidDomainReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
@@ -1002,6 +1071,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidDomainReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "identifier-invalid-domain";
         }
 
         public IdentifierInvalidDomainReport(String id, String requiredDomain)
@@ -1039,13 +1114,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_DOMAIN_REPORT;
+            return IDENTIFIER_INVALID_DOMAIN;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1069,25 +1144,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" doesn't belong to domain ");
-                    message.append((requiredDomain == null ? "null" : requiredDomain));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            parameters.put("requiredDomain", requiredDomain);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("identifier-invalid-domain", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1149,7 +1223,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} isn't of required type {@link #requiredType}.
      */
-    public static class IdentifierInvalidTypeReport extends Report implements ApiFault
+    public static class IdentifierInvalidTypeReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
@@ -1157,6 +1231,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidTypeReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "identifier-invalid-type";
         }
 
         public IdentifierInvalidTypeReport(String id, String requiredType)
@@ -1194,13 +1274,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_TYPE_REPORT;
+            return IDENTIFIER_INVALID_TYPE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1224,25 +1304,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" isn't of required type ");
-                    message.append((requiredType == null ? "null" : requiredType));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            parameters.put("requiredType", requiredType);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("identifier-invalid-type", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1304,12 +1383,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be modified.
      */
-    public static class ReservationRequestNotModifiableReport extends Report implements ApiFault
+    public static class ReservationRequestNotModifiableReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotModifiableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-not-modifiable";
         }
 
         public ReservationRequestNotModifiableReport(String id)
@@ -1336,13 +1421,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT;
+            return RESERVATION_REQUEST_NOT_MODIFIABLE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1364,23 +1449,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be modified.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-not-modifiable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1435,12 +1520,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be deleted.
      */
-    public static class ReservationRequestNotDeletableReport extends Report implements ApiFault
+    public static class ReservationRequestNotDeletableReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotDeletableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-not-deletable";
         }
 
         public ReservationRequestNotDeletableReport(String id)
@@ -1467,13 +1558,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_DELETABLE_REPORT;
+            return RESERVATION_REQUEST_NOT_DELETABLE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1495,23 +1586,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be deleted.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-not-deletable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1566,12 +1657,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be reverted.
      */
-    public static class ReservationRequestNotRevertibleReport extends Report implements ApiFault
+    public static class ReservationRequestNotRevertibleReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotRevertibleReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-not-revertible";
         }
 
         public ReservationRequestNotRevertibleReport(String id)
@@ -1598,13 +1695,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT;
+            return RESERVATION_REQUEST_NOT_REVERTIBLE;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1626,23 +1723,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be reverted.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-not-revertible", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1697,12 +1794,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} has already been modified.
      */
-    public static class ReservationRequestAlreadyModifiedReport extends Report implements ApiFault
+    public static class ReservationRequestAlreadyModifiedReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestAlreadyModifiedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-already-modified";
         }
 
         public ReservationRequestAlreadyModifiedReport(String id)
@@ -1729,13 +1832,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT;
+            return RESERVATION_REQUEST_ALREADY_MODIFIED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1757,23 +1860,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" has already been modified.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-already-modified", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1828,12 +1931,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} is deleted.
      */
-    public static class ReservationRequestDeletedReport extends Report implements ApiFault
+    public static class ReservationRequestDeletedReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestDeletedReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-deleted";
         }
 
         public ReservationRequestDeletedReport(String id)
@@ -1860,13 +1969,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_DELETED_REPORT;
+            return RESERVATION_REQUEST_DELETED;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -1888,23 +1997,23 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" is deleted.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-deleted", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1959,10 +2068,16 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request time slot must not be empty.
      */
-    public static class ReservationRequestEmptyDurationReport extends Report implements ApiFault
+    public static class ReservationRequestEmptyDurationReport extends AbstractReport implements ApiFault
     {
         public ReservationRequestEmptyDurationReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-empty-duration";
         }
 
         @Override
@@ -1974,13 +2089,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_EMPTY_DURATION_REPORT;
+            return RESERVATION_REQUEST_EMPTY_DURATION;
         }
 
         @Override
         public String getFaultString()
         {
-            return getMessage(MessageType.USER);
+            return getMessage(UserType.USER, Language.ENGLISH);
         }
 
         @Override
@@ -2000,21 +2115,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request time slot must not be empty.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-empty-duration", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2062,12 +2178,18 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be reused.
      */
-    public static class ReservationRequestNotReusableReport extends Report
+    public static class ReservationRequestNotReusableReport extends AbstractReport implements ApiFault
     {
         protected String id;
 
         public ReservationRequestNotReusableReport()
         {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-not-reusable";
         }
 
         public ReservationRequestNotReusableReport(String id)
@@ -2092,30 +2214,60 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        protected int getVisibleFlags()
+        public int getFaultCode()
+        {
+            return RESERVATION_REQUEST_NOT_REUSABLE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ReservationRequestNotReusableException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
+        public int getVisibleFlags()
         {
             return VISIBLE_TO_USER;
         }
 
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reservation request with identifier ");
-                    message.append((id == null ? "null" : id));
-                    message.append(" cannot be reused.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("reservation-request-not-reusable", userType, language, timeZone, getParameters());
         }
     }
 
     /**
      * Exception for {@link ReservationRequestNotReusableReport}.
      */
-    public static class ReservationRequestNotReusableException extends ReportRuntimeException
+    public static class ReservationRequestNotReusableException extends ReportRuntimeException implements ApiFaultException
     {
         public ReservationRequestNotReusableException(ReservationRequestNotReusableReport report)
         {
@@ -2150,6 +2302,11 @@ public class ControllerReportSet extends AbstractReportSet
 
         @Override
         public ReservationRequestNotReusableReport getReport()
+        {
+            return (ReservationRequestNotReusableReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
         {
             return (ReservationRequestNotReusableReport) report;
         }

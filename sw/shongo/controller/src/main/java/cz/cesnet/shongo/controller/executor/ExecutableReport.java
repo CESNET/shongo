@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.report.Report;
-import jade.content.Concept;
+import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.SerializableReport;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class ExecutableReport extends Report
+public abstract class ExecutableReport extends AbstractReport
 {
     /**
      * Persistent object must have an unique id.
@@ -20,7 +20,7 @@ public abstract class ExecutableReport extends Report
     private Long id;
 
     /**
-     * {@link Executable} to which the {@link Report} belongs.
+     * {@link Executable} to which the {@link cz.cesnet.shongo.report.AbstractReport} belongs.
      */
     private Executable executable;
 

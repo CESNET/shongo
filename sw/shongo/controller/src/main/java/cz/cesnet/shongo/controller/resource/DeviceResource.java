@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.report.AbstractReport;
 import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
@@ -258,13 +259,6 @@ public class DeviceResource extends Resource
     {
         getTechnologies().size();
         super.loadLazyProperties();
-    }
-
-    @Override
-    @Transient
-    public String getReportDescription(Report.MessageType messageType)
-    {
-        return String.format("device resource '%s'", EntityIdentifier.formatId(this));
     }
 
     @Override

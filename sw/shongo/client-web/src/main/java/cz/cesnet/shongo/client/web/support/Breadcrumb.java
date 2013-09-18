@@ -15,7 +15,7 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     /**
      * Request attribute in which the breadcrumb is stored.
      */
-    public final static String REQUEST_ATTRIBUTE_BREADCRUMB = "breadcrumb";
+    public final static String BREADCRUMB_REQUEST_ATTRIBUTE = "breadcrumb";
 
     /**
      * Current {@link NavigationPage} for which the breadcrumb should be constructed.

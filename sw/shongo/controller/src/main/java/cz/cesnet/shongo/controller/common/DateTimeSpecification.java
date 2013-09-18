@@ -111,7 +111,7 @@ public class DateTimeSpecification extends PersistentObject
             case RELATIVE:
                 return referenceDateTime.plus(relativeDateTime);
             default:
-                throw new TodoImplementException(type.toString());
+                throw new TodoImplementException(type);
         }
     }
 
@@ -126,7 +126,7 @@ public class DateTimeSpecification extends PersistentObject
             case RELATIVE:
                 return relativeDateTime;
             default:
-                throw new TodoImplementException(type.toString());
+                throw new TodoImplementException(type);
         }
     }
 
@@ -149,7 +149,7 @@ public class DateTimeSpecification extends PersistentObject
             dateTimeSpecification.setRelativeDateTime((Period) api);
         }
         else {
-            throw new TodoImplementException(api.getClass().getName());
+            throw new TodoImplementException(api.getClass());
         }
         return dateTimeSpecification;
     }

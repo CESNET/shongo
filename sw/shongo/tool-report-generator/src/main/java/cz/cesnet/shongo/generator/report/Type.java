@@ -2,10 +2,7 @@ package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.GeneratorException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO:
@@ -31,7 +28,7 @@ public abstract class Type
         return value + ".toString()";
     }
 
-    public Collection<String> getPersistenceAnnotations(String columnName)
+    public List<String> getPersistenceAnnotations(String columnName)
     {
         return new LinkedList<String>();
     }
@@ -54,6 +51,16 @@ public abstract class Type
     public boolean isCollection()
     {
         return false;
+    }
+
+    public String getCollectionClassName()
+    {
+        return null;
+    }
+
+    public String getElementTypeClassName()
+    {
+        return null;
     }
 
     @Override
@@ -101,6 +108,23 @@ public abstract class Type
             }
         });
         types.put("DateTime", new PersistentAtomicType("org.joda.time.DateTime", "DateTime"));
+        types.put("Interval", new PersistentAtomicType("org.joda.time.Interval", "Interval") {
+            @Override
+            public List<String> getPersistenceAnnotations(String columnName)
+            {
+                List<String> annotations = super.getPersistenceAnnotations(columnName);
+                for (String annotation : annotations) {
+                    if (annotation.contains("@javax.persistence.Column")) {
+                        annotations.remove(annotation);
+                        annotations.add(0, "@org.hibernate.annotations.Columns(columns={"
+                                + "@javax.persistence.Column(name=\"" + columnName + "_start\"),"
+                                + "@javax.persistence.Column(name=\"" + columnName + "_end\")})");
+                        break;
+                    }
+                }
+                return annotations;
+            }
+        });
         types.put("Period", new PersistentAtomicType("org.joda.time.Period", "Period"));
         types.put("Technology", new EnumAtomicType("cz.cesnet.shongo.Technology"));
         types.put("AliasType", new EnumAtomicType("cz.cesnet.shongo.AliasType"));
@@ -141,9 +165,9 @@ public abstract class Type
         }
 
         @Override
-        public Collection<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String columnName)
         {
-            Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
             persistenceAnnotations.add("@javax.persistence.Column");
             return persistenceAnnotations;
         }
@@ -157,9 +181,9 @@ public abstract class Type
         }
 
         @Override
-        public Collection<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String columnName)
         {
-            Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
             persistenceAnnotations.add("@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)");
             return persistenceAnnotations;
         }
@@ -181,10 +205,20 @@ public abstract class Type
             return super.getClassName() + "<" + elementType.getClassName() + ">";
         }
 
-        @Override
-        public Collection<String> getPersistenceAnnotations(String columnName)
+        public String getCollectionClassName()
         {
-            Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            return super.getClassName();
+        }
+
+        public String getElementTypeClassName()
+        {
+            return elementType.getClassName();
+        }
+
+        @Override
+        public List<String> getPersistenceAnnotations(String columnName)
+        {
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
             if (elementType instanceof EntityType) {
                 persistenceAnnotations.add("@javax.persistence.OneToMany("
                         + "cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)");
@@ -213,9 +247,9 @@ public abstract class Type
         }
 
         @Override
-        public Collection<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String columnName)
         {
-            Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
             persistenceAnnotations.add("@org.hibernate.annotations.Type(type = \"" + persistentType + "\")");
             return persistenceAnnotations;
         }
@@ -252,9 +286,9 @@ public abstract class Type
         }
 
         @Override
-        public Collection<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String columnName)
         {
-            Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
             String params = null;
             if (hasFlag(CASCADE_ALL)) {
                 params = "cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true";

@@ -10,7 +10,7 @@ import cz.cesnet.shongo.report.*;
 public class SchedulerReportSet extends AbstractReportSet
 {
     /**
-     * The {@link #resource}.
+     * Resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceReport")
@@ -20,6 +20,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public ResourceReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource";
         }
 
         public ResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -49,22 +56,30 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * The {@link #resource} is not allocatable.
+     * The resource {@link #resource} is disabled for allocation.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAllocatableReport")
@@ -72,6 +87,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ResourceNotAllocatableReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-not-allocatable";
         }
 
         public ResourceNotAllocatableReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -88,24 +110,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not allocatable.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-allocatable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -148,7 +171,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is already allocated.
+     * The resource {@link #resource} is already allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceAlreadyAllocatedReport")
@@ -156,6 +179,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ResourceAlreadyAllocatedReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-already-allocated";
         }
 
         public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -172,24 +202,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is already allocated.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-already-allocated", userType, language, timeZone, getParameters());
         }
     }
 
@@ -232,7 +263,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
+     * The resource {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAvailableReport")
@@ -242,6 +273,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public ResourceNotAvailableReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-not-available";
         }
 
         public ResourceNotAvailableReport(cz.cesnet.shongo.controller.resource.Resource resource, org.joda.time.DateTime maxDateTime)
@@ -271,26 +309,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
-                    message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("maxDateTime", maxDateTime);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-available", userType, language, timeZone, getParameters());
         }
     }
 
@@ -340,7 +378,143 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is not endpoint.
+     * The resource {@link #resource} has available only {@link #availableLicenseCount} from {@link #maxLicenseCount} licenses.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceRoomCapacityExceededReport")
+    public static class ResourceRoomCapacityExceededReport extends ResourceReport
+    {
+        protected Integer availableLicenseCount;
+
+        protected Integer maxLicenseCount;
+
+        public ResourceRoomCapacityExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-room-capacity-exceeded";
+        }
+
+        public ResourceRoomCapacityExceededReport(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            setResource(resource);
+            setAvailableLicenseCount(availableLicenseCount);
+            setMaxLicenseCount(maxLicenseCount);
+        }
+
+        @javax.persistence.Column
+        public Integer getAvailableLicenseCount()
+        {
+            return availableLicenseCount;
+        }
+
+        public void setAvailableLicenseCount(Integer availableLicenseCount)
+        {
+            this.availableLicenseCount = availableLicenseCount;
+        }
+
+        @javax.persistence.Column
+        public Integer getMaxLicenseCount()
+        {
+            return maxLicenseCount;
+        }
+
+        public void setMaxLicenseCount(Integer maxLicenseCount)
+        {
+            this.maxLicenseCount = maxLicenseCount;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            parameters.put("availableLicenseCount", availableLicenseCount);
+            parameters.put("maxLicenseCount", maxLicenseCount);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-room-capacity-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceRoomCapacityExceededReport}.
+     */
+    public static class ResourceRoomCapacityExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceRoomCapacityExceededException(ResourceRoomCapacityExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(Throwable throwable, ResourceRoomCapacityExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
+            report.setResource(resource);
+            report.setAvailableLicenseCount(availableLicenseCount);
+            report.setMaxLicenseCount(maxLicenseCount);
+            this.report = report;
+        }
+
+        public ResourceRoomCapacityExceededException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            super(throwable);
+            ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
+            report.setResource(resource);
+            report.setAvailableLicenseCount(availableLicenseCount);
+            report.setMaxLicenseCount(maxLicenseCount);
+            this.report = report;
+        }
+
+        public Integer getAvailableLicenseCount()
+        {
+            return getReport().getAvailableLicenseCount();
+        }
+
+        public Integer getMaxLicenseCount()
+        {
+            return getReport().getMaxLicenseCount();
+        }
+
+        @Override
+        public ResourceRoomCapacityExceededReport getReport()
+        {
+            return (ResourceRoomCapacityExceededReport) report;
+        }
+    }
+
+    /**
+     * The resource {@link #resource} is not endpoint.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotEndpointReport")
@@ -348,6 +522,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ResourceNotEndpointReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-not-endpoint";
         }
 
         public ResourceNotEndpointReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -364,24 +545,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is not endpoint.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-endpoint", userType, language, timeZone, getParameters());
         }
     }
 
@@ -424,7 +606,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #resource} is requested multiple times.
+     * The resource {@link #resource} is requested multiple times.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceMultipleRequestedReport")
@@ -432,6 +614,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ResourceMultipleRequestedReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-multiple-requested";
         }
 
         public ResourceMultipleRequestedReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -448,24 +637,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(" is requested multiple times.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-multiple-requested", userType, language, timeZone, getParameters());
         }
     }
 
@@ -520,6 +710,13 @@ public class SchedulerReportSet extends AbstractReportSet
         {
         }
 
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-not-found";
+        }
+
         public ResourceNotFoundReport(java.util.Set<cz.cesnet.shongo.Technology> technologies)
         {
             setTechnologies(technologies);
@@ -545,23 +742,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("No available resource was found for the following specification: Technologies: ");
-                    message.append((technologies == null ? "null" : technologies.toString()));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-found", userType, language, timeZone, getParameters());
         }
     }
 
@@ -621,6 +820,13 @@ public class SchedulerReportSet extends AbstractReportSet
         {
         }
 
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-reusing";
+        }
+
         public ExecutableReusingReport(cz.cesnet.shongo.controller.executor.Executable executable)
         {
             setExecutable(executable);
@@ -648,17 +854,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reusing existing ");
-                    message.append((executable == null ? "null" : executable.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("executable", executable);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("executable-reusing", userType, language, timeZone, getParameters());
         }
     }
 
@@ -675,6 +889,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "compartment-not-enough-endpoint";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.ERROR;
@@ -682,22 +903,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Not enough endpoints are requested for the compartment.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("compartment-not-enough-endpoint", userType, language, timeZone, getParameters());
         }
     }
 
@@ -750,6 +973,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "compartment-assign-alias-to-external-endpoint";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.ERROR;
@@ -757,22 +987,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Cannot assign alias to allocated external endpoint.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("compartment-assign-alias-to-external-endpoint", userType, language, timeZone, getParameters());
         }
     }
 
@@ -822,6 +1054,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public ConnectionReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "connection";
         }
 
         public ConnectionReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -881,6 +1120,13 @@ public class SchedulerReportSet extends AbstractReportSet
         {
         }
 
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "connection-between";
+        }
+
         public ConnectionBetweenReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo, cz.cesnet.shongo.Technology technology)
         {
             setEndpointFrom(endpointFrom);
@@ -909,21 +1155,27 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Creating connection between ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" and ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(" in technology ");
-                    message.append((technology == null ? "null" : technology.toString()));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            parameters.put("technology", technology);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-between", userType, language, timeZone, getParameters());
         }
     }
 
@@ -936,6 +1188,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ConnectionFromToReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "connection-from-to";
         }
 
         public ConnectionFromToReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -953,19 +1212,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Creating connection from ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" to ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-from-to", userType, language, timeZone, getParameters());
         }
     }
 
@@ -978,6 +1244,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ConnectionToMultipleReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "connection-to-multiple";
         }
 
         public ConnectionToMultipleReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -995,19 +1268,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Cannot create connection from ");
-                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
-                    message.append(" to ");
-                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
-                    message.append(", because the target represents multiple endpoints (not supported yet).");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("endpointFrom", endpointFrom);
+            parameters.put("endpointTo", endpointTo);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("connection-to-multiple", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1052,7 +1332,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * No reservation is allocated for reused {@link #reservationRequest} which can be used in requested time slot.
+     * Requested time slot doesn't correspond to {@link #interval} from reused reservation request {@link #reservationRequest}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
@@ -1060,13 +1340,23 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
+        protected org.joda.time.Interval interval;
+
         public ReservationRequestNotUsableReport()
         {
         }
 
-        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-request-not-usable";
+        }
+
+        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             setReservationRequest(reservationRequest);
+            setInterval(interval);
         }
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
@@ -1082,6 +1372,18 @@ public class SchedulerReportSet extends AbstractReportSet
             this.reservationRequest = reservationRequest;
         }
 
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
+        }
+
         @javax.persistence.Transient
         @Override
         public Type getType()
@@ -1091,24 +1393,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("No reservation is allocated for reused ");
-                    message.append((reservationRequest == null ? "null" : reservationRequest.getReportDescription(messageType)));
-                    message.append(" which can be used in requested time slot.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservationRequest", reservationRequest);
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-not-usable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1128,24 +1432,31 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             super(throwable);
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
+            report.setInterval(interval);
             this.report = report;
         }
 
         public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
             return getReport().getReservationRequest();
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1163,6 +1474,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public ReservationReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation";
         }
 
         public ReservationReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
@@ -1185,35 +1503,73 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #reservation} from reused {@link #reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.
+     * Reused reservation request {@link #reservationRequest} is not available because it's reservation {@link #reservation} is already used in reservation request {@link #usageReservationRequest} for {@link #usageInterval}.
      */
     @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
-    public static class ReservationNotAvailableReport extends ReservationReport
+    @javax.persistence.DiscriminatorValue("ReservationAlreadyUsedReport")
+    public static class ReservationAlreadyUsedReport extends ReservationReport
     {
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest;
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
-        public ReservationNotAvailableReport()
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest;
+
+        protected org.joda.time.Interval usageInterval;
+
+        public ReservationAlreadyUsedReport()
         {
         }
 
-        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-already-used";
+        }
+
+        public ReservationAlreadyUsedReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             setReservation(reservation);
-            setReusedReservationRequest(reusedReservationRequest);
+            setReservationRequest(reservationRequest);
+            setUsageReservationRequest(usageReservationRequest);
+            setUsageInterval(usageInterval);
         }
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "reusedreservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
+        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reusedReservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
         }
 
-        public void setReusedReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
-            this.reusedReservationRequest = reusedReservationRequest;
+            this.reservationRequest = reservationRequest;
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
+        }
+
+        public void setUsageReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest)
+        {
+            this.usageReservationRequest = usageReservationRequest;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usageinterval_start"),@javax.persistence.Column(name="usageinterval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return usageInterval;
+        }
+
+        public void setUsageInterval(org.joda.time.Interval usageInterval)
+        {
+            this.usageInterval = usageInterval;
         }
 
         @javax.persistence.Transient
@@ -1225,71 +1581,87 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The ");
-                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(" from reused ");
-                    message.append((reusedReservationRequest == null ? "null" : reusedReservationRequest.getReportDescription(messageType)));
-                    message.append(" is not available because it is already allocated for another reservation request in requested time slot.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservation", reservation);
+            parameters.put("reservationRequest", reservationRequest);
+            parameters.put("usageReservationRequest", usageReservationRequest);
+            parameters.put("usageInterval", usageInterval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-already-used", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link ReservationNotAvailableReport}.
+     * Exception for {@link ReservationAlreadyUsedReport}.
      */
-    public static class ReservationNotAvailableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    public static class ReservationAlreadyUsedException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
     {
-        public ReservationNotAvailableException(ReservationNotAvailableReport report)
+        public ReservationAlreadyUsedException(ReservationAlreadyUsedReport report)
         {
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, ReservationNotAvailableReport report)
+        public ReservationAlreadyUsedException(Throwable throwable, ReservationAlreadyUsedReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public ReservationAlreadyUsedException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
-            ReservationNotAvailableReport report = new ReservationNotAvailableReport();
+            ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
             report.setReservation(reservation);
-            report.setReusedReservationRequest(reusedReservationRequest);
+            report.setReservationRequest(reservationRequest);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
+        public ReservationAlreadyUsedException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             super(throwable);
-            ReservationNotAvailableReport report = new ReservationNotAvailableReport();
+            ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
             report.setReservation(reservation);
-            report.setReusedReservationRequest(reusedReservationRequest);
+            report.setReservationRequest(reservationRequest);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return getReport().getReusedReservationRequest();
+            return getReport().getReservationRequest();
+        }
+
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return getReport().getUsageReservationRequest();
+        }
+
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return getReport().getUsageInterval();
         }
 
         @Override
-        public ReservationNotAvailableReport getReport()
+        public ReservationAlreadyUsedReport getReport()
         {
-            return (ReservationNotAvailableReport) report;
+            return (ReservationAlreadyUsedReport) report;
         }
     }
 
@@ -1302,6 +1674,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public ReservationReusingReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-reusing";
         }
 
         public ReservationReusingReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
@@ -1318,22 +1697,30 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Reusing ");
-                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservation", reservation);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-reusing", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Value {@link #value} is already allocated.
+     * Value {@link #value} is already allocated in interval {@link #interval}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ValueAlreadyAllocatedReport")
@@ -1341,13 +1728,23 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         protected String value;
 
+        protected org.joda.time.Interval interval;
+
         public ValueAlreadyAllocatedReport()
         {
         }
 
-        public ValueAlreadyAllocatedReport(String value)
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "value-already-allocated";
+        }
+
+        public ValueAlreadyAllocatedReport(String value, org.joda.time.Interval interval)
         {
             setValue(value);
+            setInterval(interval);
         }
 
         @javax.persistence.Column
@@ -1361,6 +1758,18 @@ public class SchedulerReportSet extends AbstractReportSet
             this.value = value;
         }
 
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
+        }
+
         @javax.persistence.Transient
         @Override
         public Type getType()
@@ -1370,24 +1779,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is already allocated.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("value", value);
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-already-allocated", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1407,24 +1818,31 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ValueAlreadyAllocatedException(String value)
+        public ValueAlreadyAllocatedException(String value, org.joda.time.Interval interval)
         {
             ValueAlreadyAllocatedReport report = new ValueAlreadyAllocatedReport();
             report.setValue(value);
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ValueAlreadyAllocatedException(Throwable throwable, String value)
+        public ValueAlreadyAllocatedException(Throwable throwable, String value, org.joda.time.Interval interval)
         {
             super(throwable);
             ValueAlreadyAllocatedReport report = new ValueAlreadyAllocatedReport();
             report.setValue(value);
+            report.setInterval(interval);
             this.report = report;
         }
 
         public String getValue()
         {
             return getReport().getValue();
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1445,6 +1863,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public ValueInvalidReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "value-invalid";
         }
 
         public ValueInvalidReport(String value)
@@ -1472,24 +1897,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Value ");
-                    message.append((value == null ? "null" : value));
-                    message.append(" is invalid.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-invalid", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1543,8 +1969,34 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ValueNotAvailableReport")
     public static class ValueNotAvailableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
+        protected org.joda.time.Interval interval;
+
         public ValueNotAvailableReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "value-not-available";
+        }
+
+        public ValueNotAvailableReport(org.joda.time.Interval interval)
+        {
+            setInterval(interval);
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
         }
 
         @javax.persistence.Transient
@@ -1556,22 +2008,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("No value is available.");
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("value-not-available", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1591,17 +2046,24 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ValueNotAvailableException()
+        public ValueNotAvailableException(org.joda.time.Interval interval)
         {
             ValueNotAvailableReport report = new ValueNotAvailableReport();
+            report.setInterval(interval);
             this.report = report;
         }
 
-        public ValueNotAvailableException(Throwable throwable)
+        public ValueNotAvailableException(Throwable throwable, org.joda.time.Interval interval)
         {
             super(throwable);
             ValueNotAvailableReport report = new ValueNotAvailableReport();
+            report.setInterval(interval);
             this.report = report;
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
         }
 
         @Override
@@ -1612,7 +2074,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating the {@link #resource}.
+     * Allocating the resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingResourceReport")
@@ -1620,6 +2082,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public AllocatingResourceReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "allocating-resource";
         }
 
         public AllocatingResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -1636,17 +2105,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating the ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-resource", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1668,6 +2145,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public AllocatingAliasReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "allocating-alias";
         }
 
         public AllocatingAliasReport(java.util.Set<cz.cesnet.shongo.Technology> technologies, java.util.Set<cz.cesnet.shongo.AliasType> aliasTypes, String value)
@@ -1719,32 +2203,32 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating alias for the following specification: \n  Technology: ");
-                    message.append(((technologies == null || technologies.isEmpty()) ? "Any" : technologies.toString()));
-                    message.append(" \n  Alias Type: ");
-                    message.append(((aliasTypes == null || aliasTypes.isEmpty()) ? "Any" : aliasTypes.toString()));
-                    message.append(" \n       Value: ");
-                    message.append((value == null ? "Any" : value));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            parameters.put("aliasTypes", aliasTypes);
+            parameters.put("value", value);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-alias", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Allocating value in the {@link #resource}.
+     * Allocating value in the resource {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingValueReport")
@@ -1752,6 +2236,13 @@ public class SchedulerReportSet extends AbstractReportSet
     {
         public AllocatingValueReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "allocating-value";
         }
 
         public AllocatingValueReport(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -1768,17 +2259,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating value in the ");
-                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-value", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1797,6 +2296,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public AllocatingRoomReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "allocating-room";
         }
 
         public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies, Integer participantCount)
@@ -1836,25 +2342,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        protected int getVisibleFlags()
+        public int getVisibleFlags()
         {
-            return VISIBLE_TO_USER;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public java.util.Map<String, Object> getParameters()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating room for the following specification: \n    Technology: ");
-                    message.append((technologies == null ? "null" : technologies.toString()));
-                    message.append(" \n  Participants: ");
-                    message.append((participantCount == null ? "null" : participantCount.toString()));
-                    break;
-            }
-            return message.toString();
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("technologies", technologies);
+            parameters.put("participantCount", participantCount);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-room", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1871,6 +2378,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "allocating-compartment";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.INFORMATION;
@@ -1878,15 +2392,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating compartment.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-compartment", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1903,6 +2426,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "allocating-executable";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.INFORMATION;
@@ -1910,15 +2440,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Allocating executable.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-executable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1935,6 +2474,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "specification-checking-availability";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.INFORMATION;
@@ -1942,15 +2488,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Checking specification availability report.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-checking-availability", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1967,6 +2522,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "finding-available-resource";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.INFORMATION;
@@ -1974,15 +2536,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Finding available resource.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("finding-available-resource", userType, language, timeZone, getParameters());
         }
     }
 
@@ -1999,6 +2570,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "sorting-resources";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.INFORMATION;
@@ -2006,15 +2584,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Sorting resources.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("sorting-resources", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2029,6 +2616,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public SpecificationNotReadyReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "specification-not-ready";
         }
 
         public SpecificationNotReadyReport(cz.cesnet.shongo.controller.request.Specification specification)
@@ -2058,17 +2652,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Specification ");
-                    message.append((specification == null ? "null" : specification.getReportDescription(messageType)));
-                    message.append(" is not ready.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("specification", specification);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-not-ready", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2116,134 +2718,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Duration {@link #duration} is longer than maximum {@link #maximumDuration}.
-     */
-    @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("DurationLongerThanMaximumReport")
-    public static class DurationLongerThanMaximumReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
-    {
-        protected org.joda.time.Period duration;
-
-        protected org.joda.time.Period maximumDuration;
-
-        public DurationLongerThanMaximumReport()
-        {
-        }
-
-        public DurationLongerThanMaximumReport(org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            setDuration(duration);
-            setMaximumDuration(maximumDuration);
-        }
-
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
-        public org.joda.time.Period getDuration()
-        {
-            return duration;
-        }
-
-        public void setDuration(org.joda.time.Period duration)
-        {
-            this.duration = duration;
-        }
-
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
-        public org.joda.time.Period getMaximumDuration()
-        {
-            return maximumDuration;
-        }
-
-        public void setMaximumDuration(org.joda.time.Period maximumDuration)
-        {
-            this.maximumDuration = maximumDuration;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public Type getType()
-        {
-            return Report.Type.ERROR;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        protected int getVisibleFlags()
-        {
-            return VISIBLE_TO_USER;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getMessage(MessageType messageType)
-        {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Duration ");
-                    message.append((duration == null ? "null" : duration.toString()));
-                    message.append(" is longer than maximum ");
-                    message.append((maximumDuration == null ? "null" : maximumDuration.toString()));
-                    message.append(".");
-                    break;
-            }
-            return message.toString();
-        }
-    }
-
-    /**
-     * Exception for {@link DurationLongerThanMaximumReport}.
-     */
-    public static class DurationLongerThanMaximumException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
-    {
-        public DurationLongerThanMaximumException(DurationLongerThanMaximumReport report)
-        {
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(Throwable throwable, DurationLongerThanMaximumReport report)
-        {
-            super(throwable);
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            DurationLongerThanMaximumReport report = new DurationLongerThanMaximumReport();
-            report.setDuration(duration);
-            report.setMaximumDuration(maximumDuration);
-            this.report = report;
-        }
-
-        public DurationLongerThanMaximumException(Throwable throwable, org.joda.time.Period duration, org.joda.time.Period maximumDuration)
-        {
-            super(throwable);
-            DurationLongerThanMaximumReport report = new DurationLongerThanMaximumReport();
-            report.setDuration(duration);
-            report.setMaximumDuration(maximumDuration);
-            this.report = report;
-        }
-
-        public org.joda.time.Period getDuration()
-        {
-            return getReport().getDuration();
-        }
-
-        public org.joda.time.Period getMaximumDuration()
-        {
-            return getReport().getMaximumDuration();
-        }
-
-        @Override
-        public DurationLongerThanMaximumReport getReport()
-        {
-            return (DurationLongerThanMaximumReport) report;
-        }
-    }
-
-    /**
-     * The specification of class {@link #specification} is not supposed to be allocated.
+     * The specification {@link #specification} is not supposed to be allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationNotAllocatableReport")
@@ -2253,6 +2728,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public SpecificationNotAllocatableReport()
         {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "specification-not-allocatable";
         }
 
         public SpecificationNotAllocatableReport(cz.cesnet.shongo.controller.request.Specification specification)
@@ -2282,17 +2764,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("The specification ");
-                    message.append((specification == null ? "null" : specification.getClass().getSimpleName()));
-                    message.append(" is not supposed to be allocated.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("specification", specification);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("specification-not-allocatable", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2340,6 +2830,140 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Duration {@link #duration} is longer than maximum {@link #maxDuration}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("MaximumDurationExceededReport")
+    public static class MaximumDurationExceededReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected org.joda.time.Period duration;
+
+        protected org.joda.time.Period maxDuration;
+
+        public MaximumDurationExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "maximum-duration-exceeded";
+        }
+
+        public MaximumDurationExceededReport(org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            setDuration(duration);
+            setMaxDuration(maxDuration);
+        }
+
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
+        public org.joda.time.Period getDuration()
+        {
+            return duration;
+        }
+
+        public void setDuration(org.joda.time.Period duration)
+        {
+            this.duration = duration;
+        }
+
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
+        public org.joda.time.Period getMaxDuration()
+        {
+            return maxDuration;
+        }
+
+        public void setMaxDuration(org.joda.time.Period maxDuration)
+        {
+            this.maxDuration = maxDuration;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("duration", duration);
+            parameters.put("maxDuration", maxDuration);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("maximum-duration-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link MaximumDurationExceededReport}.
+     */
+    public static class MaximumDurationExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public MaximumDurationExceededException(MaximumDurationExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(Throwable throwable, MaximumDurationExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            MaximumDurationExceededReport report = new MaximumDurationExceededReport();
+            report.setDuration(duration);
+            report.setMaxDuration(maxDuration);
+            this.report = report;
+        }
+
+        public MaximumDurationExceededException(Throwable throwable, org.joda.time.Period duration, org.joda.time.Period maxDuration)
+        {
+            super(throwable);
+            MaximumDurationExceededReport report = new MaximumDurationExceededReport();
+            report.setDuration(duration);
+            report.setMaxDuration(maxDuration);
+            this.report = report;
+        }
+
+        public org.joda.time.Period getDuration()
+        {
+            return getReport().getDuration();
+        }
+
+        public org.joda.time.Period getMaxDuration()
+        {
+            return getReport().getMaxDuration();
+        }
+
+        @Override
+        public MaximumDurationExceededReport getReport()
+        {
+            return (MaximumDurationExceededReport) report;
+        }
+    }
+
+    /**
      * User is not resource owner.
      */
     @javax.persistence.Entity
@@ -2352,6 +2976,13 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public String getUniqueId()
+        {
+            return "user-not-owner";
+        }
+
+        @javax.persistence.Transient
+        @Override
         public Type getType()
         {
             return Report.Type.ERROR;
@@ -2359,15 +2990,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage(MessageType messageType)
+        public int getVisibleFlags()
         {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("User is not resource owner.");
-                    break;
-            }
-            return message.toString();
+            return VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("user-not-owner", userType, language, timeZone, getParameters());
         }
     }
 
@@ -2414,6 +3054,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceNotAllocatableReport.class);
         addReportClass(ResourceAlreadyAllocatedReport.class);
         addReportClass(ResourceNotAvailableReport.class);
+        addReportClass(ResourceRoomCapacityExceededReport.class);
         addReportClass(ResourceNotEndpointReport.class);
         addReportClass(ResourceMultipleRequestedReport.class);
         addReportClass(ResourceNotFoundReport.class);
@@ -2426,7 +3067,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ConnectionToMultipleReport.class);
         addReportClass(ReservationRequestNotUsableReport.class);
         addReportClass(ReservationReport.class);
-        addReportClass(ReservationNotAvailableReport.class);
+        addReportClass(ReservationAlreadyUsedReport.class);
         addReportClass(ReservationReusingReport.class);
         addReportClass(ValueAlreadyAllocatedReport.class);
         addReportClass(ValueInvalidReport.class);
@@ -2441,8 +3082,8 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(FindingAvailableResourceReport.class);
         addReportClass(SortingResourcesReport.class);
         addReportClass(SpecificationNotReadyReport.class);
-        addReportClass(DurationLongerThanMaximumReport.class);
         addReportClass(SpecificationNotAllocatableReport.class);
+        addReportClass(MaximumDurationExceededReport.class);
         addReportClass(UserNotOwnerReport.class);
     }
 }
