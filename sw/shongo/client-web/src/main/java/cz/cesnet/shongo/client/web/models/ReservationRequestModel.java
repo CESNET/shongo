@@ -509,7 +509,7 @@ public class ReservationRequestModel
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && !Strings.isNullOrEmpty(roomPin)) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
@@ -542,7 +542,7 @@ public class ReservationRequestModel
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && !Strings.isNullOrEmpty(roomPin)) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
