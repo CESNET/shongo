@@ -47,7 +47,7 @@
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
             <th><spring:message code="views.room.aliases"/></th>
-            <th width="120px">
+            <th width="80px">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -79,9 +79,9 @@
                 </div>
             </td>
             <td>
-                <a href="${childDetailUrl}" tabindex="2"><spring:message code="views.list.action.show"/></a>
+                <tag:listAction code="show" url="${childDetailUrl}" tabindex="2"/>
                 <span ng-show="childReservationRequest.roomStateAvailable">
-                    | <a href="${childRoomManagementUrl}" tabindex="2"><spring:message code="views.list.action.manage"/></a>
+                    | <tag:listAction code="manage" url="${childRoomManagementUrl}" tabindex="2"/>
                 </span>
             </td>
         </tr>

@@ -39,7 +39,7 @@
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
-            <th width="120px">
+            <th width="80px">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -65,7 +65,7 @@
                 </tag:help>
             </td>
             <td>
-                <a href="${usageDetailUrl}" tabindex="2"><spring:message code="views.list.action.show"/></a>
+                <tag:listAction code="show" url="${usageDetailUrl}" tabindex="2"/>
             </td>
         </tr>
         <tr ng-hide="items.length">

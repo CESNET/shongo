@@ -8,6 +8,8 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+
 <c:set var="detailUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
 </c:set>
@@ -129,16 +131,14 @@
                         <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
                             <spring:eval var="historyItemDetailUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
-                            <a href="${historyItemDetailUrl}"  tabindex="1">
-                                <spring:message code="views.list.action.show"/>
-                            </a>
+                            <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
                         </c:when>
                         <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
                     </c:choose>
                     <c:if test="${historyItem.isRevertible}">
                         <spring:eval var="historyItemRevertUrl"
                                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
-                        | <a href="${historyItemRevertUrl}" tabindex="2"><spring:message code="views.list.action.revert"/></a>
+                        | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
                     </c:if>
                 </td>
                 </tr>
@@ -195,9 +195,11 @@
         <spring:message code="views.button.refresh"/>
     </a>
     <c:if test="${isWritable}">
-        <a class="btn" href="${modifyUrl}" tabindex="1">
-            <spring:message code="views.button.modify"/>
-        </a>
+        <c:if test="${advancedUserInterface}">
+            <a class="btn" href="${modifyUrl}" tabindex="1">
+                <spring:message code="views.button.modify"/>
+            </a>
+        </c:if>
         <a class="btn" href="${deleteUrl}" tabindex="1">
             <spring:message code="views.button.delete"/>
         </a>

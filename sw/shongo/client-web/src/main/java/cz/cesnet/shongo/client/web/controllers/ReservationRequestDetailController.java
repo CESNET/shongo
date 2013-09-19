@@ -97,7 +97,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         boolean hasVisibleReservation = true;
 
         // Get history of reservation request (only if it is not child reservation request)
-        if (!isChildReservationRequest) {
+        if (!isChildReservationRequest && userSession.isAdvancedUserInterface()) {
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
             for (ReservationRequestSummary historyItem :

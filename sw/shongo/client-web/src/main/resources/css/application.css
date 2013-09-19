@@ -530,9 +530,16 @@ table.aliases td.label {
 }
 
 /* Icons */
+i[class^="icon-"]:before {
+    text-decoration: none;
+}
+b[class^="icon-"]:before {
+    text-decoration: none;
+}
 .icon-none {
-    width: 14px;
+    width: 11px;
     height: 14px;
+    display: inline-block;
 }
 .icon-not-available {
     display: inline-block;
@@ -554,28 +561,9 @@ table.aliases td.label {
 }
 .icon-disable-sorting {
     display: inline-block;
-    margin-left: 14px;
-    margin-right: 2px;
-    width: 14px;
-    height: 14px;
-    margin-top: 1px;
-    line-height: 14px;
-    vertical-align: text-top;
-    background-image: url("../img/glyphicons-halflings.png");
-    background-position: -312px 0px;
-    background-repeat: no-repeat;
+    padding-left: 5px;
+    padding-right: 5px;
 }
-.icon-disable-sorting:after {
-    content: '';
-    display: inline-block;
-    margin-left: -10px;
-    width: 14px;
-    height: 14px;
-    margin-top: 1px;
-    line-height: 14px;
-    vertical-align: text-top;
-    background-image: url("../img/glyphicons-halflings.png");
-    background-position: -434px -121px;
-    background-repeat: no-repeat;
+.icon-disable-sorting:before {
+    content: '\f175  \f00d';
 }
-

@@ -392,7 +392,7 @@ paginationModule.directive('paginationSortDefault', function () {
             var html =
                 '<div class="' + attributeClass + '">' +
                 '<a class="pull-right hovered" href="" ng-click="setSort()" title="' + text + '">' +
-                '<span class="icon-disable-sorting"></span>' +
+                '<i class="icon-disable-sorting"></i>' +
                 '</a>' +
                 '</div>';
             element.replaceWith(html);

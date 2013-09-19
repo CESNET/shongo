@@ -18,6 +18,12 @@
 <%@attribute name="detailed" required="false" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+
+<c:if test="${!advancedUserInterface}">
+    <c:set var="modifyUrl" value="${null}"/>
+</c:if>
+
 <c:set var="listName" value="reservation-request-list${name != null ? ('-'.concat(name)) : ''}"/>
 <c:set var="listUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>
@@ -98,7 +104,7 @@
                     <spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
                 </th>
             </c:if>
-            <th>
+            <th style="width: 80px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -140,21 +146,18 @@
             </c:if>
             <td>
                 <c:if test="${detailUrl != null}">
-                    <spring:message var="actionShow" code="views.list.action.show" />
-                    <a href="${detailUrl}" tabindex="4"> <b class="icon-eye-open" title="${actionShow}"></b></a>
+                    <tag:listAction code="show" url="${detailUrl}" tabindex="4"/>
                 </c:if>
-                    <span ng-show="reservationRequest.writable">
-                        <c:if test="${modifyUrl != null}">
-                            <c:if test="${detailUrl != null}">| </c:if>
-                            <spring:message var="actionModify" code="views.list.action.modify" />
-                            <a href="${modifyUrl}" tabindex="4"> <b class="icon-pencil" title="${actionModify}"></b></a>
-                        </c:if>
-                        <c:if test="${deleteUrl != null}">
-                            <c:if test="${detailUrl != null || modifyUrl != null}">| </c:if>
-                            <spring:message var="actionDelete" code="views.list.action.delete" />
-                            <a href="${deleteUrl}" tabindex="4"> <b class="icon-trash" title="${actionDelete}"></b></a>
-                        </c:if>
-                    </span>
+                <span ng-show="reservationRequest.writable">
+                    <c:if test="${modifyUrl != null}">
+                        <c:if test="${detailUrl != null}">| </c:if>
+                        <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
+                    </c:if>
+                    <c:if test="${deleteUrl != null}">
+                        <c:if test="${detailUrl != null || modifyUrl != null}"> | </c:if>
+                        <tag:listAction code="delete" url="${deleteUrl}" tabindex="4"/>
+                    </c:if>
+                </span>
             </td>
         </tr>
         <tr ng-hide="items.length">

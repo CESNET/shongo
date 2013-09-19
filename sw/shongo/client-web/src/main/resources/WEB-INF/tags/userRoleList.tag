@@ -4,6 +4,7 @@
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="isWritable" required="false" %>
 <%@attribute name="data" required="false" type="java.util.Collection" %>
@@ -46,9 +47,7 @@
                             <c:if test="${not empty userRole.id && userRole.deletable}">
                                 <spring:eval var="aclDeleteUrl"
                                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, userRole.id)"/>
-                                <a href="${aclDeleteUrl}" tabindex="2">
-                                    <spring:message code="views.list.action.delete"/>
-                                </a>
+                                <tag:listAction code="delete" url="${aclDeleteUrl}" tabindex="2"/>
                             </c:if>
                         </td>
                     </c:if>
@@ -87,9 +86,9 @@
                         <td>
                             <spring:eval var="aclDeleteUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, '{{userRole.id}}')"/>
-                            <a href="${aclDeleteUrl}" tabindex="2" ng-show="userRole.deletable">
-                                <spring:message code="views.list.action.delete"/>
-                            </a>
+                            <span ng-show="userRole.deletable">
+                                <tag:listAction code="delete" url="${aclDeleteUrl}" tabindex="2"/>
+                            </span>
                         </td>
                     </c:if>
                 </tr>
