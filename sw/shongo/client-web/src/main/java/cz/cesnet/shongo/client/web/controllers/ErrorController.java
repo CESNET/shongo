@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
+import cz.cesnet.shongo.controller.ControllerConnectException;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,6 +143,10 @@ public class ErrorController
     public ModelAndView handleLoginErrorView(HttpServletRequest request)
     {
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        Throwable exceptionCause = exception.getCause();
+        if (exceptionCause instanceof ControllerConnectException) {
+            return new ModelAndView(handleControllerNotAvailableView());
+        }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
         return handleError(errorModel, configuration, reCaptcha);
     }

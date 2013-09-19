@@ -113,8 +113,10 @@ public class ClientWebUrl
     public static final String USER_DETAIL =
             "/user/{userId:.+}";
 
-    public static final String ROOMS_DATA =
-            "/rooms";
+    public static final String ROOM_LIST =
+            "/room/list";
+    public static final String ROOM_LIST_DATA =
+            "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
 

@@ -97,7 +97,7 @@ public class UserSettings extends PersistentObject
      */
     @ElementCollection
     @MapKeyColumn(name = "name")
-    @Column(name = "name")
+    @Column(name = "value")
     @Access(AccessType.FIELD)
     public Map<String, String> getAttributes()
     {

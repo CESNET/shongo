@@ -46,6 +46,8 @@ public enum ClientWebNavigation
     RESERVATION_REQUEST_DELETE(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_DELETE,
             "navigation.reservationRequest.delete"),
 
+    ROOM_LIST(HOME, ClientWebUrl.ROOM_LIST,
+            "navigation.roomList"),
     ROOM_MANAGEMENT(HOME, ClientWebUrl.ROOM_MANAGEMENT,
             "navigation.roomManagement");
 

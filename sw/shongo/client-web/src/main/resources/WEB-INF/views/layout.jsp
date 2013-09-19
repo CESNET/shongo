@@ -16,8 +16,6 @@
 <%-- Variables --%>
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
-<c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="reportUrl">${contextPath}<%= ClientWebUrl.REPORT %></c:set>
 <c:set var="changelogUrl">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
 
@@ -85,8 +83,20 @@
                 <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
                 <div class="nav-collapse collapse pull-left">
                     <ul class="nav" role="navigation">
-                        <li><a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a></li>
-                        <li><a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a></li>
+                        <li>
+                            <c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
+                            <a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a>
+                        </li>
+                        <li>
+                            <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+                            <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
+                        </li>
+                        <c:if test="${sessionScope.user.advancedUserInterface}">
+                            <li>
+                                <c:set var="roomListUrl">${contextPath}<%= ClientWebUrl.ROOM_LIST %></c:set>
+                                <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
+                            </li>
+                        </c:if>
                     </ul>
                 </div>
             </div>

@@ -170,4 +170,9 @@
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
     </definition>
 
+    <definition name="roomList" extends="layoutAngular">
+        <put-attribute name="title" value="views.roomList.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
+    </definition>
+
 </tiles-definitions>
