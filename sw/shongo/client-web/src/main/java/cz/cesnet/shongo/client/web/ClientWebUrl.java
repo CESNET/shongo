@@ -23,16 +23,6 @@ public class ClientWebUrl
 
     public static final String WIZARD =
             "/wizard";
-    public static final String WIZARD_SELECT =
-            "/wizard/select";
-    public static final String WIZARD_RESERVATION_REQUEST_LIST =
-            "/wizard/reservation-request";
-    public static final String WIZARD_RESERVATION_REQUEST_DETAIL =
-            "/wizard/reservation-request/{reservationRequestId:.+}";
-    public static final String WIZARD_RESERVATION_REQUEST_DELETE =
-            "/wizard/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String WIZARD_RESERVATION_REQUEST_DELETE_CONFIRM =
-            "/wizard/reservation-request/{reservationRequestId:.+}/delete/confirm";
     public static final String WIZARD_CREATE_ROOM =
             "/wizard/create";
     public static final String WIZARD_CREATE_ADHOC_ROOM =
@@ -217,21 +207,6 @@ public class ClientWebUrl
     public static String getRoomManagement(String path, String roomId)
     {
         return path + getRoomManagement(roomId);
-    }
-
-    public static String getWizardReservationRequestDelete(String path, String reservationRequestI)
-    {
-        return path + getWizardReservationRequestDelete(reservationRequestI);
-    }
-
-    public static String getWizardReservationRequestDelete(String reservationRequestI)
-    {
-        return format(WIZARD_RESERVATION_REQUEST_DELETE, reservationRequestI);
-    }
-
-    public static String getWizardReservationRequestDeleteConfirm(String reservationRequestI)
-    {
-        return format(WIZARD_RESERVATION_REQUEST_DELETE_CONFIRM, reservationRequestI);
     }
 
     public static String getWizardCreatePermanentRoomCapacity(String path, String permanentRoom)

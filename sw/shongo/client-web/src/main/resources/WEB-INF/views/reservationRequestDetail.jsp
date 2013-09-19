@@ -28,6 +28,47 @@
     angular.module('jsp:reservationRequestDetail', ['tag:reservationRequestDetail', 'ngPagination']);
 </script>
 
+<%-- What do you want to do? --%>
+<c:if test="${!sessionScope.user.advancedUserInterface}">
+    <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+        <spring:eval var="createPermanentRoomCapacityUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+    </c:if>
+    <div class="actions">
+        <span><spring:message code="views.wizard.select"/></span>
+        <ul>
+            <c:if test="${createPermanentRoomCapacityUrl != null}">
+                <li>
+                    <c:choose >
+                        <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
+                            <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
+                                <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                        <span class="disabled">
+                            <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>
+                        </span>
+                        </c:otherwise>
+                    </c:choose>
+                </li>
+            </c:if>
+            <li>
+                <a href="javascript: location.reload();"  tabindex="1">
+                    <spring:message code="views.wizard.reservationRequestDetail.refresh"/>
+                </a>
+            </li>
+            <c:if test="${isWritable}">
+                <li>
+                    <spring:eval var="deleteUrl"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
+                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.wizard.reservationRequestDetail.delete"/></a>
+                </li>
+            </c:if>
+        </ul>
+    </div>
+</c:if>
+
 <%-- Page title --%>
 <h1>
     <c:choose>

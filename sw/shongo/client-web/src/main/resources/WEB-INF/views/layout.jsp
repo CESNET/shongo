@@ -84,10 +84,6 @@
                 <div class="nav-collapse collapse pull-left">
                     <ul class="nav" role="navigation">
                         <li>
-                            <c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
-                            <a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a>
-                        </li>
-                        <li>
                             <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
                             <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
                         </li>
@@ -118,8 +114,8 @@
                 <%-- Login button --%>
                 <security:authorize access="!isAuthenticated()">
                     <li>
-                        <c:set var="urlLogin">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
-                        <a href="${urlLogin}"><spring:message code="views.layout.login"/></a>
+                        <c:set var="loginUrl">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
+                        <a href="${loginUrl}"><spring:message code="views.layout.login"/></a>
                     </li>
                 </security:authorize>
 

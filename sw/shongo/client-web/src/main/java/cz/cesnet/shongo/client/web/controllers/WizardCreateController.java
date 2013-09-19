@@ -53,7 +53,6 @@ public class WizardCreateController extends AbstractWizardController
     @Override
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
-        wizardView.addPage(WizardController.createSelectWizardPage());
         wizardView.addPage(new WizardPage(Page.CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM,
                 "views.wizard.page.createRoom"));
         wizardView.addPage(new WizardPage(Page.CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
@@ -291,7 +290,7 @@ public class WizardCreateController extends AbstractWizardController
         sessionStatus.setComplete();
 
         // Show detail of newly created reservation request
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 
     /**

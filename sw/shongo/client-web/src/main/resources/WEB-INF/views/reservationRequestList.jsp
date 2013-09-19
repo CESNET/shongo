@@ -16,6 +16,21 @@
     angular.module('jsp:reservationRequestList', ['ngPagination', 'ngTooltip']);
 </script>
 
+<%-- What do you want to do? --%>
+<c:if test="${!sessionScope.user.advancedUserInterface}">
+    <div class="actions">
+        <span><spring:message code="views.wizard.select"/></span>
+        <ul>
+            <li>
+                <a href="${createUrl}" tabindex="1">
+                    <spring:message code="views.wizard.select.createRoom"/>
+                </a>
+            </li>
+        </ul>
+    </div>
+</c:if>
+
+<%-- List of reservation requests --%>
 <div ng-app="jsp:reservationRequestList" ng-controller="ReadyController">
 
     <div class="spinner" ng-hide="ready"></div>
