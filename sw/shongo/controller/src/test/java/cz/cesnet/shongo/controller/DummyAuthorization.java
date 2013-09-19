@@ -103,6 +103,14 @@ public class DummyAuthorization extends Authorization
         this.adminAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
     }
 
+    /**
+     * @param userId to be added to the {@link #adminModeEnabledUserIds}
+     */
+    public void addAdminModeEnabledUserId(String userId)
+    {
+        this.adminModeEnabledUserIds.add(userId);
+    }
+
     @Override
     protected UserInformation onGetUserInformationByAccessToken(String accessToken)
     {

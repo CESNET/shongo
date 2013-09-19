@@ -104,6 +104,8 @@ public class ClientWebUrl
             "/user";
     public static final String USER_SETTINGS =
             "/user/settings";
+    public static final String USER_SETTINGS_ATTRIBUTE =
+            USER_SETTINGS + "/{name}/{value}";
     public static final String USER_SETTINGS_SAVE =
             "/user/settings/save";
     public static final String USER_LIST =

@@ -103,6 +103,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @return {@link #authorization}
+     */
+    public DummyAuthorization getAuthorization()
+    {
+        return authorization;
+    }
+
+    /**
      * @return {@link #controllerClient}
      */
     public ControllerClient getControllerClient()

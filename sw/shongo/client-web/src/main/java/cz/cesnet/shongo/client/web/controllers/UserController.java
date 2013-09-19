@@ -3,10 +3,9 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
-import cz.cesnet.shongo.client.web.support.interceptors.TimeZoneInterceptor;
-import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -22,14 +21,12 @@ import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.List;
 
 /**
  * Controller for retrieving {@link UserInformation}.
@@ -76,14 +73,41 @@ public class UserController
             Model model)
     {
         if (fromUrl != null) {
-            // Store fromUrl to session (for future redirection)
-            WebUtils.setSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE, fromUrl);
+            if (WebUtils.getSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE) == null
+                    && !fromUrl.equals(ClientWebUrl.USER_SETTINGS)) {
+                // Store fromUrl to session (for future redirection)
+                WebUtils.setSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE, fromUrl);
+            }
             return "redirect:" + ClientWebUrl.USER_SETTINGS;
         }
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", userSettings);
         model.addAttribute("timeZones", TimeZoneModel.getTimeZones(DateTime.now()));
         return "userSettings";
+    }
+
+    /**
+     * Handle updating of single user settings attribute.
+     */
+    @RequestMapping(value = ClientWebUrl.USER_SETTINGS_ATTRIBUTE, method = RequestMethod.GET)
+    public String handleUserSettingsAttribute(
+            SecurityToken securityToken,
+            HttpServletRequest request,
+            @PathVariable(value = "name") String name,
+            @PathVariable(value = "value") String value,
+            @RequestParam(value = "from") String fromUrl)
+    {
+        UserSettings userSettings = authorizationService.getUserSettings(securityToken);
+        if (name.equals("user-interface")) {
+            userSettings.setAttribute(UserSession.USER_INTERFACE_SETTINGS_ATTRIBUTE, value);
+        }
+        else {
+            throw new IllegalArgumentException(name);
+        }
+        authorizationService.updateUserSettings(securityToken, userSettings);
+        UserSession userSession = UserSession.getInstance(request);
+        userSession.loadUserSettings(userSettings, request, securityToken);
+        return "redirect:" + fromUrl;
     }
 
     /**

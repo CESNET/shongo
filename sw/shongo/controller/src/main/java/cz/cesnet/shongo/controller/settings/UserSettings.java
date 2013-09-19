@@ -4,11 +4,10 @@ import cz.cesnet.shongo.PersistentObject;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTimeZone;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.*;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Represent a global user settings.
@@ -32,6 +31,11 @@ public class UserSettings extends PersistentObject
      * {@link DateTimeZone} of the user.
      */
     private DateTimeZone timeZone;
+
+    /**
+     * Other custom user settings attributes which should be globally stored.
+     */
+    private Map<String, String> attributes = new HashMap<String, String>();
 
     /**
      * @return {@link #userId}
@@ -86,5 +90,50 @@ public class UserSettings extends PersistentObject
     public void setTimeZone(DateTimeZone timeZone)
     {
         this.timeZone = timeZone;
+    }
+
+    /**
+     * @return {@link #attributes}
+     */
+    @ElementCollection
+    @MapKeyColumn(name = "name")
+    @Column(name = "name")
+    @Access(AccessType.FIELD)
+    public Map<String, String> getAttributes()
+    {
+        return attributes;
+    }
+
+    /**
+     * Load this {@link UserSettings} from given {@code userSettingsApi}.
+     *
+     * @param userSettingsApi
+     */
+    public void fromApi(cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
+    {
+        setLocale(userSettingsApi.getLocale());
+        setTimeZone(userSettingsApi.getTimeZone());
+        attributes.clear();
+        for (Map.Entry<String, String> attribute : userSettingsApi.getAttributes().entrySet()) {
+            String attributeName = attribute.getKey();
+            String attributeValue = attribute.getValue();
+            if (attributeName != null && attributeValue != null) {
+                attributes.put(attributeName, attributeValue);
+            }
+        }
+    }
+
+    /**
+     * Store this {@link UserSettings} to given {@code userSettingsApi}.
+     *
+     * @param userSettingsApi
+     */
+    public void toApi(cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
+    {
+        userSettingsApi.setLocale(getLocale());
+        userSettingsApi.setTimeZone(getTimeZone());
+        for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+            userSettingsApi.setAttribute(attribute.getKey(), attribute.getValue());
+        }
     }
 }

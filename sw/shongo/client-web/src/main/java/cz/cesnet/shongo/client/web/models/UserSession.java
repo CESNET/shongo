@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Locale;
 
@@ -26,6 +25,7 @@ public class UserSession implements Serializable
     private static Logger logger = LoggerFactory.getLogger(UserSession.class);
 
     public final static String USER_SESSION_ATTRIBUTE = "user";
+    public final static String USER_INTERFACE_SETTINGS_ATTRIBUTE = "client.ui.type";
 
     /**
      * Current session {@link Locale}.
@@ -43,6 +43,11 @@ public class UserSession implements Serializable
     private boolean admin;
 
     /**
+     * @see UserInterface
+     */
+    private UserInterface userInterface;
+
+    /**
      * Constructor.
      */
     public UserSession()
@@ -50,6 +55,7 @@ public class UserSession implements Serializable
         this.locale = null;
         this.timeZone = null;
         this.admin = false;
+        this.userInterface = UserInterface.BEGINNER;
     }
 
     /**
@@ -101,6 +107,31 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @return {@link #userInterface}
+     */
+    public UserInterface getUserInterface()
+    {
+        return userInterface;
+    }
+
+    /**
+     * @return true whether {@link #userInterface} is {@link UserInterface#ADVANCED},
+     *         false otherwise
+     */
+    public boolean isAdvancedUserInterface()
+    {
+        return userInterface.equals(UserInterface.ADVANCED);
+    }
+
+    /**
+     * @param userInterface sets the {@link #userInterface}
+     */
+    public void setUserInterface(UserInterface userInterface)
+    {
+        this.userInterface = userInterface;
+    }
+
+    /**
      * @param request
      * @return {@link UserSession} for user requesting the {@code request}
      */
@@ -123,7 +154,6 @@ public class UserSession implements Serializable
      */
     public void loadUserSettings(UserSettings userSettings, HttpServletRequest request, SecurityToken securityToken)
     {
-        // Set locale
         Locale locale;
         if (userSettings.getLocale() != null) {
             locale = userSettings.getLocale();
@@ -134,6 +164,12 @@ public class UserSession implements Serializable
         setLocale(locale);
         setTimeZone(userSettings.getTimeZone());
         setAdmin(userSettings.getAdminMode());
+
+        UserInterface userInterface = userSettings.getAttribute(USER_INTERFACE_SETTINGS_ATTRIBUTE, UserInterface.class);
+        if (userInterface != null) {
+            setUserInterface(userInterface);
+        }
+
         update(request, securityToken.getUserInformation());
     }
 
@@ -152,10 +188,27 @@ public class UserSession implements Serializable
             }
         }
 
-        logger.info("Setting (locale: {}, timezone: {}, admin: {}) for {}...", new Object[]{
-                locale, timeZone, admin, (userInformation != null ? userInformation : "anonymous")
+        logger.info("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
+                locale, timeZone, admin, userInterface, (userInformation != null ? userInformation : "anonymous")
         });
 
         WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);
     }
+
+    /**
+     * Type of user interface.
+     */
+    public static enum UserInterface
+    {
+        /**
+         * UI for beginners.
+         */
+        BEGINNER,
+
+        /**
+         * UI for advanced users.
+         */
+        ADVANCED
+    }
+
 }

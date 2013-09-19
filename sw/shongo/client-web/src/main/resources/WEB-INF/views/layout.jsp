@@ -20,24 +20,15 @@
 <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="reportUrl">${contextPath}<%= ClientWebUrl.REPORT %></c:set>
 <c:set var="changelogUrl">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
-<c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %></c:set>
 
 <%
     String requestUri = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+    pageContext.setAttribute("requestUrl", requestUri);
 
     // URL for changing language
     UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUri);
     languageUrlBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
     pageContext.setAttribute("languageUrl", languageUrlBuilder.build().toUriString());
-
-    // URL for changing user settings
-    StringBuilder userSettingsUrlBuilder = new StringBuilder();
-    userSettingsUrlBuilder.append(ClientWebUrl.USER_SETTINGS);
-    if (!requestUri.equals("/")) {
-        userSettingsUrlBuilder.append("?from=");
-        userSettingsUrlBuilder.append(requestUri);
-    }
-    pageContext.setAttribute("userSettingsUrl", userSettingsUrlBuilder.toString());
 %>
 
 <%-- Header --%>
@@ -124,19 +115,28 @@
 
                 <%-- Logged user information --%>
                 <security:authorize access="isAuthenticated()">
+                    <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>?from=${requestUrl}</c:set>
+                    <c:set var="advancedUserInterfaceUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>/user-interface/${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}?from=${requestUrl}</c:set>
+                    <c:set var="logoutUrl">${contextPath}<%= ClientWebUrl.LOGOUT %></c:set>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.user.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
                             <b class="icon-cog"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
-                            <li ng-controller="UserSettingsController">
-                                <a class="menuitem" href="${userSettingsUrl}"><spring:message code="views.layout.settings"/></a>
-                            </li>
                             <li>
-                                <c:set var="urlLogout">${contextPath}<%= ClientWebUrl.LOGOUT %>
-                                </c:set>
-                                <a class="menuitem" href="${urlLogout}"><spring:message code="views.layout.logout"/></a>
+                                <a class="menuitem" href="${userSettingsUrl}"><spring:message code="views.layout.settings"/>...</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a class="menuitem" href="${advancedUserInterfaceUrl}">
+                                    <c:if test="${sessionScope.user.advancedUserInterface}"><span class="icon-ok"></span></c:if><%--
+                                    --%><spring:message code="views.layout.settings.advancedUserInterface"/>
+                                </a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a class="menuitem" href="${logoutUrl}"><spring:message code="views.layout.logout"/></a>
                             </li>
                         </ul>
                     </li>

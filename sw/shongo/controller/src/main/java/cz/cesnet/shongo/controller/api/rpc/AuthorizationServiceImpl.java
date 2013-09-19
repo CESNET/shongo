@@ -432,8 +432,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.settings.UserSettings userSettings =
                     UserSettingsProvider.getUserSettings(securityToken.getUserId(), entityManager);
             if (userSettings != null) {
-                userSettingsApi.setLocale(userSettings.getLocale());
-                userSettingsApi.setTimeZone(userSettings.getTimeZone());
+                userSettings.toApi(userSettingsApi);
             }
             return userSettingsApi;
         }
@@ -465,9 +464,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 userSettings = new cz.cesnet.shongo.controller.settings.UserSettings();
                 userSettings.setUserId(securityToken.getUserId());
             }
-            Locale locale = userSettingsApi.getLocale();
-            userSettings.setLocale(locale);
-            userSettings.setTimeZone(userSettingsApi.getTimeZone());
+            userSettings.fromApi(userSettingsApi);
             entityManager.persist(userSettings);
             entityManager.getTransaction().commit();
         }
