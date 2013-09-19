@@ -33,21 +33,21 @@
     <div ng-app="jsp:indexDashboard">
 
         <div class="actions">
-            <span><spring:message code="views.wizard.select"/></span>
+            <span><spring:message code="views.select.action"/></span>
             <ul>
                 <li>
                     <a href="${createRoomUrl}" tabindex="1">
-                        <spring:message code="views.wizard.select.createRoom"/>
+                        <spring:message code="views.index.action.createRoom"/>
                     </a>
                 </li>
                 <li>
                     <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                        <spring:message code="views.wizard.select.createPermanentRoomCapacity"/>
+                        <spring:message code="views.index.action.createPermanentRoomCapacity"/>
                     </a>
                 </li>
                 <li>
                     <a href="${reservationRequestListUrl}" tabindex="1">
-                        <spring:message code="views.index.dashboard.reservationRequestList"/>
+                        <spring:message code="views.index.action.reservationRequestList"/>
                     </a>
                 </li>
             </ul>

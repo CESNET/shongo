@@ -35,19 +35,19 @@
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
     </c:if>
     <div class="actions">
-        <span><spring:message code="views.wizard.select"/></span>
+        <span><spring:message code="views.select.action"/></span>
         <ul>
             <c:if test="${createPermanentRoomCapacityUrl != null}">
                 <li>
                     <c:choose >
                         <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
                             <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                                <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>
+                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
                             </a>
                         </c:when>
                         <c:otherwise>
                         <span class="disabled">
-                            <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>
+                            <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
                         </span>
                         </c:otherwise>
                     </c:choose>
@@ -55,14 +55,14 @@
             </c:if>
             <li>
                 <a href="javascript: location.reload();"  tabindex="1">
-                    <spring:message code="views.wizard.reservationRequestDetail.refresh"/>
+                    <spring:message code="views.reservationRequestDetail.action.refresh"/>
                 </a>
             </li>
             <c:if test="${isWritable}">
                 <li>
                     <spring:eval var="deleteUrl"
                                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
-                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.wizard.reservationRequestDetail.delete"/></a>
+                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
                 </li>
             </c:if>
         </ul>

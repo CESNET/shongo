@@ -19,11 +19,11 @@
 <%-- What do you want to do? --%>
 <c:if test="${!sessionScope.user.advancedUserInterface}">
     <div class="actions">
-        <span><spring:message code="views.wizard.select"/></span>
+        <span><spring:message code="views.select.action"/></span>
         <ul>
             <li>
                 <a href="${createUrl}" tabindex="1">
-                    <spring:message code="views.wizard.select.createRoom"/>
+                    <spring:message code="views.index.action.createRoom"/>
                 </a>
             </li>
         </ul>
