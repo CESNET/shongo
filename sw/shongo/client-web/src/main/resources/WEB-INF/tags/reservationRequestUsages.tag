@@ -39,7 +39,7 @@
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
-            <th width="80px">
+            <th width="85px">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -50,8 +50,8 @@
             <td>
                 {{permanentRoomCapacity.slot}}
                 <span ng-show="permanentRoomCapacity.futureSlotCount">
-                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
-                    <tag:help label="({{permanentRoomCapacity.futureSlotCount}} ${slotMore})">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{permanentRoomCapacity.futureSlotCount}}"/>
+                    <tag:help label="(${slotMore})">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>

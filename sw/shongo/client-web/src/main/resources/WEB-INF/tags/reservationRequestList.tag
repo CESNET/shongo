@@ -104,7 +104,7 @@
                     <spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
                 </th>
             </c:if>
-            <th style="width: 80px;">
+            <th style="width: 85px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>
@@ -125,8 +125,8 @@
             <td>
                 <span ng-bind-html="html(reservationRequest.earliestSlot)"></span>
                 <span ng-show="reservationRequest.futureSlotCount">
-                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
-                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})"
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
+                    <tag:help label="(${slotMore})"
                               style="vertical-align: top;"
                               tooltipId="${listName}-slot-tooltip-{{$index}}">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
