@@ -73,7 +73,8 @@ public class ReservationRequestController
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
-            @RequestParam(value = "type", required = false) Set<SpecificationType> specificationTypes)
+            @RequestParam(value = "type", required = false) Set<SpecificationType> specificationTypes,
+            @RequestParam(value = "permanent-room-id", required = false) String permanentRoomId)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -82,6 +83,9 @@ public class ReservationRequestController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
+        if (permanentRoomId != null) {
+            specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
+        }
         if (specificationTypes != null && specificationTypes.size() > 0) {
             if (specificationTypes.contains(SpecificationType.ADHOC_ROOM)) {
                 request.addSpecificationClass(RoomSpecification.class);
@@ -92,7 +96,10 @@ public class ReservationRequestController
             }
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 request.addSpecificationClass(RoomSpecification.class);
-                if (specificationTypes.size() == 1) {
+                if (permanentRoomId != null) {
+                    request.setReusedReservationRequestId(permanentRoomId);
+                }
+                else if (specificationTypes.size() == 1) {
                     // We want only room capacities and thus the reused reservation request must be set
                     request.setReusedReservationRequestId(ReservationRequestListRequest.FILTER_NOT_EMPTY);
                 }
@@ -143,36 +150,42 @@ public class ReservationRequestController
             item.put("dateTime", formatter.formatDate(reservationRequest.getDateTime()));
             items.add(item);
 
+            String reservationId = reservationRequest.getLastReservationId();
+            if (reservationId != null) {
+                item.put("reservationId", reservationId);
+            }
+
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messageSource.getMessage("views.reservationRequest.state." + state, null, locale);
-                String stateHelp = messageSource.getMessage("help.reservationRequest.state." + state, null, locale);
                 item.put("state", state);
                 item.put("stateMessage", stateMessage);
-                item.put("stateHelp", stateHelp);
+                item.put("stateHelp", state.getHelp(messageSource, locale, reservationRequest.getLastReservationId()));
             }
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
-            item.put("writable", permissions.contains(Permission.WRITE));
+            item.put("isWritable", permissions.contains(Permission.WRITE));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
-            item.put("isDeprecated", earliestSlot.getEnd().isBeforeNow());
             if (earliestSlot != null) {
-                item.put("earliestSlot", formatter.formatIntervalMultiLine(earliestSlot));
+                item.put("earliestSlot", formatter.formatInterval(earliestSlot));
+                item.put("earliestSlotMultiLine", formatter.formatIntervalMultiLine(earliestSlot));
             }
             Integer futureSlotCount = reservationRequest.getFutureSlotCount();
             if (futureSlotCount != null) {
                 item.put("futureSlotCount", futureSlotCount);
             }
+            item.put("isDeprecated", earliestSlot.getEnd().isBeforeNow());
 
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-            item.put("type", messageSource.getMessage(
+            item.put("type", specificationType);
+            item.put("typeMessage", messageSource.getMessage(
                     "views.reservationRequest.specification." + specificationType, null, locale));
             switch (specificationType) {
                 case PERMANENT_ROOM:
@@ -193,7 +206,11 @@ public class ReservationRequestController
                             (ReservationRequestSummary.RoomSpecification) specification;
                     String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
                     item.put("roomReservationRequestId", reusedReservationRequestId);
-                    item.put("participantCount", room.getParticipantCount());
+                    item.put("roomParticipantCount", room.getParticipantCount());
+                    item.put("roomParticipantCountMessage", messageSource.getMessage(
+                            "views.reservationRequest.specification.roomParticipantCountMessage",
+                            new Object[]{room.getParticipantCount()}, locale));
+
                     ReservationRequestSummary reusedReservationRequest =
                             cache.getReservationRequestSummary(securityToken, reusedReservationRequestId);
                     if (reusedReservationRequest != null) {
@@ -217,8 +234,11 @@ public class ReservationRequestController
                     if (technology != null) {
                         item.put("technology", technology.getTitle());
                     }
-                    item.put("participantCount", room.getParticipantCount());
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
+                    item.put("roomParticipantCount", room.getParticipantCount());
+                    item.put("roomParticipantCountMessage", messageSource.getMessage(
+                            "views.reservationRequest.specification.roomParticipantCountMessage",
+                            new Object[]{room.getParticipantCount()}, locale));
                     break;
                 }
             }

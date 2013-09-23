@@ -286,10 +286,9 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
-                String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
                 child.put("state", state);
                 child.put("stateMessage", stateMessage);
-                child.put("stateHelp", stateHelp);
+                child.put("stateHelp", state.getHelp(messages, locale, reservationRequest.getLastReservationId()));
             }
 
             String reservationId = reservationRequest.getLastReservationId();
@@ -361,10 +360,9 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
-                String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
                 item.put("state", state);
                 item.put("stateMessage", stateMessage);
-                item.put("stateHelp", stateHelp);
+                item.put("stateHelp", state.getHelp(messages, locale, reservationRequest.getLastReservationId()));
             }
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());

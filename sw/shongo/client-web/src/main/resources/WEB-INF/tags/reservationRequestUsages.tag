@@ -30,7 +30,7 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th width="320px"><pagination-sort column="SLOT">
+            <th width="400px"><pagination-sort column="SLOT">
                 <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="ROOM_PARTICIPANT_COUNT">

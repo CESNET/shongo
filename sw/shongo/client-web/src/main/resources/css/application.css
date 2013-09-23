@@ -166,25 +166,46 @@ td.empty, span.empty {
     margin-top: 8px;
     margin-bottom: 10px;
 }
+.table>tbody>tr:last-child>td {
+    border-bottom: 1px solid #dddddd;
+}
 .table tr.selected td {
     background-color: #DDF0FF !important;
 }
-.table tr.deprecated td {
-    background-color: #DDDDDD !important;
+.table tr.deprecated:nth-child(odd) td {
+    background-color: #e3e3e3 !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.deprecated:nth-child(even) td {
+    background-color: #dadada !important;
     border-top-color: #f8f8f8;
 }
 .table thead a {
     color: black;
 }
+
 .table .odd td {
     background-color: #f9f9f9 !important;
 }
 .table .even td {
     background: none !important;
 }
+.table tr.deprecated.odd td {
+    background-color: #e3e3e3 !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.deprecated.even td {
+    background-color: #dadada !important;
+    border-top-color: #f8f8f8;
+}
 .table tr.description td {
     border-top: none;
     padding-top: 0px;
+    padding-left: 8px;
+    margin-top: -8px;
+}
+.table tr td ul {
+    margin-bottom: 0px;
 }
 
 

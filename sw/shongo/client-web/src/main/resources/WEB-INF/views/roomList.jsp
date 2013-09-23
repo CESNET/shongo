@@ -8,9 +8,11 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlRoomsData">${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
+<c:set var="urlRoomsData">
+    ${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
 </c:set>
-<c:set var="urlRoomUsages">${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
+<c:set var="urlRoomUsages">
+    ${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
 </c:set>
 
 <script type="text/javascript">
@@ -34,7 +36,7 @@
 <div ng-app="jsp:roomList">
 
     <div ng-controller="PaginationController"
-         ng-init="init('dashboard.rooms', '${urlRoomsData}')">
+         ng-init="init('roomList', '${urlRoomsData}')">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
         <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -70,15 +72,15 @@
             <tbody ng-controller="RoomController">
             <tr ng-repeat-start="room in items" ng-class-odd="'odd'" ng-class-even="'even'"
                 ng-class="{'deprecated': room.isDeprecated}">
-                <spring:eval var="urlRoomManagement"
-                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
                 <td>
                     <span ng-switch="room.usageCount > 0">
                         <a ng-switch-when="true" href="" ng-click="toggleRoom(room)"
                            ng-class="{'icon-plus': !room.showUsages, 'icon-minus': room.showUsages}"></a>
                         <span ng-switch-default class="icon-none"></span>
                     </span>
-                    <a href="${urlRoomManagement}" tabindex="2">{{room.name}}</a>
+                    <spring:eval var="roomManagementUrl"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
+                    <a href="${roomManagementUrl}" tabindex="2">{{room.name}}</a>
                     <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
                 </td>
                 <td>{{room.technology}}</td>
@@ -92,7 +94,7 @@
                 </td>
             </tr>
             <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
-                <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 30px;">
+                <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 24px;">
                     <div class="spinner" ng-hide="room.usages != null"></div>
                     <div ng-show="room.usages != null">
                         <spring:message code="views.roomList.room.usages"/>:
@@ -112,6 +114,8 @@
                     </div>
                 </td>
             </tr>
+            </tbody>
+            <tbody>
             <tr ng-hide="items.length">
                 <td colspan="5" class="empty"><spring:message code="views.list.none"/></td>
             </tr>

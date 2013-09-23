@@ -113,17 +113,17 @@
         <tbody ng-controller="HtmlController">
         <tr ng-repeat="reservationRequest in items"  ng-class="{'deprecated': reservationRequest.isDeprecated}" >
             <c:if test="${empty specificationType || specificationType.contains(',')}">
-                <td>{{reservationRequest.type}}</td>
+                <td>{{reservationRequest.typeMessage}}</td>
             </c:if>
             <c:if test="${specificationType != 'ADHOC_ROOM'}">
                 <td>{{reservationRequest.roomName}}</td>
             </c:if>
             <td>{{reservationRequest.technology}}</td>
             <c:if test="${specificationType == 'ADHOC_ROOM'}">
-                <td>{{reservationRequest.participantCount}}</td>
+                <td>{{reservationRequest.roomParticipantCount}}</td>
             </c:if>
             <td>
-                <span ng-bind-html="html(reservationRequest.earliestSlot)"></span>
+                <span ng-bind-html="html(reservationRequest.earliestSlotMultiLine)"></span>
                 <span ng-show="reservationRequest.futureSlotCount">
                     <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
                     <tag:help label="(${slotMore})"
@@ -148,7 +148,7 @@
                 <c:if test="${detailUrl != null}">
                     <tag:listAction code="show" url="${detailUrl}" tabindex="4"/>
                 </c:if>
-                <span ng-show="reservationRequest.writable">
+                <span ng-show="reservationRequest.isWritable">
                     <c:if test="${modifyUrl != null}">
                         <c:if test="${detailUrl != null}">| </c:if>
                         <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
@@ -160,6 +160,8 @@
                 </span>
             </td>
         </tr>
+        </tbody>
+        <tbody>
         <tr ng-hide="items.length">
             <td colspan="9" class="empty"><spring:message code="views.list.none"/></td>
         </tr>

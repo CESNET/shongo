@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
@@ -36,6 +37,9 @@ import java.util.*;
 @Controller
 public class RoomController
 {
+    @Resource
+    private ReservationService reservationService;
+
     @Resource
     private ExecutableService executableService;
 
@@ -129,6 +133,7 @@ public class RoomController
                 slot = executableSummary.getSlot();
             }
             item.put("slot", formatter.formatInterval(slot));
+            item.put("isDeprecated", slot.getEnd().isBeforeNow());
 
             Integer licenseCount = executableSummary.getRoomUsageLicenseCount();
             if (licenseCount == null) {
@@ -137,8 +142,6 @@ public class RoomController
             item.put("licenseCount", licenseCount);
 
             item.put("usageCount", executableSummary.getRoomUsageCount());
-
-            item.put("isDeprecated", slot.getEnd().isBeforeNow());
 
             items.add(item);
         }
@@ -155,10 +158,23 @@ public class RoomController
     public String handleRoomManagement(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String executableId, Model model)
+            @PathVariable(value = "roomId") String executableId,
+            Model model)
     {
+        // Get executable
+        Executable executable;
+        if (executableId.contains(":rsv:")) {
+            Reservation reservation = reservationService.getReservation(securityToken, executableId);
+            executable = reservation.getExecutable();
+            if (executable == null) {
+                throw new UnsupportedApiException("Reservation " + executableId + " doesn't have executable.");
+            }
+        }
+        else {
+            executable = executableService.getExecutable(securityToken, executableId);
+        }
+
         // Room executable
-        Executable executable = executableService.getExecutable(securityToken, executableId);
         RoomExecutable roomExecutable;
         if (executable instanceof RoomExecutable) {
             roomExecutable = (RoomExecutable) executable;

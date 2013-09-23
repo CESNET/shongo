@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.controller.api.*;
+import org.springframework.context.MessageSource;
+
+import java.util.Locale;
 
 /**
  * Represents a reservation request state.
@@ -76,6 +79,14 @@ public enum ReservationRequestState
     public boolean isAllocated()
     {
         return allocated;
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, String reservationId)
+    {
+        if (this.equals(FAILED) && reservationId != null) {
+            return messageSource.getMessage("help.reservationRequest.state." + this + ".hasReservation", null, locale);
+        }
+        return messageSource.getMessage("help.reservationRequest.state." + this, null, locale);
     }
 
     public static ReservationRequestState fromApi(ReservationRequestSummary reservationRequest)
