@@ -4,7 +4,8 @@ DROP VIEW IF EXISTS alias_specification_summary;
 DROP VIEW IF EXISTS reservation_request_summary;
 DROP VIEW IF EXISTS reservation_request_state;
 DROP VIEW IF EXISTS reservation_request_set_earliest_child;
-DROP VIEW IF EXISTS reservation_request_usage;
+DROP VIEW IF EXISTS reservation_request_active_usage;
+DROP VIEW IF EXISTS reservation_request_earliest_usage;
 DROP VIEW IF EXISTS executable_summary;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
@@ -128,7 +129,7 @@ ORDER BY reservation_request.id, reservation.slot_end DESC;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-CREATE VIEW reservation_request_usage AS
+CREATE VIEW reservation_request_active_usage AS
 SELECT
     DISTINCT ON(abstract_reservation_request.id)
     abstract_reservation_request.id AS id,
@@ -146,38 +147,93 @@ FROM abstract_reservation_request
 ORDER BY abstract_reservation_request.id, usage_reservation_request.slot_end DESC, reservation.slot_end DESC;
 
 /**
+ * View of id and time slot for the earliest usage for each reservation request.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW reservation_request_earliest_usage AS
+SELECT
+    DISTINCT ON(allocation.abstract_reservation_request_id) /* only one usage for each reservation request */
+    allocation.abstract_reservation_request_id AS id,
+    reservation_request.id AS usage_id,
+    reservation_request.slot_start AS slot_start,
+    reservation_request.slot_end AS slot_end
+FROM (
+    SELECT /* reused allocations with "future minimum" slot ending for usages */
+        abstract_reservation_request.reused_allocation_id AS allocation_id,
+        MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min
+    FROM reservation_request
+    LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
+    WHERE reservation_request.allocation_state = 'ALLOCATED' AND abstract_reservation_request.reused_allocation_id IS NOT NULL
+    GROUP BY abstract_reservation_request.reused_allocation_id
+) AS reservation_request_usage_slots
+/* join usages which matches the "future minimum" or the "whole maximum" slot ending */
+INNER JOIN allocation ON allocation.id = reservation_request_usage_slots.allocation_id
+INNER JOIN abstract_reservation_request ON abstract_reservation_request.reused_allocation_id = reservation_request_usage_slots.allocation_id
+INNER JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
+       AND reservation_request.slot_end = reservation_request_usage_slots.slot_end_future_min
+/* we want one usage which has the earliest slot ending */
+ORDER BY allocation.abstract_reservation_request_id, reservation_request.slot_end;
+
+/**
  * View of time slot and state for each reservation request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 CREATE VIEW reservation_request_summary AS
 SELECT
-    abstract_reservation_request.id AS id,
-    abstract_reservation_request.created_at AS created_at,
-    abstract_reservation_request.created_by AS created_by,
-    abstract_reservation_request.updated_at AS updated_at,
-    abstract_reservation_request.updated_by AS updated_by,
-    abstract_reservation_request.description AS description,
-    abstract_reservation_request.purpose AS purpose,
-    abstract_reservation_request.state AS state,
-    abstract_reservation_request.specification_id AS specification_id,
-    reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
-    abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
-    abstract_reservation_request.allocation_id AS allocation_id,
-    reservation_request_set_earliest_child.child_id AS child_id,
-    reservation_request_set_earliest_child.future_child_count AS future_child_count,
-    COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
-    COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
-    reservation_request_state.allocation_state AS allocation_state,
-    reservation_request_state.executable_state AS executable_state,
-    reservation_request_state.last_reservation_id AS last_reservation_id,
-    reservation_request_usage.executable_state AS usage_executable_state
-FROM abstract_reservation_request
-LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
-LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
-LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
-LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id
-LEFT JOIN reservation_request_usage ON reservation_request_usage.id = reservation_request.id OR reservation_request_usage.id = reservation_request_set_earliest_child.child_id;
+  reservation_request_summary.*,
+  CASE
+      WHEN reservation_request_summary.slot_nearness_start > ((NOW() AT TIME ZONE 'UTC') - (INTERVAL '1 DAY')) AND reservation_request_summary.slot_nearness_end < ((NOW() AT TIME ZONE 'UTC') + (INTERVAL '7 DAY')) THEN 0
+      WHEN (NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end THEN 1
+      ELSE 2
+  END AS slot_nearness_priority,
+  CASE
+      WHEN (NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end THEN
+          ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_end)))
+      WHEN (NOW() AT TIME ZONE 'UTC') < reservation_request_summary.slot_nearness_start THEN
+          ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_start)))
+  ELSE
+    24 * 3600 + ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_end)))
+  END AS slot_nearness_value
+FROM (
+    SELECT
+        reservation_request_summary.*,
+        COALESCE(reservation_request_summary.usage_slot_start, reservation_request_summary.slot_start) AS slot_nearness_start,
+        COALESCE(reservation_request_summary.usage_slot_end, reservation_request_summary.slot_end) AS slot_nearness_end
+    FROM (
+        SELECT
+            abstract_reservation_request.id AS id,
+            abstract_reservation_request.created_at AS created_at,
+            abstract_reservation_request.created_by AS created_by,
+            abstract_reservation_request.updated_at AS updated_at,
+            abstract_reservation_request.updated_by AS updated_by,
+            abstract_reservation_request.description AS description,
+            abstract_reservation_request.purpose AS purpose,
+            abstract_reservation_request.state AS state,
+            abstract_reservation_request.specification_id AS specification_id,
+            reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
+            abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
+            abstract_reservation_request.allocation_id AS allocation_id,
+            reservation_request_set_earliest_child.child_id AS child_id,
+            reservation_request_set_earliest_child.future_child_count AS future_child_count,
+            COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
+            COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
+            reservation_request_state.allocation_state AS allocation_state,
+            reservation_request_state.executable_state AS executable_state,
+            reservation_request_state.last_reservation_id AS last_reservation_id,
+            reservation_request_active_usage.executable_state AS usage_executable_state,
+            reservation_request_earliest_usage.slot_start AS usage_slot_start,
+            reservation_request_earliest_usage.slot_end AS usage_slot_end
+        FROM abstract_reservation_request
+        LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
+        LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
+        LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
+        LEFT JOIN reservation_request_earliest_usage ON reservation_request_earliest_usage.id = reservation_request.id
+        LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id
+        LEFT JOIN reservation_request_active_usage ON reservation_request_active_usage.id = reservation_request.id OR reservation_request_active_usage.id = reservation_request_set_earliest_child.child_id
+    ) AS reservation_request_summary
+) AS reservation_request_summary;
 
 /**
  * View of id and time slot for the earliest usage for each room endpoint.

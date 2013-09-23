@@ -623,7 +623,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "specification_summary.room_participant_count";
                         break;
                     case SLOT:
-                        queryOrderBy = "reservation_request_summary.slot_start";
+                        queryOrderBy = "reservation_request_summary.slot_end";
+                        break;
+                    case SLOT_NEAREST:
+                        queryOrderBy = "reservation_request_summary.slot_nearness_priority, reservation_request_summary.slot_nearness_value";
                         break;
                     case STATE:
                         queryOrderBy = "reservation_request_summary.allocation_state";
@@ -1020,7 +1023,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     cz.cesnet.shongo.controller.executor.Executable.State.valueOf(
                             record[9].toString().trim()).toApi());
         }
-        reservationRequestSummary.setReusedReservationRequestId(record[10] != null ? record[10].toString() : null);
+        reservationRequestSummary.setReusedReservationRequestId(record[10] != null ?
+                EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, record[10].toString()) : null);
         if (record[11] != null) {
             reservationRequestSummary.setLastReservationId(EntityIdentifier.formatId(
                     EntityType.RESERVATION, record[11].toString()));

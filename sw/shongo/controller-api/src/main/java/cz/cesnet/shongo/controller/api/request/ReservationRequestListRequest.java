@@ -115,6 +115,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         REUSED_RESERVATION_REQUEST,
         ROOM_PARTICIPANT_COUNT,
         SLOT,
+        SLOT_NEAREST,
         STATE,
         TECHNOLOGY,
         TYPE,

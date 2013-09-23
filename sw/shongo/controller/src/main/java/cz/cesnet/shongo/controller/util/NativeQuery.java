@@ -160,7 +160,7 @@ public class NativeQuery
             while (line != null) {
                 line = line.replaceAll("/\\*.*?\\*/", "");
                 line = line.replaceAll("\\s*/\\*.*", "");
-                line = line.replaceAll("\\s*\\*.*", "");
+                line = line.replaceAll("^\\s*\\*.*", "");
                 if (!line.isEmpty()) {
                     if (line.charAt(0) == 65279) {
                         line = line.substring(1);

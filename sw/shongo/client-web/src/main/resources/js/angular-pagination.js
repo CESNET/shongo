@@ -57,12 +57,23 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     // Sorting
     $scope.sort = null;
     $scope.sortDesc = null;
+    $scope.sortDefault = null;
+    $scope.sortDescDefault = null;
+    $scope.setSortDefault = function(sort, sortDesc) {
+        $scope.sortDefault = sort;
+        $scope.sortDescDefault = (sortDesc != null ? sortDesc : false);
+        $scope.setSort();
+    };
     $scope.setSort = function(sort, event) {
-        if (sort == null) {
+        if (typeof(event) == "boolean") {
             $scope.sort = null;
-            $scope.sortDesc = null;
+            $scope.sortDesc = event;
         }
-        else if (event.shiftKey && $scope.sort != null) {
+        if (sort == null) {
+            $scope.sort = $scope.sortDefault;
+            $scope.sortDesc = $scope.sortDescDefault;
+        }
+        else if (event != null && event.shiftKey && $scope.sort != null) {
             $scope.sort = null;
             $scope.sortDesc = null;
         }
@@ -75,7 +86,9 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
                 $scope.sortDesc = false;
             }
         }
-        $scope.refresh();
+        if ($scope.ready) {
+            $scope.refresh();
+        }
     };
 
     /**
@@ -142,7 +155,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             $scope.pageSize = configuration.pageSize;
         }
         // List items for the first time (to determine total count)
-        $scope.resource.list({start: 0, count: $scope.pageSize}, function (result) {
+        $scope.performList(0, function (result) {
             setData(result);
             // If configuration is loaded set configured page index
             if (configuration != null) {

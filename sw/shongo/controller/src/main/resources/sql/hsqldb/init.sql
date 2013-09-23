@@ -65,6 +65,8 @@ SELECT
     NULL AS future_child_count,
     reservation_request.slot_start AS slot_start,
     reservation_request.slot_end AS slot_end,
+    NULL AS slot_nearness_priority,
+    NULL AS slot_nearness_value,
     reservation_request_state.allocation_state AS allocation_state,
     reservation_request_state.executable_state AS executable_state,
     NULL AS last_reservation_id,

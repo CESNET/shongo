@@ -50,7 +50,6 @@
             resource.list({'permanent-room-id': $scope.reservationRequest.id}, function (result) {
                 $scope.count = result.count;
                 $scope.items = result.items;
-                console.debug("controller", $scope.reservationRequest.id, $scope.count, $scope.items);
             });
         }
     </script>
@@ -74,7 +73,7 @@
         </div>
 
         <div ng-controller="PaginationController"
-             ng-init="init('dashboard', '${reservationRequestListDataUrl}')">
+             ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}');">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
