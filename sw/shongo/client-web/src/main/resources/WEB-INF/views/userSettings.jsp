@@ -11,7 +11,7 @@
 
 <c:set var="tabIndex" value="1"/>
 <c:set var="confirmUrl">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.USER_SETTINGS_SAVE %></c:set>
-<c:set var="cancelUrl">${contextPath}${sessionScope.backUrl}</c:set>
+<c:set var="cancelUrl">${contextPath}${requestScope.backUrl}</c:set>
 
 <script type="text/javascript">
     angular.module('jsp:userSettings', ['ngTooltip']);

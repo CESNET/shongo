@@ -85,6 +85,8 @@
                 </span>
             </td>
         </tr>
+        </tbody>
+        <tbody>
         <tr ng-hide="items.length">
             <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
         </tr>

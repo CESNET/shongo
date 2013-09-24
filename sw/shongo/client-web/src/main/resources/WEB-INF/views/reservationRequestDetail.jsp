@@ -14,7 +14,7 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
 </c:set>
 <c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="backUrl">${contextPath}${sessionScope.backUrl.get(requestScope.breadcrumb, backUrl)}</c:set>
+<c:set var="backUrl">${contextPath}${requestScope.backUrl.get(backUrl)}</c:set>
 <spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
 

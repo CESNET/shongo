@@ -68,6 +68,8 @@
                 <tag:listAction code="show" url="${usageDetailUrl}" tabindex="2"/>
             </td>
         </tr>
+        </tbody>
+        <tbody>
         <tr ng-hide="items.length">
             <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
         </tr>

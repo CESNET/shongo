@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.support.interceptors;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
@@ -9,8 +8,6 @@ import cz.cesnet.shongo.client.web.support.NavigationPage;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,19 +19,29 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class NavigationInterceptor extends HandlerInterceptorAdapter
 {
+    /**
+     * Request attribute in which the {@link Breadcrumb} is stored.
+     */
+    public final static String BREADCRUMB_REQUEST_ATTRIBUTE = "breadcrumb";
+
+    /**
+     * Request attribute in which the {@link BackUrl} is stored.
+     */
+    public final static String BACK_URL_REQUEST_ATTRIBUTE = "backUrl";
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
-        BackUrl backUrl = BackUrl.getInstance(request);
-        String backUrlParameter = request.getParameter("back-url");
-        if (backUrlParameter != null) {
-            backUrl.add(backUrlParameter);
-            String requestUri = request.getRequestURI();
+        // Add back URL and redirect back without the back URL parameter
+        String backUrl = request.getParameter("back-url");
+        if (backUrl != null) {
+            BackUrl.addUrl(request, backUrl);
+            String requestUrl = request.getRequestURI();
             String queryString = request.getQueryString();
             queryString = queryString.replaceAll("back-url=[^&]*?($|[&;])", "");
             StringBuilder requestUriBuilder = new StringBuilder();
-            requestUriBuilder.append(requestUri);
+            requestUriBuilder.append(requestUrl);
             if (!queryString.isEmpty()) {
                 requestUriBuilder.append("?");
                 requestUriBuilder.append(queryString);
@@ -42,17 +49,15 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
             response.sendRedirect(requestUriBuilder.toString());
             return false;
         }
-        else {
-            String requestUrl = request.getRequestURI();
-            backUrl.remove(requestUrl);
-        }
 
+        // Breadcrumb
+        Breadcrumb breadcrumb = null;
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             Object controller = handlerMethod.getBean();
 
             // Create breadcrumb if it doesn't exist (it may exist when forward is processing)
-            Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE);
+            breadcrumb = (Breadcrumb) request.getAttribute(BREADCRUMB_REQUEST_ATTRIBUTE);
             if (breadcrumb == null) {
                 // Determine navigation page by current URL
                 NavigationPage navigationPage = null;
@@ -73,24 +78,15 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
                     breadcrumb = new Breadcrumb(navigationPage, request.getRequestURI());
                 }
             }
-            if (breadcrumb != null) {
-                request.setAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE, breadcrumb);
-            }
         }
-        return true;
-    }
-
-    /**
-     * @param request
-     * @return current {@link NavigationPage} or null
-     */
-    public static NavigationPage getNavigationPage(HttpServletRequest request)
-    {
-        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.BREADCRUMB_REQUEST_ATTRIBUTE);
         if (breadcrumb != null) {
-            return breadcrumb.getNavigationPage();
+            request.setAttribute(BREADCRUMB_REQUEST_ATTRIBUTE, breadcrumb);
         }
-        return null;
+
+        // Back url
+        request.setAttribute(BACK_URL_REQUEST_ATTRIBUTE, BackUrl.getInstance(request, breadcrumb));
+
+        return true;
     }
 }
 

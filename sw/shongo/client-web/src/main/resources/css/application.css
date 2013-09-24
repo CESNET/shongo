@@ -166,6 +166,9 @@ td.empty, span.empty {
     margin-top: 8px;
     margin-bottom: 10px;
 }
+.table>tbody {
+    border-top: none !important;
+}
 .table>tbody>tr:last-child>td {
     border-bottom: 1px solid #dddddd;
 }

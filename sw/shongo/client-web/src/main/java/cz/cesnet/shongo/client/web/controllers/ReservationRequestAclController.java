@@ -6,7 +6,6 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
 import cz.cesnet.shongo.client.web.support.BackUrl;
-import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -138,8 +137,6 @@ public class ReservationRequestAclController
         if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(aclRecordId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
             model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
-            BackUrl backUrl = BackUrl.getInstance(request);
-            backUrl.add(ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
             return "message";
         }
         authorizationService.deleteAclRecord(securityToken, aclRecordId);
