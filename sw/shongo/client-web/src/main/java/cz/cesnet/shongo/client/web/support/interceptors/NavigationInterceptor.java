@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web.support.interceptors;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.ClientWebNavigation;
@@ -7,6 +9,8 @@ import cz.cesnet.shongo.client.web.support.NavigationPage;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +26,27 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
+        BackUrl backUrl = BackUrl.getInstance(request);
+        String backUrlParameter = request.getParameter("back-url");
+        if (backUrlParameter != null) {
+            backUrl.add(backUrlParameter);
+            String requestUri = request.getRequestURI();
+            String queryString = request.getQueryString();
+            queryString = queryString.replaceAll("back-url=[^&]*?($|[&;])", "");
+            StringBuilder requestUriBuilder = new StringBuilder();
+            requestUriBuilder.append(requestUri);
+            if (!queryString.isEmpty()) {
+                requestUriBuilder.append("?");
+                requestUriBuilder.append(queryString);
+            }
+            response.sendRedirect(requestUriBuilder.toString());
+            return false;
+        }
+        else {
+            String requestUrl = request.getRequestURI();
+            backUrl.remove(requestUrl);
+        }
+
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             Object controller = handlerMethod.getBean();

@@ -69,9 +69,6 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
         if (breadcrumb != null) {
             breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
                     reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
-
-            // Set back url
-            model.addAttribute("backUrl", breadcrumb.getBackUrl());
         }
 
         return "reservationRequestDelete";

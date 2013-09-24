@@ -24,7 +24,6 @@
     ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?type=PERMANENT_ROOM_CAPACITY&permanent-room=:permanent-room-id&count=5
 </c:set>
 
-<h1>${title}</h1>
 <p><spring:message code="views.index.welcome"/></p>
 <p><spring:message code="views.index.suggestions" arguments="${configuration.contactEmail}"/></p>
 
@@ -114,7 +113,8 @@
                     <td>
                         <spring:eval var="roomManagementUrl"
                                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{reservationRequest.reservationId}}')"/>
-                        <a ng-show="reservationRequest.reservationId" href="${roomManagementUrl}" tabindex="2">{{reservationRequest.roomName}}</a>
+                        <spring:message code="views.index.dashboard.manageRoom" var="manageRoom"/>
+                        <a ng-show="reservationRequest.reservationId" href="${roomManagementUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
                         <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
                         <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
                     </td>
@@ -138,16 +138,16 @@
                     </td>
                     <td>
                         <spring:eval var="detailUrl"
-                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}')"/>
-                        <tag:listAction code="show" url="${detailUrl}" tabindex="2"/>
+                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
+                        <tag:listAction code="show" titleCode="views.index.dashboard.showDetail" url="${detailUrl}" tabindex="2"/>
                         <span ng-show="reservationRequest.isWritable">
                             <c:if test="${advancedUserInterface}">
                                 <spring:eval var="modifyUrl"
-                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}')"/>
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
                                 | <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
                             </c:if>
                             <spring:eval var="deleteUrl"
-                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}')"/>
+                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
                             | <tag:listAction code="delete" url="${deleteUrl}" tabindex="4"/>
                         </span>
                     </td>
@@ -162,7 +162,7 @@
                                     <spring:message code="views.index.dashboard.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
                                 </a>
                             </div>
-                            <strong><spring:message code="views.index.dashboard.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</strong>
+                            <span><spring:message code="views.index.dashboard.permanentRoomCapacity" arguments="{{reservationRequest.roomName}}"/>:</span>
                             <ul>
                                 <li ng-repeat="capacity in items">
                                     <spring:eval var="capacityDetailUrl"

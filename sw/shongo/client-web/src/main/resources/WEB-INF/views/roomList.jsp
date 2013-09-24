@@ -100,10 +100,7 @@
                         <spring:message code="views.roomList.room.usages"/>:
                         <ul ng-show="room.usages.length">
                             <li ng-repeat="usage in room.usages">
-                                <strong>
-                                    <spring:message code="views.roomList.room.usage.participant"
-                                                    arguments="{{usage.licenseCount}}"/>
-                                </strong>
+                                <strong>{{usage.licenseCountMessage}}</strong>
                                 <spring:message code="views.roomList.room.usage.slot" arguments="{{usage.slot}}"/>
                                     <span class="room-state">(<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)</span>
                             </li>

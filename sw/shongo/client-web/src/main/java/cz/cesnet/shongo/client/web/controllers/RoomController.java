@@ -140,6 +140,8 @@ public class RoomController
                 licenseCount = executableSummary.getRoomLicenseCount();
             }
             item.put("licenseCount", licenseCount);
+            item.put("licenseCountMessage", messageSource.getMessage(
+                    "views.roomList.room.usage.participant", new Object[]{licenseCount}, locale));
 
             item.put("usageCount", executableSummary.getRoomUsageCount());
 

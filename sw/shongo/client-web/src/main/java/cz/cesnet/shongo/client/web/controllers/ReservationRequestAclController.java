@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -123,20 +125,21 @@ public class ReservationRequestAclController
             method = RequestMethod.GET)
     public String handleAclDelete(
             SecurityToken securityToken,
+            HttpServletRequest request,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @PathVariable(value = "aclRecordId") String aclRecordId,
             Model model)
     {
-        AclRecordListRequest request = new AclRecordListRequest();
-        request.setSecurityToken(securityToken);
-        request.addEntityId(reservationRequestId);
-        request.addRole(Role.OWNER);
-        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
+        AclRecordListRequest aclRequest = new AclRecordListRequest();
+        aclRequest.setSecurityToken(securityToken);
+        aclRequest.addEntityId(reservationRequestId);
+        aclRequest.addRole(Role.OWNER);
+        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(aclRequest);
         if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(aclRecordId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
             model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
-            model.addAttribute("backUrl",
-                    ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
+            BackUrl backUrl = BackUrl.getInstance(request);
+            backUrl.add(ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
             return "message";
         }
         authorizationService.deleteAclRecord(securityToken, aclRecordId);

@@ -166,9 +166,6 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         // Initialize breadcrumb
         if (breadcrumb != null) {
             breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
-
-            // Set back url
-            model.addAttribute("backUrl", breadcrumb.getBackUrl());
         }
 
         return "reservationRequestDetail";

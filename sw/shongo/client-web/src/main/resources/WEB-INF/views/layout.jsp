@@ -21,7 +21,14 @@
 
 <%
     String requestUri = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
-    pageContext.setAttribute("requestUrl", requestUri);
+    String queryString = (String) request.getAttribute(RequestDispatcher.FORWARD_QUERY_STRING);
+    StringBuilder requestUriBuilder = new StringBuilder();
+    requestUriBuilder.append(requestUri);
+    if (queryString != null && !queryString.isEmpty()) {
+        requestUriBuilder.append("?");
+        requestUriBuilder.append(queryString);
+    }
+    pageContext.setAttribute("requestUrl", requestUriBuilder.toString());
 
     // URL for changing language
     UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUri);
@@ -121,8 +128,8 @@
 
                 <%-- Logged user information --%>
                 <security:authorize access="isAuthenticated()">
-                    <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>?from=${requestUrl}</c:set>
-                    <c:set var="advancedUserInterfaceUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>/user-interface/${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}?from=${requestUrl}</c:set>
+                    <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>?back-url=${requestUrl}</c:set>
+                    <c:set var="advancedUserInterfaceUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>/user-interface/${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}?back-url=${requestUrl}</c:set>
                     <c:set var="logoutUrl">${contextPath}<%= ClientWebUrl.LOGOUT %></c:set>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">

@@ -9,7 +9,8 @@
 <tiles:importAttribute />
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="confirmUrl" value="${contextPath}${confirmUrl}"/>
-<c:set var="cancelUrl">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<c:set var="cancelUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<c:set var="cancelUrl">${contextPath}${sessionScope.backUrl.get(requestScope.breadcrumb, backUrl)}</c:set>
 
 <script type="text/javascript">
     angular.module('jsp:reservationRequestUpdate', ['tag:reservationRequestForm']);

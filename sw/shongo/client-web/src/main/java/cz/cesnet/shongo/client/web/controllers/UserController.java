@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -39,8 +40,6 @@ public class UserController
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestUpdateController.class);
 
-    public final static String FROM_URL_SESSION_ATTRIBUTE = "fromUrl";
-
     @Resource
     private AuthorizationService authorizationService;
 
@@ -69,17 +68,8 @@ public class UserController
     public String handleUserSettings(
             SecurityToken securityToken,
             HttpServletRequest request,
-            @RequestParam(value = "from", required = false) String fromUrl,
             Model model)
     {
-        if (fromUrl != null) {
-            if (WebUtils.getSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE) == null
-                    && !fromUrl.equals(ClientWebUrl.USER_SETTINGS)) {
-                // Store fromUrl to session (for future redirection)
-                WebUtils.setSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE, fromUrl);
-            }
-            return "redirect:" + ClientWebUrl.USER_SETTINGS;
-        }
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", userSettings);
         model.addAttribute("timeZones", TimeZoneModel.getTimeZones(DateTime.now()));
@@ -94,8 +84,7 @@ public class UserController
             SecurityToken securityToken,
             HttpServletRequest request,
             @PathVariable(value = "name") String name,
-            @PathVariable(value = "value") String value,
-            @RequestParam(value = "from") String fromUrl)
+            @PathVariable(value = "value") String value)
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         if (name.equals("user-interface")) {
@@ -107,7 +96,7 @@ public class UserController
         authorizationService.updateUserSettings(securityToken, userSettings);
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
-        return "redirect:" + fromUrl;
+        return "redirect:" + BackUrl.getInstance(request);
     }
 
     /**
@@ -120,23 +109,13 @@ public class UserController
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             HttpServletRequest request,
-            HttpServletResponse response,
             @ModelAttribute("userSettings") UserSettings userSettings)
     {
         authorizationService.updateUserSettings(securityToken, userSettings);
         sessionStatus.setComplete();
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
-
-        String fromUrl = (String) WebUtils.getSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE);
-        if (fromUrl != null) {
-            // Redirect to stored fromUrl from session and clear the session attribute
-            WebUtils.setSessionAttribute(request, FROM_URL_SESSION_ATTRIBUTE, null);
-            return "redirect:" + fromUrl;
-        }
-        else {
-            return "redirect:" + ClientWebUrl.HOME;
-        }
+        return "redirect:" + BackUrl.getInstance(request);
     }
 
     /**
