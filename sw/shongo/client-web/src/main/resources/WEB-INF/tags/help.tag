@@ -7,6 +7,7 @@
 <%@attribute name="tooltipId" required="false"%>
 <%@attribute name="type" required="false"%>
 <%@attribute name="style" required="false"%>
+<%@attribute name="position" required="false"%>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
@@ -33,17 +34,23 @@
         type = "icon";
     }
     jspContext.setAttribute("type", type);
+
+    // Set position
+    if (position == null) {
+        position = "bottom-right";
+    }
+    jspContext.setAttribute("position", position);
 %>
 
 <c:choose>
     <c:when test="${type == 'text'}"><%--
-    --%><span class="tooltip-container" style="${style}"><%--
+    --%><span class="tooltip-container ${position}" style="${style}"><%--
         --%><c:choose><%--
             --%><c:when test="${not empty labelElement}"><%--
-                --%><span tooltip="${tooltipId}" label="${labelElement}" style="margin-left: -1em;">&nbsp;</span><%--
+                --%><span tooltip="${tooltipId}" position="${position}" label="${labelElement}" style="margin-left: -1em;">&nbsp;</span><%--
             --%></c:when><%--
             --%><c:otherwise><%--
-                --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}" style="${style}">${label}</span><%--
+                --%><span tooltip="${tooltipId}" position="${position}" class="tooltip-label dotted ${labelClass}" style="${style}">${label}</span><%--
             --%></c:otherwise><%--
         --%></c:choose><%--
         --%><jsp:doBody var="body"/>
@@ -53,28 +60,27 @@
             --%></div><%--
         --%></c:if><%--
     --%></span><%--
---%></c:when>
-    <c:otherwise>
-        <c:if test="${not empty label && empty labelElement}">
-            <c:set var="labelElement" value="${tooltipId}-label"/>
-            <span id="${labelElement}" class="${labelClass}">${label}</span>
-        </c:if>
-        <div class="tooltip-container">
-            <c:choose>
-                <c:when test="${not empty labelElement}">
-                    <img tooltip="${tooltipId}" label="${labelElement}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
-                </c:when>
-                <c:otherwise>
-                    <img tooltip="${tooltipId}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
-                </c:otherwise>
-            </c:choose>
-            <jsp:doBody var="body"/>
-            <c:if test="${not empty body}">
-                <div id="${tooltipId}" class="tooltip-content">
-                    <span>${body}</span>
-                </div>
-            </c:if>
-        </div>
-
-    </c:otherwise>
-</c:choose>
+--%></c:when><%--
+    --%><c:otherwise><%--
+        --%><c:if test="${not empty label && empty labelElement}"><%--
+            --%><c:set var="labelElement" value="${tooltipId}-label"/><%--
+            --%><span id="${labelElement}" class="${labelClass}">${label}</span><%--
+        --%></c:if><%--
+        --%><div class="tooltip-container ${position}"><%--
+            --%><c:choose><%--
+                --%><c:when test="${not empty labelElement}"><%--
+                    --%><img tooltip="${tooltipId}" position="${position}" label="${labelElement}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/><%--
+                --%></c:when><%--
+                --%><c:otherwise><%--
+                    --%><img tooltip="${tooltipId}" position="${position}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/><%--
+                --%></c:otherwise><%--
+            --%></c:choose><%--
+            --%><jsp:doBody var="body"/><%--
+            --%><c:if test="${not empty body}"><%--
+                --%><div id="${tooltipId}" class="tooltip-content"><%--
+                    --%><span>${body}</span><%--
+                --%></div><%--
+            --%></c:if><%--
+        --%></div><%--
+    --%></c:otherwise><%--
+--%></c:choose>

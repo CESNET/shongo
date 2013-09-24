@@ -12,7 +12,7 @@ tooltipModule.activeTooltipContext = null;
 tooltipModule.directive('tooltip', function() {
     return {
         restrict: 'A',
-        link: function postLink(scope, element, attrs, controller) {
+        link: function(scope, element, attrs, controller) {
             var tooltipContent;
             var tooltipContentContext;
             var bind = {
@@ -23,6 +23,7 @@ tooltipModule.directive('tooltip', function() {
                     }
                     tooltipModule.activeTooltipContext = tooltipContentContext;
                     tooltipContent.stop();
+                    tooltipContent.init();
                     tooltipContent.fadeIn();
                     clearInterval(tooltipContentContext.timeout);
                 },
@@ -36,6 +37,17 @@ tooltipModule.directive('tooltip', function() {
             setTimeout(function(){
                 // Get the tooltip content
                 tooltipContent = $("#" + attrs.tooltip);
+                tooltipContent.init = function() {
+                    if (tooltipContent.inited) {
+                        return;
+                    }
+                    tooltipContent.inited = true;
+                    if (attrs.position == "bottom-left") {
+                        var marginLeft = parseInt(tooltipContent.css('margin-left'));
+                        tooltipContent.css('margin-left', marginLeft - parseInt(tooltipContent.css('max-width')));
+                        tooltipContent.css('margin-left', marginLeft - parseInt(tooltipContent.css('width')));
+                    }
+                };
 
                 // Skip not existing and empty tooltip content
                 if (tooltipContent.length == 0 || tooltipContent.children().length == 0) {

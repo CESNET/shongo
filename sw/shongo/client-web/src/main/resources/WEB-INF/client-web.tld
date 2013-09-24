@@ -16,6 +16,14 @@
         <path>/WEB-INF/tags/help.tag</path>
     </tag-file>
     <tag-file>
+        <name>helpReservationRequestState</name>
+        <path>/WEB-INF/tags/helpReservationRequestState.tag</path>
+    </tag-file>
+    <tag-file>
+        <name>helpRoomState</name>
+        <path>/WEB-INF/tags/helpRoomState.tag</path>
+    </tag-file>
+    <tag-file>
         <name>format</name>
         <path>/WEB-INF/tags/format.tag</path>
     </tag-file>

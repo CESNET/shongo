@@ -360,10 +360,6 @@ div.bordered table {
     padding-bottom: 3px;
 }
 /** Tooltips */
-.tooltip-container {
-    display: inline-block;
-    line-height: 20px;
-}
 .tooltip-label {
     display: inline-block;
     cursor: default;
@@ -371,11 +367,13 @@ div.bordered table {
 .tooltip-label.dotted {
     border-bottom: 1px dotted;
 }
-.tooltip-content {
+.tooltip-container {
+    display: inline-block;
+    line-height: 20px;
+}
+.tooltip-container .tooltip-content {
     position: absolute;
     display: none;
-    margin-top: 10px;
-    margin-left: -3px;
     padding: 5px 10px;
     background-color: #FEFEFE;
     border: 1px solid #0088cc;
@@ -386,7 +384,15 @@ div.bordered table {
     line-height: 20px;
     max-width: 500px;
 }
-.tooltip-content:before {
+.tooltip-container.bottom-left .tooltip-content {
+    margin-top: 10px;
+    margin-left: 3px;
+}
+.tooltip-container.bottom-right .tooltip-content {
+    margin-top: 10px;
+    margin-left: -3px;
+}
+.tooltip-container .tooltip-content:before {
     content: '';
     display: inline-block;
     border-left: 7px solid transparent;
@@ -394,26 +400,38 @@ div.bordered table {
     border-bottom: 7px solid #ccc;
     border-bottom-color: #0088cc;
     position: absolute;
+}
+.tooltip-container.bottom-left .tooltip-content:before {
+    top: -7px;
+    right: 6px;
+}
+.tooltip-container.bottom-right .tooltip-content:before {
     top: -7px;
     left: 6px;
 }
-.tooltip-content:after {
+.tooltip-container .tooltip-content:after {
     content: '';
     display: inline-block;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
     border-bottom: 7px solid #ffffff;
     position: absolute;
+}
+.tooltip-container.bottom-left .tooltip-content:after {
+    top: -6px;
+    right: 7px;
+}
+.tooltip-container.bottom-right .tooltip-content:after {
     top: -6px;
     left: 7px;
 }
-.tooltip-content pre {
+.tooltip-container .tooltip-content pre {
     border: none;
     background: none;
     margin: 0px;
     padding: 5px;
 }
-.tooltip-content p {
+.tooltip-container .tooltip-content p {
     font-size: 13px;
 }
 

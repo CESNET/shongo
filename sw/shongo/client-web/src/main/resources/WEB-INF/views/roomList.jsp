@@ -64,7 +64,7 @@
                     <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
                 </th>
                 <th width="200px">
-                    <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
+                    <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort><tag:helpRoomState/>
                     <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                 </th>
             </tr>

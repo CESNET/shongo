@@ -94,7 +94,7 @@
                 <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="STATE">
-                <spring:message code="views.reservationRequest.state"/></pagination-sort>
+                <spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
             </th>
             <c:if test="${detailed}">
                 <th><pagination-sort column="USER">
