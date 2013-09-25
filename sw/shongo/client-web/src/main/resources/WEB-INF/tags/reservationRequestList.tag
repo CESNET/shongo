@@ -87,7 +87,8 @@
                     <spring:message code="views.reservationRequest.specification.roomName"/></pagination-sort>
                 </th>
             </c:if>
-            <th><pagination-sort column="TECHNOLOGY">
+            <th style="min-width: 110px;">
+                <pagination-sort column="TECHNOLOGY">
                 <spring:message code="views.reservationRequest.technology"/></pagination-sort>
             </th>
             <c:if test="${specificationType == 'ADHOC_ROOM'}">
@@ -95,21 +96,23 @@
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/></pagination-sort>
                 </th>
             </c:if>
-            <th><pagination-sort column="SLOT">
+            <th>
+                <pagination-sort column="SLOT">
                 <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
             </th>
             <c:if test="${detailed}">
-                <th><pagination-sort column="USER">
+                <th style="min-width: 75px;">
+                    <pagination-sort column="USER">
                     <spring:message code="views.reservationRequest.user"/></pagination-sort>
-                </th>
-                <th><pagination-sort column="DATETIME">
+                <th style="min-width: 90px;">
+                    <pagination-sort column="DATETIME">
                     <spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
                 </th>
             </c:if>
-            <th style="width: 85px;">
+            <th style="min-width: 85px; width: 85px;">
                 <spring:message code="views.list.action"/>
                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
             </th>

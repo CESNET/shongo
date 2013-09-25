@@ -87,21 +87,21 @@
                     <th>
                         <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort>
                     </th>
-                    <th>
+                    <th style="min-width: 150px;">
                         <pagination-sort column="ALIAS_ROOM_NAME"><spring:message code="views.reservationRequestList.roomName"/></pagination-sort>
                     </th>
-                    <th>
+                    <th style="min-width: 110px;">
                         <pagination-sort column="TECHNOLOGY">
                             <spring:message code="views.reservationRequest.technology"/>
                         </pagination-sort>
                     </th>
-                    <th>
+                    <th style="min-width: 230px;">
                         <pagination-sort column="SLOT"><spring:message code="views.reservationRequestList.slot"/></pagination-sort>
                     </th>
                     <th width="200px">
                         <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
                     </th>
-                    <th style="width: 85px;">
+                    <th style="min-width: 85px; width: 85px;">
                         <spring:message code="views.list.action"/>
                         <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                     </th>
@@ -186,6 +186,9 @@
                                     <a href="${detailUrl}" tabindex="2">
                                         <spring:message code="views.index.dashboard.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
                                     </a>
+                                </li>
+                                <li  ng-hide="items.length">
+                                    <span class="empty"><spring:message code="views.list.none"/></span>
                                 </li>
                             </ul>
                         </div>

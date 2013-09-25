@@ -404,7 +404,7 @@ paginationModule.directive('paginationSortDefault', function () {
             var attributeClass = (attrs.class != null ? attrs.class : '');
             var html =
                 '<div class="' + attributeClass + '">' +
-                '<a class="pull-right hovered" href="" ng-click="setSort()" title="' + text + '">' +
+                '<a class="pull-right bordered" href="" ng-click="setSort()" title="' + text + '">' +
                 '<i class="icon-disable-sorting"></i>' +
                 '</a>' +
                 '</div>';

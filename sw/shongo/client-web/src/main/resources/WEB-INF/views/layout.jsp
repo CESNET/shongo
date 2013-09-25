@@ -159,7 +159,7 @@
                 <li>
                     <spring:message code="views.layout.timezone" var="timeZoneTitle"/>
                     <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.user.timeZone)" var="timeZone"/>
-                    <span class="navbar-text" id="timezone" title="${timeZoneTitle}">${timeZone}</span>
+                    <span class="navbar-text timezone" title="${timeZoneTitle}">${timeZone}</span>
                 </li>
 
                 <%-- Language selection --%>

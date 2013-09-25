@@ -94,7 +94,7 @@
 
 <%-- History --%>
 <c:if test="${history != null}">
-    <div class="pull-right bordered">
+    <div class="bordered jspReservationRequestDetailHistory">
         <h2><spring:message code="views.reservationRequestDetail.history"/></h2>
         <table class="table table-striped table-hover">
             <thead>
@@ -117,7 +117,7 @@
                         <tr>
                     </c:otherwise>
                 </c:choose>
-                <td><tag:format value="${historyItem.dateTime}"/></td>
+                <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <td class="reservation-request-state">

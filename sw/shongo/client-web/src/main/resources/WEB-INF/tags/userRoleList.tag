@@ -22,7 +22,9 @@
         <th><spring:message code="views.aclRecord.role"/></th>
         <th><spring:message code="views.aclRecord.email"/></th>
         <c:if test="${isWritable && deleteUrl != null}">
-            <th width="100px"><spring:message code="views.list.action"/></th>
+            <th style="min-width: 85px; width: 85px;">
+                <spring:message code="views.list.action"/>
+            </th>
         </c:if>
     </tr>
     </thead>

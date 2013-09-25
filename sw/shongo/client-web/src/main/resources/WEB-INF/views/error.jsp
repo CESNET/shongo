@@ -8,7 +8,7 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
-<div class="error">
+<div class="jspError">
 
     <spring:message code="views.error.processing"/>
     <pre>${error.requestUri}</pre>

@@ -1,4 +1,8 @@
-/** Headings */
+/**********************************************************************************************************************
+ ** STYLES FOR COMMON TAGS ********************************************************************************************
+ **********************************************************************************************************************/
+
+/* Headings */
 h1 { font-size: 30px; line-height: 34px; }
 h2 { font-size: 24px; line-height: 34px; }
 h3 { font-size: 20px; line-height: 30px; }
@@ -7,164 +11,35 @@ h5 { font-size: 14px; line-height: 20px; }
 h6 { font-size: 12px; line-height: 20px; }
 p { font-size: 16px;}
 
+/* Pre-formatted code */
 pre {
     word-break: normal;
 }
 
-/** Navigation */
-.navbar .navbar-inner {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-.navbar .main {
-    display: inline-block;
-    margin-bottom: -10px;
-}
-.navbar .brand {
-    margin-left: 10px;
-    margin-right: 10px;
-    padding-left: 0px;
-    padding-right: 0px;
-}
-.navbar .navbar-text {
-    margin-left: 5px;
-    margin-right: 5px;
-}
-.navbar .breadcrumb {
-    margin-bottom: 0px;
-    background: transparent;
-}
-/** Navigation collapse button */
-.navbar button.btn-navbar {
-    padding: 5px 10px;
-}
-.navbar button.btn-navbar div {
-    display: inline-block;
-}
-.navbar button.btn-navbar span {
-    color: #999999;
-    text-shadow: 2px -2px 0 #f5f5f5;
-}
-/** Navigation drop-down */
-.dropdown-menu>li>a {
-    padding-left: 25px;
-}
-.dropdown-menu>li>a>span {
-    margin-left: -18px;
-    padding-right: 4px;
-}
-/** Navigation timezone */
-#timezone {
-    font-weight: bold;
-}
-/** Navigation language icon */
-img.language {
-    border: solid 1px;
-    margin-top: -2px;
-    padding: 1px;
-    width: 16px;
-    height: 11px;
-}
-/** Navigation breadcrumb */
-.breadcrumb {
-    padding-right: 5px;
-}
-
-/* Date/times */
-.date-time {
-    display: inline-block;
-    margin-right: 3px;
-}
-.date-time table td {
-    padding: 0px;
-    border-top: none;
-    background-color: transparent !important;
-}
-.date-time table td:last-child {
-    padding-left: 5px;
-}
-.date-time table {
-    margin-bottom: -10px;
-}
-
-/* Actions */
-div.actions {
+/* Horizontal rule */
+hr {
     margin-top: 15px;
     margin-bottom: 15px;
-    padding: 10px 20px;
-    font-size: 20px;
-    border: solid 1px #888888;
-    background-color: #f9f9f9;
-}
-div.actions span {
-    font-weight: bold;
-    line-height: 30px;
-}
-div.actions ul {
-    margin-bottom: 0px;
-}
-div.actions li a {
-    line-height: 30px;
-}
-div.actions li span {
-    line-height: 30px;
-    font-weight: normal;
-    color: #808080;
 }
 
-/** Navigation nav-pills disabled state */
-.nav-pills.disabled li a {
-    color: #999;
-    cursor: default;
+/* Links with border when they are hovered */
+a.bordered {
+    border: 1px solid transparent;
 }
-.nav-pills.disabled li.active a {
-    color: #FFFFFF;
-}
-.nav-pills.disabled li a:hover {
-    background-color: transparent;
-}
-.nav-pills.disabled li.active a:hover {
-    background-color: #08c;
+a.bordered:hover {
+    border: 1px solid;
 }
 
-/** Table empty row style */
-td.empty, span.empty {
-    background-color: transparent !important;
-    text-align: center;
-    color: #AAAAAA;
-}
-
-/** Spinner */
-.spinner {
-    background-image: url("/img/spinner.gif");
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 32px;
-    margin: 20px;
-}
-
-/** pagination page links */
-.pagination {
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-.pagination.pull-right {
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-.pagination .page {
-    border: solid 1px;
-    margin: 2px 4px;
-    padding: 2px;
-}
-
-/** Tables */
-.table th {
-    padding-top: 0px;
-}
+/* Tables */
 .table {
     margin-top: 8px;
     margin-bottom: 10px;
+}
+.table thead th a {
+    color: black;
+}
+.table thead th {
+    padding-top: 0px;
 }
 .table>tbody {
     border-top: none !important;
@@ -183,21 +58,17 @@ td.empty, span.empty {
     background-color: #dadada !important;
     border-top-color: #f8f8f8;
 }
-.table thead a {
-    color: black;
-}
-
-.table .odd td {
+.table tr.odd td {
     background-color: #f9f9f9 !important;
 }
-.table .even td {
-    background: none !important;
-}
-.table tr.deprecated.odd td {
+.table tr.odd.deprecated td {
     background-color: #e3e3e3 !important;
     border-top-color: #f8f8f8;
 }
-.table tr.deprecated.even td {
+.table tr.even td {
+    background: none !important;
+}
+.table tr.even.deprecated td {
     background-color: #dadada !important;
     border-top-color: #f8f8f8;
 }
@@ -210,25 +81,15 @@ td.empty, span.empty {
 .table tr td ul {
     margin-bottom: 0px;
 }
-
-
-
-a.hovered {
-    border: 1px solid transparent;
-}
-a.hovered:hover {
-    border: 1px solid;
+.table tr td.empty, span.empty {
+    background-color: transparent !important;
+    text-align: center;
+    color: #AAAAAA;
 }
 
-/** Horizontal rules */
-hr {
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-
-/** Description lists */
+/* Description list */
 dl.dl-horizontal {
-    display: table;
+    display: block;
 }
 dl.dl-horizontal {
     margin-top: 10px;
@@ -254,7 +115,7 @@ dl.dl-horizontal .btn {
     padding: 0px 3px;
 }
 
-/** Form */
+/* Form */
 form.inline {
     display: inline-block;
 }
@@ -280,8 +141,10 @@ form .controls .description {
     margin-top: 5px;
     margin-bottom: -8px;
 }
-
-/** Form double width */
+form .radio {
+    padding-top: 0px !important;
+}
+/* Form - double width input */
 form .double-width input {
     width: 336px;
 }
@@ -291,11 +154,7 @@ form .double-width textarea {
 form .double-width select {
     width: 350px;
 }
-/** Form radio buttons */
-form .radio {
-    padding-top: 0px !important;
-}
-/** Form reCaptcha*/
+/* Form - reCaptcha*/
 form .recaptcha {
     display: inline-block;
     margin-bottom: -5px;
@@ -309,7 +168,7 @@ form .recaptcha input {
 form .recaptcha.error table {
     border-color: red !important;
 }
-/** Form errors */
+/** Form - Errors */
 form input.error {
     border: solid 1px red;
     background-color: #FFF0F0;
@@ -331,22 +190,137 @@ form span.error {
     display: inline-block;
 }
 
-/** Not available page */
-div.not-available {
-    margin: 20px 20px;
-    padding: 10px 30px;
-    border: 1px solid #BBBBBB;
-    border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;
-    text-align: center;
+
+/**********************************************************************************************************************
+ ** STYLES FOR CUSTOM TAGS ********************************************************************************************
+ **********************************************************************************************************************/
+
+/* Layout - Navigation */
+.navbar .navbar-inner {
+    padding-left: 10px;
+    padding-right: 10px;
 }
-.not-available h2 {
-    color: red;
+.navbar .main {
+    display: inline-block;
+    margin-bottom: -10px;
 }
-.not-available p {
+.navbar .brand {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.navbar .navbar-text {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.navbar .breadcrumb {
+    margin-bottom: 0px;
+    background: transparent;
+}
+/* Layout - Navigation - Collapse button */
+.navbar button.btn-navbar {
+    padding: 5px 10px;
+}
+.navbar button.btn-navbar div {
+    display: inline-block;
+}
+.navbar button.btn-navbar span {
+    color: #999999;
+    text-shadow: 2px -2px 0 #f5f5f5;
+}
+/* Layout - Navigation - Drop-down menu */
+.navbar .dropdown-menu>li>a {
+    padding-left: 25px;
+}
+.navbar .dropdown-menu>li>a>span {
+    margin-left: -18px;
+    padding-right: 4px;
+}
+/* Layout - Navigation - Timezone */
+.navbar .timezone {
     font-weight: bold;
 }
+/* Layout - Navigation - Language */
+.navbar img.language {
+    border: solid 1px;
+    margin-top: -2px;
+    padding: 1px;
+    width: 16px;
+    height: 11px;
+}
+/** Layout - Navigation - Breadcrumb */
+.navbar .breadcrumb {
+    padding-right: 5px;
+}
 
-/** Border for div */
+/* Date/Time */
+.date-time {
+    display: inline-block;
+    margin-right: 3px;
+}
+.date-time table td {
+    padding: 0px;
+    border-top: none;
+    background-color: transparent !important;
+}
+.date-time table td:last-child {
+    padding-left: 5px;
+}
+.date-time table {
+    margin-bottom: -10px;
+}
+
+/* Block of actions (What do you want to do?) */
+div.actions {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    font-size: 20px;
+    border: solid 1px #888888;
+    background-color: #f9f9f9;
+}
+div.actions span {
+    font-weight: bold;
+    line-height: 30px;
+}
+div.actions ul {
+    margin-bottom: 0px;
+}
+div.actions li a {
+    line-height: 30px;
+}
+div.actions li span {
+    line-height: 30px;
+    font-weight: normal;
+    color: #808080;
+}
+
+/* Spinner (demonstrates waiting state) */
+.spinner {
+    background-image: url("/img/spinner.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 32px;
+    margin: 20px;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.pagination.pull-right {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+.pagination .page {
+    border: solid 1px;
+    margin: 2px 4px;
+    padding: 2px;
+}
+
+/** Bordered block */
 div.bordered {
     margin-top: 10px;
     border: 1px solid #AAAAAA;
@@ -360,15 +334,14 @@ div.bordered table {
     margin-bottom: 0px;
 }
 
-/** Help icon */
-.help-icon {
-    padding-left: 3px;
-    padding-bottom: 3px;
-}
-/** Tooltips */
+/* Tooltip */
 .tooltip-label {
     display: inline-block;
     cursor: default;
+}
+img.tooltip-label {
+    padding-left: 3px;
+    padding-bottom: 3px;
 }
 .tooltip-label.dotted {
     border-bottom: 1px dotted;
@@ -441,37 +414,54 @@ div.bordered table {
     font-size: 13px;
 }
 
-/** Aliases table */
-span.aliases.not-available {
-    color: #808080;
+
+/**********************************************************************************************************************
+ ** ICONS *************************************************************************************************************
+ **********************************************************************************************************************/
+i[class^="icon-"]:before {
+    text-decoration: none;
 }
-.tooltip-content span.aliases.not-available {
-    color: red;
-    font-weight: bold;
-    text-align: center;
-    display: block;
+b[class^="icon-"]:before {
+    text-decoration: none;
 }
-table.aliases * {
-    background: none;
-    background-color: transparent !important;
-    border: none;
-    border-top: none;
-    word-break: keep-all;
-}
-table.aliases td {
+.icon-none {
+    width: 11px;
+    height: 14px;
     display: inline-block;
-    white-space:nowrap;
-    padding: 3px 5px;
 }
-table.aliases td.label {
-    display: table-cell;
-    font-weight: bold;
-    color: black;
-    text-shadow: none;
-    text-align: right;
+.icon-not-available {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url("../img/button-not-available.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+.icon-available {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    line-height: 14px;
+    background-image: url("../img/button-available.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+.icon-disable-sorting {
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.icon-disable-sorting:before {
+    content: '\f175  \f00d';
 }
 
-/** AllocationState */
+
+/**********************************************************************************************************************
+ ** APPLICATION COMMONS ***********************************************************************************************
+ **********************************************************************************************************************/
+
+/* AllocationState */
 .allocation-state .NOT_ALLOCATED {
     color: #b8860b;
 }
@@ -482,7 +472,7 @@ table.aliases td.label {
     color: red;
 }
 
-/** ExecutableState */
+/* ExecutableState */
 .executable-state .NOT_STARTED {
     color: #b8860b;
 }
@@ -499,7 +489,7 @@ table.aliases td.label {
     color: red;
 }
 
-/** ReservationRequestState */
+/* ReservationRequestState */
 .reservation-request-state .NOT_ALLOCATED {
     color: #b8860b;
 }
@@ -524,7 +514,7 @@ table.aliases td.label {
     color: darkorange;
 }
 
-/** RoomState */
+/* RoomState */
 .room-state .NOT_STARTED {
     color: #b8860b;
 }
@@ -562,53 +552,81 @@ table.aliases td.label {
     background-image: url("../img/button-available.png");
 }
 
-/* error page */
-.error pre {
+/** Room aliases */
+span.aliases.not-available {
+    color: #808080;
+}
+.tooltip-content span.aliases.not-available {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+    display: block;
+}
+table.aliases * {
+    background: none;
+    background-color: transparent !important;
+    border: none;
+    border-top: none;
+    word-break: keep-all;
+}
+table.aliases td {
+    display: inline-block;
+    white-space:nowrap;
+    padding: 3px 5px;
+}
+table.aliases td.label {
+    display: table-cell;
+    font-weight: bold;
+    color: black;
+    text-shadow: none;
+    text-align: right;
+}
+
+
+/**********************************************************************************************************************
+ ** APPLICATION VIES AND TAGS *****************************************************************************************
+ **********************************************************************************************************************/
+
+/** Not available block for views/room.jsp and views/controllerNotAvailable.jsp */
+div.not-available {
+    margin: 20px 20px;
+    padding: 10px 30px;
+    border: 1px solid #BBBBBB;
+    border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;
+    text-align: center;
+}
+.not-available h2 {
+    color: red;
+}
+.not-available p {
+    font-weight: bold;
+}
+
+/* vies/error.jsp */
+.jspError pre {
     margin: 10px;
 }
 
-.report {
+/* tags/reportForm.tag */
+.tagReportForm {
     margin: 20px;
 }
-.report textarea {
+.tagReportForm textarea {
     height: 200px;
 }
 
-/* Icons */
-i[class^="icon-"]:before {
-    text-decoration: none;
+/* vies/error.jsp */
+.jspError pre {
+    margin: 10px;
 }
-b[class^="icon-"]:before {
-    text-decoration: none;
-}
-.icon-none {
-    width: 11px;
-    height: 14px;
+
+.jspReservationRequestDetailHistory {
     display: inline-block;
+    margin-left: 25px;
 }
-.icon-not-available {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    background-image: url("../img/button-not-available.png");
-    background-position: 0px 0px;
-    background-repeat: no-repeat;
-}
-.icon-available {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    margin-top: 1px;
-    line-height: 14px;
-    background-image: url("../img/button-available.png");
-    background-position: 0px 0px;
-    background-repeat: no-repeat;
-}
-.icon-disable-sorting {
-    display: inline-block;
-    padding-left: 5px;
-    padding-right: 5px;
-}
-.icon-disable-sorting:before {
-    content: '\f175  \f00d';
+@media (min-width: 1020px) {
+    .jspReservationRequestDetailHistory {
+        display: block;
+        float: right;
+    }
 }

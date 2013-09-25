@@ -18,7 +18,7 @@
     <c:set var="submitUrl">${contextPath}<%= ClientWebUrl.REPORT_SUBMIT %></c:set>
 </c:if>
 
-<div class="report">
+<div class="tagReportForm">
     <form:form class="form-horizontal" commandName="report" action="${submitUrl}" method="post">
         <fieldset>
 
