@@ -7,11 +7,12 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlListData">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %></c:set>
+<c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
+
+<c:set var="listDataUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %></c:set>
 <spring:eval var="detailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}')"/>
-<spring:eval var="roomDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.roomReservationRequestId}}')"/>
-<spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}')"/>
-<spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}')"/>
+<spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
+<spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
 
 <script type="text/javascript">
     angular.module('jsp:reservationRequestList', ['ngPagination', 'ngTooltip']);
@@ -23,7 +24,7 @@
         <span><spring:message code="views.select.action"/></span>
         <ul>
             <li>
-                <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %></c:set>
+                <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}</c:set>
                 <a href="${createRoomUrl}" tabindex="1">
                     <spring:message code="views.index.action.createRoom"/>
                 </a>

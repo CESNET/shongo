@@ -1,9 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.*;
+import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.WizardPage;
+import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
-import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -32,6 +36,13 @@ import javax.annotation.Resource;
 public class WizardCreateController extends AbstractWizardController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardCreateController.class);
+
+    public static final String SUBMIT_RESERVATION_REQUEST = "javascript: " +
+            "document.getElementById('reservationRequest').submit();";
+
+    public static final String SUBMIT_RESERVATION_REQUEST_FINISH = "javascript: " +
+            "$('form#reservationRequest').append('<input type=\\'hidden\\' name=\\'finish\\' value=\\'true\\'/>');" +
+            "document.getElementById('reservationRequest').submit();";
 
     @Resource
     private Cache cache;
@@ -100,7 +111,7 @@ public class WizardCreateController extends AbstractWizardController
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
-        return "forward:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
+        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
     }
 
     /**
@@ -113,7 +124,7 @@ public class WizardCreateController extends AbstractWizardController
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
-        return "forward:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
+        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
     }
 
     /**
@@ -137,9 +148,8 @@ public class WizardCreateController extends AbstractWizardController
     private WizardView getCreateRoomAttributesView()
     {
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
-        wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
-        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
-        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+        wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
@@ -149,9 +159,7 @@ public class WizardCreateController extends AbstractWizardController
      *
      * @param reservationRequest to be validated
      */
-    @RequestMapping(
-            value = ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS,
-            method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES, method = {RequestMethod.POST})
     public Object handleCreateRoomAttributesProcess(
             SecurityToken securityToken,
             SessionStatus sessionStatus,
@@ -290,7 +298,9 @@ public class WizardCreateController extends AbstractWizardController
         sessionStatus.setComplete();
 
         // Show detail of newly created reservation request
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
+        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_CREATE_ROOM).applyToUrl(
+                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId)
+        );
     }
 
     /**

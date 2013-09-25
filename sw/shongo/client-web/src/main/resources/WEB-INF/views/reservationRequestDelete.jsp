@@ -11,9 +11,7 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
 </c:set>
 <c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="backUrl">${contextPath}${requestScope.backUrl.get(backUrl)}</c:set>
-<spring:eval var="confirmUrl"
-             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDeleteConfirm(contextPath, reservationRequest.id)"/>
+<c:set var="backUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
 
 <tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="${detailUrl}"/>
 
@@ -21,14 +19,19 @@
     <c:when test="${dependencies.size() > 0}">
         <div>
             <a class="btn btn-primary" href="${backUrl}" tabindex="1"><spring:message code="views.button.back"/></a>
-            <a class="btn" href="${confirmUrl}?dependencies=true" tabindex="1">
-                <spring:message code="views.button.deleteAll"/>
-            </a>
+            <form method="post" action="?dependencies=true" class="inline">
+                <spring:message code="views.button.yes" var="buttonYes"/>
+                <spring:message code="views.button.deleteAll" var="buttonDeleteAll"/>
+                <input type="submit" class="btn" tabindex="1" value="${buttonDeleteAll}"/>
+            </form>
         </div>
     </c:when>
     <c:otherwise>
         <div>
-            <a class="btn btn-primary" href="${confirmUrl}" tabindex="1"><spring:message code="views.button.yes"/></a>
+            <form method="post" class="inline">
+                <spring:message code="views.button.yes" var="buttonYes"/>
+                <input type="submit" class="btn btn-primary" tabindex="1" value="${buttonYes}"/>
+            </form>
             <a class="btn" href="${backUrl}" tabindex="1"><spring:message code="views.button.no"/></a>
         </div>
     </c:otherwise>

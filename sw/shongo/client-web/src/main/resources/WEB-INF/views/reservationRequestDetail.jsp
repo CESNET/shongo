@@ -8,13 +8,14 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
 <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
 
 <c:set var="detailUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
 </c:set>
 <c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="backUrl">${contextPath}${requestScope.backUrl.get(backUrl)}</c:set>
+<c:set var="backUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
 <spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
 
@@ -32,7 +33,7 @@
 <c:if test="${!sessionScope.user.advancedUserInterface}">
     <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
         <spring:eval var="createPermanentRoomCapacityUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, reservationRequest.id)"/>
     </c:if>
     <div class="actions">
         <span><spring:message code="views.select.action"/></span>

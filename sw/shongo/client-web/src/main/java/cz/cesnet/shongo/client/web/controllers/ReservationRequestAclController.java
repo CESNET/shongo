@@ -96,7 +96,7 @@ public class ReservationRequestAclController
     /**
      * Handle confirmation of creation of {@link AclRecord} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE_CONFIRM, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, method = RequestMethod.POST)
     public Object handleAclCreateConfirm(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,

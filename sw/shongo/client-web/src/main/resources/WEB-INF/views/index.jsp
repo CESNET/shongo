@@ -8,20 +8,21 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
 <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
 
 <c:set var="loginUrl">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
 <c:set var="createRoomUrl">
-    ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>
+    ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}
 </c:set>
 <c:set var="reservationRequestListUrl">
     ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>
 </c:set>
 <c:set var="reservationRequestListDataUrl">
-    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?type=PERMANENT_ROOM,ADHOC_ROOM
+    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specificationType=PERMANENT_ROOM,ADHOC_ROOM
 </c:set>
 <c:set var="permanentRoomCapacitiesUrl">
-    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?type=PERMANENT_ROOM_CAPACITY&permanent-room=:permanent-room-id&count=5
+    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specificationType=PERMANENT_ROOM_CAPACITY&permanent-room=:permanent-room-id&count=5
 </c:set>
 
 <p><spring:message code="views.index.welcome"/></p>
@@ -138,16 +139,16 @@
                     </td>
                     <td>
                         <spring:eval var="detailUrl"
-                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
+                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
                         <tag:listAction code="show" titleCode="views.index.dashboard.showDetail" url="${detailUrl}" tabindex="2"/>
                         <span ng-show="reservationRequest.isWritable">
                             <c:if test="${advancedUserInterface}">
                                 <spring:eval var="modifyUrl"
-                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
                                 | <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
                             </c:if>
                             <spring:eval var="deleteUrl"
-                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=/'"/>
+                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
                             | <tag:listAction code="delete" url="${deleteUrl}" tabindex="4"/>
                         </span>
                     </td>
@@ -157,7 +158,7 @@
                         <div style="position: relative;">
                             <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.state != 'ALLOCATED_FINISHED'">
                                 <spring:eval var="createCapacityUrl"
-                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, '{{reservationRequest.id}}')"/>
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, '{{reservationRequest.id}}')"/>
                                 <a class="btn" href="${createCapacityUrl}" tabindex="1">
                                     <spring:message code="views.index.dashboard.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
                                 </a>

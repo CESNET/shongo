@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -77,8 +79,9 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
     /**
      * Handle confirmation for deletion of reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE_CONFIRM, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.POST)
     public String handleDeleteConfirm(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
@@ -92,6 +95,6 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
             }
         }
         reservationService.deleteReservationRequest(securityToken, reservationRequestId);
-        return "redirect:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
+        return "redirect:" + BackUrl.getInstance(request).getUrlNoBreadcrumb(ClientWebUrl.RESERVATION_REQUEST_LIST);
     }
 }

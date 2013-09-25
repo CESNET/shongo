@@ -29,7 +29,7 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>
 </c:set>
 <c:set var="listUrlQuery" value=""/>
-<c:set var="listUrlParameters" value="{'type': ["/>
+<c:set var="listUrlParameters" value="{'specificationType': ["/>
 <c:forEach items="${specificationType}" var="specificationTypeItem" varStatus="specificationTypeStatus">
     <c:set var="listUrlParameters" value="${listUrlParameters}'${specificationTypeItem}'"/>
     <c:if test="${!specificationTypeStatus.last}">
@@ -169,7 +169,7 @@
     </table>
     <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
     <c:if test="${createUrl != null}">
-        <a class="btn btn-primary" href="${createUrl}?type=PERMANENT_ROOM" tabindex="1">
+        <a class="btn btn-primary" href="${createUrl}" tabindex="1">
             <spring:message code="views.button.create"/>
         </a>
         &nbsp;

@@ -7,10 +7,8 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="entityType"><%= cz.cesnet.shongo.controller.EntityType.RESERVATION_REQUEST %></c:set>
-<spring:eval var="confirmUrl"
-             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclCreateConfirm(contextPath, userRole.entityId)"/>
 <spring:eval var="cancelUrl"
              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, userRole.entityId)"/>
 
 <tag:userRoleForm entityType="${entityType}"
-                  confirmTitle="views.button.add" confirmUrl="${confirmUrl}" cancelUrl="${cancelUrl}"/>
+                  confirmTitle="views.button.add" confirmUrl="" cancelUrl="${cancelUrl}"/>

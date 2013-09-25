@@ -15,7 +15,7 @@
 
 <div ng-app="tag:reservationRequestForm">
 
-    <tag:reservationRequestForm confirmUrl="${confirmUrl}" permanentRooms="${permanentRooms}"/>
+    <tag:reservationRequestForm confirmUrl="" permanentRooms="${permanentRooms}"/>
 
 </div>
 

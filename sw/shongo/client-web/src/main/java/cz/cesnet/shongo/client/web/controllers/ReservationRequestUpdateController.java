@@ -2,7 +2,12 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.Breadcrumb;
+import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
+import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
@@ -26,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controller for creating/modifying reservation requests.
@@ -33,8 +39,8 @@ import javax.annotation.Resource;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"reservationRequest", "permanentRooms", "confirmUrl"})
-public class ReservationRequestUpdateController
+@SessionAttributes({"reservationRequest", "permanentRooms"})
+public class ReservationRequestUpdateController implements BreadcrumbProvider
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestUpdateController.class);
 
@@ -44,6 +50,11 @@ public class ReservationRequestUpdateController
     @Resource
     private ReservationService reservationService;
 
+    /**
+     * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleModify}
+     */
+    private Breadcrumb breadcrumb;
+
     @InitBinder
     public void initBinder(WebDataBinder binder)
     {
@@ -52,15 +63,26 @@ public class ReservationRequestUpdateController
         binder.registerCustomEditor(Period.class, new PeriodEditor());
     }
 
+    @Override
+    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, String requestURI)
+    {
+        if (navigationPage == null) {
+            return null;
+        }
+        if (ClientWebNavigation.RESERVATION_REQUEST_MODIFY.isNavigationPage(navigationPage)) {
+            breadcrumb = new Breadcrumb(navigationPage, requestURI);
+            return breadcrumb;
+        }
+        return new Breadcrumb(navigationPage, requestURI);
+    }
+
     /**
      * Handle creation of a new reservation request.
      */
-    @RequestMapping(
-            value = ClientWebUrl.RESERVATION_REQUEST_CREATE,
-            method = {RequestMethod.GET})
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE, method = {RequestMethod.GET})
     public String handleCreate(
             SecurityToken securityToken,
-            @PathVariable(value = "type") SpecificationType specificationType,
+            @PathVariable(value = "specificationType") SpecificationType specificationType,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
             Model model)
     {
@@ -70,17 +92,15 @@ public class ReservationRequestUpdateController
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("permanentRooms",
                 ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
-        model.addAttribute("confirmUrl", ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM);
         return "reservationRequestCreate";
     }
 
     /**
      * Handle confirmation of creation of a new reservation request.
      */
-    @RequestMapping(
-            value = ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM,
-            method = {RequestMethod.POST, RequestMethod.GET})
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE, method = {RequestMethod.POST})
     public String handleCreateConfirm(
+            HttpServletRequest request,
             SecurityToken token,
             SessionStatus sessionStatus,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
@@ -90,7 +110,8 @@ public class ReservationRequestUpdateController
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
-            return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
+            return "redirect:" + BackUrl.getInstance(request).getUrlNoBreadcrumb(
+                    ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
         }
         else {
             return "reservationRequestCreate";
@@ -100,9 +121,7 @@ public class ReservationRequestUpdateController
     /**
      * Handle modification of an existing reservation request.
      */
-    @RequestMapping(
-            value = ClientWebUrl.RESERVATION_REQUEST_MODIFY,
-            method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_MODIFY, method = RequestMethod.GET)
     public String handleModify(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -117,18 +136,19 @@ public class ReservationRequestUpdateController
             model.addAttribute("permanentRooms",
                     ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
         }
-        model.addAttribute("confirmUrl",
-                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM, reservationRequestId));
+        if (breadcrumb != null) {
+            breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
+                    reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
+        }
         return "reservationRequestModify";
     }
 
     /**
      * Handle confirmation of modification of an existing reservation request.
      */
-    @RequestMapping(
-            value = ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM,
-            method = {RequestMethod.POST, RequestMethod.GET})
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_MODIFY, method = {RequestMethod.POST})
     public String handleModifyConfirm(
+            HttpServletRequest request,
             SecurityToken token,
             SessionStatus sessionStatus,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -143,9 +163,14 @@ public class ReservationRequestUpdateController
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
-            return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
+            return "redirect:" + BackUrl.getInstance(request).getUrlNoBreadcrumb(
+                    ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
         }
         else {
+            if (breadcrumb != null) {
+                breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
+                        reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
+            }
             return "reservationRequestModify";
         }
     }

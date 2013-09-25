@@ -10,7 +10,6 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="tabIndex" value="1"/>
-<c:set var="confirmUrl">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.USER_SETTINGS_SAVE %></c:set>
 <c:set var="cancelUrl">${contextPath}${requestScope.backUrl}</c:set>
 
 <script type="text/javascript">
@@ -19,7 +18,6 @@
 
 <form:form class="form-horizontal"
            commandName="userSettings"
-           action="${confirmUrl}"
            method="post"
            ng-app="jsp:userSettings">
 

@@ -45,10 +45,18 @@ public class BackUrl
     }
 
     /**
-     * @param defaultUrl
-     * @return current back URL or given {@code defaultUrl}
+     * @return {@link #url}
      */
-    public String get(String defaultUrl)
+    public String getUrl()
+    {
+        return url;
+    }
+
+    /**
+     * @param defaultUrl
+     * @return current back URL or breadcrumb back URL or given {@code defaultUrl}
+     */
+    public String getUrl(String defaultUrl)
     {
         if (url != null) {
             return url;
@@ -63,10 +71,41 @@ public class BackUrl
         }
     }
 
+    /**
+     * @param defaultUrl
+     * @return current back URL or given {@code defaultUrl}
+     */
+    public String getUrlNoBreadcrumb(String defaultUrl)
+    {
+        if (url != null) {
+            return url;
+        }
+        else {
+            return defaultUrl;
+        }
+    }
+
+    /**
+     * @param url
+     * @return url with applied back-url
+     */
+    public String applyToUrl(String url)
+    {
+        if (this.url == null) {
+            return url;
+        }
+        if(url.contains("?")) {
+            return url + "&back-url=" + this.url;
+        }
+        else {
+            return url + "?back-url=" + this.url;
+        }
+    }
+
     @Override
     public String toString()
     {
-        return get(ClientWebUrl.HOME);
+        return getUrl(ClientWebUrl.HOME);
     }
 
     /**
@@ -89,6 +128,17 @@ public class BackUrl
     {
         SessionData sessionData = SessionData.getInstance(request);
         return new BackUrl(sessionData.getBackUrl(request.getRequestURI()), breadcrumb);
+    }
+
+    /**
+     * @param request
+     * @param requestUrl
+     * @return {@link BackUrl} for given {@code requestUrl}
+     */
+    public static BackUrl getInstance(HttpServletRequest request, String requestUrl)
+    {
+        SessionData sessionData = SessionData.getInstance(request);
+        return new BackUrl(sessionData.getBackUrl(requestUrl), null);
     }
 
     /**

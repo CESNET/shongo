@@ -31,8 +31,6 @@ public class ClientWebUrl
             "/wizard/create/permanent-room";
     public static final String WIZARD_CREATE_ROOM_ATTRIBUTES =
             "/wizard/create/attributes";
-    public static final String WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS =
-            "/wizard/create/attributes/process";
     public static final String WIZARD_CREATE_ROOM_ROLES =
             "/wizard/create/roles";
     public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
@@ -46,8 +44,6 @@ public class ClientWebUrl
 
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
-    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS =
-            "/wizard/create/permanent-room-capacity/process";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM =
             "/wizard/create/permanent-room-capacity/confirm";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED =
@@ -60,9 +56,7 @@ public class ClientWebUrl
     public static final String RESERVATION_REQUEST_LIST_DATA =
             "/reservation-request/list/data";
     public static final String RESERVATION_REQUEST_CREATE =
-            "/reservation-request/create/{type}";
-    public static final String RESERVATION_REQUEST_CREATE_CONFIRM =
-            "/reservation-request/create/confirm";
+            "/reservation-request/create/{specificationType}";
     public static final String RESERVATION_REQUEST_DETAIL =
             "/reservation-request/{reservationRequestId:.+}/detail";
     public static final String RESERVATION_REQUEST_DETAIL_STATE =
@@ -75,18 +69,12 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/detail/revert";
     public static final String RESERVATION_REQUEST_MODIFY =
             "/reservation-request/{reservationRequestId:.+}/modify";
-    public static final String RESERVATION_REQUEST_MODIFY_CONFIRM =
-            "/reservation-request/{reservationRequestId:.+}/modify/confirm";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String RESERVATION_REQUEST_DELETE_CONFIRM =
-            "/reservation-request/{reservationRequestId:.+}/delete/confirm";
     public static final String RESERVATION_REQUEST_ACL =
             "/reservation-request/{reservationRequestId:.+}/acl";
     public static final String RESERVATION_REQUEST_ACL_CREATE =
             "/reservation-request/{reservationRequestId:.+}/acl/create";
-    public static final String RESERVATION_REQUEST_ACL_CREATE_CONFIRM =
-            "/reservation-request/{reservationRequestId:.+}/acl/create/confirm";
     public static final String RESERVATION_REQUEST_ACL_DELETE =
             "/reservation-request/{reservationRequestId:.+}/acl/{aclRecordId}/delete";
 
@@ -96,8 +84,6 @@ public class ClientWebUrl
             "/user/settings";
     public static final String USER_SETTINGS_ATTRIBUTE =
             USER_SETTINGS + "/{name}/{value}";
-    public static final String USER_SETTINGS_SAVE =
-            "/user/settings/save";
     public static final String USER_LIST =
             "/user/list";
     public static final String USER_DETAIL =
@@ -169,11 +155,6 @@ public class ClientWebUrl
         return path + format(RESERVATION_REQUEST_DELETE, reservationRequestI);
     }
 
-    public static String getReservationRequestDeleteConfirm(String path, String reservationRequestI)
-    {
-        return path + format(RESERVATION_REQUEST_DELETE_CONFIRM, reservationRequestI);
-    }
-
     public static String getReservationRequestAcl(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_ACL, reservationRequestId);
@@ -182,11 +163,6 @@ public class ClientWebUrl
     public static String getReservationRequestAclCreate(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_ACL_CREATE, reservationRequestId);
-    }
-
-    public static String getReservationRequestAclCreateConfirm(String path, String reservationRequestId)
-    {
-        return path + format(RESERVATION_REQUEST_ACL_CREATE_CONFIRM, reservationRequestId);
     }
 
     public static String getReservationRequestAclDelete(String path, String reservationRequestId)
@@ -209,8 +185,8 @@ public class ClientWebUrl
         return path + getRoomManagement(roomId);
     }
 
-    public static String getWizardCreatePermanentRoomCapacity(String path, String permanentRoom)
+    public static String getWizardCreatePermanentRoomCapacity(String path, String backUrl, String permanentRoom)
     {
-        return path + format(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY) + "?permanentRoom=" + permanentRoom;
+        return path + format(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY) + "?back-url=" + backUrl + "&permanentRoom=" + permanentRoom;
     }
 }

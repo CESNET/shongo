@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.WizardPage;
 import org.springframework.web.servlet.ModelAndView;
@@ -38,6 +39,12 @@ public abstract class AbstractWizardController
         WizardView wizardView = new WizardView();
         initWizardPages(wizardView, wizardPageId);
         wizardView.init(wizardPageId, wizardContent, request.getRequestURI());
+        if (wizardView.getActionPrevious().getUrl() == null) {
+            String backUrl = BackUrl.getInstance(request).getUrl();
+            if (backUrl != null) {
+                wizardView.setPreviousPageUrl(backUrl);
+            }
+        }
         return wizardView;
     }
 

@@ -8,9 +8,8 @@
 
 <tiles:importAttribute />
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="confirmUrl" value="${contextPath}${confirmUrl}"/>
 <c:set var="cancelUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="cancelUrl">${contextPath}${requestScope.backUrl.get(backUrl)}</c:set>
+<c:set var="cancelUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
 
 <script type="text/javascript">
     angular.module('jsp:reservationRequestUpdate', ['tag:reservationRequestForm']);
@@ -23,7 +22,7 @@
         <spring:message code="views.reservationRequestUpdate.type.${reservationRequest.specificationType}"/>
     </h1>
 
-    <tag:reservationRequestForm confirmUrl="${confirmUrl}" confirmTitle="${confirmTitle}"
-                                cancelUrl="${cancelUrl}" permanentRooms="${permanentRooms}"/>
+    <tag:reservationRequestForm confirmTitle="${confirmTitle}" confirmUrl="" cancelUrl="${cancelUrl}"
+                                permanentRooms="${permanentRooms}"/>
 
 </div>

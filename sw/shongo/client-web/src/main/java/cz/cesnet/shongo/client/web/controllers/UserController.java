@@ -100,9 +100,7 @@ public class UserController
     /**
      * Handle saving the user settings.
      */
-    @RequestMapping(
-            value = ClientWebUrl.USER_SETTINGS_SAVE,
-            method = {RequestMethod.POST, RequestMethod.GET})
+    @RequestMapping(value = ClientWebUrl.USER_SETTINGS, method = {RequestMethod.POST})
     public String handleUserSettingsSave(
             SecurityToken securityToken,
             SessionStatus sessionStatus,

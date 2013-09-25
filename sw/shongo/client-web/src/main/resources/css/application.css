@@ -255,6 +255,9 @@ dl.dl-horizontal .btn {
 }
 
 /** Form */
+form.inline {
+    display: inline-block;
+}
 form fieldset textarea {
     resize:none;
 }
