@@ -64,8 +64,18 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
                 NavigationPage navigationPage = null;
                 RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
                 String[] values = requestMapping.value();
-                if (values.length > 0) {
+                if (values.length == 1) {
                     navigationPage = ClientWebNavigation.findByUrl(values[0]);
+                }
+                else if (values.length > 1) {
+                    String requestUrl = request.getRequestURI();
+                    for (String value : values) {
+                        NavigationPage possibleNavigationPage = ClientWebNavigation.findByUrl(value);
+                        if (possibleNavigationPage.matchesUrl(requestUrl)) {
+                            navigationPage = possibleNavigationPage;
+                            break;
+                        }
+                    }
                 }
 
                 // Create breadcrumb

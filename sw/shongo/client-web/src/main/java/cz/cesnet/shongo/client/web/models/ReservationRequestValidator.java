@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
@@ -78,6 +79,20 @@ public class ReservationRequestValidator implements Validator
                     ValidationUtils.rejectIfEmptyOrWhitespace(
                             errors, "permanentRoomReservationRequestId", "validation.field.required");
                     break;
+            }
+        }
+
+        try {
+            Interval interval = reservationRequestModel.getSlot();
+            if (interval.getEnd().isBefore(DateTime.now())) {
+                errors.rejectValue((SpecificationType.PERMANENT_ROOM.equals(specificationType) ? "end" : "start"),
+                        "validation.field.invalidFutureSlot");
+            }
+        }
+        catch (Exception exception) {
+            // We ignore errors in computing time slot when other error is present
+            if (!errors.hasErrors()) {
+                throw new IllegalStateException("Time slot cannot be checked whether it is in future.", exception);
             }
         }
 

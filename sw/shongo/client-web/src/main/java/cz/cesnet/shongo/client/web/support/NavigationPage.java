@@ -164,6 +164,18 @@ public class NavigationPage extends Page
     }
 
     /**
+     * @param requestUrl
+     * @return true whether {@link #urlPattern} matches given {@code requestUrl}
+     */
+    public boolean matchesUrl(String requestUrl)
+    {
+        if (urlPattern == null) {
+            buildUrl();
+        }
+        return urlPattern.matcher(requestUrl).find();
+    }
+
+    /**
      * Pattern for matching single url attribute. The attribute name is captured into group(1).
      */
     private static Pattern URL_ATTRIBUTE_PATTERN = Pattern.compile("\\{([^:]+)[^\\}]*\\}");
