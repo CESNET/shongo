@@ -8,6 +8,6 @@
 
 <div class="error">
     <spring:message code="views.errorNotFound.page"/>
-    <pre><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></pre>
+    <pre><%= request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI) %></pre>
     <spring:message code="views.errorNotFound.notFound"/>
 </div>

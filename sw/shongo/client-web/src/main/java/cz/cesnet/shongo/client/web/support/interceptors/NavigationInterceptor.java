@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
+import org.apache.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -35,7 +36,7 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
     {
         // Add back URL and redirect back without the back URL parameter
         String backUrl = request.getParameter("back-url");
-        if (backUrl != null) {
+        if (backUrl != null && response.getStatus() != HttpStatus.SC_NOT_FOUND) {
             BackUrl.addUrl(request, backUrl);
             String requestUrl = request.getRequestURI();
             String queryString = request.getQueryString();

@@ -145,7 +145,14 @@
                             <c:if test="${advancedUserInterface}">
                                 <spring:eval var="modifyUrl"
                                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
-                                | <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
+                                <spring:eval var="duplicateUrl"
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreateDuplicate(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
+                                <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                    | <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
+                                </span>
+                                <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                    | <tag:listAction code="duplicate" url="${duplicateUrl}" tabindex="4"/>
+                                </span>
                             </c:if>
                             <spring:eval var="deleteUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>

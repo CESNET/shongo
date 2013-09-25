@@ -69,6 +69,8 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/detail/revert";
     public static final String RESERVATION_REQUEST_MODIFY =
             "/reservation-request/{reservationRequestId:.+}/modify";
+    public static final String RESERVATION_REQUEST_CREATE_DUPLICATE =
+            "/reservation-request/{reservationRequestId:.+}/duplicate";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
     public static final String RESERVATION_REQUEST_ACL =
@@ -148,6 +150,11 @@ public class ClientWebUrl
     public static String getReservationRequestModify(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_MODIFY, reservationRequestId);
+    }
+
+    public static String getReservationRequestCreateDuplicate(String path, String reservationRequestId)
+    {
+        return path + format(RESERVATION_REQUEST_CREATE_DUPLICATE, reservationRequestId);
     }
 
     public static String getReservationRequestDelete(String path, String reservationRequestI)

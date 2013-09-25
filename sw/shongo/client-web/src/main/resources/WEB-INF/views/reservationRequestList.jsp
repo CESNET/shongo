@@ -12,6 +12,7 @@
 <c:set var="listDataUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %></c:set>
 <spring:eval var="detailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}')"/>
 <spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
+<spring:eval var="duplicateUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreateDuplicate(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
 
 <script type="text/javascript">
@@ -43,8 +44,9 @@
         <spring:eval var="createUrl"
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'PERMANENT_ROOM')"/>
 
-        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}" detailed="true"
-                                    createUrl="${createUrl}" modifyUrl="${modifyUrl}" deleteUrl="${deleteUrl}">
+        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}"
+                                    detailed="true" createUrl="${createUrl}" modifyUrl="${modifyUrl}"
+                                    duplicateUrl="${duplicateUrl}" deleteUrl="${deleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.permanentRooms"/>
                 <tag:help>
@@ -57,8 +59,9 @@
 
         <spring:eval var="createUrl"
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'ADHOC_ROOM')"/>
-        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${detailUrl}" detailed="true"
-                                    createUrl="${createUrl}" modifyUrl="${modifyUrl}" deleteUrl="${deleteUrl}">
+        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${detailUrl}"
+                                    detailed="true" createUrl="${createUrl}" modifyUrl="${modifyUrl}"
+                                    duplicateUrl="${duplicateUrl}" deleteUrl="${deleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.adhocRooms"/>
                 <tag:help>

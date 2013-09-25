@@ -96,9 +96,32 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     }
 
     /**
+     * Handle modification of an existing reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE, method = RequestMethod.GET)
+    public String handleDuplicate(
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            Model model)
+    {
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
+        reservationRequestModel.setId(null);
+        model.addAttribute("reservationRequest", reservationRequestModel);
+        if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            model.addAttribute("permanentRooms",
+                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        }
+        return "reservationRequestCreate";
+    }
+
+    /**
      * Handle confirmation of creation of a new reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE, method = {RequestMethod.POST})
+    @RequestMapping(
+            value = {ClientWebUrl.RESERVATION_REQUEST_CREATE, ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE},
+            method = {RequestMethod.POST})
     public String handleCreateConfirm(
             HttpServletRequest request,
             SecurityToken token,

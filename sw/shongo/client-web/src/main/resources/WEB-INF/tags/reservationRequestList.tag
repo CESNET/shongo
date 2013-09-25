@@ -14,6 +14,7 @@
 <%@attribute name="detailUrl" required="false" %>
 <%@attribute name="createUrl" required="false" %>
 <%@attribute name="modifyUrl" required="false" %>
+<%@attribute name="duplicateUrl" required="false" %>
 <%@attribute name="deleteUrl" required="false" %>
 <%@attribute name="detailed" required="false" %>
 
@@ -44,6 +45,10 @@
 <c:if test="${modifyUrl != null}">
     <spring:eval var="modifyUrl"
                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(modifyUrl, '{{reservationRequest.id}}')"/>
+</c:if>
+<c:if test="${duplicateUrl != null}">
+    <spring:eval var="duplicateUrl"
+                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(duplicateUrl, '{{reservationRequest.id}}')"/>
 </c:if>
 <c:if test="${deleteUrl != null}">
     <spring:eval var="deleteUrl"
@@ -150,11 +155,19 @@
                 </c:if>
                 <span ng-show="reservationRequest.isWritable">
                     <c:if test="${modifyUrl != null}">
-                        <c:if test="${detailUrl != null}">| </c:if>
-                        <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
+                        <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                            <c:if test="${detailUrl != null}">| </c:if>
+                            <tag:listAction code="modify" url="${modifyUrl}" tabindex="4"/>
+                        </span>
                     </c:if>
+                    <c:if test="${duplicateUrl != null}">
+                        <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                            <c:if test="${duplicateUrl != null}">| </c:if>
+                            <tag:listAction code="duplicate" url="${duplicateUrl}" tabindex="4"/>
+                        </span>
+                    </c:if>
+                    <c:if test="${detailUrl != null || (modifyUrl != null && duplicateUrl != null)}"> | </c:if>
                     <c:if test="${deleteUrl != null}">
-                        <c:if test="${detailUrl != null || modifyUrl != null}"> | </c:if>
                         <tag:listAction code="delete" url="${deleteUrl}" tabindex="4"/>
                     </c:if>
                 </span>

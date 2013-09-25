@@ -189,7 +189,7 @@ public class Executor extends Component
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             try {
                 // Create execution plan
-                DateTime start = dateTime.plus(executableStart);
+                DateTime start = dateTime.minus(executableStart);
                 DateTime stop = dateTime.plus(executableEnd);
                 ExecutionPlan executionPlan = new ExecutionPlan(this);
                 for (Executable executable : executableManager.listExecutablesForStart(start, maxAttemptCount)) {
