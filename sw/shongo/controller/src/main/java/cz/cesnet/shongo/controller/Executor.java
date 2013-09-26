@@ -190,7 +190,7 @@ public class Executor extends Component
             try {
                 // Create execution plan
                 DateTime start = dateTime.minus(executableStart);
-                DateTime stop = dateTime.plus(executableEnd);
+                DateTime stop = dateTime.minus(executableEnd);
                 ExecutionPlan executionPlan = new ExecutionPlan(this);
                 for (Executable executable : executableManager.listExecutablesForStart(start, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));

@@ -86,8 +86,8 @@
         <property name="defaultEncoding" value="UTF-8"/>
         <property name="fallbackToSystemLocale" value="false"/>
 
-        <!-- Reload messages for debug purposes
-        <property name="cacheSeconds" value="5"/>-->
+        <!-- Reload messages for debug purposes -->
+        <property name="cacheSeconds" value="5"/>
     </bean>
 
 </beans>

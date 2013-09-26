@@ -122,7 +122,7 @@
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <td class="reservation-request-state">
                     <c:if test="${historyItem.state != null}">
-                        <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${historyItem.state}"/></span>
+                        <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
                     </c:if>
                 </td>
                 <td>

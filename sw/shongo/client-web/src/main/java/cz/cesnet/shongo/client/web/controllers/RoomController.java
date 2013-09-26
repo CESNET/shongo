@@ -107,26 +107,12 @@ public class RoomController
 
             RoomState roomState = RoomState.fromRoomState(
                     executableSummary.getState(), executableSummary.getRoomLicenseCount(), executableSummary.getRoomUsageState());
-            String roomStateMessage  = messageSource.getMessage(
-                    "views.executable.roomState." + roomState, null, locale);
-            String roomStateHelp;
-            switch (executableSummary.getType()) {
-                case ROOM:
-                    roomStateHelp = messageSource.getMessage(
-                            "help.executable.roomState." + roomState, null, locale);
-                    break;
-                case USED_ROOM:
-                    roomStateHelp = messageSource.getMessage(
-                            "help.executable.roomState.USED_ROOM." + roomState, null, locale);
-                    break;
-                default:
-                    throw new TodoImplementException(executableSummary.getType().toString());
-            }
+            RoomType roomType = RoomType.fromExecutableSummary(executableSummary);
 
             item.put("state", roomState);
             item.put("stateAvailable", roomState.isAvailable());
-            item.put("stateMessage", roomStateMessage);
-            item.put("stateHelp", roomStateHelp);
+            item.put("stateMessage", roomState.getMessage(messageSource, locale, roomType));
+            item.put("stateHelp", roomState.getHelp(messageSource, locale, roomType));
 
             Interval slot = executableSummary.getRoomUsageSlot();
             if (slot == null) {

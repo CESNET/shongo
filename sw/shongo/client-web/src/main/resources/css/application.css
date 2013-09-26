@@ -501,9 +501,6 @@ b[class^="icon-"]:before {
 .reservation-request-state .ALLOCATED_STARTED_AVAILABLE {
     color: green;
 }
-.reservation-request-state .ALLOCATED_AVAILABLE {
-    color: green;
-}
 .reservation-request-state .ALLOCATED_FINISHED {
     color: blue;
 }

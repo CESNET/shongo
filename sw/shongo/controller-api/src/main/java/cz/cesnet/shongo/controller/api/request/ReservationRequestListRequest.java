@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 
@@ -24,6 +25,8 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
 
     private String reusedReservationRequestId;
+
+    private AllocationState allocationState;
 
     public ReservationRequestListRequest()
     {
@@ -108,6 +111,16 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         this.reusedReservationRequestId = reusedReservationRequestId;
     }
 
+    public AllocationState getAllocationState()
+    {
+        return allocationState;
+    }
+
+    public void setAllocationState(AllocationState allocationState)
+    {
+        this.allocationState = allocationState;
+    }
+
     public static enum Sort
     {
         ALIAS_ROOM_NAME,
@@ -127,6 +140,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
+    private static final String ALLOCATION_STATE = "allocationState";
 
     @Override
     public DataMap toData()
@@ -137,6 +151,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
+        dataMap.set(ALLOCATION_STATE, allocationState);
         return dataMap;
     }
 
@@ -149,5 +164,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
+        allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
     }
 }

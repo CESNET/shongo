@@ -27,7 +27,7 @@
             // Default ReservationRequestState
             $scope.state = {
                 code: "${reservationRequestDetail.state}",
-                label: "<spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}"/>",
+                label: "<spring:message code="views.reservationRequest.state.${reservationRequestDetail.specificationType}.${reservationRequestDetail.state}"/>",
                 help: "${stateHelp}"
             };
         </c:if>
@@ -55,8 +55,8 @@
             $scope.roomState = {
                 code: "${reservationRequestDetail.room.state}",
                 started: ${reservationRequestDetail.room.state.started},
-                label: "<spring:message code="views.executable.roomState.${reservationRequestDetail.room.state}"/>",
-                help: "${reservationRequestDetail.roomStateHelp}",
+                label: "<spring:message code="views.executable.roomState.${reservationRequestDetail.room.type}.${reservationRequestDetail.room.state}"/>",
+                help: "<spring:message code="views.executable.roomStateHelp.${reservationRequestDetail.room.type}.${reservationRequestDetail.room.state}"/>",
                 report: "${roomStateReport}"
             };
         </c:if>

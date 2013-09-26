@@ -19,10 +19,10 @@
     ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>
 </c:set>
 <c:set var="reservationRequestListDataUrl">
-    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specificationType=PERMANENT_ROOM,ADHOC_ROOM
+    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specification-type=PERMANENT_ROOM,ADHOC_ROOM&allocation-state=ALLOCATED
 </c:set>
 <c:set var="permanentRoomCapacitiesUrl">
-    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specificationType=PERMANENT_ROOM_CAPACITY&permanent-room=:permanent-room-id&count=5
+    ${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>?specification-type=PERMANENT_ROOM_CAPACITY&permanent-room=:permanent-room-id&count=5
 </c:set>
 
 <p><spring:message code="views.index.welcome"/></p>

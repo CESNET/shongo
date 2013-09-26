@@ -605,6 +605,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
 
+            AllocationState allocationState = request.getAllocationState();
+            if (allocationState != null) {
+                queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");
+                queryFilter.addFilterParameter("allocationState", allocationState.toString());
+            }
+
             // Query order by
             String queryOrderBy;
             ReservationRequestListRequest.Sort sort = request.getSort();

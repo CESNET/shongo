@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -28,7 +29,7 @@ public class RoomModel
 
     private String reservationRequestId;
 
-    private boolean permanentRoom;
+    private RoomType type;
 
     private Interval slot;
 
@@ -67,7 +68,7 @@ public class RoomModel
         this.licenseCount = roomExecutable.getLicenseCount();
 
         if (this.licenseCount == 0) {
-            permanentRoom = true;
+            this.type = RoomType.PERMANENT_ROOM;
 
             // Get license count from active usage
             ExecutableListRequest request = new ExecutableListRequest();
@@ -84,6 +85,12 @@ public class RoomModel
                     break;
                 }
             }
+        }
+        else if (roomExecutable instanceof UsedRoomExecutable) {
+            this.type = RoomType.USED_ROOM;
+        }
+        else {
+            this.type = RoomType.ADHOC_ROOM;
         }
 
         this.state = RoomState.fromRoomState(
@@ -110,9 +117,9 @@ public class RoomModel
         return reservationRequestId;
     }
 
-    public boolean isPermanentRoom()
+    public RoomType getType()
     {
-        return permanentRoom;
+        return type;
     }
 
     public Interval getSlot()
@@ -297,5 +304,4 @@ public class RoomModel
         }
         return stringBuilder.toString();
     }
-
 }

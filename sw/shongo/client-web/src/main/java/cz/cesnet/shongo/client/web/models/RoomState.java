@@ -2,6 +2,10 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ExecutableState;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import org.springframework.context.MessageSource;
+
+import java.util.Locale;
 
 /**
 * Represents a room state.
@@ -75,6 +79,18 @@ public enum RoomState
     public boolean isAvailable()
     {
         return isAvailable;
+    }
+
+    public String getMessage(MessageSource messageSource, Locale locale, RoomType roomType)
+    {
+        return messageSource.getMessage(
+                "views.executable.roomState." + roomType + "." + this, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, RoomType roomType)
+    {
+        return messageSource.getMessage(
+                "views.executable.roomStateHelp." + roomType + "." + this, null, locale);
     }
 
     /**

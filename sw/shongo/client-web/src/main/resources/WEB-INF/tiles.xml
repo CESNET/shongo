@@ -52,6 +52,11 @@
         </put-list-attribute>
     </definition>
 
+    <definition name="development" extends="layout">
+        <put-attribute name="title" value="system.name"/>
+        <put-attribute name="body" value="/WEB-INF/views/development.jsp" type="template"/>
+    </definition>
+
     <definition name="error" extends="layout">
         <put-attribute name="title" value="views.error.title"/>
         <put-attribute name="body" value="/WEB-INF/views/error.jsp" type="template"/>

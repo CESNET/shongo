@@ -30,7 +30,7 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>
 </c:set>
 <c:set var="listUrlQuery" value=""/>
-<c:set var="listUrlParameters" value="{'specificationType': ["/>
+<c:set var="listUrlParameters" value="{'specification-type': ["/>
 <c:forEach items="${specificationType}" var="specificationTypeItem" varStatus="specificationTypeStatus">
     <c:set var="listUrlParameters" value="${listUrlParameters}'${specificationTypeItem}'"/>
     <c:if test="${!specificationTypeStatus.last}">

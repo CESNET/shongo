@@ -38,11 +38,6 @@ public enum ReservationRequestState
     ALLOCATED_STARTED_AVAILABLE(true),
 
     /**
-     * Reservation request is allocated by the scheduler and the allocated capacity is available for participants to join.
-     */
-    ALLOCATED_AVAILABLE(true),
-
-    /**
      * Reservation request is allocated by the scheduler and the allocated executable has been started and stopped.
      */
     ALLOCATED_FINISHED(true),
@@ -81,12 +76,26 @@ public enum ReservationRequestState
         return allocated;
     }
 
-    public String getHelp(MessageSource messageSource, Locale locale, String reservationId)
+    public String getMessage(MessageSource messageSource, Locale locale, SpecificationType specificationType)
     {
+        return messageSource.getMessage(
+                "views.reservationRequest.state." + specificationType + "." + this, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType,
+            String reservationId)
+    {
+        String helpMessage = "views.reservationRequest.stateHelp." + specificationType + "." +  this;
         if (this.equals(FAILED) && reservationId != null) {
-            return messageSource.getMessage("help.reservationRequest.state." + this + ".hasReservation", null, locale);
+            return messageSource.getMessage(helpMessage + ".hasReservation", null, locale);
         }
-        return messageSource.getMessage("help.reservationRequest.state." + this, null, locale);
+        return messageSource.getMessage(helpMessage, null, locale);
+    }
+
+    public String getHelp(MessageSource messageSource, Locale locale, SpecificationType specificationType)
+    {
+        String helpMessageCode = "views.reservationRequest.stateHelp." + specificationType + "." +  this;
+        return messageSource.getMessage(helpMessageCode, null, locale);
     }
 
     public static ReservationRequestState fromApi(ReservationRequestSummary reservationRequest)
@@ -140,7 +149,7 @@ public enum ReservationRequestState
                         case PERMANENT_ROOM_CAPACITY:
                             switch (executableState) {
                                 case STARTED:
-                                    return ALLOCATED_AVAILABLE;
+                                    return ALLOCATED_STARTED;
                                 case STOPPED:
                                 case STOPPING_FAILED:
                                     return ALLOCATED_FINISHED;

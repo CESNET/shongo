@@ -22,6 +22,7 @@
 
         <!--Following pages don't need login -->
         <security:intercept-url pattern="/" access="permitAll()"/>
+        <security:intercept-url pattern="/development" access="permitAll()"/>
         <security:intercept-url pattern="/changelog" access="permitAll()"/>
         <security:intercept-url pattern="/login*" access="permitAll()"/>
         <security:intercept-url pattern="/report" access="permitAll()"/>

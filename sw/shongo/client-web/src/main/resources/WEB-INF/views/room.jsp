@@ -19,7 +19,7 @@
 
 <h1>
 <c:choose>
-    <c:when test="${room.permanentRoom}">
+    <c:when test="${room.type == 'PERMANENT_ROOM'}">
         <spring:message code="views.room.heading" arguments="${room.name}"/>
     </c:when>
     <c:otherwise>
@@ -45,8 +45,8 @@
 
         <dt><spring:message code="views.room.state"/>:</dt>
         <dd class="room-state">
-            <spring:message code="views.executable.roomState.${room.state}" var="roomStateLabel"/>
-            <spring:message code="help.executable.roomState.${room.state}" var="roomStateHelp"/>
+            <spring:message code="views.executable.roomState.${room.type}.${room.state}" var="roomStateLabel"/>
+            <spring:message code="views.executable.roomStateHelp.${room.type}.${room.state}" var="roomStateHelp"/>
             <tag:help label="${roomStateLabel}" labelClass="${room.state}">
                 <span>${roomStateHelp}</span>
                 <c:if test="${not empty room.stateReport}">

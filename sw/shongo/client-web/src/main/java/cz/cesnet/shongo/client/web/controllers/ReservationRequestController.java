@@ -73,7 +73,8 @@ public class ReservationRequestController
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
-            @RequestParam(value = "specificationType", required = false) Set<SpecificationType> specificationTypes,
+            @RequestParam(value = "specification-type", required = false) Set<SpecificationType> specificationTypes,
+            @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
             @RequestParam(value = "permanent-room-id", required = false) String permanentRoomId)
     {
         // List reservation requests
@@ -83,6 +84,7 @@ public class ReservationRequestController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
+        request.setAllocationState(allocationState);
         if (permanentRoomId != null) {
             specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
         }
@@ -142,6 +144,7 @@ public class ReservationRequestController
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reservationRequestId = reservationRequest.getId();
+            SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
 
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", reservationRequestId);
@@ -157,10 +160,10 @@ public class ReservationRequestController
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
-                String stateMessage = messageSource.getMessage("views.reservationRequest.state." + state, null, locale);
+                String lastReservationId = reservationRequest.getLastReservationId();
                 item.put("state", state);
-                item.put("stateMessage", stateMessage);
-                item.put("stateHelp", state.getHelp(messageSource, locale, reservationRequest.getLastReservationId()));
+                item.put("stateMessage", state.getMessage(messageSource, locale, specificationType));
+                item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
@@ -183,7 +186,6 @@ public class ReservationRequestController
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
-            SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
             item.put("type", specificationType);
             item.put("typeMessage", messageSource.getMessage(
                     "views.reservationRequest.specification." + specificationType, null, locale));

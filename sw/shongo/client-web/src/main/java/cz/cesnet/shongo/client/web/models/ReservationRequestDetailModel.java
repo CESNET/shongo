@@ -22,8 +22,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
     private RoomModel room;
 
-    private String roomStateHelp;
-
     public ReservationRequestDetailModel(AbstractReservationRequest abstractReservationRequest, Reservation reservation,
             CacheProvider cacheProvider, MessageProvider messageProvider, ExecutableService executableService,
             UserSession userSession)
@@ -40,7 +38,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             // Allocation state
             allocationState = reservationRequest.getAllocationState();
             if (allocationState != null) {
-                allocationStateHelp = messageProvider.getMessage("help.reservationRequest.allocationState." + allocationState);
+                allocationStateHelp = messageProvider.getMessage("views.reservationRequest.allocationStateHelp." + allocationState);
 
                 if (allocationState.equals(AllocationState.ALLOCATION_FAILED)) {
                     AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
@@ -72,13 +70,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                     executableState = roomExecutable.getState();
                     room = new RoomModel(roomExecutable, getId(), cacheProvider,
                             messageProvider, executableService, userSession);
-                    RoomState roomState = room.getState();
-                    if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-                        roomStateHelp = messageProvider.getMessage("help.executable.roomState.USED_ROOM." + roomState);
-                    }
-                    else {
-                        roomStateHelp = messageProvider.getMessage("help.executable.roomState." + roomState);
-                    }
                 }
             }
 
@@ -95,11 +86,13 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             }
             else if (room != null && RoomState.FAILED.equals(room.getState())) {
                 // Use room failed help
-                stateHelp = roomStateHelp;
+                stateHelp = RoomState.FAILED.getHelp(
+                        messageProvider.getMessageSource(), messageProvider.getLocale(), room.getType());
             }
             else if (allocationState != null) {
                 // Use original reservation request state help
-                stateHelp = messageProvider.getMessage("help.reservationRequest.state." + state);
+                stateHelp = state.getHelp(
+                        messageProvider.getMessageSource(), messageProvider.getLocale(), specificationType);
             }
         }
     }
@@ -127,10 +120,5 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     public RoomModel getRoom()
     {
         return room;
-    }
-
-    public String getRoomStateHelp()
-    {
-        return roomStateHelp;
     }
 }

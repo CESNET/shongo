@@ -44,7 +44,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     private Cache cache;
 
     @Resource
-    private MessageSource messages;
+    private MessageSource messageSource;
 
     /**
      * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDetailView}
@@ -77,7 +77,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         Locale locale = userSession.getLocale();
         DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
+        MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -183,24 +183,25 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
 
-        Locale locale = userSession.getLocale();
+        final Locale locale = userSession.getLocale();
         DateTimeZone timeZone = userSession.getTimeZone();
 
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
 
-        final MessageProvider messageProvider = new MessageProvider(messages, locale, timeZone);
+        final MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
         final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
                 messageProvider, executableService, userSession);
+        final SpecificationType specificationType = reservationRequestModel.getSpecificationType();
         final RoomModel roomModel = reservationRequestModel.getRoom();
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("state", new HashMap<String, Object>(){{
             ReservationRequestState state = reservationRequestModel.getState();
             put("code", state);
-            put("label", messageProvider.getMessage("views.reservationRequest.state." + state));
+            put("label", state.getMessage(messageSource, locale, specificationType));
             put("help", reservationRequestModel.getStateHelp());
         }});
         data.put("allocationState", new HashMap<String, Object>(){{
@@ -222,8 +223,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 put("code", roomState);
                 put("started", roomState.isStarted());
                 put("report", roomModel.getStateReport());
-                put("label", messageProvider.getMessage("views.executable.roomState." + roomState));
-                put("help", reservationRequestModel.getRoomStateHelp());
+                put("label", roomState.getMessage(messageSource, locale, roomModel.getType()));
+                put("help", roomState.getHelp(messageSource, locale, roomModel.getType()));
             }});
         }
         return data;
@@ -282,10 +283,12 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
-                String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
+                SpecificationType specificationType =
+                        SpecificationType.fromReservationRequestSummary(reservationRequest);
+                String lastReservationId = reservationRequest.getLastReservationId();
                 child.put("state", state);
-                child.put("stateMessage", stateMessage);
-                child.put("stateHelp", state.getHelp(messages, locale, reservationRequest.getLastReservationId()));
+                child.put("stateMessage", state.getMessage(messageSource, locale, specificationType));
+                child.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
             String reservationId = reservationRequest.getLastReservationId();
@@ -304,7 +307,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                     List<Alias> aliases = room.getAliases();
                     child.put("roomAliases", RoomModel.formatAliases(aliases, roomState.isAvailable()));
                     child.put("roomAliasesDescription", RoomModel.formatAliasesDescription(
-                            aliases, roomState.isAvailable(), new MessageProvider(messages, locale)));
+                            aliases, roomState.isAvailable(), new MessageProvider(messageSource, locale)));
                 }
             }
 
@@ -356,10 +359,12 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
-                String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
+                SpecificationType specificationType =
+                        SpecificationType.fromReservationRequestSummary(reservationRequest);
+                String lastReservationId = reservationRequest.getLastReservationId();
                 item.put("state", state);
-                item.put("stateMessage", stateMessage);
-                item.put("stateHelp", state.getHelp(messages, locale, reservationRequest.getLastReservationId()));
+                item.put("stateMessage", state.getMessage(messageSource, locale, specificationType));
+                item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());

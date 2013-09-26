@@ -32,12 +32,6 @@ import java.util.*;
 @Controller
 public class IndexController
 {
-    @Resource
-    private ExecutableService executableService;
-
-    @Resource
-    private MessageSource messageSource;
-
     /**
      * Handle main (index) view.
      */
@@ -58,5 +52,14 @@ public class IndexController
         else {
             return "indexAnonymous";
         }
+    }
+
+    /**
+     * Handle development view.
+     */
+    @RequestMapping(value = "development", method = RequestMethod.GET)
+    public String handleDevelopmentView()
+    {
+        return "development";
     }
 }

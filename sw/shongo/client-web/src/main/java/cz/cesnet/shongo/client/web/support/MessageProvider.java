@@ -53,6 +53,14 @@ public class MessageProvider
     }
 
     /**
+     * @return {@link #messageSource}
+     */
+    public MessageSource getMessageSource()
+    {
+        return messageSource;
+    }
+
+    /**
      * @return {@link #locale}
      */
     public Locale getLocale()

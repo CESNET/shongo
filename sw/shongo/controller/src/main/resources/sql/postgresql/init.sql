@@ -184,17 +184,23 @@ CREATE VIEW reservation_request_summary AS
 SELECT
   reservation_request_summary.*,
   CASE
-      WHEN reservation_request_summary.slot_nearness_start > ((NOW() AT TIME ZONE 'UTC') - (INTERVAL '1 DAY')) AND reservation_request_summary.slot_nearness_end < ((NOW() AT TIME ZONE 'UTC') + (INTERVAL '7 DAY')) THEN 0
+      /* Highest priority have requests which starts after "-7 days" and ends in interval [now(), +7 days] (e.g., planned, active, or finished rooms) */
+      WHEN reservation_request_summary.slot_nearness_start > ((NOW() AT TIME ZONE 'UTC') - (INTERVAL '7 DAY')) AND reservation_request_summary.slot_nearness_end > (NOW() AT TIME ZONE 'UTC') AND reservation_request_summary.slot_nearness_end < ((NOW() AT TIME ZONE 'UTC') + (INTERVAL '7 DAY')) THEN 0
+      /* Then the requests whose time slots are currently taking place (e.g. permanent rooms) */
       WHEN (NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end THEN 1
+      /* Then the rest */
       ELSE 2
   END AS slot_nearness_priority,
   CASE
+      /* For requests whose timeslot are currently taking place the difference is computed as "slot_end - now()" */
       WHEN (NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end THEN
-          ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_end)))
+          EXTRACT(EPOCH FROM (reservation_request_summary.slot_nearness_end - (NOW() AT TIME ZONE 'UTC')))
+      /* For requests whose timeslot is in future the difference is computed as "slot_start - now()" */
       WHEN (NOW() AT TIME ZONE 'UTC') < reservation_request_summary.slot_nearness_start THEN
-          ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_start)))
-  ELSE
-    24 * 3600 + ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_end)))
+          EXTRACT(EPOCH FROM (reservation_request_summary.slot_nearness_start - (NOW() AT TIME ZONE 'UTC')))
+      /* For requests whose timeslot is in history the difference is computed as "7 days + (now() - slot_end)" */
+      ELSE
+          7 * 24 * 3600 + ABS(EXTRACT(EPOCH FROM ((NOW() AT TIME ZONE 'UTC') - reservation_request_summary.slot_nearness_end)))
   END AS slot_nearness_value
 FROM (
     SELECT
