@@ -76,7 +76,7 @@
         </tbody>
     </table>
     <c:choose>
-        <c:when test="${createUrl != null}">
+        <c:when test="${not empty createUrl}">
             <a class="btn btn-primary" href="${createUrl}" tabindex="1">
                 <spring:message code="views.button.create"/>
             </a>
