@@ -163,7 +163,7 @@ public class UserSession implements Serializable
         }
         setLocale(locale);
         setTimeZone(userSettings.getTimeZone());
-        setAdmin(userSettings.getAdminMode());
+        setAdmin(userSettings.getAdminMode() != null ? userSettings.getAdminMode() : false);
 
         UserInterface userInterface = userSettings.getAttribute(USER_INTERFACE_SETTINGS_ATTRIBUTE, UserInterface.class);
         if (userInterface != null) {
