@@ -41,7 +41,7 @@
             if ($scope.reservationRequest.type != 'PERMANENT_ROOM') {
                 return;
             }
-            if ($scope.reservationRequest.state == 'FAILED') {
+            if ($scope.reservationRequest.state == 'FAILED' || $scope.reservationRequest.state == 'ALLOCATED_FINISHED') {
                 return;
             }
             var resource = $resource('${permanentRoomCapacitiesUrl}', null, {
