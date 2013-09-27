@@ -26,49 +26,8 @@
 </c:if>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestDetail', ['tag:reservationRequestDetail', 'ngPagination']);
+    angular.module('jsp:reservationRequestDetail', ['tag:expandableBlock', 'tag:reservationRequestDetail', 'ngPagination']);
 </script>
-
-<%-- What do you want to do? --%>
-<c:if test="${!sessionScope.user.advancedUserInterface}">
-    <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
-        <spring:eval var="createPermanentRoomCapacityUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, reservationRequest.id)"/>
-    </c:if>
-    <div class="actions">
-        <span><spring:message code="views.select.action"/></span>
-        <ul>
-            <c:if test="${createPermanentRoomCapacityUrl != null}">
-                <li>
-                    <c:choose >
-                        <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
-                            <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                            </a>
-                        </c:when>
-                        <c:otherwise>
-                        <span class="disabled">
-                            <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                        </span>
-                        </c:otherwise>
-                    </c:choose>
-                </li>
-            </c:if>
-            <li>
-                <a href="javascript: location.reload();"  tabindex="1">
-                    <spring:message code="views.reservationRequestDetail.action.refresh"/>
-                </a>
-            </li>
-            <c:if test="${isWritable}">
-                <li>
-                    <spring:eval var="deleteUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
-                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
-                </li>
-            </c:if>
-        </ul>
-    </div>
-</c:if>
 
 <%-- Page title --%>
 <h1>
@@ -92,62 +51,102 @@
     </c:choose>
 </h1>
 
-<%-- History --%>
-<c:if test="${history != null}">
-    <div class="bordered jspReservationRequestDetailHistory">
-        <h2><spring:message code="views.reservationRequestDetail.history"/></h2>
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th><spring:message code="views.reservationRequest.dateTime"/></th>
-                <th><spring:message code="views.reservationRequest.user"/></th>
-                <th><spring:message code="views.reservationRequest.type"/></th>
-                <th><spring:message code="views.reservationRequest.state"/></th>
-                <th><spring:message code="views.list.action"/></th>
-            </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${history}" var="historyItem">
-                <c:set var="rowClass" value=""/>
-                <c:choose>
-                    <c:when test="${historyItem.selected}">
-                        <tr class="selected">
-                    </c:when>
-                    <c:otherwise>
-                        <tr>
-                    </c:otherwise>
-                </c:choose>
-                <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
-                <td>${historyItem.user}</td>
-                <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
-                <td class="reservation-request-state">
-                    <c:if test="${historyItem.state != null}">
-                        <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
-                    </c:if>
-                </td>
-                <td>
-                    <c:choose>
-                        <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                            <spring:eval var="historyItemDetailUrl"
-                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
-                            <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
-                        </c:when>
-                        <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
-                    </c:choose>
-                    <c:if test="${historyItem.isRevertible}">
-                        <spring:eval var="historyItemRevertUrl"
-                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
-                        | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
-                    </c:if>
-                </td>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
-    </div>
-</c:if>
-
 <div ng-app="jsp:reservationRequestDetail">
+
+    <%-- What do you want to do? --%>
+    <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+        <spring:eval var="createPermanentRoomCapacityUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, reservationRequest.id)"/>
+    </c:if>
+    <spring:message code="views.select.action" var="action"/>
+    <tag:expandableBlock name="actions" collapsedText="${action}" cssClass="actions">
+        <span>${action}</span>
+        <ul>
+            <c:if test="${createPermanentRoomCapacityUrl != null}">
+                <li>
+                    <c:choose >
+                        <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
+                            <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
+                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="disabled">
+                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
+                            </span>
+                        </c:otherwise>
+                    </c:choose>
+                </li>
+            </c:if>
+            <li>
+                <a href="javascript: location.reload();"  tabindex="1">
+                    <spring:message code="views.reservationRequestDetail.action.refresh"/>
+                </a>
+            </li>
+            <c:if test="${isWritable}">
+                <li>
+                    <spring:eval var="deleteUrl"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
+                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
+                </li>
+            </c:if>
+        </ul>
+    </tag:expandableBlock>
+
+    <%-- History --%>
+    <c:if test="${history != null}">
+        <div class="bordered jspReservationRequestDetailHistory">
+            <h2><spring:message code="views.reservationRequestDetail.history"/></h2>
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th><spring:message code="views.reservationRequest.dateTime"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
+                    <th><spring:message code="views.reservationRequest.type"/></th>
+                    <th><spring:message code="views.reservationRequest.state"/></th>
+                    <th><spring:message code="views.list.action"/></th>
+                </tr>
+                </thead>
+                <tbody>
+                <c:forEach items="${history}" var="historyItem">
+                    <c:set var="rowClass" value=""/>
+                    <c:choose>
+                        <c:when test="${historyItem.selected}">
+                            <tr class="selected">
+                        </c:when>
+                        <c:otherwise>
+                            <tr>
+                        </c:otherwise>
+                    </c:choose>
+                    <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
+                    <td>${historyItem.user}</td>
+                    <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
+                    <td class="reservation-request-state">
+                        <c:if test="${historyItem.state != null}">
+                            <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
+                        </c:if>
+                    </td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
+                                <spring:eval var="historyItemDetailUrl"
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
+                                <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
+                            </c:when>
+                            <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
+                        </c:choose>
+                        <c:if test="${historyItem.isRevertible}">
+                            <spring:eval var="historyItemRevertUrl"
+                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
+                            | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
+                        </c:if>
+                    </td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
+        </div>
+    </c:if>
 
     <%-- Detail of request --%>
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>

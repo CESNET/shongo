@@ -8,8 +8,12 @@
     <short-name>cz.cesnet.shongo.client-web</short-name>
     <uri>/WEB-INF/client-web.tld</uri>
     <tag-file>
-        <name>listAction</name>
-        <path>/WEB-INF/tags/listAction.tag</path>
+        <name>expandableBlock</name>
+        <path>/WEB-INF/tags/expandableBlock.tag</path>
+    </tag-file>
+    <tag-file>
+        <name>format</name>
+        <path>/WEB-INF/tags/format.tag</path>
     </tag-file>
     <tag-file>
         <name>help</name>
@@ -24,8 +28,8 @@
         <path>/WEB-INF/tags/helpRoomState.tag</path>
     </tag-file>
     <tag-file>
-        <name>format</name>
-        <path>/WEB-INF/tags/format.tag</path>
+        <name>listAction</name>
+        <path>/WEB-INF/tags/listAction.tag</path>
     </tag-file>
     <tag-file>
         <name>reportForm</name>

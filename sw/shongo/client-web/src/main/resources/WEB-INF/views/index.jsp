@@ -34,7 +34,7 @@
 
 <security:authorize access="isAuthenticated()">
     <script type="text/javascript">
-        var module = angular.module('jsp:indexDashboard', ['ngPagination', 'ngTooltip', 'ngSanitize']);
+        var module = angular.module('jsp:indexDashboard', ['tag:expandableBlock', 'ngPagination', 'ngTooltip', 'ngSanitize']);
 
         function PermanentRoomCapacitiesController($scope, $resource) {
             $scope.items = null;
@@ -56,8 +56,9 @@
 
     <div ng-app="jsp:indexDashboard">
 
-        <div class="actions">
-            <span><spring:message code="views.select.action"/></span>
+        <spring:message code="views.select.action" var="action"/>
+        <tag:expandableBlock name="actions" collapsedText="${action}" cssClass="actions">
+            <span>${action}</span>
             <ul>
                 <li>
                     <a href="${createRoomUrl}" tabindex="1">
@@ -70,7 +71,7 @@
                     </a>
                 </li>
             </ul>
-        </div>
+        </tag:expandableBlock>
 
         <div ng-controller="PaginationController"
              ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}');">

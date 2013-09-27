@@ -275,7 +275,7 @@ form span.error {
 div.actions {
     margin-top: 15px;
     margin-bottom: 15px;
-    padding: 10px 20px;
+    padding: 10px 10px 10px 20px;
     font-size: 20px;
     border: solid 1px #888888;
     background-color: #f9f9f9;
@@ -294,6 +294,20 @@ div.actions li span {
     line-height: 30px;
     font-weight: normal;
     color: #808080;
+}
+div.actions.collapsed {
+    padding: 5px 10px;
+    font-size: 16px;
+}
+div.actions.collapsed span {
+    line-height: 20px;
+}
+div.actions.collapsed span a {
+    line-height: 20px;
+    color: gray;
+}
+div.actions.collapsed>a {
+    line-height: 22px;
 }
 
 /* Spinner (demonstrates waiting state) */

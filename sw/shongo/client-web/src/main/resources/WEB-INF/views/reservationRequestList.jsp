@@ -16,27 +16,26 @@
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestList', ['ngPagination', 'ngTooltip']);
+    angular.module('jsp:reservationRequestList', ['tag:expandableBlock', 'tag:reservationRequestList', 'ngTooltip']);
 </script>
 
-<%-- What do you want to do? --%>
-<c:if test="${!sessionScope.user.advancedUserInterface}">
-    <div class="actions">
-        <span><spring:message code="views.select.action"/></span>
+<div ng-app="jsp:reservationRequestList" ng-controller="ReadyController">
+
+    <%-- What do you want to do? --%>
+    <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}</c:set>
+    <spring:message code="views.select.action" var="action"/>
+    <tag:expandableBlock name="actions" collapsedText="${action}" cssClass="actions">
+            <span>${action}</span>
         <ul>
             <li>
-                <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}</c:set>
                 <a href="${createRoomUrl}" tabindex="1">
                     <spring:message code="views.index.action.createRoom"/>
                 </a>
             </li>
         </ul>
-    </div>
-</c:if>
+    </tag:expandableBlock>
 
-<%-- List of reservation requests --%>
-<div ng-app="jsp:reservationRequestList" ng-controller="ReadyController">
-
+    <%-- List of reservation requests --%>
     <div class="spinner" ng-hide="ready"></div>
 
     <div ng-show="ready">

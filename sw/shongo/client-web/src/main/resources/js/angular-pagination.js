@@ -150,7 +150,12 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             list: {method: 'GET'}
         });
         // Load configuration
-        var configuration = $cookieStore.get(name);
+        var configuration = null;
+        try {
+            configuration = angular.fromJson($cookieStore.get(name));
+        } catch (error) {
+            console.warn("Failed to load pagination configuration", error);
+        }
         if (configuration != null) {
             $scope.pageSize = configuration.pageSize;
         }
@@ -208,7 +213,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             pageIndex: $scope.pageIndex,
             pageSize: $scope.pageSize
         };
-        $cookieStore.put($scope.name, configuration);
+        $cookieStore.put($scope.name, angular.toJson(configuration), Infinity, '/');
     };
 
     /**
