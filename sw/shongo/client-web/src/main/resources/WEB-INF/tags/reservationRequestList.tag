@@ -23,6 +23,7 @@
 
 <c:if test="${!advancedUserInterface}">
     <c:set var="modifyUrl" value="${null}"/>
+    <c:set var="duplicateUrl" value="${null}"/>
 </c:if>
 
 <c:set var="listName" value="reservation-request-list${name != null ? ('-'.concat(name)) : ''}"/>

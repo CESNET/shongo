@@ -17,6 +17,7 @@
 <c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="backUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
 <spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
+<spring:eval var="duplicateUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreateDuplicate(contextPath, reservationRequest.id)"/>
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
 
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
@@ -194,9 +195,18 @@
     </a>
     <c:if test="${isWritable}">
         <c:if test="${advancedUserInterface}">
-            <a class="btn" href="${modifyUrl}" tabindex="1">
-                <spring:message code="views.button.modify"/>
-            </a>
+            <c:choose>
+                <c:when test="${reservationRequest.state == 'ALLOCATED_FINISHED'}">
+                    <a class="btn" href="${duplicateUrl}" tabindex="1">
+                        <spring:message code="views.button.duplicate"/>
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <a class="btn" href="${modifyUrl}" tabindex="1">
+                        <spring:message code="views.button.modify"/>
+                    </a>
+                </c:otherwise>
+            </c:choose>
         </c:if>
         <a class="btn" href="${deleteUrl}" tabindex="1">
             <spring:message code="views.button.delete"/>
