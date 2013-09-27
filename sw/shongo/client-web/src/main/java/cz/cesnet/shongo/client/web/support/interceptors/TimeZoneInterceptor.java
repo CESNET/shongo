@@ -29,62 +29,69 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
+        // Skip resource handlers
+        if (handler instanceof ResourceHttpRequestHandler) {
+            return true;
+        }
+
         UserSession userSession = UserSession.getInstance(request);
 
-        // If timezone is not set retrieve it
-        if (userSession.getTimeZone() == null) {
-            String timeZoneOffset = request.getParameter("time-zone-offset");
+        String timeZoneOffset = request.getParameter("time-zone-offset");
+        if (!Strings.isNullOrEmpty(timeZoneOffset)) {
+            // Set new time zone
+            DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
+            userSession.setTimeZone(dateTimeZone);
+            userSession.update(request, null);
+
             String requestUrl = (String) WebUtils.getSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE);
-            if (!Strings.isNullOrEmpty(timeZoneOffset)) {
-                // Set new time zone
-                DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
-                userSession.setTimeZone(dateTimeZone);
-                userSession.update(request, null);
-
-                logger.debug("Set timezone {} to session {}.", dateTimeZone, userSession.toString());
-
-                if (requestUrl != null) {
-                    // Redirect to original request url
-                    WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, null);
-                    response.sendRedirect(requestUrl);
-                    return false;
-                }
-                else {
-                    // Do not redirect to any url
-                    return true;
-                }
-            }
-            else {
-                // Skip resource handlers
-                if (handler instanceof  ResourceHttpRequestHandler) {
-                    return true;
-                }
-                // Skip handlers with ignore annotation
-                if (handler instanceof HandlerMethod) {
-                    HandlerMethod handlerMethod = (HandlerMethod) handler;
-                    IgnoreDateTimeZone ignoreZone = handlerMethod.getMethodAnnotation(IgnoreDateTimeZone.class);
-                    if (ignoreZone != null) {
-                        return true;
-                    }
-                }
-
-                // Store request url (if it is not already set by another request)
-                if (requestUrl == null) {
-                    StringBuilder previousUrl = new StringBuilder();
-                    previousUrl.append(request.getRequestURI());
-                    String queryString = request.getQueryString();
-                    if (queryString != null) {
-                        previousUrl.append("?");
-                        previousUrl.append(queryString);
-                    }
-                    WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, previousUrl.toString());
-                }
-
-                // Render view for resolving timezone
-                InternalResourceView view = new InternalResourceView("/WEB-INF/views/timeZone.jsp");
-                view.render(null, request, response);
+            if (requestUrl != null) {
+                // Redirect to original request url
+                WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, null);
+                response.sendRedirect(requestUrl);
                 return false;
             }
+            else {
+                // Redirect to current request url without time-zone-offset parameter
+                String queryString = request.getQueryString();
+                queryString = queryString.replaceAll("time-zone-offset=[^&]*?($|[&;])", "");
+                StringBuilder requestUriBuilder = new StringBuilder();
+                requestUriBuilder.append(request.getRequestURI());
+                if (!queryString.isEmpty()) {
+                    requestUriBuilder.append("?");
+                    requestUriBuilder.append(queryString);
+                }
+                response.sendRedirect(requestUriBuilder.toString());
+                return false;
+            }
+        }
+        // If timezone is not set retrieve it
+        else if (userSession.getTimeZone() == null) {
+            // Skip handlers with ignore annotation
+            if (handler instanceof HandlerMethod) {
+                HandlerMethod handlerMethod = (HandlerMethod) handler;
+                IgnoreDateTimeZone ignoreZone = handlerMethod.getMethodAnnotation(IgnoreDateTimeZone.class);
+                if (ignoreZone != null) {
+                    return true;
+                }
+            }
+
+            // Store request url (if it is not already set by another request)
+            String requestUrl = (String) WebUtils.getSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE);
+            if (requestUrl == null) {
+                StringBuilder previousUrl = new StringBuilder();
+                previousUrl.append(request.getRequestURI());
+                String queryString = request.getQueryString();
+                if (queryString != null) {
+                    previousUrl.append("?");
+                    previousUrl.append(queryString);
+                }
+                WebUtils.setSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE, previousUrl.toString());
+            }
+
+            // Render view for resolving timezone
+            InternalResourceView view = new InternalResourceView("/WEB-INF/views/timeZone.jsp");
+            view.render(null, request, response);
+            return false;
         }
         else {
             return true;

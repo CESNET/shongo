@@ -528,6 +528,12 @@ b[class^="icon-"]:before {
 }
 
 /* Icons for ReservationRequestState and RoomState */
+.reservation-request-state .ALLOCATED_STARTED_NOT_AVAILABLE,
+.reservation-request-state .ALLOCATED_STARTED_AVAILABLE,
+.room-state .STARTED_NOT_AVAILABLE,
+.room-state .STARTED_AVAILABLE {
+    white-space: nowrap;
+}
 .reservation-request-state .ALLOCATED_STARTED_NOT_AVAILABLE:after,
 .reservation-request-state .ALLOCATED_STARTED_AVAILABLE:after,
 .room-state .STARTED_NOT_AVAILABLE:after,
