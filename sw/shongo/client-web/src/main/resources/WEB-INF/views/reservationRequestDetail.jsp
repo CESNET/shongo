@@ -26,6 +26,10 @@
                                 domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
 
+<c:if test="${!reservationRequest.slot.containsNow() || reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.room == null || !reservationRequest.room.state.started}">
+    <c:set var="isProvidable" value="${false}"/>
+</c:if>
+
 <script type="text/javascript">
     angular.module('jsp:reservationRequestDetail', ['tag:expandableBlock', 'tag:reservationRequestDetail', 'ngPagination']);
 </script>
@@ -55,7 +59,7 @@
 <div ng-app="jsp:reservationRequestDetail">
 
     <%-- What do you want to do? --%>
-    <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+    <c:if test="${isProvidable}">
         <spring:eval var="createPermanentRoomCapacityUrl"
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, reservationRequest.id)"/>
     </c:if>
@@ -175,7 +179,7 @@
         <%-- Permanent room capacities --%>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <hr/>
-            <c:if test="${isProvidable && reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.slot.containsNow()}">
+            <c:if test="${isProvidable}">
                 <spring:eval var="usageCreateUrl"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
             </c:if>

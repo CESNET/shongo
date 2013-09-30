@@ -477,8 +477,9 @@ public abstract class Executable extends PersistentObject implements ReportableS
      *
      * @param executor          which is executing
      * @param executableManager
+     * @return new {@link State} or null when the state hasn't changed
      */
-    public final void update(Executor executor, ExecutableManager executableManager)
+    public final State update(Executor executor, ExecutableManager executableManager)
     {
         if (!getState().isStarted()) {
             throw new IllegalStateException(
@@ -488,6 +489,7 @@ public abstract class Executable extends PersistentObject implements ReportableS
         if (state != null) {
             setState(state);
         }
+        return state;
     }
 
     /**

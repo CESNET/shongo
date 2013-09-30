@@ -19,9 +19,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Implementation of {@link ExecutableService}.
@@ -281,6 +279,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         try {
             entityManager.getTransaction().begin();
+
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
@@ -288,11 +287,22 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("start executable %s", entityId);
             }
 
-            int maxAttemptCount = getConfiguration().getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
-            if (executable.getAttemptCount() >= maxAttemptCount) {
-                executable.setAttemptCount(maxAttemptCount - 1);
+            Set<cz.cesnet.shongo.controller.executor.Executable> executablesToUpdate =
+                    new HashSet<cz.cesnet.shongo.controller.executor.Executable>();
+            executablesToUpdate.add(executable);
+            cz.cesnet.shongo.controller.executor.Migration migration = executable.getMigration();
+            if (migration != null) {
+                executablesToUpdate.add(migration.getSourceExecutable());
+                executablesToUpdate.add(migration.getTargetExecutable());
             }
-            executable.setNextAttempt(DateTime.now());
+
+            int maxAttemptCount = getConfiguration().getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
+            for (cz.cesnet.shongo.controller.executor.Executable executableToUpdate : executablesToUpdate) {
+                if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
+                    executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                }
+                executableToUpdate.setNextAttempt(DateTime.now());
+            }
 
             entityManager.getTransaction().commit();
         }

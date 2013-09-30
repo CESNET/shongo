@@ -82,7 +82,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link #roomId}
+     * @return {@link #roomId} isProvidable
      */
     @Override
     @Column
@@ -265,7 +265,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 setRoomId((String) sendLocalCommand.getResult());
-            } else {
+            }
+            else {
                 throw new ExecutorReportSet.CommandFailedException(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
             }

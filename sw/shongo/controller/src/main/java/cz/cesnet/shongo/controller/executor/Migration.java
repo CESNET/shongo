@@ -115,7 +115,7 @@ public class Migration extends PersistentObject
      * @param executor
      * @param executableManager
      */
-    public void perform(Executor executor, ExecutableManager executableManager)
+    public boolean perform(Executor executor, ExecutableManager executableManager)
     {
         RoomEndpoint sourceRoom = (RoomEndpoint) executableManager.get(sourceExecutable.getId());
         RoomEndpoint targetRoom = (RoomEndpoint) executableManager.get(targetExecutable.getId());
@@ -129,14 +129,14 @@ public class Migration extends PersistentObject
             if (sourceResourceRoom.getResource().equals(targetResourceRoom.getResource())) {
                 targetResourceRoom.setState(Executable.State.STARTED);
                 targetResourceRoom.setRoomId(sourceRoom.getRoomId());
-                targetResourceRoom.update(executor, executableManager);
-                if (targetResourceRoom.getState().isStarted()) {
+                Executable.State state = targetResourceRoom.update(executor, executableManager);
+                if (state != null) {
                     sourceResourceRoom.setState(Executable.State.STOPPED);
+                    return true;
                 }
-            }
-            // Migrate room between devices
-            else {
-                // TODO: migrate room settings
+                else {
+                    targetResourceRoom.setState(Executable.State.STARTING_FAILED);
+                }
             }
         }
         // Migrate between used rooms
@@ -147,11 +147,16 @@ public class Migration extends PersistentObject
             // If the same room is reused, only update the room
             if (sourceUsedRoom.getRoomEndpoint().equals(targetUsedRoom.getRoomEndpoint())) {
                 targetUsedRoom.setState(Executable.State.STARTED);
-                targetUsedRoom.update(executor, executableManager);
-                if (targetUsedRoom.getState().isStarted()) {
+                Executable.State state = targetUsedRoom.update(executor, executableManager);
+                if (state != null) {
                     sourceUsedRoom.setState(Executable.State.STOPPED);
+                    return true;
+                }
+                else {
+                    targetUsedRoom.setState(Executable.State.STARTING_FAILED);
                 }
             }
         }
+        return false;
     }
 }
