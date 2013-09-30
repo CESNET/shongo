@@ -288,6 +288,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("start executable %s", entityId);
             }
 
+            int maxAttemptCount = getConfiguration().getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
+            if (executable.getAttemptCount() >= maxAttemptCount) {
+                executable.setAttemptCount(maxAttemptCount - 1);
+            }
             executable.setNextAttempt(DateTime.now());
 
             entityManager.getTransaction().commit();

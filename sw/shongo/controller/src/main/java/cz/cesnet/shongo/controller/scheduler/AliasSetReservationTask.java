@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.executor.Migration;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -119,5 +122,20 @@ public class AliasSetReservationTask extends ReservationTask
             }
             return reservation;
         }
+    }
+
+    @Override
+    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
+    {
+        Executable oldExecutable = oldReservation.getExecutable();
+        Executable newExecutable = newReservation.getExecutable();
+        if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
+            if (oldExecutable.getState().isStarted()) {
+                Migration migration = new Migration();
+                migration.setSourceExecutable(oldExecutable);
+                migration.setTargetExecutable(newExecutable);
+            }
+        }
+        super.migrateReservation(oldReservation, newReservation);
     }
 }

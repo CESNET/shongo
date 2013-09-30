@@ -175,6 +175,13 @@ sub on_init()
             });
         }
     }
+    $self->add_attribute('migratedExecutable', {
+        'title' => 'Migrated From',
+        'format' => sub {
+            my ($attribute_value) = @_;
+            return $attribute_value->{'id'};
+        },
+    });
 
     return $self;
 }
