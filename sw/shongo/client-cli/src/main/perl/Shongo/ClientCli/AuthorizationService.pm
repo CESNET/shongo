@@ -348,7 +348,7 @@ sub list_referenced_users()
         ],
         'data' => []
     };
-    foreach my $userId (sort(keys $response)) {
+    foreach my $userId (sort(keys ${$response})) {
         push(@{$table->{'data'}}, {
             'userId' => $userId,
             'description' => $response->{$userId}
