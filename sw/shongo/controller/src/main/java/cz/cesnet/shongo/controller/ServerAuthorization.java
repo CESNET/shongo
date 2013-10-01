@@ -51,7 +51,7 @@ public class ServerAuthorization extends Authorization
     /**
      * User web service path in auth-server.
      */
-    private static final String USER_SERVICE_PATH = "/perun/resource/user";
+    private static final String USER_SERVICE_PATH = "/perun/users";
 
     /**
      * Access token which won't be verified and can be used for testing purposes.
