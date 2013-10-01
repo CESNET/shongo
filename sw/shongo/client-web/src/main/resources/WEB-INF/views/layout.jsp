@@ -94,7 +94,7 @@
                             <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
                             <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
                         </li>
-                        <c:if test="${sessionScope.user.advancedUserInterface}">
+                        <c:if test="${sessionScope.user.admin}">
                             <li>
                                 <c:set var="roomListUrl">${contextPath}<%= ClientWebUrl.ROOM_LIST %></c:set>
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>

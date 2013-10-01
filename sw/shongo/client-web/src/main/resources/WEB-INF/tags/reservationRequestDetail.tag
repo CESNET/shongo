@@ -20,6 +20,11 @@
     angular.provideModule('tag:reservationRequestDetail', ['ngTooltip', 'ngResource', 'ngSanitize']);
 
     function DynamicStateController($scope, $resource, $sce, $timeout) {
+        // Setup child scope
+        if ( $scope.$parent != null ) {
+            $scope.$parent.$child = $scope;
+        }
+
         // Default requested slot
         $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
@@ -101,7 +106,6 @@
              * Perform automatic refresh.
              */
             $scope.autoRefresh = function() {
-
                 $scope.refresh(function(){
                     $scope.refreshCount++;
                     if (($scope.refreshCount % 3) == 0) {

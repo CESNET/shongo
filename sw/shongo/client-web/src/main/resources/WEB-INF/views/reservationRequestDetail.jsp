@@ -113,7 +113,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <c:forEach items="${history}" var="historyItem">
+                <c:forEach items="${history}" var="historyItem" varStatus="status">
                     <c:set var="rowClass" value=""/>
                     <c:choose>
                         <c:when test="${historyItem.selected}">
@@ -127,9 +127,14 @@
                     <td>${historyItem.user}</td>
                     <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                     <td class="reservation-request-state">
-                        <c:if test="${historyItem.state != null}">
-                            <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
-                        </c:if>
+                        <c:choose>
+                            <c:when test="${historyItem.selected}">
+                                <span class="{{$child.state.code}}">{{$child.state.label}}</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                     <td>
                         <c:choose>
@@ -140,10 +145,12 @@
                             </c:when>
                             <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
                         </c:choose>
-                        <c:if test="${historyItem.isRevertible}">
+                        <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
                             <spring:eval var="historyItemRevertUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
-                            | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
+                            <span ng-show="$child.allocationState.code != 'ALLOCATED'">
+                                | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
+                            </span>
                         </c:if>
                     </td>
                     </tr>
