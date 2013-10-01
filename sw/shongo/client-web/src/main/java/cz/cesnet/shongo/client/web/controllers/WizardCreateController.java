@@ -161,13 +161,15 @@ public class WizardCreateController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES, method = {RequestMethod.POST})
     public Object handleCreateRoomAttributesProcess(
+            UserSession userSession,
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             @RequestParam(value = "finish", required = false) boolean finish,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                        userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
@@ -259,11 +261,13 @@ public class WizardCreateController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRM, method = RequestMethod.GET)
     public Object handleCreateRoomConfirm(
+            UserSession userSession,
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();

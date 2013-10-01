@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
+import cz.cesnet.shongo.controller.api.ValueSpecification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
@@ -514,16 +515,6 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         result = getReservationService().checkAvailability(availabilityCheckRequest);
         Assert.assertEquals(AllocationStateReport.class, result.getClass());
-
-        try {
-            availabilityCheckRequest.setSpecification(new RoomSpecification(1, Technology.H323));
-            getReservationService().checkAvailability(availabilityCheckRequest);
-            Assert.fail("Room specification should not be able to be checked for availability for now.");
-        }
-        catch (RuntimeException exception) {
-            Assert.assertTrue(exception.getMessage().contains(
-                    "Specification 'RoomSpecification' cannot be checked for availability"));
-        }
     }
 
     @Test

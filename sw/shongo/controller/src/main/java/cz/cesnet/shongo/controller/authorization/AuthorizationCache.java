@@ -66,7 +66,7 @@ public class AuthorizationCache
     /**
      * Clear the cache.
      */
-    public void clear()
+    public synchronized void clear()
     {
         userIdCache.clear();
         userInformationCache.clear();

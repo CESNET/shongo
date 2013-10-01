@@ -4,13 +4,10 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.WizardPage;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
-import cz.cesnet.shongo.client.web.models.SpecificationType;
-import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -132,13 +129,15 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, method = {RequestMethod.POST})
     public Object handleCreatePermanentRoomCapacityProcess(
+            UserSession userSession,
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             @RequestParam(value = "finish", required = false) boolean finish,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();
@@ -158,11 +157,13 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM, method = RequestMethod.GET)
     public Object handleCreateConfirm(
+            UserSession userSession,
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();

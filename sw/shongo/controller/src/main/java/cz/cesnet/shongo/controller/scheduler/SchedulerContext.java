@@ -199,6 +199,14 @@ public class SchedulerContext
     }
 
     /**
+     * @param purpose sets the {@link #purpose}
+     */
+    public void setPurpose(ReservationRequestPurpose purpose)
+    {
+        this.purpose = purpose;
+    }
+
+    /**
      * Initialize {@link SchedulerContext} from {@link ReservationRequest}.
      *
      * @param reservationRequest from which the {@link SchedulerContext} should be initialized

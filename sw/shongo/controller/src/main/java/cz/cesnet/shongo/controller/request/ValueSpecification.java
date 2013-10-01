@@ -187,7 +187,7 @@ public class ValueSpecification extends Specification
         ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
         if (valueProviderCapability == null) {
             throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
-                    ValueProviderCapability.class.getSimpleName(), valueSpecificationApi.getResourceId()));
+                    valueSpecificationApi.getResourceId(), ValueProviderCapability.class.getSimpleName()));
         }
         setValueProvider(valueProviderCapability.getValueProvider());
 

@@ -1,16 +1,21 @@
 package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 /**
  * Validator for {@link ReservationRequestModel}.
@@ -25,10 +30,17 @@ public class ReservationRequestValidator implements Validator
 
     private ReservationService reservationService;
 
-    public ReservationRequestValidator(SecurityToken securityToken, ReservationService reservationService)
+    private Locale locale;
+
+    private DateTimeZone timeZone;
+
+    public ReservationRequestValidator(SecurityToken securityToken, ReservationService reservationService,
+            Locale locale, DateTimeZone timeZone)
     {
         this.securityToken = securityToken;
         this.reservationService = reservationService;
+        this.locale = locale;
+        this.timeZone = timeZone;
     }
 
     @Override
@@ -82,11 +94,11 @@ public class ReservationRequestValidator implements Validator
             }
         }
 
+        String slotField = (SpecificationType.PERMANENT_ROOM.equals(specificationType) ? "end" : "start");
         try {
             Interval interval = reservationRequestModel.getSlot();
             if (interval.getEnd().isBefore(DateTime.now())) {
-                errors.rejectValue((SpecificationType.PERMANENT_ROOM.equals(specificationType) ? "end" : "start"),
-                        "validation.field.invalidFutureSlot");
+                errors.rejectValue(slotField, "validation.field.invalidFutureSlot");
             }
         }
         catch (Exception exception) {
@@ -102,48 +114,59 @@ public class ReservationRequestValidator implements Validator
 
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
+            availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
+            availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
             switch (specificationType) {
-                case PERMANENT_ROOM:
-                    // Check if room name is available
-                    availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
-                    Object isSpecificationAvailable = reservationService.checkAvailability(availabilityCheckRequest);
-                    if (!Boolean.TRUE.equals(isSpecificationAvailable)) {
-                        logger.warn("Validation of room availability failed, may be another problem: {}", isSpecificationAvailable);
-                        errors.rejectValue("roomName", "validation.field.roomNameNotAvailable");
-                    }
-                    break;
                 case PERMANENT_ROOM_CAPACITY:
-                    // Check if permanent room is available
-                    availabilityCheckRequest.setReservationRequestId(
-                            reservationRequestModel.getPermanentRoomReservationRequestId());
-                    Object isReusedReservationRequestAvailableAvailable =
-                            reservationService.checkAvailability(availabilityCheckRequest);
-                    if (!isReusedReservationRequestAvailableAvailable.equals(Boolean.TRUE)) {
-                        logger.warn("Validation of reservation availability failed, may be another problem: {}",
-                                isReusedReservationRequestAvailableAvailable);
-                        errors.rejectValue("permanentRoomReservationRequestId",
-                                "validation.field.permanentRoomNotAvailable");
-                    }
+                    String permanentRoomId = reservationRequestModel.getPermanentRoomReservationRequestId();
+                    availabilityCheckRequest.setReservationRequestId(permanentRoomId);
                     break;
+            }
+            // Check availability
+            Object availabilityCheckResult = reservationService.checkAvailability(availabilityCheckRequest);
+            if (!Boolean.TRUE.equals(availabilityCheckResult)) {
+                AllocationStateReport allocationStateReport = (AllocationStateReport) availabilityCheckResult;
+                AllocationStateReport.UserError userError = allocationStateReport.toUserError();
+                if (userError instanceof AllocationStateReport.AliasAlreadyAllocated) {
+                    errors.rejectValue(
+                            "roomName", "validation.field.roomNameNotAvailable");
+                }
+                else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
+                    errors.rejectValue(
+                            "permanentRoomReservationRequestId", "validation.field.permanentRoomNotAvailable");
+                }
+                else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
+                    errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
+                }
+                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
+                    errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
+                }
+                else {
+                    logger.warn("Validation of availability failed: {}", userError);
+                }
             }
         }
     }
 
     /**
+     *
      * @param reservationRequestModel to be validated
      * @param errors                  to be filled with errors
      * @param securityToken           to be used for validation
      * @param reservationService      to be used for validation
+     * @param request
      * @return true whether validation succeeds, otherwise false
      */
     public static boolean validate(ReservationRequestModel reservationRequestModel, Errors errors,
-            SecurityToken securityToken, ReservationService reservationService)
+            SecurityToken securityToken, ReservationService reservationService, HttpServletRequest request)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
+        UserSession userSession = UserSession.getInstance(request);
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequestModel, errors);
         return !errors.hasErrors();
     }

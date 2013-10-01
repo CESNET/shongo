@@ -178,7 +178,6 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @ResponseBody
     public Map handleDetailState(
             UserSession userSession,
-
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {

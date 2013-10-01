@@ -479,6 +479,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId)
     {
         authorization.validate(securityToken);
+        authorization.clearCache();
 
         if (!authorization.isAdmin(securityToken)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user id %s to %s", oldUserId, newUserId);
@@ -538,6 +539,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     .executeUpdate();
 
             entityManager.getTransaction().commit();
+
+            authorization.clearCache();
         }
         finally {
             entityManager.close();

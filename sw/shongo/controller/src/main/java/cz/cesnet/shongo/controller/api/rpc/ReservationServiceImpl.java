@@ -18,15 +18,13 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.AvailableReservation;
-import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
+import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
@@ -47,6 +45,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                    Component.AuthorizationAware
 {
     /**
+     * @see cz.cesnet.shongo.controller.cache.Cache
+     */
+    private Cache cache;
+
+    /**
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
@@ -59,8 +62,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     /**
      * Constructor.
      */
-    public ReservationServiceImpl()
+    public ReservationServiceImpl(Cache cache)
     {
+        this.cache = cache;
     }
 
     @Override
@@ -100,7 +104,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         try {
             Interval interval = request.getSlot();
             String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
-            SchedulerContext schedulerContext = new SchedulerContext(null, entityManager, authorization, interval);
+            SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, authorization, interval);
+            schedulerContext.setPurpose(request.getPurpose());
             if (ignoredReservationRequestId != null) {
                 EntityIdentifier entityId = EntityIdentifier.parse(
                         ignoredReservationRequestId, EntityType.RESERVATION_REQUEST);
@@ -118,31 +123,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
                             childReservationRequest.getAllocation().getReservations()) {
                         if (reservation.getSlot().overlaps(interval)) {
-                            schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REALLOCATABLE);
+                            schedulerContext.addAvailableReservation(reservation,
+                                    AvailableReservation.Type.REALLOCATABLE);
                         }
                     }
                 }
             }
 
             try {
-                // Check specification
-                Specification specificationApi = request.getSpecification();
-                if (specificationApi != null) {
-                    cz.cesnet.shongo.controller.request.Specification specification =
-                            cz.cesnet.shongo.controller.request.Specification
-                                    .createFromApi(specificationApi, entityManager);
-                    if (specification instanceof SpecificationCheckAvailability) {
-                        SpecificationCheckAvailability checkAvailability = (SpecificationCheckAvailability) specification;
-
-                        checkAvailability.checkAvailability(schedulerContext);
-                    }
-                    else {
-                        throw new RuntimeException(
-                                String.format("Specification '%s' cannot be checked for availability.",
-                                        specificationApi.getClass().getSimpleName()));
-                    }
-                }
-
                 // Check reservation request reusability
                 String reservationRequestId = request.getReservationRequestId();
                 if (reservationRequestId != null) {
@@ -151,6 +139,29 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                             reservationRequestManager.get(entityId.getPersistenceId());
                     schedulerContext.getReusableReservation(reservationRequest.getAllocation());
+                }
+
+                // Check specification
+                Specification specificationApi = request.getSpecification();
+                if (specificationApi != null) {
+                    cz.cesnet.shongo.controller.request.Specification specification =
+                            cz.cesnet.shongo.controller.request.Specification
+                                    .createFromApi(specificationApi, entityManager);
+                    if (specification instanceof ReservationTaskProvider) {
+                        try {
+                            entityManager.getTransaction().begin();
+                            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+                            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(
+                                    schedulerContext);
+                            reservationTask.perform();
+                        }
+                        finally {
+                            entityManager.getTransaction().rollback();
+                        }
+                    }
+                    else {
+                        throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
+                    }
                 }
             }
             catch (SchedulerException exception) {

@@ -101,7 +101,7 @@ public class DatabasePerformanceTest
 
         controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
-        controller.addRpcService(new ReservationServiceImpl());
+        controller.addRpcService(new ReservationServiceImpl(cache));
 
         controller.start();
         controller.startRpc();

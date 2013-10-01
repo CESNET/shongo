@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 import org.joda.time.Interval;
@@ -12,6 +13,11 @@ import org.joda.time.Interval;
  */
 public class AvailabilityCheckRequest extends AbstractRequest
 {
+    /**
+     * @see ReservationRequestPurpose
+     */
+    private ReservationRequestPurpose purpose;
+
     /**
      * Time slot for which the availability should be checked.
      */
@@ -47,6 +53,22 @@ public class AvailabilityCheckRequest extends AbstractRequest
     public AvailabilityCheckRequest(SecurityToken securityToken)
     {
         super(securityToken);
+    }
+
+    /**
+     * @return {@link #purpose}
+     */
+    public ReservationRequestPurpose getPurpose()
+    {
+        return purpose;
+    }
+
+    /**
+     * @param purpose sets the {@link #purpose}
+     */
+    public void setPurpose(ReservationRequestPurpose purpose)
+    {
+        this.purpose = purpose;
     }
 
     /**
@@ -113,6 +135,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
         this.ignoredReservationRequestId = ignoredReservationRequestId;
     }
 
+    private static final String PURPOSE = "purpose";
     private static final String SLOT = "slot";
     private static final String SPECIFICATION = "specification";
     private static final String RESERVATION_REQUEST = "reservationRequestId";
@@ -122,6 +145,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(PURPOSE, purpose);
         dataMap.set(SLOT, slot);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(RESERVATION_REQUEST, reservationRequestId);
@@ -133,6 +157,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
         slot = dataMap.getInterval(SLOT);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         reservationRequestId = dataMap.getString(RESERVATION_REQUEST);

@@ -129,7 +129,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
-        if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService)) {
+        if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
@@ -182,7 +182,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             throw new IllegalArgumentException("Modification of " + reservationRequestId +
                     " was requested but attributes for " + reservationRequestModel.getId() + " was present.");
         }
-        if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService)) {
+        if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();

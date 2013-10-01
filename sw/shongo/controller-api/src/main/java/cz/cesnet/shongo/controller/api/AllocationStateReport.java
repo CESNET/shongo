@@ -117,6 +117,12 @@ public class AllocationStateReport extends AbstractEntityReport
             return getClass().equals(UserError.class);
         }
 
+        @Override
+        public String toString()
+        {
+            return getMessage();
+        }
+
         /**
          * @param userErrorType
          * @return whether this {@link UserError} has lower priority than given {@code userErrorType},

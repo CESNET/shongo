@@ -24,7 +24,9 @@
 
     <!-- Authorization -->
     <security>
+        <!-- AA server -->
         <server>https://shongo-auth-dev.cesnet.cz</server>
+        <!-- Client ID and secret and redirect URI for AA server  -->
         <client-id>shongo-client-web</client-id>
         <client-secret>testclientsecret</client-secret>
         <redirect-uri>http://127.0.0.1:8182/</redirect-uri>
