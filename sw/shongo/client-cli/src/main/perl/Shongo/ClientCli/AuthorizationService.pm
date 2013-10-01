@@ -29,6 +29,14 @@ sub populate()
                 get_user(@args);
             }
         },
+        'list-users' => {
+            desc => 'List users',
+            args => '<filter>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_users(@args);
+            }
+        },
         'create-acl' => {
             desc => 'Create ACL record',
             args => '<user-id> <entity-id> <role>',
@@ -79,6 +87,21 @@ sub populate()
                 set_entity_user(@args);
             }
         },
+        'list-referenced-users' => {
+            desc => 'List referenced users by any entity',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_referenced_users(@args);
+            }
+        },
+        'modify-user-id' => {
+            desc => 'Modify user-id in all entities',
+            args => '<old-user-id> <new-user-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                modify_user_id(@args);
+            }
+        },
     });
 }
 
@@ -97,12 +120,53 @@ sub get_user()
         my $user = $response->{'items'}->[0];
         my $object = Shongo::ClientCli::API::Object->new();
         $object->set_object_name('User Information');
-        $object->add_attribute('Id', {}, $user->{'userId'});
-        $object->add_attribute('EPPN', {}, $user->{'originalId'});
+        $object->add_attribute('User ID', {}, $user->{'userId'});
+        $object->add_attribute('Original ID', {}, $user->{'originalId'});
         $object->add_attribute('First Name', {}, $user->{'firstName'});
         $object->add_attribute('Last Name', {}, $user->{'lastName'});
+        $object->add_attribute('Email', {}, $user->{'emails'});
         console_print_text($object);
     }
+}
+
+sub list_users()
+{
+    my (@args) = @_;
+    my $request = {};
+    if ( scalar(@args) >= 1 ) {
+        $request->{'filter'} = $args[0];
+    }
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_hash_request('Authorization.listUsers', $request);
+    if ( !defined($response) ) {
+        return;
+    }
+    my $table = {
+        'columns' => [
+            {'field' => 'userId',   'title' => 'User ID'},
+            {'field' => 'originalId', 'title' => 'Original ID'},
+            {'field' => 'name',   'title' => 'Name'},
+            {'field' => 'email',   'title' => 'Email'},
+        ],
+        'data' => []
+    };
+    foreach my $record (@{$response->{'items'}}) {
+        my $email = '';
+        if ( scalar(@{$record->{'emails'}}) > 0 ) {
+            $email = $record->{'emails'}->[0];
+        }
+        my $originalId = $record->{'originalId'};
+        if ( length($originalId) > 30 ) {
+            $originalId = substr($originalId, 0, 30) . '...';
+        }
+        push(@{$table->{'data'}}, {
+            'userId' => $record->{'userId'},
+            'originalId' => $originalId,
+            'name' => $record->{'firstName'} . ' ' . $record->{'lastName'},
+            'email' => $email
+        });
+    }
+    console_print_table($table);
 }
 
 sub create_acl()
@@ -271,6 +335,41 @@ sub set_entity_user()
     );
     if ( defined($response) && !ref($response) ) {
         console_print_info("Entity '%s' user has been set to '%s'.", $args[0], $args[1]);
+    }
+}
+
+sub list_referenced_users()
+{
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listReferencedUsers');
+    my $table = {
+        'columns' => [
+            {'field' => 'userId', 'title' => 'User ID'},
+            {'field' => 'description', 'title' => 'Referenced In'}
+        ],
+        'data' => []
+    };
+    foreach my $userId (sort(keys $response)) {
+        push(@{$table->{'data'}}, {
+            'userId' => $userId,
+            'description' => $response->{$userId}
+        });
+    }
+    console_print_table($table);
+}
+
+sub modify_user_id()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<old-user-id> <new-user-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.modifyUserId',
+        RPC::XML::string->new($args[0]),
+        RPC::XML::string->new($args[1])
+    );
+    if ( !ref($response) ) {
+        console_print_info("User-id '%s' has been modified to '%s'.", $args[0], $args[1]);
     }
 }
 

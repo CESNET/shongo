@@ -96,11 +96,11 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
 
             // Build user info
             UserInformation userInformation = new UserInformation();
-            userInformation.setUserId(userInfoResponse.get("id").getTextValue());
+            userInformation.setUserId(userInfoResponse.get("id").asText());
             userInformation.setFirstName(userInfoResponse.get("given_name").getTextValue());
             userInformation.setLastName(userInfoResponse.get("family_name").getTextValue());
             if (userInfoResponse.has("original_id")) {
-                userInformation.setOriginalId(userInfoResponse.get("original_id").getTextValue());
+                userInformation.setOriginalId(userInfoResponse.get("original_id").asText());
             }
             if (userInfoResponse.has("organization")) {
                 userInformation.setOrganization(userInfoResponse.get("organization").getTextValue());

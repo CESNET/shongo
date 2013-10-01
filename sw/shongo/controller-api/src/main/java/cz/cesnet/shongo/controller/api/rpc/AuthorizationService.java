@@ -85,4 +85,19 @@ public interface AuthorizationService extends Service
      */
     @API
     public void updateUserSettings(SecurityToken securityToken, UserSettings userSettings);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @param oldUserId old user id
+     * @param newUserId new user id
+     */
+    @API
+    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @return map of user-id and description how the user is referenced
+     */
+    @API
+    public Map<String, String> listReferencedUsers(SecurityToken securityToken);
 }

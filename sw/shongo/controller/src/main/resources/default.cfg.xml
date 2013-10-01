@@ -37,8 +37,11 @@
 
     <!-- Security settings -->
     <security>
-        <!-- Authorization server -->
-        <server>https://shongo-auth-dev.cesnet.cz/devel</server>
+        <!-- AA server -->
+        <server>https://shongo-auth-dev.cesnet.cz</server>
+        <!-- Client ID and secret for AA server  -->
+        <client-id>testclient</client-id>
+        <client-secret>12345</client-secret>
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
         <root-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</root-access-token>
         <!-- Specifies authorization cache expirations -->

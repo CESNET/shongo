@@ -103,9 +103,19 @@ public class Configuration extends CombinedConfiguration
     public static final String EXECUTOR_STARTING_DURATION_ROOM = "executor.starting-duration.room";
 
     /**
-     * Security server.
+     * URL to AA server.
      */
     public static final String SECURITY_SERVER = "security.server";
+
+    /**
+     * Client id for AA server.
+     */
+    public static final String SECURITY_CLIENT_ID = "security.client-id";
+
+    /**
+     * Client secret for AA server.
+     */
+    public static final String SECURITY_CLIENT_SECRET = "security.client-secret";
 
     /**
      * Specifies expiration of cache for user-id by access-token.

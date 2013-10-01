@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,7 +51,7 @@ public class ServerAuthorization extends Authorization
     /**
      * User web service path in auth-server.
      */
-    private static final String USER_SERVICE_PATH = "/perun/resource";
+    private static final String USER_SERVICE_PATH = "/perun/resource/user";
 
     /**
      * Access token which won't be verified and can be used for testing purposes.
@@ -91,12 +93,17 @@ public class ServerAuthorization extends Authorization
         //System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "debug");
         //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");
 
+        // Authorization server
         authorizationServer = configuration.getString(Configuration.SECURITY_SERVER);
-        logger.info("Using authorization server '{}'.", authorizationServer);
-        authorizationServerHeader = "id=testclient;secret=12345";
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
+        logger.info("Using authorization server '{}'.", authorizationServer);
+
+        // Authorization header
+        String clientId = configuration.getString(Configuration.SECURITY_CLIENT_ID);
+        String clientSecret = configuration.getString(Configuration.SECURITY_CLIENT_SECRET);
+        authorizationServerHeader = "id=" + clientId + ";secret=" + clientSecret;
 
         // Root access token
         rootAccessToken = configuration.getString(Configuration.SECURITY_ROOT_ACCESS_TOKEN);
@@ -197,9 +204,9 @@ public class ServerAuthorization extends Authorization
     @Override
     protected UserInformation onGetUserInformationByUserId(String userId)
     {
-        Exception errorException = null;
         try {
-            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/user/" + userId);
+            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/" + userId);
+            httpGet.addHeader("Authorization", authorizationServerHeader);
             HttpResponse response = httpClient.execute(httpGet);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
@@ -211,16 +218,20 @@ public class ServerAuthorization extends Authorization
                 if (statusCode == HttpStatus.SC_NOT_FOUND) {
                     throw new ControllerReportSet.UserNotExistException(userId);
                 }
+                else {
+                    throw new CommonReportSet.UnknownErrorException(
+                            "Retrieving user information by user-id '" + userId + "' failed: "
+                                    + response.getStatusLine().toString());
+                }
             }
         }
-        catch (ControllerReportSet.UserNotExistException exception) {
+        catch (ReportRuntimeException exception) {
             throw exception;
         }
         catch (Exception exception) {
-            errorException = exception;
+            throw new CommonReportSet.UnknownErrorException(exception,
+                    "Retrieving user information by user-id '" + userId + "' failed.");
         }
-        // Handle error
-        throw new RuntimeException("Retrieving user information by user-id '" + userId + "' failed.", errorException);
     }
 
     @Override
@@ -228,7 +239,8 @@ public class ServerAuthorization extends Authorization
     {
         Exception errorException = null;
         try {
-            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/user");
+            HttpGet httpGet = new HttpGet(getUserServiceUrl());
+            httpGet.addHeader("Authorization", authorizationServerHeader);
             HttpResponse response = httpClient.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 JsonNode jsonNode = readJson(response.getEntity());
@@ -381,12 +393,12 @@ public class ServerAuthorization extends Authorization
             throw new IllegalArgumentException("User information must contains given and family name.");
         }
         UserInformation userInformation = new UserInformation();
-        userInformation.setUserId(data.get("id").getTextValue());
+        userInformation.setUserId(data.get("id").asText());
         userInformation.setFirstName(data.get("given_name").getTextValue());
         userInformation.setLastName(data.get("family_name").getTextValue());
 
         if (data.has("original_id")) {
-            userInformation.setOriginalId(data.get("original_id").getTextValue());
+            userInformation.setOriginalId(data.get("original_id").asText());
         }
         if (data.has("organization")) {
             userInformation.setOrganization(data.get("organization").getTextValue());

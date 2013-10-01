@@ -24,7 +24,7 @@
 
     <!-- Authorization -->
     <security>
-        <server>https://shongo-auth-dev.cesnet.cz/devel</server>
+        <server>https://shongo-auth-dev.cesnet.cz</server>
         <client-id>shongo-client-web</client-id>
         <client-secret>testclientsecret</client-secret>
         <redirect-uri>http://127.0.0.1:8182/</redirect-uri>

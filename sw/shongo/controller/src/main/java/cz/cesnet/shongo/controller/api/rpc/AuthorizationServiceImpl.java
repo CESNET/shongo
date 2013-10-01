@@ -21,12 +21,14 @@ import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import java.util.*;
 
 /**
@@ -473,5 +475,100 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         }
     }
 
+    @Override
+    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId)
+    {
+        authorization.validate(securityToken);
 
+        if (!authorization.isAdmin(securityToken)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user id %s to %s", oldUserId, newUserId);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+
+            entityManager.createQuery("UPDATE AclRecord SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery("UPDATE UserPerson SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery("UPDATE Resource SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            // Delete old UserSettings if the new exists
+            if (entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId")
+                    .setParameter("userId", newUserId)
+                    .getResultList().size() > 0) {
+                try {
+                    cz.cesnet.shongo.controller.settings.UserSettings userSettings = entityManager.createQuery(
+                            "SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId",
+                            cz.cesnet.shongo.controller.settings.UserSettings.class)
+                            .setParameter("userId", oldUserId)
+                            .getSingleResult();
+                    entityManager.remove(userSettings);
+                    entityManager.flush();
+                }
+                catch (NoResultException exception) {
+                    // Old user settings doesn't exist, we don't have to delete it
+                }
+            }
+            entityManager.createQuery("UPDATE UserSettings SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery(
+                    "UPDATE AbstractReservationRequest SET createdBy = :newUserId WHERE createdBy = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery(
+                    "UPDATE AbstractReservationRequest SET updatedBy = :newUserId WHERE updatedBy = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public Map<String, String> listReferencedUsers(SecurityToken securityToken)
+    {
+        authorization.validate(securityToken);
+
+        if (!authorization.isAdmin(securityToken)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list referenced users");
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+
+            String referencedUsersQuery = NativeQuery.getNativeQuery(NativeQuery.REFERENCED_USER_LIST);
+            List referencedUsersResult = entityManager.createNativeQuery(referencedUsersQuery).getResultList();
+            Map<String, String> referencedUsers = new LinkedHashMap<String, String>();
+            for (Object referencedUserItem : referencedUsersResult) {
+                Object[] referencedUser = (Object[]) referencedUserItem;
+                referencedUsers.put(referencedUser[0].toString(), referencedUser[1].toString());
+            }
+            entityManager.getTransaction().commit();
+            return referencedUsers;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
 }
