@@ -56,9 +56,8 @@
 
     <div ng-app="jsp:indexDashboard">
 
-        <spring:message code="views.select.action" var="action"/>
-        <tag:expandableBlock name="actions" collapsedText="${action}" cssClass="actions">
-            <span>${action}</span>
+        <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
+            <span><spring:message code="views.select.action"/></span>
             <ul>
                 <li>
                     <a href="${createRoomUrl}" tabindex="1">

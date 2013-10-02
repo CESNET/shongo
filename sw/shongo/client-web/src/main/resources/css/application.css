@@ -155,6 +155,9 @@ form .double-width select {
     width: 350px;
 }
 /* Form - reCaptcha*/
+iframe[src="about:blank"] {
+    display: block;
+}
 form .recaptcha {
     display: inline-block;
     margin-bottom: -5px;
@@ -279,6 +282,9 @@ div.actions {
     font-size: 20px;
     border: solid 1px #888888;
     background-color: #f9f9f9;
+}
+div.actions>a {
+    float: right;
 }
 div.actions span {
     font-weight: bold;
@@ -630,6 +636,12 @@ div.not-available {
 }
 .tagReportForm textarea {
     height: 200px;
+}
+.tagReportForm .context {
+    display: inline-block;
+}
+.tagReportForm .context pre {
+    margin-top: 5px;
 }
 
 /* vies/error.jsp */

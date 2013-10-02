@@ -58,7 +58,7 @@
         <put-attribute name="body" value="/WEB-INF/views/development.jsp" type="template"/>
     </definition>
 
-    <definition name="error" extends="layout">
+    <definition name="error" extends="layoutAngular">
         <put-attribute name="title" value="views.error.title"/>
         <put-attribute name="body" value="/WEB-INF/views/error.jsp" type="template"/>
     </definition>
@@ -68,7 +68,7 @@
         <put-attribute name="body" value="/WEB-INF/views/errorNotFound.jsp" type="template"/>
     </definition>
 
-    <definition name="report" extends="layout">
+    <definition name="report" extends="layoutAngular">
         <put-attribute name="title" value="views.report.title"/>
         <put-attribute name="body" value="/WEB-INF/views/report.jsp" type="template"/>
     </definition>

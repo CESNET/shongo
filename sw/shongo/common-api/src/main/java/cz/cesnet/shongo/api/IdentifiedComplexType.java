@@ -13,7 +13,7 @@ public abstract class IdentifiedComplexType extends AbstractComplexType implemen
     /**
      * Identifier.
      */
-    private String id;
+    protected String id;
 
     /**
      * @return {@link #id}
@@ -77,5 +77,11 @@ public abstract class IdentifiedComplexType extends AbstractComplexType implemen
     {
         super.fromData(dataMap);
         id = dataMap.getString(ID);
+    }
+
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName() + "{id=" + id + "}";
     }
 }

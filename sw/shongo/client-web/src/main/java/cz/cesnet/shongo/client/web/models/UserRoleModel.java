@@ -5,12 +5,15 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
 * TODO:
 *
 * @author Martin Srom <martin.srom@cesnet.cz>
 */
-public class UserRoleModel
+public class UserRoleModel implements ReportModel.ContextSerializable
 {
     private String id;
 
@@ -138,5 +141,16 @@ public class UserRoleModel
         aclRecord.setEntityId(entityId);
         aclRecord.setRole(role);
         return aclRecord;
+    }
+
+    @Override
+    public String toContextString()
+    {
+        Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+        attributes.put("ID", id);
+        attributes.put("Entity", entityId);
+        attributes.put("User", user);
+        attributes.put("Role", role);
+        return ReportModel.formatAttributes(attributes);
     }
 }

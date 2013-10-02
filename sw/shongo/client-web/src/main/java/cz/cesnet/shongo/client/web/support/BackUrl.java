@@ -1,11 +1,15 @@
 package cz.cesnet.shongo.client.web.support;
 
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Object holding back URLs for user session.
@@ -63,7 +67,7 @@ public class BackUrl
         }
         else {
             if (breadcrumb != null) {
-              return breadcrumb.getBackUrl();
+                return breadcrumb.getBackUrl();
             }
             else {
                 return defaultUrl;
@@ -94,7 +98,7 @@ public class BackUrl
         if (this.url == null) {
             return url;
         }
-        if(url.contains("?")) {
+        if (url.contains("?")) {
             return url + "&back-url=" + this.url;
         }
         else {
@@ -119,7 +123,6 @@ public class BackUrl
     }
 
     /**
-     *
      * @param request
      * @param breadcrumb
      * @return {@link BackUrl} for given {@code request} and {@code breadcrumb}
@@ -142,7 +145,6 @@ public class BackUrl
     }
 
     /**
-     *
      * @param request
      * @return {@link BackUrl} which is set as attribute in given {@code request}
      */
@@ -158,7 +160,7 @@ public class BackUrl
     /**
      * Back URL data for a session.
      */
-    private static class SessionData
+    private static class SessionData implements ReportModel.ContextSerializable
     {
         /**
          * Session attribute in which the back URLs are stored.
@@ -177,7 +179,7 @@ public class BackUrl
 
         /**
          * @param requestUrl for which the back URL should be recorded
-         * @param backUrl to be recorded as new back URL for given {@code requestUrl}
+         * @param backUrl    to be recorded as new back URL for given {@code requestUrl}
          */
         public synchronized void pushBackUrl(String requestUrl, String backUrl)
         {
@@ -203,7 +205,7 @@ public class BackUrl
         {
             Set<String> requestUrlsToRemove = requestUrlsByBackUrl.get(requestUrl);
             if (requestUrlsToRemove != null) {
-                for(String requestUrlToRemove : requestUrlsToRemove) {
+                for (String requestUrlToRemove : requestUrlsToRemove) {
                     backUrlByRequestUrl.remove(requestUrlToRemove);
                 }
             }
@@ -218,8 +220,20 @@ public class BackUrl
             backUrlByRequestUrl.remove(requestUrl);
         }
 
+        @Override
+        public String toContextString()
+        {
+            StringBuilder contextBuilder = new StringBuilder();
+            for (Map.Entry<String, String> entry : backUrlByRequestUrl.entrySet()) {
+                contextBuilder.append(entry.getKey());
+                contextBuilder.append(" => ");
+                contextBuilder.append(entry.getValue());
+                contextBuilder.append("\n");
+            }
+            return contextBuilder.toString();
+        }
+
         /**
-         *
          * @param request
          * @return instance of {@link SessionData} for user session in given {@code request}
          */

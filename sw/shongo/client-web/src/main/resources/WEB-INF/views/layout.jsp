@@ -188,7 +188,7 @@
                         </c:choose>
                     </c:forEach>
                     <li class="pull-right">
-                        <a href="${reportUrl}"><spring:message code="views.layout.report"/></a>
+                        <a href="${reportUrl}?url=${requestUrl}&back-url=${requestUrl}"><spring:message code="views.layout.report"/></a>
                     </li>
                 </ul>
             </c:if>

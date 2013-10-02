@@ -8,6 +8,7 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
+<c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
 
 <c:set var="listDataUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %></c:set>
 <spring:eval var="detailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}')"/>
@@ -23,9 +24,9 @@
 
     <%-- What do you want to do? --%>
     <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}</c:set>
-    <spring:message code="views.select.action" var="action"/>
-    <tag:expandableBlock name="actions" collapsedText="${action}" cssClass="actions">
-            <span>${action}</span>
+
+    <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
+        <span><spring:message code="views.select.action"/></span>
         <ul>
             <li>
                 <a href="${createRoomUrl}" tabindex="1">

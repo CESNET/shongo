@@ -90,8 +90,10 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
         reservationRequestModel.setSpecificationType(specificationType);
         reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
         model.addAttribute("reservationRequest", reservationRequestModel);
-        model.addAttribute("permanentRooms",
-                ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            model.addAttribute("permanentRooms",
+                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        }
         return "reservationRequestCreate";
     }
 

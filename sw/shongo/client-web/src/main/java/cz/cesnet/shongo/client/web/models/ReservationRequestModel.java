@@ -30,7 +30,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestModel
+public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
     private String id;
 
@@ -722,6 +722,28 @@ public class ReservationRequestModel
         breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, id), titleCode));
 
         return breadcrumbItems;
+    }
+
+    @Override
+    public String toContextString()
+    {
+        Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+        attributes.put("ID", id);
+        attributes.put("Type", specificationType);
+        attributes.put("Purpose", purpose);
+        attributes.put("Description", description);
+        attributes.put("Technology", technology);
+        attributes.put("Start", start);
+        attributes.put("End", end);
+        attributes.put("Duration count", durationCount);
+        attributes.put("Duration type", durationType);
+        attributes.put("Periodicity type", periodicityType);
+        attributes.put("Periodicity end", periodicityEnd);
+        attributes.put("Room name", roomName);
+        attributes.put("Permanent room", permanentRoomReservationRequestId);
+        attributes.put("Participant count", roomParticipantCount);
+        attributes.put("PIN", roomPin);
+        return ReportModel.formatAttributes(attributes);
     }
 
     /**

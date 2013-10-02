@@ -1,24 +1,24 @@
 <%@ tag trimDirectiveWhitespaces="true" %>
-<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ tag import="net.tanesha.recaptcha.ReCaptcha" %>
-<%@ tag import="net.tanesha.recaptcha.ReCaptchaFactory" %>
 <%@ tag import="java.util.Properties" %>
-<%@ tag import="net.tanesha.recaptcha.ReCaptchaImpl" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.ReportModel" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="submitUrl" required="false"%>
 
 <c:set var="tabIndex" value="1"/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:if test="${empty submitUrl}">
-    <c:set var="submitUrl">${contextPath}<%= ClientWebUrl.REPORT_SUBMIT %></c:set>
-</c:if>
 
-<div class="tagReportForm">
+<script type="text/javascript">
+    var module = angular.module('tag:reportForm', ['tag:expandableBlock']);
+</script>
+
+<p><spring:message code="views.report.help"/></p>
+<div class="tagReportForm" ng-app="tag:reportForm">
     <form:form class="form-horizontal" commandName="report" action="${submitUrl}" method="post">
         <fieldset>
 
@@ -68,7 +68,15 @@
                 <div class="controls">
                     <spring:message code="views.button.send" var="submitTitle"/>
                     <input class="btn btn-primary" type="submit" value="${submitTitle}" tabindex="${tabIndex}"/>
-                    <a  class="btn" href="${contextPath}/" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
+                    <a  class="btn" href="${backUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="controls">
+                    <tag:expandableBlock name="report" cssClass="context" expandCode="views.report.showContext" collapseCode="views.report.hideContext">
+                        <pre>${report.context.toString(pageContext.request)}</pre>
+                    </tag:expandableBlock>
                 </div>
             </div>
 

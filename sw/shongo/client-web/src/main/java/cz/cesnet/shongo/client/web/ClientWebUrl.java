@@ -18,8 +18,6 @@ public class ClientWebUrl
 
     public static final String REPORT =
             "/report";
-    public static final String REPORT_SUBMIT =
-            "/report/submit";
 
     public static final String WIZARD =
             "/wizard";

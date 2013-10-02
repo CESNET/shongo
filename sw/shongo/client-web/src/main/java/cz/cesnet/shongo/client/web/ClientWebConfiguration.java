@@ -191,4 +191,20 @@ public class ClientWebConfiguration extends CombinedConfiguration
     {
         return getString("smtp.subject-prefix");
     }
+
+    /**
+     * @return SMTP username
+     */
+    public String getSmtpUserName()
+    {
+        return getString("smtp.username");
+    }
+
+    /**
+     * @return SMTP password
+     */
+    public String getSmtpPassword()
+    {
+        return getString("smtp.password");
+    }
 }

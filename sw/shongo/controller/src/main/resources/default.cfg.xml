@@ -38,7 +38,7 @@
     <!-- Security settings -->
     <security>
         <!-- AA server -->
-        <server>https://shongo-auth-dev.cesnet.cz</server>
+        <server>https://shongo-auth-dev.cesnet.cz/rc</server>
         <!-- Client ID and secret for AA server  -->
         <client-id>testclient</client-id>
         <client-secret>12345</client-secret>

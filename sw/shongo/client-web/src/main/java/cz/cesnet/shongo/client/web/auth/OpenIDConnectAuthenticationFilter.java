@@ -190,7 +190,8 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         UserSettings userSettings;
         try {
             userSettings = authorizationService.getUserSettings(securityToken);
-        } catch (ControllerConnectException exception) {
+        }
+        catch (ControllerConnectException exception) {
             throw new AuthenticationServiceException("Cannot load user settings.", exception);
         }
         UserSession userSession = UserSession.getInstance(request);
@@ -271,6 +272,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     {
         Object value = session.getAttribute(SESSION_STATE_VARIABLE);
         if (value != null && value instanceof String) {
+            session.removeAttribute(SESSION_STATE_VARIABLE);
             return (String) value;
         }
         else {

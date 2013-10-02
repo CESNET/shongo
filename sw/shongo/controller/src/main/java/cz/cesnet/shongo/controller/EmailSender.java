@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.util.PasswordAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,37 +175,4 @@ public class EmailSender
         Transport.send(message);
     }
 
-    /**
-     * {@link Authenticator} for username and password.
-     */
-    private static class PasswordAuthenticator extends Authenticator
-    {
-        /**
-         * Username.
-         */
-        private String userName;
-
-        /**
-         * Password for {@link #userName}.
-         */
-        private String password;
-
-        /**
-         * Constructor.
-         *
-         * @param userName sets the {@link #userName}
-         * @param password sets the {@link #password}
-         */
-        public PasswordAuthenticator(String userName, String password)
-        {
-            this.userName = userName;
-            this.password = password;
-        }
-
-        @Override
-        protected PasswordAuthentication getPasswordAuthentication()
-        {
-            return new PasswordAuthentication(userName, password);
-        }
-    }
 }

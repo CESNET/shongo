@@ -6,6 +6,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +14,7 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpSessionRequiredException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -26,6 +24,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.security.auth.login.Configuration;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,18 +50,19 @@ public class ErrorController
     /**
      * Handle report problem.
      */
-    @RequestMapping(value = ClientWebUrl.REPORT)
-    public ModelAndView handleReport()
+    @RequestMapping(value = ClientWebUrl.REPORT, method = {RequestMethod.GET})
+    public ModelAndView handleReport(
+            @RequestParam(value = "url", required = false) String requestUri)
     {
         ModelAndView modelAndView = new ModelAndView("report");
-        modelAndView.addObject("report", new ReportModel(reCaptcha));
+        modelAndView.addObject("report", new ReportModel(requestUri, reCaptcha));
         return modelAndView;
     }
 
     /**
      * Handle report problem.
      */
-    @RequestMapping(value = ClientWebUrl.REPORT_SUBMIT)
+    @RequestMapping(value = ClientWebUrl.REPORT, method = {RequestMethod.POST})
     public ModelAndView handleReportSubmit(
             HttpServletRequest request,
             SessionStatus sessionStatus,
@@ -74,7 +74,7 @@ public class ErrorController
             return new ModelAndView("report");
         }
         else {
-            sendReport(reportModel, null);
+            sendReport(reportModel, null, request);
             sessionStatus.setComplete();
 
             ModelAndView modelAndView = new ModelAndView("report");
@@ -118,7 +118,7 @@ public class ErrorController
             return modelAndView;
         }
         else {
-            sendReport(reportModel, errorModel);
+            sendReport(reportModel, errorModel, request);
             sessionStatus.setComplete();
 
             ModelAndView modelAndView = new ModelAndView("report");
@@ -143,9 +143,11 @@ public class ErrorController
     public ModelAndView handleLoginErrorView(HttpServletRequest request)
     {
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        Throwable exceptionCause = exception.getCause();
-        if (exceptionCause instanceof ControllerConnectException) {
-            return new ModelAndView(handleControllerNotAvailableView());
+        if (exception != null) {
+            Throwable exceptionCause = exception.getCause();
+            if (exceptionCause instanceof ControllerConnectException) {
+                return new ModelAndView(handleControllerNotAvailableView());
+            }
         }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
         return handleError(errorModel, configuration, reCaptcha);
@@ -184,16 +186,19 @@ public class ErrorController
      *
      * @param reportModel
      * @param errorModel
+     * @param request
      */
-    private void sendReport(ReportModel reportModel, ErrorModel errorModel)
+    private void sendReport(ReportModel reportModel, ErrorModel errorModel, HttpServletRequest request)
     {
         String subject = "Problem report";
         StringBuilder contentBuilder = new StringBuilder();
         contentBuilder.append("From: ");
         contentBuilder.append(reportModel.getEmail());
         contentBuilder.append("\n\n");
-        contentBuilder.append("Message:\n\n");
         contentBuilder.append(reportModel.getMessage());
+        contentBuilder.append("\n\n");
+        contentBuilder.append("--------------------------------------------------------------------------------\n\n");
+        contentBuilder.append(reportModel.getContext().toString(request));
         if (errorModel != null) {
             subject = errorModel.getEmailSubject() + " - User report";
             contentBuilder.append("\n\n");
@@ -204,6 +209,7 @@ public class ErrorController
 
     /**
      * Handle error.
+     *
      *
      *
      * @param errorModel
@@ -220,7 +226,7 @@ public class ErrorController
 
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", new ReportModel(reCaptcha));
+        modelAndView.addObject("report", new ReportModel(errorModel.getRequestUri(), reCaptcha));
         return modelAndView;
     }
 
@@ -244,7 +250,15 @@ public class ErrorController
             properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             properties.setProperty("mail.smtp.socketFactory.fallback", "false");
         }
-        Session session = Session.getDefaultInstance(properties);
+
+        Authenticator authenticator = null;
+        String smtpUserName = configuration.getSmtpUserName();
+        if (!Strings.isNullOrEmpty(smtpUserName)) {
+            properties.setProperty("mail.smtp.auth", "true");
+            authenticator = new PasswordAuthenticator(smtpUserName, configuration.getSmtpPassword());
+        }
+
+        Session session = Session.getDefaultInstance(properties, authenticator);
 
         String sender = configuration.getSmtpSender();
         String subjectPrefix = configuration.getSmtpSubjectPrefix();

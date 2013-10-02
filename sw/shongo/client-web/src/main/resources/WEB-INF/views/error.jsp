@@ -17,6 +17,6 @@
     <pre>${error.description}</pre>
 
     <spring:message code="views.error.notification"/>
-    <tag:reportForm submitUrl="${contextPath}/error/submit"/>
+    <tag:reportForm submitUrl="${contextPath}/error"/>
 
 </div>

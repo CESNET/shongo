@@ -25,7 +25,7 @@
     <!-- Authorization -->
     <security>
         <!-- AA server -->
-        <server>https://shongo-auth-dev.cesnet.cz</server>
+        <server>https://shongo-auth-dev.cesnet.cz/rc</server>
         <!-- Client ID and secret and redirect URI for AA server  -->
         <client-id>shongo-client-web</client-id>
         <client-secret>testclientsecret</client-secret>
@@ -37,6 +37,8 @@
         <sender>no-reply@shongo.cz</sender>
         <!--<host></host>-->
         <port>25</port>
+        <!--<username></username>-->
+        <!--<password></password>-->
         <subject-prefix xml:space="preserve">[shongo-web] </subject-prefix>
     </smtp>
 
