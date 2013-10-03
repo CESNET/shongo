@@ -166,7 +166,8 @@ public class ReportModel
                 String attributeName = attributeNames.nextElement();
                 Object attributeValue = httpSession.getAttribute(attributeName);
                 if (attributeValue == null
-                        ||attributeValue instanceof ReportModel
+                        || attributeValue instanceof ReportModel
+                        || attributeValue instanceof ErrorModel
                         || attributeValue instanceof UserSession
                         || attributeValue instanceof SecurityContext) {
                     continue;
