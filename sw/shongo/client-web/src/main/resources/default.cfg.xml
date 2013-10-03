@@ -18,9 +18,13 @@
     <title-suffix>(BETA)</title-suffix>
 
     <!-- Contact email -->
-    <contact>vidcon@cesnet.cz</contact>
+    <suggestion-email>vidcon@cesnet.cz</suggestion-email>
     <!-- Administrator email -->
-    <administrator></administrator>
+    <administrator-email></administrator-email>
+    <administrator-email></administrator-email>
+    <!-- Hotline phone numbers -->
+    <hotline></hotline>
+    <hotline></hotline>
 
     <!-- Authorization -->
     <security>

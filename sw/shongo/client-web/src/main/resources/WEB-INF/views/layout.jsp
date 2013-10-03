@@ -4,6 +4,7 @@
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ page import="org.springframework.web.util.UriComponentsBuilder" %>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+<%@ page import="cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="cs" xml:lang="cs">
 
@@ -12,27 +13,21 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%-- Variables --%>
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="reportUrl">${contextPath}<%= ClientWebUrl.REPORT %></c:set>
-<c:set var="changelogUrl">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
+<tag:url var="reportUrl" value="<%= ClientWebUrl.REPORT %>">
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="changelogUrl" value="<%= ClientWebUrl.CHANGELOG %>"/>
 
 <%
-    String requestUri = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
-    String queryString = (String) request.getAttribute(RequestDispatcher.FORWARD_QUERY_STRING);
-    StringBuilder requestUriBuilder = new StringBuilder();
-    requestUriBuilder.append(requestUri);
-    if (queryString != null && !queryString.isEmpty()) {
-        requestUriBuilder.append("?");
-        requestUriBuilder.append(queryString);
-    }
-    pageContext.setAttribute("requestUrl", requestUriBuilder.toString());
-
     // URL for changing language
-    UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUri);
-    languageUrlBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
+    String requestUrl = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
+    UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUrl);
+    languageUrlBuilder.replaceQueryParam("lang", ":lang");
     pageContext.setAttribute("languageUrl", languageUrlBuilder.build().toUriString());
 %>
 
@@ -78,8 +73,6 @@
     </c:if>
 </head>
 
-<body>
-
 <div class="content">
 
     <%-- Page navigation header --%>
@@ -91,12 +84,12 @@
                 <div class="nav-collapse collapse pull-left">
                     <ul class="nav" role="navigation">
                         <li>
-                            <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+                            <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
                             <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
                         </li>
                         <c:if test="${sessionScope.user.admin}">
                             <li>
-                                <c:set var="roomListUrl">${contextPath}<%= ClientWebUrl.ROOM_LIST %></c:set>
+                                <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST %>"/>
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
                             </li>
                         </c:if>
@@ -121,16 +114,22 @@
                 <%-- Login button --%>
                 <security:authorize access="!isAuthenticated()">
                     <li>
-                        <c:set var="loginUrl">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
+                        <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
                         <a href="${loginUrl}"><spring:message code="views.layout.login"/></a>
                     </li>
                 </security:authorize>
 
                 <%-- Logged user information --%>
                 <security:authorize access="isAuthenticated()">
-                    <c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>?back-url=${requestUrl}</c:set>
-                    <c:set var="advancedUserInterfaceUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %>/user-interface/${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}?back-url=${requestUrl}</c:set>
-                    <c:set var="logoutUrl">${contextPath}<%= ClientWebUrl.LOGOUT %></c:set>
+                    <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
+                        <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                    </tag:url>
+                    <tag:url var="advancedUserInterfaceUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                        <tag:param name="name" value="user-interface"/>
+                        <tag:param name="value" value="${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}"/>
+                        <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                    </tag:url>
+                    <tag:url var="logoutUrl" value="<%= ClientWebUrl.LOGOUT %>"/>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.user.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
@@ -188,7 +187,7 @@
                         </c:choose>
                     </c:forEach>
                     <li class="pull-right">
-                        <a href="${reportUrl}?url=${requestUrl}&back-url=${requestUrl}"><spring:message code="views.layout.report"/></a>
+                        <a href="${reportUrl}"><spring:message code="views.layout.report"/></a>
                     </li>
                 </ul>
             </c:if>
@@ -197,7 +196,7 @@
 
     <%-- Page content --%>
     <div class="block push">
-        <div class="container">
+        <div class="container" id="page-content">
             <c:choose>
                 <c:when test="${heading == 'title'}">
                     <h1>${title}</h1>

@@ -2,31 +2,27 @@
   -- Child reservation requests.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
-
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="detailUrl" required="true" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestChildren', ['ngPagination', 'ngSanitize']);
-
-    function HtmlController($scope, $sce) {
-        $scope.html = function(html) {
-            return $sce.trustAsHtml(html);
-        };
-    }
 </script>
 
-<spring:eval var="childListUrl"
-             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailChildren(contextPath, ':id')"/>
-<spring:eval var="childDetailUrl"
-             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{childReservationRequest.id}}')"/>
-<spring:eval var="childRoomManagementUrl"
-             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
+<tag:url var="childListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_CHILDREN %>">
+    <tag:param name="reservationRequestId" value=":id" escape="false"/>
+</tag:url>
+<tag:url var="childDetailUrl" value="${detailUrl}">
+    <tag:param name="reservationRequestId" value="{{childReservationRequest.id}}" escape="false"/>
+</tag:url>
+<tag:url var="childRoomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
+    <tag:param name="roomId" value="{{childReservationRequest.roomId}}" escape="false"/>
+</tag:url>
+
 <div ng-controller="PaginationController"
      ng-init="init('reservationRequestDetail.children', '${childListUrl}', {id: '${reservationRequest.id}'})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
@@ -36,7 +32,8 @@
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.children"/></h2>
 
-    <div class="spinner" ng-hide="ready"></div>
+    <div class="spinner" ng-hide="ready || errorContent"></div>
+    <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>

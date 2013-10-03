@@ -31,6 +31,9 @@ paginationModule.controller('ReadyController', function ($scope) {
  *             <requested-items>
  *         ]
  *     }
+ *
+ * $scope.ready        - can be used to determine whether data can be shown
+ * $scope.errorContent - can be used to show an error
  */
 paginationModule.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
     // Resource used for fetching items
@@ -47,7 +50,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     }
     // Error
     $scope.error = false;
-    $scope.onError = null;
+    $scope.errorContent = null;
     // List of current items
     $scope.items = [];
     // List of current pages
@@ -102,11 +105,29 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     };
 
     /**
+     * First time data is ready.
+     */
+    $scope.setReady = function () {
+        $scope.ready = true;
+        // Update parent readyCount
+        if ($scope.$parent != null) {
+            $scope.$parent.readyCount--;
+        }
+    };
+
+    /**
      * Set fetched data.
      *
      * @param data to be set
      */
     var setData = function (data) {
+        $scope.error = false;
+        $scope.errorContent = null;
+        if ($scope.$parent != null) {
+            $scope.$parent.error = false;
+            $scope.$parent.errorContent = null;
+        }
+
         // Set sorting
         if (data['sort'] != null ) {
             $scope.sort = data['sort'];
@@ -133,6 +154,26 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
                 $scope.pageIndex = pageIndex;
             }
             $scope.pages.push({start: pageStart, active: pageActive});
+        }
+    };
+
+    /**
+     * Error happened.
+     */
+    $scope.setError = function (response) {
+        // Get error content
+        var errorContent = $('#page-content', response.data).html().trim();
+
+        // Replace back-url by current-url
+        var currentUrl = location.pathname + location.search;
+        errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
+
+        // Set error
+        $scope.error = true;
+        $scope.errorContent = errorContent ;
+        if ($scope.$parent != null) {
+            $scope.$parent.error = true;
+            $scope.$parent.errorContent = $scope.errorContent;
         }
     };
 
@@ -172,37 +213,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             else {
                 $scope.setReady();
             }
-        }, function (response) {
-            $scope.setError(response);
         });
-    };
-
-    /**
-     * First time data is ready.
-     */
-    $scope.setReady = function () {
-        $scope.ready = true;
-        // Update parent readyCount
-        if ($scope.$parent != null) {
-            $scope.$parent.readyCount--;
-        }
-    };
-
-    /**
-     * Error happened.
-     */
-    $scope.setError = function (response) {
-        // Handle only first error
-        if ($scope.error || ($scope.$parent != null && $scope.$parent.error)) {
-            return;
-        }
-        $scope.error = true;
-        if ($scope.$parent != null) {
-            $scope.$parent.error = true;
-        }
-
-        // Rewrite document by error page
-        document.write(response.data);
     };
 
     /**
@@ -246,6 +257,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         var page = $scope.pages[pageIndex];
 
         // List items
+        $scope.ready = false;
         $scope.performList(page.start, function (data) {
             setData(data);
             if (callback != null) {
@@ -255,8 +267,6 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
 
             // Store configuration
             $scope.storeConfiguration();
-        }, function (response) {
-            $scope.setError(response);
         });
     };
 
@@ -269,7 +279,9 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             listParameters['sort'] = $scope.sort;
             listParameters['sort-desc'] = $scope.sortDesc;
         }
-        return $scope.resource.list(listParameters, callback);
+        return $scope.resource.list(listParameters, callback, function(response){
+            $scope.setError(response);
+        });
     };
 
     /**
@@ -296,8 +308,6 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
 
             // Store configuration
             $scope.storeConfiguration();
-        }, function(response){
-            $scope.setError(response);
         });
     };
 
@@ -305,20 +315,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * Refresh current page
      */
     $scope.refresh = function() {
-        $scope.ready = false;
         $scope.setPage($scope.pageIndex, null, true);
-    };
-});
-
-/**
- * Directive <pagination-page-size> for displaying page size selection.
- */
-paginationModule.directive('onError', function () {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attr) {
-            scope.onError = eval(attr.onError);
-        }
     };
 });
 

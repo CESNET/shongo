@@ -11,7 +11,6 @@
 <%@attribute name="submitUrl" required="false"%>
 
 <c:set var="tabIndex" value="1"/>
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
     var module = angular.module('tag:reportForm', ['tag:expandableBlock']);

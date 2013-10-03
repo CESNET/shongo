@@ -10,8 +10,6 @@
 <%@ attribute name="styleShort" required="false" type="java.lang.Boolean" %>
 <%@ attribute name="multiline" required="false" type="java.lang.Boolean" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-
 <%
     if (styleShort == null) {
         styleShort = Boolean.FALSE;

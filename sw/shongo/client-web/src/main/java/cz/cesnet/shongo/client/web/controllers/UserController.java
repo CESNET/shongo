@@ -51,15 +51,6 @@ public class UserController
     }
 
     /**
-     * Handle default user action.
-     */
-    @RequestMapping(value = ClientWebUrl.USER, method = RequestMethod.GET)
-    public String handleDefault()
-    {
-        return "forward:" + ClientWebUrl.USER_LIST;
-    }
-
-    /**
      * Handle user settings.
      */
     @RequestMapping(value = ClientWebUrl.USER_SETTINGS, method = RequestMethod.GET)
@@ -130,7 +121,7 @@ public class UserController
      * @param filter
      * @return list of {@link UserInformation}
      */
-    @RequestMapping(value = ClientWebUrl.USER_LIST, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.USER_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody
     public List<UserInformation> handleList(
             SecurityToken securityToken,
@@ -149,7 +140,7 @@ public class UserController
      * @param userId
      * @return {@link UserInformation} with given {@code userId}
      */
-    @RequestMapping(value = ClientWebUrl.USER_DETAIL, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.USER_DATA, method = RequestMethod.GET)
     @ResponseBody
     public UserInformation handleDetail(
             SecurityToken securityToken,

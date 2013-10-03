@@ -27,6 +27,11 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
     public final static String BREADCRUMB_REQUEST_ATTRIBUTE = "breadcrumb";
 
     /**
+     * Request attribute in which the current request URL is stored.
+     */
+    public final static String REQUEST_URL_REQUEST_ATTRIBUTE = "requestUrl";
+
+    /**
      * Request attribute in which the {@link BackUrl} is stored.
      */
     public final static String BACK_URL_REQUEST_ATTRIBUTE = "backUrl";
@@ -100,7 +105,18 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
             request.setAttribute(BREADCRUMB_REQUEST_ATTRIBUTE, breadcrumb);
         }
 
-        // Back url
+        // Request URL
+        String requestUri = request.getRequestURI();
+        String queryString = request.getQueryString();
+        StringBuilder requestUriBuilder = new StringBuilder();
+        requestUriBuilder.append(requestUri);
+        if (queryString != null && !queryString.isEmpty()) {
+            requestUriBuilder.append("?");
+            requestUriBuilder.append(queryString);
+        }
+        request.setAttribute(REQUEST_URL_REQUEST_ATTRIBUTE, requestUriBuilder.toString());
+
+        // Back URL
         request.setAttribute(BACK_URL_REQUEST_ATTRIBUTE, BackUrl.getInstance(request, breadcrumb));
 
         return true;

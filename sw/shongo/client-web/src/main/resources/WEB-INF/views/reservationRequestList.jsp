@@ -6,25 +6,41 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
 <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
 
-<c:set var="listDataUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %></c:set>
-<spring:eval var="detailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{reservationRequest.id}}')"/>
-<spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
-<spring:eval var="duplicateUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreateDuplicate(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
-<spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, '{{reservationRequest.id}}') + '?back-url=' + requestUrl"/>
+<tag:url var="listDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
+<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+</tag:url>
+<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM %>">
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+    <tag:param name="specificationType" value="PERMANENT_ROOM"/>
+</tag:url>
+<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+    <tag:param name="specificationType" value="ADHOC_ROOM"/>
+</tag:url>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestList', ['tag:expandableBlock', 'tag:reservationRequestList', 'ngTooltip']);
+    angular.module('jsp:reservationRequestList', ['tag:expandableBlock', 'tag:reservationRequestList', 'ngTooltip', 'ngSanitize']);
 </script>
 
 <div ng-app="jsp:reservationRequestList" ng-controller="ReadyController">
 
     <%-- What do you want to do? --%>
-    <c:set var="createRoomUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>?back-url=${requestUrl}</c:set>
-
     <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
         <span><spring:message code="views.select.action"/></span>
         <ul>
@@ -37,16 +53,14 @@
     </tag:expandableBlock>
 
     <%-- List of reservation requests --%>
-    <div class="spinner" ng-hide="ready"></div>
+    <div class="spinner" ng-hide="ready || errorContent"></div>
+    <span ng-controller="HtmlController" ng-show="!ready && errorContent" ng-bind-html="html(errorContent)"></span>
 
     <div ng-show="ready">
 
-        <spring:eval var="createUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'PERMANENT_ROOM')"/>
-
-        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}"
-                                    detailed="true" createUrl="${createUrl}" modifyUrl="${modifyUrl}"
-                                    duplicateUrl="${duplicateUrl}" deleteUrl="${deleteUrl}">
+        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${reservationRequestDetailUrl}"
+                                    detailed="true" createUrl="${createPermanentRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
+                                    duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.permanentRooms"/>
                 <tag:help>
@@ -57,11 +71,9 @@
 
         <hr/>
 
-        <spring:eval var="createUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'ADHOC_ROOM')"/>
-        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${detailUrl}"
-                                    detailed="true" createUrl="${createUrl}" modifyUrl="${modifyUrl}"
-                                    duplicateUrl="${duplicateUrl}" deleteUrl="${deleteUrl}">
+        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${reservationRequestDetailUrl}"
+                                    detailed="true" createUrl="${createAdhocRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
+                                    duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.adhocRooms"/>
                 <tag:help>

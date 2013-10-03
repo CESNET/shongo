@@ -8,7 +8,6 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
-import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -399,6 +398,6 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     {
         // Get reservation request
         reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
-        return "redirect:" + ClientWebUrl.getReservationRequestDetail(reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 }

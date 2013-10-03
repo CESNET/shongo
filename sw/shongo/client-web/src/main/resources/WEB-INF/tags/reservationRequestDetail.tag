@@ -1,8 +1,9 @@
+
 <%--
   -- Detail of reservation request.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
-
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
@@ -12,9 +13,13 @@
 <%@attribute name="isActive" required="true" type="java.lang.Boolean" %>
 <%@attribute name="detailUrl" required="false" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
-<spring:eval var="detailStateUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailState(contextPath, ':reservationRequestId')"/>
+<tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE %>">
+    <tag:param name="reservationRequestId" value=":reservationRequestId" escape="false"/>
+</tag:url>
+<tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
+    <tag:param name="roomId" value="{{roomId}}" escape="false"/>
+</tag:url>
 
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestDetail', ['ngTooltip', 'ngResource', 'ngSanitize']);
@@ -67,7 +72,7 @@
         </c:if>
         <c:if test="${isActive}">
             // Refreshing resource
-            $scope.refreshResource = $resource("${detailStateUrl}", {reservationRequestId: "${reservationRequest.id}"}, {
+            $scope.refreshResource = $resource("${reservationRequestDetailStateUrl}", {reservationRequestId: "${reservationRequest.id}"}, {
                 get: {method: "GET"}
             });
             // Initial refresh timeout in seconds
@@ -150,9 +155,17 @@
     <c:if test="${not empty reservationRequest.parentReservationRequestId}">
         <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
         <dd>
-            <spring:eval var="urlDetail"
-                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.parentReservationRequestId)"/>
-            <a href="${urlDetail}">${reservationRequest.parentReservationRequestId}</a>
+            <c:choose>
+            <c:when test="${not empty detailUrl}">
+                <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
+                    <tag:param name="reservationRequestId" value="${reservationRequest.parentReservationRequestId}"/>
+                </tag:url>
+                <a href="${parentReservationRequestDetailUrl}">${reservationRequest.parentReservationRequestId}</a>
+            </c:when>
+                <c:otherwise>
+                    ${reservationRequest.parentReservationRequestId}
+                </c:otherwise>
+            </c:choose>
         </dd>
     </c:if>
 
@@ -174,8 +187,9 @@
         <dd>
             <c:choose>
                 <c:when test="${not empty detailUrl}">
-                    <spring:eval var="permanentRoomDetailUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.permanentRoomReservationRequestId)"/>
+                    <tag:url var="permanentRoomDetailUrl" value="${detailUrl}">
+                        <tag:param name="reservationRequestId" value="${reservationRequest.permanentRoomReservationRequestId}"/>
+                    </tag:url>
                     <a href="${permanentRoomDetailUrl}" tabindex="2">${reservationRequest.permanentRoomReservationRequest.specification.value}</a>
                 </c:when>
                 <c:otherwise>
@@ -237,8 +251,6 @@
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
             <span ng-show="roomId != null && roomState.started">
-                <spring:eval var="roomManagementUrl"
-                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{roomId}}')"/>
                 (<a href="${roomManagementUrl}"><spring:message code="views.list.action.manage.title"/></a>)
             </span>
             <c:if test="${isActive}">

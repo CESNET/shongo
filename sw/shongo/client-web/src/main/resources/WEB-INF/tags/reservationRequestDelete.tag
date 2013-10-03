@@ -19,9 +19,10 @@
         <ul>
             <c:forEach var="dependency" items="${dependencies}">
                 <li>
-                    <spring:eval var="urlDetail"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, dependency.id)" />
-                    <a href="${urlDetail}" tabindex="2">${dependency.description}</a>
+                    <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
+                        <tag:param name="reservationRequestId" value="${dependency.id}"/>
+                    </tag:url>
+                    <a href="${parentReservationRequestDetailUrl}" tabindex="2">${dependency.description}</a>
                     (<spring:message code="views.reservationRequestDelete.dateTime"/>&nbsp;<tag:format value="${dependency.dateTime}"/>)
                 </li>
             </c:forEach>

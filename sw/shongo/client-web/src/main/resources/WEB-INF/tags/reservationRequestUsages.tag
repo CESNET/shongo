@@ -2,7 +2,7 @@
   -- Usages of reservation request.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
-
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
@@ -10,14 +10,17 @@
 <%@attribute name="detailUrl" required="true" %>
 <%@attribute name="createUrl" required="false" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<tag:url var="usageListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_USAGES %>">
+    <tag:param name="reservationRequestId" value=":id"/>
+</tag:url>
+<tag:url var="usageDetailUrl" value="${detailUrl}">
+    <tag:param name="reservationRequestId" value="{{permanentRoomCapacity.id}}" escape="false"/>
+</tag:url>
 
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestUsages', ['ngPagination']);
 </script>
 
-<spring:eval var="usageListUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailUsages(contextPath, ':id')"/>
-<spring:eval var="usageDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{permanentRoomCapacity.id}}')"/>
 <div ng-controller="PaginationController"
      ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}', {id: '${reservationRequest.id}'})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
@@ -26,7 +29,8 @@
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.permanentRoomCapacities"/></h2>
-    <div class="spinner" ng-hide="ready"></div>
+    <div class="spinner" ng-hide="ready || errorContent"></div>
+    <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>

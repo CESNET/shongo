@@ -6,8 +6,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="backUrl" value="${contextPath}${requestScope.backUrl}"/>
+<tag:url var="backUrl" value="${requestScope.backUrl}"/>
 
 <c:choose>
     <c:when test="${isSubmitted}">

@@ -99,10 +99,10 @@ public class BackUrl
             return url;
         }
         if (url.contains("?")) {
-            return url + "&back-url=" + this.url;
+            return url + "&back-url=" + ClientWebUrl.encodeUrlParam(this.url);
         }
         else {
-            return url + "?back-url=" + this.url;
+            return url + "?back-url=" + ClientWebUrl.encodeUrlParam(this.url);
         }
     }
 
@@ -225,10 +225,15 @@ public class BackUrl
         {
             StringBuilder contextBuilder = new StringBuilder();
             for (Map.Entry<String, String> entry : backUrlByRequestUrl.entrySet()) {
+                if (entry.getKey().equals(ClientWebUrl.REPORT)) {
+                    continue;
+                }
+                if (contextBuilder.length() > 0) {
+                    contextBuilder.append("\n");
+                }
                 contextBuilder.append(entry.getKey());
                 contextBuilder.append(" => ");
                 contextBuilder.append(entry.getValue());
-                contextBuilder.append("\n");
             }
             return contextBuilder.toString();
         }

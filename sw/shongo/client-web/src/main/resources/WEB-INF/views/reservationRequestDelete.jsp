@@ -1,19 +1,18 @@
+
 <%--
   -- Page for confirmation of deletion of reservation request or for displaying dependencies because of which
   -- the reservation request can't be deleted.
   --%>
+<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="detailUrl">
-    ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
-</c:set>
-<c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="backUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
+<c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
-<tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="${detailUrl}"/>
+<tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
 
 <c:choose>
     <c:when test="${dependencies.size() > 0}">

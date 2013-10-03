@@ -1,13 +1,17 @@
 <%--
   -- Page for displaying details about a single reservation request.
   --%>
+<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<spring:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
+<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
+    <tag:param name="reservationRequestId" value="${reservationRequestId}"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 
 <script type="text/javascript">
     angular.module('jsp:room', ['ngTooltip']);
@@ -86,7 +90,7 @@
                 <dd>${room.id}</dd>
 
                 <dt><spring:message code="views.reservationRequest"/>:</dt>
-                <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
+                <dd><a href="${reservationRequestDetailUrl}">${reservationRequestId}</a></dd>
             </div>
 
             <dt></dt>
@@ -100,9 +104,13 @@
     </dl>
 
     <c:if test="${roomNotAvailable}">
+        <tag:url value="<%= ClientWebUrl.REPORT %>" var="reportUrl">
+            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+        </tag:url>
+
         <div class="not-available">
             <h2><spring:message code="views.room.notAvailable.heading"/></h2>
-            <p><spring:message code="views.room.notAvailable.text" arguments="${configuration.contactEmail}"/></p>
+            <p><spring:message code="views.room.notAvailable.text" arguments="${reportUrl}"/></p>
         </div>
     </c:if>
 
@@ -201,8 +209,11 @@
 
 <div class="pull-right">
     <c:if test="${room.state.started && room.licenseCount == 0}">
-        <spring:eval var="createPermanentRoomCapacityUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, room.reservationRequestId)"/>
+        <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+            <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+            <tag:param name="permanentRoom" value="${room.reservationRequestId}"/>
+            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+        </tag:url>
         <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
             <spring:message code="views.room.requestCapacity"/>
         </a>

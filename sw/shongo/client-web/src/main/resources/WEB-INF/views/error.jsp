@@ -6,17 +6,18 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<tag:url var="submitUrl" value="/error"/>
 
 <div class="jspError">
 
-    <spring:message code="views.error.processing"/>
+    <p><spring:message code="views.error.processing"/></p>
     <pre>${error.requestUri}</pre>
 
-    <spring:message code="views.error.message"/>:
+    <p><spring:message code="views.error.message"/>:</p>
     <pre>${error.description}</pre>
 
-    <spring:message code="views.error.notification"/>
-    <tag:reportForm submitUrl="${contextPath}/error"/>
+    <p><spring:message code="views.error.notification"/></p>
+    <hr/>
+    <tag:reportForm submitUrl="${submitUrl}"/>
 
 </div>

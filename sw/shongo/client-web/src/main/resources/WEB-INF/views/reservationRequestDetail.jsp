@@ -7,18 +7,21 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="requestUrl"><%= request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI) %></c:set>
 <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+<c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
-<c:set var="detailUrl">
-    ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
-</c:set>
-<c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="backUrl">${contextPath}${requestScope.backUrl.getUrl(backUrl)}</c:set>
-<spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
-<spring:eval var="duplicateUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreateDuplicate(contextPath, reservationRequest.id)"/>
-<spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
+<tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
+<tag:url var="reservationRequestDetailUrl" value="<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
+
+<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+</tag:url>
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+</tag:url>
+<tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+</tag:url>
 
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
@@ -60,8 +63,10 @@
 
     <%-- What do you want to do? --%>
     <c:if test="${isProvidable}">
-        <spring:eval var="createPermanentRoomCapacityUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardCreatePermanentRoomCapacity(contextPath, requestUrl, reservationRequest.id)"/>
+        <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>">
+            <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
+            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+        </tag:url>
     </c:if>
     <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
         <span><spring:message code="views.select.action"/></span>
@@ -89,9 +94,10 @@
             </li>
             <c:if test="${isWritable}">
                 <li>
-                    <spring:eval var="deleteUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
-                    <a href="${deleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
+                    <tag:url var="deleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+                        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+                    </tag:url>
+                    <a href="${reservationRequestDeleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
                 </li>
             </c:if>
         </ul>
@@ -131,7 +137,9 @@
                                 <span class="{{$child.state.code}}">{{$child.state.label}}</span>
                             </c:when>
                             <c:otherwise>
-                                <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
+                                <c:if test="${historyItem.state != null}">
+                                    <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
+                                </c:if>
                             </c:otherwise>
                         </c:choose>
                     </td>
@@ -139,14 +147,15 @@
                         <c:choose>
                             <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
                                 <spring:eval var="historyItemDetailUrl"
-                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
+                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(reservationRequestDetailUrl, historyItem.id)"/>
                                 <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
                             </c:when>
                             <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
                         </c:choose>
                         <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
-                            <spring:eval var="historyItemRevertUrl"
-                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
+                            <tag:url var="historyItemRevertUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_REVERT %>">
+                                <tag:param name="reservationRequestId" value="${historyItem.id}"/>
+                            </tag:url>
                             <span ng-show="$child.allocationState.code != 'ALLOCATED'">
                                 | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
                             </span>
@@ -160,17 +169,20 @@
     </c:if>
 
     <%-- Detail of request --%>
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${reservationRequestDetailUrl}" isActive="${isActive}"/>
 
     <%-- User roles --%>
     <hr/>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
-    <spring:eval var="aclUrl"
-                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAcl(contextPath, ':id')"/>
-    <spring:eval var="aclCreateUrl"
-                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclCreate(contextPath, reservationRequest.id)"/>
-    <spring:eval var="aclDeleteUrl"
-                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclDelete(contextPath, reservationRequest.id)"/>
+    <tag:url var="aclUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL %>">
+        <tag:param name="reservationRequestId" value=":id"/>
+    </tag:url>
+    <tag:url var="aclCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE %>">
+        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+    </tag:url>
+    <tag:url var="aclDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE %>">
+        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+    </tag:url>
     <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
                       isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${aclDeleteUrl}"/>
 
@@ -179,17 +191,19 @@
         <%-- Periodic events --%>
         <c:if test="${reservationRequest.periodicityType != 'NONE'}">
             <hr/>
-            <tag:reservationRequestChildren detailUrl="${detailUrl}"/>
+            <tag:reservationRequestChildren detailUrl="${reservationRequestDetailUrl}"/>
         </c:if>
 
         <%-- Permanent room capacities --%>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <hr/>
             <c:if test="${isProvidable}">
-                <spring:eval var="usageCreateUrl"
-                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+                <tag:url var="createUsageUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+                    <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+                    <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
+                </tag:url>
             </c:if>
-            <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${usageCreateUrl}"/>
+            <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}"/>
         </c:if>
 
     </c:if>
@@ -207,18 +221,18 @@
         <c:if test="${advancedUserInterface}">
             <c:choose>
                 <c:when test="${reservationRequest.state == 'ALLOCATED_FINISHED'}">
-                    <a class="btn" href="${duplicateUrl}" tabindex="1">
+                    <a class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
                         <spring:message code="views.button.duplicate"/>
                     </a>
                 </c:when>
                 <c:otherwise>
-                    <a class="btn" href="${modifyUrl}" tabindex="1">
+                    <a class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
                         <spring:message code="views.button.modify"/>
                     </a>
                 </c:otherwise>
             </c:choose>
         </c:if>
-        <a class="btn" href="${deleteUrl}" tabindex="1">
+        <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
             <spring:message code="views.button.delete"/>
         </a>
     </c:if>

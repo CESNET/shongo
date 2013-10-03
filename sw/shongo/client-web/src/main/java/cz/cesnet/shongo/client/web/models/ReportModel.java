@@ -1,10 +1,15 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
+import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import net.tanesha.recaptcha.ReCaptcha;
 import net.tanesha.recaptcha.ReCaptchaResponse;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +29,8 @@ import java.util.Map;
  */
 public class ReportModel
 {
+    private static Logger logger = LoggerFactory.getLogger(ReportModel.class);
+
     private ReCaptcha reCaptcha;
 
     private String email;
@@ -34,7 +41,7 @@ public class ReportModel
 
     private final Context context;
 
-    public ReportModel(String requestUri, ReCaptcha reCaptcha)
+    public ReportModel(String requestUri, ReCaptcha reCaptcha, CommonService commonService)
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof OpenIDConnectAuthenticationToken) {
@@ -45,7 +52,7 @@ public class ReportModel
         else {
             this.reCaptcha = reCaptcha;
         }
-        this.context = new Context(requestUri);
+        this.context = new Context(requestUri, commonService);
     }
 
     public boolean isEmailReadOnly()
@@ -126,9 +133,21 @@ public class ReportModel
     {
         private String url;
 
-        public Context(String url)
+        private boolean controllerAvailable;
+
+        public Context(String url, CommonService commonService)
         {
             this.url = url;
+            try {
+                commonService.getController();
+                controllerAvailable = true;
+            }
+            catch (ControllerConnectException exception) {
+                controllerAvailable = false;
+            }
+            catch (Exception exception) {
+                logger.warn("Checking controller state failed.", exception);
+            }
         }
 
         public String getUrl()
@@ -142,6 +161,7 @@ public class ReportModel
 
             // Common attributes
             Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+            attributes.put("Controller", (controllerAvailable ? "available" : "not-available"));
             if (url != null) {
                 attributes.put("URL", url);
             }

@@ -7,13 +7,11 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlRoomsData">
-    ${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
-</c:set>
-<c:set var="urlRoomUsages">
-    ${contextPath}<%= ClientWebUrl.ROOM_LIST_DATA %>
-</c:set>
+<tag:url var="roomListDataUrl" value="<%= ClientWebUrl.ROOM_LIST_DATA %>"/>
+<tag:url var="roomUsageListData" value="<%= ClientWebUrl.ROOM_LIST_DATA %>"/>
+<tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
+    <tag:param name="roomId" value="{{room.id}}" escape="false"/>
+</tag:url>
 
 <script type="text/javascript">
     var module = angular.module('jsp:roomList', ['ngPagination', 'ngTooltip', 'ngSanitize']);
@@ -22,7 +20,7 @@
         $scope.toggleRoom = function (room) {
             room.showUsages = !room.showUsages;
             if (room.showUsages && room.usages == null) {
-                var resource = $resource('${urlRoomUsages}', null, {
+                var resource = $resource('${roomUsageListData}', null, {
                     list: {method: 'GET'}
                 });
                 resource.list({'room-id': room.id}, function (result) {
@@ -36,14 +34,15 @@
 <div ng-app="jsp:roomList">
 
     <div ng-controller="PaginationController"
-         ng-init="init('roomList', '${urlRoomsData}')">
+         ng-init="init('roomList', '${roomListDataUrl}')">
         <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
         <spring:message code="views.button.refresh" var="paginationRefresh"/>
         <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
         <h1><spring:message code="views.roomList.title"/></h1>
-        <div class="spinner" ng-hide="ready"></div>
+        <div class="spinner" ng-hide="ready || errorContent"></div>
+        <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
         <table class="table table-striped table-hover" ng-show="ready">
             <thead>
             <tr>
@@ -78,8 +77,6 @@
                            ng-class="{'icon-plus': !room.showUsages, 'icon-minus': room.showUsages}"></a>
                         <span ng-switch-default class="icon-none"></span>
                     </span>
-                    <spring:eval var="roomManagementUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
                     <a href="${roomManagementUrl}" tabindex="2">{{room.name}}</a>
                     <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
                 </td>

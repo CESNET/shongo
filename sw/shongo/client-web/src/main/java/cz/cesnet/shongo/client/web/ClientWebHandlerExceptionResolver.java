@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.client.web.controllers.ErrorController;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,6 +25,9 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
     private ClientWebConfiguration configuration;
 
     @Resource
+    private CommonService commonService;
+
+    @Resource
     private ReCaptcha reCaptcha;
 
     @Override
@@ -35,7 +39,7 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
             return new ModelAndView("controllerNotAvailable");
         }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, null, exception, request);
-        ModelAndView modelAndView = ErrorController.handleError(errorModel, configuration, reCaptcha);
+        ModelAndView modelAndView = ErrorController.handleError(errorModel, configuration, reCaptcha, commonService);
         HttpSession httpSession = request.getSession();
         for (Map.Entry<String, Object> entry : modelAndView.getModel().entrySet()) {
             httpSession.setAttribute(entry.getKey(), entry.getValue());

@@ -1,3 +1,4 @@
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%--
   -- Reservation request form.
   --%>
@@ -17,6 +18,11 @@
 
 <c:set var="tabIndex" value="1"/>
 
+<tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
+<tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
+    <tag:param name="userId" value=":userId"/>
+</tag:url>
+
 <script type="text/javascript">
     window.formatUser = function(user) {
         var text = user.firstName;
@@ -34,7 +40,7 @@
             width: 'resolve',
             minimumInputLength: 2,
             ajax: {
-                url: "/user",
+                url: "${userListUrl}",
                 dataType: 'json',
                 data: function (term, page) {
                     return {
@@ -53,7 +59,7 @@
             initSelection: function (element, callback) {
                 var id = $(element).val();
                 callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
-                $.ajax("/user/" + id, {
+                $.ajax("${userUrl}".replace(':userId', id), {
                     dataType: "json"
                 }).done(function (data) {
                             callback({id: id, text: window.formatUser(data)});

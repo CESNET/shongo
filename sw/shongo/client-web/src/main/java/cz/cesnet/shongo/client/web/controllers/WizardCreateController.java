@@ -244,7 +244,7 @@ public class WizardCreateController extends AbstractWizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE, method = RequestMethod.GET)
     public ModelAndView handleDeleteRoomRole(
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
-            @PathVariable("userRoleId") String userRoleId)
+            @PathVariable("aclRecordId") String userRoleId)
     {
         UserRoleModel userRole = reservationRequest.getUserRole(userRoleId);
         if (userRole == null) {

@@ -5,8 +5,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-
 <h1><spring:message code="views.wizard.confirmation"/></h1>
 
 <hr/>
@@ -15,7 +13,9 @@
 
     <h2><spring:message code="views.wizard.confirmation.question"/></h2>
 
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="false"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}"
+                                  detailUrl="<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"
+                                  isActive="false"/>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
         <h2><spring:message code="views.reservationRequest.userRoles"/></h2>

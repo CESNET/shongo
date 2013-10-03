@@ -5,7 +5,10 @@ import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
+import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
@@ -45,17 +48,20 @@ public class ErrorController
     private ClientWebConfiguration configuration;
 
     @Resource
+    private CommonService commonService;
+
+    @Resource
     private ReCaptcha reCaptcha;
 
     /**
      * Handle report problem.
      */
     @RequestMapping(value = ClientWebUrl.REPORT, method = {RequestMethod.GET})
-    public ModelAndView handleReport(
-            @RequestParam(value = "url", required = false) String requestUri)
+    public ModelAndView handleReport(HttpServletRequest request)
     {
+        String requestUrl = BackUrl.getInstance(request).getUrl();
         ModelAndView modelAndView = new ModelAndView("report");
-        modelAndView.addObject("report", new ReportModel(requestUri, reCaptcha));
+        modelAndView.addObject("report", new ReportModel(requestUrl, reCaptcha, commonService));
         return modelAndView;
     }
 
@@ -96,7 +102,7 @@ public class ErrorController
         Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
         ErrorModel errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
-        return handleError(errorModel, configuration, reCaptcha);
+        return handleError(errorModel, configuration, reCaptcha, commonService);
     }
 
     /**
@@ -142,6 +148,11 @@ public class ErrorController
     @RequestMapping("/login-error")
     public ModelAndView handleLoginErrorView(HttpServletRequest request)
     {
+        // Update request url to login (we don't want to reference the login-error page itself anywhere)
+        String requestUrl = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
+        requestUrl = requestUrl.replace("/login-error", ClientWebUrl.LOGIN);
+        request.setAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE, requestUrl);
+
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         if (exception != null) {
             Throwable exceptionCause = exception.getCause();
@@ -150,7 +161,7 @@ public class ErrorController
             }
         }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
-        return handleError(errorModel, configuration, reCaptcha);
+        return handleError(errorModel, configuration, reCaptcha, commonService);
     }
 
     /**
@@ -218,7 +229,7 @@ public class ErrorController
      * @return error {@link ModelAndView}
      */
     public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration,
-            ReCaptcha reCaptcha)
+            ReCaptcha reCaptcha, CommonService commonService)
     {
         String emailSubject = errorModel.getEmailSubject();
         logger.error(emailSubject, errorModel.getThrowable());
@@ -226,7 +237,7 @@ public class ErrorController
 
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", new ReportModel(errorModel.getRequestUri(), reCaptcha));
+        modelAndView.addObject("report", new ReportModel(errorModel.getRequestUri(), reCaptcha, commonService));
         return modelAndView;
     }
 

@@ -115,9 +115,9 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return contact email to developers
      */
-    public String getContactEmail()
+    public String getSuggestionEmail()
     {
-        return getString("contact");
+        return getString("suggestion-email");
     }
 
     /**

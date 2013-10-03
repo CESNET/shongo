@@ -10,7 +10,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="tabIndex" value="1"/>
-<c:set var="cancelUrl">${contextPath}${requestScope.backUrl}</c:set>
+<tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 
 <script type="text/javascript">
     angular.module('jsp:userSettings', ['ngTooltip']);
