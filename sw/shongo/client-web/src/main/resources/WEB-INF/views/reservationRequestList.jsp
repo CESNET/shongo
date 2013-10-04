@@ -9,19 +9,14 @@
 <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
 
 <tag:url var="listDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
-<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
-</tag:url>
+<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
-    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
-    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM %>">

@@ -121,6 +121,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * @param data to be set
      */
     var setData = function (data) {
+        $scope.ready = true;
         $scope.error = false;
         $scope.errorContent = null;
         if ($scope.$parent != null) {
@@ -257,13 +258,11 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         var page = $scope.pages[pageIndex];
 
         // List items
-        $scope.ready = false;
         $scope.performList(page.start, function (data) {
             setData(data);
             if (callback != null) {
                 callback.call();
             }
-            $scope.ready = true;
 
             // Store configuration
             $scope.storeConfiguration();
@@ -279,6 +278,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             listParameters['sort'] = $scope.sort;
             listParameters['sort-desc'] = $scope.sortDesc;
         }
+        $scope.ready = false;
         return $scope.resource.list(listParameters, callback, function(response){
             $scope.setError(response);
         });

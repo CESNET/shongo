@@ -37,7 +37,6 @@
 <c:set var="listUrlParameters" value="${listUrlParameters}]}"/>
 <tag:url var="listUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
 
-
 <tag:url var="reservationRequestDetailUrl" value="${detailUrl}">
     <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
 </tag:url>

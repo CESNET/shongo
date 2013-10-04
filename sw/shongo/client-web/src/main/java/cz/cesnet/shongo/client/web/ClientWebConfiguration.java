@@ -5,6 +5,9 @@ import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * Web client configuration.
@@ -121,11 +124,41 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @return administrator email
+     * @return administrator emails
      */
-    public String getAdministratorEmail()
+    public Collection<String> getAdministratorEmails()
     {
-        return getString("administrator");
+        Collection<String> administrators = new HashSet<String>();
+        for (Object administratorValue : getList("administrator")) {
+            if (administratorValue instanceof String) {
+                String administrator = (String) administratorValue;
+                administrator = administrator.trim();
+                if (administrator.isEmpty()) {
+                    continue;
+                }
+                administrators.add(administrator);
+            }
+        }
+        return administrators;
+    }
+
+    /**
+     * @return administrator emails
+     */
+    public Collection<String> getHotlines()
+    {
+        Collection<String> administrators = new HashSet<String>();
+        for (Object administratorValue : getList("hotline")) {
+            if (administratorValue instanceof String) {
+                String administrator = (String) administratorValue;
+                administrator = administrator.trim();
+                if (administrator.isEmpty()) {
+                    continue;
+                }
+                administrators.add(administrator);
+            }
+        }
+        return administrators;
     }
 
     /**

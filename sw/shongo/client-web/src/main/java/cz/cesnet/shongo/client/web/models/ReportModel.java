@@ -55,6 +55,12 @@ public class ReportModel
         this.context = new Context(requestUri, commonService);
     }
 
+    public ReportModel(ErrorModel errorModel, ReCaptcha reCaptcha, CommonService commonService)
+    {
+        this(errorModel.getRequestUri(), reCaptcha, commonService);
+        setError(errorModel);
+    }
+
     public boolean isEmailReadOnly()
     {
         return emailReadOnly;
@@ -95,6 +101,16 @@ public class ReportModel
         return context;
     }
 
+    public void setError(ErrorModel errorModel)
+    {
+        context.errorModel = errorModel;
+    }
+
+    public ErrorModel getError()
+    {
+        return context.errorModel;
+    }
+
     public void validate(BindingResult bindingResult, HttpServletRequest request)
     {
         if (reCaptcha != null) {
@@ -113,6 +129,28 @@ public class ReportModel
 
         CommonModel.validateEmail(bindingResult, "email", "validation.field.invalidEmail");
         ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "message", "validation.field.required");
+    }
+
+    public String getEmailSubject()
+    {
+        String subject = "Problem report";
+        if (context.errorModel != null) {
+            subject = context.errorModel.getEmailSubject() + " - User report";
+        }
+        return subject;
+    }
+
+    public String getEmailContent(HttpServletRequest request)
+    {
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("From: ");
+        contentBuilder.append(email);
+        contentBuilder.append("\n\n");
+        contentBuilder.append(message);
+        contentBuilder.append("\n\n");
+        contentBuilder.append("--------------------------------------------------------------------------------\n\n");
+        contentBuilder.append(context.toString(request));
+        return contentBuilder.toString();
     }
 
     /**
@@ -134,6 +172,8 @@ public class ReportModel
         private String url;
 
         private boolean controllerAvailable;
+
+        private ErrorModel errorModel;
 
         public Context(String url, CommonService commonService)
         {
@@ -211,6 +251,11 @@ public class ReportModel
                 contextBuilder.append(attributeName);
                 contextBuilder.append(":\n  ");
                 contextBuilder.append(attributeContent);
+            }
+
+            if (errorModel != null) {
+                contextBuilder.append("\n\n");
+                contextBuilder.append(errorModel.getContent());
             }
 
             return contextBuilder.toString();

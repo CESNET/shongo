@@ -20,6 +20,7 @@ import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.mail.*;
@@ -27,10 +28,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.security.auth.login.Configuration;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collection;
 import java.util.Properties;
 
 /**
@@ -80,11 +81,15 @@ public class ErrorController
             return new ModelAndView("report");
         }
         else {
-            sendReport(reportModel, null, request);
-            sessionStatus.setComplete();
-
+            boolean isSent = sendReport(reportModel, request);
+            if (isSent) {
+                sessionStatus.setComplete();
+            }
             ModelAndView modelAndView = new ModelAndView("report");
-            modelAndView.addObject("isSubmitted", true);
+            modelAndView.addObject("isSent", isSent);
+            if (!isSent) {
+                modelAndView.addObject("report", reportModel);
+            }
             return modelAndView;
         }
     }
@@ -92,23 +97,39 @@ public class ErrorController
     /**
      * Handle error view.
      */
-    @RequestMapping("/error")
+    @RequestMapping(value = "/error", method = {RequestMethod.GET})
     public ModelAndView handleError(HttpServletRequest request, HttpServletResponse response)
     {
         response.setHeader("Content-Type", "text/html; charset=UTF-8");
 
         String requestUri = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
         String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
-        Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-        Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-        ErrorModel errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
+
+        ErrorModel errorModel = null;
+        if (requestUri == null) {
+             Object error = WebUtils.getSessionAttribute(request, "error");
+            if (error instanceof ErrorModel) {
+                errorModel = (ErrorModel) error;
+            }
+            else {
+                requestUri = "unknown";
+                if (message == null) {
+                    message = "unknown";
+                }
+            }
+        }
+        if (errorModel == null) {
+            Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+            Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+            errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
+        }
         return handleError(errorModel, configuration, reCaptcha, commonService);
     }
 
     /**
      * Handle error report problem.
      */
-    @RequestMapping("/error/submit")
+    @RequestMapping(value = "/error", method = {RequestMethod.POST})
     public ModelAndView handleErrorReportSubmit(
             HttpServletRequest request,
             SessionStatus sessionStatus,
@@ -124,11 +145,15 @@ public class ErrorController
             return modelAndView;
         }
         else {
-            sendReport(reportModel, errorModel, request);
-            sessionStatus.setComplete();
-
+            boolean isSent = sendReport(reportModel, request);
+            if (isSent) {
+                sessionStatus.setComplete();
+            }
             ModelAndView modelAndView = new ModelAndView("report");
-            modelAndView.addObject("isSubmitted", true);
+            modelAndView.addObject("isSent", isSent);
+            if (!isSent) {
+                modelAndView.addObject("report", reportModel);
+            }
             return modelAndView;
         }
     }
@@ -196,26 +221,13 @@ public class ErrorController
      * Send report.
      *
      * @param reportModel
-     * @param errorModel
      * @param request
      */
-    private void sendReport(ReportModel reportModel, ErrorModel errorModel, HttpServletRequest request)
+    private boolean sendReport(ReportModel reportModel, HttpServletRequest request)
     {
-        String subject = "Problem report";
-        StringBuilder contentBuilder = new StringBuilder();
-        contentBuilder.append("From: ");
-        contentBuilder.append(reportModel.getEmail());
-        contentBuilder.append("\n\n");
-        contentBuilder.append(reportModel.getMessage());
-        contentBuilder.append("\n\n");
-        contentBuilder.append("--------------------------------------------------------------------------------\n\n");
-        contentBuilder.append(reportModel.getContext().toString(request));
-        if (errorModel != null) {
-            subject = errorModel.getEmailSubject() + " - User report";
-            contentBuilder.append("\n\n");
-            contentBuilder.append(errorModel.getEmailContent());
-        }
-        sendEmailToAdministrator(subject, contentBuilder.toString(), configuration);
+        String emailSubject = reportModel.getEmailSubject();
+        String emailContent = reportModel.getEmailContent(request);
+        return sendEmailToAdministrator(emailSubject, emailContent, configuration);
     }
 
     /**
@@ -237,20 +249,20 @@ public class ErrorController
 
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", new ReportModel(errorModel.getRequestUri(), reCaptcha, commonService));
+        modelAndView.addObject("report", new ReportModel(errorModel, reCaptcha, commonService));
         return modelAndView;
     }
 
-    private static void sendEmailToAdministrator(String subject, String content, ClientWebConfiguration configuration)
+    private static boolean sendEmailToAdministrator(String subject, String content, ClientWebConfiguration configuration)
     {
-        String administratorEmail = configuration.getAdministratorEmail();
-        if (Strings.isNullOrEmpty(administratorEmail)) {
+        Collection<String> administratorEmails = configuration.getAdministratorEmails();
+        if (administratorEmails.size() == 0) {
             logger.warn("Administrator email for sending error reports is not configured.");
-            return;
+            return false;
         }
         if (Strings.isNullOrEmpty(configuration.getSmtpHost())) {
             logger.warn("SMTP host for sending error reports is not configured.");
-            return;
+            return false;
         }
 
         Properties properties = new Properties();
@@ -291,15 +303,19 @@ public class ErrorController
 
             MimeMessage mimeMessage = new MimeMessage(session);
             mimeMessage.setFrom(new InternetAddress(sender));
-            mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
+            for (String administratorEmail : administratorEmails) {
+                mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
+            }
             mimeMessage.setSubject(subjectPrefix + subject);
             mimeMessage.setContent(multipart);
 
-            logger.debug("Sending email from '{}' to '{}'...", new Object[]{sender, administratorEmail});
+            logger.debug("Sending email from '{}' to '{}'...", new Object[]{sender, administratorEmails});
             Transport.send(mimeMessage);
+            return true;
         }
         catch (MessagingException exception) {
-            logger.error("Failed to send error report.", exception);
+            logger.error("Failed to send email '" + subject + "':\n" + content, exception);
+            return false;
         }
     }
 }

@@ -84,6 +84,26 @@ public class ErrorModel
         return messageDescription.toString();
     }
 
+    public String getContent()
+    {
+        StringBuilder content = new StringBuilder();
+        if (message != null) {
+            content.append(message);
+        }
+        if (throwable != null) {
+            if (content.length() > 0) {
+                content.append("\n\n");
+            }
+            content.append("EXCEPTION\n\n");
+            final Writer result = new StringWriter();
+            final PrintWriter printWriter = new PrintWriter(result);
+            throwable.printStackTrace(printWriter);
+            String stackTrace = result.toString();
+            content.append(stackTrace);
+        }
+        return content.toString();
+    }
+
     public String getEmailSubject()
     {
         StringBuilder subjectBuilder = new StringBuilder();
@@ -104,17 +124,7 @@ public class ErrorModel
     public String getEmailContent()
     {
         StringBuilder content = new StringBuilder();
-        if (message != null) {
-            content.append(message);
-        }
-        if (throwable != null) {
-            content.append("\n\nEXCEPTION\n\n");
-            final Writer result = new StringWriter();
-            final PrintWriter printWriter = new PrintWriter(result);
-            throwable.printStackTrace(printWriter);
-            String stackTrace = result.toString();
-            content.append(stackTrace);
-        }
+        content.append(getContent());
 
         content.append("\n\nCONFIGURATION\n\n");
 
