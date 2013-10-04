@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.JadeReportSet;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
@@ -44,7 +45,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(EntityIdentifier entityId, EntityManager entityManager)
+            protected String getAgentName(cz.cesnet.shongo.controller.resource.DeviceResource deviceResource)
             {
                 return "mcu";
             }
@@ -62,7 +63,11 @@ public class CommandFailureTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-        String mcuId = "1";
+        DeviceResource deviceResource = new DeviceResource();
+        deviceResource.setName("mcu");
+        deviceResource.addTechnology(Technology.H323);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, deviceResource);
+
         getController().addJadeAgent("mcu", new ConnectorAgent());
         getController().waitForJadeAgentsToStart();
 

@@ -65,13 +65,13 @@ public class PersistenceTest
 
             AclRecord aclRecord1 = new AclRecord();
             aclRecord1.setUserId("0");
-            aclRecord1.setEntityId(new EntityIdentifier(EntityType.RESERVATION, 1l));
+            aclRecord1.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
             aclRecord1.setRole(Role.OWNER);
             entityManager.persist(aclRecord1);
 
             AclRecord aclRecord2 = new AclRecord();
             aclRecord2.setUserId("0");
-            aclRecord2.setEntityId(new EntityIdentifier(EntityType.RESERVATION, 1l));
+            aclRecord2.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
             aclRecord2.setRole(Role.OWNER);
             entityManager.persist(aclRecord2);
 

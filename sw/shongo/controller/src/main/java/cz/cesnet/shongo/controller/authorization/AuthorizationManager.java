@@ -13,11 +13,9 @@ import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import java.util.*;
 
 /**
@@ -35,7 +33,7 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @see Authorization
      */
-    private Authorization authorization;
+    private final Authorization authorization;
 
     /**
      * @see UserSettingsProvider
@@ -75,15 +73,18 @@ public class AuthorizationManager extends AbstractManager
 
     /**
      * @param userId
-     * @param entityId
+     * @param entity
      * @param role
      * @return collection of {@link AclRecord} for given parameters
      */
-    public Collection<AclRecord> listAclRecords(String userId, EntityIdentifier entityId, Role role)
+    public Collection<AclRecord> listAclRecords(String userId, PersistentObject entity, Role role)
     {
+        AclRecord.EntityId entityId = null;
+        if (entity != null) {
+            entityId = new AclRecord.EntityId(entity);
+        }
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE acl.deleted = FALSE"
-                + " AND (:userId IS NULL OR acl.userId = :userId)"
+                + " WHERE (:userId IS NULL OR acl.userId = :userId)"
                 + " AND (:entityTypeNull = TRUE OR acl.entityId.entityType = :entityType)"
                 + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
                 + " AND (:roleNull = TRUE OR acl.role = :role)", AclRecord.class)
@@ -103,8 +104,7 @@ public class AuthorizationManager extends AbstractManager
     public Collection<AclRecord> listAclRecords(String userId)
     {
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE acl.deleted = FALSE"
-                + " AND acl.userId = :userId", AclRecord.class)
+                + " WHERE acl.userId = :userId", AclRecord.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
@@ -113,11 +113,10 @@ public class AuthorizationManager extends AbstractManager
      * @param entityId
      * @return collection of {@link AclRecord} for given {@code entityId}
      */
-    public Collection<AclRecord> listAclRecords(EntityIdentifier entityId)
+    public Collection<AclRecord> listAclRecords(AclRecord.EntityId entityId)
     {
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE acl.deleted = FALSE"
-                + " AND acl.entityId.entityType = :entityType"
+                + " WHERE acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId", AclRecord.class)
                 .setParameter("entityType", entityId.getEntityType())
                 .setParameter("entityId", entityId.getPersistenceId())
@@ -145,11 +144,10 @@ public class AuthorizationManager extends AbstractManager
      * @param role
      * @return collection of {@link AclRecord} for given parameters
      */
-    public AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
+    public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, Role role)
     {
         List<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE acl.deleted = FALSE"
-                + " AND acl.userId = :userId"
+                + " WHERE acl.userId = :userId"
                 + " AND acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId"
                 + " AND acl.role = :role", AclRecord.class)
@@ -171,15 +169,15 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
-     * @param entityId
+     * @param entity
      * @param role
      * @return list of user-ids with given {@code role} for given {@code entityId}
      */
-    public Collection<String> getUserIdsWithRole(EntityIdentifier entityId, Role role)
+    public Collection<String> getUserIdsWithRole(PersistentObject entity, Role role)
     {
+        AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         return entityManager.createQuery("SELECT acl.userId FROM AclRecord acl"
-                + " WHERE acl.deleted = FALSE"
-                + " AND acl.entityId.entityType = :entityType"
+                + " WHERE acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId"
                 + " AND acl.role = :role", String.class)
                 .setParameter("entityType", entityId.getEntityType())
@@ -248,9 +246,9 @@ public class AuthorizationManager extends AbstractManager
     /**
      * Create a new {@link AclRecord}.
      *
-     * @param userId of user for which the ACL is created.
-     * @param entity for which the ACL is created.
-     * @param role   which is created for given user and given entity
+     * @param userId   of user for which the ACL is created.
+     * @param entity   for which the ACL is created.
+     * @param role     which is created for given user and given entity
      * @return new {@link AclRecord}
      */
     public AclRecord createAclRecord(String userId, PersistentObject entity, Role role)
@@ -258,124 +256,12 @@ public class AuthorizationManager extends AbstractManager
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
         }
-        return createAclRecord(userId, entity, new EntityIdentifier(entity), role);
-    }
 
-    /**
-     * Create a new {@link AclRecord}.
-     *
-     * @param userId   of user for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
-     * @return new {@link AclRecord}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when entity not exists
-     *          when the creation failed.
-     */
-    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role)
-            throws CommonReportSet.EntityNotFoundException
-    {
-        if (userId.equals(Authorization.ROOT_USER_ID)) {
-            return null;
-        }
-        PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
-        if (entity == null) {
-            ControllerReportSetHelper.throwEntityNotFoundFault(entityId);
-        }
-        return createAclRecord(userId, entity, entityId, role);
-    }
+        AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
+        AclRecord.EntityType entityType = entityId.getEntityType();
 
-    /**
-     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
-     * {@code childEntity} allows.
-     *
-     * @param parentEntity from which should be fetch all existing {@link AclRecord}s
-     * @param childEntity  to which should be created new {@link AclRecord}s
-     */
-    public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
-    {
-        if (activeTransaction == null) {
-            throw new IllegalStateException("No transaction is active.");
-        }
-
-        EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
-        EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-        EntityType childEntityType = childEntityId.getEntityType();
-        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
-        for (AclRecord parentAclRecord : parentAclRecords) {
-            String userId = parentAclRecord.getUserId();
-            Role role = parentAclRecord.getRole();
-            if (childEntityType.allowsRole(role)) {
-                createChildAclRecord(parentAclRecord, userId, childEntity, role,
-                        AclRecordDependency.Type.DELETE_DETACH);
-            }
-        }
-    }
-
-    /**
-     * Creates all {@link AclRecord}s from given {@code sourceEntity} to given {@code targetEntity} which the
-     * {@code targetEntity} allows.
-     *
-     * @param sourceEntity from which should be fetch all existing {@link AclRecord}s
-     * @param targetEntity to which should be created new {@link AclRecord}s
-     */
-    public void copyAclRecords(PersistentObject sourceEntity, PersistentObject targetEntity)
-    {
-        if (activeTransaction == null) {
-            throw new IllegalStateException("No transaction is active.");
-        }
-
-        EntityIdentifier sourceEntityId = new EntityIdentifier(sourceEntity);
-        EntityIdentifier targetEntityId = new EntityIdentifier(targetEntity);
-        EntityType targetEntityType = targetEntityId.getEntityType();
-        Collection<AclRecord> sourceAclRecords = activeTransaction.getAclRecords(sourceEntityId);
-        for (AclRecord parentAclRecord : sourceAclRecords) {
-            String userId = parentAclRecord.getUserId();
-            Role role = parentAclRecord.getRole();
-
-            if (targetEntityType.allowsRole(role)) {
-                createAclRecord(userId, targetEntity, targetEntityId, role);
-            }
-        }
-    }
-
-    /**
-     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
-     * {@code childEntity} allows.
-     *
-     * @param parentEntity from which should be fetch all existing {@link AclRecord}s and distributed to all childs
-     */
-    public void updateAclRecordsForChildEntities(PersistentObject parentEntity)
-    {
-        if (activeTransaction == null) {
-            throw new IllegalStateException("No transaction is active.");
-        }
-
-        EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
-        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
-        for (AclRecord parentAclRecord : parentAclRecords) {
-            afterAclRecordCreated(parentAclRecord, parentEntity);
-        }
-    }
-
-    /**
-     * Create a new {@link AclRecord}.
-     *
-     * @param userId   of user for which the ACL is created.
-     * @param entity   for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
-     * @return new {@link AclRecord}
-     */
-    private AclRecord createAclRecord(String userId, PersistentObject entity, EntityIdentifier entityId, Role role)
-    {
-        if (userId.equals(Authorization.ROOT_USER_ID)) {
-            return null;
-        }
-
-        EntityType entityType = entityId.getEntityType();
-        if (!entityType.allowsRole(role)) {
-            throw new ControllerReportSet.AclInvalidRoleException(entityId.toId(), role.toString());
+        if (!entityType.getEntityType().allowsRole(role)) {
+            throw new ControllerReportSet.AclInvalidRoleException(EntityIdentifier.formatId(entity), role.toString());
         }
 
         if (activeTransaction == null) {
@@ -407,6 +293,52 @@ public class AuthorizationManager extends AbstractManager
                 new Object[]{aclRecord.getId(), userId, entityId, role});
 
         return aclRecord;
+    }
+
+    /**
+     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
+     * {@code childEntity} allows.
+     *
+     * @param parentEntity from which should be fetch all existing {@link AclRecord}s
+     * @param childEntity  to which should be created new {@link AclRecord}s
+     */
+    public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
+    {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
+        AclRecord.EntityId parentEntityId = new AclRecord.EntityId(parentEntity);
+        AclRecord.EntityId childEntityId = new AclRecord.EntityId(childEntity);
+        EntityType childEntityType = childEntityId.getEntityType().getEntityType();
+        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
+        for (AclRecord parentAclRecord : parentAclRecords) {
+            String userId = parentAclRecord.getUserId();
+            Role role = parentAclRecord.getRole();
+            if (childEntityType.allowsRole(role)) {
+                createChildAclRecord(parentAclRecord, userId, childEntity, role,
+                        AclRecordDependency.Type.DELETE_DETACH);
+            }
+        }
+    }
+
+    /**
+     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
+     * {@code childEntity} allows.
+     *
+     * @param parentEntity from which should be fetch all existing {@link AclRecord}s and distributed to all childs
+     */
+    public void updateAclRecordsForChildEntities(PersistentObject parentEntity)
+    {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
+        AclRecord.EntityId parentEntityId = new AclRecord.EntityId(parentEntity);
+        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
+        for (AclRecord parentAclRecord : parentAclRecords) {
+            afterAclRecordCreated(parentAclRecord, parentEntity);
+        }
     }
 
     /**
@@ -458,7 +390,7 @@ public class AuthorizationManager extends AbstractManager
      */
     public void deleteAclRecordsForEntity(PersistentObject entity)
     {
-        EntityIdentifier entityId = new EntityIdentifier(entity);
+        AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         for (AclRecord aclRecord : activeTransaction.getAclRecords(entityId)) {
             deleteAclRecord(aclRecord, true);
         }
@@ -476,7 +408,7 @@ public class AuthorizationManager extends AbstractManager
             throw new IllegalStateException("No transaction is active.");
         }
 
-        EntityIdentifier entityId = aclRecord.getEntityId();
+        AclRecord.EntityId entityId = aclRecord.getEntityId();
         PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
         if (entity == null) {
             throw new IllegalStateException("Entity " + entityId.toString() + " referenced from ACL doesn't exist.");
@@ -527,15 +459,7 @@ public class AuthorizationManager extends AbstractManager
 
         // Delete ACL record
         beforeAclRecordDeleted(aclRecord, entity);
-        if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.PROPAGATION_SKIPPED)) {
-            entityManager.remove(aclRecord);
-        }
-        else {
-            if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.PROPAGATED)) {
-                aclRecord.setPropagationState(AclRecord.PropagationState.NOT_PROPAGATED);
-            }
-            aclRecord.setDeleted(true);
-        }
+        entityManager.remove(aclRecord);
         activeTransaction.removeAclRecord(aclRecord);
 
         Controller.loggerAcl.info("Deleted ACL Record (id: {}, user: {}, entity: {}, role: {})",
@@ -570,7 +494,7 @@ public class AuthorizationManager extends AbstractManager
             if (reservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
                 ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
                 List<AbstractReservationRequest> reservationRequestUsages =
-                        reservationRequestManager.listReservationRequestUsages(reservationRequest);
+                        reservationRequestManager.listReservationRequestActiveUsages(reservationRequest);
                 for (AbstractReservationRequest reservationRequestUsage : reservationRequestUsages) {
                     if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
                         createChildAclRecord(aclRecord, userId, reservationRequestUsage, role,
@@ -649,45 +573,6 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
-     * Propagate ACL records to authorization server.
-     *
-     * @param authorization
-     */
-    public void propagate(Authorization authorization)
-    {
-        try {
-            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                    + " WHERE acl.deleted = TRUE OR acl.propagationState = :state", AclRecord.class)
-                    .setParameter("state", AclRecord.PropagationState.NOT_PROPAGATED)
-                    .getResultList();
-            for (AclRecord aclRecord : aclRecords) {
-                entityManager.getTransaction().begin();
-                if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.NOT_PROPAGATED)) {
-                    if (aclRecord.isDeleted()) {
-                        authorization.onPropagateAclRecordDeletion(aclRecord);
-                    }
-                    else {
-                        authorization.onPropagateAclRecordCreation(aclRecord);
-                        aclRecord.setPropagationState(AclRecord.PropagationState.PROPAGATED);
-                    }
-                }
-                if (aclRecord.isDeleted()) {
-                    entityManager.remove(aclRecord);
-                }
-                entityManager.getTransaction().commit();
-            }
-        }
-        catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.AUTHORIZATION, "Propagation failed", exception);
-        }
-        finally {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().commit();
-            }
-        }
-    }
-
-    /**
      * Represents a transaction for the {@link AuthorizationManager}.
      */
     private class Transaction
@@ -726,11 +611,13 @@ public class AuthorizationManager extends AbstractManager
             if (authorization == null) {
                 throw new IllegalArgumentException("Authorization must not be null.");
             }
-            for (AclRecord aclRecord : addedAclRecords) {
-                authorization.addAclRecordToCache(aclRecord);
-            }
-            for (AclRecord aclRecord : removedAclRecords) {
-                authorization.removeAclRecordFromCache(aclRecord);
+            synchronized (authorization) {
+                for (AclRecord aclRecord : removedAclRecords) {
+                    authorization.removeAclRecordFromCache(aclRecord);
+                }
+                for (AclRecord aclRecord : addedAclRecords) {
+                    authorization.addAclRecordToCache(aclRecord);
+                }
             }
         }
 
@@ -742,6 +629,15 @@ public class AuthorizationManager extends AbstractManager
             if (!removedAclRecords.remove(aclRecord)) {
                 addedAclRecords.add(aclRecord);
             }
+        }
+
+        /**
+         * @param aclRecord to be added to the {@link Transaction}
+         */
+        public void updateAclRecord(AclRecord aclRecord)
+        {
+            removedAclRecords.add(aclRecord);
+            addedAclRecords.add(aclRecord);
         }
 
         /**
@@ -758,7 +654,7 @@ public class AuthorizationManager extends AbstractManager
          * @param entityId
          * @return collection of {@link AclRecord}s for given {@code entityId}
          */
-        public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
+        public Collection<AclRecord> getAclRecords(AclRecord.EntityId entityId)
         {
             Set<AclRecord> aclRecords = new HashSet<AclRecord>();
             aclRecords.addAll(listAclRecords(entityId));
@@ -781,7 +677,7 @@ public class AuthorizationManager extends AbstractManager
          * @param role
          * @return {@link AclRecord} for given parameters or null if doesn't exist
          */
-        public AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
+        public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, Role role)
         {
             AclRecord aclRecord = AuthorizationManager.this.getAclRecord(userId, entityId, role);
             if (aclRecord == null) {

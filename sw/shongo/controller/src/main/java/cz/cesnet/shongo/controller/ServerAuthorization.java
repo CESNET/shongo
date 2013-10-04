@@ -44,11 +44,6 @@ public class ServerAuthorization extends Authorization
     private static final String AUTHENTICATION_SERVICE_PATH = "/authn/oic";
 
     /**
-     * Authorization service path in auth-server.
-     */
-    private static final String AUTHORIZATION_SERVICE_PATH = "/authz/rest";
-
-    /**
      * User web service path in auth-server.
      */
     private static final String USER_SERVICE_PATH = "/perun/users";
@@ -135,14 +130,6 @@ public class ServerAuthorization extends Authorization
     private String getAuthenticationUrl()
     {
         return authorizationServer + AUTHENTICATION_SERVICE_PATH;
-    }
-
-    /**
-     * @return url to authorization service in auth-server
-     */
-    private String getAuthorizationUrl()
-    {
-        return authorizationServer + AUTHORIZATION_SERVICE_PATH;
     }
 
     /**
@@ -260,124 +247,6 @@ public class ServerAuthorization extends Authorization
         }
         // Handle error
         throw new RuntimeException("Retrieving user information failed.", errorException);
-    }
-
-    @Override
-    protected void onPropagateAclRecordCreation(AclRecord aclRecord)
-    {
-        String userId = aclRecord.getUserId();
-        EntityIdentifier entityId = aclRecord.getEntityId();
-        Role role = aclRecord.getRole();
-
-        StringEntity httpEntity;
-        try {
-            Map<String, String> data = new HashMap<String, String>();
-            data.put("user_id", userId);
-            data.put("resource_id", entityId.toId());
-            data.put("role_id", role.getId());
-            String jsonData = jsonMapper.writeValueAsString(data);
-            httpEntity = new StringEntity(jsonData);
-        }
-        catch (IOException exception) {
-            throw new RuntimeException("Propagation failed", exception);
-        }
-        HttpPost httpPost = new HttpPost(getAuthorizationUrl() + "/acl");
-        httpPost.setHeader("Content-type", "application/json");
-        httpPost.setHeader("Authorization", authorizationServerHeader);
-        httpPost.setHeader("Accept", "application/hal+json");
-        httpPost.setEntity(httpEntity);
-        try {
-            HttpResponse response = httpClient.execute(httpPost);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-                JsonNode acl = readJson(response.getEntity());
-
-                // TODO: check returned ACL
-
-                Controller.loggerAcl.info("Propagated ACL creation (id: {}, user: {}, entity: {}, role: {})",
-                        new Object[]{aclRecord.getId(), userId, entityId, role});
-            }
-            else {
-                handleAuthorizationRequestError(response);
-            }
-        }
-        catch (Exception exception) {
-            handleAuthorizationRequestError(exception);
-        }
-    }
-
-    @Override
-    protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
-    {
-        for (String aclRecordId : listAclRecords(aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole())) {
-            HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecordId);
-            httpDelete.setHeader("Authorization", authorizationServerHeader);
-            try {
-                HttpResponse response = httpClient.execute(httpDelete);
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    readContent(response.getEntity());
-
-                    Controller.loggerAcl.info("Propagated ACL deletion (id: {}, user: {}, entity: {}, role: {})",
-                            new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(),
-                                    aclRecord.getRole()});
-                }
-                else {
-                    handleAuthorizationRequestError(response);
-                }
-            }
-            catch (Exception exception) {
-                handleAuthorizationRequestError(exception);
-            }
-        }
-    }
-
-    /**
-     * @param userId
-     * @param entityId
-     * @param role
-     * @return identifiers of ACL records for given parameters
-     */
-    protected Collection<String> listAclRecords(String userId, EntityIdentifier entityId, Role role)
-    {
-        URI uri;
-        try {
-            URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
-            if (userId != null) {
-                uriBuilder.setParameter("user_id", userId);
-            }
-            if (entityId != null) {
-                uriBuilder.setParameter("resource_id", entityId.toId());
-            }
-            else {
-                uriBuilder.setParameter("resource_id", "shongo:" + Domain.getLocalDomainName() + ":*:*");
-            }
-            if (role != null) {
-                uriBuilder.setParameter("role_id", role.getId());
-            }
-            uri = uriBuilder.build();
-        }
-        catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-        HttpGet httpGet = new HttpGet(uri);
-        httpGet.setHeader("Authorization", authorizationServerHeader);
-        httpGet.setHeader("Accept", "application/hal+json");
-        try {
-            HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                JsonNode result = readJson(response.getEntity());
-                List<String> aclRecordIds = new LinkedList<String>();
-                for (JsonNode acl : result.get("_embedded").get("acls")) {
-                    aclRecordIds.add(acl.get("id").getTextValue());
-                }
-                return aclRecordIds;
-            }
-            else {
-                return handleAuthorizationRequestError(response);
-            }
-        }
-        catch (Exception exception) {
-            return handleAuthorizationRequestError(exception);
-        }
     }
 
     /**

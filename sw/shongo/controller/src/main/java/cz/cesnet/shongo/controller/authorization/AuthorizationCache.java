@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import org.joda.time.Duration;
 
 /**
@@ -33,9 +32,10 @@ public class AuthorizationCache
     private ExpirationMap<String, AclUserState> aclUserStateCache = new ExpirationMap<String, AclUserState>();
 
     /**
-     * Cache of {@link AclEntityState} by {@link EntityIdentifier}.
+     * Cache of {@link AclEntityState} by {@link AclRecord.EntityId}.
      */
-    private ExpirationMap<EntityIdentifier, AclEntityState> aclEntityStateCache = new ExpirationMap<EntityIdentifier, AclEntityState>();
+    private ExpirationMap<AclRecord.EntityId, AclEntityState> aclEntityStateCache =
+            new ExpirationMap<AclRecord.EntityId, AclEntityState>();
 
     /**
      * @param expiration sets the {@link #userIdCache} expiration
@@ -146,10 +146,11 @@ public class AuthorizationCache
      * Remove given {@code userAcl} from the cache
      *
      * @param aclRecord
+     * @return removed {@link AclRecord}
      */
-    public synchronized void removeAclRecordById(AclRecord aclRecord)
+    public synchronized AclRecord removeAclRecordById(AclRecord aclRecord)
     {
-        aclRecordCache.remove(aclRecord.getId());
+        return aclRecordCache.remove(aclRecord.getId());
     }
 
     /**
@@ -176,7 +177,7 @@ public class AuthorizationCache
      * @param entityId
      * @return {@link AclEntityState} by given {@code entityId}
      */
-    public synchronized AclEntityState getAclEntityStateByEntityId(EntityIdentifier entityId)
+    public synchronized AclEntityState getAclEntityStateByEntityId(AclRecord.EntityId entityId)
     {
         return aclEntityStateCache.get(entityId);
     }
@@ -187,7 +188,7 @@ public class AuthorizationCache
      * @param entityId
      * @param aclEntityState
      */
-    public synchronized void putAclEntityStateByEntityId(EntityIdentifier entityId, AclEntityState aclEntityState)
+    public synchronized void putAclEntityStateByEntityId(AclRecord.EntityId entityId, AclEntityState aclEntityState)
     {
         aclEntityStateCache.put(entityId, aclEntityState);
     }

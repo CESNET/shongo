@@ -137,9 +137,6 @@ public class WorkerThread extends Thread
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
-
-                // Propagate ACL records to authorization server
-                authorizationManager.propagate(authorization);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

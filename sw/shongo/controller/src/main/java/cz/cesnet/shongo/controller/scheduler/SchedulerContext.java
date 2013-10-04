@@ -218,9 +218,8 @@ public class SchedulerContext
         this.description = reservationRequest.getDescription();
         this.purpose = reservationRequest.getPurpose();
 
-        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
         userIds.clear();
-        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
+        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequest, Role.OWNER));
         if (userIds.size() == 0) {
             userIds.add(reservationRequest.getCreatedBy());
         }
@@ -317,8 +316,7 @@ public class SchedulerContext
     public boolean containsOwnerUserId(Resource resource)
     {
         Set<String> resourceOwnerIds = new HashSet<String>();
-        EntityIdentifier resourceId = new EntityIdentifier(resource);
-        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resourceId, Role.OWNER));
+        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resource, Role.OWNER));
         if (resourceOwnerIds.size() == 0) {
             resourceOwnerIds.add(resource.getUserId());
         }

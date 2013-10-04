@@ -1,8 +1,14 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.resource.Resource;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
@@ -15,8 +21,7 @@ import javax.persistence.*;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "entity_type", "role"}))
 @org.hibernate.annotations.Table(appliesTo = "acl_record", indexes = {
-        @Index(name = "acl_record_entity_type", columnNames = {"entity_type"}),
-        @Index(name = "acl_record_entity_id", columnNames = {"entity_id"})
+        @Index(name = "acl_record_entity", columnNames = {"entity_id", "entity_type"})
 })
 public class AclRecord extends PersistentObject
 {
@@ -26,24 +31,14 @@ public class AclRecord extends PersistentObject
     private String userId;
 
     /**
-     * {@link EntityIdentifier} of the ACL.
+     * @see EntityId
      */
-    private EntityIdentifier entityId;
+    private EntityId entityId;
 
     /**
      * {@link Role} of the ACL.
      */
     private Role role;
-
-    /**
-     * Specifies whether the {@link AclRecord} has been deleted.
-     */
-    private boolean deleted;
-
-    /**
-     * @see PropagationState
-     */
-    private PropagationState propagationState;
 
     /**
      * @return {@link #userId}
@@ -71,7 +66,7 @@ public class AclRecord extends PersistentObject
             @AttributeOverride(name = "entityType", column = @Column(name = "entity_type", nullable = false)),
             @AttributeOverride(name = "persistenceId", column = @Column(name = "entity_Id", nullable = false))
     })
-    public EntityIdentifier getEntityId()
+    public EntityId getEntityId()
     {
         return entityId;
     }
@@ -79,8 +74,7 @@ public class AclRecord extends PersistentObject
     /**
      * @param entityId sets the {@link #entityId}
      */
-    @Index(name = "acl_record_entity_id", columnNames = {"entity_type"})
-    public void setEntityId(EntityIdentifier entityId)
+    public void setEntityId(EntityId entityId)
     {
         this.entityId = entityId;
     }
@@ -104,72 +98,219 @@ public class AclRecord extends PersistentObject
         this.role = role;
     }
 
-    /**
-     * @return {@link #deleted}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isDeleted()
+    public static enum EntityType
     {
-        return deleted;
-    }
+        /**
+         * @see cz.cesnet.shongo.controller.EntityType#RESOURCE
+         */
+        RESOURCE(cz.cesnet.shongo.controller.EntityType.RESOURCE, Resource.class),
 
-    /**
-     * @param deleted sets the {@link #deleted}
-     */
-    public void setDeleted(boolean deleted)
-    {
-        this.deleted = deleted;
-    }
+        /**
+         * @see cz.cesnet.shongo.controller.EntityType#RESERVATION_REQUEST
+         */
+        ALLOCATION(cz.cesnet.shongo.controller.EntityType.RESERVATION_REQUEST, Allocation.class),
 
-    /**
-     * @return {@link #propagationState}
-     */
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    public PropagationState getPropagationState()
-    {
-        return propagationState;
-    }
+        /**
+         * @see cz.cesnet.shongo.controller.EntityType#RESERVATION
+         */
+        RESERVATION(cz.cesnet.shongo.controller.EntityType.RESERVATION, Reservation.class),
 
-    /**
-     * @param propagationState sets the {@link #propagationState}
-     */
-    public void setPropagationState(PropagationState propagationState)
-    {
-        this.propagationState = propagationState;
-    }
+        /**
+         * @see cz.cesnet.shongo.controller.EntityType#EXECUTABLE
+         */
+        EXECUTABLE(cz.cesnet.shongo.controller.EntityType.EXECUTABLE, Executable.class);
 
-    @PrePersist
-    protected void onCreate()
-    {
-        if (propagationState == null) {
-            if (entityId.getEntityType().isRolePropagatable(role) ) {
-                propagationState = PropagationState.NOT_PROPAGATED;
-            }
-            else {
-                propagationState = PropagationState.PROPAGATION_SKIPPED;
+        /**
+         * @see cz.cesnet.shongo.controller.EntityType
+         */
+        private final cz.cesnet.shongo.controller.EntityType entityType;
+
+        /**
+         * Class of entities.
+         */
+        private Class<? extends PersistentObject> entityClass;
+
+        /**
+         * Constructor.
+         *
+         * @param entityType sets the {@link #entityType}
+         */
+        private EntityType(cz.cesnet.shongo.controller.EntityType entityType,
+                Class<? extends PersistentObject> entityClass)
+        {
+            this.entityType = entityType;
+            this.entityClass = entityClass;
+        }
+
+        /**
+         * @return {@link #entityType}
+         */
+        public cz.cesnet.shongo.controller.EntityType getEntityType()
+        {
+            return entityType;
+        }
+
+        /**
+         * @return {@link #entityClass}
+         */
+        public Class<? extends PersistentObject> getEntityClass()
+        {
+            return entityClass;
+        }
+
+        /**
+         * @param entityType
+         * @return {@link cz.cesnet.shongo.controller.EntityType} from given {@code entityType}
+         */
+        public static EntityType fromEntityType(cz.cesnet.shongo.controller.EntityType entityType)
+        {
+            switch (entityType) {
+                case RESOURCE:
+                    return RESOURCE;
+                case RESERVATION_REQUEST:
+                    return ALLOCATION;
+                case RESERVATION:
+                    return RESERVATION;
+                case EXECUTABLE:
+                    return EXECUTABLE;
+                default:
+                    throw new TodoImplementException(entityType);
             }
         }
     }
 
-    /**
-     * State of the propagation to authorization server.
-     */
-    public static enum PropagationState
+    @Embeddable
+    public static class EntityId
     {
         /**
-         * {@link AclRecord} should not be propagated to authorization server.
+         * {@link EntityType} of the identifier.
          */
-        PROPAGATION_SKIPPED,
+        private EntityType entityType;
 
         /**
-         * {@link AclRecord} is prepared for propagation to authorization server.
+         * Identifier value.
          */
-        NOT_PROPAGATED,
+        private Long persistenceId;
 
         /**
-         * {@link AclRecord} has already been propagated to authorization server.
+         * Constructor.
          */
-        PROPAGATED
+        public EntityId()
+        {
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param entityType    sets the {@link #entityType}
+         * @param persistenceId sets the {@link #persistenceId}
+         */
+        public EntityId(EntityType entityType, Long persistenceId)
+        {
+            this.entityType = entityType;
+            this.persistenceId = persistenceId;
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param persistentObject sets the {@link #entityType} and the {@link #persistenceId}
+         */
+        public EntityId(PersistentObject persistentObject)
+        {
+            if (persistentObject instanceof AbstractReservationRequest) {
+                AbstractReservationRequest reservationRequest = (AbstractReservationRequest) persistentObject;
+                this.entityType = EntityType.ALLOCATION;
+                this.persistenceId = reservationRequest.getAllocation().getId();
+            }
+            else {
+                this.persistenceId = persistentObject.getId();
+                if (persistentObject instanceof Resource) {
+                    this.entityType = EntityType.RESOURCE;
+                }
+                else if (persistentObject instanceof Reservation) {
+                    this.entityType = EntityType.RESERVATION;
+                }
+                else if (persistentObject instanceof Executable) {
+                    this.entityType = EntityType.EXECUTABLE;
+                }
+                else {
+                    throw new TodoImplementException(persistentObject.getClass());
+                }
+            }
+        }
+
+        /**
+         * @return {@link #entityType}
+         */
+        @Column
+        @Enumerated(EnumType.STRING)
+        public EntityType getEntityType()
+        {
+            return entityType;
+        }
+
+        /**
+         * @param entityType sets the {@link #entityType}
+         */
+        public void setEntityType(EntityType entityType)
+        {
+            this.entityType = entityType;
+        }
+
+        /**
+         * @return {@link #persistenceId}
+         */
+        @Column
+        public Long getPersistenceId()
+        {
+            return persistenceId;
+        }
+
+        /**
+         * @param persistenceId sets the {@link #persistenceId}
+         */
+        public void setPersistenceId(Long persistenceId)
+        {
+            this.persistenceId = persistenceId;
+        }
+
+        /**
+         * @return {@link EntityType#getEntityClass()}
+         */
+        @Transient
+        public Class<? extends PersistentObject> getEntityClass()
+        {
+            return entityType.getEntityClass();
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            EntityId entityId = (EntityId) o;
+
+            if (entityType != entityId.entityType) {
+                return false;
+            }
+            if (!persistenceId.equals(entityId.persistenceId)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = entityType.hashCode();
+            result = 31 * result + persistenceId.hashCode();
+            return result;
+        }
     }
 }

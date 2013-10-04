@@ -4,8 +4,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,7 +246,7 @@ public abstract class Authorization
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasPermission(SecurityToken securityToken, EntityIdentifier entityId, Permission permission)
+    public boolean hasPermission(SecurityToken securityToken, AclRecord.EntityId entityId, Permission permission)
     {
         if (isAdmin(securityToken)) {
             // Administrator has all possible permissions
@@ -263,14 +263,27 @@ public abstract class Authorization
 
     /**
      * @param securityToken of the user
-     * @param entityId      of the entity
+     * @param entity        the entity
+     * @param permission    which the user must have for the entity
+     * @return true if the user has given {@code permission} for the entity,
+     *         false otherwise
+     */
+    public boolean hasPermission(SecurityToken securityToken, PersistentObject entity, Permission permission)
+    {
+        return hasPermission(securityToken, new AclRecord.EntityId(entity), permission);
+    }
+
+    /**
+     * @param securityToken of the user
+     * @param entity        the entity
      * @return set of {@link Permission}s which the user have for the entity
      */
-    public Set<Permission> getPermissions(SecurityToken securityToken, EntityIdentifier entityId)
+    public Set<Permission> getPermissions(SecurityToken securityToken, PersistentObject entity)
     {
+        AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         if (isAdmin(securityToken)) {
             // Administrator has all possible permissions
-            EntityType entityType = entityId.getEntityType();
+            EntityType entityType = entityId.getEntityType().getEntityType();
             return entityType.getPermissions();
         }
         String userId = securityToken.getUserId();
@@ -293,7 +306,7 @@ public abstract class Authorization
      * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
      *         or null if the user can view all entities
      */
-    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, EntityType entityType,
+    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclRecord.EntityType entityType,
             Permission permission)
     {
         if (isAdmin(securityToken)) {
@@ -320,7 +333,7 @@ public abstract class Authorization
      */
     public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, Role role)
     {
-        EntityIdentifier entityId = new EntityIdentifier(persistentObject);
+        AclRecord.EntityId entityId = new AclRecord.EntityId(persistentObject);
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
             aclEntityState = fetchAclEntityState(entityId);
@@ -380,7 +393,8 @@ public abstract class Authorization
      * @throws ControllerReportSet.SecurityInvalidTokenException
      *          when the validation fails
      */
-    protected UserInformation onValidate(SecurityToken securityToken) throws ControllerReportSet.SecurityInvalidTokenException
+    protected UserInformation onValidate(SecurityToken securityToken)
+            throws ControllerReportSet.SecurityInvalidTokenException
     {
         // Validate access token by getting user info
         try {
@@ -422,17 +436,6 @@ public abstract class Authorization
     protected abstract Collection<UserInformation> onListUserInformation();
 
     /**
-     * @param aclRecord to be created on the server
-     * @return new {@link AclRecord}
-     */
-    protected abstract void onPropagateAclRecordCreation(AclRecord aclRecord);
-
-    /**
-     * @param aclRecord to be deleted on the server
-     */
-    protected abstract void onPropagateAclRecordDeletion(AclRecord aclRecord);
-
-    /**
      * Fetch {@link AclUserState} for given {@code userId}.
      *
      * @param userId of user for which the ACL should be fetched
@@ -462,7 +465,7 @@ public abstract class Authorization
      * @param entityId of entity for which the ACL should be fetched
      * @return fetched {@link AclEntityState} for given {@code entityId}
      */
-    private AclEntityState fetchAclEntityState(EntityIdentifier entityId)
+    private AclEntityState fetchAclEntityState(AclRecord.EntityId entityId)
     {
         AclEntityState aclEntityState = new AclEntityState();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -484,11 +487,10 @@ public abstract class Authorization
      *
      * @param aclRecord to be added
      */
-    public void addAclRecordToCache(AclRecord aclRecord)
+    void addAclRecordToCache(AclRecord aclRecord)
     {
         String userId = aclRecord.getUserId();
-        EntityIdentifier entityId = aclRecord.getEntityId();
-        Role role = aclRecord.getRole();
+        AclRecord.EntityId entityId = aclRecord.getEntityId();
 
         // Update AclRecord cache
         cache.putAclRecordById(aclRecord);
@@ -532,7 +534,7 @@ public abstract class Authorization
         }
 
         // Update AclEntityState cache
-        EntityIdentifier entityId = aclRecord.getEntityId();
+        AclRecord.EntityId entityId = aclRecord.getEntityId();
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState != null) {
             aclEntityState.removeAclRecord(aclRecord);

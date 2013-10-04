@@ -322,17 +322,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Run propagations to authorization server.
-     */
-    protected void runAuthorizationPropagation()
-    {
-        EntityManager entityManager = createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
-        authorizationManager.propagate(authorization);
-        entityManager.close();
-    }
-
-    /**
      * Run {@link Preprocessor} and {@link Scheduler}.
      *
      * @param interval
@@ -341,7 +330,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         runPreprocessor(interval);
         runScheduler(interval);
-        runAuthorizationPropagation();
     }
 
     /**
@@ -490,7 +478,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             runPreprocessor();
         }
         runScheduler();
-        runAuthorizationPropagation();
         return reservationRequestId;
     }
 

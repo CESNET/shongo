@@ -23,10 +23,7 @@ import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
@@ -524,6 +521,13 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         String user2Id = getUserId(SECURITY_TOKEN_USER2);
 
+        Set<Permission> NONE = new HashSet<Permission>();
+        Set<Permission> READ = new HashSet<Permission>()
+        {{
+                add(Permission.READ);
+            }};
+
+        // Check ReservationRequestReusement.ARBITRARY
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T00:00", "P1D");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -540,9 +544,9 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, Role.READER);
         Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclRecords should not be propagated",
-                new HashSet<Permission>(), getAuthorizationService().listPermissions(new PermissionListRequest(
-                SECURITY_TOKEN_USER2, reservationRequest2Id)).get(reservationRequest2Id).getPermissions());
+                NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest2Id));
 
+        // Check ReservationRequestReusement.OWNED
         ReservationRequest reservationRequest3 = new ReservationRequest();
         reservationRequest3.setSlot("2012-01-01T00:00", "P1D");
         reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -559,11 +563,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id, Role.READER);
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated",
-                new HashSet<Permission>()
-                {{
-                        add(Permission.READ);
-                    }}, getAuthorizationService().listPermissions(new PermissionListRequest(
-                SECURITY_TOKEN_USER2, reservationRequest4Id)).get(reservationRequest4Id).getPermissions());
+                READ, listPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
 
         ReservationRequest reservationRequest5 = new ReservationRequest();
         reservationRequest5.setSlot("2012-01-01T00:00", "P1D");
@@ -573,19 +573,34 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         String reservationRequest5Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest5);
 
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated to new request",
-                new HashSet<Permission>()
-                {{
-                        add(Permission.READ);
-                    }}, getAuthorizationService().listPermissions(new PermissionListRequest(
-                SECURITY_TOKEN_USER2, reservationRequest5Id)).get(reservationRequest5Id).getPermissions());
+                READ, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
 
-        AclRecord aclRecord = getAclRecord(user2Id, reservationRequest3Id, Role.READER);
-        getAuthorizationService().deleteAclRecord(SECURITY_TOKEN_USER1, aclRecord.getId());
+        deleteAclRecord(user2Id, reservationRequest3Id, Role.READER);
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecord deletion should be also propagated",
-                new HashSet<Permission>(), getAuthorizationService().listPermissions(new PermissionListRequest(
-                SECURITY_TOKEN_USER2, reservationRequest4Id)).get(reservationRequest4Id).getPermissions());
+                NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecord deletion should be also propagated",
-                new HashSet<Permission>(), getAuthorizationService().listPermissions(new PermissionListRequest(
-                SECURITY_TOKEN_USER2, reservationRequest5Id)).get(reservationRequest5Id).getPermissions());
+                NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+
+        // Check ReservationRequestReusement.OWNED for modified request
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id, Role.READER);
+        Assert.assertEquals(READ, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+
+        String reservationRequest5IdOld = reservationRequest5Id;
+        reservationRequest5 = (ReservationRequest) service.getReservationRequest(
+                SECURITY_TOKEN_USER1, reservationRequest5Id);
+        reservationRequest5Id = service.modifyReservationRequest(SECURITY_TOKEN_USER1, reservationRequest5);
+        Assert.assertEquals(READ, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+        Assert.assertEquals(READ, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5IdOld));
+
+        deleteAclRecord(user2Id, reservationRequest3Id, Role.READER);
+        Assert.assertEquals(
+                "For ReservationRequestReusement.OWNED the deletion should be also propagated for modified request",
+                NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+    }
+
+    private Set<Permission> listPermissions(SecurityToken securityToken, String entityId)
+    {
+        return getAuthorizationService().listPermissions(new PermissionListRequest(
+                SECURITY_TOKEN_USER2, entityId)).get(entityId).getPermissions();
     }
 }

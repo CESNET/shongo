@@ -105,7 +105,7 @@ public class ResourceManager extends AbstractManager
     public List<Resource> list(Set<Long> ids, String userId)
     {
         QueryFilter filter = new QueryFilter("resource");
-        filter.addIds(ids);
+        filter.addFilterIn("id", ids);
         filter.addUserId(userId);
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
                 + " WHERE " + filter.toQueryWhere(),

@@ -347,12 +347,15 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     private String validate(SecurityToken securityToken, String deviceResourceId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             authorization.validate(securityToken);
-            EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
-            String agentName = getAgentName(entityId, entityManager);
-            if (!authorization.hasPermission(securityToken, entityId, Permission.CONTROL_RESOURCE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control device %s", entityId);
+            EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
+            DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            if (!authorization.hasPermission(securityToken, deviceResource, Permission.CONTROL_RESOURCE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "control device %s", deviceResourceIdentifier);
             }
             return agentName;
         }
@@ -369,18 +372,20 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     private String validate(SecurityToken securityToken, String deviceResourceId, String roomId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             authorization.validate(securityToken);
             EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
-            String agentName = getAgentName(deviceResourceIdentifier, entityManager);
-            if (!authorization.hasPermission(securityToken, deviceResourceIdentifier, Permission.CONTROL_RESOURCE)) {
+            DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            if (!authorization.hasPermission(securityToken, deviceResource, Permission.CONTROL_RESOURCE)) {
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(
                         deviceResourceIdentifier.getPersistenceId(), roomId, DateTime.now());
-                if (roomEndpoint == null || !authorization.hasPermission(
-                        securityToken, new EntityIdentifier(roomEndpoint), Permission.READ)) {
-                    ControllerReportSetHelper
-                            .throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
+                if (roomEndpoint == null
+                        || !authorization.hasPermission(securityToken, roomEndpoint, Permission.READ)) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                            "control device %s", deviceResourceIdentifier);
                 }
             }
             return agentName;
@@ -393,19 +398,19 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     /**
      * Gets name of agent managing a given device.
      *
-     * @param entityId shongo-id of device agent of which to get
+     * @param deviceResource of which the agent name should be get
      * @return agent name of managed resource with given {@code deviceResourceId}
      */
-    protected String getAgentName(EntityIdentifier entityId, EntityManager entityManager)
+    protected String getAgentName(DeviceResource deviceResource)
     {
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        DeviceResource deviceResource = resourceManager.getDevice(entityId.getPersistenceId());
+
         Mode mode = deviceResource.getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
         }
-        throw new RuntimeException(String.format("Resource '%s' is not managed!", entityId.toId()));
+        throw new RuntimeException(String.format("Resource '%s' is not managed!",
+                EntityIdentifier.formatId(deviceResource)));
 
     }
 }

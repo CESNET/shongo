@@ -3,9 +3,9 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.Query;
@@ -112,17 +112,17 @@ public class QueryFilter
     /**
      * Add identifier filter.
      *
-     * @param ids allowed identifiers of the entity.
+     * @param values allowed identifiers of the entity.
      */
-    public void addIds(Set<Long> ids)
+    public void addFilterIn(String column, Set<?> values)
     {
-        if (ids != null) {
-            if (ids.isEmpty()) {
-                addFilter(alias + ".id IN (0)");
+        if (values != null) {
+            if (values.isEmpty()) {
+                addFilter(alias + "." + column + " IN (0)");
             }
             else {
-                addFilter(alias + ".id IN (:ids)");
-                addFilterParameter("ids", ids);
+                addFilter(alias + "." + column + " IN (:ids)");
+                addFilterParameter("ids", values);
             }
         }
     }
@@ -135,9 +135,25 @@ public class QueryFilter
      * @param entityType
      * @param permission
      */
-    public void addIds(Authorization authorization, SecurityToken securityToken, EntityType entityType, Permission permission)
+    public void addFilterId(Authorization authorization, SecurityToken securityToken, AclRecord.EntityType entityType,
+            Permission permission)
     {
-        addIds(authorization.getEntitiesWithPermission(securityToken, entityType, permission));
+        addFilterIn("id", authorization.getEntitiesWithPermission(securityToken, entityType, permission));
+    }
+
+    /**
+     * Add identifier filter.
+     *
+     * @param column
+     * @param authorization
+     * @param securityToken
+     * @param entityType
+     * @param permission
+     */
+    public void addFilterId(String column, Authorization authorization, SecurityToken securityToken,
+            AclRecord.EntityType entityType, Permission permission)
+    {
+        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, entityType, permission));
     }
 
     /**

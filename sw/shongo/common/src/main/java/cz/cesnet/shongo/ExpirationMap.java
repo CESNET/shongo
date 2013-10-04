@@ -113,10 +113,17 @@ public class ExpirationMap<K, V> implements Iterable<V>
      * Remove given {@code key}.
      *
      * @param key
+     * @return removed value for the {@code key} or null
      */
-    public synchronized void remove(K key)
+    public synchronized V remove(K key)
     {
-        entries.remove(key);
+        Entry<V> entry = entries.remove(key);
+        if (entry != null) {
+            return entry.value;
+        }
+        else {
+            return null;
+        }
     }
 
     /**

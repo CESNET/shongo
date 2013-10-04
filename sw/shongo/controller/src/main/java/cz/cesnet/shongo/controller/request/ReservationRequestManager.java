@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -310,6 +311,15 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param allocationIds
+     * @return list of reservation request identifier for given {@code allocationIds}
+     */
+    public Set<Long> listReservationRequestIdsByAllocations(Set<Long> allocationIds)
+    {
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    /**
      * @return list all {@link ReservationRequestSet} which aren't preprocessed in given interval.
      */
     public List<ReservationRequestSet> listNotPreprocessedReservationRequestSets(Interval interval)
@@ -350,15 +360,19 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationRequest
      * @return list of {@link AbstractReservationRequest}s which reuse given {@code reservationRequest}
      */
-    public List<AbstractReservationRequest> listReservationRequestUsages(AbstractReservationRequest reservationRequest)
+    public List<AbstractReservationRequest> listReservationRequestActiveUsages(
+            AbstractReservationRequest reservationRequest)
     {
         List<AbstractReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reusedAllocation = :allocation",
+                        + " WHERE reservationRequest.reusedAllocation = :allocation"
+                        + " AND reservationRequest.state = :stateActive",
                 AbstractReservationRequest.class)
                 .setParameter("allocation", reservationRequest.getAllocation())
+                .setParameter("stateActive", AbstractReservationRequest.State.ACTIVE)
                 .getResultList();
         return reservationRequests;
     }

@@ -137,20 +137,6 @@ public class DummyAuthorization extends Authorization
         throw new TodoImplementException();
     }
 
-    @Override
-    protected void onPropagateAclRecordCreation(AclRecord aclRecord)
-    {
-        logger.info("Propagate ACL creation (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
-    }
-
-    @Override
-    protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
-    {
-        logger.info("Propagate ACL deletion (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
-    }
-
     /**
      * @param configuration to be used for initialization
      * @return new instance of {@link DummyAuthorization}

@@ -10,7 +10,6 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 
-import javax.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -26,7 +25,6 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-@Embeddable
 public class EntityIdentifier
 {
     /**
@@ -85,8 +83,6 @@ public class EntityIdentifier
     /**
      * @return {@link #entityType}
      */
-    @Column
-    @Enumerated(EnumType.STRING)
     public EntityType getEntityType()
     {
         return entityType;
@@ -104,7 +100,6 @@ public class EntityIdentifier
      * @return true whether {@link #entityType} is empty or {@link #persistenceId} is empty,
      *         false otherwise
      */
-    @Transient
     public boolean isGroup()
     {
         return entityType == null || persistenceId == null;
@@ -113,7 +108,6 @@ public class EntityIdentifier
     /**
      * @return {@link #persistenceId}
      */
-    @Column
     public Long getPersistenceId()
     {
         return persistenceId;
@@ -130,7 +124,6 @@ public class EntityIdentifier
     /**
      * @return class for the {@link #entityType}
      */
-    @Transient
     public Class<? extends PersistentObject> getEntityClass()
     {
         return getEntityTypeClass(entityType);
@@ -228,7 +221,7 @@ public class EntityIdentifier
      * @param entityType for which the class should be returned
      * @return entity class for given {@code entityType}
      */
-    private static Class<? extends PersistentObject> getEntityTypeClass(EntityType entityType)
+    public static Class<? extends PersistentObject> getEntityTypeClass(EntityType entityType)
     {
         switch (entityType) {
             case RESOURCE:

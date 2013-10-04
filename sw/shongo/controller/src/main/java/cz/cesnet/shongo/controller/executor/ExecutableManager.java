@@ -88,7 +88,7 @@ public class ExecutableManager extends AbstractManager
     public List<Executable> list(Set<Long> ids)
     {
         QueryFilter filter = new QueryFilter("executable");
-        filter.addIds(ids);
+        filter.addFilterIn("id", ids);
         TypedQuery<Executable> query = entityManager.createQuery("SELECT executable FROM Executable executable"
                 + " WHERE executable.state != :notAllocated"
                 + " AND executable NOT IN("

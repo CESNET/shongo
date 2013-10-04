@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
@@ -47,14 +48,13 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     {
         super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 
-        EntityIdentifier reservationId = new EntityIdentifier(reservation);
         EntityManager entityManager = authorizationManager.getEntityManager();
 
         this.type = type;
-        this.id = reservationId.toId();
+        this.id = EntityIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
-        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservationId, Role.OWNER));
+        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, Role.OWNER));
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);

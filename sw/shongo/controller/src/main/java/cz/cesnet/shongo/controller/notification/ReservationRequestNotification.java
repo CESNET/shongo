@@ -46,15 +46,14 @@ public class ReservationRequestNotification extends ConfigurableNotification
     {
         super(authorizationManager.getUserSettingsProvider());
 
-        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
-        this.id = reservationRequestId.toId();
+        this.id = EntityIdentifier.formatId(reservationRequest);
         this.url = configuration.getReservationRequestUrl(this.id);
         this.updatedAt = reservationRequest.getUpdatedAt();
         this.updatedBy = reservationRequest.getUpdatedBy();
         this.description = reservationRequest.getDescription();
         this.target = Target.createInstance(reservationRequest.getSpecification());
 
-        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER)) {
+        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, Role.OWNER)) {
             addRecipient(authorizationManager.getUserInformation(userId), false);
         }
     }

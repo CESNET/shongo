@@ -33,6 +33,7 @@ public class NativeQuery
     public static final String RESERVATION_REQUEST_LIST = "reservation_request_list.sql";
     public static final String RESERVATION_REQUEST_HISTORY = "reservation_request_history.sql";
     public static final String EXECUTABLE_LIST = "executable_list.sql";
+    public static final String ACL_RECORD_LIST = "acl_record_list.sql";
     public static final String REFERENCED_USER_LIST = "referenced_user_list.sql";
 
     /**

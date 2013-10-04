@@ -198,12 +198,8 @@ public class AuthorizationTest extends AbstractControllerTest
         Assert.assertNull("Reader role should be deleted",
                 getAclRecord(user2Id, aliasReservation.getId(), Role.READER));
 
-        runAuthorizationPropagation();
-
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest1Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest2Id);
-
-        runAuthorizationPropagation();
     }
 
     /**
