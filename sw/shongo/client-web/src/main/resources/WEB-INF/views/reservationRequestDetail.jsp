@@ -29,7 +29,7 @@
                                 domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
 
-<c:if test="${!reservationRequest.slot.containsNow() || reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.room == null || !reservationRequest.room.state.started}">
+<c:if test="${reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.room == null || (!reservationRequest.room.state.started && reservationRequest.room.state != 'NOT_STARTED')}">
     <c:set var="isProvidable" value="${false}"/>
 </c:if>
 

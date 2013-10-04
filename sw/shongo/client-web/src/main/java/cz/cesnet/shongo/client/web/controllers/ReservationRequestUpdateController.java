@@ -32,6 +32,7 @@ import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * Controller for creating/modifying reservation requests.
@@ -83,16 +84,18 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     public String handleCreate(
             SecurityToken securityToken,
             @PathVariable(value = "specificationType") SpecificationType specificationType,
-            @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
+            @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
             Model model)
     {
         ReservationRequestModel reservationRequestModel = new ReservationRequestModel();
         reservationRequestModel.setSpecificationType(specificationType);
-        reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
         model.addAttribute("reservationRequest", reservationRequestModel);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-            model.addAttribute("permanentRooms",
-                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+            List<ReservationRequestSummary> permanentRooms =
+                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache);
+            model.addAttribute("permanentRooms", permanentRooms);
+            reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
+
         }
         return "reservationRequestCreate";
     }

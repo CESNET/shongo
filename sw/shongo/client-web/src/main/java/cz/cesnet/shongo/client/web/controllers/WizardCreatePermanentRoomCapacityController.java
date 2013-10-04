@@ -8,6 +8,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 /**
  * Controller for creating a new capacity for permanent room.
@@ -86,10 +88,15 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     public ModelAndView handleCreatePermanentRoomCapacity(
             SecurityToken securityToken,
             HttpSession httpSession,
-            @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
+            @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
             @RequestParam(value = "force", required = false) String force)
     {
         WizardView wizardView = getCreatePermanentRoomCapacityView();
+
+        // Add permanent rooms
+        List<ReservationRequestSummary> permanentRooms =
+                ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache);
+        wizardView.addObject("permanentRooms", permanentRooms);
 
         // Add reservation request model
         ReservationRequestModel reservationRequestModel =
@@ -99,13 +106,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             wizardView.addObject("reservationRequest", reservationRequestModel);
         }
         reservationRequestModel.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
-        if (permanentRoom != null) {
-            reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
-        }
-
-        // Add permanent rooms
-        wizardView.addObject("permanentRooms",
-                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
 
         return wizardView;
     }

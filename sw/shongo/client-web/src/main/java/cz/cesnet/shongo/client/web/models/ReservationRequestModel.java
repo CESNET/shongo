@@ -263,6 +263,24 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.permanentRoomReservationRequestId = permanentRoomReservationRequestId;
     }
 
+    public void setPermanentRoomReservationRequestId(String permanentRoomReservationRequestId,
+            List<ReservationRequestSummary> permanentRooms)
+    {
+        this.permanentRoomReservationRequestId = permanentRoomReservationRequestId;
+
+        if (permanentRoomReservationRequestId != null && start != null) {
+            for (ReservationRequestSummary permanentRoomSummary : permanentRooms) {
+                if (permanentRoomSummary.getId().equals(permanentRoomReservationRequestId)) {
+                    DateTime permanentRoomStart = permanentRoomSummary.getEarliestSlot().getStart();
+                    if (permanentRoomStart.isAfter(start)) {
+                        setStart(permanentRoomStart);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     public ReservationRequestSummary getPermanentRoomReservationRequest()
     {
         return permanentRoomReservationRequest;
@@ -791,7 +809,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             for (ReservationRequestSummary reservationRequestSummary : response) {
                 ExecutableState executableState = reservationRequestSummary.getExecutableState();
-                if (executableState == null || !executableState.isAvailable()) {
+                if (executableState == null || (!executableState.isAvailable() && !executableState.equals(ExecutableState.NOT_STARTED))) {
                     continue;
                 }
                 Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
