@@ -22,8 +22,8 @@ FROM (
     FROM acl_record
     LEFT JOIN abstract_reservation_request ON abstract_reservation_request.allocation_id = acl_record.entity_id AND acl_record.entity_type = 'ALLOCATION'
     WHERE (acl_record.entity_type != 'ALLOCATION' OR abstract_reservation_request.id IS NOT NULL)
-      AND ${filter}
 ) AS acl_record
 LEFT JOIN acl_record_dependency ON acl_record_dependency.child_acl_record_id = acl_record.id
+WHERE ${filter}
 GROUP BY acl_record.id, acl_record.user_id, acl_record.entity_type,
          acl_record.entity_id, acl_record.role

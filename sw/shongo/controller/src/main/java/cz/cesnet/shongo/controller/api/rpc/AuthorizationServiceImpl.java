@@ -199,9 +199,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                         }
                     }
 
-                    cz.cesnet.shongo.controller.authorization.AclRecord.EntityType entityType =
-                            cz.cesnet.shongo.controller.authorization.AclRecord.EntityType.fromEntityType(
-                                    entityIdentifier.getEntityType());
+
+                    EntityType entityType = entityIdentifier.getEntityType();
                     Long persistenceId = entityIdentifier.getPersistenceId();
                     StringBuilder entityIdFilterBuilder = new StringBuilder();
                     if (entityType != null) {

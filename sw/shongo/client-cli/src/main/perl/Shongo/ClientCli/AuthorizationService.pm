@@ -279,10 +279,11 @@ sub list_acl()
     }
     my $table = {
         'columns' => [
-            {'field' => 'id',     'title' => 'Id'},
-            {'field' => 'user',   'title' => 'User'},
-            {'field' => 'entity', 'title' => 'Entity'},
-            {'field' => 'role',   'title' => 'Role'},
+            {'field' => 'id',        'title' => 'Id'},
+            {'field' => 'user',      'title' => 'User'},
+            {'field' => 'entity',    'title' => 'Entity'},
+            {'field' => 'role',      'title' => 'Role'},
+            {'field' => 'deletable', 'title' => 'Deletable'},
         ],
         'data' => []
     };
@@ -292,6 +293,7 @@ sub list_acl()
             'user' => [$record->{'userId'}, $application->format_user($record->{'userId'})],
             'entity' => $record->{'entityId'},
             'role' => $record->{'role'},
+            'deletable' => $record->{'deletable'} ? 'yes' : 'no',
         });
     }
     console_print_table($table);

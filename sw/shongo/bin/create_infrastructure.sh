@@ -39,7 +39,7 @@ case $MODE in
         ;;
     * )
         CONTROLLER=127.0.0.1
-        NAME_PREFIX=shongo-dev-
+        NAME_PREFIX=shongo-local-
         DEVICE_NAME_PREFIX=YY-
         MCU_CESNET_LICENSE_COUNT=10
         MCU_CESNET_NUMBER_PREFIX=950087
