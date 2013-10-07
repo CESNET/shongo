@@ -176,7 +176,8 @@
                         </span>
                     </td>
                 </tr>
-                <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
+                <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
+                    ng-class="{'deprecated': reservationRequest.isDeprecated}">
                     <td ng-controller="PermanentRoomCapacitiesController" colspan="6" ng-show="items != null">
                         <div style="position: relative;">
                             <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.state != 'ALLOCATED_FINISHED'">

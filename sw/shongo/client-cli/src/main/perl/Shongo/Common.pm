@@ -557,6 +557,113 @@ sub interval_format_date
 }
 
 #
+# Format report item
+#
+# @param $report
+# @param $max_line_width
+#
+sub format_report_item
+{
+    my ($report, $max_line_width) = @_;
+
+    my $has_children = defined($report->{'children'});
+    my $reportOutput = '';
+    $reportOutput .= $report->{'id'};
+
+    my $data = 0;
+    foreach my $key (keys %{$report}) {
+        if ( $key ne 'id' && $key ne 'children' && $key ne 'type' ) {
+            if ( $data ) {
+                $reportOutput .= ', ';
+            }
+            else {
+                $reportOutput .= ' (';
+            }
+            $data = 1;
+            my $value = $report->{$key};
+            $reportOutput .= $key;
+            $reportOutput .= ': ';
+            if ( ref($value) eq 'ARRAY' ) {
+                $reportOutput .= '[';
+                $reportOutput .= join(', ', @{$value});
+                $reportOutput .= ']';
+            }
+            elsif ( ref($value) eq 'HASH' ) {
+                $reportOutput .= '{';
+                my $valueData = 0;
+                foreach my $valueKey (sort keys %{$value}) {
+                    if ( $valueData ) {
+                        $reportOutput .= ', ';
+                    }
+                    $reportOutput .= $valueKey;
+                    $reportOutput .= ': ';
+                    $reportOutput .= $value->{$valueKey};
+                    $valueData = 1;
+                }
+                $reportOutput .= '}';
+            }
+            else {
+                $reportOutput .= $value;
+            }
+        }
+    }
+    if ( $data ) {
+        $reportOutput .= ')';
+    }
+    my $output = '-';
+    while ( length($reportOutput) > $max_line_width ) {
+        my $index = rindex($reportOutput, " ", $max_line_width);
+        if ($index == -1) {
+            $index = $max_line_width;
+        }
+        $output .= substr($reportOutput, 0, $index);
+        if ( $has_children ) {
+            $output .= "\n | ";
+        }
+        else {
+            $output .= "\n ";
+        }
+        $reportOutput = substr($reportOutput, $index + 1);
+    }
+    $output .= $reportOutput;
+
+    if ( $has_children ) {
+        my $reportCount = scalar(@{$report->{'children'}});
+        for ( my $reportIndex = 0; $reportIndex < $reportCount; $reportIndex++ ) {
+            my $childReport = $report->{'children'}->[$reportIndex];
+            $output .= "\n |";
+            $childReport = format_report_item($childReport, $max_line_width - 3);
+            my @childReportLines = split("\n", $childReport);
+            for ( my $lineIndex = 0; $lineIndex < scalar(@childReportLines); $lineIndex++ ) {
+                my $line = $childReportLines[$lineIndex];
+                my $indent = '';
+                if ( $lineIndex == 0 ) {
+                    $output .= "\n +-";
+                }
+                elsif ( $reportIndex < ($reportCount - 1) ) {
+                    $output .= "\n | ";
+                }
+                else {
+                    $output .= "\n   ";
+                }
+                while ( length($line) > $max_line_width ) {
+                    my $index = rindex($line, " ", $max_line_width);
+                    if ($index == -1) {
+                        $index = $max_line_width;
+                    }
+                    $output .= substr($line, 0, $index);
+                    $output .= "\n   ";
+                    $line = substr($line, $index + 1);
+                }
+                $output .= $line;
+            }
+        }
+    }
+
+    return $output;
+}
+
+#
 # Format report
 #
 # @param $report
@@ -566,49 +673,15 @@ sub format_report
 {
     my ($report, $max_line_width) = @_;
 
-    my @lines = ();
-    if ( defined($report) ) {
-        @lines = split("\n", $report);
+    my $reportText = '';
+    foreach my $reportItem (@{$report->{'reports'}}) {
+        if ( length($reportText) > 0 ) {
+            $reportText .= "\n";
+        }
+        $reportText .= format_report_item($reportItem, $max_line_width) . "\n";
     }
-    $report = '';
-    # Process each line from report
-    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
-        my $line = $lines[$index];
-        my $nextLine = $lines[$index + 1];
-        if ( length($report) > 0 ) {
-            $report .= "\n";
-        }
+    $report = $reportText;
 
-        # Calculate new line indent
-        my $indent = '';
-        if ( $line =~ /(^[| ]*\+?)(-+)/ ) {
-            my $start = $1;
-            $indent = $1 . $2;
-            $indent =~ s/[-]/ /g;
-
-            $start =~ s/[\+]/|/g;
-            if ( defined($nextLine) && $nextLine =~ /^\Q$start/ ) {
-                $indent =~ s/\+/|/g;
-            }
-            else {
-                $indent =~ s/\+/ /g;
-            }
-        }
-
-        # Break line to multiple lines
-        while ( length($line) > $max_line_width ) {
-            my $index = rindex($line, " ", $max_line_width);
-            if ($index == -1) {
-                $index = $max_line_width;
-            }
-            $report .= substr($line, 0, $index);
-            $report .= "\n". $indent;
-            $line = substr($line, $index + 1);
-        }
-
-        # Append the rest
-        $report .= $line;
-    }
     if ( !defined($report) || $report eq '' ) {
         $report = "-- No report --";
     }

@@ -16,14 +16,6 @@
     <description>Command-line client for Shongo controller.</description>
     <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>cz.cesnet.shongo</groupId>
-            <artifactId>client-common</artifactId>
-            <version>${shongo.version}</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -38,10 +30,6 @@
                         <configuration>
                             <outputDirectory>${basedir}/target/</outputDirectory>
                             <resources>
-                                <resource>
-                                    <directory>${basedir}/../client-common/target</directory>
-                                    <filtering>false</filtering>
-                                </resource>
                                 <resource>
                                     <directory>src/main/perl</directory>
                                     <filtering>false</filtering>

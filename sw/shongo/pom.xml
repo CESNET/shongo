@@ -19,7 +19,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>client-common</module>
         <module>client-cli</module>
         <module>client-web</module>
         <module>common-api</module>
