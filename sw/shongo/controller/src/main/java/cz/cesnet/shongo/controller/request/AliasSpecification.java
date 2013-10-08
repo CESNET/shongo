@@ -254,6 +254,12 @@ public class AliasSpecification extends Specification
     }
 
     @Override
+    public AliasSpecification clone()
+    {
+        return (AliasSpecification) super.clone();
+    }
+
+    @Override
     public boolean synchronizeFrom(Specification specification)
     {
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
@@ -272,19 +278,6 @@ public class AliasSpecification extends Specification
         setPermanentRoom(aliasSpecification.isPermanentRoom());
 
         return modified;
-    }
-
-    @Override
-    public AliasSpecification clone()
-    {
-        AliasSpecification aliasSpecification = new AliasSpecification();
-        aliasSpecification.setAliasTechnologies(getAliasTechnologies());
-        aliasSpecification.setAliasTypes(getAliasTypes());
-        aliasSpecification.setValue(getValue());
-        aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
-        aliasSpecification.setPermanentRoom(isPermanentRoom());
-        aliasSpecification.updateTechnologies();
-        return aliasSpecification;
     }
 
     @Override

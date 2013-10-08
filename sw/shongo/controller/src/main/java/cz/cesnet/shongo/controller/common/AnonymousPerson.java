@@ -12,7 +12,7 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class OtherPerson extends Person implements PersonInformation
+public class AnonymousPerson extends AbstractPerson implements PersonInformation
 {
     /**
      * Full name of the person.
@@ -37,7 +37,7 @@ public class OtherPerson extends Person implements PersonInformation
     /**
      * Constructor.
      */
-    public OtherPerson()
+    public AnonymousPerson()
     {
     }
 
@@ -47,7 +47,7 @@ public class OtherPerson extends Person implements PersonInformation
      * @param name  sets the {@link #name}
      * @param email sets the {@link #email}
      */
-    public OtherPerson(String name, String email)
+    public AnonymousPerson(String name, String email)
     {
         setName(name);
         setEmail(email);
@@ -122,9 +122,9 @@ public class OtherPerson extends Person implements PersonInformation
     }
 
     @Override
-    public OtherPerson clone()
+    public AnonymousPerson clone()
     {
-        OtherPerson person = new OtherPerson();
+        AnonymousPerson person = new AnonymousPerson();
         person.setName(name);
         person.setOrganization(organization);
         person.setEmail(email);
@@ -138,10 +138,10 @@ public class OtherPerson extends Person implements PersonInformation
         if (this == object) {
             return true;
         }
-        if (!(object instanceof OtherPerson)) {
+        if (!(object instanceof AnonymousPerson)) {
             return false;
         }
-        OtherPerson person = (OtherPerson) object;
+        AnonymousPerson person = (AnonymousPerson) object;
 
         if (email != null && person.email != null) {
             return email.equals(person.email);
@@ -194,9 +194,9 @@ public class OtherPerson extends Person implements PersonInformation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Person toApi()
+    public cz.cesnet.shongo.controller.api.AbstractPerson toApi()
     {
-        cz.cesnet.shongo.controller.api.OtherPerson person = new cz.cesnet.shongo.controller.api.OtherPerson();
+        cz.cesnet.shongo.controller.api.AnonymousPerson person = new cz.cesnet.shongo.controller.api.AnonymousPerson();
         person.setId(getId());
         person.setName(getName());
         person.setOrganization(getOrganization());
@@ -205,12 +205,13 @@ public class OtherPerson extends Person implements PersonInformation
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Person api)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api)
     {
-        cz.cesnet.shongo.controller.api.OtherPerson otherPersonApi = (cz.cesnet.shongo.controller.api.OtherPerson) api;
-        setName(otherPersonApi.getName());
-        setOrganization(otherPersonApi.getOrganization());
-        setEmail(otherPersonApi.getEmail());
+        cz.cesnet.shongo.controller.api.AnonymousPerson anonymousPersonApi =
+                (cz.cesnet.shongo.controller.api.AnonymousPerson) api;
+        setName(anonymousPersonApi.getName());
+        setOrganization(anonymousPersonApi.getOrganization());
+        setEmail(anonymousPersonApi.getEmail());
     }
 
     @Override

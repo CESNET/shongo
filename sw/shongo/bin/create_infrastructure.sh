@@ -122,7 +122,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
+            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
         ]
     }
 
@@ -174,7 +174,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
+            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
         ]
     }
 

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpoint;
@@ -12,15 +13,14 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
- * Represents an external (not existing in resource database) {@link EndpointSpecification}.
+ * Represents an external (not existing in resource database) {@link EndpointParticipant}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExternalEndpointSpecification extends EndpointSpecification implements EndpointProvider
+public class ExternalEndpointParticipant extends EndpointParticipant implements EndpointProvider
 {
     /**
      * List of aliases that can be used to reference the external endpoint.
@@ -30,7 +30,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     /**
      * Constructor.
      */
-    public ExternalEndpointSpecification()
+    public ExternalEndpointParticipant()
     {
     }
 
@@ -39,7 +39,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
      *
      * @param technology
      */
-    public ExternalEndpointSpecification(Technology technology)
+    public ExternalEndpointParticipant(Technology technology)
     {
         addTechnology(technology);
     }
@@ -50,7 +50,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
      * @param technology
      * @param alias
      */
-    public ExternalEndpointSpecification(Technology technology, Alias alias)
+    public ExternalEndpointParticipant(Technology technology, Alias alias)
     {
         if (technology == null) {
             throw new IllegalArgumentException("Technology cannot be null!");
@@ -102,15 +102,15 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(AbstractParticipant participant)
     {
-        ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
+        ExternalEndpointParticipant externalEndpointParticipant = (ExternalEndpointParticipant) participant;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(participant);
 
-        if (!ObjectHelper.isSame(getAliases(), externalEndpointSpecification.getAliases())) {
+        if (!ObjectHelper.isSame(getAliases(), externalEndpointParticipant.getAliases())) {
             this.aliases.clear();
-            for (Alias alias : externalEndpointSpecification.getAliases()) {
+            for (Alias alias : externalEndpointParticipant.getAliases()) {
                 addAlias(alias.clone());
             }
             modified = true;
@@ -127,45 +127,45 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    protected cz.cesnet.shongo.controller.api.AbstractParticipant createApi()
     {
-        return new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
+        return new cz.cesnet.shongo.controller.api.ExternalEndpointParticipant();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
+    public void toApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi)
     {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.ExternalEndpointParticipant externalEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointParticipant) participantApi;
         for (Technology technology : getTechnologies()) {
-            externalEndpointSpecificationApi.addTechnology(technology);
+            externalEndpointParticipantApi.addTechnology(technology);
         }
         if (aliases.size() > 0) {
             if (aliases.size() == 1) {
-                externalEndpointSpecificationApi.setAlias(aliases.iterator().next().toApi());
+                externalEndpointParticipantApi.setAlias(aliases.iterator().next().toApi());
             }
             else {
-                throw new TodoImplementException("Allow multiple aliases in external endpoint specification in API.");
+                throw new TodoImplementException("Allow multiple aliases in external endpoint participant in API.");
             }
         }
-        super.toApi(specificationApi);
+        super.toApi(participantApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.ExternalEndpointParticipant externalEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointParticipant) participantApi;
 
-        Synchronization.synchronizeCollection(technologies, externalEndpointSpecificationApi.getTechnologies());
+        Synchronization.synchronizeCollection(technologies, externalEndpointParticipantApi.getTechnologies());
 
         aliases.clear();
-        if (externalEndpointSpecificationApi.getAlias() != null) {
+        if (externalEndpointParticipantApi.getAlias() != null) {
             Alias alias = new Alias();
-            alias.fromApi(externalEndpointSpecificationApi.getAlias());
+            alias.fromApi(externalEndpointParticipantApi.getAlias());
             addAlias(alias);
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(participantApi, entityManager);
     }
 }

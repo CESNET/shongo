@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.apache.xmlrpc.XmlRpcException;
@@ -42,8 +41,8 @@ public class XmlRpcTest extends AbstractControllerTest
         reservationRequestSet.addSlot("2012-06-01T15:00", "PT2H");
         reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W"));
         CompartmentSpecification compartment = reservationRequestSet.setSpecification(new CompartmentSpecification());
-        compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
-        compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        compartment.addParticipant(new InvitedPersonParticipant("Martin Srom", "srom@cesnet.cz"));
+        compartment.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
 
         id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
         Assert.assertEquals("shongo:cz.cesnet:req:2", id);
@@ -96,11 +95,11 @@ public class XmlRpcTest extends AbstractControllerTest
         attributes.put("specification", new HashMap<String, Object>()
         {{
                 put("class", "CompartmentSpecification");
-                put("participantSpecifications", new ArrayList<Object>()
+                put("participants", new ArrayList<Object>()
                 {{
                         add(new HashMap<String, Object>()
                         {{
-                                put("class", "ExternalEndpointSetSpecification");
+                                put("class", "ExternalEndpointSetParticipant");
                                 put("technologies", new ArrayList<Object>()
                                 {{
                                         add("H323");
@@ -109,10 +108,10 @@ public class XmlRpcTest extends AbstractControllerTest
                             }});
                         add(new HashMap<String, Object>()
                         {{
-                                put("class", "PersonSpecification");
+                                put("class", "InvitedPersonParticipant");
                                 put("person", new HashMap<String, Object>()
                                 {{
-                                        put("class", "OtherPerson");
+                                        put("class", "AnonymousPerson");
                                         put("name", "Martin Srom");
                                         put("email", "srom@cesnet.cz");
                                     }});
@@ -143,7 +142,7 @@ public class XmlRpcTest extends AbstractControllerTest
             reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W"));
             CompartmentSpecification compartmentSpecification =
                     reservationRequestSet.setSpecification(new CompartmentSpecification());
-            compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
+            compartmentSpecification.addParticipant(new InvitedPersonParticipant("Martin Srom", "srom@cesnet.cz"));
 
             id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
             Assert.assertNotNull(id);

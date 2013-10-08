@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 
 import javax.persistence.*;
 import java.util.*;
@@ -42,7 +39,7 @@ public class DeviceResource extends Resource
     /**
      * List of persons which automatically use the resource in all reservation requests.
      */
-    private List<Person> permanentPersons = new ArrayList<Person>();
+    private List<AbstractPerson> permanentPersons = new ArrayList<AbstractPerson>();
 
     /**
      * Option telling whether the device can be called by another device.
@@ -189,7 +186,7 @@ public class DeviceResource extends Resource
      */
     @OneToMany
     @Access(AccessType.FIELD)
-    public List<Person> getPermanentPersons()
+    public List<AbstractPerson> getPermanentPersons()
     {
         return permanentPersons;
     }
@@ -197,7 +194,7 @@ public class DeviceResource extends Resource
     /**
      * @param person person to be added to the {@link #permanentPersons}
      */
-    public void addPermanentPerson(Person person)
+    public void addPermanentPerson(AbstractPerson person)
     {
         permanentPersons.add(person);
     }
@@ -205,7 +202,7 @@ public class DeviceResource extends Resource
     /**
      * @param person person to be removed from the {@link #permanentPersons}
      */
-    public void removePermanentPerson(Person person)
+    public void removePermanentPerson(AbstractPerson person)
     {
         permanentPersons.remove(person);
     }

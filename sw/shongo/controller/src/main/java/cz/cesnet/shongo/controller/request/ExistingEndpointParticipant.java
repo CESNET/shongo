@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -18,7 +19,7 @@ import javax.persistence.OneToOne;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExistingEndpointSpecification extends EndpointSpecification implements ReservationTaskProvider
+public class ExistingEndpointParticipant extends EndpointParticipant implements ReservationTaskProvider
 {
     /**
      * Specific resource.
@@ -28,7 +29,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     /**
      * Constructor.
      */
-    public ExistingEndpointSpecification()
+    public ExistingEndpointParticipant()
     {
     }
 
@@ -37,7 +38,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
      *
      * @param resource sets the {@link #resource}
      */
-    public ExistingEndpointSpecification(Resource resource)
+    public ExistingEndpointParticipant(Resource resource)
     {
         this.resource = resource;
     }
@@ -70,14 +71,14 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(AbstractParticipant participant)
     {
-        ExistingEndpointSpecification existingEndpointSpecification = (ExistingEndpointSpecification) specification;
+        ExistingEndpointParticipant existingEndpointParticipant = (ExistingEndpointParticipant) participant;
 
-        boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectHelper.isSame(getResource(), existingEndpointSpecification.getResource());
+        boolean modified = super.synchronizeFrom(participant);
+        modified |= !ObjectHelper.isSame(getResource(), existingEndpointParticipant.getResource());
 
-        setResource(existingEndpointSpecification.getResource());
+        setResource(existingEndpointParticipant.getResource());
 
         return modified;
     }
@@ -104,36 +105,36 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    protected cz.cesnet.shongo.controller.api.AbstractParticipant createApi()
     {
-        return new cz.cesnet.shongo.controller.api.ExistingEndpointSpecification();
+        return new cz.cesnet.shongo.controller.api.ExistingEndpointParticipant();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
+    public void toApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi)
     {
-        cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        existingEndpointSpecificationApi.setResourceId(EntityIdentifier.formatId(resource));
-        super.toApi(specificationApi);
+        cz.cesnet.shongo.controller.api.ExistingEndpointParticipant existingEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.ExistingEndpointParticipant) participantApi;
+        existingEndpointParticipantApi.setResourceId(EntityIdentifier.formatId(resource));
+        super.toApi(participantApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.ExistingEndpointParticipant existingEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.ExistingEndpointParticipant) participantApi;
 
-        if (existingEndpointSpecificationApi.getResourceId() == null) {
+        if (existingEndpointParticipantApi.getResourceId() == null) {
             setResource(null);
         }
         else {
             Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
-                    existingEndpointSpecificationApi.getResourceId());
+                    existingEndpointParticipantApi.getResourceId());
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourceId));
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(participantApi, entityManager);
     }
 }

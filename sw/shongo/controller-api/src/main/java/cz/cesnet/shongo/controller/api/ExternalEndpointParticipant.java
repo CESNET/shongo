@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link Specification} for single external endpoint.
+ * {@link AbstractParticipant} for single external endpoint.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExternalEndpointSpecification extends ParticipantSpecification
+public class ExternalEndpointParticipant extends AbstractParticipant
 {
     /**
      * Set of technologies of the external endpoint.
@@ -27,7 +27,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
     /**
      * Constructor.
      */
-    public ExternalEndpointSpecification()
+    public ExternalEndpointParticipant()
     {
     }
 
@@ -36,7 +36,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      *
      * @param technology to be added to the {@link #TECHNOLOGIES}
      */
-    public ExternalEndpointSpecification(Technology technology)
+    public ExternalEndpointParticipant(Technology technology)
     {
         addTechnology(technology);
     }
@@ -47,7 +47,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      * @param technology to be added to the {@link #TECHNOLOGIES}
      * @param alias      sets the {@link #ALIAS}
      */
-    public ExternalEndpointSpecification(Technology technology, Alias alias)
+    public ExternalEndpointParticipant(Technology technology, Alias alias)
     {
         addTechnology(technology);
         setAlias(alias);
@@ -59,7 +59,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      * @param technologies to be added to the {@link #TECHNOLOGIES}
      * @param alias        sets the {@link #ALIAS}
      */
-    public ExternalEndpointSpecification(Technology[] technologies, Alias alias)
+    public ExternalEndpointParticipant(Technology[] technologies, Alias alias)
     {
         for (Technology technology : technologies) {
             addTechnology(technology);

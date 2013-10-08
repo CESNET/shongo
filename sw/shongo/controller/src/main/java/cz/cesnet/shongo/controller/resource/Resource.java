@@ -4,11 +4,9 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableComplex;
 import org.joda.time.DateTime;
 
@@ -59,7 +57,7 @@ public class Resource extends PersistentObject implements ReportableComplex
      * List of persons that are notified when the {@link Resource} is allocated or when are
      * encountered any technical issues.
      */
-    private List<Person> administrators = new ArrayList<Person>();
+    private List<AbstractPerson> administrators = new ArrayList<AbstractPerson>();
 
     /**
      * Defines a maximum future to which the resource is allocatable (e.g., can be set as relative date/time which
@@ -293,7 +291,7 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<Person> getAdministrators()
+    public List<AbstractPerson> getAdministrators()
     {
         return administrators;
     }
@@ -304,20 +302,20 @@ public class Resource extends PersistentObject implements ReportableComplex
      * @throws CommonReportSet.EntityNotFoundException
      *          when administrator doesn't exist
      */
-    public Person getAdministratorById(Long id) throws CommonReportSet.EntityNotFoundException
+    public AbstractPerson getAdministratorById(Long id) throws CommonReportSet.EntityNotFoundException
     {
-        for (Person person : administrators) {
+        for (AbstractPerson person : administrators) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(Person.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(AbstractPerson.class, id);
     }
 
     /**
      * @param person person to be added to the {@link #administrators}
      */
-    public void addAdministrator(Person person)
+    public void addAdministrator(AbstractPerson person)
     {
         administrators.add(person);
     }
@@ -325,7 +323,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     /**
      * @param person person to be removed from the {@link #administrators}
      */
-    public void removeAdministrator(Person person)
+    public void removeAdministrator(AbstractPerson person)
     {
         administrators.remove(person);
     }
@@ -445,7 +443,7 @@ public class Resource extends PersistentObject implements ReportableComplex
             resourceApi.addCapability(capability.toApi());
         }
 
-        for (Person person : getAdministrators()) {
+        for (AbstractPerson person : getAdministrators()) {
             resourceApi.addAdministrator(person.toApi());
         }
 
@@ -527,16 +525,16 @@ public class Resource extends PersistentObject implements ReportableComplex
                     }
                 });
         Synchronization.synchronizeCollection(administrators, resourceApi.getAdministrators(),
-                new Synchronization.Handler<Person, cz.cesnet.shongo.controller.api.Person>(Person.class)
+                new Synchronization.Handler<AbstractPerson, cz.cesnet.shongo.controller.api.AbstractPerson>(AbstractPerson.class)
                 {
                     @Override
-                    public Person createFromApi(cz.cesnet.shongo.controller.api.Person objectApi)
+                    public AbstractPerson createFromApi(cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
                     {
-                        return Person.createFromApi(objectApi);
+                        return AbstractPerson.createFromApi(objectApi);
                     }
 
                     @Override
-                    public void updateFromApi(Person object, cz.cesnet.shongo.controller.api.Person objectApi)
+                    public void updateFromApi(AbstractPerson object, cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
                     {
                         object.fromApi(objectApi);
                     }

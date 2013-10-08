@@ -191,7 +191,7 @@ public class SchedulerMaintenanceTest extends AbstractControllerTest
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
         firstReservationRequest.setSpecification(compartmentSpecification);
 
         String firstReservationRequestId = allocate(firstReservationRequest);

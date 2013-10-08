@@ -3,39 +3,39 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link Specification} for {@link Person}.
+ * {@link AbstractParticipant} for {@link AbstractPerson}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersonSpecification extends ParticipantSpecification
+public class PersonParticipant extends AbstractParticipant
 {
     /**
      * The requested person.
      */
-    private Person person;
+    private AbstractPerson person;
 
     /**
      * Constructor.
      */
-    public PersonSpecification()
+    public PersonParticipant()
     {
     }
 
     /**
      * Constructor.
      *
-     * @param name  sets the {@link OtherPerson#name} for the {@link #PERSON}
-     * @param email sets the {@link OtherPerson#email} for the {@link #PERSON}
+     * @param name  sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#name} for the {@link #PERSON}
+     * @param email sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#email} for the {@link #PERSON}
      */
-    public PersonSpecification(String name, String email)
+    public PersonParticipant(String name, String email)
     {
-        setPerson(new OtherPerson(name, email));
+        setPerson(new AnonymousPerson(name, email));
     }
 
     /**
      * @return {@link #PERSON}
      */
-    public Person getPerson()
+    public AbstractPerson getPerson()
     {
         return person;
     }
@@ -43,7 +43,7 @@ public class PersonSpecification extends ParticipantSpecification
     /**
      * @param person sets the {@link #PERSON}
      */
-    public void setPerson(Person person)
+    public void setPerson(AbstractPerson person)
     {
         this.person = person;
     }
@@ -62,6 +62,6 @@ public class PersonSpecification extends ParticipantSpecification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        person = dataMap.getComplexTypeRequired(PERSON, Person.class);
+        person = dataMap.getComplexTypeRequired(PERSON, AbstractPerson.class);
     }
 }

@@ -1,12 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
@@ -23,12 +20,12 @@ import java.util.*;
  */
 @Entity
 public class CompartmentSpecification extends Specification
-        implements StatefulSpecification, CompositeSpecification, ReservationTaskProvider
+        implements StatefulSpecification, ReservationTaskProvider
 {
     /**
      * List of specifications for targets which are requested to participate in compartment.
      */
-    private List<ParticipantSpecification> participantSpecifications = new ArrayList<ParticipantSpecification>();
+    private List<AbstractParticipant> participants = new ArrayList<AbstractParticipant>();
 
     /**
      * Specifies the default option who should initiate the call ({@code null} means
@@ -54,35 +51,28 @@ public class CompartmentSpecification extends Specification
     }
 
     /**
-     * @return {@link #participantSpecifications}
+     * @return {@link #participants}
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<ParticipantSpecification> getParticipantSpecifications()
+    public List<AbstractParticipant> getParticipants()
     {
-        return Collections.unmodifiableList(participantSpecifications);
-    }
-
-    @Override
-    @Transient
-    public List<? extends Specification> getChildSpecifications()
-    {
-        return Collections.unmodifiableList(participantSpecifications);
+        return Collections.unmodifiableList(participants);
     }
 
     /**
-     * @return all {@link #participantSpecifications} which aren't instance of {@link StatefulSpecification} or which are instance
+     * @return all {@link #participants} which aren't instance of {@link StatefulSpecification} or which are instance
      *         of {@link StatefulSpecification} and theirs current state is {@link StatefulSpecification.State#READY}.
      * @throws IllegalStateException when specification is instance of {@link StatefulSpecification} and when then it's
      *                               state is {@link StatefulSpecification.State#NOT_READY}
      */
     @Transient
-    public List<ParticipantSpecification> getReadySpecifications()
+    public List<AbstractParticipant> getReadyParticipants()
     {
-        List<ParticipantSpecification> specifications = new ArrayList<ParticipantSpecification>();
-        for (ParticipantSpecification specification : this.participantSpecifications) {
-            if (specification instanceof StatefulSpecification) {
-                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+        List<AbstractParticipant> specifications = new ArrayList<AbstractParticipant>();
+        for (AbstractParticipant participant : this.participants) {
+            if (participant instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) participant;
                 switch (statefulSpecification.getCurrentState()) {
                     case SKIP:
                         continue;
@@ -90,25 +80,25 @@ public class CompartmentSpecification extends Specification
                         break;
                     default:
                         throw new IllegalStateException(String.format("%s should not be in %s state.",
-                                specification.getClass().getSimpleName(),
+                                participant.getClass().getSimpleName(),
                                 statefulSpecification.getCurrentState().toString()));
                 }
             }
-            specifications.add(specification);
+            specifications.add(participant);
         }
         return specifications;
     }
 
     /**
-     * @param specification to be searched in the {@link CompartmentSpecification}
-     * @return true if the {@link CompartmentSpecification} contains given {@code specification},
+     * @param participant to be searched in the {@link CompartmentSpecification}
+     * @return true if the {@link CompartmentSpecification} contains given {@code participant},
      *         false otherwise
      */
-    public boolean containsSpecification(ParticipantSpecification specification)
+    public boolean containsParticipant(AbstractParticipant participant)
     {
-        Long specificationId = specification.getId();
-        for (Specification possibleSpecification : participantSpecifications) {
-            if (possibleSpecification.getId().equals(specificationId)) {
+        Long participantId = participant.getId();
+        for (AbstractParticipant possibleParticipant : participants) {
+            if (possibleParticipant.getId().equals(participantId)) {
                 return true;
             }
         }
@@ -116,31 +106,19 @@ public class CompartmentSpecification extends Specification
     }
 
     /**
-     * @param specification to be added to the {@link #participantSpecifications}
+     * @param participant to be added to the {@link #participants}
      */
-    public void addSpecification(ParticipantSpecification specification)
+    public void addParticipant(AbstractParticipant participant)
     {
-        participantSpecifications.add(specification);
+        participants.add(participant);
     }
 
     /**
-     * @param specification to be removed from the {@link #participantSpecifications}
+     * @param participant to be removed from the {@link #participants}
      */
-    public void removeSpecification(ParticipantSpecification specification)
+    public void removeSpecification(AbstractParticipant participant)
     {
-        participantSpecifications.remove(specification);
-    }
-
-    @Override
-    public void addChildSpecification(Specification specification)
-    {
-        addSpecification((ParticipantSpecification) specification);
-    }
-
-    @Override
-    public void removeChildSpecification(Specification specification)
-    {
-        removeSpecification((ParticipantSpecification) specification);
+        participants.remove(participant);
     }
 
     /**
@@ -165,8 +143,15 @@ public class CompartmentSpecification extends Specification
     public void updateTechnologies()
     {
         clearTechnologies();
-        for (ParticipantSpecification specification : participantSpecifications) {
-            addTechnologies(specification.getTechnologies());
+        for (AbstractParticipant participant : participants) {
+            if (participant instanceof EndpointParticipant) {
+                EndpointParticipant endpointParticipant = (EndpointParticipant) participant;
+                addTechnologies(endpointParticipant.getTechnologies());
+            }
+            else if (participant instanceof ExternalEndpointSetParticipant) {
+                ExternalEndpointSetParticipant endpointParticipant = (ExternalEndpointSetParticipant) participant;
+                addTechnologies(endpointParticipant.getTechnologies());
+            }
         }
     }
 
@@ -175,9 +160,9 @@ public class CompartmentSpecification extends Specification
     public State getCurrentState()
     {
         State state = State.READY;
-        for (Specification specification : participantSpecifications) {
-            if (specification instanceof StatefulSpecification) {
-                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+        for (AbstractParticipant participant : participants) {
+            if (participant instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) participant;
                 if (statefulSpecification.getCurrentState().equals(State.NOT_READY)) {
                     state = State.NOT_READY;
                     break;
@@ -196,6 +181,16 @@ public class CompartmentSpecification extends Specification
         modified |= !ObjectHelper.isSame(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());
+
+        // Delete all participants
+        for (AbstractParticipant participant : new LinkedList<AbstractParticipant>(participants)) {
+            removeSpecification(participant);
+        }
+        // Add new participants
+        for (AbstractParticipant participant : compartmentSpecification.getParticipants()) {
+            addParticipant(participant.clone());
+            modified = true;
+        }
 
         return modified;
     }
@@ -223,8 +218,8 @@ public class CompartmentSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
-        for (ParticipantSpecification specification : getParticipantSpecifications()) {
-            compartmentSpecificationApi.addSpecification(specification.toApi());
+        for (AbstractParticipant participant : getParticipants()) {
+            compartmentSpecificationApi.addParticipant(participant.toApi());
         }
         compartmentSpecificationApi.setCallInitiation(getCallInitiation());
         super.toApi(specificationApi);
@@ -240,20 +235,20 @@ public class CompartmentSpecification extends Specification
         setCallInitiation(compartmentSpecificationApi.getCallInitiation());
 
         Synchronization.synchronizeCollection(
-                participantSpecifications, compartmentSpecificationApi.getSpecifications(),
-                new Synchronization.Handler<ParticipantSpecification,
-                        cz.cesnet.shongo.controller.api.ParticipantSpecification>(ParticipantSpecification.class)
+                participants, compartmentSpecificationApi.getParticipants(),
+                new Synchronization.Handler<AbstractParticipant,
+                        cz.cesnet.shongo.controller.api.AbstractParticipant>(AbstractParticipant.class)
                 {
                     @Override
-                    public ParticipantSpecification createFromApi(
-                            cz.cesnet.shongo.controller.api.ParticipantSpecification objectApi)
+                    public AbstractParticipant createFromApi(
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
                     {
-                        return (ParticipantSpecification) Specification.createFromApi(objectApi, entityManager);
+                        return (AbstractParticipant) AbstractParticipant.createFromApi(objectApi, entityManager);
                     }
 
                     @Override
-                    public void updateFromApi(ParticipantSpecification object,
-                            cz.cesnet.shongo.controller.api.ParticipantSpecification objectApi)
+                    public void updateFromApi(AbstractParticipant object,
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
                     {
                         object.fromApi(objectApi, entityManager);
                     }

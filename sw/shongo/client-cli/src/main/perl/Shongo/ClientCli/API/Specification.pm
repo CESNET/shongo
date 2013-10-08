@@ -125,11 +125,11 @@ sub on_init()
                 'type' => 'enum',
                 'enum' => $Shongo::ClientCli::API::Specification::CallInitiation
             }, NULL());
-            $self->add_attribute('participantSpecifications', {
+            $self->add_attribute('participants', {
                 'type' => 'collection',
                 'item' => {
-                    'title' => 'specification',
-                    'class' => 'Shongo::ClientCli::API::ParticipantSpecification',
+                    'title' => 'participant',
+                    'class' => 'Shongo::ClientCli::API::Participant',
                 },
                 'complex' => 0,
                 'display' => 'newline'

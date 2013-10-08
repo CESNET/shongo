@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
@@ -442,9 +443,9 @@ public abstract class AbstractNotification implements Notification
 
         /**
          * @param userId user-id
-         * @return {@link cz.cesnet.shongo.controller.common.Person} for given {@code userId}
+         * @return {@link cz.cesnet.shongo.controller.common.AbstractPerson} for given {@code userId}
          */
-        public cz.cesnet.shongo.controller.api.Person getUserPerson(String userId)
+        public AbstractPerson getUserPerson(String userId)
         {
             return Authorization.getInstance().getUserPerson(userId).toApi();
         }

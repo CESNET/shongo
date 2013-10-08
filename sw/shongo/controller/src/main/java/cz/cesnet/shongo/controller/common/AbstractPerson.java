@@ -1,0 +1,59 @@
+package cz.cesnet.shongo.controller.common;
+
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.TodoImplementException;
+
+import javax.persistence.Entity;
+import javax.persistence.Transient;
+
+/**
+ * Represents a person that can have name and who can be contacted by email or phone.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+@Entity
+public abstract class AbstractPerson extends PersistentObject implements Cloneable
+{
+    /**
+     * @return {@link cz.cesnet.shongo.PersonInformation} for the {@link AbstractPerson}
+     */
+    @Transient
+    public abstract PersonInformation getInformation();
+
+    /**
+     * @return person converted to API
+     */
+    public abstract cz.cesnet.shongo.controller.api.AbstractPerson toApi();
+
+    /**
+     * @param api from which should be the new {@link AbstractPerson} created
+     * @return new instance of {@link AbstractPerson} created from given {@code api}
+     */
+    public static AbstractPerson createFromApi(cz.cesnet.shongo.controller.api.AbstractPerson api)
+    {
+        AbstractPerson person;
+        if (api instanceof cz.cesnet.shongo.controller.api.AnonymousPerson) {
+            person = new AnonymousPerson();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.UserPerson) {
+            person = new UserPerson();
+        }
+        else {
+            throw new TodoImplementException(api.getClass());
+        }
+        person.fromApi(api);
+        return person;
+    }
+
+    /**
+     * Synchronize person from API
+     *
+     * @param api
+     */
+    public abstract void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api);
+
+    @Override
+    public abstract AbstractPerson clone();
+
+}

@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
@@ -113,7 +113,7 @@ public class Reporter
 
             Set<String> resourceAdministratorEmails = new HashSet<String>();
             if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
-                for (Person resourceAdministrator : resource.getAdministrators()) {
+                for (AbstractPerson resourceAdministrator : resource.getAdministrators()) {
                     String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
                     if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {
                         resourceAdministratorEmails.add(resourceAdministratorEmail);

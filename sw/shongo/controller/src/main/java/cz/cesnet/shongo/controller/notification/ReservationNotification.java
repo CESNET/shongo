@@ -4,8 +4,8 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -141,19 +141,19 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     {
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            for (Person person : resourceReservation.getResource().getAdministrators()) {
+            for (AbstractPerson person : resourceReservation.getResource().getAdministrators()) {
                 addRecipient(person.getInformation(), true);
             }
         }
         if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
-            for (Person person : roomReservation.getDeviceResource().getAdministrators()) {
+            for (AbstractPerson person : roomReservation.getDeviceResource().getAdministrators()) {
                 addRecipient(person.getInformation(), true);
             }
         }
         if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
-            for (Person person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
+            for (AbstractPerson person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
                 addRecipient(person.getInformation(), true);
             }
         }

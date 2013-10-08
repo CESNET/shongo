@@ -118,8 +118,8 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalId));
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(terminalId));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 1));
         reservationRequest.setSpecification(compartmentSpecification);
         allocateAndCheck(reservationRequest);
 
@@ -374,7 +374,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
         reservationRequest.setReusedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
@@ -437,7 +437,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
         reservationRequest.setReusedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
