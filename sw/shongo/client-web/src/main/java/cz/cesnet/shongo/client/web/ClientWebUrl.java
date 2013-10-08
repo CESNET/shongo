@@ -98,6 +98,8 @@ public class ClientWebUrl
             "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
+    public static final String ROOM_ENTER =
+            "/room/{roomId:.+}/enter";
 
     public static String format(String url, Object... variables)
     {

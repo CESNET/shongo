@@ -644,7 +644,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "reservation_request_summary.slot_nearness_priority, reservation_request_summary.slot_nearness_value";
                         break;
                     case STATE:
-                        queryOrderBy = "reservation_request_summary.allocation_state";
+                        queryOrderBy = "reservation_request_summary.allocation_state, reservation_request_summary.executable_state";
                         break;
                     case TECHNOLOGY:
                         queryOrderBy = "specification_summary.technologies";

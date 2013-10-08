@@ -262,7 +262,7 @@
     </div>
 
     <%-- How to reach --%>
-    <c:if test="${reservationRequestDetail != null && reservationRequestDetail.room != null}">
+    <div ng-show="roomAliases">
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
             <tag:help labelElement="roomAliases" type="text">
@@ -270,7 +270,7 @@
             </tag:help><%--
             --%><span id="roomAliases" ng-bind-html="html(roomAliases)" class="tooltip-label dotted"></span>
         </dd>
-    </c:if>
+    </div>
 
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">

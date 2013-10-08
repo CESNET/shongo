@@ -9,6 +9,7 @@
 
 <%@attribute name="detailUrl" required="true" %>
 <%@attribute name="createUrl" required="false" %>
+<%@attribute name="createWhen" required="false" %>
 
 <tag:url var="usageListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_USAGES %>">
     <tag:param name="reservationRequestId" value=":id"/>
@@ -81,7 +82,7 @@
     </table>
     <c:choose>
         <c:when test="${not empty createUrl}">
-            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
+            <a class="btn btn-primary" href="${createUrl}" tabindex="1" ng-show="${not empty createWhen ? createWhen : 'true'}">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>

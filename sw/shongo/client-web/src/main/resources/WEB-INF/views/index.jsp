@@ -57,6 +57,9 @@
         <tag:param name="reservationRequestId" value="{{capacity.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
+    <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
+        <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
+    </tag:url>
 
     <script type="text/javascript">
         var module = angular.module('jsp:indexDashboard', ['tag:expandableBlock', 'ngPagination', 'ngTooltip', 'ngSanitize']);
@@ -162,6 +165,9 @@
                         </tag:help>
                     </td>
                     <td>
+                        <span ng-show="reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE'">
+                            <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
+                        </span>
                         <tag:listAction code="show" titleCode="views.index.dashboard.showDetail" url="${reservationRequestDetailUrl}" tabindex="2"/>
                         <span ng-show="reservationRequest.isWritable">
                             <c:if test="${advancedUserInterface}">

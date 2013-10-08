@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.Recording;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.RoomUser;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -149,38 +146,9 @@ public class RoomController
             @PathVariable(value = "roomId") String executableId,
             Model model)
     {
-        // Get executable
-        Executable executable;
-        if (executableId.contains(":rsv:")) {
-            Reservation reservation = reservationService.getReservation(securityToken, executableId);
-            executable = reservation.getExecutable();
-            if (executable == null) {
-                throw new UnsupportedApiException("Reservation " + executableId + " doesn't have executable.");
-            }
-        }
-        else {
-            executable = executableService.getExecutable(securityToken, executableId);
-        }
-
-        // Room executable
-        RoomExecutable roomExecutable;
-        if (executable instanceof RoomExecutable) {
-            roomExecutable = (RoomExecutable) executable;
-        }
-        else if (executable instanceof UsedRoomExecutable) {
-            UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) executable;
-            Executable usedExecutable = executableService.getExecutable(
-                    securityToken, usedRoomExecutable.getRoomExecutableId());
-            if (usedExecutable instanceof RoomExecutable) {
-                roomExecutable = (RoomExecutable) usedExecutable;
-            }
-            else {
-                throw new UnsupportedApiException(usedExecutable);
-            }
-        }
-        else {
-            throw new UnsupportedApiException(executable);
-        }
+        // Get room executable
+        Executable executable = getExecutable(securityToken, executableId);
+        RoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
 
         // Room model
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -233,5 +201,60 @@ public class RoomController
         model.addAttribute("reservationRequestId", reservationRequestId);
 
         return "room";
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_ENTER, method = RequestMethod.GET)
+    public String handleRoomEnter(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId)
+    {
+        Executable executable = getExecutable(securityToken, roomId);
+        RoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+
+        Alias adobeConnectUrl = roomExecutable.getAliasByType(AliasType.ADOBE_CONNECT_URI);
+        if (adobeConnectUrl == null) {
+            throw new UnsupportedApiException(roomExecutable.getId());
+        }
+        return "redirect:" + adobeConnectUrl.getValue();
+    }
+
+    private Executable getExecutable(SecurityToken securityToken, String executableId)
+    {
+        Executable executable;
+        if (executableId.contains(":rsv:")) {
+            Reservation reservation = reservationService.getReservation(securityToken, executableId);
+            executable = reservation.getExecutable();
+            if (executable == null) {
+                throw new UnsupportedApiException("Reservation " + executableId + " doesn't have executable.");
+            }
+        }
+        else {
+            executable = executableService.getExecutable(securityToken, executableId);
+        }
+
+        return executable;
+    }
+
+    private RoomExecutable getRoomExecutable(SecurityToken securityToken, Executable executable)
+    {
+        RoomExecutable roomExecutable;
+        if (executable instanceof RoomExecutable) {
+            roomExecutable = (RoomExecutable) executable;
+        }
+        else if (executable instanceof UsedRoomExecutable) {
+            UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) executable;
+            Executable usedExecutable = executableService.getExecutable(
+                    securityToken, usedRoomExecutable.getRoomExecutableId());
+            if (usedExecutable instanceof RoomExecutable) {
+                roomExecutable = (RoomExecutable) usedExecutable;
+            }
+            else {
+                throw new UnsupportedApiException(usedExecutable);
+            }
+        }
+        else {
+            throw new UnsupportedApiException(executable);
+        }
+        return roomExecutable;
     }
 }

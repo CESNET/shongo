@@ -29,7 +29,7 @@
                                 domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
 
-<c:if test="${reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.room == null || (!reservationRequest.room.state.started && reservationRequest.room.state != 'NOT_STARTED')}">
+<c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
     <c:set var="isProvidable" value="${false}"/>
 </c:if>
 
@@ -62,29 +62,21 @@
 <div ng-app="jsp:reservationRequestDetail">
 
     <%-- What do you want to do? --%>
-    <c:if test="${isProvidable}">
-        <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>">
-            <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
-            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-        </tag:url>
-    </c:if>
     <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
         <span><spring:message code="views.select.action"/></span>
         <ul>
-            <c:if test="${createPermanentRoomCapacityUrl != null}">
-                <li>
-                    <c:choose >
-                        <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
-                            <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                            </a>
-                        </c:when>
-                        <c:otherwise>
-                            <span class="disabled">
-                                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                            </span>
-                        </c:otherwise>
-                    </c:choose>
+            <c:if test="${isProvidable}">
+                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>">
+                    <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
+                    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                </tag:url>
+                <li ng-switch on="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')">
+                    <a ng-switch-when="true" href="${createPermanentRoomCapacityUrl}" tabindex="1">
+                        <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
+                    </a>
+                    <span ng-switch-when="false" class="disabled">
+                        <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
+                    </span>
                 </li>
             </c:if>
             <li>
@@ -202,38 +194,35 @@
                     <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
                 </tag:url>
+                <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
             </c:if>
-            <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}"/>
+            <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
         </c:if>
 
     </c:if>
 
-</div>
-
-<div class="pull-right">
-    <a class="btn btn-primary" href="${backUrl}" tabindex="1">
-        <spring:message code="views.button.back"/>
-    </a>
-    <a class="btn" href="javascript: location.reload();" tabindex="1">
-        <spring:message code="views.button.refresh"/>
-    </a>
-    <c:if test="${isWritable}">
-        <c:if test="${advancedUserInterface}">
-            <c:choose>
-                <c:when test="${reservationRequest.state == 'ALLOCATED_FINISHED'}">
-                    <a class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
+    <div class="pull-right">
+        <a class="btn btn-primary" href="${backUrl}" tabindex="1">
+            <spring:message code="views.button.back"/>
+        </a>
+        <a class="btn" href="javascript: location.reload();" tabindex="1">
+            <spring:message code="views.button.refresh"/>
+        </a>
+        <c:if test="${isWritable}">
+            <c:if test="${advancedUserInterface}">
+                <span ng-switch on="$child.state.code == 'ALLOCATED_FINISHED'">
+                    <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
                         <spring:message code="views.button.duplicate"/>
                     </a>
-                </c:when>
-                <c:otherwise>
-                    <a class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
+                    <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
                         <spring:message code="views.button.modify"/>
                     </a>
-                </c:otherwise>
-            </c:choose>
+                </span>
+            </c:if>
+            <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
+                <spring:message code="views.button.delete"/>
+            </a>
         </c:if>
-        <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
-            <spring:message code="views.button.delete"/>
-        </a>
-    </c:if>
+    </div>
+
 </div>
