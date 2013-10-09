@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.api.AdobeConnectAccessMode;
+
 import javax.persistence.Entity;
 
 /**
@@ -17,6 +19,11 @@ public class AdobeConnectRoomSetting extends RoomSetting
     private String pin;
 
     /**
+     * Room access mode
+     */
+    private AdobeConnectAccessMode accessMode;
+
+    /**
      * @return {@link #pin}
      */
     public String getPin()
@@ -32,11 +39,22 @@ public class AdobeConnectRoomSetting extends RoomSetting
         this.pin = pin;
     }
 
+    public AdobeConnectAccessMode getAccessMode()
+    {
+        return accessMode;
+    }
+
+    public void setAccessMode(AdobeConnectAccessMode accessMode)
+    {
+        this.accessMode = accessMode;
+    }
+
     @Override
     public RoomSetting clone()
     {
         AdobeConnectRoomSetting roomSetting = new AdobeConnectRoomSetting();
         roomSetting.setPin(getPin());
+        roomSetting.setAccessMode(getAccessMode());
         return roomSetting;
     }
 
@@ -57,6 +75,9 @@ public class AdobeConnectRoomSetting extends RoomSetting
         if (pin != null) {
             roomSettingAdobeConnectApi.setPin(pin);
         }
+        if (accessMode != null) {
+            roomSettingAdobeConnectApi.setAccessMode(accessMode);
+        }
 
     }
 
@@ -69,6 +90,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
                 (cz.cesnet.shongo.api.AdobeConnectRoomSetting) roomSettingApi;
 
         setPin(roomSettingAdobeConnectApi.getPin());
+        setAccessMode(roomSettingAdobeConnectApi.getAccessMode());
 
     }
 }

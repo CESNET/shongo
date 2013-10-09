@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
-import cz.cesnet.shongo.api.H323RoomSetting;
-import cz.cesnet.shongo.api.RoomSetting;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
@@ -69,6 +66,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     protected Integer roomParticipantCount;
 
     protected String roomPin;
+
+    protected AdobeConnectAccessMode roomAccessMode;
 
     protected List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
@@ -306,6 +305,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomPin = roomPin;
     }
 
+    public AdobeConnectAccessMode getRoomAccessMode()
+    {
+        return roomAccessMode;
+    }
+
+    public void setRoomAccessMode(AdobeConnectAccessMode roomAccessMode)
+    {
+        this.roomAccessMode = roomAccessMode;
+    }
+
     public List<UserRoleModel> getUserRoles()
     {
         return userRoles;
@@ -397,6 +406,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 if (roomSetting instanceof AdobeConnectRoomSetting) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
                     roomPin = adobeConnectRoomSetting.getPin();
+                    roomAccessMode = adobeConnectRoomSetting.getAccessMode();
                 }
             }
             AliasSpecification aliasSpecification = roomSpecification.getAliasSpecificationByType(AliasType.ROOM_NAME);
@@ -537,9 +547,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && !Strings.isNullOrEmpty(roomPin)) {
+                if (technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
-                    adobeConnectRoomSetting.setPin(roomPin);
+                    if (!Strings.isNullOrEmpty(roomPin)) {
+                        adobeConnectRoomSetting.setPin(roomPin);
+                    }
+                    adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
                 return roomSpecification;
@@ -575,9 +588,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                if (technology.equals(TechnologyModel.ADOBE_CONNECT) && roomPin != null) {
+                if (technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
-                    adobeConnectRoomSetting.setPin(roomPin);
+                    if (roomPin != null) {
+                        adobeConnectRoomSetting.setPin(roomPin);
+                    }
+                    adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
                 return roomSpecification;
@@ -761,6 +777,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         attributes.put("Permanent room", permanentRoomReservationRequestId);
         attributes.put("Participant count", roomParticipantCount);
         attributes.put("PIN", roomPin);
+        attributes.put("Access mode",roomAccessMode);
         return ReportModel.formatAttributes(attributes);
     }
 

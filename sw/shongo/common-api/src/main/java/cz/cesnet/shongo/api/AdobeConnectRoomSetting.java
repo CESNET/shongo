@@ -13,6 +13,11 @@ public class AdobeConnectRoomSetting extends RoomSetting
     private String pin;
 
     /**
+     * Room access mode
+     */
+    private AdobeConnectAccessMode accessMode;
+
+    /**
      * @return {@link #pin}
      */
     public String getPin()
@@ -28,23 +33,25 @@ public class AdobeConnectRoomSetting extends RoomSetting
         this.pin = pin;
     }
 
-    /**
-     * @param pin sets the {@link #pin}
-     * @return this {@link H323RoomSetting}
-     */
-    public AdobeConnectRoomSetting withPin(String pin)
+    public AdobeConnectAccessMode getAccessMode()
     {
-        setPin(pin);
-        return this;
+        return accessMode;
+    }
+
+    public void setAccessMode(AdobeConnectAccessMode accessMode)
+    {
+        this.accessMode = accessMode;
     }
 
     public static final String PIN = "pin";
+    public static final String ACCESS_MODE = "accessMode";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(PIN, pin);
+        dataMap.set(ACCESS_MODE,accessMode);
         return dataMap;
     }
 
@@ -53,6 +60,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     {
         super.fromData(dataMap);
         pin = dataMap.getString(PIN);
+        accessMode = dataMap.getEnum(ACCESS_MODE,AdobeConnectAccessMode.class);
     }
 
 }

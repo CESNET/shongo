@@ -1,5 +1,6 @@
  package cz.cesnet.shongo.connector;
 
+import com.sun.xml.internal.messaging.saaj.SOAPExceptionImpl;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.Recording;
@@ -9,15 +10,18 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.namespace.QName;
 import javax.xml.soap.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
@@ -160,6 +164,18 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         // SOAP Body
         SOAPBody soapBody = envelope.getBody();
 
+        // set header
+        SOAPElement header = soapBody.addBodyElement(new QName("Header"));
+
+        SOAPElement security = header.addChildElement(new QName("Security"));
+        SOAPElement usernameToken= security.addChildElement(new QName("UsernameToken"));
+        SOAPElement username= usernameToken.addChildElement(new QName("Username"));
+        SOAPElement password= usernameToken.addChildElement(new QName("Password"));
+
+        //enter the username and password
+        username.addTextNode("opicak");
+        password.addTextNode("kalamita42");
+
         SOAPElement soapBodyElem = soapBody.addChildElement("RequestConferenceID");
         soapBodyElem.addNamespaceDeclaration("test","http://www.tandberg.net/XML/Streaming/1.0");
 
@@ -182,7 +198,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        System.out.println();
 
         return soapMessage;
     }
@@ -191,8 +206,11 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         Address address = new Address("195.113.151.188",443);
 
+        //ConfiguredSSLContext.getInstance().addAdditionalCertificates(address.getHost());
+
+
         CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address,"opicak","kalamita42");
+        tcs.connect(address,"opicakk","kalamita42");
 
         SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
         SOAPConnection soapConnection = soapConnectionFactory.createConnection();
@@ -200,9 +218,17 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         String url = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/Helium.wsdl";
         String tcsUrl = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/SoapServer.php";
 
-        SOAPMessage response = soapConnection.call(tcs.createSOAPRequest(), tcsUrl);
+        try {
+            URL link = new URL("http","195.113.151.188","/tcs/SoapServer.php");
+            SOAPMessage message = tcs.createSOAPRequest();
+            System.out.println(message.getMimeHeaders().getAllHeaders().next());
+            SOAPMessage response = soapConnection.call(message, link);
+            response.getContentDescription();
+        } catch (SOAPExceptionImpl ex) {
+            ex.printStackTrace();
+        }
 
-        printSOAPResponse(response);
+//        printSOAPResponse(response);
 
         soapConnection.close();
 
@@ -227,7 +253,7 @@ private static final String TECHNET_NAMESPACE_PREFIX = "shongo";
 private static final String WEBSERVICE_SECURE_URL =
 "https://195.113.151.188:443/tcs/SoapServer.php";
 private static final String WEBSERVICE_INSECURE_URL =
-"https://195.113.151.188:443/tcs/SoapServer.php";
+"http://195.113.151.188:443/tcs/SoapServer.php";
 
 
 /**
@@ -247,9 +273,13 @@ loginElement.addChildElement("Username").addTextNode(username);
 loginElement.addChildElement("Password").addTextNode(password);
 
 soapMessage.saveChanges();
-
+    System.out.println("sjem tu");
 final SOAPConnection soapConnection = getSoapConnection();
-final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_SECURE_URL);
+    System.out.println("sjem tu");
+
+    final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_INSECURE_URL);
+    System.out.println("sjem tu");
+
 final String textContent = soapMessageReply.getSOAPHeader().getFirstChild().getTextContent();
 
 soapConnection.close();

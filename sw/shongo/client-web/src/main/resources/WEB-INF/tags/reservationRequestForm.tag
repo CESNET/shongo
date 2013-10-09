@@ -336,6 +336,32 @@
         </c:if>
 
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            <div class="control-group" ng-show="technology == 'ADOBE_CONNECT'" class="hide">
+                <form:label class="control-label" path="roomAccessMode">
+                    <spring:message code="views.reservationRequest.specification.roomAccessMode"/>:
+                </form:label>
+                <div class="controls">
+                    <spring:eval var="enumAdobeConnectAccessMode" expression="T(cz.cesnet.shongo.api.AdobeConnectAccessMode).values()"/>
+                    <c:forEach var="accessMode" items="${enumAdobeConnectAccessMode}">
+                        <label class="radio inline" for="${accessMode}">
+                            <c:choose>
+                                <c:when test="${accessMode == 'PROTECTED' && reservationRequest.roomAccessMode == null}">
+                                    <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}" checked="checked"/>
+                                </c:when>
+                                <c:otherwise>
+                                    <form:radiobutton id="${accessMode}" path="roomAccessMode" value="${accessMode}" tabindex="${tabIndex}"/>
+                                </c:otherwise>
+                            </c:choose>
+                            <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
+                        </label>
+                    </c:forEach>
+                    <form:errors path="roomAccessMode" cssClass="error"/>
+                    <tag:help><spring:message code="views.reservationRequest.specification.roomAccessMode.help"/></tag:help>
+                </div>
+            </div>
+        </c:if>
+
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             <div class="control-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
                 <form:label class="control-label" path="roomPin">
                     <spring:message code="views.reservationRequest.specification.roomPin"/>:

@@ -260,16 +260,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
     /**
      * Set room access mode (public, protected, private). Mode in AC v8.*, v9.0, v9.1 are "view-hidden" (public), "remove" (protected), "denied" (private)
+     * Default access mode (when param mode is null) is AdobeConnectAccessMode.PROTECTED
      *
      * @param roomId
      * @param mode
      */
-    protected void setRoomAccessMode(String roomId, String mode) throws CommandException
+    protected void setRoomAccessMode(String roomId, AdobeConnectAccessMode mode) throws CommandException
     {
         RequestAttributeList accessModeAttributes = new RequestAttributeList();
         accessModeAttributes.add("acl-id",roomId);
         accessModeAttributes.add("principal-id","public-access");
-        accessModeAttributes.add("permission-id",mode);
+        if (mode == null) {
+            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionsId());
+        } else {
+            accessModeAttributes.add("permission-id",mode.getPermissionsId());
+        }
 
         request("permissions-update", accessModeAttributes);
     }
@@ -281,25 +286,25 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     public void makeRoomPublic(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,"view-hidden");
+        setRoomAccessMode(roomId,AdobeConnectAccessMode.PUBLIC);
     }
 
     /**
-     * Make room public (Only registered users and accepted guests can enter the room).
+     * Make room protected (Only registered users and accepted guests can enter the room).
      * @param roomId
      */
     public void makeRoomProtected(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,"remove");
+        setRoomAccessMode(roomId,AdobeConnectAccessMode.PROTECTED);
     }
 
     /**
-     * Make room public (Only registered users and participants can enter).
+     * Make room private (Only registered users and participants can enter).
      * @param roomId
      */
     public void makeRoomPrivate(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,"denied");
+        setRoomAccessMode(roomId,AdobeConnectAccessMode.PRIVATE);
     }
 
     /**
@@ -622,6 +627,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (pin != null) {
                 adobeConnectRoomSetting.setPin(pin);
             }
+            // TODO: access mode
             room.addRoomSetting(adobeConnectRoomSetting);
 
 
@@ -805,25 +811,25 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 endMeeting(roomId);
             }
 
-            // Set passcode (pin)
+            // Set passcode (pin), since Adobe Connect 9.0
             RequestAttributeList passcodeAttributes = new RequestAttributeList();
             passcodeAttributes.add("acl-id",roomId);
             passcodeAttributes.add("field-id","meeting-passcode");
 
             String pin = "";
+            AdobeConnectAccessMode accessMode = null;
             AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
             if (adobeConnectRoomSetting != null) {
                 pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
+                accessMode = adobeConnectRoomSetting.getAccessMode();
             }
 
+            // Set pin for room if set
             passcodeAttributes.add("value",pin);
-
             request("acl-field-update",passcodeAttributes);
 
-            // Set room access mode public if pin is set, else new meeting is set to default access mode (protected)
-            if (!pin.isEmpty()) {
-                makeRoomPublic(roomId);
-            }
+            // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
+            setRoomAccessMode(roomId,accessMode);
 
             //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 
@@ -869,27 +875,25 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         request("sco-update", attributes);
 
-        // Set passcode (pin)
+        // Set passcode (pin), since Adobe Connect 9.0
         RequestAttributeList passcodeAttributes = new RequestAttributeList();
         passcodeAttributes.add("acl-id",roomId);
         passcodeAttributes.add("field-id","meeting-passcode");
 
         String pin = "";
+        AdobeConnectAccessMode accessMode = null;
         AdobeConnectRoomSetting adobeConnectRoomSetting = room.getRoomSetting(AdobeConnectRoomSetting.class);
         if (adobeConnectRoomSetting != null) {
             pin = adobeConnectRoomSetting.getPin() == null ? "" : adobeConnectRoomSetting.getPin();
+            accessMode = adobeConnectRoomSetting.getAccessMode();
         }
 
+        // Set pin for room if set
         passcodeAttributes.add("value",pin);
-
         request("acl-field-update",passcodeAttributes);
 
-        // Set room access mode public if pin is set, else set to default (protected)
-        if (pin.isEmpty()) {
-            makeRoomProtected(roomId);
-        } else {
-            makeRoomPublic(roomId);
-        }
+        // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
+        setRoomAccessMode(roomId,accessMode);
 
         return roomId;
     }
@@ -1467,26 +1471,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         return response.getChild("meeting-usermanager-user-list").getChildren("userdetails").size();
     }
-
-    //TODO: delete
-    /**           DELETE
-     * Returns room capacity stored in sco-tag (in sco-info).
-     *
-     * @param roomId sco-id of the room
-     * @return room capacity, value -1 for unlimited or not set
-     *
-    protected int getRoomCapacity(String roomId) throws CommandException
-    {
-        RequestAttributeList scoInfoAttributes = new RequestAttributeList();
-        scoInfoAttributes.add("sco-id",roomId);
-
-        Element response = request("sco-info", scoInfoAttributes);
-        if (response.getChild("sco").getChildText("sco-tag") == null) {
-            throw new CommandException("Licence count not set for room " + roomId + ".");
-        }
-
-        return Integer.parseInt(response.getChild("sco").getChildText("sco-tag"));
-    }    */
 
     /**
      * Logout of the server, clearing the session as well.
