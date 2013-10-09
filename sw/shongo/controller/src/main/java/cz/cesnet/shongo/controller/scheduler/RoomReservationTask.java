@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.*;
@@ -54,6 +55,11 @@ public class RoomReservationTask extends ReservationTask
     private DeviceResource deviceResource = null;
 
     /**
+     * List of {@link AbstractParticipant}s for the permanent room.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
@@ -94,6 +100,14 @@ public class RoomReservationTask extends ReservationTask
     public void setDeviceResource(DeviceResource deviceResource)
     {
         this.deviceResource = deviceResource;
+    }
+
+    /**
+     * @param participants sets the {@link #participants}
+     */
+    public void setParticipants(List<AbstractParticipant> participants)
+    {
+        this.participants = participants;
     }
 
     @Override
@@ -380,6 +394,7 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setSlot(interval);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setRoomConfiguration(roomConfiguration);
+                roomEndpoint.setParticipants(participants);
 
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);

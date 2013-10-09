@@ -139,22 +139,6 @@ public class Resource extends PersistentObject implements ReportableComplex
     }
 
     /**
-     * @param id
-     * @return capability with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when capability doesn't exist
-     */
-    public Capability getCapabilityById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (Capability capability : capabilities) {
-            if (capability.getId().equals(id)) {
-                return capability;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(Capability.class, id);
-    }
-
-    /**
      * @param capabilityType
      * @return true whether resource has capability of given {@code capabilityType},
      *         false otherwise
@@ -294,22 +278,6 @@ public class Resource extends PersistentObject implements ReportableComplex
     public List<AbstractPerson> getAdministrators()
     {
         return administrators;
-    }
-
-    /**
-     * @param id
-     * @return administrator with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when administrator doesn't exist
-     */
-    public AbstractPerson getAdministratorById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (AbstractPerson person : administrators) {
-            if (person.getId().equals(id)) {
-                return person;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(AbstractPerson.class, id);
     }
 
     /**

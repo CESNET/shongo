@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.executor;
+    package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
@@ -112,13 +112,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
+        super.toApi(executableApi, userType);
+
         UsedRoomExecutable usedRoomExecutableEndpointApi =
                 (UsedRoomExecutable) executableApi;
 
-        usedRoomExecutableEndpointApi.setId(EntityIdentifier.formatId(this));
-        usedRoomExecutableEndpointApi.setSlot(getSlot());
-        usedRoomExecutableEndpointApi.setState(getState().toApi());
-        usedRoomExecutableEndpointApi.setStateReport(getExecutableStateReport(userType));
         usedRoomExecutableEndpointApi.setRoomExecutableId(EntityIdentifier.formatId(roomEndpoint));
 
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();

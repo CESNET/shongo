@@ -557,6 +557,47 @@ sub interval_format_date
 }
 
 #
+# Format report item value
+#
+# @param $value
+#
+sub format_report_item_value
+{
+    my ($value) = @_;
+    my $output = '';
+    if ( ref($value) eq 'ARRAY' ) {
+        $output .= '[';
+        my $valueData = 0;
+        foreach my $valueItem (@{$value}) {
+            if ( $valueData ) {
+                $output .= ', ';
+            }
+            $output .= format_report_item_value($valueItem);
+            $valueData = 1;
+        }
+        $output .= ']';
+    }
+    elsif ( ref($value) eq 'HASH' ) {
+        $output .= '{';
+        my $valueData = 0;
+        foreach my $valueKey (sort keys %{$value}) {
+            if ( $valueData ) {
+                $output .= ', ';
+            }
+            $output .= $valueKey;
+            $output .= ': ';
+            $output .= format_report_item_value($value->{$valueKey});
+            $valueData = 1;
+        }
+        $output .= '}';
+    }
+    else {
+        $output .= $value;
+    }
+    return $output;
+}
+
+#
 # Format report item
 #
 # @param $report
@@ -583,28 +624,7 @@ sub format_report_item
             my $value = $report->{$key};
             $reportOutput .= $key;
             $reportOutput .= ': ';
-            if ( ref($value) eq 'ARRAY' ) {
-                $reportOutput .= '[';
-                $reportOutput .= join(', ', @{$value});
-                $reportOutput .= ']';
-            }
-            elsif ( ref($value) eq 'HASH' ) {
-                $reportOutput .= '{';
-                my $valueData = 0;
-                foreach my $valueKey (sort keys %{$value}) {
-                    if ( $valueData ) {
-                        $reportOutput .= ', ';
-                    }
-                    $reportOutput .= $valueKey;
-                    $reportOutput .= ': ';
-                    $reportOutput .= $value->{$valueKey};
-                    $valueData = 1;
-                }
-                $reportOutput .= '}';
-            }
-            else {
-                $reportOutput .= $value;
-            }
+            $reportOutput .= format_report_item_value($value);
         }
     }
     if ( $data ) {

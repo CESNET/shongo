@@ -63,14 +63,14 @@ public class CompartmentSpecification extends Specification
         this.callInitiation = callInitiation;
     }
 
-    public static final String PARTICIPANT_SPECIFICATIONS = "participants";
+    public static final String PARTICIPANTS = "participants";
     public static final String CALL_INITIATION = "callInitiation";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(PARTICIPANT_SPECIFICATIONS, participants);
+        dataMap.set(PARTICIPANTS, participants);
         dataMap.set(CALL_INITIATION, callInitiation);
         return dataMap;
     }
@@ -79,7 +79,7 @@ public class CompartmentSpecification extends Specification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        participants = dataMap.getListRequired(PARTICIPANT_SPECIFICATIONS, AbstractParticipant.class);
+        participants = dataMap.getListRequired(PARTICIPANTS, AbstractParticipant.class);
         callInitiation = dataMap.getEnum(CALL_INITIATION, CallInitiation.class);
     }
 }

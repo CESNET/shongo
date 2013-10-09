@@ -14,7 +14,7 @@ import java.util.*;
  */
 @Entity
 public class AliasSetSpecification extends Specification
-        implements ReservationTaskProvider, SpecificationCheckAvailability
+        implements ReservationTaskProvider
 {
     /**
      * List of {@link AliasSpecification} for {@link cz.cesnet.shongo.controller.resource.Alias}es which should be allocated for the room.
@@ -123,14 +123,6 @@ public class AliasSetSpecification extends Specification
         }
         aliasSetReservationTask.setSharedExecutable(isSharedExecutable());
         return aliasSetReservationTask;
-    }
-
-    @Override
-    public void checkAvailability(SchedulerContext schedulerContext) throws SchedulerException
-    {
-        for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            aliasSpecification.checkAvailability(schedulerContext);
-        }
     }
 
     @Override

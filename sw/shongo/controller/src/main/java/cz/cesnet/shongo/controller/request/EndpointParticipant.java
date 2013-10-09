@@ -106,23 +106,6 @@ public abstract class EndpointParticipant extends AbstractParticipant
     }
 
     /**
-     * @param id of the {@link cz.cesnet.shongo.controller.common.AbstractPerson}
-     * @return {@link cz.cesnet.shongo.controller.common.AbstractPerson} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when the {@link cz.cesnet.shongo.controller.common.AbstractPerson} doesn't exist
-     */
-    @Transient
-    private AbstractPerson getPersonById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (AbstractPerson person : persons) {
-            if (person.getId().equals(id)) {
-                return person;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(AbstractPerson.class, id);
-    }
-
-    /**
      * @param person to be added to the {@link #persons}
      */
     public void addPerson(AbstractPerson person)

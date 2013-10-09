@@ -3,15 +3,20 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
+import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
- * Represents an {@link Endpoint} which represents a {@link RoomConfiguration} (is able to
- * interconnect multiple other {@link Endpoint}s).
+ * Represents an room {@link Endpoint} in which multiple other {@link Endpoint}s can be interconnected.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -27,6 +32,11 @@ public abstract class RoomEndpoint extends Endpoint
      * Description of the room which can be displayed to the user.
      */
     private String roomDescription;
+
+    /**
+     * List of {@link cz.cesnet.shongo.controller.common.AbstractParticipant}s for the {@link RoomEndpoint}.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * @return {@link #roomConfiguration}
@@ -74,6 +84,35 @@ public abstract class RoomEndpoint extends Endpoint
         }
     }
 
+    /**
+     * @return {@link #participants}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<AbstractParticipant> getParticipants()
+    {
+        return participants;
+    }
+
+    /**
+     * @param participants sets the {@link #participants}
+     */
+    public void setParticipants(List<AbstractParticipant> participants)
+    {
+        this.participants.clear();
+        for (AbstractParticipant participant : participants) {
+            this.participants.add(participant.clone());
+        }
+    }
+
+    /**
+     * @param participant to be added to the {@link #participants}
+     */
+    public void addParticipant(AbstractParticipant participant)
+    {
+        participants.add(participant);
+    }
+
     @Override
     @Transient
     public int getCount()
@@ -102,6 +141,21 @@ public abstract class RoomEndpoint extends Endpoint
      */
     @Transient
     public abstract Room getRoomApi();
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    {
+        super.toApi(executableApi, userType);
+
+        AbstractRoomExecutable abstractRoomExecutableApi =
+                (AbstractRoomExecutable) executableApi;
+
+        RoomExecutableParticipantConfiguration participantConfiguration = new RoomExecutableParticipantConfiguration();
+        for (AbstractParticipant participant : participants) {
+            participantConfiguration.addParticipant(participant.toApi());
+        }
+        abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
+    }
 
     /**
      *

@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.ClassHelper;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.*;
@@ -600,6 +602,20 @@ public abstract class Executable extends PersistentObject implements ReportableS
             }
         }
         return state;
+    }
+
+    /**
+     * Update this {@link Executable} from given {@code executableConfiguration}.
+     *
+     * @param executableConfiguration
+     * @throws ControllerReportSet.ExecutableInvalidConfigurationException
+     *          when this {@link Executable} cannot be updated from given {@code executableConfiguration}
+     */
+    public void updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration)
+            throws ControllerReportSet.ExecutableInvalidConfigurationException
+    {
+        throw new ControllerReportSet.ExecutableInvalidConfigurationException(
+                EntityIdentifier.formatId(this), ClassHelper.getClassShortName(executableConfiguration.getClass()));
     }
 
     /**

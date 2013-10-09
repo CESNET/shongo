@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -48,6 +49,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      * List of {@link AliasSpecification} for {@link Alias}es which should be allocated for the room.
      */
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
+
+    /**
+     * List of {@link AbstractParticipant}s for the room.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -101,23 +107,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @param id of the requested {@link RoomSetting}
-     * @return {@link RoomSetting} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when the {@link RoomSetting} doesn't exist
-     */
-    @Transient
-    private RoomSetting getRoomSettingById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (RoomSetting roomSetting : roomSettings) {
-            if (roomSetting.getId().equals(id)) {
-                return roomSetting;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(RoomSetting.class, id);
-    }
-
-    /**
      * @param roomSettings sets the {@link #roomSettings}
      */
     public void setRoomSettings(List<RoomSetting> roomSettings)
@@ -163,23 +152,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @param id of the requested {@link AliasSpecification}
-     * @return {@link AliasSpecification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when the {@link AliasSpecification} doesn't exist
-     */
-    @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            if (aliasSpecification.getId().equals(id)) {
-                return aliasSpecification;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(AliasSpecification.class, id);
-    }
-
-    /**
      * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
     public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
@@ -206,6 +178,27 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         aliasSpecifications.remove(aliasSpecification);
     }
 
+    /**
+     * @return {@link #participants}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<AbstractParticipant> getParticipants()
+    {
+        return Collections.unmodifiableList(participants);
+    }
+
+    /**
+     * @param participants sets the {@link #participants}
+     */
+    public void setParticipants(List<AbstractParticipant> participants)
+    {
+        this.participants.clear();
+        for (AbstractParticipant participant : participants) {
+            this.participants.add(participant.clone());
+        }
+    }
+
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
@@ -228,6 +221,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             modified = true;
         }
 
+        if (!participants.equals(roomSpecification.getParticipants())) {
+            setParticipants(roomSpecification.getParticipants());
+            modified = true;
+        }
+
         return modified;
     }
 
@@ -239,6 +237,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
         roomReservationTask.setDeviceResource(getDeviceResource());
+        roomReservationTask.setParticipants(getParticipants());
         return roomReservationTask;
     }
 
@@ -266,6 +265,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
             roomSpecificationApi.addAlias(aliasSpecification.toApi());
         }
+        for (AbstractParticipant participant : getParticipants()) {
+            roomSpecificationApi.addParticipant(participant.toApi());
+        }
         super.toApi(specificationApi);
     }
 
@@ -282,7 +284,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
         else {
             Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
-                roomSpecificationApi.getResourceId());
+                    roomSpecificationApi.getResourceId());
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setDeviceResource(resourceManager.getDevice(resourceId));
         }
@@ -322,6 +324,24 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     @Override
                     public void updateFromApi(AliasSpecification object,
                             cz.cesnet.shongo.controller.api.AliasSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+        Synchronization.synchronizeCollection(participants, roomSpecificationApi.getParticipants(),
+                new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
+                        AbstractParticipant.class)
+                {
+                    @Override
+                    public AbstractParticipant createFromApi(
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                    {
+                        return AbstractParticipant.createFromApi(objectApi, entityManager);
+                    }
+
+                    @Override
+                    public void updateFromApi(AbstractParticipant object,
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
                     {
                         object.fromApi(objectApi, entityManager);
                     }

@@ -14,18 +14,7 @@ import java.util.List;
 @Entity
 public class RoomParticipantSet extends PersistentObject
 {
-    /**
-     * List of {@link AbstractParticipant}s.
-     */
-    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
-    /**
-     * @return {@link #participants}
-     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public List<AbstractParticipant> getParticipants()
-    {
-        return participants;
-    }
+
+
 }

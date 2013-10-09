@@ -243,7 +243,7 @@ public class CompartmentSpecification extends Specification
                     public AbstractParticipant createFromApi(
                             cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
                     {
-                        return (AbstractParticipant) AbstractParticipant.createFromApi(objectApi, entityManager);
+                        return AbstractParticipant.createFromApi(objectApi, entityManager);
                     }
 
                     @Override
