@@ -26,6 +26,7 @@ our $Type = ordered_hash(
     'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
     'MultiCompartmentSpecification' => 'Multi-Compartment',
+    'ValueSpecification' => 'Value',
     'AliasSpecification' => 'Alias',
     'AliasSetSpecification' => 'Alias Set',
     'RoomSpecification' => 'Virtual Room'
@@ -131,6 +132,24 @@ sub on_init()
             $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern,
+                'required' => 1
+            });
+        }
+        case 'ValueSpecification' {
+            $self->add_attribute('resourceId', {
+                'title' => 'Resource Identifier',
+                'string-pattern' => $Shongo::Common::IdPattern
+            });
+            $self->add_attribute('values', {
+                'title' => 'Values',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'value',
+                    'add' => sub {
+                        console_read_value('Value', 1);
+                     },
+                },
+                'complex' => 0,
                 'required' => 1
             });
         }

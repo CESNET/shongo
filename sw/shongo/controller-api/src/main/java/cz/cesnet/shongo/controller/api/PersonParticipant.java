@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
@@ -13,6 +14,11 @@ public class PersonParticipant extends AbstractParticipant
      * The requested person.
      */
     private AbstractPerson person;
+
+    /**
+     * Each {@link AbstractParticipant} acts in a meeting in a {@link cz.cesnet.shongo.ParticipantRole}.
+     */
+    private ParticipantRole role;
 
     /**
      * Constructor.
@@ -48,13 +54,31 @@ public class PersonParticipant extends AbstractParticipant
         this.person = person;
     }
 
+    /**
+     * @return {@link #role}
+     */
+    public ParticipantRole getRole()
+    {
+        return role;
+    }
+
+    /**
+     * @param role sets the {@link #role}
+     */
+    public void setRole(ParticipantRole role)
+    {
+        this.role = role;
+    }
+
     public static final String PERSON = "person";
+    public static final String ROLE = "role";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(PERSON, person);
+        dataMap.set(ROLE, role);
         return dataMap;
     }
 
@@ -63,5 +87,6 @@ public class PersonParticipant extends AbstractParticipant
     {
         super.fromData(dataMap);
         person = dataMap.getComplexTypeRequired(PERSON, AbstractPerson.class);
+        role = dataMap.getEnum(ROLE, ParticipantRole.class);
     }
 }

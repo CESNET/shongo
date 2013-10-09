@@ -188,7 +188,7 @@ sub set_default_value
 #  When 'type' => 'enum' then it specifies the enumeration values (hash of 'value' => 'title')
 #
 # 'class' => String
-#  When 'type' => 'class' then it specifies the class which will be create/edited in the attribue value
+#  When 'type' => 'class' then it specifies the class which will be create/edited in the attribute value
 #
 # 'item' => String
 #  When 'type' => 'collection' or 'type' => 'map' then it specifies additionally options:
@@ -705,7 +705,7 @@ sub modify_attribute_items_add_actions
                         if ( defined($attribute->{'item'}->{'delete'}) ) {
                             $attribute->{'item'}->{'delete'}($item);
                         }
-                        splice(@{$self->{$attribute_name}}, $index - 1);
+                        splice(@{$self->{$attribute_name}}, $index - 1, 1);
                     }
                     # Remove item from map
                     else {

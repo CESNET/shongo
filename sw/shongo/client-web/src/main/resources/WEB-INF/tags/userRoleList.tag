@@ -55,7 +55,7 @@
                     </c:if>
                 </tr>
             </c:forEach>
-            <c:if test="data.isEmpty()">
+            <c:if test="${empty data}">
                 <tr>${tableEmptyRow}</tr>
             </c:if>
             </tbody>

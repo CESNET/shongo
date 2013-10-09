@@ -20,29 +20,6 @@ import java.util.Map;
 public abstract class AbstractParticipant extends PersistentObject implements Cloneable
 {
     /**
-     * Each {@link AbstractParticipant} acts in a meeting in a {@link ParticipantRole}.
-     */
-    private ParticipantRole participantRole;
-
-    /**
-     * @return {@link #participantRole}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public ParticipantRole getParticipantRole()
-    {
-        return participantRole;
-    }
-
-    /**
-     * @param participantRole sets the {@link #participantRole}
-     */
-    public void setParticipantRole(ParticipantRole participantRole)
-    {
-        this.participantRole = participantRole;
-    }
-
-    /**
      * Synchronize properties from given {@code specification}.
      *
      * @param participant from which will be copied all properties values to this {@link AbstractParticipant}

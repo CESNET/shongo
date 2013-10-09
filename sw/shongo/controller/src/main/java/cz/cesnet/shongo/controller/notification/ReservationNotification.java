@@ -7,10 +7,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.RoomReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -154,6 +151,12 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             for (AbstractPerson person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
+                addRecipient(person.getInformation(), true);
+            }
+        }
+        if (reservation instanceof ValueReservation) {
+            ValueReservation valueReservation = (ValueReservation) reservation;
+            for (AbstractPerson person : valueReservation.getValueProvider().getCapabilityResource().getAdministrators()) {
                 addRecipient(person.getInformation(), true);
             }
         }

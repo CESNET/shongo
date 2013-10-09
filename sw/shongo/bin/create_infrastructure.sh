@@ -219,9 +219,9 @@ EOF
 # Pattern for each line from room files
 PATTERN="[ \t]*\(.\+\)[ \t]*"
 
-# Alias specification from matched line
+# Value from matched line
 REPLACE=$(cat <<EOF
-                { technologies: ['<TECHNOLOGY>'], aliasTypes: ['ROOM_NAME'], value: '\1' },
+                '\1',
 EOF
 )
 
@@ -232,10 +232,11 @@ $RUN_CLIENT_CLI <<EOF
         purpose: 'OWNER',
         slot: '*/*',
         specification: {
-            class: 'AliasSetSpecification',
-            aliasSpecifications: [
-`cat rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/H323/g"`
-`cat rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/ADOBE_CONNECT/g"`
+            class: 'ValueSpecification',
+            resourceId: '1',
+            values: [
+`cat rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g"`
+`cat rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g"`
             ]
         }
     }

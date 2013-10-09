@@ -36,10 +36,16 @@ public class ClientWebUrl
             "/wizard/create/attributes";
     public static final String WIZARD_CREATE_ROOM_ROLES =
             "/wizard/create/roles";
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANTS =
+            "/wizard/create/participants";
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANTS_CREATE =
+            "/wizard/create/participant/create";
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANTS_MODIFY =
+            "/wizard/create/participant/{participantId}/modify";
     public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
             "/wizard/create/role/create";
     public static final String WIZARD_CREATE_ROOM_ROLE_DELETE =
-            "/wizard/create/role/{aclRecordId:.+}/delete";
+            "/wizard/create/role/{aclRecordId}/delete";
     public static final String WIZARD_CREATE_ROOM_CONFIRM =
             "/wizard/create/confirm";
     public static final String WIZARD_CREATE_ROOM_CONFIRMED =
@@ -47,6 +53,12 @@ public class ClientWebUrl
 
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANTS =
+            "/wizard/create/permanent-room-capacity/participants";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE =
+            "/wizard/create/permanent-room-capacity/participant/create";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY =
+            "/wizard/create/permanent-room-capacity/participant/{participantId}/modify";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM =
             "/wizard/create/permanent-room-capacity/confirm";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED =

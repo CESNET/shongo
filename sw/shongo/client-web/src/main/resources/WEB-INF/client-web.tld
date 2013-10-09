@@ -105,6 +105,14 @@
         <path>/WEB-INF/tags/listAction.tag</path>
     </tag-file>
     <tag-file>
+        <name>participantForm</name>
+        <path>/WEB-INF/tags/participantForm.tag</path>
+    </tag-file>
+    <tag-file>
+        <name>participantList</name>
+        <path>/WEB-INF/tags/participantList.tag</path>
+    </tag-file>
+    <tag-file>
         <name>reportForm</name>
         <path>/WEB-INF/tags/reportForm.tag</path>
     </tag-file>

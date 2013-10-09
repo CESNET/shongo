@@ -11,7 +11,6 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="permanentRooms" required="false" type="java.util.Collection<cz.cesnet.shongo.controller.api.ReservationRequestSummary>" %>
-<%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
@@ -123,7 +122,6 @@
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
-           action="${confirmUrl}"
            method="post"
            ng-controller="ReservationRequestFormController">
 

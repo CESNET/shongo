@@ -12,5 +12,4 @@
     <tag:param name="reservationRequestId" value="${userRole.entityId}"/>
 </tag:url>
 
-<tag:userRoleForm entityType="${entityType}"
-                  confirmTitle="views.button.add" confirmUrl="" cancelUrl="${cancelUrl}"/>
+<tag:userRoleForm entityType="${entityType}" confirmTitle="views.button.add" cancelUrl="${cancelUrl}"/>

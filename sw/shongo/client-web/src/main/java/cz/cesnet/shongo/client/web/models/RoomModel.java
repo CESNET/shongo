@@ -4,16 +4,14 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
-import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
-import cz.cesnet.shongo.controller.api.ExecutableState;
-import cz.cesnet.shongo.controller.api.ExecutableSummary;
-import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -48,6 +46,8 @@ public class RoomModel
     private String stateReport;
 
     private ExecutableState usageState;
+
+    private List<ParticipantModel> participants = new LinkedList<ParticipantModel>();
 
     public RoomModel(AbstractRoomExecutable roomExecutable, String reservationRequestId, CacheProvider cacheProvider,
             MessageProvider messageProvider, ExecutableService executableService, UserSession userSession)
@@ -96,7 +96,12 @@ public class RoomModel
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
         if (!this.state.isAvailable() && userSession.isAdmin()) {
-            this.stateReport = roomExecutable.getStateReport().toString(messageProvider.getLocale(), messageProvider.getTimeZone());
+            this.stateReport = roomExecutable.getStateReport().toString(
+                    messageProvider.getLocale(), messageProvider.getTimeZone());
+        }
+
+        for (AbstractParticipant participant : roomExecutable.getParticipantConfiguration().getParticipants()) {
+            participants.add(new ParticipantModel(participant));
         }
     }
 
@@ -180,6 +185,25 @@ public class RoomModel
     public String getAliasesDescription()
     {
         return formatAliasesDescription(aliases, isAvailable(), messageProvider);
+    }
+
+    public List<ParticipantModel> getParticipants()
+    {
+        return participants;
+    }
+
+    public void addParticipant(ParticipantModel participant)
+    {
+        participants.add(participant);
+    }
+
+    public RoomExecutableParticipantConfiguration toParticipantConfigurationApi()
+    {
+        RoomExecutableParticipantConfiguration participantConfiguration = new RoomExecutableParticipantConfiguration();
+        for (ParticipantModel participantModel : participants) {
+            participantConfiguration.addParticipant(participantModel.toApi());
+        }
+        return participantConfiguration;
     }
 
     /**

@@ -22,7 +22,7 @@
         <spring:message code="views.reservationRequestUpdate.type.${reservationRequest.specificationType}"/>
     </h1>
 
-    <tag:reservationRequestForm confirmTitle="${confirmTitle}" confirmUrl="" cancelUrl="${cancelUrl}"
+    <tag:reservationRequestForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"
                                 permanentRooms="${permanentRooms}"/>
 
 </div>

@@ -30,7 +30,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestModel implements ReportModel.ContextSerializable
+public class ReservationRequestModel implements ReportModel.ContextSerializable, ParticipantContainer
 {
     private String id;
 
@@ -71,6 +71,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     protected String roomPin;
 
     protected List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
+
+    protected List<ParticipantModel> roomParticipants = new LinkedList<ParticipantModel>();
 
     /**
      * Create new {@link ReservationRequestModel} from scratch.
@@ -343,6 +345,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         userRoles.remove(userRole);
     }
 
+    public List<ParticipantModel> getRoomParticipants()
+    {
+        return roomParticipants;
+    }
+
+    public void addRoomParticipant(ParticipantModel participantModel)
+    {
+        roomParticipants.add(participantModel);
+    }
+
     /**
      * Load attributes from given {@code specification}.
      *
@@ -351,31 +363,31 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public void fromSpecificationApi(Specification specification, String reusedReservationRequestId)
     {
-        if (specification instanceof AliasSpecification) {
-            AliasSpecification aliasSpecification = (AliasSpecification) specification;
-            specificationType = SpecificationType.PERMANENT_ROOM;
-            technology = TechnologyModel.find(aliasSpecification.getTechnologies());
-            roomName = aliasSpecification.getValue();
-            Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
-            if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
-                          && technology != null && roomName != null)) {
-                throw new UnsupportedApiException("Alias specification must be for room name.");
-            }
-        }
-        else if (specification instanceof AliasSetSpecification) {
+        if (specification instanceof AliasSetSpecification) {
             AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
             List<AliasSpecification> aliasSpecifications = aliasSetSpecification.getAliases();
             if (aliasSpecifications.size() == 0) {
                 throw new UnsupportedApiException("At least one child alias specifications must be present.");
             }
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
+            fromSpecificationApi(roomNameSpecification, reusedReservationRequestId);
+        }
+        else if (specification instanceof AliasSpecification) {
+            AliasSpecification aliasSpecification = (AliasSpecification) specification;
+            if (!aliasSpecification.isPermanentRoom()) {
+                throw new UnsupportedApiException("Alias specification must require permanent room");
+            }
             specificationType = SpecificationType.PERMANENT_ROOM;
-            technology = TechnologyModel.find(roomNameSpecification.getTechnologies());
-            roomName = roomNameSpecification.getValue();
-            Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
+            technology = TechnologyModel.find(aliasSpecification.getTechnologies());
+            roomName = aliasSpecification.getValue();
+            Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
                           && technology != null && roomName != null)) {
                 throw new UnsupportedApiException("First alias specification must be for room name.");
+            }
+            roomParticipants.clear();
+            for (AbstractParticipant participant : aliasSpecification.getPermanentRoomParticipants()) {
+                roomParticipants.add(new ParticipantModel(participant));
             }
         }
         else if (specification instanceof RoomSpecification) {
@@ -402,6 +414,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             AliasSpecification aliasSpecification = roomSpecification.getAliasSpecificationByType(AliasType.ROOM_NAME);
             if (aliasSpecification != null) {
                 roomName = aliasSpecification.getValue();
+            }
+            roomParticipants.clear();
+            for (AbstractParticipant participant : roomSpecification.getParticipants()) {
+                roomParticipants.add(new ParticipantModel(participant));
             }
         }
         else {
@@ -762,6 +778,24 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         attributes.put("Participant count", roomParticipantCount);
         attributes.put("PIN", roomPin);
         return ReportModel.formatAttributes(attributes);
+    }
+
+    @Override
+    public List<ParticipantModel> getParticipants()
+    {
+        return roomParticipants;
+    }
+
+    @Override
+    public void addParticipant(ParticipantModel participant)
+    {
+        roomParticipants.add(participant);
+    }
+
+    @Override
+    public void removeParticipant(ParticipantModel participant)
+    {
+        roomParticipants.remove(participant);
     }
 
     /**

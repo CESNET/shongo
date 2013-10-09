@@ -10,10 +10,18 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<%@attribute name="entityType" required="true" type="cz.cesnet.shongo.controller.EntityType" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
+
+<%
+    String formUrl = request.getParameter("form-url");
+    jspContext.setAttribute("formUrl", formUrl);
+%>
+
+<c:if test="${empty formUrl}">
+    <c:set var="formUrl" value="${requestUrl}"/>
+</c:if>
 
 <c:set var="tabIndex" value="1"/>
 
@@ -69,23 +77,24 @@
 </script>
 
 <form:form class="form-horizontal"
-           commandName="userRole"
+           commandName="participant"
            method="post">
 
     <fieldset>
 
         <form:hidden path="id"/>
 
-        <c:if test="${not empty userRole.entityId}">
-            <div class="control-group">
-                <form:label class="control-label" path="entityId">
-                    <spring:message code="views.aclRecord.entity.${entityType}"/>:
-                </form:label>
-                <div class="controls double-width">
-                    <form:input path="entityId" readonly="true" tabindex="${tabIndex}"/>
-                </div>
+        <div class="control-group">
+            <form:label class="control-label" path="type">
+                <spring:message code="views.participant.type"/>:
+            </form:label>
+            <div class="controls">
+                <form:radiobutton path="type" value="USER"/><spring:message code="views.participant.type.USER"/>
+                <br/>
+                <form:radiobutton path="type" value="ANONYMOUS"/><spring:message code="views.participant.type.ANONYMOUS"/>
+                <form:errors path="type" cssClass="error"/>
             </div>
-        </c:if>
+        </div>
 
         <div class="control-group">
             <form:label class="control-label" path="userId">
@@ -94,31 +103,6 @@
             <div class="controls double-width">
                 <form:input path="userId" cssErrorClass="error" tabindex="${tabIndex}"/>
                 <form:errors path="userId" cssClass="error"/>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <form:label class="control-label" path="role">
-                <spring:message code="views.aclRecord.role"/>:
-            </form:label>
-            <div class="controls">
-                <form:select path="role" tabindex="${tabIndex}">
-                    <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
-                    <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.aclRecord.role.${role}"/></form:option>
-                    </c:forEach>
-                </form:select>
-                <form:errors path="role" cssClass="error"/>
-                <tag:help>
-                    <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
-                    <p><spring:message code="help.reservationRequest.role.OWNER"/></p>
-                    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-                        <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
-                        <p><spring:message code="help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
-                    </c:if>
-                    <strong><spring:message code="views.aclRecord.role.READER"/></strong>
-                    <p><spring:message code="help.reservationRequest.role.READER"/></p>
-                </tag:help>
             </div>
         </div>
 

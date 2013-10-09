@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.util.ObjectHelper;
 
@@ -19,6 +20,11 @@ public class PersonParticipant extends AbstractParticipant
     private AbstractPerson person;
 
     /**
+     * Each {@link AbstractParticipant} acts in a meeting in a {@link cz.cesnet.shongo.ParticipantRole}.
+     */
+    private ParticipantRole participantRole;
+
+    /**
      * @return {@link #person}
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -33,6 +39,24 @@ public class PersonParticipant extends AbstractParticipant
     public void setPerson(AbstractPerson person)
     {
         this.person = person;
+    }
+
+    /**
+     * @return {@link #participantRole}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public ParticipantRole getParticipantRole()
+    {
+        return participantRole;
+    }
+
+    /**
+     * @param participantRole sets the {@link #participantRole}
+     */
+    public void setParticipantRole(ParticipantRole participantRole)
+    {
+        this.participantRole = participantRole;
     }
 
     /**
