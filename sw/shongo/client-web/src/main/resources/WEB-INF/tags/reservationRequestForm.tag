@@ -1,7 +1,7 @@
 <%--
   -- Reservation request form.
   --%>
-<%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
+<%@ tag trimDirectiveWhitespaces="true" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -230,11 +230,11 @@
                 <div class="controls">
                     <label class="radio inline" for="room-name-new">
                         <form:radiobutton id="room-name-new" path="adhocRoomRetainRoomName" value="false" tabindex="${tabIndex}"/>
-                        <spring:message code="views.reservationRequest.specification.roomName.new"/>
+                        <span><spring:message code="views.reservationRequest.specification.roomName.new"/></span>
                     </label>
                     <label class="radio inline" for="room-name-retain">
                         <form:radiobutton id="room-name-retain" path="adhocRoomRetainRoomName" value="true" tabindex="${tabIndex}"/>
-                        <spring:message code="views.reservationRequest.specification.roomName.retain"/>
+                        <span><spring:message code="views.reservationRequest.specification.roomName.retain"/></span>
                     </label>
                     &nbsp;
                     <form:input path="roomName" tabindex="${tabIndex}" readonly="true"/>
@@ -347,21 +347,33 @@
 
     </fieldset>
 
+    <jsp:doBody var="body"/>
+
     <c:if test="${not empty confirmTitle || cancelUrl != null}">
-        <div class="control-group">
-            <div class="controls">
-                <c:if test="${not empty confirmTitle}">
-                    <spring:message code="${confirmTitle}" var="confirmTitle"/>
-                    <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
+        <c:set var="buttons">
+            <c:if test="${not empty confirmTitle}">
+                <spring:message code="${confirmTitle}" var="confirmTitle"/>
+                <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
+            </c:if>
+            <c:if test="${cancelUrl != null}">
+                <c:if test="${empty cancelTitle}">
+                    <c:set var="cancelTitle" value="views.button.cancel"/>
                 </c:if>
-                <c:if test="${cancelUrl != null}">
-                    <c:if test="${empty cancelTitle}">
-                        <c:set var="cancelTitle" value="views.button.cancel"/>
-                    </c:if>
-                    <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
-                </c:if>
-            </div>
-        </div>
+                <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
+            </c:if>
+        </c:set>
     </c:if>
+
+    <c:choose>
+        <c:when test="${not empty body}">
+            ${body}
+            <div class="pull-right">${buttons}</div>
+        </c:when>
+        <c:otherwise>
+            <div class="control-group">
+                <div class="controls">${buttons}</div>
+            </div>
+        </c:otherwise>
+    </c:choose>
 
 </form:form>

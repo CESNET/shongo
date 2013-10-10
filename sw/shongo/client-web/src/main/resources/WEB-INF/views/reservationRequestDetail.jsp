@@ -163,19 +163,6 @@
     <%-- Detail of request --%>
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${reservationRequestDetailUrl}" isActive="${isActive}"/>
 
-    <%-- Participants --%>
-    <h2><spring:message code="views.reservationRequest.participants"/></h2>
-    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_CREATE %>">
-        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    </tag:url>
-        <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_MODIFY %>">
-            <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-        </tag:url>
-        <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_DELETE %>">
-            <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-        </tag:url>
-    <tag:participantList data="${reservationRequest.roomParticipants}"/>
-
     <%-- User roles --%>
     <hr/>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>

@@ -98,12 +98,14 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/role/create";
     public static final String RESERVATION_REQUEST_ROLE_DELETE =
             "/reservation-request/{reservationRequestId:.+}/role/{roleId}/delete";
+    public static final String RESERVATION_REQUEST_UPDATE =
+            "/reservation-request/update";
     public static final String RESERVATION_REQUEST_PARTICIPANT_CREATE =
-            "/reservation-request/{reservationRequestId:.+}/participant/create";
+            "/reservation-request/participant/create";
     public static final String RESERVATION_REQUEST_PARTICIPANT_MODIFY =
-            "/reservation-request/{reservationRequestId:.+}/participant/{participantId}/modify";
+            "/reservation-request/participant/{participantId}/modify";
     public static final String RESERVATION_REQUEST_PARTICIPANT_DELETE =
-            "/reservation-request/{reservationRequestId:.+}/participant/{participantId}/delete";
+            "/reservation-request/participant/{participantId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";

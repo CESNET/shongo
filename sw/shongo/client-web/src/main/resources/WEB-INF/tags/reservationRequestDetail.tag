@@ -272,6 +272,16 @@
         </dd>
     </div>
 
+    <%-- Participants --%>
+    <c:if test="${not empty reservationRequest.participants}">
+        <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
+        <dd>
+            <c:forEach items="${reservationRequest.participants}" var="participant" varStatus="status">
+                ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
+            </c:forEach>
+        </dd>
+    </c:if>
+
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
