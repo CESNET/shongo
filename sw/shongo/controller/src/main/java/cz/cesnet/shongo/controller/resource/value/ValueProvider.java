@@ -62,6 +62,13 @@ public abstract class ValueProvider extends PersistentObject
         return capability.getResource();
     }
 
+    @Override
+    public void loadLazyProperties()
+    {
+        getCapabilityResource().loadLazyProperties();
+        super.loadLazyProperties();
+    }
+
     /**
      * @return converted {@link PatternValueProvider} to API
      */
