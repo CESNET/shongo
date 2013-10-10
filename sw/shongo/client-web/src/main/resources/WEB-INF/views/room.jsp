@@ -114,13 +114,16 @@
         </div>
     </c:if>
 
+    <h2><spring:message code="views.room.participants"/></h2>
+    <tag:participantList data="${room.participants}"/>
+
     <c:if test="${roomParticipants != null}">
-        <h2><spring:message code="views.room.participants"/></h2>
+        <h2><spring:message code="views.room.currentParticipants"/></h2>
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.room.participant.name"/></th>
-                <th><spring:message code="views.room.participant.email"/></th>
+                <th><spring:message code="views.room.currentParticipant.name"/></th>
+                <th><spring:message code="views.room.currentParticipant.email"/></th>
             </tr>
             </thead>
             <tbody>

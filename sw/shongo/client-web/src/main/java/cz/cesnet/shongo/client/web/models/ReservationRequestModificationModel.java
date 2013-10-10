@@ -18,7 +18,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     public ReservationRequestModificationModel(AbstractReservationRequest reservationRequest,
             CacheProvider cacheProvider)
     {
-        super(reservationRequest);
+        super(reservationRequest, cacheProvider);
 
         if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             // Get allocated room name

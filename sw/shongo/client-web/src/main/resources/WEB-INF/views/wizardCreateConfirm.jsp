@@ -26,6 +26,13 @@
         </ul>
     </c:if>
 
+    <h2><spring:message code="views.reservationRequest.participants"/></h2>
+    <ul>
+        <c:forEach items="${reservationRequest.participants}" var="participant">
+            <li>${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)</li>
+        </c:forEach>
+    </ul>
+
     &nbsp;
     <p><spring:message code="views.wizard.confirmation.chooseFinish"/></p>
 

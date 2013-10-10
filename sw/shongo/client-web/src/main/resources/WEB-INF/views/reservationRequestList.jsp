@@ -57,7 +57,7 @@
             <h2>
                 <spring:message code="views.reservationRequestList.permanentRooms"/>
                 <tag:help>
-                    <spring:message code="help.reservationRequest.specification.PERMANENT_ROOM"/>
+                    <spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/>
                 </tag:help>
             </h2>
         </tag:reservationRequestList>
@@ -70,7 +70,7 @@
             <h2>
                 <spring:message code="views.reservationRequestList.adhocRooms"/>
                 <tag:help>
-                    <spring:message code="help.reservationRequest.specification.ADHOC_ROOM"/>
+                    <spring:message code="views.reservationRequest.specificationHelp.ADHOC_ROOM"/>
                 </tag:help>
             </h2>
         </tag:reservationRequestList>

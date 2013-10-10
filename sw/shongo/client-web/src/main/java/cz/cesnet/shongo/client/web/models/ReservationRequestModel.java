@@ -88,9 +88,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
      *
      * @param reservationRequest
      */
-    public ReservationRequestModel(AbstractReservationRequest reservationRequest)
+    public ReservationRequestModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
     {
-        fromApi(reservationRequest);
+        fromApi(reservationRequest, cacheProvider);
     }
 
     /**
@@ -361,7 +361,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
      * @param specification
      * @param reusedReservationRequestId
      */
-    public void fromSpecificationApi(Specification specification, String reusedReservationRequestId)
+    public void fromSpecificationApi(Specification specification, String reusedReservationRequestId,
+            CacheProvider cacheProvider)
     {
         if (specification instanceof AliasSetSpecification) {
             AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
@@ -370,7 +371,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
                 throw new UnsupportedApiException("At least one child alias specifications must be present.");
             }
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
-            fromSpecificationApi(roomNameSpecification, reusedReservationRequestId);
+            fromSpecificationApi(roomNameSpecification, reusedReservationRequestId, cacheProvider);
         }
         else if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
@@ -387,7 +388,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
             }
             roomParticipants.clear();
             for (AbstractParticipant participant : aliasSpecification.getPermanentRoomParticipants()) {
-                roomParticipants.add(new ParticipantModel(participant));
+                roomParticipants.add(new ParticipantModel(participant, cacheProvider));
             }
         }
         else if (specification instanceof RoomSpecification) {
@@ -417,7 +418,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
             }
             roomParticipants.clear();
             for (AbstractParticipant participant : roomSpecification.getParticipants()) {
-                roomParticipants.add(new ParticipantModel(participant));
+                roomParticipants.add(new ParticipantModel(participant, cacheProvider));
             }
         }
         else {
@@ -430,7 +431,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
      *
      * @param abstractReservationRequest from which the attributes should be loaded
      */
-    public void fromApi(AbstractReservationRequest abstractReservationRequest)
+    public void fromApi(AbstractReservationRequest abstractReservationRequest, CacheProvider cacheProvider)
     {
         id = abstractReservationRequest.getId();
         type = abstractReservationRequest.getType();
@@ -440,7 +441,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
 
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
-        fromSpecificationApi(specification, abstractReservationRequest.getReusedReservationRequestId());
+        fromSpecificationApi(specification, abstractReservationRequest.getReusedReservationRequestId(), cacheProvider);
 
         // Date/time slot and periodicity
         Period duration;
@@ -558,6 +559,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
                     adobeConnectRoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
+                for (ParticipantModel participant : roomParticipants) {
+                    roomSpecification.addParticipant(participant.toApi());
+                }
                 return roomSpecification;
             }
             case PERMANENT_ROOM: {
@@ -566,6 +570,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
                 roomNameSpecification.setValue(roomName);
                 roomNameSpecification.setPermanentRoom(true);
+                for (ParticipantModel participant : roomParticipants) {
+                    roomNameSpecification.addPermanentRoomParticipant(participant.toApi());
+                }
                 switch (technology) {
                     case H323_SIP:
                         AliasSpecification numberSpecification = new AliasSpecification();
@@ -595,6 +602,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
                     AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
                     adobeConnectRoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+                }
+                for (ParticipantModel participant : roomParticipants) {
+                    roomSpecification.addParticipant(participant.toApi());
                 }
                 return roomSpecification;
             }

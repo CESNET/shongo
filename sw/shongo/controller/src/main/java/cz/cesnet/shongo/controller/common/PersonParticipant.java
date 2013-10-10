@@ -22,7 +22,7 @@ public class PersonParticipant extends AbstractParticipant
     /**
      * Each {@link AbstractParticipant} acts in a meeting in a {@link cz.cesnet.shongo.ParticipantRole}.
      */
-    private ParticipantRole participantRole;
+    private ParticipantRole role;
 
     /**
      * @return {@link #person}
@@ -42,21 +42,21 @@ public class PersonParticipant extends AbstractParticipant
     }
 
     /**
-     * @return {@link #participantRole}
+     * @return {@link #role}
      */
     @Column
     @Enumerated(EnumType.STRING)
-    public ParticipantRole getParticipantRole()
+    public ParticipantRole getRole()
     {
-        return participantRole;
+        return role;
     }
 
     /**
-     * @param participantRole sets the {@link #participantRole}
+     * @param participantRole sets the {@link #role}
      */
-    public void setParticipantRole(ParticipantRole participantRole)
+    public void setRole(ParticipantRole participantRole)
     {
-        this.participantRole = participantRole;
+        this.role = participantRole;
     }
 
     /**
@@ -78,8 +78,10 @@ public class PersonParticipant extends AbstractParticipant
 
         boolean modified = super.synchronizeFrom(participant);
         modified |= !ObjectHelper.isSame(getPerson(), personParticipant.getPerson());
+        modified |= !ObjectHelper.isSame(getRole(), personParticipant.getRole());
 
         setPerson(personParticipant.getPerson().clone());
+        setRole(personParticipant.getRole());
 
         return modified;
     }
@@ -93,9 +95,10 @@ public class PersonParticipant extends AbstractParticipant
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi)
     {
-        cz.cesnet.shongo.controller.api.PersonParticipant personParticipant =
+        cz.cesnet.shongo.controller.api.PersonParticipant personParticipantApi =
                 (cz.cesnet.shongo.controller.api.PersonParticipant) participantApi;
-        personParticipant.setPerson(getPerson().toApi());
+        personParticipantApi.setPerson(getPerson().toApi());
+        personParticipantApi.setRole(getRole());
         super.toApi(participantApi);
     }
 
@@ -116,6 +119,7 @@ public class PersonParticipant extends AbstractParticipant
             AbstractPerson person = AbstractPerson.createFromApi(personApi);
             setPerson(person);
         }
+        setRole(personParticipantApi.getRole());
 
         super.fromApi(participantApi, entityManager);
     }

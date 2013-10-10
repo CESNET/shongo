@@ -38,14 +38,16 @@ public class ClientWebUrl
             "/wizard/create/roles";
     public static final String WIZARD_CREATE_ROOM_PARTICIPANTS =
             "/wizard/create/participants";
-    public static final String WIZARD_CREATE_ROOM_PARTICIPANTS_CREATE =
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANT_CREATE =
             "/wizard/create/participant/create";
-    public static final String WIZARD_CREATE_ROOM_PARTICIPANTS_MODIFY =
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANT_MODIFY =
             "/wizard/create/participant/{participantId}/modify";
+    public static final String WIZARD_CREATE_ROOM_PARTICIPANT_DELETE =
+            "/wizard/create/participant/{participantId}/delete";
     public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
             "/wizard/create/role/create";
     public static final String WIZARD_CREATE_ROOM_ROLE_DELETE =
-            "/wizard/create/role/{aclRecordId}/delete";
+            "/wizard/create/role/{roleId}/delete";
     public static final String WIZARD_CREATE_ROOM_CONFIRM =
             "/wizard/create/confirm";
     public static final String WIZARD_CREATE_ROOM_CONFIRMED =
@@ -59,6 +61,8 @@ public class ClientWebUrl
             "/wizard/create/permanent-room-capacity/participant/create";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY =
             "/wizard/create/permanent-room-capacity/participant/{participantId}/modify";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE =
+            "/wizard/create/permanent-room-capacity/participant/{participantId}/delete";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM =
             "/wizard/create/permanent-room-capacity/confirm";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED =
@@ -88,12 +92,18 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/duplicate";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String RESERVATION_REQUEST_ACL =
-            "/reservation-request/{reservationRequestId:.+}/acl";
-    public static final String RESERVATION_REQUEST_ACL_CREATE =
-            "/reservation-request/{reservationRequestId:.+}/acl/create";
-    public static final String RESERVATION_REQUEST_ACL_DELETE =
-            "/reservation-request/{reservationRequestId:.+}/acl/{aclRecordId}/delete";
+    public static final String RESERVATION_REQUEST_ROLES =
+            "/reservation-request/{reservationRequestId:.+}/roles";
+    public static final String RESERVATION_REQUEST_ROLE_CREATE =
+            "/reservation-request/{reservationRequestId:.+}/role/create";
+    public static final String RESERVATION_REQUEST_ROLE_DELETE =
+            "/reservation-request/{reservationRequestId:.+}/role/{roleId}/delete";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_CREATE =
+            "/reservation-request/{reservationRequestId:.+}/participant/create";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_MODIFY =
+            "/reservation-request/{reservationRequestId:.+}/participant/{participantId}/modify";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_DELETE =
+            "/reservation-request/{reservationRequestId:.+}/participant/{participantId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";

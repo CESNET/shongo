@@ -15,11 +15,11 @@
     <ul>
         <li>
             <a href="${createAdhocRoomUrl}" tabindex="1"><spring:message code="views.wizard.createRoom.adhoc"/></a>
-            <p><spring:message code="help.reservationRequest.specification.ADHOC_ROOM"/></p>
+            <p><spring:message code="views.reservationRequest.specificationHelp.ADHOC_ROOM"/></p>
         </li>
         <li>
             <a href="${createPermanentRoomUrl}" tabindex="1"><spring:message code="views.wizard.createRoom.permanent"/></a>
-            <p><spring:message code="help.reservationRequest.specification.PERMANENT_ROOM"/></p>
+            <p><spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/></p>
         </li>
     </ul>
 </div>

@@ -26,7 +26,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             CacheProvider cacheProvider, MessageProvider messageProvider, ExecutableService executableService,
             UserSession userSession)
     {
-        super(abstractReservationRequest);
+        super(abstractReservationRequest, cacheProvider);
 
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY) && cacheProvider != null) {
             loadPermanentRoom(cacheProvider);

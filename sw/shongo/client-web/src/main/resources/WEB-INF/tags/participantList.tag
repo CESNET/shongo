@@ -19,7 +19,7 @@
         <th><spring:message code="views.aclRecord.user"/></th>
         <th><spring:message code="views.aclRecord.role"/></th>
         <th><spring:message code="views.aclRecord.email"/></th>
-        <c:if test="${isWritable && not empty deleteUrl}">
+        <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
             <th style="min-width: 85px; width: 85px;">
                 <spring:message code="views.list.action"/>
             </th>
@@ -32,23 +32,28 @@
 </c:set>
 
 <c:choose>
-    <%-- Static list of user roles --%>
     <c:when test="${data != null}">
         <table class="table table-striped table-hover">
                 ${tableHead}
             <tbody>
-            <c:forEach items="${data}" var="userRole">
-                <tag:url var="aclDeleteUrl" value="${deleteUrl}">
-                    <tag:param name="aclRecordId" value="${userRole.id}"/>
-                </tag:url>
+            <c:forEach items="${data}" var="participant">
                 <tr>
-                    <td>${userRole.user.fullName} (${userRole.user.originalId})</td>
-                    <td><spring:message code="views.aclRecord.role.${userRole.role}"/></td>
-                    <td>${userRole.user.primaryEmail}</td>
-                    <c:if test="${isWritable && not empty aclDeleteUrl}">
+                    <td>${participant.name}</td>
+                    <td><spring:message code="views.participant.role.${participant.role}"/></td>
+                    <td>${participant.email}</td>
+                    <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
                         <td>
-                            <c:if test="${not empty userRole.id && userRole.deletable}">
-                                <tag:listAction code="delete" url="${aclDeleteUrl}" tabindex="2"/>
+                            <c:if test="${not empty participant.id && not empty modifyUrl}">
+                                <tag:url var="participantModifyUrl" value="${modifyUrl}">
+                                    <tag:param name="participantId" value="${participant.id}"/>
+                                </tag:url>
+                                <tag:listAction code="modify" url="${participantModifyUrl}" tabindex="2"/>
+                            </c:if>
+                            <c:if test="${not empty participant.id && not empty deleteUrl}">
+                                <tag:url var="participantDeleteUrl" value="${deleteUrl}">
+                                    <tag:param name="participantId" value="${participant.id}"/>
+                                </tag:url>
+                                <tag:listAction code="delete" url="${participantDeleteUrl}" tabindex="2"/>
                             </c:if>
                         </td>
                     </c:if>

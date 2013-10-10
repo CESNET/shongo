@@ -101,7 +101,7 @@ public class RoomModel
         }
 
         for (AbstractParticipant participant : roomExecutable.getParticipantConfiguration().getParticipants()) {
-            participants.add(new ParticipantModel(participant));
+            participants.add(new ParticipantModel(participant, cacheProvider));
         }
     }
 

@@ -111,7 +111,8 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     {
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
+        ReservationRequestModel reservationRequestModel =
+                new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         reservationRequestModel.setId(null);
         model.addAttribute("reservationRequest", reservationRequestModel);
         if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
-import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -30,7 +28,7 @@ import java.util.*;
  */
 @Controller
 @SessionAttributes({"userRole"})
-public class ReservationRequestAclController
+public class ReservationRequestRoleController
 {
     @Resource
     private AuthorizationService authorizationService;
@@ -42,11 +40,11 @@ public class ReservationRequestAclController
     private MessageSource messageSource;
 
     /**
-     * Handle data request for reservation request {@link AclRecord}s.
+     * Handle data request for reservation request {@link UserRoleModel}s.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLES, method = RequestMethod.GET)
     @ResponseBody
-    public Map handleAcl(
+    public Map handleRoles(
             Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -64,7 +62,6 @@ public class ReservationRequestAclController
         // Build response
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (AclRecord aclRecord : response.getItems()) {
-
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclRecord.getId());
             item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
@@ -81,23 +78,23 @@ public class ReservationRequestAclController
     }
 
     /**
-     * Handle creation of {@link AclRecord} for reservation request.
+     * Handle creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, method = RequestMethod.GET)
-    public ModelAndView handleAclCreate(
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE, method = RequestMethod.GET)
+    public ModelAndView handleRoleCreate(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
         userRole.setEntityId(reservationRequestId);
-        return handleAclCreate(userRole);
+        return handleRoleCreate(userRole);
     }
 
     /**
-     * Handle confirmation of creation of {@link AclRecord} for reservation request.
+     * Handle confirmation of creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, method = RequestMethod.POST)
-    public Object handleAclCreateConfirm(
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE, method = RequestMethod.POST)
+    public Object handleRoleCreateProcess(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @ModelAttribute("userRole") UserRoleModel userRole,
@@ -109,7 +106,7 @@ public class ReservationRequestAclController
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, result);
         if (result.hasErrors()) {
-            return handleAclCreate(userRole);
+            return handleRoleCreate(userRole);
         }
         authorizationService.createAclRecord(securityToken,
                 userRole.getUserId(), userRole.getEntityId(), userRole.getRole());
@@ -118,37 +115,36 @@ public class ReservationRequestAclController
     }
 
     /**
-     * Handle deletion of {@link AclRecord} for reservation request.
+     * Handle deletion of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE,
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_DELETE,
             method = RequestMethod.GET)
-    public String handleAclDelete(
+    public String handleRoleDelete(
             SecurityToken securityToken,
-            HttpServletRequest request,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            @PathVariable(value = "aclRecordId") String aclRecordId,
+            @PathVariable(value = "roleId") String userRoleId,
             Model model)
     {
-        AclRecordListRequest aclRequest = new AclRecordListRequest();
-        aclRequest.setSecurityToken(securityToken);
-        aclRequest.addEntityId(reservationRequestId);
-        aclRequest.addRole(Role.OWNER);
-        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(aclRequest);
-        if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(aclRecordId)) {
+        AclRecordListRequest request = new AclRecordListRequest();
+        request.setSecurityToken(securityToken);
+        request.addEntityId(reservationRequestId);
+        request.addRole(Role.OWNER);
+        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
+        if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(userRoleId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
             model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
             return "message";
         }
-        authorizationService.deleteAclRecord(securityToken, aclRecordId);
+        authorizationService.deleteAclRecord(securityToken, userRoleId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 
     /**
-     * Handle view for creation of {@link AclRecord} for reservation request.
+     * Handle view for creation of {@link UserRoleModel} for reservation request.
      */
-    private ModelAndView handleAclCreate(UserRoleModel userRole)
+    private ModelAndView handleRoleCreate(UserRoleModel userRole)
     {
-        ModelAndView modelAndView = new ModelAndView("reservationRequestUserRole");
+        ModelAndView modelAndView = new ModelAndView("reservationRequestRole");
         modelAndView.addObject("userRole", userRole);
         return modelAndView;
     }

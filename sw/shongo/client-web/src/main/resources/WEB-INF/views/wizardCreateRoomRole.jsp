@@ -10,7 +10,7 @@
 <tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLES %>"/>
 
 <script type="text/javascript">
-    angular.module('jsp:wizardCreateRoomRole', ['ngTooltip']);
+    angular.module('jsp:wizardCreateRoomRole', ['tag:userRoleForm']);
 </script>
 
 <div ng-app="jsp:wizardCreateRoomRole">

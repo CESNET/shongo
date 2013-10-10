@@ -2,8 +2,11 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
 import net.tanesha.recaptcha.ReCaptchaResponse;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 
@@ -18,11 +21,14 @@ import java.util.Map;
  */
 public class ParticipantModel implements ReportModel.ContextSerializable
 {
+
+    private CacheProvider cacheProvider;
+
     private String id;
 
     private Type type;
 
-    private String userId;
+    private UserInformation user;
 
     private String name;
 
@@ -30,19 +36,24 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     private ParticipantRole role;
 
-    public ParticipantModel()
+    public ParticipantModel(CacheProvider cacheProvider)
     {
+        this.cacheProvider = cacheProvider;
+        this.type = Type.USER;
     }
-    public ParticipantModel(AbstractParticipant participant)
+
+    public ParticipantModel(AbstractParticipant participant, CacheProvider cacheProvider)
     {
+        this.cacheProvider = cacheProvider;
         this.id = participant.getId();
         if (participant instanceof PersonParticipant) {
             PersonParticipant personParticipant = (PersonParticipant) participant;
+            this.role = personParticipant.getRole();
             AbstractPerson person = personParticipant.getPerson();
             if (person instanceof UserPerson) {
                 UserPerson userPerson = (UserPerson) person;
-                type = Type.USER;
-                userId = userPerson.getUserId();
+                setType(Type.USER);
+                setUserId(userPerson.getUserId());
             }
             else if (person instanceof AnonymousPerson) {
                 AnonymousPerson anonymousPerson = (AnonymousPerson) person;
@@ -61,14 +72,20 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     public AbstractParticipant toApi()
     {
+        PersonParticipant personParticipant = new PersonParticipant();
+        if (!isNew()) {
+            personParticipant.setId(id);
+        }
+        personParticipant.setRole(role);
         switch (type) {
             case USER:
             {
                 UserPerson userPerson = new UserPerson();
-                userPerson.setUserId(userId);
-                PersonParticipant personParticipant = new PersonParticipant();;
+                if (user == null) {
+                    throw new IllegalStateException("User must not be null.");
+                }
+                userPerson.setUserId(user.getUserId());
                 personParticipant.setPerson(userPerson);
-                personParticipant.setRole(role);
                 return personParticipant;
             }
             case ANONYMOUS:
@@ -76,9 +93,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                 AnonymousPerson anonymousPerson = new AnonymousPerson();
                 anonymousPerson.setName(name);
                 anonymousPerson.setEmail(email);
-                PersonParticipant personParticipant = new PersonParticipant();;
                 personParticipant.setPerson(anonymousPerson);
-                personParticipant.setRole(role);
                 return personParticipant;
             }
             default:
@@ -97,7 +112,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                     break;
                 case ANONYMOUS:
                     ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "name", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "email", "validation.field.required");
+                    CommonModel.validateEmail(bindingResult, "email", "validation.field.invalidEmail");
                     break;
                 default:
                     throw new TodoImplementException(type);
@@ -105,9 +120,19 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         }
     }
 
+    public boolean isNew()
+    {
+        return id == null || CommonModel.isNewId(id);
+    }
+
     public String getId()
     {
         return id;
+    }
+
+    public void setNewId()
+    {
+        this.id = CommonModel.getNewId();
     }
 
     public Type getType()
@@ -122,16 +147,39 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     public String getUserId()
     {
-        return userId;
+        if (user == null) {
+            return null;
+        }
+        return user.getUserId();
     }
 
     public void setUserId(String userId)
     {
-        this.userId = userId;
+        if (userId == null || userId.isEmpty()) {
+            setUser(null);
+            return;
+        }
+        if (cacheProvider == null) {
+            throw new IllegalStateException("UserInformationProvider isn't set.");
+        }
+        setUser(cacheProvider.getUserInformation(userId));
+    }
+
+    public UserInformation getUser()
+    {
+        return user;
+    }
+
+    public void setUser(UserInformation user)
+    {
+        this.user = user;
     }
 
     public String getName()
     {
+        if (user != null) {
+            return user.getFullName();
+        }
         return name;
     }
 
@@ -142,6 +190,9 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     public String getEmail()
     {
+        if (user != null) {
+            return user.getPrimaryEmail();
+        }
         return email;
     }
 
@@ -166,7 +217,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
         attributes.put("ID", id);
         attributes.put("Type", type);
-        attributes.put("User ID", userId);
+        attributes.put("User ID", user != null ? user.getUserId() : null);
         attributes.put("Name", name);
         attributes.put("Email", email);
         attributes.put("Role", role);
@@ -177,5 +228,76 @@ public class ParticipantModel implements ReportModel.ContextSerializable
     {
         USER,
         ANONYMOUS
+    }
+
+    /**
+     * @param participantContainer
+     * @param participantId
+     * @return {@link ParticipantModel} with given {@code participantId} from given {@code participantContainer}
+     */
+    public static ParticipantModel getParticipant(ParticipantContainer participantContainer, String participantId)
+    {
+        ParticipantModel participant = null;
+        for (ParticipantModel possibleParticipant : participantContainer.getParticipants()) {
+            if (possibleParticipant.getId().equals(participantId)) {
+                participant = possibleParticipant;
+            }
+        }
+        if (participant == null) {
+            throw new IllegalArgumentException("Participant " + participantId + " doesn't exist.");
+        }
+        return participant;
+    }
+
+    /**
+     * Add new participant.
+     *
+     * @param participantContainer
+     * @param participant
+     * @param participantBindingResult
+     */
+    public static boolean createParticipant(ParticipantContainer participantContainer, ParticipantModel participant,
+            BindingResult participantBindingResult)
+    {
+        participant.validate(participantBindingResult);
+        if (participantBindingResult.hasErrors()) {
+            return false;
+        }
+        participant.setNewId();
+        participantContainer.addParticipant(participant);
+        return true;
+    }
+
+    /**
+     * Modify existing participant
+     *
+     * @param participantContainer
+     * @param participantId
+     * @param participant
+     * @param participantBindingResult
+     */
+    public static boolean modifyParticipant(ParticipantContainer participantContainer, String participantId,
+            ParticipantModel participant, BindingResult participantBindingResult)
+    {
+        participant.validate(participantBindingResult);
+        if (participantBindingResult.hasErrors()) {
+            return false;
+        }
+        ParticipantModel oldParticipant = getParticipant(participantContainer, participantId);
+        participantContainer.removeParticipant(oldParticipant);
+        participantContainer.addParticipant(participant);
+        return true;
+    }
+
+    /**
+     * Delete existing participant.
+     *
+     * @param participantContainer
+     * @param participantId
+     */
+    public static void deleteParticipant(ParticipantContainer participantContainer, String participantId)
+    {
+        ParticipantModel participant = getParticipant(participantContainer, participantId);
+        participantContainer.removeParticipant(participant);
     }
 }

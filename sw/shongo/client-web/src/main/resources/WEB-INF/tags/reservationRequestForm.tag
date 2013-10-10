@@ -206,7 +206,7 @@
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
                 <form:errors path="description" cssClass="error"/>
-                <tag:help><spring:message code="help.reservationRequest.description"/></tag:help>
+                <tag:help><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
             </div>
         </div>
 

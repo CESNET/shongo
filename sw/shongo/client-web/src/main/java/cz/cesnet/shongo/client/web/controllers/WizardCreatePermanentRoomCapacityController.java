@@ -35,10 +35,10 @@ import java.util.List;
  */
 @Controller
 @SessionAttributes({
-        AbstractWizardCreateController.RESERVATION_REQUEST_ATTRIBUTE,
-        AbstractWizardCreateController.PARTICIPANT_ATTRIBUTE,
+        WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE,
+        WizardParticipantsController.PARTICIPANT_ATTRIBUTE,
         "permanentRooms"})
-public class WizardCreatePermanentRoomCapacityController extends AbstractWizardCreateController
+public class WizardCreatePermanentRoomCapacityController extends WizardParticipantsController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardCreatePermanentRoomCapacityController.class);
 
@@ -158,17 +158,19 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
                 Page.CREATE_PARTICIPANTS, "wizardCreateParticipants.jsp");
         wizardView.addObject("createUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE);
         wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY);
+        wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE);
         return wizardView;
     }
 
     /**
-     * Show form for adding new participant for ad-hoc/permanent room.
+     * Show form for adding new participant for permanent room capacity.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
+            SecurityToken securityToken,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return handleParticipantCreate(Page.CREATE_PARTICIPANTS, reservationRequest);
+        return handleParticipantCreate(Page.CREATE_PARTICIPANTS, reservationRequest, securityToken);
     }
 
     /**
@@ -177,18 +179,58 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public ModelAndView handleParticipantCreateProcess(
             HttpSession httpSession,
-            SessionStatus sessionStatus,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (createParticipant(reservationRequest, participant, bindingResult)) {
-            sessionStatus.setComplete();
+        if (ParticipantModel.createParticipant(reservationRequest, participant, bindingResult)) {
             return handleParticipants(reservationRequest);
         }
         else {
-            return handleParticipantCreate(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+            return handleParticipantView(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
         }
+    }
+
+    /**
+     * Show form for modifying existing permanent room capacity.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.GET)
+    public ModelAndView handleParticipantModify(
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participantId);
+    }
+
+    /**
+     * Store changes for existing {@code participant} to given {@code reservationRequest}.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.POST)
+    public ModelAndView handleParticipantModifyProcess(
+            HttpSession httpSession,
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
+            BindingResult bindingResult)
+    {
+        ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
+        if (ParticipantModel.modifyParticipant(reservationRequest, participantId, participant, bindingResult)) {
+            return handleParticipants(reservationRequest);
+        }
+        else {
+            return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+        }
+    }
+
+    /**
+     * Delete existing {@code participant} from given {@code reservationRequest}.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE, method = RequestMethod.GET)
+    public ModelAndView handleParticipantDelete(
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        ParticipantModel.deleteParticipant(reservationRequest, participantId);
+        return handleParticipants(reservationRequest);
     }
 
     /**

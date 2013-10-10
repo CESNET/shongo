@@ -147,7 +147,7 @@
     <dd>
         <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
         <tag:help label="${specificationType}">
-            <spring:message code="help.reservationRequest.specification.${reservationRequest.specificationType}"/>
+            <spring:message code="views.reservationRequest.specificationHelp.${reservationRequest.specificationType}"/>
         </tag:help>
     </dd>
 

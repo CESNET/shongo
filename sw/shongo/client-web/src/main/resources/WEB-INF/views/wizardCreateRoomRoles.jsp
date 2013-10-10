@@ -21,13 +21,13 @@
     <spring:message code="views.wizard.createRoom.roles.description"/>
     <tag:help>
         <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
-        <p><spring:message code="help.reservationRequest.role.OWNER"/></p>
+        <p><spring:message code="views.aclRecord.roleHelp.OWNER"/></p>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
-            <p><spring:message code="help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
+            <p><spring:message code="views.aclRecord.roleHelp.RESERVATION_REQUEST_USER"/></p>
         </c:if>
         <strong><spring:message code="views.aclRecord.role.READER"/></strong>
-        <p><spring:message code="help.reservationRequest.role.READER"/></p>
+        <p><spring:message code="views.aclRecord.roleHelp.READER"/></p>
     </tag:help>
 
     <hr/>

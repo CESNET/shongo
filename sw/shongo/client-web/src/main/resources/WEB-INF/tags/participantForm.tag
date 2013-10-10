@@ -11,7 +11,6 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
-<%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
 <%
@@ -29,8 +28,21 @@
 <tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
     <tag:param name="userId" value=":userId"/>
 </tag:url>
+<tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 
 <script type="text/javascript">
+    angular.module('tag:participantForm', ['ngTooltip']);
+
+    function ParticipantFormController($scope) {
+        // Get value or default value if null
+        $scope.value = function (value, defaultValue) {
+            return ((value == null || value == '') ? defaultValue : value);
+        };
+
+        // Get dynamic participant attributes
+        $scope.type = $scope.value('${participant.type}', null);
+    }
+
     window.formatUser = function(user) {
         var text = user.firstName;
         if ( user.lastName != null ) {
@@ -78,7 +90,8 @@
 
 <form:form class="form-horizontal"
            commandName="participant"
-           method="post">
+           method="post"
+           ng-controller="ParticipantFormController">
 
     <fieldset>
 
@@ -89,16 +102,18 @@
                 <spring:message code="views.participant.type"/>:
             </form:label>
             <div class="controls">
-                <form:radiobutton path="type" value="USER"/><spring:message code="views.participant.type.USER"/>
-                <br/>
-                <form:radiobutton path="type" value="ANONYMOUS"/><spring:message code="views.participant.type.ANONYMOUS"/>
+                <form:radiobutton path="type" value="USER" ng-model="type"/>&nbsp;
+                <span><spring:message code="views.participant.type.USER"/></span>
+                &nbsp;&nbsp;
+                <form:radiobutton path="type" value="ANONYMOUS" ng-model="type"/>&nbsp;
+                <spring:message code="views.participant.type.ANONYMOUS"/>
                 <form:errors path="type" cssClass="error"/>
             </div>
         </div>
 
-        <div class="control-group">
+        <div class="control-group" ng-show="type == 'USER'">
             <form:label class="control-label" path="userId">
-                <spring:message code="views.aclRecord.user"/>:
+                <spring:message code="views.participant.userId"/>:
             </form:label>
             <div class="controls double-width">
                 <form:input path="userId" cssErrorClass="error" tabindex="${tabIndex}"/>
@@ -106,23 +121,60 @@
             </div>
         </div>
 
-    </fieldset>
-
-    <c:if test="${not empty confirmTitle || cancelUrl != null}">
-        <div class="control-group">
+        <div class="control-group" ng-show="type == 'ANONYMOUS'">
+            <form:label class="control-label" path="name">
+                <spring:message code="views.participant.name"/>:
+            </form:label>
             <div class="controls">
-                <c:if test="${not empty confirmTitle}">
-                    <spring:message code="${confirmTitle}" var="confirmTitle"/>
-                    <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
-                </c:if>
-                <c:if test="${cancelUrl != null}">
-                    <c:if test="${empty cancelTitle}">
-                        <c:set var="cancelTitle" value="views.button.cancel"/>
-                    </c:if>
-                    <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
-                </c:if>
+                <form:input path="name" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <form:errors path="name" cssClass="error"/>
             </div>
         </div>
-    </c:if>
+
+        <div class="control-group" ng-show="type == 'ANONYMOUS'">
+            <form:label class="control-label" path="email">
+                <spring:message code="views.participant.email"/>:
+            </form:label>
+            <div class="controls double-width">
+                <form:input path="email" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <form:errors path="email" cssClass="error"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="role">
+                <spring:message code="views.participant.role"/>:
+            </form:label>
+            <div class="controls">
+                <spring:eval var="roles" expression="T(cz.cesnet.shongo.ParticipantRole).values()"/>
+                <form:select path="role" tabindex="${tabIndex}">
+                    <c:forEach items="${roles}" var="role">
+                        <form:option value="${role}"><spring:message code="views.participant.role.${role}"/></form:option>
+                    </c:forEach>
+                </form:select>
+                <form:errors path="role" cssClass="error"/>
+                <tag:help>
+                    <c:forEach items="${roles}" var="role">
+                        <strong><spring:message code="views.participant.role.${role}"/></strong>
+                        <p><spring:message code="views.participant.roleHelp.${role}"/></p>
+                    </c:forEach>
+                </tag:help>
+            </div>
+        </div>
+
+    </fieldset>
+
+    <div class="control-group">
+        <div class="controls">
+            <c:if test="${not empty confirmTitle}">
+                <spring:message code="${confirmTitle}" var="confirmTitle"/>
+                <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
+            </c:if>
+            <c:if test="${empty cancelTitle}">
+                <c:set var="cancelTitle" value="views.button.cancel"/>
+            </c:if>
+            <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
+        </div>
+    </div>
 
 </form:form>
