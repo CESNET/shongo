@@ -112,7 +112,7 @@ public class PersonParticipant extends AbstractParticipant
         if (personApi == null) {
             throw new IllegalArgumentException("Person must not be null.");
         }
-        else if (getPerson() != null && getPerson().getId().equals(personApi.notNullIdAsLong())) {
+        else if (getPerson() != null && personApi.getId() != null && getPerson().getId().equals(personApi.notNullIdAsLong())) {
             getPerson().fromApi(personApi);
         }
         else {

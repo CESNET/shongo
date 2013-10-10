@@ -2,9 +2,12 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
+import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.report.Report;
@@ -155,6 +158,38 @@ public abstract class RoomEndpoint extends Endpoint
             participantConfiguration.addParticipant(participant.toApi());
         }
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
+    }
+
+    @Override
+    public void updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
+            final EntityManager entityManager)
+            throws ControllerReportSet.ExecutableInvalidConfigurationException
+    {
+        if (executableConfiguration instanceof RoomExecutableParticipantConfiguration) {
+            RoomExecutableParticipantConfiguration participantConfiguration =
+                    (RoomExecutableParticipantConfiguration) executableConfiguration;
+
+            Synchronization.synchronizeCollection(participants, participantConfiguration.getParticipants(),
+                    new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
+                            AbstractParticipant.class)
+                    {
+                        @Override
+                        public AbstractParticipant createFromApi(cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                        {
+                            return AbstractParticipant.createFromApi(objectApi, entityManager);
+                        }
+
+                        @Override
+                        public void updateFromApi(AbstractParticipant object,
+                                cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                        {
+                            object.fromApi(objectApi, entityManager);
+                        }
+                    });
+        }
+        else {
+            super.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
+        }
     }
 
     /**

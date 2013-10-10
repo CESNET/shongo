@@ -246,7 +246,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
-            executable.updateFromExecutableConfigurationApi(executableConfiguration);
+            executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
 
             entityManager.getTransaction().commit();
         }

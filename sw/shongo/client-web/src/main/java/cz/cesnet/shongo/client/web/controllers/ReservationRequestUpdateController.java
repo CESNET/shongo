@@ -31,7 +31,6 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -240,49 +239,14 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     }
 
     /**
-     * @param reuse specifies whether {@link ReservationRequestModel} should be tried to load from session
-     * @param reservationRequestId specifies which identifier should the {@link ReservationRequestModel} have
-     * @param request whose session should be used
-     * @return {@link ReservationRequestModel} from given {@code httpSession}
-     */
-    protected ReservationRequestModel getReservationRequest(boolean reuse, String reservationRequestId, HttpServletRequest request)
-    {
-        if (!reuse) {
-            return null;
-        }
-        Object reservationRequestAttribute = WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
-        if (reservationRequestAttribute instanceof ReservationRequestModel) {
-            ReservationRequestModel reservationRequest = (ReservationRequestModel) reservationRequestAttribute;
-            if ((reservationRequestId == null && reservationRequest.getId() == null)
-                    || (reservationRequestId != null && reservationRequestId.equals(reservationRequest.getId()))) {
-                return reservationRequest;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param request
-     * @return {@link ReservationRequestModel} from given {@code httpSession}
-     */
-    protected ReservationRequestModel getReservationRequest(HttpServletRequest request)
-    {
-        Object reservationRequestAttribute = WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
-        if (reservationRequestAttribute instanceof ReservationRequestModel) {
-            return (ReservationRequestModel) reservationRequestAttribute;
-        }
-        throw new IllegalStateException("Reservation request doesn't exist.");
-    }
-
-    /**
      * Show form for adding new participant for ad-hoc/permanent room.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
             SecurityToken securityToken)
     {
-        ModelAndView modelAndView = new ModelAndView("reservationRequestParticipant");
-        modelAndView.addObject("participant", new ParticipantModel(new CacheProvider(cache, securityToken)));
+        ModelAndView modelAndView = new ModelAndView("participant");
+        modelAndView.addObject(PARTICIPANT_ATTRIBUTE, new ParticipantModel(new CacheProvider(cache, securityToken)));
         return modelAndView;
     }
 
@@ -292,7 +256,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public String handleParticipantCreateProcess(
             HttpServletRequest request,
-            @ModelAttribute("participant") ParticipantModel participant,
+            @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
@@ -300,7 +264,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             return "redirect:" + BackUrl.getInstance(request);
         }
         else {
-            return "reservationRequestParticipant";
+            return "participant";
         }
     }
 
@@ -314,8 +278,8 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
         ParticipantModel participant = ParticipantModel.getParticipant(reservationRequest, participantId);
-        ModelAndView modelAndView = new ModelAndView("reservationRequestParticipant");
-        modelAndView.addObject("participant", participant);
+        ModelAndView modelAndView = new ModelAndView("participant");
+        modelAndView.addObject(PARTICIPANT_ATTRIBUTE, participant);
         return modelAndView;
     }
 
@@ -326,7 +290,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     public String handleParticipantModifyProcess(
             HttpServletRequest request,
             @PathVariable("participantId") String participantId,
-            @ModelAttribute("participant") ParticipantModel participant,
+            @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
@@ -334,7 +298,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             return "redirect:" + BackUrl.getInstance(request);
         }
         else {
-            return "reservationRequestParticipant";
+            return "participant";
         }
     }
 
@@ -359,5 +323,40 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     {
         logger.warn("Redirecting to " + ClientWebUrl.RESERVATION_REQUEST_LIST + ".", exception);
         return "redirect:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
+    }
+
+    /**
+     * @param reuse specifies whether {@link ReservationRequestModel} should be tried to load from session
+     * @param reservationRequestId specifies which identifier should the {@link ReservationRequestModel} have
+     * @param request whose session should be used
+     * @return {@link ReservationRequestModel} from given {@code httpSession}
+     */
+    private ReservationRequestModel getReservationRequest(boolean reuse, String reservationRequestId, HttpServletRequest request)
+    {
+        if (!reuse) {
+            return null;
+        }
+        Object reservationRequestAttribute = WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
+        if (reservationRequestAttribute instanceof ReservationRequestModel) {
+            ReservationRequestModel reservationRequest = (ReservationRequestModel) reservationRequestAttribute;
+            if ((reservationRequestId == null && reservationRequest.getId() == null)
+                    || (reservationRequestId != null && reservationRequestId.equals(reservationRequest.getId()))) {
+                return reservationRequest;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param request
+     * @return {@link ReservationRequestModel} from given {@code httpSession}
+     */
+    private ReservationRequestModel getReservationRequest(HttpServletRequest request)
+    {
+        Object reservationRequestAttribute = WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
+        if (reservationRequestAttribute instanceof ReservationRequestModel) {
+            return (ReservationRequestModel) reservationRequestAttribute;
+        }
+        throw new IllegalStateException("Reservation request doesn't exist.");
     }
 }

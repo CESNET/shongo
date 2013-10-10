@@ -141,12 +141,6 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestRole.jsp" type="template"/>
     </definition>
 
-    <definition name="reservationRequestParticipant" extends="layoutAngularForm">
-        <put-attribute name="title" value="views.reservationRequestParticipant.title"/>
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestParticipant.jsp" type="template"/>
-    </definition>
-
     <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
         <put-attribute name="confirmTitle" value=""/>
     </definition>
@@ -186,6 +180,12 @@
         <put-attribute name="title" value="views.roomList.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
+    </definition>
+
+    <definition name="participant" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.participant.title"/>
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/participant.jsp" type="template"/>
     </definition>
 
 </tiles-definitions>

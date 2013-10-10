@@ -608,10 +608,12 @@ public abstract class Executable extends PersistentObject implements ReportableS
      * Update this {@link Executable} from given {@code executableConfiguration}.
      *
      * @param executableConfiguration
+     * @param entityManager
      * @throws ControllerReportSet.ExecutableInvalidConfigurationException
      *          when this {@link Executable} cannot be updated from given {@code executableConfiguration}
      */
-    public void updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration)
+    public void updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
+            EntityManager entityManager)
             throws ControllerReportSet.ExecutableInvalidConfigurationException
     {
         throw new ControllerReportSet.ExecutableInvalidConfigurationException(

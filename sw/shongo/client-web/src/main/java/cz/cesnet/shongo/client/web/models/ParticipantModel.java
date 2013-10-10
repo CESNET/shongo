@@ -160,7 +160,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
             return;
         }
         if (cacheProvider == null) {
-            throw new IllegalStateException("UserInformationProvider isn't set.");
+            throw new IllegalStateException(CacheProvider.class + " isn't set.");
         }
         setUser(cacheProvider.getUserInformation(userId));
     }

@@ -115,7 +115,20 @@
     </c:if>
 
     <h2><spring:message code="views.room.participants"/></h2>
-    <tag:participantList data="${room.participants}"/>
+    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_DELETE %>">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:participantList data="${room.participants}" createUrl="${participantCreateUrl}"
+                         modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"/>
 
     <c:if test="${roomParticipants != null}">
         <h2><spring:message code="views.room.currentParticipants"/></h2>

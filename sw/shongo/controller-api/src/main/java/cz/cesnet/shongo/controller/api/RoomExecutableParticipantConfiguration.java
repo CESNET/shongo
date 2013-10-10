@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RoomExecutableParticipantConfiguration extends AbstractComplexType
+public class RoomExecutableParticipantConfiguration extends ExecutableConfiguration
 {
     /**
      * Collection of {@link AbstractParticipant}s for the room.
@@ -27,11 +27,38 @@ public class RoomExecutableParticipantConfiguration extends AbstractComplexType
     }
 
     /**
+     * @param participantId
+     * @return {@link AbstractParticipant} with given {@code participantId} or null
+     */
+    public AbstractParticipant getParticipant(String participantId)
+    {
+        for (AbstractParticipant participant : participants) {
+            if (participantId.equals(participant.getId())) {
+                return participant;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param participant to be added to the {@link #participants}
      */
     public void addParticipant(AbstractParticipant participant)
     {
         participants.add(participant);
+    }
+
+    /**
+     * @param participantId to be removed from the {@link #participants}
+     */
+    public void removeParticipantById(String participantId)
+    {
+        for (AbstractParticipant participant : participants) {
+            if (participantId.equals(participant.getId())) {
+                participants.remove(participant);
+                break;
+            }
+        }
     }
 
     public static final String PARTICIPANTS = "participants";

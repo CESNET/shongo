@@ -122,6 +122,12 @@ public class ClientWebUrl
             "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
+    public static final String ROOM_PARTICIPANT_CREATE =
+            "/room/{roomId:.+}/participant/create";
+    public static final String ROOM_PARTICIPANT_MODIFY =
+            "/room/{roomId:.+}/participant/{participantId}/modify";
+    public static final String ROOM_PARTICIPANT_DELETE =
+            "/room/{roomId:.+}/participant/{participantId}/delete";
     public static final String ROOM_ENTER =
             "/room/{roomId:.+}/enter";
 
