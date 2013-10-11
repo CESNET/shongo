@@ -4,7 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.controller.api.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.report.ReportableSimple;
 
 import javax.persistence.*;
@@ -128,6 +128,7 @@ public abstract class Specification extends PersistentObject implements Reportab
     {
         Specification specification = ClassHelper.createInstanceFromClass(getClass());
         specification.synchronizeFrom(this);
+        specification.updateTechnologies();
         return specification;
     }
 
@@ -215,16 +216,6 @@ public abstract class Specification extends PersistentObject implements Reportab
                 CompartmentSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.MultiCompartmentSpecification.class,
                 MultiCompartmentSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExistingEndpointSpecification.class,
-                ExistingEndpointSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExternalEndpointSpecification.class,
-                ExternalEndpointSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification.class,
-                ExternalEndpointSetSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.LookupEndpointSpecification.class,
-                LookupEndpointSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.PersonSpecification.class,
-                PersonSpecification.class);
     }
 
     /**

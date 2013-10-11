@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Interface to the service handling operations on {@link cz.cesnet.shongo.controller.api.Executable}s.
@@ -17,15 +15,6 @@ import java.util.Map;
  */
 public interface ExecutableService extends Service
 {
-    /**
-     * Deletes a given compartment.
-     *
-     * @param token        token of the user requesting the operation
-     * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to delete
-     */
-    @API
-    public void deleteExecutable(SecurityToken token, String executableId);
-
     /**
      * Lists all the {@link cz.cesnet.shongo.controller.api.Executable}s.
      *
@@ -38,18 +27,38 @@ public interface ExecutableService extends Service
     /**
      * Gets the complete compartment object.
      *
-     * @param token        token of the user requesting the operation
-     * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
+     * @param securityToken token of the user requesting the operation
+     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
      */
     @API
-    public Executable getExecutable(SecurityToken token, String executableId);
+    public Executable getExecutable(SecurityToken securityToken, String executableId);
 
     /**
-     * Try to start/stop/update given {@link Executable} (e.g., if it is in failed state).
+     * Updates executable configuration.
      *
-     * @param token        token of the user requesting the operation
-     * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to start
+     * @param securityToken           token of the user requesting the operation
+     * @param executableId            shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
+     * @param executableConfiguration new configuration for an executable with the given {@code executableId}
      */
     @API
-    public void updateExecutable(SecurityToken token, String executableId);
+    public void modifyExecutableConfiguration(SecurityToken securityToken, String executableId,
+            ExecutableConfiguration executableConfiguration);
+
+    /**
+     * Deletes a executable with given {@code executableId}.
+     *
+     * @param securityToken token of the user requesting the operation
+     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to delete
+     */
+    @API
+    public void deleteExecutable(SecurityToken securityToken, String executableId);
+
+    /**
+     * Try to start/stop/update again given {@link Executable} (e.g., if it is in failed state).
+     *
+     * @param securityToken token of the user requesting the operation
+     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to start
+     */
+    @API
+    public void updateExecutable(SecurityToken securityToken, String executableId);
 }

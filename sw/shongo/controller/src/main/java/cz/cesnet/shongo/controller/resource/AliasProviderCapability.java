@@ -131,22 +131,6 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @param id
-     * @return alias with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when alias doesn't exist
-     */
-    public Alias getAliasById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (Alias alias : aliases) {
-            if (alias.getId().equals(id)) {
-                return alias;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(Alias.class, id);
-    }
-
-    /**
      * @param alias to be added to the {@link #aliases}
      */
     public void addAlias(Alias alias)

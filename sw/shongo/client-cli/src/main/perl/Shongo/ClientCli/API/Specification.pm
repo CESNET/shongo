@@ -16,28 +16,21 @@ use Shongo::ClientCli::API::Alias;
 use Shongo::ClientCli::API::DeviceResource;
 use Shongo::ClientCli::API::Person;
 use Shongo::ClientCli::API::CompartmentSpecification;
-use Shongo::ClientCli::API::ParticipantSpecification;
+use Shongo::ClientCli::API::Participant;
 use Shongo::ClientCli::API::RoomSettings;
 
 #
 # Specification types
 #
-our $RootType = ordered_hash(
+our $Type = ordered_hash(
     'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
     'MultiCompartmentSpecification' => 'Multi-Compartment',
+    'ValueSpecification' => 'Value',
     'AliasSpecification' => 'Alias',
     'AliasSetSpecification' => 'Alias Set',
     'RoomSpecification' => 'Virtual Room'
 );
-our $ParticipantType = ordered_hash(
-    'ExternalEndpointSpecification' => 'External Endpoint',
-    'ExternalEndpointSetSpecification' => 'Set of External Endpoints',
-    'ExistingEndpointSpecification' => 'Existing Endpoint',
-    'LookupEndpointSpecification' => 'Lookup Resource',
-    'PersonSpecification' => 'Person',
-);
-our $Type = ordered_hash_merge($RootType, $ParticipantType);
 
 #
 # Call initiation
@@ -76,7 +69,7 @@ sub select_type($)
 {
     my ($type) = @_;
 
-    return console_edit_enum('Select type of specification', $RootType, $type);
+    return console_edit_enum('Select type of specification', $Type, $type);
 }
 
 # @Override
@@ -125,11 +118,11 @@ sub on_init()
                 'type' => 'enum',
                 'enum' => $Shongo::ClientCli::API::Specification::CallInitiation
             }, NULL());
-            $self->add_attribute('participantSpecifications', {
+            $self->add_attribute('participants', {
                 'type' => 'collection',
                 'item' => {
-                    'title' => 'specification',
-                    'class' => 'Shongo::ClientCli::API::ParticipantSpecification',
+                    'title' => 'participant',
+                    'class' => 'Shongo::ClientCli::API::Participant',
                 },
                 'complex' => 0,
                 'display' => 'newline'
@@ -142,75 +135,21 @@ sub on_init()
                 'required' => 1
             });
         }
-        case 'ExternalEndpointSpecification' {
-            $self->add_attribute('technologies', {
-                'type' => 'collection',
-                'item' => {
-                    'title' => 'Technology',
-                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
-                },
-                'complex' => 0,
-                'required' => 1
-            });
-            $self->add_attribute('alias', {
-                'modify' => sub {
-                    my $hasAlias = 0;
-                    if ( defined($self->{'alias'}) ) {
-                        $hasAlias = 1;
-                    }
-                    $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
-                    if ( $hasAlias ) {
-                        if ( !defined($self->{'alias'}) ) {
-                            $self->{'alias'} = Shongo::ClientCli::API::Alias->create();
-                        } else {
-                            $self->{'alias'}->modify();
-                        }
-                    } else {
-                        $self->{'alias'} = undef;
-                    }
-                    return $self->{'alias'};
-                }
-            });
-        }
-        case 'ExternalEndpointSetSpecification' {
-            $self->add_attribute('technologies', {
-                'type' => 'collection',
-                'item' => {
-                    'title' => 'Technology',
-                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
-                },
-                'complex' => 0,
-                'required' => 1
-            });
-            $self->add_attribute('count', {
-                'type' => 'int',
-                'required' => 1
-            });
-        }
-        case 'ExistingEndpointSpecification' {
+        case 'ValueSpecification' {
             $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdPattern,
-                'required' => 1
+                'string-pattern' => $Shongo::Common::IdPattern
             });
-        }
-        case 'LookupEndpointSpecification' {
-            $self->add_attribute('technology', {
-                'type' => 'enum',
-                'enum' => $Shongo::ClientCli::API::DeviceResource::Technology,
-                'required' => 1
-            });
-        }
-        case 'PersonSpecification' {
-            $self->add_attribute('person', {
-                'modify' => sub() {
-                    my ($person) = @_;
-                    if ( !defined($person) ) {
-                        $person = Shongo::ClientCli::API::Person->new();
-                    }
-                    $person->modify();
-                    return $person;
+            $self->add_attribute('values', {
+                'title' => 'Values',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'value',
+                    'add' => sub {
+                        console_read_value('Value', 1);
+                     },
                 },
+                'complex' => 0,
                 'required' => 1
             });
         }
@@ -303,7 +242,5 @@ sub on_init()
         }
     }
 }
-
-
 
 1;

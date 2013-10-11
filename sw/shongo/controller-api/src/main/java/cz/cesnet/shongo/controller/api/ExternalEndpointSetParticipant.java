@@ -7,11 +7,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link Specification} for one or multiple external endpoint.
+ * {@link AbstractParticipant} for one or multiple external endpoint.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExternalEndpointSetSpecification extends ParticipantSpecification
+public class ExternalEndpointSetParticipant extends AbstractParticipant
 {
     /**
      * Set of technologies of the external endpoint.
@@ -27,7 +27,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * Constructor.
      */
-    public ExternalEndpointSetSpecification()
+    public ExternalEndpointSetParticipant()
     {
     }
 
@@ -37,7 +37,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      * @param technology to be added to the {@link #TECHNOLOGIES}
      * @param count      sets the {@link #COUNT}
      */
-    public ExternalEndpointSetSpecification(Technology technology, int count)
+    public ExternalEndpointSetParticipant(Technology technology, int count)
     {
         addTechnology(technology);
         setCount(count);
@@ -49,7 +49,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      * @param technologies to be added to the {@link #TECHNOLOGIES}
      * @param count        sets the {@link #COUNT}
      */
-    public ExternalEndpointSetSpecification(Technology[] technologies, int count)
+    public ExternalEndpointSetParticipant(Technology[] technologies, int count)
     {
         for (Technology technology : technologies) {
             addTechnology(technology);

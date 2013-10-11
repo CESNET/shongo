@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * {@link Specification} virtual room.
+ * {@link Specification} for a meeting room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -41,6 +41,11 @@ public class RoomSpecification extends Specification
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification}s for the virtual room.
      */
     private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
+
+    /**
+     * Collection of {@link AbstractParticipant}s for the meeting room.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -242,11 +247,28 @@ public class RoomSpecification extends Specification
         aliasSpecifications.remove(aliasSpecification);
     }
 
+    /**
+     * @return {@link #participants}
+     */
+    public List<AbstractParticipant> getParticipants()
+    {
+        return participants;
+    }
+
+    /**
+     * @param participant to be added to the {@link #participants}
+     */
+    public void addParticipant(AbstractParticipant participant)
+    {
+        participants.add(participant);
+    }
+
     public static final String RESOURCE_ID = "resourceId";
     public static final String TECHNOLOGIES = "technologies";
     public static final String PARTICIPANT_COUNT = "participantCount";
     public static final String ROOM_SETTINGS = "roomSettings";
     public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
+    public static final String PARTICIPANTS = "participants";
 
     @Override
     public DataMap toData()
@@ -257,6 +279,7 @@ public class RoomSpecification extends Specification
         dataMap.set(PARTICIPANT_COUNT, participantCount);
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(ALIAS_SPECIFICATIONS, aliasSpecifications);
+        dataMap.set(PARTICIPANTS, participants);
         return dataMap;
     }
 
@@ -269,5 +292,6 @@ public class RoomSpecification extends Specification
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
+        participants = dataMap.getList(PARTICIPANTS, AbstractParticipant.class);
     }
 }

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
@@ -16,29 +17,29 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents {@link EndpointSpecification} as parameters for endpoint which will be lookup.
+ * Represents {@link EndpointParticipant} as parameters for endpoint which will be lookup.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class LookupEndpointSpecification extends EndpointSpecification implements ReservationTaskProvider
+public class LookupEndpointParticipant extends EndpointParticipant implements ReservationTaskProvider
 {
     /**
      * Constructor.
      */
-    public LookupEndpointSpecification()
+    public LookupEndpointParticipant()
     {
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(AbstractParticipant participant)
     {
-        LookupEndpointSpecification lookupEndpointSpecification = (LookupEndpointSpecification) specification;
+        LookupEndpointParticipant lookupEndpointParticipant = (LookupEndpointParticipant) participant;
 
-        boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectHelper.isSame(getTechnologies(), lookupEndpointSpecification.getTechnologies());
+        boolean modified = super.synchronizeFrom(participant);
+        modified |= !ObjectHelper.isSame(getTechnologies(), lookupEndpointParticipant.getTechnologies());
 
-        setTechnologies(lookupEndpointSpecification.getTechnologies());
+        setTechnologies(lookupEndpointParticipant.getTechnologies());
 
         return modified;
     }
@@ -92,35 +93,35 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
-    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    protected cz.cesnet.shongo.controller.api.AbstractParticipant createApi()
     {
-        return new cz.cesnet.shongo.controller.api.LookupEndpointSpecification();
+        return new cz.cesnet.shongo.controller.api.LookupEndpointParticipant();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
+    public void toApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi)
     {
-        cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.LookupEndpointParticipant lookupEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.LookupEndpointParticipant) participantApi;
         Set<Technology> technologies = getTechnologies();
         if (technologies.size() == 1) {
-            lookupEndpointSpecificationApi.setTechnology(technologies.iterator().next());
+            lookupEndpointParticipantApi.setTechnology(technologies.iterator().next());
         }
         else {
             throw new TodoImplementException();
         }
-        super.toApi(specificationApi);
+        super.toApi(participantApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractParticipant participantApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
-                (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.LookupEndpointParticipant lookupEndpointParticipantApi =
+                (cz.cesnet.shongo.controller.api.LookupEndpointParticipant) participantApi;
 
         clearTechnologies();
-        addTechnology(lookupEndpointSpecificationApi.getTechnology());
+        addTechnology(lookupEndpointParticipantApi.getTechnology());
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(participantApi, entityManager);
     }
 }

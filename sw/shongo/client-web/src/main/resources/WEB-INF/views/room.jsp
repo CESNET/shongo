@@ -8,6 +8,11 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
+<c:if test="${room.state == 'STOPPED'}">
+    <c:set var="isWritable" value="false"/>
+</c:if>
+
 <tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
     <tag:param name="reservationRequestId" value="${reservationRequestId}"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -34,6 +39,7 @@
 
 <div ng-app="jsp:room">
 
+    <%-- Detail of room --%>
     <dl class="dl-horizontal">
 
         <dt><spring:message code="views.room.technology"/>:</dt>
@@ -103,6 +109,42 @@
 
     </dl>
 
+    <%-- Allowed Participants --%>
+    <h2><spring:message code="views.room.participants"/></h2>
+    <p><spring:message code="views.room.participants.help"/></p>
+    <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_DELETE %>">
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:participantList isWritable="${isWritable}" data="${room.participants}" description="${not empty room.usageId}"
+                         modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
+                         urlParam="roomId" urlValue="roomId"/>
+    <c:if test="${isWritable}">
+        <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+            <tag:param name="roomId" value="${room.id}"/>
+            <tag:param name="back-url" value="${requestUrl}"/>
+        </tag:url>
+        <a class="btn btn-primary" href="${participantCreateUrl}">
+            <spring:message code="views.button.add"/>
+            <c:if test="${not empty room.usageId}">
+                (<spring:message code="views.room.participants.addRoom"/>)
+            </c:if>
+        </a>
+        <c:if test="${not empty room.usageId}">
+            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+                <tag:param name="roomId" value="${room.usageId}"/>
+                <tag:param name="back-url" value="${requestUrl}"/>
+            </tag:url>
+            <a class="btn btn-primary" href="${participantCreateUrl}">
+                <spring:message code="views.button.add"/>
+                (<spring:message code="views.room.participants.addUsage"/>)
+            </a>
+        </c:if>
+    </c:if>
+
+    <%-- Runtime management - Not-Available --%>
     <c:if test="${roomNotAvailable}">
         <tag:url value="<%= ClientWebUrl.REPORT %>" var="reportUrl">
             <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -114,13 +156,15 @@
         </div>
     </c:if>
 
+    <%-- Runtime management - Current Participants --%>
     <c:if test="${roomParticipants != null}">
-        <h2><spring:message code="views.room.participants"/></h2>
+        <h2><spring:message code="views.room.currentParticipants"/></h2>
+        <p><spring:message code="views.room.currentParticipants.help"/></p>
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.room.participant.name"/></th>
-                <th><spring:message code="views.room.participant.email"/></th>
+                <th><spring:message code="views.room.currentParticipant.name"/></th>
+                <th><spring:message code="views.room.currentParticipant.email"/></th>
             </tr>
             </thead>
             <tbody>
@@ -141,8 +185,7 @@
         </table>
     </c:if>
 
-    <security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
-
+    <%-- Runtime management - Recordings --%>
     <c:if test="${roomRecordings != null}">
         <h2><spring:message code="views.room.recordings"/></h2>
         <table class="table table-striped table-hover">
@@ -211,7 +254,7 @@
     <c:if test="${room.state.started && room.licenseCount == 0}">
         <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
             <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
-            <tag:param name="permanentRoom" value="${room.reservationRequestId}"/>
+            <tag:param name="permanentRoom" value="${room.id}"/>
             <tag:param name="back-url" value="${requestScope.requestUrl}"/>
         </tag:url>
         <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">

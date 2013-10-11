@@ -46,7 +46,7 @@ public class Synchronization
     }
 
     public static <T extends PersistentObject, A extends IdentifiedComplexType>
-    void synchronizeCollection(Collection<T> objects, Collection<A> apiObjects, Handler<T, A> handler)
+    boolean synchronizeCollection(Collection<T> objects, Collection<A> apiObjects, Handler<T, A> handler)
     {
         Map<Long, T> existingObjects = new HashMap<Long, T>();
         for (T existingObject : objects) {
@@ -58,21 +58,21 @@ public class Synchronization
             if (apiObject.hasId()) {
                 Long objectId = apiObject.notNullIdAsLong();
                 object = existingObjects.get(objectId);
-                if (object == null) {
-                    ControllerReportSetHelper.throwEntityNotFoundFault(handler.getObjectClass(), objectId);
-                    return;
+                if (object != null) {
+                    handler.updateFromApi(object, apiObject);
                 }
-                handler.updateFromApi(object, apiObject);
+
             }
             if (object == null) {
                 object = handler.createFromApi(apiObject);
             }
             handler.addToCollection(objects, object);
         }
+        return true;
     }
 
     public static <T extends PersistentObject>
-    void synchronizeCollectionPartial(Collection<T> objects, Collection<Object> apiObjects, Handler<T, Object> handler)
+    boolean synchronizeCollectionPartial(Collection<T> objects, Collection<Object> apiObjects, Handler<T, Object> handler)
     {
         Map<Long, T> existingObjects = new HashMap<Long, T>();
         for (T existingObject : objects) {
@@ -88,7 +88,7 @@ public class Synchronization
                     object = existingObjects.get(objectId);
                     if (object == null) {
                         ControllerReportSetHelper.throwEntityNotFoundFault(handler.getObjectClass(), objectId);
-                        return;
+                        return false;
                     }
                     handler.updateFromApi(object, apiObject);
                 }
@@ -98,5 +98,6 @@ public class Synchronization
             }
             handler.addToCollection(objects, object);
         }
+        return true;
     }
 }

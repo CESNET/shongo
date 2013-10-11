@@ -20,10 +20,37 @@ import java.util.regex.Pattern;
 public class CommonModel
 {
     /**
+     * Prefix for new unique identifiers.
+     */
+    private static final String NEW_ID_PREFIX = "new-";
+
+    /**
      * Email pattern.
      */
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+
+    /**
+     * Last auto-generated identifier index.
+     */
+    private static int lastGeneratedId = 0;
+
+    /**
+     * @param id to be checked
+     * @return true whether given {@code id} is auto-generated, false otherwise
+     */
+    public synchronized static boolean isNewId(String id)
+    {
+        return id.startsWith(NEW_ID_PREFIX);
+    }
+
+    /**
+     * @return new auto-generated identifier
+     */
+    public synchronized static String getNewId()
+    {
+        return NEW_ID_PREFIX + String.valueOf(++lastGeneratedId);
+    }
 
     /**
      * Validate email address.

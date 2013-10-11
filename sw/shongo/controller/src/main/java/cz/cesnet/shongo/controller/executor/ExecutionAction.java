@@ -134,12 +134,14 @@ public abstract class ExecutionAction extends Thread
     }
 
     /**
+     *
      * @param entityManager
-     * @param executionResult to be filled
-     * @return true whether this action succeeds,
+     * @param referenceDateTime
+     *@param executionResult to be filled  @return true whether this action succeeds,
      *         false otherwise
      */
-    public abstract boolean finish(EntityManager entityManager, ExecutionResult executionResult);
+    public abstract boolean finish(EntityManager entityManager, DateTime referenceDateTime,
+            ExecutionResult executionResult);
 
     @Override
     public abstract String toString();
@@ -239,7 +241,8 @@ public abstract class ExecutionAction extends Thread
         }
 
         @Override
-        public final boolean finish(EntityManager entityManager, ExecutionResult executionResult)
+        public final boolean finish(EntityManager entityManager, DateTime referenceDateTime,
+                ExecutionResult executionResult)
         {
             entityManager.refresh(executable);
             if (executable.getState().equals(Executable.State.SKIPPED)) {
@@ -259,7 +262,7 @@ public abstract class ExecutionAction extends Thread
                 if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
                     Executor executor = getExecutor();
                     if (executable.getAttemptCount() < executor.getMaxAttemptCount()) {
-                        executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
+                        executable.setNextAttempt(referenceDateTime.plus(executor.getNextAttempt()));
                     }
                 }
                 return false;
@@ -375,7 +378,12 @@ public abstract class ExecutionAction extends Thread
         protected boolean performFinish(ExecutionResult executionResult)
         {
             if (!executable.getState().isModified()) {
-                executionResult.addUpdatedExecutable(executable);
+                if (executable.getState().equals(Executable.State.SKIPPED)) {
+                    executable.setState(Executable.State.STARTED);
+                }
+                else {
+                    executionResult.addUpdatedExecutable(executable);
+                }
                 return true;
             }
             else {
@@ -516,7 +524,7 @@ public abstract class ExecutionAction extends Thread
         }
 
         @Override
-        public boolean finish(EntityManager entityManager, ExecutionResult executionResult)
+        public boolean finish(EntityManager entityManager, DateTime referenceDateTime, ExecutionResult executionResult)
         {
             return true;
         }

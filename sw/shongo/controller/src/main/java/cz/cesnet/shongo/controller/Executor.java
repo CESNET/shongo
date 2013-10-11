@@ -224,7 +224,7 @@ public class Executor extends Component
                 // Finish execution plan
                 entityManager.getTransaction().begin();
 
-                ExecutionResult executionResult = executionPlan.finish(entityManager);
+                ExecutionResult executionResult = executionPlan.finish(entityManager, dateTime);
 
                 entityManager.getTransaction().commit();
 

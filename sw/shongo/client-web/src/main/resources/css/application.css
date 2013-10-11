@@ -144,6 +144,19 @@ form .controls .description {
 form .radio {
     padding-top: 0px !important;
 }
+form input[type="radio"], form input[type="checkbox"] {
+    line-height: normal;
+    margin-top: 0px;
+}
+form .control-label input[type="radio"], form .control-label input[type="checkbox"] {
+    height: 20px;
+}
+form .controls input[type="radio"], form .controls input[type="checkbox"] {
+    height: 30px;
+}
+form .controls label {
+    line-height: 30px;
+}
 /* Form - double width input */
 form .double-width input {
     width: 336px;
@@ -652,6 +665,7 @@ div.not-available {
 .jspReservationRequestDetailHistory {
     display: inline-block;
     margin-left: 25px;
+    margin-bottom: 10px;
 }
 @media (min-width: 1020px) {
     .jspReservationRequestDetailHistory {

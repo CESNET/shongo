@@ -6,7 +6,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="submitUrl" value="/error"/>
+<tag:url var="submitUrl" value="/error/submit"/>
 
 <div class="jspError">
 

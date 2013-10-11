@@ -123,7 +123,8 @@ public class Report
         }
 
         for (ReportMessage message : report.getMessage()) {
-            message.setValue(Formatter.formatString(message.getValue()));
+            String value = message.getValue();
+            message.setValue(Formatter.formatString(value));
         }
     }
 

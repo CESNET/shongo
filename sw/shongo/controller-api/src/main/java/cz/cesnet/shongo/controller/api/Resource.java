@@ -56,7 +56,7 @@ public class Resource extends IdentifiedComplexType
      * List of persons that are notified when the {@link Resource} is allocated or when are
      * encountered any technical issues.
      */
-    private List<Person> administrators = new LinkedList<Person>();
+    private List<AbstractPerson> administrators = new LinkedList<AbstractPerson>();
 
     /**
      * Child resources shongo-ids.
@@ -191,7 +191,7 @@ public class Resource extends IdentifiedComplexType
     /**
      * @return {@link #administrators}
      */
-    public List<Person> getAdministrators()
+    public List<AbstractPerson> getAdministrators()
     {
         return administrators;
     }
@@ -199,7 +199,7 @@ public class Resource extends IdentifiedComplexType
     /**
      * @param person to be added to the {@link #administrators}
      */
-    public void addAdministrator(Person person)
+    public void addAdministrator(AbstractPerson person)
     {
         administrators.add(person);
     }
@@ -207,7 +207,7 @@ public class Resource extends IdentifiedComplexType
     /**
      * @param person to be removed from the {@link #administrators}
      */
-    public void removeAdministrator(Person person)
+    public void removeAdministrator(AbstractPerson person)
     {
         administrators.remove(person);
     }
@@ -275,7 +275,7 @@ public class Resource extends IdentifiedComplexType
         capabilities = dataMap.getList(CAPABILITIES, Capability.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
-        administrators = dataMap.getList(ADMINISTRATORS, Person.class);
+        administrators = dataMap.getList(ADMINISTRATORS, AbstractPerson.class);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
     }
 }

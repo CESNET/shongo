@@ -9,15 +9,15 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 /**
- * {@link Person} represents by a user-id.
+ * {@link AbstractPerson} that represents a shongo-user who is defined by the shongo-user-id.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class UserPerson extends Person
+public class UserPerson extends AbstractPerson
 {
     /**
-     * User-id of the {@link cz.cesnet.shongo.controller.common.UserPerson}.
+     * Shongo-user-id of the shongo-user.
      */
     private String userId;
 
@@ -111,7 +111,7 @@ public class UserPerson extends Person
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Person toApi()
+    public cz.cesnet.shongo.controller.api.AbstractPerson toApi()
     {
         cz.cesnet.shongo.controller.api.UserPerson person = new cz.cesnet.shongo.controller.api.UserPerson();
         person.setId(getId());
@@ -120,7 +120,7 @@ public class UserPerson extends Person
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Person api)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractPerson api)
     {
         cz.cesnet.shongo.controller.api.UserPerson userPersonApi = (cz.cesnet.shongo.controller.api.UserPerson) api;
         setUserId(userPersonApi.getUserId());
@@ -128,7 +128,7 @@ public class UserPerson extends Person
 
     @Override
     @Transient
-    public PersonInformation getInformation()
+    public UserInformation getInformation()
     {
         if (userInformation == null) {
             userInformation = Authorization.getInstance().getUserInformation(userId);

@@ -4,7 +4,8 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
+import cz.cesnet.shongo.controller.common.PersonParticipant;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.Interval;
@@ -433,25 +434,21 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param specification {@link Specification} which is searched
-     * @param personId      id for {@link Person} for which the search is performed
-     * @return {@link PersonSpecification} from given {@link Specification} that references {@link Person}
-     *         with given id if exists, null otherwise
+     * @param personId      id for {@link cz.cesnet.shongo.controller.common.AbstractPerson} for which the search is performed
+     * @return {@link InvitedPersonParticipant} from given {@link Specification} that references
+     *         {@link cz.cesnet.shongo.controller.common.AbstractPerson} with given id if exists, null otherwise
      */
-    private PersonSpecification getPersonSpecification(Specification specification, Long personId)
+    private InvitedPersonParticipant getInvitedPersonParticipant(Specification specification, Long personId)
             throws IllegalArgumentException
     {
-        if (specification instanceof PersonSpecification) {
-            PersonSpecification personSpecification = (PersonSpecification) specification;
-            if (personSpecification.getPerson().getId().equals(personId)) {
-                return personSpecification;
-            }
-        }
-        else if (specification instanceof CompartmentSpecification) {
+        if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
-            for (Specification childSpecification : compartmentSpecification.getChildSpecifications()) {
-                PersonSpecification personSpecification = getPersonSpecification(childSpecification, personId);
-                if (personSpecification != null) {
-                    return personSpecification;
+            for (AbstractParticipant participant : compartmentSpecification.getParticipants()) {
+                if (participant instanceof InvitedPersonParticipant) {
+                    InvitedPersonParticipant invitedPersonParticipant = (InvitedPersonParticipant) participant;
+                    if (invitedPersonParticipant.getPerson().getId().equals(personId)) {
+                        return (InvitedPersonParticipant) participant;
+                    }
                 }
             }
         }
@@ -460,57 +457,57 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequest {@link ReservationRequest} which is searched
-     * @param personId           id for {@link Person} for which the search is performed
-     * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link Person}
-     *         with given id
-     * @throws RuntimeException when {@link PersonSpecification} isn't found
+     * @param personId           id for {@link cz.cesnet.shongo.controller.common.AbstractPerson} for which the search is performed
+     * @return {@link PersonParticipant} from given {@link ReservationRequest} that references
+     *         {@link cz.cesnet.shongo.controller.common.AbstractPerson} with given id
+     * @throws RuntimeException when {@link PersonParticipant} isn't found
      */
-    private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
+    private InvitedPersonParticipant getInvitedPersonParticipant(ReservationRequest reservationRequest, Long personId)
     {
         Specification specification = reservationRequest.getSpecification();
-        PersonSpecification personSpecification = getPersonSpecification(specification, personId);
-        if (personSpecification == null) {
+        InvitedPersonParticipant invitedPersonParticipant = getInvitedPersonParticipant(specification, personId);
+        if (invitedPersonParticipant == null) {
             throw new RuntimeException(
                     String.format("Requested person '%d' doesn't exist in specification '%d'!",
                             personId, specification.getId()));
         }
-        return personSpecification;
+        return invitedPersonParticipant;
     }
 
     /**
-     * Accept the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     * Accept the invitation for specified {@link cz.cesnet.shongo.controller.common.AbstractPerson} to participate in the specified {@link ReservationRequest}.
      *
      * @param reservationRequestId id for {@link ReservationRequest}
-     * @param personId             id for {@link Person}
-     * @throws RuntimeException when {@link Person} hasn't selected resource by he will connect to
+     * @param personId             id for {@link cz.cesnet.shongo.controller.common.AbstractPerson}
+     * @throws RuntimeException when {@link cz.cesnet.shongo.controller.common.AbstractPerson} hasn't selected resource by he will connect to
      *                          the video conference yet
      */
-    public void acceptPersonRequest(Long reservationRequestId, Long personId)
+    public void acceptInvitedPersonParticipant(Long reservationRequestId, Long personId)
     {
         ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
-        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
-        if (personSpecification.getEndpointSpecification() == null) {
+        InvitedPersonParticipant invitedPersonParticipant = getInvitedPersonParticipant(reservationRequest, personId);
+        if (invitedPersonParticipant.getEndpointParticipant() == null) {
             throw new RuntimeException(
                     String.format("Cannot accept person '%d' to compartment request '%d' because person hasn't "
                             + "selected the device be which he will connect to the compartment yet!",
                             personId, reservationRequestId));
         }
-        personSpecification.setInvitationState(PersonSpecification.InvitationState.ACCEPTED);
+        invitedPersonParticipant.setInvitationState(InvitedPersonParticipant.InvitationState.ACCEPTED);
         reservationRequest.updateStateBySpecification();
         update(reservationRequest);
     }
 
     /**
-     * Reject the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     * Reject the invitation for specified {@link cz.cesnet.shongo.controller.common.AbstractPerson} to participate in the specified {@link ReservationRequest}.
      *
      * @param reservationRequestId id for {@link ReservationRequest}
-     * @param personId             id for {@link Person}
+     * @param personId             id for {@link cz.cesnet.shongo.controller.common.AbstractPerson}
      */
-    public void rejectPersonRequest(Long reservationRequestId, Long personId)
+    public void rejectInvitedPersonParticipant(Long reservationRequestId, Long personId)
     {
         ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
-        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
-        personSpecification.setInvitationState(PersonSpecification.InvitationState.REJECTED);
+        InvitedPersonParticipant invitedPersonParticipant = getInvitedPersonParticipant(reservationRequest, personId);
+        invitedPersonParticipant.setInvitationState(InvitedPersonParticipant.InvitationState.REJECTED);
         reservationRequest.updateStateBySpecification();
         update(reservationRequest);
     }
@@ -518,20 +515,20 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId
      * @param personId
-     * @param endpointSpecification
+     * @param endpointParticipant
      */
-    public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
-            EndpointSpecification endpointSpecification)
+    public void selectEndpointForInvitedPersonParticipant(Long reservationRequestId, Long personId,
+            EndpointParticipant endpointParticipant)
     {
         ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
-        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
+        InvitedPersonParticipant invitedPersonParticipant = getInvitedPersonParticipant(reservationRequest, personId);
 
         CompartmentSpecification compartmentSpecification =
                 (CompartmentSpecification) reservationRequest.getSpecification();
-        if (!compartmentSpecification.containsSpecification(endpointSpecification)) {
-            compartmentSpecification.addChildSpecification(endpointSpecification);
+        if (!compartmentSpecification.containsParticipant(endpointParticipant)) {
+            compartmentSpecification.addParticipant(endpointParticipant);
         }
-        personSpecification.setEndpointSpecification(endpointSpecification);
+        invitedPersonParticipant.setEndpointParticipant(endpointParticipant);
         update(reservationRequest);
     }
 

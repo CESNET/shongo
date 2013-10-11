@@ -65,8 +65,8 @@ public class SchedulerReportTest extends AbstractSchedulerTest
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.setCallInitiation(CallInitiation.VIRTUAL_ROOM);
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
+        compartmentSpecification.addParticipant(new ExternalEndpointParticipant(Technology.H323));
         print(Report.UserType.USER, compartmentSpecification);
     }
 

@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link Person} which is not known to Shongo.
+ * {@link AbstractPerson} which is not known to Shongo.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class OtherPerson extends Person
+public class AnonymousPerson extends AbstractPerson
 {
     /**
      * Name of the person.
@@ -27,7 +27,7 @@ public class OtherPerson extends Person
     /**
      * Constructor.
      */
-    public OtherPerson()
+    public AnonymousPerson()
     {
     }
 
@@ -37,7 +37,7 @@ public class OtherPerson extends Person
      * @param name  sets the {@link #name}
      * @param email sets the {@link #email}
      */
-    public OtherPerson(String name, String email)
+    public AnonymousPerson(String name, String email)
     {
         setName(name);
         setEmail(email);

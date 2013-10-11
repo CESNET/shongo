@@ -4,7 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.common.OtherPerson;
+import cz.cesnet.shongo.controller.common.AnonymousPerson;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -130,9 +130,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addSlot("2012-01-01", "PT1H");
         reservationRequestSet.addSlot("2012-01-02", "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
-        compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
+        compartmentSpecification.addParticipant(
+                new InvitedPersonParticipant(new AnonymousPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.setSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
@@ -152,12 +152,12 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 (CompartmentSpecification) reservationRequests.get(1).getSpecification();
         Assert.assertThat("External endpoint specifications in reservation requests created from single"
                 + " reservation request set should be different database instances.",
-                compartmentSpecification1.getParticipantSpecifications().get(0).getId(),
-                is(not(compartmentSpecification2.getParticipantSpecifications().get(0).getId())));
+                compartmentSpecification1.getParticipants().get(0).getId(),
+                is(not(compartmentSpecification2.getParticipants().get(0).getId())));
         Assert.assertThat("Person specifications in reservation requests created from single reservation request set"
                 + " should be different database instances.",
-                compartmentSpecification1.getParticipantSpecifications().get(1).getId(),
-                is(not(compartmentSpecification2.getParticipantSpecifications().get(1).getId())));
+                compartmentSpecification1.getParticipants().get(1).getId(),
+                is(not(compartmentSpecification2.getParticipants().get(1).getId())));
 
         entityManager.close();
     }

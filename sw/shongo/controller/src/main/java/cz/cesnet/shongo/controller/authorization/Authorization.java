@@ -29,7 +29,7 @@ public abstract class Authorization
     public static final String ROOT_USER_ID = "0";
 
     /**
-     * Root user {@link cz.cesnet.shongo.controller.common.Person}.
+     * Root shongo-user.
      */
     public static final UserInformation ROOT_USER_INFORMATION;
 

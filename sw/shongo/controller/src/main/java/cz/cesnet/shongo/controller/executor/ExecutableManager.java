@@ -273,10 +273,10 @@ public class ExecutableManager extends AbstractManager
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
                         + " WHERE room.roomEndpoint = :roomEndpoint"
-                        + " AND room.state = :stateStarted",
+                        + " AND room.state IN(:stateStarted)",
                 UsedRoomEndpoint.class)
                 .setParameter("roomEndpoint", resourceRoomEndpoint)
-                .setParameter("stateStarted", Executable.State.STARTED)
+                .setParameter("stateStarted", EnumSet.of(Executable.State.STARTED, Executable.State.MODIFIED))
                 .getResultList();
         if (usedRoomEndpoints.size() == 0) {
             return null;

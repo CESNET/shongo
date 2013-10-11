@@ -64,9 +64,9 @@ bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
             restrictedToResource: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
-            { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
-            { class: 'OtherPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
+            { class: 'AnonymousPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
+            { class: 'AnonymousPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
+            { class: 'AnonymousPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
         ]
     }
 
@@ -118,9 +118,9 @@ bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
-            { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
-            { class: 'OtherPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
+            { class: 'AnonymousPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
+            { class: 'AnonymousPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
+            { class: 'AnonymousPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
         ]
     }
 

@@ -39,23 +39,23 @@
                 ${tableHead}
             <tbody>
             <c:forEach items="${data}" var="userRole">
-                <tag:url var="aclDeleteUrl" value="${deleteUrl}">
-                    <tag:param name="aclRecordId" value="${userRole.id}"/>
+                <tag:url var="userRoleDeleteUrl" value="${deleteUrl}">
+                    <tag:param name="roleId" value="${userRole.id}"/>
                 </tag:url>
                 <tr>
                     <td>${userRole.user.fullName} (${userRole.user.originalId})</td>
                     <td><spring:message code="views.aclRecord.role.${userRole.role}"/></td>
                     <td>${userRole.user.primaryEmail}</td>
-                    <c:if test="${isWritable && not empty aclDeleteUrl}">
+                    <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>
                             <c:if test="${not empty userRole.id && userRole.deletable}">
-                                <tag:listAction code="delete" url="${aclDeleteUrl}" tabindex="2"/>
+                                <tag:listAction code="delete" url="${userRoleDeleteUrl}" tabindex="2"/>
                             </c:if>
                         </td>
                     </c:if>
                 </tr>
             </c:forEach>
-            <c:if test="data.isEmpty()">
+            <c:if test="${empty data}">
                 <tr>${tableEmptyRow}</tr>
             </c:if>
             </tbody>
@@ -69,8 +69,8 @@
 
     <%-- Dynamic list of user roles --%>
     <c:when test="${dataUrl != null}">
-        <tag:url var="aclDeleteUrl" value="${deleteUrl}">
-            <tag:param name="aclRecordId" value="{{userRole.id}}" escape="false"/>
+        <tag:url var="userRoleDeleteUrl" value="${deleteUrl}">
+            <tag:param name="roleId" value="{{userRole.id}}" escape="false"/>
         </tag:url>
         <div ng-controller="PaginationController"
              ng-init="init('userRoles', '${dataUrl}', {${dataUrlParameters}})">
@@ -88,10 +88,10 @@
                     <td>{{userRole.user.fullName}} ({{userRole.user.originalId}})</td>
                     <td>{{userRole.role}}</td>
                     <td>{{userRole.user.primaryEmail}}</td>
-                    <c:if test="${isWritable && not empty aclDeleteUrl}">
+                    <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>
                             <span ng-show="userRole.deletable">
-                                <tag:listAction code="delete" url="${aclDeleteUrl}" tabindex="2"/>
+                                <tag:listAction code="delete" url="${userRoleDeleteUrl}" tabindex="2"/>
                             </span>
                         </td>
                     </c:if>

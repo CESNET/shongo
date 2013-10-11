@@ -1,5 +1,5 @@
 <%--
-  -- Wizard page for managing user roles for a new room.
+  -- Wizard page for setting of user role attributes.
   --%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -10,7 +10,7 @@
 <tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLES %>"/>
 
 <script type="text/javascript">
-    angular.module('jsp:wizardCreateRoomRole', ['ngTooltip']);
+    angular.module('jsp:wizardCreateRoomRole', ['tag:userRoleForm']);
 </script>
 
 <div ng-app="jsp:wizardCreateRoomRole">

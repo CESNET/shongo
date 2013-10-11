@@ -166,17 +166,17 @@
     <%-- User roles --%>
     <hr/>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
-    <tag:url var="aclUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL %>">
+    <tag:url var="aclUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLES %>">
         <tag:param name="reservationRequestId" value=":id"/>
     </tag:url>
-    <tag:url var="aclCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE %>">
+    <tag:url var="aclCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE %>">
         <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
     </tag:url>
-    <tag:url var="aclDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE %>">
+    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLE_DELETE %>">
         <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
     </tag:url>
     <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
-                      isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${aclDeleteUrl}"/>
+                      isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${participantDeleteUrl}"/>
 
     <c:if test="${isActive}">
 

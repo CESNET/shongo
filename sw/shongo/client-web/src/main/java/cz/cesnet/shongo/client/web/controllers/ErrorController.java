@@ -97,7 +97,7 @@ public class ErrorController
     /**
      * Handle error view.
      */
-    @RequestMapping(value = "/error", method = {RequestMethod.GET})
+    @RequestMapping(value = "/error")
     public ModelAndView handleError(HttpServletRequest request, HttpServletResponse response)
     {
         response.setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -129,7 +129,7 @@ public class ErrorController
     /**
      * Handle error report problem.
      */
-    @RequestMapping(value = "/error", method = {RequestMethod.POST})
+    @RequestMapping(value = "/error/submit", method = {RequestMethod.POST})
     public ModelAndView handleErrorReportSubmit(
             HttpServletRequest request,
             SessionStatus sessionStatus,

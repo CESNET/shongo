@@ -444,7 +444,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("typeName", typeName);
+            parameters.put("type", typeName);
             parameters.put("value", value);
             return parameters;
         }
@@ -589,7 +589,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             return parameters;
         }
 
@@ -726,7 +726,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             return parameters;
         }
 
@@ -878,7 +878,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             parameters.put("attribute", attribute);
             return parameters;
         }
@@ -1068,7 +1068,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             parameters.put("attribute", attribute);
             parameters.put("requiredType", requiredType);
             parameters.put("presentType", presentType);
@@ -1244,7 +1244,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             parameters.put("attribute", attribute);
             return parameters;
         }
@@ -1404,7 +1404,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             parameters.put("attribute", attribute);
             return parameters;
         }
@@ -1564,7 +1564,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("className", className);
+            parameters.put("class", className);
             parameters.put("collection", collection);
             return parameters;
         }

@@ -25,6 +25,7 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int RESERVATION_REQUEST_DELETED = 113;
     public static final int RESERVATION_REQUEST_EMPTY_DURATION = 114;
     public static final int RESERVATION_REQUEST_NOT_REUSABLE = 115;
+    public static final int EXECUTABLE_INVALID_CONFIGURATION = 116;
 
     /**
      * Set of report messages.
@@ -46,6 +47,7 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage("reservation-request-deleted", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} is deleted.");
         addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
         addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
+        addMessage("executable-invalid-configuration", new Report.UserType[]{}, Report.Language.ENGLISH, "Configuration ${configuration} is invalid for executable with identifier ${id}.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
@@ -2312,6 +2314,166 @@ public class ControllerReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Configuration {@link #configuration} is invalid for executable with identifier {@link #id}.
+     */
+    public static class ExecutableInvalidConfigurationReport extends AbstractReport implements ApiFault
+    {
+        protected String id;
+
+        protected String configuration;
+
+        public ExecutableInvalidConfigurationReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-invalid-configuration";
+        }
+
+        public ExecutableInvalidConfigurationReport(String id, String configuration)
+        {
+            setId(id);
+            setConfiguration(configuration);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        public String getConfiguration()
+        {
+            return configuration;
+        }
+
+        public void setConfiguration(String configuration)
+        {
+            this.configuration = configuration;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return EXECUTABLE_INVALID_CONFIGURATION;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ExecutableInvalidConfigurationException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+            configuration = (String) reportSerializer.getParameter("configuration", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+            reportSerializer.setParameter("configuration", configuration);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            parameters.put("configuration", configuration);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("executable-invalid-configuration", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ExecutableInvalidConfigurationReport}.
+     */
+    public static class ExecutableInvalidConfigurationException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ExecutableInvalidConfigurationException(ExecutableInvalidConfigurationReport report)
+        {
+            this.report = report;
+        }
+
+        public ExecutableInvalidConfigurationException(Throwable throwable, ExecutableInvalidConfigurationReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ExecutableInvalidConfigurationException(String id, String configuration)
+        {
+            ExecutableInvalidConfigurationReport report = new ExecutableInvalidConfigurationReport();
+            report.setId(id);
+            report.setConfiguration(configuration);
+            this.report = report;
+        }
+
+        public ExecutableInvalidConfigurationException(Throwable throwable, String id, String configuration)
+        {
+            super(throwable);
+            ExecutableInvalidConfigurationReport report = new ExecutableInvalidConfigurationReport();
+            report.setId(id);
+            report.setConfiguration(configuration);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        public String getConfiguration()
+        {
+            return getReport().getConfiguration();
+        }
+
+        @Override
+        public ExecutableInvalidConfigurationReport getReport()
+        {
+            return (ExecutableInvalidConfigurationReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ExecutableInvalidConfigurationReport) report;
+        }
+    }
+
     @Override
     protected void fillReportClasses()
     {
@@ -2331,5 +2493,6 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(ReservationRequestDeletedReport.class);
         addReportClass(ReservationRequestEmptyDurationReport.class);
         addReportClass(ReservationRequestNotReusableReport.class);
+        addReportClass(ExecutableInvalidConfigurationReport.class);
     }
 }

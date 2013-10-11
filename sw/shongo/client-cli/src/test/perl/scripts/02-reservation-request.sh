@@ -53,8 +53,8 @@ bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
         slot: '`date +"%Y-%m-%d"`T12:00/`date +"%Y-%m-%d"`T13:00',
         specification: {
             class: 'CompartmentSpecification',
-            participantSpecifications: [{
-                class: 'ExternalEndpointSetSpecification',
+            participants: [{
+                class: 'ExternalEndpointSetParticipant',
                 technologies: ['H323'],
                 count: 3
             }]

@@ -5,9 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a {@link Specification} for an {@link Alias}.
@@ -31,7 +29,6 @@ public class AliasSpecification extends Specification
      */
     private String value;
 
-
     /**
      * {@link Resource} with {@link AliasProviderCapability} from which the {@link Alias} should be allocated.
      */
@@ -41,6 +38,11 @@ public class AliasSpecification extends Specification
      * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link RoomExecutable}).
      */
     private boolean permanentRoom = false;
+
+    /**
+     * Collection of {@link AbstractParticipant}s for the permanent room.
+     */
+    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -232,11 +234,28 @@ public class AliasSpecification extends Specification
         this.permanentRoom = permanentRoom;
     }
 
+    /**
+     * @return {@link #permanentRoomParticipants}
+     */
+    public List<AbstractParticipant> getPermanentRoomParticipants()
+    {
+        return permanentRoomParticipants;
+    }
+
+    /**
+     * @param permanentRoomParticipant to be added to the {@link #permanentRoomParticipants}
+     */
+    public void addPermanentRoomParticipant(AbstractParticipant permanentRoomParticipant)
+    {
+        permanentRoomParticipants.add(permanentRoomParticipant);
+    }
+
     public static final String ALIAS_TYPES = "aliasTypes";
     public static final String TECHNOLOGIES = "technologies";
     public static final String VALUE = "value";
     public static final String RESOURCE_ID = "resourceId";
     public static final String PERMANENT_ROOM = "permanentRoom";
+    public static final String PERMANENT_ROOM_PARTICIPANTS = "permanentRoomParticipants";
 
     @Override
     public DataMap toData()
@@ -247,6 +266,7 @@ public class AliasSpecification extends Specification
         dataMap.set(VALUE, value);
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(PERMANENT_ROOM, permanentRoom);
+        dataMap.set(PERMANENT_ROOM_PARTICIPANTS, permanentRoomParticipants);
         return dataMap;
     }
 
@@ -259,5 +279,6 @@ public class AliasSpecification extends Specification
         value = dataMap.getString(VALUE);
         resourceId = dataMap.getString(RESOURCE_ID);
         permanentRoom = dataMap.getBool(PERMANENT_ROOM);
+        permanentRoomParticipants = dataMap.getList(PERMANENT_ROOM_PARTICIPANTS, AbstractParticipant.class);
     }
 }

@@ -106,7 +106,7 @@ sub list_executables()
     our $Type = ordered_hash(
         'ROOM' => 'Room',
         'USED_ROOM' => 'Used Room',
-        'Other' => 'Other'
+        'OTHER' => 'Other'
     );
     my $table = {
         'columns' => [

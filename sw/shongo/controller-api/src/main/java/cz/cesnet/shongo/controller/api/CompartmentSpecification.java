@@ -14,9 +14,9 @@ import java.util.List;
 public class CompartmentSpecification extends Specification
 {
     /**
-     * Collection of {@link Specification}s for the {@link CompartmentSpecification}.
+     * Collection of {@link AbstractParticipant}s for the {@link CompartmentSpecification}.
      */
-    private List<ParticipantSpecification> participantSpecifications = new LinkedList<ParticipantSpecification>();
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * {@link CallInitiation}
@@ -24,27 +24,27 @@ public class CompartmentSpecification extends Specification
     private CallInitiation callInitiation;
 
     /**
-     * @return {@link #participantSpecifications}
+     * @return {@link #participants}
      */
-    public List<ParticipantSpecification> getSpecifications()
+    public List<AbstractParticipant> getParticipants()
     {
-        return participantSpecifications;
+        return participants;
     }
 
     /**
-     * @param participantSpecifications {@link #participantSpecifications}
+     * @param participants sets the {@link #participants}
      */
-    public void setSpecifications(List<ParticipantSpecification> participantSpecifications)
+    public void setParticipants(List<AbstractParticipant> participants)
     {
-        participantSpecifications = participantSpecifications;
+        this.participants = participants;
     }
 
     /**
-     * @param participantSpecification to be added to the {@link #participantSpecifications}
+     * @param participant to be added to the {@link #participants}
      */
-    public void addSpecification(ParticipantSpecification participantSpecification)
+    public void addParticipant(AbstractParticipant participant)
     {
-        participantSpecifications.add(participantSpecification);
+        participants.add(participant);
     }
 
     /**
@@ -63,14 +63,14 @@ public class CompartmentSpecification extends Specification
         this.callInitiation = callInitiation;
     }
 
-    public static final String PARTICIPANT_SPECIFICATIONS = "participantSpecifications";
+    public static final String PARTICIPANTS = "participants";
     public static final String CALL_INITIATION = "callInitiation";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(PARTICIPANT_SPECIFICATIONS, participantSpecifications);
+        dataMap.set(PARTICIPANTS, participants);
         dataMap.set(CALL_INITIATION, callInitiation);
         return dataMap;
     }
@@ -79,7 +79,7 @@ public class CompartmentSpecification extends Specification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        participantSpecifications = dataMap.getListRequired(PARTICIPANT_SPECIFICATIONS, ParticipantSpecification.class);
+        participants = dataMap.getListRequired(PARTICIPANTS, AbstractParticipant.class);
         callInitiation = dataMap.getEnum(CALL_INITIATION, CallInitiation.class);
     }
 }

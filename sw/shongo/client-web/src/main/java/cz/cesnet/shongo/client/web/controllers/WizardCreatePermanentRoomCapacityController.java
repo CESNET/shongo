@@ -34,8 +34,11 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"reservationRequest", "permanentRooms"})
-public class WizardCreatePermanentRoomCapacityController extends AbstractWizardController
+@SessionAttributes({
+        WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE,
+        WizardParticipantsController.PARTICIPANT_ATTRIBUTE,
+        "permanentRooms"})
+public class WizardCreatePermanentRoomCapacityController extends WizardParticipantsController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardCreatePermanentRoomCapacityController.class);
 
@@ -52,19 +55,24 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
 
     private static enum Page
     {
-        CREATE_PERMANENT_ROOM_CAPACITY,
-        CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM,
+        CREATE,
+        CREATE_PARTICIPANTS,
+        CREATE_CONFIRM,
     }
 
     @Override
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
         wizardView.addPage(new WizardPage(
-                Page.CREATE_PERMANENT_ROOM_CAPACITY,
+                Page.CREATE,
                 ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY,
                 "views.wizard.page.createPermanentRoomCapacity"));
         wizardView.addPage(new WizardPage(
-                Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM,
+                Page.CREATE_PARTICIPANTS,
+                ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANTS,
+                "views.wizard.page.createRoom.participants"));
+        wizardView.addPage(new WizardPage(
+                Page.CREATE_CONFIRM,
                 ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM,
                 "views.wizard.page.createConfirm"));
     }
@@ -85,7 +93,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
      * Book capacity for existing permanent room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, method = RequestMethod.GET)
-    public ModelAndView handleCreatePermanentRoomCapacity(
+    public ModelAndView handleAttributes(
             SecurityToken securityToken,
             HttpSession httpSession,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
@@ -100,26 +108,14 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
 
         // Add reservation request model
         ReservationRequestModel reservationRequestModel =
-                (ReservationRequestModel) httpSession.getAttribute("reservationRequest");
+                (ReservationRequestModel) httpSession.getAttribute(RESERVATION_REQUEST_ATTRIBUTE);
         if (reservationRequestModel == null || FORCE_NEW.equals(force)) {
             reservationRequestModel = new ReservationRequestModel();
-            wizardView.addObject("reservationRequest", reservationRequestModel);
+            wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         }
         reservationRequestModel.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
         reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
 
-        return wizardView;
-    }
-
-    /**
-     * @return {@link WizardView} for reservation request form
-     */
-    private WizardView getCreatePermanentRoomCapacityView()
-    {
-        WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY, "wizardCreateAttributes.jsp");
-        wizardView.setNextPageUrl(WizardCreateController.SUBMIT_RESERVATION_REQUEST);
-        wizardView.addAction(WizardCreateController.SUBMIT_RESERVATION_REQUEST_FINISH,
-                "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
 
@@ -129,12 +125,12 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
      * @param reservationRequest to be validated
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, method = {RequestMethod.POST})
-    public Object handleCreatePermanentRoomCapacityProcess(
+    public Object handleAttributesProcess(
             UserSession userSession,
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             @RequestParam(value = "finish", required = false) boolean finish,
-            @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
         ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
@@ -147,8 +143,94 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             return handleCreateConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM;
+            return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
+    }
+
+    /**
+     * Manage participants for permanent room capacity.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANTS, method = RequestMethod.GET)
+    public ModelAndView handleParticipants(
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
+    {
+        WizardView wizardView = getWizardView(
+                Page.CREATE_PARTICIPANTS, "wizardCreateParticipants.jsp");
+        wizardView.addObject("createUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE);
+        wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY);
+        wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE);
+        return wizardView;
+    }
+
+    /**
+     * Show form for adding new participant for permanent room capacity.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.GET)
+    public ModelAndView handleParticipantCreate(
+            SecurityToken securityToken,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        return handleParticipantCreate(Page.CREATE_PARTICIPANTS, reservationRequest, securityToken);
+    }
+
+    /**
+     * Store new {@code participant} to given {@code reservationRequest}.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.POST)
+    public ModelAndView handleParticipantCreateProcess(
+            HttpSession httpSession,
+            @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
+            BindingResult bindingResult)
+    {
+        ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
+        if (reservationRequest.createParticipant(participant, bindingResult)) {
+            return handleParticipants(reservationRequest);
+        }
+        else {
+            return handleParticipantView(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+        }
+    }
+
+    /**
+     * Show form for modifying existing permanent room capacity.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.GET)
+    public ModelAndView handleParticipantModify(
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participantId);
+    }
+
+    /**
+     * Store changes for existing {@code participant} to given {@code reservationRequest}.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.POST)
+    public ModelAndView handleParticipantModifyProcess(
+            HttpSession httpSession,
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
+            BindingResult bindingResult)
+    {
+        ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
+            return handleParticipants(reservationRequest);
+        }
+        else {
+            return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+        }
+    }
+
+    /**
+     * Delete existing {@code participant} from given {@code reservationRequest}.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE, method = RequestMethod.GET)
+    public ModelAndView handleParticipantDelete(
+            @PathVariable("participantId") String participantId,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        reservationRequest.deleteParticipant(participantId);
+        return handleParticipants(reservationRequest);
     }
 
     /**
@@ -160,7 +242,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     public Object handleCreateConfirm(
             UserSession userSession,
             SecurityToken securityToken,
-            @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
         ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
@@ -170,7 +252,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             return getCreatePermanentRoomCapacityView();
         }
         reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
-        WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM, "wizardCreateConfirm.jsp");
+        WizardView wizardView = getWizardView(Page.CREATE_CONFIRM, "wizardCreateConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
         return wizardView;
     }
@@ -184,7 +266,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     public Object handleCreateConfirmed(
             SecurityToken securityToken,
             SessionStatus sessionStatus,
-            @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         // Create reservation request
         String reservationRequestId = reservationService.createReservationRequest(
@@ -213,5 +295,17 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     {
         logger.warn("Redirecting to " + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY + ".", exception);
         return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY;
+    }
+
+    /**
+     * @return {@link WizardView} for reservation request form
+     */
+    private WizardView getCreatePermanentRoomCapacityView()
+    {
+        WizardView wizardView = getWizardView(Page.CREATE, "wizardCreateAttributes.jsp");
+        wizardView.setNextPageUrl(WizardCreateController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(WizardCreateController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
+        return wizardView;
     }
 }

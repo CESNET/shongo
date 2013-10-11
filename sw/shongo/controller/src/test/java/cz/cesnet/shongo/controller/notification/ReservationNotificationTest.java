@@ -11,7 +11,6 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -85,7 +84,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
         mcu.setAllocatable(true);
-        mcu.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
@@ -141,7 +140,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withPermanentRoom());
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withPermanentRoom());
         aliasProvider.setAllocatable(true);
-        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -183,7 +182,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
-        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -228,7 +227,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        firstAliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        firstAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
@@ -238,7 +237,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
-        secondAliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        secondAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -276,7 +275,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        firstAliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        firstAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -314,7 +313,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
         aliasProvider.setMaximumFuture("P1M");
-        aliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();

@@ -32,7 +32,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setSpecification(new ResourceSpecification(terminalId));
         terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
         Reservation terminalReservation = checkAllocated(terminalReservationRequestId);
@@ -40,7 +40,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequest.setSpecification(new ResourceSpecification(terminalId));
         reservationRequest.setReusedReservationRequestId(terminalReservationRequestId);
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
@@ -77,7 +77,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
 
         ReservationRequest request = new ReservationRequest();
         request.setSlot("2012-01-01T14:00", "PT2H");
-        request.setSpecification(new ExistingEndpointSpecification(terminalId));
+        request.setSpecification(new ResourceSpecification(terminalId));
         request.setPurpose(ReservationRequestPurpose.SCIENCE);
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, request);
         runScheduler();
@@ -163,7 +163,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         compartmentReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         compartmentReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
         compartmentReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
 
@@ -189,7 +189,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-06-22T00:00", "PT15H");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setSpecification(new ResourceSpecification(terminalId));
         terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
         checkAllocated(terminalReservationRequestId);
@@ -197,7 +197,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequest.setSpecification(new ResourceSpecification(terminalId));
         reservationRequest.setReusedReservationRequestId(terminalReservationRequestId);
 
         allocateAndCheckFailed(reservationRequest);
@@ -216,7 +216,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setSpecification(new ResourceSpecification(terminalId));
         terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
         Reservation terminalReservation = checkAllocated(terminalReservationRequestId);
@@ -224,7 +224,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.addSlot("2012-01-01T14:00", "PT2H");
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.setSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequestSet.setSpecification(new ResourceSpecification(terminalId));
         reservationRequestSet.setReusedReservationRequestId(terminalReservationRequestId);
 
         Reservation reservation = allocateAndCheck(reservationRequestSet);
@@ -259,7 +259,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         compartmentReservationRequest.setSlot("2012-01-01T14:00", "PT2H");
         compartmentReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
         compartmentReservationRequest.setReusedReservationRequestId(roomReservationRequestId);
 

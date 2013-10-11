@@ -5,10 +5,11 @@ import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
-import cz.cesnet.shongo.controller.request.EndpointSpecification;
-import cz.cesnet.shongo.controller.request.PersonSpecification;
+import cz.cesnet.shongo.controller.request.EndpointParticipant;
+import cz.cesnet.shongo.controller.request.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -115,22 +116,22 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Add child {@link Specification}.
      *
-     * @param childSpecification
+     * @param participant
      * @throws SchedulerException
      */
-    public void addChildSpecification(Specification childSpecification) throws SchedulerException
+    public void addParticipant(AbstractParticipant participant) throws SchedulerException
     {
-        if (childSpecification instanceof ReservationTaskProvider) {
-            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) childSpecification;
+        if (participant instanceof ReservationTaskProvider) {
+            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) participant;
             addChildReservation(reservationTaskProvider);
         }
-        else if (childSpecification instanceof EndpointProvider) {
-            EndpointProvider endpointProvider = (EndpointProvider) childSpecification;
+        else if (participant instanceof EndpointProvider) {
+            EndpointProvider endpointProvider = (EndpointProvider) participant;
             addEndpoint(endpointProvider.getEndpoint());
         }
         else {
             throw new IllegalArgumentException(String.format("%s is not supported by the %s.",
-                    childSpecification.getClass().getSimpleName(), getClass().getSimpleName()));
+                    participant.getClass().getSimpleName(), getClass().getSimpleName()));
         }
     }
 
@@ -518,25 +519,25 @@ public class CompartmentReservationTask extends ReservationTask
         if (!schedulerContext.isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");
         }
-        Set<Specification> specifications = new HashSet<Specification>();
-        List<PersonSpecification> personSpecifications = new ArrayList<PersonSpecification>();
-        for (Specification specification : compartmentSpecification.getReadySpecifications()) {
-            if (specification instanceof PersonSpecification) {
-                personSpecifications.add((PersonSpecification) specification);
+        Set<AbstractParticipant> participants = new HashSet<AbstractParticipant>();
+        List<InvitedPersonParticipant> invitedPersonParticipants = new ArrayList<InvitedPersonParticipant>();
+        for (AbstractParticipant participant : compartmentSpecification.getReadyParticipants()) {
+            if (participant instanceof InvitedPersonParticipant) {
+                invitedPersonParticipants.add((InvitedPersonParticipant) participant);
             }
             else {
-                specifications.add(specification);
+                participants.add(participant);
             }
         }
-        for (PersonSpecification personSpecification : personSpecifications) {
-            EndpointSpecification endpointSpecification = personSpecification.getEndpointSpecification();
-            if (!specifications.contains(endpointSpecification)) {
-                specifications.add(endpointSpecification);
+        for (InvitedPersonParticipant invitedPersonParticipant : invitedPersonParticipants) {
+            EndpointParticipant endpointParticipant = invitedPersonParticipant.getEndpointParticipant();
+            if (!participants.contains(endpointParticipant)) {
+                participants.add(endpointParticipant);
             }
             // TODO: Add persons for allocated devices
         }
-        for (Specification specification : specifications) {
-            addChildSpecification(specification);
+        for (AbstractParticipant participant : participants) {
+            addParticipant(participant);
         }
 
         if (compartment.getTotalEndpointCount() <= 1) {
