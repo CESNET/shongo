@@ -1,21 +1,26 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
-import cz.cesnet.shongo.controller.common.AbstractParticipant;
-import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.common.*;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -143,7 +148,39 @@ public abstract class RoomEndpoint extends Endpoint
      * @return {@link cz.cesnet.shongo.api.Room} representing the current room for the {@link RoomEndpoint}
      */
     @Transient
-    public abstract Room getRoomApi();
+    public final Room getRoomApi()
+    {
+        Room roomApi = new Room();
+        fillRoomApi(roomApi);
+
+        // If roomApi doesn't contain any participant with ParticipantRole#ADMIN, fill the owners of this room
+        Authorization authorization = Authorization.getInstance();
+        if (!roomApi.hasParticipantWithRole(ParticipantRole.ADMIN)) {
+            for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
+                roomApi.addParticipant(executableOwner, ParticipantRole.ADMIN);
+            }
+        }
+
+        return roomApi;
+    }
+
+    /**
+     * @param roomApi to be filled
+     */
+    public void fillRoomApi(Room roomApi)
+    {
+        roomApi.setDescription(getRoomDescriptionApi());
+        for (AbstractParticipant participant : getParticipants()) {
+            if (participant instanceof PersonParticipant) {
+                PersonParticipant personParticipant = (PersonParticipant) participant;
+                AbstractPerson person = personParticipant.getPerson();
+                if (person instanceof UserPerson) {
+                    UserPerson userPerson = (UserPerson) person;
+                    roomApi.addParticipant(userPerson.getInformation(), personParticipant.getRole());
+                }
+            }
+        }
+    }
 
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
@@ -161,7 +198,7 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     @Override
-    public void updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
+    public boolean updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
             final EntityManager entityManager)
             throws ControllerReportSet.ExecutableInvalidConfigurationException
     {
@@ -169,7 +206,7 @@ public abstract class RoomEndpoint extends Endpoint
             RoomExecutableParticipantConfiguration participantConfiguration =
                     (RoomExecutableParticipantConfiguration) executableConfiguration;
 
-            Synchronization.synchronizeCollection(participants, participantConfiguration.getParticipants(),
+            return Synchronization.synchronizeCollection(participants, participantConfiguration.getParticipants(),
                     new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
                             AbstractParticipant.class)
                     {
@@ -188,7 +225,7 @@ public abstract class RoomEndpoint extends Endpoint
                     });
         }
         else {
-            super.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
+            return super.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
         }
     }
 

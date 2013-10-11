@@ -222,25 +222,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    @Transient
-    public Room getRoomApi()
+    public void fillRoomApi(Room roomApi)
     {
-        Room roomApi = new Room();
+        super.fillRoomApi(roomApi);
+
         roomApi.setId(roomId);
         roomApi.setTechnologies(getTechnologies());
         roomApi.setLicenseCount(getLicenseCount());
-        roomApi.setDescription(getRoomDescriptionApi());
         for (RoomSetting roomSetting : getRoomSettings()) {
             roomApi.addRoomSetting(roomSetting.toApi());
         }
         for (Alias alias : getAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        Authorization authorization = Authorization.getInstance();
-        for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
-            roomApi.addParticipant(executableOwner);
-        }
-        return roomApi;
     }
 
     @Override
@@ -312,9 +306,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        Room roomApi;
         UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
+        Room roomApi;
         if (usedRoomEndpoint != null) {
+            if (usedRoomEndpoint.getState().equals(State.MODIFIED)) {
+                // Used room will be automatically modified
+                return State.SKIPPED;
+            }
             roomApi = usedRoomEndpoint.getRoomApi();
         }
         else {

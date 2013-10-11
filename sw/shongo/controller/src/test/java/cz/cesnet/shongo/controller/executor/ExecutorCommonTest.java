@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -569,7 +570,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
                 new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
-        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        aliasReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String aliasReservationRequestId = allocate(SECURITY_TOKEN_USER1, aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         Assert.assertEquals("Alias should not be allocated from the fake connect server.",
@@ -689,5 +690,84 @@ public class ExecutorCommonTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
+    }
+
+    /**
+     * Execute permanent room and then it's capacity and also stop it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPermanentRoomWithCapacity() throws Exception
+    {
+        McuTestAgent connectAgent = getController().addJadeAgent("connect", new McuTestAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period capacityDuration = Period.parse("PT1H");
+
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connect");
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10));
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
+        connectServer.setAllocatable(true);
+        connectServer.setMode(new ManagedMode(connectAgent.getName()));
+        getResourceService().createResource(SECURITY_TOKEN_USER1, connectServer);
+
+        ReservationRequest permanentRoomRequest = new ReservationRequest();
+        permanentRoomRequest.setSlot(dateTime.minusDays(1), dateTime.plusDays(1));
+        permanentRoomRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
+        permanentRoomRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String permanentRoomRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomRequest);
+        checkAllocated(permanentRoomRequestId);
+
+        ReservationRequest capacityRequest = new ReservationRequest();
+        capacityRequest.setSlot(dateTime, capacityDuration);
+        capacityRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        capacityRequest.setReusedReservationRequestId(permanentRoomRequestId);
+        String capacityRequestId = allocate(capacityRequest);
+        checkAllocated(capacityRequestId);
+
+        // Start permanent room
+        ExecutionResult result = runExecutor(dateTime.minusDays(1));
+        Assert.assertEquals("Two executable should be started.", 1, result.getStartedExecutables().size());
+        Assert.assertEquals("The started executable should be permanent room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+
+        // Start capacity
+        connectAgent.setDisabled(true);
+        result = runExecutor(dateTime);
+        Assert.assertEquals("None executable should be started.", 0, result.getStartedExecutables().size());
+        connectAgent.setDisabled(false);
+        result = runExecutor(dateTime.plusHours(1));
+        Assert.assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        Assert.assertEquals("The started executable should be capacity.",
+                UsedRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+
+        // Stop capacity
+        result = runExecutor(dateTime.plus(capacityDuration));
+        Assert.assertEquals("One executables should be stopped.", 1, result.getStoppedExecutables().size());
+        Assert.assertEquals("The stopped executable should be capacity.",
+                UsedRoomEndpoint.class, result.getStoppedExecutables().get(0).getClass());
+
+        // Stop permanent room
+        result = runExecutor(dateTime.plusDays(1));
+        Assert.assertEquals("One executables should be stopped.", 1, result.getStoppedExecutables().size());
+        Assert.assertEquals("The stopped executable should be permanent room.",
+                ResourceRoomEndpoint.class, result.getStoppedExecutables().get(0).getClass());
+
+        // Check performed actions on connector agents
+        List<Class<? extends Command>> performedCommandClasses = connectAgent.getPerformedCommandClasses();
+        Assert.assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, performedCommandClasses);
     }
 }

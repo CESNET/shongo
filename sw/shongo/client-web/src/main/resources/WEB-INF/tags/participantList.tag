@@ -63,6 +63,9 @@
                             </c:if>
                             <c:if test="${not empty participant.id && not empty deleteUrl}">
                                 <tag:url var="participantDeleteUrl" value="${deleteUrl}">
+                                    <c:if test="${not empty urlParam}">
+                                        <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
+                                    </c:if>
                                     <tag:param name="participantId" value="${participant.id}"/>
                                 </tag:url>
                                 <tag:listAction code="delete" url="${participantDeleteUrl}" tabindex="2"/>

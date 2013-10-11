@@ -246,7 +246,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
-            executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
+            if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
+                cz.cesnet.shongo.controller.executor.Executable.State executableState = executable.getState();
+                if (executableState.equals(cz.cesnet.shongo.controller.executor.Executable.State.STARTED)) {
+                    executable.setState(cz.cesnet.shongo.controller.executor.Executable.State.MODIFIED);
+                }
+            }
 
             entityManager.getTransaction().commit();
         }

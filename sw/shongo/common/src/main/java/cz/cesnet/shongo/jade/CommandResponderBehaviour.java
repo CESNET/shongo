@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.JadeReportSet;
+import cz.cesnet.shongo.api.jade.CommandDisabledException;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.Command;
@@ -163,6 +164,13 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                             request.getSender().getName()), exception);
                     ContentElement response = new Result(action, new JadeReportSet.CommandNotSupportedReport(
                             command.getName(), agent.getAID().getName()));
+                    fillMessage(reply, ACLMessage.FAILURE, response);
+                }
+                catch (CommandDisabledException exception) {
+                    logger.error(String.format("Command is disabled requested by '%s'.",
+                            request.getSender().getName()), exception);
+                    ContentElement response = new Result(action, new JadeReportSet.AgentNotFoundReport(
+                            agent.getAID().getName()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (CommandException exception) {

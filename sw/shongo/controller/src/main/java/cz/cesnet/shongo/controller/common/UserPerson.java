@@ -128,7 +128,7 @@ public class UserPerson extends AbstractPerson
 
     @Override
     @Transient
-    public PersonInformation getInformation()
+    public UserInformation getInformation()
     {
         if (userInformation == null) {
             userInformation = Authorization.getInstance().getUserInformation(userId);

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,16 +237,17 @@ public class ExecutionPlan
      * Finish execution and return result.
      *
      * @param entityManager
+     * @param referenceDateTime
      * @return {@link ExecutionResult}
      */
-    public ExecutionResult finish(EntityManager entityManager)
+    public ExecutionResult finish(EntityManager entityManager, DateTime referenceDateTime)
     {
         if (!poppedActions.isEmpty()) {
             throw new IllegalStateException("Some execution actions has not been removed yet.");
         }
         ExecutionResult executionResult = new ExecutionResult();
         for (ExecutionAction executionAction : completedActions) {
-            executionAction.finish(entityManager, executionResult);
+            executionAction.finish(entityManager, referenceDateTime, executionResult);
         }
         return executionResult;
     }

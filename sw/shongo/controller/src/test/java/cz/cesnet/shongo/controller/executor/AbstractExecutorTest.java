@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.api.jade.CommandDisabledException;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
@@ -50,6 +51,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
         System.setProperty(Configuration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_NEXT_ATTEMPT, "PT0S");
     }
 
     /**
@@ -182,13 +184,29 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     public class McuTestAgent extends TestAgent
     {
         /**
+         * Specifies whether device is disabled and should throw error for every request.
+         */
+        private boolean disabled = false;
+
+        /**
          * Rooms.
          */
         private Map<String, Room> rooms = new HashMap<String, Room>();
 
+        /**
+         * @param disabled sets the {@link #disabled}
+         */
+        public void setDisabled(boolean disabled)
+        {
+            this.disabled = disabled;
+        }
+
         @Override
         public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
+            if (disabled) {
+                throw new CommandDisabledException();
+            }
             Object result = super.handleCommand(command, sender);
             if (command instanceof CreateRoom) {
                 CreateRoom createRoom = (CreateRoom) command;

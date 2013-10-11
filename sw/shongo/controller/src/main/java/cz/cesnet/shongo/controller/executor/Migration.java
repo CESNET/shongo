@@ -131,6 +131,7 @@ public class Migration extends PersistentObject
                 targetResourceRoom.setRoomId(sourceRoom.getRoomId());
                 Executable.State state = targetResourceRoom.update(executor, executableManager);
                 if (state != null) {
+                    targetResourceRoom.setState(Executable.State.STARTED);
                     sourceResourceRoom.setState(Executable.State.STOPPED);
                     return true;
                 }
@@ -149,6 +150,7 @@ public class Migration extends PersistentObject
                 targetUsedRoom.setState(Executable.State.STARTED);
                 Executable.State state = targetUsedRoom.update(executor, executableManager);
                 if (state != null) {
+                    targetUsedRoom.setState(Executable.State.STARTED);
                     sourceUsedRoom.setState(Executable.State.STOPPED);
                     return true;
                 }

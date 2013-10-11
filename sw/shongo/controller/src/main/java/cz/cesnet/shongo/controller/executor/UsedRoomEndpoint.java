@@ -1,5 +1,6 @@
     package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
@@ -8,9 +9,7 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.RoomConfiguration;
-import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.common.*;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.TodoImplementException;
@@ -22,8 +21,9 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
-/**
+    /**
  * Represents a re-used {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} for different
  * {@link RoomConfiguration}.
  *
@@ -188,12 +188,13 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    @Transient
-    public Room getRoomApi()
+    public void fillRoomApi(Room roomApi)
     {
+        super.fillRoomApi(roomApi);
+
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
 
-        Room roomApi = roomEndpoint.getRoomApi();
+        roomEndpoint.fillRoomApi(roomApi);
         roomApi.setDescription(getRoomDescriptionApi());
         roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
         for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
@@ -202,11 +203,6 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         for (Alias alias : getAssignedAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        Authorization authorization = Authorization.getInstance();
-        for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
-            roomApi.addParticipant(executableOwner);
-        }
-        return roomApi;
     }
 
     @Override
