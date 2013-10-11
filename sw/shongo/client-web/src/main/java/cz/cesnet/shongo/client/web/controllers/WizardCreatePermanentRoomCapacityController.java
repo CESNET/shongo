@@ -143,7 +143,7 @@ public class WizardCreatePermanentRoomCapacityController extends WizardParticipa
             return handleCreateConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM;
+            return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
     }
 
@@ -183,7 +183,7 @@ public class WizardCreatePermanentRoomCapacityController extends WizardParticipa
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (ParticipantModel.createParticipant(reservationRequest, participant, bindingResult)) {
+        if (reservationRequest.createParticipant(participant, bindingResult)) {
             return handleParticipants(reservationRequest);
         }
         else {
@@ -213,7 +213,7 @@ public class WizardCreatePermanentRoomCapacityController extends WizardParticipa
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (ParticipantModel.modifyParticipant(reservationRequest, participantId, participant, bindingResult)) {
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
             return handleParticipants(reservationRequest);
         }
         else {
@@ -229,7 +229,7 @@ public class WizardCreatePermanentRoomCapacityController extends WizardParticipa
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        ParticipantModel.deleteParticipant(reservationRequest, participantId);
+        reservationRequest.deleteParticipant(participantId);
         return handleParticipants(reservationRequest);
     }
 

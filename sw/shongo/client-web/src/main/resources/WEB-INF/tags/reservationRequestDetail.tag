@@ -251,7 +251,7 @@
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
             <span ng-show="roomId != null && roomState.started">
-                (<a href="${roomManagementUrl}"><spring:message code="views.list.action.manage.title"/></a>)
+                (<a href="${roomManagementUrl}"><spring:message code="views.reservationRequest.room.manage"/></a>)
             </span>
             <c:if test="${isActive}">
                 <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
@@ -273,14 +273,22 @@
     </div>
 
     <%-- Participants --%>
-    <c:if test="${not empty reservationRequest.participants}">
-        <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
-        <dd>
-            <c:forEach items="${reservationRequest.participants}" var="participant" varStatus="status">
-                ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
-            </c:forEach>
-        </dd>
-    </c:if>
+    <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
+    <dd>
+        <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
+            ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
+        </c:forEach>
+        <c:if test="${empty reservationRequest.roomParticipants}">
+            <spring:message code="views.reservationRequest.participants.none"/>
+        </c:if>
+        <span ng-show="roomState != null && roomState.code != 'STOPPED'">
+            <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
+                <tag:param name="roomId" value="{{roomId}}" escape="false"/>
+                <tag:param name="back-url" value="${requestUrl}"/>
+            </tag:url>
+            (<a href="${modifyParticipantsUrl}"><spring:message code="views.reservationRequest.participants.modify"/></a>)
+        </span>
+    </dd>
 
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">

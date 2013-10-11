@@ -170,16 +170,22 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
     </definition>
 
+    <definition name="roomList" extends="layoutAngular">
+        <put-attribute name="title" value="views.roomList.title"/>
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
+    </definition>
+
     <definition name="room" extends="layoutAngular">
         <put-attribute name="title" value="views.room.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
     </definition>
 
-    <definition name="roomList" extends="layoutAngular">
-        <put-attribute name="title" value="views.roomList.title"/>
+    <definition name="roomParticipants" extends="layoutAngular">
+        <put-attribute name="title" value="views.roomParticipants.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
+        <put-attribute name="body" value="/WEB-INF/views/roomParticipants.jsp" type="template"/>
     </definition>
 
     <definition name="participant" extends="layoutAngularForm">

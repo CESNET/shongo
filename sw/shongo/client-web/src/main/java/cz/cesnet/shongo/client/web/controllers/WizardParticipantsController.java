@@ -72,10 +72,11 @@ public class WizardParticipantsController extends AbstractWizardController
      * @param reservationRequest
      * @param participantId
      */
-    protected WizardView handleParticipantModify(Object wizardPageId, ReservationRequestModel reservationRequest, String participantId)
+    protected WizardView handleParticipantModify(Object wizardPageId, ReservationRequestModel reservationRequest,
+            String participantId)
     {
-        return handleParticipantView(wizardPageId, reservationRequest,
-                ParticipantModel.getParticipant(reservationRequest, participantId));
+        ParticipantModel participant = reservationRequest.getParticipant(participantId);
+        return handleParticipantView(wizardPageId, reservationRequest, participant);
     }
 
     /**

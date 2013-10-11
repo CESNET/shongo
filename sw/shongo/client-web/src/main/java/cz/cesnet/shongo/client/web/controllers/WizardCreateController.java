@@ -286,7 +286,7 @@ public class WizardCreateController extends WizardParticipantsController
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (ParticipantModel.createParticipant(reservationRequest, participant, bindingResult)) {
+        if (reservationRequest.createParticipant(participant, bindingResult)) {
             return handleParticipants(reservationRequest);
         }
         else {
@@ -316,7 +316,7 @@ public class WizardCreateController extends WizardParticipantsController
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (ParticipantModel.modifyParticipant(reservationRequest, participantId, participant, bindingResult)) {
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
             return handleParticipants(reservationRequest);
         }
         else {
@@ -332,7 +332,7 @@ public class WizardCreateController extends WizardParticipantsController
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        ParticipantModel.deleteParticipant(reservationRequest, participantId);
+        reservationRequest.deleteParticipant(participantId);
         return handleParticipants(reservationRequest);
     }
 

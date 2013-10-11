@@ -12,7 +12,9 @@ import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -42,7 +44,8 @@ import java.util.List;
 @SessionAttributes({
         ReservationRequestUpdateController.RESERVATION_REQUEST_ATTRIBUTE,
         ReservationRequestUpdateController.PERMANENT_ROOMS_ATTRIBUTE,
-        ReservationRequestUpdateController.PARTICIPANT_ATTRIBUTE})
+        ReservationRequestUpdateController.PARTICIPANT_ATTRIBUTE
+})
 public class ReservationRequestUpdateController implements BreadcrumbProvider
 {
     protected static final String RESERVATION_REQUEST_ATTRIBUTE = "reservationRequest";
@@ -103,6 +106,9 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
         reservationRequestModel.setSpecificationType(specificationType);
         model.addAttribute(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            if (permanentRoomId.contains(":exe:")) {
+                permanentRoomId = cache.getReservationRequestIdByExecutableId(securityToken, permanentRoomId);
+            }
             List<ReservationRequestSummary> permanentRooms =
                     ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache);
             model.addAttribute("permanentRooms", permanentRooms);
@@ -181,7 +187,8 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             AbstractReservationRequest reservationRequest =
                     reservationService.getReservationRequest(securityToken, reservationRequestId);
             reservationRequestModel =
-                    new ReservationRequestModificationModel(reservationRequest, new CacheProvider(cache, securityToken));
+                    new ReservationRequestModificationModel(reservationRequest,
+                            new CacheProvider(cache, securityToken));
         }
         model.addAttribute(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
@@ -260,7 +267,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
-        if (ParticipantModel.createParticipant(reservationRequest, participant, bindingResult)) {
+        if (reservationRequest.createParticipant(participant, bindingResult)) {
             return "redirect:" + BackUrl.getInstance(request);
         }
         else {
@@ -277,7 +284,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             @PathVariable("participantId") String participantId)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
-        ParticipantModel participant = ParticipantModel.getParticipant(reservationRequest, participantId);
+        ParticipantModel participant = reservationRequest.getParticipant(participantId);
         ModelAndView modelAndView = new ModelAndView("participant");
         modelAndView.addObject(PARTICIPANT_ATTRIBUTE, participant);
         return modelAndView;
@@ -294,7 +301,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
-        if (ParticipantModel.modifyParticipant(reservationRequest, participantId, participant, bindingResult)) {
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
             return "redirect:" + BackUrl.getInstance(request);
         }
         else {
@@ -311,7 +318,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             @PathVariable("participantId") String participantId)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(request);
-        ParticipantModel.deleteParticipant(reservationRequest, participantId);
+        reservationRequest.deleteParticipant(participantId);
         return "redirect:" + BackUrl.getInstance(request);
     }
 
@@ -326,12 +333,13 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     }
 
     /**
-     * @param reuse specifies whether {@link ReservationRequestModel} should be tried to load from session
+     * @param reuse                specifies whether {@link ReservationRequestModel} should be tried to load from session
      * @param reservationRequestId specifies which identifier should the {@link ReservationRequestModel} have
-     * @param request whose session should be used
+     * @param request              whose session should be used
      * @return {@link ReservationRequestModel} from given {@code httpSession}
      */
-    private ReservationRequestModel getReservationRequest(boolean reuse, String reservationRequestId, HttpServletRequest request)
+    private ReservationRequestModel getReservationRequest(boolean reuse, String reservationRequestId,
+            HttpServletRequest request)
     {
         if (!reuse) {
             return null;

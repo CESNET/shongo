@@ -8,17 +8,23 @@
 
 <%@attribute name="isWritable" required="false" %>
 <%@attribute name="data" required="false" type="java.util.Collection" %>
+<%@attribute name="description" required="false" type="java.lang.Boolean" %>
 <%@attribute name="createUrl" required="false" %>
 <%@attribute name="modifyUrl" required="false" %>
 <%@attribute name="deleteUrl" required="false" %>
+<%@attribute name="urlParam" required="false" %>
+<%@attribute name="urlValue" required="false" %>
 
 <c:set var="isWritable" value="${isWritable != null ? isWritable : true}"/>
 <c:set var="tableHead">
     <thead>
     <tr>
-        <th><spring:message code="views.aclRecord.user"/></th>
-        <th><spring:message code="views.aclRecord.role"/></th>
-        <th><spring:message code="views.aclRecord.email"/></th>
+        <th><spring:message code="views.participant.userId"/></th>
+        <th><spring:message code="views.participant.role"/></th>
+        <th><spring:message code="views.participant.email"/></th>
+        <c:if test="${description}">
+            <th><spring:message code="views.participant.description"/></th>
+        </c:if>
         <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
             <th style="min-width: 85px; width: 85px;">
                 <spring:message code="views.list.action"/>
@@ -41,10 +47,16 @@
                     <td>${participant.name}</td>
                     <td><spring:message code="views.participant.role.${participant.role}"/></td>
                     <td>${participant.email}</td>
+                    <c:if test="${description}">
+                        <td>${participant.description}</td>
+                    </c:if>
                     <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
                         <td>
                             <c:if test="${not empty participant.id && not empty modifyUrl}">
                                 <tag:url var="participantModifyUrl" value="${modifyUrl}">
+                                    <c:if test="${not empty urlParam}">
+                                        <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
+                                    </c:if>
                                     <tag:param name="participantId" value="${participant.id}"/>
                                 </tag:url>
                                 <tag:listAction code="modify" url="${participantModifyUrl}" tabindex="2"/>

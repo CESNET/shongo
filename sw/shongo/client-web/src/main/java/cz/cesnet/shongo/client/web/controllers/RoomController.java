@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -153,7 +155,7 @@ public class RoomController
     {
         // Get room executable
         Executable executable = getExecutable(securityToken, executableId);
-        RoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+        RoomExecutable roomExecutable = getPrimaryRoomFromExecutable(securityToken, executable);
 
         // Room model
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -208,12 +210,34 @@ public class RoomController
         return "room";
     }
 
-    /**
-     * Show form for adding new participant for ad-hoc/permanent room.
-     */
+    @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANTS, method = RequestMethod.GET)
+    public String handleRoomParticipants(
+            UserSession userSession,
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String executableId,
+            Model model)
+    {
+        // Get room executable
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
+
+        // Room model
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        MessageProvider messageProvider = new MessageProvider(
+                messageSource, userSession.getLocale(), userSession.getTimeZone());
+        RoomModel roomModel = new RoomModel(
+                roomExecutable, cacheProvider, messageProvider, executableService, userSession);
+        roomModel.disableDependentParticipants();
+        model.addAttribute("room", roomModel);
+        return "roomParticipants";
+    }
+
+        /**
+         * Show form for adding new participant for ad-hoc/permanent room.
+         */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
-            SecurityToken securityToken)
+            SecurityToken securityToken,
+            @PathVariable("roomId") String roomId)
     {
         ModelAndView modelAndView = new ModelAndView("participant");
         modelAndView.addObject(PARTICIPANT_ATTRIBUTE, new ParticipantModel(new CacheProvider(cache, securityToken)));
@@ -225,6 +249,7 @@ public class RoomController
      */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public String handleParticipantCreateProcess(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
@@ -234,13 +259,12 @@ public class RoomController
         if (bindingResult.hasErrors()) {
             return "participant";
         }
-        Executable executable = getExecutable(securityToken, roomId);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
         participantConfiguration.addParticipant(participant.toApi());
-        executableService.modifyExecutableConfiguration(
-                securityToken, roomExecutable.getId(), participantConfiguration);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        executableService.modifyExecutableConfiguration(securityToken, roomId, participantConfiguration);
+        return "redirect:" + BackUrl.getInstance(request).getUrl(
+                ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId));
     }
 
     /**
@@ -252,8 +276,7 @@ public class RoomController
             @PathVariable("roomId") String roomId,
             @PathVariable("participantId") String participantId)
     {
-        Executable executable = getExecutable(securityToken, roomId);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
         ParticipantModel participant = getParticipant(participantConfiguration, participantId, securityToken);
         ModelAndView modelAndView = new ModelAndView("participant");
@@ -266,6 +289,7 @@ public class RoomController
      */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
     public String handleParticipantModifyProcess(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId,
             @PathVariable("participantId") String participantId,
@@ -276,15 +300,14 @@ public class RoomController
         if (bindingResult.hasErrors()) {
             return "participant";
         }
-        Executable executable = getExecutable(securityToken, roomId);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
         ParticipantModel oldParticipant = getParticipant(participantConfiguration, participantId, securityToken);
         participantConfiguration.removeParticipantById(oldParticipant.getId());
         participantConfiguration.addParticipant(participant.toApi());
-        executableService.modifyExecutableConfiguration(
-                securityToken, roomExecutable.getId(), participantConfiguration);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        executableService.modifyExecutableConfiguration(securityToken, roomId, participantConfiguration);
+        return "redirect:" + BackUrl.getInstance(request).getUrl(
+                ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId));
     }
 
     /**
@@ -292,18 +315,18 @@ public class RoomController
      */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_DELETE, method = RequestMethod.GET)
     public String handleParticipantDelete(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId,
             @PathVariable("participantId") String participantId)
     {
-        Executable executable = getExecutable(securityToken, roomId);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
         ParticipantModel oldParticipant = getParticipant(participantConfiguration, participantId, securityToken);
         participantConfiguration.removeParticipantById(oldParticipant.getId());
-        executableService.modifyExecutableConfiguration(
-                securityToken, roomExecutable.getId(), participantConfiguration);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        executableService.modifyExecutableConfiguration(securityToken, roomId, participantConfiguration);
+        return "redirect:" + BackUrl.getInstance(request).getUrl(
+                ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId));
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_ENTER, method = RequestMethod.GET)
@@ -312,8 +335,7 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId)
     {
         Executable executable = getExecutable(securityToken, roomId);
-        RoomExecutable roomExecutable = getRoomExecutable(securityToken, executable);
-
+        RoomExecutable roomExecutable = getPrimaryRoomFromExecutable(securityToken, executable);
         Alias adobeConnectUrl = roomExecutable.getAliasByType(AliasType.ADOBE_CONNECT_URI);
         if (adobeConnectUrl == null) {
             throw new UnsupportedApiException(roomExecutable.getId());
@@ -338,7 +360,7 @@ public class RoomController
         return executable;
     }
 
-    private RoomExecutable getRoomExecutable(SecurityToken securityToken, Executable executable)
+    private RoomExecutable getPrimaryRoomFromExecutable(SecurityToken securityToken, Executable executable)
     {
         RoomExecutable roomExecutable;
         if (executable instanceof RoomExecutable) {
@@ -359,6 +381,17 @@ public class RoomController
             throw new UnsupportedApiException(executable);
         }
         return roomExecutable;
+    }
+
+    private AbstractRoomExecutable getRoomExecutable(SecurityToken securityToken, String executableId)
+    {
+        Executable executable = executableService.getExecutable(securityToken, executableId);
+        if (executable instanceof AbstractRoomExecutable) {
+            return (AbstractRoomExecutable) executable;
+        }
+        else {
+            throw new UnsupportedApiException(executable);
+        }
     }
 
     private ParticipantModel getParticipant(RoomExecutableParticipantConfiguration participantConfiguration,

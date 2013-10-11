@@ -27,7 +27,7 @@ public class Migration extends PersistentObject
     /**
      * @return {@link #sourceExecutable}
      */
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "source_executable_id")
     @Access(AccessType.FIELD)
     public Executable getSourceExecutable()

@@ -5,6 +5,8 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 
+import java.util.List;
+
 /**
  * {@link ReservationRequestModel} for detail page.
  *
@@ -68,8 +70,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                 AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
                 if (roomExecutable != null) {
                     executableState = roomExecutable.getState();
-                    room = new RoomModel(roomExecutable, getId(), cacheProvider,
-                            messageProvider, executableService, userSession);
+                    room = new RoomModel(roomExecutable, cacheProvider, messageProvider, executableService, userSession);
                 }
             }
 
@@ -120,5 +121,14 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     public RoomModel getRoom()
     {
         return room;
+    }
+
+    @Override
+    public List<? extends ParticipantModel> getRoomParticipants()
+    {
+        if (room != null) {
+            return room.getParticipants();
+        }
+        return super.getRoomParticipants();
     }
 }

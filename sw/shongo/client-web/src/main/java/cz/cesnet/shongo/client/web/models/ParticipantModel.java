@@ -21,10 +21,9 @@ import java.util.Map;
  */
 public class ParticipantModel implements ReportModel.ContextSerializable
 {
-
     private CacheProvider cacheProvider;
 
-    private String id;
+    protected String id;
 
     private Type type;
 
@@ -38,14 +37,14 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     public ParticipantModel(CacheProvider cacheProvider)
     {
-        this.cacheProvider = cacheProvider;
         this.type = Type.USER;
+        this.cacheProvider = cacheProvider;
     }
 
     public ParticipantModel(AbstractParticipant participant, CacheProvider cacheProvider)
     {
-        this.cacheProvider = cacheProvider;
         this.id = participant.getId();
+        this.cacheProvider = cacheProvider;
         if (participant instanceof PersonParticipant) {
             PersonParticipant personParticipant = (PersonParticipant) participant;
             this.role = personParticipant.getRole();
@@ -57,7 +56,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
             }
             else if (person instanceof AnonymousPerson) {
                 AnonymousPerson anonymousPerson = (AnonymousPerson) person;
-                type = Type.USER;
+                type = Type.ANONYMOUS;
                 name = anonymousPerson.getName();
                 email = anonymousPerson.getEmail();
             }
@@ -135,6 +134,11 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         this.id = CommonModel.getNewId();
     }
 
+    public void setNullId()
+    {
+        this.id = null;
+    }
+
     public Type getType()
     {
         return type;
@@ -201,6 +205,11 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         this.email = email;
     }
 
+    public String getDescription()
+    {
+        return null;
+    }
+
     public ParticipantRole getRole()
     {
         return role;
@@ -228,76 +237,5 @@ public class ParticipantModel implements ReportModel.ContextSerializable
     {
         USER,
         ANONYMOUS
-    }
-
-    /**
-     * @param participantContainer
-     * @param participantId
-     * @return {@link ParticipantModel} with given {@code participantId} from given {@code participantContainer}
-     */
-    public static ParticipantModel getParticipant(ParticipantContainer participantContainer, String participantId)
-    {
-        ParticipantModel participant = null;
-        for (ParticipantModel possibleParticipant : participantContainer.getParticipants()) {
-            if (possibleParticipant.getId().equals(participantId)) {
-                participant = possibleParticipant;
-            }
-        }
-        if (participant == null) {
-            throw new IllegalArgumentException("Participant " + participantId + " doesn't exist.");
-        }
-        return participant;
-    }
-
-    /**
-     * Add new participant.
-     *
-     * @param participantContainer
-     * @param participant
-     * @param participantBindingResult
-     */
-    public static boolean createParticipant(ParticipantContainer participantContainer, ParticipantModel participant,
-            BindingResult participantBindingResult)
-    {
-        participant.validate(participantBindingResult);
-        if (participantBindingResult.hasErrors()) {
-            return false;
-        }
-        participant.setNewId();
-        participantContainer.addParticipant(participant);
-        return true;
-    }
-
-    /**
-     * Modify existing participant
-     *
-     * @param participantContainer
-     * @param participantId
-     * @param participant
-     * @param participantBindingResult
-     */
-    public static boolean modifyParticipant(ParticipantContainer participantContainer, String participantId,
-            ParticipantModel participant, BindingResult participantBindingResult)
-    {
-        participant.validate(participantBindingResult);
-        if (participantBindingResult.hasErrors()) {
-            return false;
-        }
-        ParticipantModel oldParticipant = getParticipant(participantContainer, participantId);
-        participantContainer.removeParticipant(oldParticipant);
-        participantContainer.addParticipant(participant);
-        return true;
-    }
-
-    /**
-     * Delete existing participant.
-     *
-     * @param participantContainer
-     * @param participantId
-     */
-    public static void deleteParticipant(ParticipantContainer participantContainer, String participantId)
-    {
-        ParticipantModel participant = getParticipant(participantContainer, participantId);
-        participantContainer.removeParticipant(participant);
     }
 }

@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.client.web;
 
-import cz.cesnet.shongo.client.web.models.SpecificationType;
-import cz.cesnet.shongo.report.ApiFaultException;
 import org.springframework.web.util.UriUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 /**
  * Definition of URL constants in Shongo web client.
@@ -122,6 +119,8 @@ public class ClientWebUrl
             "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
+    public static final String ROOM_PARTICIPANTS =
+            "/room/{roomId:.+}/participants";
     public static final String ROOM_PARTICIPANT_CREATE =
             "/room/{roomId:.+}/participant/create";
     public static final String ROOM_PARTICIPANT_MODIFY =

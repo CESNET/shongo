@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -46,6 +47,9 @@ public class Cache
 
     @Resource
     private ReservationService reservationService;
+
+    @Resource
+    private ExecutableService executableService;
 
     /**
      * {@link UserInformation}s by user-ids.
@@ -299,5 +303,16 @@ public class Cache
     {
         Reservation reservation = getReservation(securityToken, executable.getReservationId());
         return reservation.getReservationRequestId();
+    }
+
+    /**
+     * @param securityToken
+     * @param executableId
+     * @return reservation request id for given {@code executableId}
+     */
+    public String getReservationRequestIdByExecutableId(SecurityToken securityToken, String executableId)
+    {
+        Executable executable = executableService.getExecutable(securityToken, executableId);
+        return getReservationRequestIdByExecutable(securityToken, executable);
     }
 }

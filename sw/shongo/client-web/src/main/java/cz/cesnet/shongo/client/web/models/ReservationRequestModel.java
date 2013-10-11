@@ -22,6 +22,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
+import org.springframework.validation.BindingResult;
 
 import java.util.*;
 
@@ -30,7 +31,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestModel implements ReportModel.ContextSerializable, ParticipantContainer
+public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
     private String id;
 
@@ -345,7 +346,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
         userRoles.remove(userRole);
     }
 
-    public List<ParticipantModel> getRoomParticipants()
+    public List<? extends ParticipantModel> getRoomParticipants()
     {
         return roomParticipants;
     }
@@ -790,21 +791,69 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable,
         return ReportModel.formatAttributes(attributes);
     }
 
-    @Override
-    public List<ParticipantModel> getParticipants()
+    /**
+     * @param participantId
+     * @return {@link ParticipantModel} with given {@code participantId}
+     */
+    public ParticipantModel getParticipant(String participantId)
     {
-        return roomParticipants;
+        ParticipantModel participant = null;
+        for (ParticipantModel possibleParticipant : roomParticipants) {
+            if (possibleParticipant.getId().equals(participantId)) {
+                participant = possibleParticipant;
+            }
+        }
+        if (participant == null) {
+            throw new IllegalArgumentException("Participant " + participantId + " doesn't exist.");
+        }
+        return participant;
     }
 
-    @Override
-    public void addParticipant(ParticipantModel participant)
+    /**
+     * Add new participant.
+     *
+     * @param participant
+     * @param participantBindingResult
+     */
+    public boolean createParticipant(ParticipantModel participant, BindingResult participantBindingResult)
     {
+        participant.validate(participantBindingResult);
+        if (participantBindingResult.hasErrors()) {
+            return false;
+        }
+        participant.setNewId();
         roomParticipants.add(participant);
+        return true;
     }
 
-    @Override
-    public void removeParticipant(ParticipantModel participant)
+    /**
+     * Modify existing participant
+     *
+     * @param participantId
+     * @param participant
+     * @param participantBindingResult
+     */
+    public boolean modifyParticipant(String participantId, ParticipantModel participant,
+            BindingResult participantBindingResult)
     {
+        participant.validate(participantBindingResult);
+        if (participantBindingResult.hasErrors()) {
+            return false;
+        }
+        ParticipantModel oldParticipant = getParticipant(participantId);
+        roomParticipants.remove(oldParticipant);
+        roomParticipants.add(participant);
+        return true;
+    }
+
+    /**
+     * Delete existing participant.
+     *
+     * @param participantId
+     */
+    public void deleteParticipant(String participantId)
+    {
+        ParticipantModel participant = getParticipant(participantId);
         roomParticipants.remove(participant);
     }
 
