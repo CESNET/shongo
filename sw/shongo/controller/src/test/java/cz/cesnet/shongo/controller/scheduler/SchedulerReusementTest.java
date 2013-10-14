@@ -129,7 +129,6 @@ public class SchedulerReusementTest extends AbstractControllerTest
         reservationRequestId = allocate(reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
-        runScheduler();
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
         runScheduler();
     }
@@ -450,8 +449,8 @@ public class SchedulerReusementTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest1Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest2Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestSetId);
-        runScheduler();
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
+        runScheduler();
     }
 
     @Test
@@ -492,9 +491,7 @@ public class SchedulerReusementTest extends AbstractControllerTest
         checkAllocated(reservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
-
-        runScheduler();
-
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
+        runScheduler();
     }
 }

@@ -1,4 +1,4 @@
-0.5.3 (2013-08-28)
+0.5.3 (2013-10-14)
 
     * Reservation system web interface rewritten to Java from scratch.
 
@@ -45,6 +45,8 @@
     * Automatically refresh reservation request state in detail page.
 
     * Added user settings for language, timezone and administrator mode.
+
+    * Added configuration of room participants.
 
 0.5.2 (2013-04-25)
 

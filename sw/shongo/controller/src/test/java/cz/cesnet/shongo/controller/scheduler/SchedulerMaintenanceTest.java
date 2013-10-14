@@ -206,8 +206,6 @@ public class SchedulerMaintenanceTest extends AbstractControllerTest
         checkAllocationFailed(secondReservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestId);
-        runScheduler();
-
         reallocate(secondReservationRequestId);
         checkAllocated(secondReservationRequestId);
     }

@@ -2,10 +2,13 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -202,7 +205,7 @@ public class ExecutableManager extends AbstractManager
      */
     public boolean deleteAllNotReferenced(AuthorizationManager authorizationManager)
     {
-        List<Executable> executables = entityManager
+        List<Executable> executablesForDeletion = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
                         + " WHERE executable NOT IN("
                         + "   SELECT childExecutable FROM Executable executable "
@@ -217,10 +220,24 @@ public class ExecutableManager extends AbstractManager
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
                 .setParameter("toDelete", Executable.State.TO_DELETE)
                 .getResultList();
-        for (Executable executable : executables) {
+
+        List<Executable> referencedExecutables = new LinkedList<Executable>();
+        for (Executable executableForDeletion : executablesForDeletion) {
+            getReferencedExecutables(PersistentObject.getLazyImplementation(executableForDeletion),
+                    referencedExecutables);
+        }
+        // Move all reused reservations to the end
+        for (Executable referencedExecutable : referencedExecutables) {
+            Executable topReferencedReservation = referencedExecutable;
+            if (executablesForDeletion.contains(topReferencedReservation)) {
+                executablesForDeletion.remove(topReferencedReservation);
+                executablesForDeletion.add(topReferencedReservation);
+            }
+        }
+        for (Executable executable : executablesForDeletion) {
             delete(executable, authorizationManager);
         }
-        return executables.size() > 0;
+        return executablesForDeletion.size() > 0;
     }
 
     /**
@@ -342,5 +359,24 @@ public class ExecutableManager extends AbstractManager
     public List<ExecutableReport> getExecutableReports()
     {
         return executableReports;
+    }
+
+    /**
+     * Fill {@link Executable}s which are referenced (e.g., by {@link UsedRoomEndpoint})
+     * from given {@code executable} to given {@code referencedExecutables}.
+     *
+     * @param executable
+     * @param referencedExecutables
+     */
+    private void getReferencedExecutables(Executable executable, List<Executable> referencedExecutables)
+    {
+        if (executable instanceof UsedRoomEndpoint) {
+            UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
+            Executable referencedExecutable = usedRoomEndpoint.getRoomEndpoint();
+            referencedExecutables.add(referencedExecutable);
+        }
+        for (Executable childExecutable : executable.getChildExecutables()) {
+            getReferencedExecutables(childExecutable, referencedExecutables);
+        }
     }
 }

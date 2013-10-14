@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.notification.ReservationRequestNotification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -106,7 +107,21 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             entityManager.getTransaction().begin();
 
             // Delete all reservations which should be deleted
-            for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
+            List<Reservation> reservationsForDeletion = reservationManager.getReservationsForDeletion();
+            // Get all referenced reservations from reservations from deletion
+            List<Reservation> referencedReservations = new LinkedList<Reservation>();
+            for (Reservation reservationForDeletion : reservationsForDeletion) {
+                getReferencedReservations(reservationForDeletion, referencedReservations);
+            }
+            // Move all referenced reservations to the end
+            for (Reservation referencedReservation : referencedReservations) {
+                Reservation topReferencedReservation = referencedReservation.getTopReservation();
+                if (reservationsForDeletion.contains(topReferencedReservation)) {
+                    reservationsForDeletion.remove(topReferencedReservation);
+                    reservationsForDeletion.add(topReferencedReservation);
+                }
+            }
+            for (Reservation reservation : reservationsForDeletion) {
                 notifications.addNotification(reservation, ReservationNotification.Type.DELETED, authorizationManager);
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
@@ -245,6 +260,25 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             logger.info("Scheduling done in {} ms (failed: {}, allocated: {}, deleted: {}).", new Object[]{
                     timer.stop(), reservationRequestsFailed, reservationRequestsAllocated, reservationsDeleted
             });
+        }
+    }
+
+    /**
+     * Fill {@link Reservation}s which are referenced (e.g., by {@link ExistingReservation})
+     * from given {@code reservation} to given {@code referencedReservations}.
+     *
+     * @param reservation
+     * @param referencedReservations
+     */
+    private void getReferencedReservations(Reservation reservation, List<Reservation> referencedReservations)
+    {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            Reservation referencedReservation = existingReservation.getReservation();
+            referencedReservations.add(referencedReservation);
+        }
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            getReferencedReservations(childReservation, referencedReservations);
         }
     }
 

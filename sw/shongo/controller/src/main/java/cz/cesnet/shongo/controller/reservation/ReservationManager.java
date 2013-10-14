@@ -298,7 +298,7 @@ public class ReservationManager extends AbstractManager
                     .getResultList();
             for (ExistingReservation reservation : existingReservations) {
                 AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
-                if (reservationRequest != null) {
+                if (reservationRequest != null && !reservationRequest.getState().equals(AbstractReservationRequest.State.DELETED)) {
                     reservationRequests.add(reservationRequest);
                 }
             }

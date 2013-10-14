@@ -205,9 +205,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 3));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runPreprocessor();
-        runScheduler();
+        String id = allocate(reservationRequest);
         checkAllocated(id);
 
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);

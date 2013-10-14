@@ -52,9 +52,8 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
+
     }
 
     /**
@@ -91,9 +90,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
@@ -188,9 +185,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
@@ -226,9 +221,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
