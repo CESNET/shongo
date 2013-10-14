@@ -233,6 +233,9 @@ public class AliasReservationTask extends ReservationTask
                     if (firstRestricted && !secondRestricted) {
                         return 1;
                     }
+                    else if (!firstRestricted && secondRestricted) {
+                        return -1;
+                    }
                 }
                 return 0;
             }
