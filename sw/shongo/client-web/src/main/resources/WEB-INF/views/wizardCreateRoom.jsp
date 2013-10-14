@@ -7,8 +7,8 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ADHOC_ROOM %>"/>
-<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM %>"/>
+<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ADHOC_ROOM %>"/>
+<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM %>"/>
 
 <div class="actions">
     <span><spring:message code="views.wizard.createRoom"/></span>

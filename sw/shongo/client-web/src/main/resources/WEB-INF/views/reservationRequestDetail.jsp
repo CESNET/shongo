@@ -66,7 +66,7 @@
         <span><spring:message code="views.select.action"/></span>
         <ul>
             <c:if test="${isProvidable}">
-                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>">
+                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
                     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                 </tag:url>

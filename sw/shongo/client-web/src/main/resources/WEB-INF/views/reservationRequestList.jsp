@@ -17,7 +17,7 @@
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM %>">
+<tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">

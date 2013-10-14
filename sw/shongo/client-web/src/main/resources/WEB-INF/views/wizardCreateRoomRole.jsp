@@ -7,7 +7,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="entityType"><%= cz.cesnet.shongo.controller.EntityType.RESERVATION_REQUEST %></c:set>
-<tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLES %>"/>
+<tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLES %>"/>
 
 <script type="text/javascript">
     angular.module('jsp:wizardCreateRoomRole', ['tag:userRoleForm']);

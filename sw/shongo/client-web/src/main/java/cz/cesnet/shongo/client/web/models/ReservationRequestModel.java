@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -30,6 +31,8 @@ import java.util.*;
  */
 public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
+    private CacheProvider cacheProvider;
+
     private String id;
 
     private String parentReservationRequestId;
@@ -77,8 +80,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
-    public ReservationRequestModel()
+    public ReservationRequestModel(CacheProvider cacheProvider)
     {
+        this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
         setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
     }
@@ -90,6 +94,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public ReservationRequestModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
     {
+        this.cacheProvider = cacheProvider;
         fromApi(reservationRequest, cacheProvider);
     }
 
@@ -365,6 +370,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         roomParticipants.add(participantModel);
     }
 
+    public ParticipantModel addRoomParticipant(UserInformation userInformation, ParticipantRole role)
+    {
+        ParticipantModel participantModel = new ParticipantModel(userInformation, cacheProvider);
+        participantModel.setNewId();
+        participantModel.setRole(role);
+        roomParticipants.add(participantModel);
+        return participantModel;
+    }
+
     /**
      * Load attributes from given {@code specification}.
      *
@@ -546,6 +560,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
         }
         permanentRoomReservationRequest = cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
+        addPermanentRoomParticipants();
     }
 
     /**
@@ -574,6 +589,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
                 for (ParticipantModel participant : roomParticipants) {
+                    if (participant.getId() == null) {
+                        continue;
+                    }
                     roomSpecification.addParticipant(participant.toApi());
                 }
                 return roomSpecification;
@@ -585,6 +603,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomNameSpecification.setValue(roomName);
                 roomNameSpecification.setPermanentRoom(true);
                 for (ParticipantModel participant : roomParticipants) {
+                    if (participant.getId() == null) {
+                        continue;
+                    }
                     roomNameSpecification.addPermanentRoomParticipant(participant.toApi());
                 }
                 switch (technology) {
@@ -621,6 +642,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
                 for (ParticipantModel participant : roomParticipants) {
+                    if (participant.getId() == null) {
+                        continue;
+                    }
                     roomSpecification.addParticipant(participant.toApi());
                 }
                 return roomSpecification;
@@ -827,6 +851,21 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
+     * @param userId
+     * @param role
+     * @return true wheter {@link #roomParticipants} contains user participant with given {@code userId} and {@code role}
+     */
+    public boolean hasUserParticipant(String userId, ParticipantRole role)
+    {
+        for (ParticipantModel participant : roomParticipants) {
+            if (participant.getType().equals(ParticipantModel.Type.USER) && participant.getUserId().equals(userId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Add new participant.
      *
      * @param participant
@@ -872,6 +911,35 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         ParticipantModel participant = getParticipant(participantId);
         roomParticipants.remove(participant);
+    }
+
+    /**
+     * Add all {@link ParticipantModel} from {@link #permanentRoomReservationRequest} to {@link #roomParticipants}
+     */
+    private void addPermanentRoomParticipants()
+    {
+        if (permanentRoomReservationRequest == null) {
+            throw new IllegalStateException("Permanent room reservation request must not be null");
+        }
+        String permanentRoomReservationId = permanentRoomReservationRequest.getLastReservationId();
+        Reservation permanentRoomReservation = cacheProvider.getReservation(permanentRoomReservationId);
+        AbstractRoomExecutable permanentRoom = (AbstractRoomExecutable) permanentRoomReservation.getExecutable();
+        RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();
+
+        // Remove all participants without identifier (old permanent room participants)
+        for (Iterator<ParticipantModel> iterator = roomParticipants.iterator(); iterator.hasNext(); ) {
+            ParticipantModel roomParticipant = iterator.next();
+            if (roomParticipant.getId() == null) {
+                iterator.remove();
+            }
+        }
+        // Add all permanent room participants
+        int index = 0;
+        for (AbstractParticipant participant : permanentRoomParticipants.getParticipants()) {
+            ParticipantModel roomParticipant = new ParticipantModel(participant, cacheProvider);
+            roomParticipant.setNullId();
+            roomParticipants.add(index++, roomParticipant);
+        }
     }
 
     /**

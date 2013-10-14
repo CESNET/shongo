@@ -101,7 +101,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
 
         ReservationRequestModel reservationRequestModel = getReservationRequest(reuse, null, request);
         if (reservationRequestModel == null) {
-            reservationRequestModel = new ReservationRequestModel();
+            reservationRequestModel = new ReservationRequestModel(new CacheProvider(cache, securityToken));
         }
         reservationRequestModel.setSpecificationType(specificationType);
         model.addAttribute(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);

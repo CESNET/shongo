@@ -37,8 +37,15 @@ public class ParticipantModel implements ReportModel.ContextSerializable
 
     public ParticipantModel(CacheProvider cacheProvider)
     {
-        this.type = Type.USER;
         this.cacheProvider = cacheProvider;
+        this.type = Type.USER;
+    }
+
+    public ParticipantModel(UserInformation userInformation, CacheProvider cacheProvider)
+    {
+        this.cacheProvider = cacheProvider;
+        this.type = Type.USER;
+        setUser(userInformation);
     }
 
     public ParticipantModel(AbstractParticipant participant, CacheProvider cacheProvider)

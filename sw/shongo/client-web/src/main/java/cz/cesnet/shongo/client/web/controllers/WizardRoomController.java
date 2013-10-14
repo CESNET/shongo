@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -38,9 +39,9 @@ import javax.servlet.http.HttpSession;
         WizardParticipantsController.PARTICIPANT_ATTRIBUTE,
         "userRole"
 })
-public class WizardCreateController extends WizardParticipantsController
+public class WizardRoomController extends WizardParticipantsController
 {
-    private static Logger logger = LoggerFactory.getLogger(WizardCreateController.class);
+    private static Logger logger = LoggerFactory.getLogger(WizardRoomController.class);
 
     public static final String SUBMIT_RESERVATION_REQUEST = "javascript: " +
             "document.getElementById('reservationRequest').submit();";
@@ -60,25 +61,25 @@ public class WizardCreateController extends WizardParticipantsController
 
     private static enum Page
     {
-        CREATE,
-        CREATE_ATTRIBUTES,
-        CREATE_ROLES,
-        CREATE_PARTICIPANTS,
-        CREATE_CONFIRM
+        ROOM_TYPE,
+        ROOM_ATTRIBUTES,
+        ROOM_ROLES,
+        ROOM_PARTICIPANTS,
+        ROOM_CONFIRM
     }
 
     @Override
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
-        wizardView.addPage(new WizardPage(Page.CREATE, ClientWebUrl.WIZARD_CREATE_ROOM,
+        wizardView.addPage(new WizardPage(Page.ROOM_TYPE, ClientWebUrl.WIZARD_ROOM,
                 "views.wizard.page.createRoom"));
-        wizardView.addPage(new WizardPage(Page.CREATE_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
+        wizardView.addPage(new WizardPage(Page.ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
                 "views.wizard.page.createRoom.attributes"));
-        wizardView.addPage(new WizardPage(Page.CREATE_ROLES, ClientWebUrl.WIZARD_CREATE_ROOM_ROLES,
+        wizardView.addPage(new WizardPage(Page.ROOM_ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
                 "views.wizard.page.createRoom.roles"));
-        wizardView.addPage(new WizardPage(Page.CREATE_PARTICIPANTS, ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANTS,
+        wizardView.addPage(new WizardPage(Page.ROOM_PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
                 "views.wizard.page.createRoom.participants"));
-        wizardView.addPage(new WizardPage(Page.CREATE_CONFIRM, ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRM,
+        wizardView.addPage(new WizardPage(Page.ROOM_CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
                 "views.wizard.page.createConfirm"));
     }
 
@@ -97,13 +98,15 @@ public class WizardCreateController extends WizardParticipantsController
     /**
      * Book new videoconference room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM, method = RequestMethod.GET)
-    public ModelAndView handleCreate(
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
+    public ModelAndView handleRoomType(
             SecurityToken securityToken)
     {
-        WizardView wizardView = getWizardView(Page.CREATE, "wizardCreateRoom.jsp");
-        ReservationRequestModel reservationRequest = new ReservationRequestModel();
+        WizardView wizardView = getWizardView(Page.ROOM_TYPE, "wizardCreateRoom.jsp");
+        ReservationRequestModel reservationRequest =
+                new ReservationRequestModel(new CacheProvider(cache, securityToken));
         reservationRequest.addUserRole(securityToken.getUserInformation(), Role.OWNER);
+        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
         return wizardView;
@@ -114,12 +117,12 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ADHOC_ROOM, method = RequestMethod.GET)
-    public String handleCreateAdhocRoom(
+    @RequestMapping(value = ClientWebUrl.WIZARD_ADHOC_ROOM, method = RequestMethod.GET)
+    public String handleAdhocRoom(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
-        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
     }
 
     /**
@@ -127,12 +130,12 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM, method = RequestMethod.GET)
-    public String handleCreatePermanentRoom(
+    @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM, method = RequestMethod.GET)
+    public String handlePermanentRoom(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
-        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
     }
 
     /**
@@ -140,8 +143,8 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES, method = RequestMethod.GET)
-    public ModelAndView handleAttributes(
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, method = RequestMethod.GET)
+    public ModelAndView handleRoomAttributes(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         if (reservationRequest.getSpecificationType() == null) {
@@ -155,8 +158,8 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest to be validated
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES, method = {RequestMethod.POST})
-    public Object handleAttributesProcess(
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ATTRIBUTES, method = {RequestMethod.POST})
+    public Object handleRoomAttributesProcess(
             UserSession userSession,
             SecurityToken securityToken,
             SessionStatus sessionStatus,
@@ -174,29 +177,29 @@ public class WizardCreateController extends WizardParticipantsController
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ROLES;
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
         }
     }
 
     /**
      * Manage user roles for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLES, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLES, method = RequestMethod.GET)
     public ModelAndView handleRoles(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
     {
-        return getWizardView(Page.CREATE_ROLES, "wizardCreateRoomRoles.jsp");
+        return getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRoles.jsp");
     }
 
     /**
      * Show form for adding new user role for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_CREATE, method = RequestMethod.GET)
     public ModelAndView handleRoleCreate(
             SecurityToken securityToken,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        WizardView wizardView = getWizardView(Page.CREATE_ROLES, "wizardCreateRoomRole.jsp");
+        WizardView wizardView = getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRole.jsp");
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         wizardView.addObject("userRole", new UserRoleModel(cacheProvider));
         wizardView.setNextPageUrl(null);
@@ -210,7 +213,7 @@ public class WizardCreateController extends WizardParticipantsController
      * @param httpSession
      * @param userRole    to be stored
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_CREATE, method = RequestMethod.POST)
     public ModelAndView handleRoleCreateProcess(
             HttpSession httpSession,
             @ModelAttribute("userRole") UserRoleModel userRole,
@@ -220,7 +223,7 @@ public class WizardCreateController extends WizardParticipantsController
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
             // Show form for adding new user role with validation errors
-            WizardView wizardView = getWizardView(Page.CREATE_ROLES, "wizardCreateRoomRole.jsp");
+            WizardView wizardView = getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRole.jsp");
             wizardView.setNextPageUrl(null);
             wizardView.setPreviousPageUrl(null);
             return wizardView;
@@ -238,7 +241,7 @@ public class WizardCreateController extends WizardParticipantsController
      * @param reservationRequest session attribute to which the {@code userRole} will be added
      * @param userRoleId         of user role to be deleted
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_DELETE, method = RequestMethod.GET)
     public ModelAndView handleRoleDelete(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             @PathVariable("roleId") String userRoleId)
@@ -254,32 +257,32 @@ public class WizardCreateController extends WizardParticipantsController
     /**
      * Manage participants for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANTS, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANTS, method = RequestMethod.GET)
     public ModelAndView handleParticipants(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
     {
-        WizardView wizardView = getWizardView(Page.CREATE_PARTICIPANTS, "wizardCreateParticipants.jsp");
-        wizardView.addObject("createUrl", ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_CREATE);
-        wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_MODIFY);
-        wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_DELETE);
+        WizardView wizardView = getWizardView(Page.ROOM_PARTICIPANTS, "wizardCreateParticipants.jsp");
+        wizardView.addObject("createUrl", ClientWebUrl.WIZARD_PARTICIPANT_CREATE);
+        wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY);
+        wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE);
         return wizardView;
     }
 
     /**
      * Show form for adding new participant for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_CREATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
             SecurityToken securityToken,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return handleParticipantCreate(Page.CREATE_PARTICIPANTS, reservationRequest, securityToken);
+        return handleParticipantCreate(Page.ROOM_PARTICIPANTS, reservationRequest, securityToken);
     }
 
     /**
      * Store new {@code participant} to given {@code reservationRequest}.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_CREATE, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.WIZARD_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public ModelAndView handleParticipantCreateProcess(
             HttpSession httpSession,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
@@ -290,25 +293,25 @@ public class WizardCreateController extends WizardParticipantsController
             return handleParticipants(reservationRequest);
         }
         else {
-            return handleParticipantView(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+            return handleParticipantView(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
         }
     }
 
     /**
      * Show form for modifying existing participant for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.GET)
     public ModelAndView handleParticipantModify(
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participantId);
+        return handleParticipantModify(Page.ROOM_PARTICIPANTS, reservationRequest, participantId);
     }
 
     /**
      * Store changes for existing {@code participant} to given {@code reservationRequest}.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
     public ModelAndView handleParticipantModifyProcess(
             HttpSession httpSession,
             @PathVariable("participantId") String participantId,
@@ -320,14 +323,14 @@ public class WizardCreateController extends WizardParticipantsController
             return handleParticipants(reservationRequest);
         }
         else {
-            return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
+            return handleParticipantModify(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
         }
     }
 
     /**
      * Delete existing {@code participant} from given {@code reservationRequest}.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_PARTICIPANT_DELETE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE, method = RequestMethod.GET)
     public ModelAndView handleParticipantDelete(
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
@@ -341,7 +344,7 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest to be confirmed
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRM, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_CONFIRM, method = RequestMethod.GET)
     public Object handleConfirm(
             UserSession userSession,
             SecurityToken securityToken,
@@ -354,8 +357,8 @@ public class WizardCreateController extends WizardParticipantsController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
         }
-        WizardView wizardView = getWizardView(Page.CREATE_CONFIRM, "wizardCreateConfirm.jsp");
-        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED);
+        WizardView wizardView = getWizardView(Page.ROOM_CONFIRM, "wizardCreateConfirm.jsp");
+        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);
         return wizardView;
     }
 
@@ -364,7 +367,7 @@ public class WizardCreateController extends WizardParticipantsController
      *
      * @param reservationRequest to be created
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_CONFIRMED, method = RequestMethod.GET)
     public Object handleConfirmed(
             SecurityToken securityToken,
             SessionStatus sessionStatus,
@@ -384,7 +387,7 @@ public class WizardCreateController extends WizardParticipantsController
         sessionStatus.setComplete();
 
         // Show detail of newly created reservation request
-        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_CREATE_ROOM).applyToUrl(
+        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM).applyToUrl(
                 ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId)
         );
     }
@@ -395,8 +398,8 @@ public class WizardCreateController extends WizardParticipantsController
     @ExceptionHandler({HttpSessionRequiredException.class, IllegalStateException.class})
     public Object handleExceptions(Exception exception)
     {
-        logger.warn("Redirecting to " + ClientWebUrl.WIZARD_CREATE_ROOM + ".", exception);
-        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM;
+        logger.warn("Redirecting to " + ClientWebUrl.WIZARD_ROOM + ".", exception);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM;
     }
 
     /**
@@ -404,7 +407,7 @@ public class WizardCreateController extends WizardParticipantsController
      */
     private WizardView getCreateRoomAttributesView()
     {
-        WizardView wizardView = getWizardView(Page.CREATE_ATTRIBUTES, "wizardCreateAttributes.jsp");
+        WizardView wizardView = getWizardView(Page.ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
         wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);

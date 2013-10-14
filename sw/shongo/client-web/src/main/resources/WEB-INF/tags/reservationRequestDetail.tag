@@ -32,6 +32,10 @@
 
         // Default requested slot
         $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
+        $scope.roomParticipants = [<c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
+            { name: "${participant.name}", role: "<spring:message code="views.participant.role.${participant.role}"/>" }<c:if test="${!status.last}">,</c:if>
+            </c:forEach>
+        ];
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
             <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.stateHelp)" var="stateHelp"/>
             // Default ReservationRequestState
@@ -98,6 +102,7 @@
                     $scope.roomLicenseCount = result.roomLicenseCount;
                     $scope.roomAliases = result.roomAliases;
                     $scope.roomAliasesDescription = result.roomAliasesDescription;
+                    $scope.roomParticipants = result.roomParticipants;
                     $scope.roomState = result.roomState;
                     $scope.allocatedSlot = result.allocatedSlot;
                     if (callback != null) {
@@ -275,12 +280,12 @@
     <%-- Participants --%>
     <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
     <dd>
-        <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
-            ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
-        </c:forEach>
-        <c:if test="${empty reservationRequest.roomParticipants}">
+        <span ng-repeat="roomParticipant in roomParticipants">
+            {{roomParticipant.name}} ({{roomParticipant.role}}){{$last ? '' : ', '}}
+        </span>
+        <span ng-hide="roomParticipants.length">
             <spring:message code="views.reservationRequest.participants.none"/>
-        </c:if>
+        </span>
         <span ng-show="roomState != null && roomState.code != 'STOPPED'">
             <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
                 <tag:param name="roomId" value="{{roomId}}" escape="false"/>

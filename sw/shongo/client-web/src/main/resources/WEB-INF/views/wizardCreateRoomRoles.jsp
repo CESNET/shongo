@@ -7,8 +7,8 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="createRoleUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE %>"/>
-<tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE %>"/>
+<tag:url var="createRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_CREATE %>"/>
+<tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_DELETE %>"/>
 
 <script type="text/javascript">
     angular.module('jsp:wizardCreateRoomRoles', ['ngTooltip']);
