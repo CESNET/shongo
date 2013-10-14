@@ -35,7 +35,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=050:099
         CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
-        RESOURCE_ADMIN_EMAIL=vidcon@cesnet.cz
+        RESOURCE_ADMIN_EMAIL=srom.martin@gmail.cz
         ;;
     * )
         CONTROLLER=127.0.0.1

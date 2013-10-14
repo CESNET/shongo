@@ -285,7 +285,7 @@ public class RoomReservationTask extends ReservationTask
             {
                 RoomProvider firstRoomProvider = first.getRoomProvider();
                 RoomProvider secondRoomProvider = second.getRoomProvider();
-
+                int result;
                 if (firstRoomProvider != secondRoomProvider) {
                     // Prefer room providers which has some available room reservation(s)
                     boolean firstHasAvailableRoom = firstRoomProvider.getAvailableRoomEndpoints().size() > 0;
@@ -293,24 +293,30 @@ public class RoomReservationTask extends ReservationTask
                     if (!firstHasAvailableRoom && secondHasAvailableRoom) {
                         return 1;
                     }
+                    else if (firstHasAvailableRoom && !secondHasAvailableRoom) {
+                        return -1;
+                    }
 
                     AvailableRoom firstRoom = firstRoomProvider.getAvailableRoom();
                     AvailableRoom secondRoom = secondRoomProvider.getAvailableRoom();
 
                     // Prefer already allocated room providers
-                    if (firstRoom.getFullnessRatio() < secondRoom.getFullnessRatio()) {
-                        return 1;
+                    result = -Double.compare(firstRoom.getFullnessRatio(), secondRoom.getFullnessRatio());
+                    if (result != 0) {
+                        return result;
                     }
 
                     // Prefer room providers with greater license capacity
-                    if (firstRoom.getMaximumLicenseCount() < secondRoom.getMaximumLicenseCount()) {
-                        return 1;
+                    result = -Double.compare(firstRoom.getMaximumLicenseCount(), secondRoom.getMaximumLicenseCount());
+                    if (result != 0) {
+                        return result;
                     }
                 }
 
                 // Prefer variant with smaller license count
-                if (first.getLicenseCount() > second.getLicenseCount()) {
-                    return 1;
+                result = Double.compare(first.getLicenseCount(), second.getLicenseCount());
+                if (result != 0) {
+                    return result;
                 }
 
                 return 0;
