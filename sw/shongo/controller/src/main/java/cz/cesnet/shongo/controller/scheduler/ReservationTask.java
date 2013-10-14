@@ -445,6 +445,9 @@ public abstract class ReservationTask
         if (secondContainsInterval && !firstContainsInterval) {
             return 1;
         }
+        else if (!secondContainsInterval && firstContainsInterval) {
+            return -1;
+        }
 
         // Prefer reallocatable reservations
         /*boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);

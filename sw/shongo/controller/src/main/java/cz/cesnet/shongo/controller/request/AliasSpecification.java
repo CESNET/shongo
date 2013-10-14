@@ -4,19 +4,15 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
-import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -28,7 +24,7 @@ import java.util.*;
  */
 @Entity
 public class AliasSpecification extends Specification
-        implements ReservationTaskProvider, SpecificationCheckAvailability
+        implements ReservationTaskProvider
 {
     /**
      * Restricts {@link AliasType} for allocation of {@link Alias}.
@@ -54,6 +50,11 @@ public class AliasSpecification extends Specification
      * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link ResourceRoomEndpoint}).
      */
     private boolean permanentRoom;
+
+    /**
+     * List of {@link cz.cesnet.shongo.controller.common.AbstractParticipant}s for the permanent room.
+     */
+    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -239,6 +240,27 @@ public class AliasSpecification extends Specification
         this.permanentRoom = permanentRoom;
     }
 
+    /**
+     * @return {@link #permanentRoomParticipants}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<AbstractParticipant> getPermanentRoomParticipants()
+    {
+        return Collections.unmodifiableList(permanentRoomParticipants);
+    }
+
+    /**
+     * @param participants sets the {@link #permanentRoomParticipants}
+     */
+    public void setPermanentRoomParticipants(List<AbstractParticipant> participants)
+    {
+        this.permanentRoomParticipants.clear();
+        for (AbstractParticipant participant : participants) {
+            this.permanentRoomParticipants.add(participant.clone());
+        }
+    }
+
     @Override
     public void updateTechnologies()
     {
@@ -251,6 +273,12 @@ public class AliasSpecification extends Specification
             }
             addTechnology(technology);
         }
+    }
+
+    @Override
+    public AliasSpecification clone()
+    {
+        return (AliasSpecification) super.clone();
     }
 
     @Override
@@ -271,20 +299,12 @@ public class AliasSpecification extends Specification
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
         setPermanentRoom(aliasSpecification.isPermanentRoom());
 
-        return modified;
-    }
+        if (!permanentRoomParticipants.equals(aliasSpecification.getPermanentRoomParticipants())) {
+            setPermanentRoomParticipants(aliasSpecification.getPermanentRoomParticipants());
+            modified = true;
+        }
 
-    @Override
-    public AliasSpecification clone()
-    {
-        AliasSpecification aliasSpecification = new AliasSpecification();
-        aliasSpecification.setAliasTechnologies(getAliasTechnologies());
-        aliasSpecification.setAliasTypes(getAliasTypes());
-        aliasSpecification.setValue(getValue());
-        aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
-        aliasSpecification.setPermanentRoom(isPermanentRoom());
-        aliasSpecification.updateTechnologies();
-        return aliasSpecification;
+        return modified;
     }
 
     @Override
@@ -301,86 +321,9 @@ public class AliasSpecification extends Specification
         if (aliasProviderCapability != null) {
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
         }
+        aliasReservationTask.setPermanentRoomParticipants(getPermanentRoomParticipants());
         aliasReservationTask.setPermanentRoom(isPermanentRoom());
         return aliasReservationTask;
-    }
-
-    @Override
-    public void checkAvailability(SchedulerContext schedulerContext) throws SchedulerException
-    {
-        Interval slot = schedulerContext.getRequestedSlot();
-        EntityManager entityManager = schedulerContext.getEntityManager();
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-
-        List<AliasProviderCapability> aliasProviders = new LinkedList<AliasProviderCapability>();
-        for (AliasProviderCapability aliasProvider : resourceManager.listCapabilities(AliasProviderCapability.class)) {
-            if (aliasTechnologies.size() > 0 && !aliasProvider.providesAliasTechnology(aliasTechnologies)) {
-                continue;
-            }
-            if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
-                continue;
-            }
-            aliasProviders.add(aliasProvider);
-        }
-
-        // Find available value in the alias providers
-        SchedulerReport report = new SchedulerReportSet.SpecificationCheckingAvailabilityReport();
-        for (AliasProviderCapability aliasProvider : aliasProviders) {
-            Resource resource = aliasProvider.getResource();
-            if (!resource.isAllocatable()) {
-                continue;
-            }
-            List<ResourceReservation> resourceReservations = reservationManager.getResourceReservations(resource, slot);
-            schedulerContext.applyResourceReservations(resource.getId(), resourceReservations);
-            if (resourceReservations.size() > 0) {
-                continue;
-            }
-
-            SchedulerReport resourceReport = report.addChildReport(new SchedulerReportSet.ResourceReport(resource));
-
-            ValueProvider valueProvider = aliasProvider.getValueProvider();
-            ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
-
-            List<ValueReservation> valueReservations =
-                    reservationManager.getValueReservations(targetValueProvider, slot);
-            schedulerContext.applyValueReservations(targetValueProvider.getId(), valueReservations);
-
-            Map<String, Interval> usedValues = new HashMap<String, Interval>();
-            for (ValueReservation allocatedValue : valueReservations) {
-                usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
-            }
-            try {
-                if (value != null) {
-                    valueProvider.generateValue(usedValues.keySet(), value);
-                }
-                else {
-                    valueProvider.generateValue(usedValues.keySet());
-                }
-            }
-            catch (ValueProvider.InvalidValueException exception) {
-                resourceReport.addChildReport(new SchedulerReportSet.ValueInvalidReport(value));
-                continue;
-            }
-            catch (ValueProvider.ValueAlreadyAllocatedException exception) {
-                Interval interval = usedValues.get(value);
-                resourceReport.addChildReport(new SchedulerReportSet.ValueAlreadyAllocatedReport(value, interval));
-                continue;
-            }
-            catch (ValueProvider.NoAvailableValueException exception) {
-                Interval overlapInterval = slot;
-                for (Interval interval : usedValues.values()) {
-                    overlapInterval = overlapInterval.overlap(interval);
-                }
-                resourceReport.addChildReport(new SchedulerReportSet.ValueNotAvailableReport(overlapInterval));
-                continue;
-            }
-
-            // An alias reservation is available
-            return;
-        }
-
-        throw new SchedulerException(report);
     }
 
     @Override
@@ -411,12 +354,15 @@ public class AliasSpecification extends Specification
             aliasSpecificationApi.setResourceId(
                     EntityIdentifier.formatId(getAliasProviderCapability().getResource()));
         }
+        for (AbstractParticipant participant : getPermanentRoomParticipants()) {
+            aliasSpecificationApi.addPermanentRoomParticipant(participant.toApi());
+        }
         aliasSpecificationApi.setPermanentRoom(isPermanentRoom());
         super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, final EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
@@ -442,6 +388,25 @@ public class AliasSpecification extends Specification
 
         Synchronization.synchronizeCollection(aliasTechnologies, aliasSpecificationApi.getTechnologies());
         Synchronization.synchronizeCollection(aliasTypes, aliasSpecificationApi.getAliasTypes());
+        Synchronization.synchronizeCollection(
+                permanentRoomParticipants, aliasSpecificationApi.getPermanentRoomParticipants(),
+                new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
+                        AbstractParticipant.class)
+                {
+                    @Override
+                    public AbstractParticipant createFromApi(
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                    {
+                        return AbstractParticipant.createFromApi(objectApi, entityManager);
+                    }
+
+                    @Override
+                    public void updateFromApi(AbstractParticipant object,
+                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
 
         super.fromApi(specificationApi, entityManager);
     }

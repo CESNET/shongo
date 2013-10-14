@@ -1,12 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointParticipant;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
@@ -43,7 +41,7 @@ public class ExternalEndpoint extends Endpoint
      *
      * @param externalEndpointSpecification to initialize from
      */
-    public ExternalEndpoint(ExternalEndpointSpecification externalEndpointSpecification)
+    public ExternalEndpoint(ExternalEndpointParticipant externalEndpointSpecification)
     {
         for (Technology technology : externalEndpointSpecification.getTechnologies()) {
             addTechnology(technology);

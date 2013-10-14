@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -65,47 +66,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public String getServiceName()
     {
         return "Executable";
-    }
-
-    @Override
-    public void deleteExecutable(SecurityToken securityToken, String executableId)
-    {
-        authorization.validate(securityToken);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ExecutableManager executableManager = new ExecutableManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
-
-        try {
-            authorizationManager.beginTransaction();
-            entityManager.getTransaction().begin();
-
-            cz.cesnet.shongo.controller.executor.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
-
-            if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
-            }
-
-            executableManager.delete(executable, authorizationManager);
-
-            entityManager.getTransaction().commit();
-            authorizationManager.commitTransaction();
-        }
-        catch (javax.persistence.RollbackException exception) {
-            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
-                    cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
-        }
-        finally {
-            if (authorizationManager.isTransactionActive()) {
-                authorizationManager.rollbackTransaction();
-            }
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-            entityManager.close();
-        }
     }
 
     @Override
@@ -247,7 +207,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
-
         try {
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
@@ -270,6 +229,78 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public void modifyExecutableConfiguration(SecurityToken securityToken, String executableId,
+            ExecutableConfiguration executableConfiguration)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        try {
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
+
+            if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+            }
+            if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
+                cz.cesnet.shongo.controller.executor.Executable.State executableState = executable.getState();
+                if (executableState.equals(cz.cesnet.shongo.controller.executor.Executable.State.STARTED)) {
+                    executable.setState(cz.cesnet.shongo.controller.executor.Executable.State.MODIFIED);
+                }
+            }
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void deleteExecutable(SecurityToken securityToken, String executableId)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        try {
+            authorizationManager.beginTransaction();
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
+
+            if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
+            }
+
+            executableManager.delete(executable, authorizationManager);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        catch (javax.persistence.RollbackException exception) {
+            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+                    cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
     public void updateExecutable(SecurityToken securityToken, String executableId)
     {
         authorization.validate(securityToken);
@@ -277,7 +308,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
-
         try {
             entityManager.getTransaction().begin();
 
@@ -285,7 +315,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("start executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update executable %s", entityId);
             }
 
             Set<cz.cesnet.shongo.controller.executor.Executable> executablesToUpdate =

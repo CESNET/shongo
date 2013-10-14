@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.Migration;
@@ -57,6 +58,11 @@ public class AliasReservationTask extends ReservationTask
      * (should get allocated {@link ResourceRoomEndpoint}).
      */
     private boolean permanentRoom = false;
+
+    /**
+     * List of {@link AbstractParticipant}s for the permanent room.
+     */
+    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -132,6 +138,14 @@ public class AliasReservationTask extends ReservationTask
     public void setPermanentRoom(boolean permanentRoom)
     {
         this.permanentRoom = permanentRoom;
+    }
+
+    /**
+     * @param permanentRoomParticipants sets the {@link #permanentRoomParticipants}
+     */
+    public void setPermanentRoomParticipants(List<AbstractParticipant> permanentRoomParticipants)
+    {
+        this.permanentRoomParticipants = permanentRoomParticipants;
     }
 
     @Override
@@ -219,6 +233,9 @@ public class AliasReservationTask extends ReservationTask
                     if (firstRestricted && !secondRestricted) {
                         return 1;
                     }
+                    else if (!firstRestricted && secondRestricted) {
+                        return -1;
+                    }
                 }
                 return 0;
             }
@@ -304,6 +321,7 @@ public class AliasReservationTask extends ReservationTask
                     room.setRoomProviderCapability(roomProvider);
                     room.setRoomDescription(schedulerContext.getDescription());
                     room.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                    room.setParticipants(permanentRoomParticipants);
 
                     // Create room configuration
                     RoomConfiguration roomConfiguration = new RoomConfiguration();

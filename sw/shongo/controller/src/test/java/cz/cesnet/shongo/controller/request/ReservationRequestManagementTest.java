@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
 import cz.cesnet.shongo.controller.api.CompartmentSpecification;
-import cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification;
+import cz.cesnet.shongo.controller.api.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
@@ -202,12 +202,10 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "P1W", "2012-01-01"));
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 3));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runPreprocessor();
-        runScheduler();
+        String id = allocate(reservationRequest);
         checkAllocated(id);
 
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
@@ -375,7 +373,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest4.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest4.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification3 = new CompartmentSpecification();
-        compartmentSpecification3.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 5));
+        compartmentSpecification3.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 5));
         reservationRequest4.setSpecification(compartmentSpecification3);
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest4);
 

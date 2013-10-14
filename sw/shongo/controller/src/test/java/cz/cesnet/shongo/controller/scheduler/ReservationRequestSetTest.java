@@ -5,8 +5,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.OtherPerson;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
+import cz.cesnet.shongo.controller.common.AnonymousPerson;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -85,14 +86,14 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             reservationRequestSet.addSlot("2012-06-22T14:00", "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
-            compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
+            compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 3));
             // Request specific persons, the first will use specified H.323 endpoint and
             // the second must select an endpoint then
-            Person person1 = new OtherPerson("Martin Srom", "srom@cesnet.cz");
-            Person person2 = new OtherPerson("Ondrej Bouda", "bouda@cesnet.cz");
-            compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
-            compartmentSpecification.addChildSpecification(new PersonSpecification(person2));
+            AbstractPerson person1 = new AnonymousPerson("Martin Srom", "srom@cesnet.cz");
+            AbstractPerson person2 = new AnonymousPerson("Ondrej Bouda", "bouda@cesnet.cz");
+            compartmentSpecification.addParticipant(new InvitedPersonParticipant(person1,
+                    new ExternalEndpointParticipant(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
+            compartmentSpecification.addParticipant(new InvitedPersonParticipant(person2));
             reservationRequestSet.setSpecification(compartmentSpecification);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -131,14 +132,14 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             Assert.assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
 
             CompartmentSpecification specification = (CompartmentSpecification) reservationRequest.getSpecification();
-            for (ParticipantSpecification childSpecification : specification.getParticipantSpecifications()) {
-                if (childSpecification instanceof PersonSpecification) {
-                    PersonSpecification personSpecification = (PersonSpecification) childSpecification;
-                    if (personSpecification.getEndpointSpecification() != null) {
-                        personId1 = personSpecification.getPerson().getId();
+            for (AbstractParticipant participant : specification.getParticipants()) {
+                if (participant instanceof InvitedPersonParticipant) {
+                    InvitedPersonParticipant invitedPersonParticipant = (InvitedPersonParticipant) participant;
+                    if (invitedPersonParticipant.getEndpointParticipant() != null) {
+                        personId1 = invitedPersonParticipant.getPerson().getId();
                     }
                     else {
-                        personId2 = personSpecification.getPerson().getId();
+                        personId2 = invitedPersonParticipant.getPerson().getId();
                     }
                 }
             }
@@ -156,22 +157,22 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             // First person rejects
-            reservationRequestManager.rejectPersonRequest(reservationRequestId, personId1);
+            reservationRequestManager.rejectInvitedPersonParticipant(reservationRequestId, personId1);
             Assert.assertEquals("No complete reservation requests should be present", 0,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             // Second person accepts and fails because he must select an endpoint first
             try {
-                reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
+                reservationRequestManager.acceptInvitedPersonParticipant(reservationRequestId, personId2);
                 Assert.fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
             catch (RuntimeException exception) {
             }
 
             // Second person accepts
-            reservationRequestManager.selectEndpointForPersonSpecification(reservationRequestId, personId2,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080086")));
-            reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
+            reservationRequestManager.selectEndpointForInvitedPersonParticipant(reservationRequestId, personId2,
+                    new ExternalEndpointParticipant(Technology.H323, new Alias(AliasType.H323_E164, "950080086")));
+            reservationRequestManager.acceptInvitedPersonParticipant(reservationRequestId, personId2);
             Assert.assertEquals("One complete reservation request should be present", 1,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
@@ -217,7 +218,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
                     reservationRequestSetId);
             CompartmentSpecification compartmentSpecification =
                     (CompartmentSpecification) reservationRequestSet.getSpecification();
-            compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 100));
+            compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 100));
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
 
@@ -237,8 +238,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
 
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
-            ExternalEndpointSetSpecification externalEndpointSpecification =
-                    (ExternalEndpointSetSpecification) compartmentSpecification.getCompartmentSpecifications().get(3);
+            ExternalEndpointSetParticipant externalEndpointSpecification =
+                    (ExternalEndpointSetParticipant) compartmentSpecification.getCompartmentSpecifications().get(3);
             externalEndpointSpecification.setCount(96);
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();

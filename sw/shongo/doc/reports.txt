@@ -5,7 +5,7 @@
   Common reports are stored for each reservation request when the request is being created, modified or preprocessed.
 
  * Specification Not Ready
-   - when a PersonSpecification (in the CompartmentSpecification) is not accepted or rejected by the requested person
+   - when a PersonParticipant (in the CompartmentSpecification) is not accepted or rejected by the requested person
    - when the report is stored, the reservation request is in "NOT_COMPLETE" state (and it won't be scheduled until
      it is "COMPLETE")
 

@@ -1,6 +1,6 @@
  package cz.cesnet.shongo.connector;
 
-import com.sun.xml.internal.messaging.saaj.SOAPExceptionImpl;
+
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.Recording;
@@ -236,7 +236,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             System.out.println(message.getMimeHeaders().getAllHeaders().next());
             SOAPMessage response = soapConnection.call(message, link);
             response.getContentDescription();
-        } catch (SOAPExceptionImpl ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 

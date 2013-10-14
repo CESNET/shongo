@@ -182,7 +182,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             <#list report.getAllDeclaredParams() as param>
-            parameters.put("${param.getVariableName()}", ${param.getVariableName()});
+            parameters.put("${param.getOriginalName()}", ${param.getVariableName()});
             </#list>
             return parameters;
         }

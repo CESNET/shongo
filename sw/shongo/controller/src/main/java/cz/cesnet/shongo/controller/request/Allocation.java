@@ -93,23 +93,6 @@ public class Allocation extends PersistentObject
     }
 
     /**
-     * @param id of the {@link ReservationRequest}
-     * @return {@link ReservationRequest} with given {@code id}
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotFoundException
-     *          when the {@link ReservationRequest} doesn't exist
-     */
-    @Transient
-    private ReservationRequest getChildReservationRequestById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (ReservationRequest reservationRequest : childReservationRequests) {
-            if (reservationRequest.getId().equals(id)) {
-                return reservationRequest;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(ReservationRequest.class, id);
-    }
-
-    /**
      * @param childReservationRequest to be added to the {@link #childReservationRequests}
      */
     public void addChildReservationRequest(ReservationRequest childReservationRequest)

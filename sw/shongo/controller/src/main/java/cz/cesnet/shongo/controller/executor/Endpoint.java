@@ -4,7 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.EndpointExecutable;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -24,9 +24,9 @@ import java.util.Set;
 public abstract class Endpoint extends Executable
 {
     /**
-     * List of {@link cz.cesnet.shongo.controller.common.Person}s which use the {@link Endpoint} in the {@link Compartment}.
+     * List of {@link cz.cesnet.shongo.controller.common.AbstractPerson}s which use the {@link Endpoint} in the {@link Compartment}.
      */
-    private List<Person> persons = new ArrayList<Person>();
+    private List<AbstractPerson> persons = new ArrayList<AbstractPerson>();
 
     /**
      * {@link Alias}es that are additionally assigned to the {@link Endpoint}.
@@ -38,7 +38,7 @@ public abstract class Endpoint extends Executable
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<Person> getPersons()
+    public List<AbstractPerson> getPersons()
     {
         return persons;
     }
@@ -46,7 +46,7 @@ public abstract class Endpoint extends Executable
     /**
      * @param person to be added to the {@link #persons}
      */
-    public void addPerson(Person person)
+    public void addPerson(AbstractPerson person)
     {
         persons.add(person);
     }

@@ -312,5 +312,11 @@ public class AclRecord extends PersistentObject
             result = 31 * result + persistenceId.hashCode();
             return result;
         }
+
+        @Override
+        public String toString()
+        {
+            return entityType + ":" + persistenceId;
+        }
     }
 }

@@ -112,16 +112,6 @@ public class ValueSpecification extends Specification
     }
 
     @Override
-    public ValueSpecification clone()
-    {
-        ValueSpecification aliasSpecification = new ValueSpecification();
-        aliasSpecification.setValueProvider(getValueProvider());
-        aliasSpecification.setValues(getValues());
-        aliasSpecification.updateTechnologies();
-        return aliasSpecification;
-    }
-
-    @Override
     public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
         int valuesCount = values.size();

@@ -39,6 +39,11 @@ public abstract class AbstractRoomExecutable extends Executable
     private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 
     /**
+     * @see RoomExecutableParticipantConfiguration
+     */
+    private RoomExecutableParticipantConfiguration participantConfiguration;
+
+    /**
      * @return {@link #technologies}
      */
     public Set<Technology> getTechnologies()
@@ -164,10 +169,27 @@ public abstract class AbstractRoomExecutable extends Executable
         roomSettings.add(roomSetting);
     }
 
+    /**
+     * @return {@link #participantConfiguration}
+     */
+    public RoomExecutableParticipantConfiguration getParticipantConfiguration()
+    {
+        return participantConfiguration;
+    }
+
+    /**
+     * @param participantConfiguration sets the {@link #participantConfiguration}
+     */
+    public void setParticipantConfiguration(RoomExecutableParticipantConfiguration participantConfiguration)
+    {
+        this.participantConfiguration = participantConfiguration;
+    }
+
     private static final String TECHNOLOGIES = "technologies";
     private static final String LICENSE_COUNT = "licenseCount";
     private static final String ALIASES = "aliases";
     private static final String ROOM_SETTINGS = "roomSettings";
+    private static final String PARTICIPANT_CONFIGURATION = "participantConfiguration";
 
     @Override
     public DataMap toData()
@@ -177,6 +199,7 @@ public abstract class AbstractRoomExecutable extends Executable
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(ALIASES, aliases);
         dataMap.set(ROOM_SETTINGS, roomSettings);
+        dataMap.set(PARTICIPANT_CONFIGURATION, participantConfiguration);
         return dataMap;
     }
 
@@ -188,5 +211,7 @@ public abstract class AbstractRoomExecutable extends Executable
         licenseCount = dataMap.getInt(LICENSE_COUNT);
         aliases = dataMap.getList(ALIASES, Alias.class);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
+        participantConfiguration = dataMap.getComplexType(
+                PARTICIPANT_CONFIGURATION, RoomExecutableParticipantConfiguration.class);
     }
 }

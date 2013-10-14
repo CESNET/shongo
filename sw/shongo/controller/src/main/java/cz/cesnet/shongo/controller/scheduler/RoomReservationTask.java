@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.*;
@@ -54,6 +55,11 @@ public class RoomReservationTask extends ReservationTask
     private DeviceResource deviceResource = null;
 
     /**
+     * List of {@link AbstractParticipant}s for the permanent room.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
@@ -94,6 +100,14 @@ public class RoomReservationTask extends ReservationTask
     public void setDeviceResource(DeviceResource deviceResource)
     {
         this.deviceResource = deviceResource;
+    }
+
+    /**
+     * @param participants sets the {@link #participants}
+     */
+    public void setParticipants(List<AbstractParticipant> participants)
+    {
+        this.participants = participants;
     }
 
     @Override
@@ -271,7 +285,7 @@ public class RoomReservationTask extends ReservationTask
             {
                 RoomProvider firstRoomProvider = first.getRoomProvider();
                 RoomProvider secondRoomProvider = second.getRoomProvider();
-
+                int result;
                 if (firstRoomProvider != secondRoomProvider) {
                     // Prefer room providers which has some available room reservation(s)
                     boolean firstHasAvailableRoom = firstRoomProvider.getAvailableRoomEndpoints().size() > 0;
@@ -279,24 +293,30 @@ public class RoomReservationTask extends ReservationTask
                     if (!firstHasAvailableRoom && secondHasAvailableRoom) {
                         return 1;
                     }
+                    else if (firstHasAvailableRoom && !secondHasAvailableRoom) {
+                        return -1;
+                    }
 
                     AvailableRoom firstRoom = firstRoomProvider.getAvailableRoom();
                     AvailableRoom secondRoom = secondRoomProvider.getAvailableRoom();
 
                     // Prefer already allocated room providers
-                    if (firstRoom.getFullnessRatio() < secondRoom.getFullnessRatio()) {
-                        return 1;
+                    result = -Double.compare(firstRoom.getFullnessRatio(), secondRoom.getFullnessRatio());
+                    if (result != 0) {
+                        return result;
                     }
 
                     // Prefer room providers with greater license capacity
-                    if (firstRoom.getMaximumLicenseCount() < secondRoom.getMaximumLicenseCount()) {
-                        return 1;
+                    result = -Double.compare(firstRoom.getMaximumLicenseCount(), secondRoom.getMaximumLicenseCount());
+                    if (result != 0) {
+                        return result;
                     }
                 }
 
                 // Prefer variant with smaller license count
-                if (first.getLicenseCount() > second.getLicenseCount()) {
-                    return 1;
+                result = Double.compare(first.getLicenseCount(), second.getLicenseCount());
+                if (result != 0) {
+                    return result;
                 }
 
                 return 0;
@@ -380,6 +400,7 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setSlot(interval);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setRoomConfiguration(roomConfiguration);
+                roomEndpoint.setParticipants(participants);
 
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);

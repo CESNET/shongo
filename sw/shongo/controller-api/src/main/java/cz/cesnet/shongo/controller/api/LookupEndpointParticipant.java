@@ -4,11 +4,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link Specification} which searches for available endpoint {@link Resource}.
+ * {@link AbstractParticipant} which searches for available endpoint {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class LookupEndpointSpecification extends ParticipantSpecification
+public class LookupEndpointParticipant extends AbstractParticipant
 {
     /**
      * Technology of the resource.

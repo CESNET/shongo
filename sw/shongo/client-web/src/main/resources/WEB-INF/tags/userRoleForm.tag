@@ -11,7 +11,6 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="entityType" required="true" type="cz.cesnet.shongo.controller.EntityType" %>
-<%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
@@ -22,8 +21,13 @@
 <tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
     <tag:param name="userId" value=":userId"/>
 </tag:url>
+<c:if test="${empty cancelUrl}">
+    <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
+</c:if>
 
 <script type="text/javascript">
+    angular.module('tag:userRoleForm', ['ngTooltip']);
+
     window.formatUser = function(user) {
         var text = user.firstName;
         if ( user.lastName != null ) {
@@ -71,7 +75,6 @@
 
 <form:form class="form-horizontal"
            commandName="userRole"
-           action="${confirmUrl}"
            method="post">
 
     <fieldset>
@@ -113,34 +116,30 @@
                 <form:errors path="role" cssClass="error"/>
                 <tag:help>
                     <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
-                    <p><spring:message code="help.reservationRequest.role.OWNER"/></p>
+                    <p><spring:message code="views.aclRecord.roleHelp.OWNER"/></p>
                     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
                         <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
-                        <p><spring:message code="help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
+                        <p><spring:message code="views.aclRecord.roleHelp.RESERVATION_REQUEST_USER"/></p>
                     </c:if>
                     <strong><spring:message code="views.aclRecord.role.READER"/></strong>
-                    <p><spring:message code="help.reservationRequest.role.READER"/></p>
+                    <p><spring:message code="views.aclRecord.roleHelp.READER"/></p>
                 </tag:help>
             </div>
         </div>
 
     </fieldset>
 
-    <c:if test="${not empty confirmTitle || cancelUrl != null}">
-        <div class="control-group">
-            <div class="controls">
-                <c:if test="${not empty confirmTitle}">
-                    <spring:message code="${confirmTitle}" var="confirmTitle"/>
-                    <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
-                </c:if>
-                <c:if test="${cancelUrl != null}">
-                    <c:if test="${empty cancelTitle}">
-                        <c:set var="cancelTitle" value="views.button.cancel"/>
-                    </c:if>
-                    <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
-                </c:if>
-            </div>
+    <div class="control-group">
+        <div class="controls">
+            <c:if test="${not empty confirmTitle}">
+                <spring:message code="${confirmTitle}" var="confirmTitle"/>
+                <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
+            </c:if>
+            <c:if test="${empty cancelTitle}">
+                <c:set var="cancelTitle" value="views.button.cancel"/>
+            </c:if>
+            <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
         </div>
-    </c:if>
+    </div>
 
 </form:form>

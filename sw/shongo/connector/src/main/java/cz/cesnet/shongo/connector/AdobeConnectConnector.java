@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -690,20 +691,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param participants Collection of participants
      * @throws CommandException
      */
-    protected void addRoomParticipants(String roomId, List<UserInformation> participants) throws CommandException
+    protected void addRoomParticipants(String roomId, List<RoomParticipant> participants) throws CommandException
     {
         RequestAttributeList userAttributes = new RequestAttributeList();
         userAttributes.add("acl-id", roomId);
 
-        for (UserInformation participant : participants)
+        for (RoomParticipant participant : participants)
         {
-            String principalId = createAdobeConnectUser(participant);
+            UserInformation userInformation = participant.getUserInformation();
+            String principalId = createAdobeConnectUser(userInformation);
             userAttributes.add("principal-id", principalId);
+
+            ParticipantRole role = participant.getRole();
             //TODO: more user roles
             userAttributes.add("permission-id", "host");
 
-            logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(),
-                    principalId);
+            logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.",
+                    userInformation.getFullName(), principalId);
         }
 
         request("permissions-update", userAttributes);

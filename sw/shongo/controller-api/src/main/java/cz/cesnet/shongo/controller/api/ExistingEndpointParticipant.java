@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link Specification} for existing endpoint {@link Resource}.
+ * {@link AbstractParticipant} for existing endpoint {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExistingEndpointSpecification extends ParticipantSpecification
+public class ExistingEndpointParticipant extends AbstractParticipant
 {
     /**
      * The resource shongo-id.
@@ -17,7 +17,7 @@ public class ExistingEndpointSpecification extends ParticipantSpecification
     /**
      * Constructor.
      */
-    public ExistingEndpointSpecification()
+    public ExistingEndpointParticipant()
     {
     }
 
@@ -26,7 +26,7 @@ public class ExistingEndpointSpecification extends ParticipantSpecification
      *
      * @param resourceId sets the {@link #resourceId}
      */
-    public ExistingEndpointSpecification(String resourceId)
+    public ExistingEndpointParticipant(String resourceId)
     {
         setResourceId(resourceId);
     }

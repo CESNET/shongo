@@ -7,8 +7,8 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="createRoleUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE %>"/>
-<tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE %>"/>
+<tag:url var="createRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_CREATE %>"/>
+<tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_DELETE %>"/>
 
 <script type="text/javascript">
     angular.module('jsp:wizardCreateRoomRoles', ['ngTooltip']);
@@ -21,13 +21,13 @@
     <spring:message code="views.wizard.createRoom.roles.description"/>
     <tag:help>
         <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
-        <p><spring:message code="help.reservationRequest.role.OWNER"/></p>
+        <p><spring:message code="views.aclRecord.roleHelp.OWNER"/></p>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
-            <p><spring:message code="help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
+            <p><spring:message code="views.aclRecord.roleHelp.RESERVATION_REQUEST_USER"/></p>
         </c:if>
         <strong><spring:message code="views.aclRecord.role.READER"/></strong>
-        <p><spring:message code="help.reservationRequest.role.READER"/></p>
+        <p><spring:message code="views.aclRecord.roleHelp.READER"/></p>
     </tag:help>
 
     <hr/>

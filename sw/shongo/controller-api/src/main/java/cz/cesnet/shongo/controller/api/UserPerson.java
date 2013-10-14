@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link Person} which is known to Shongo by user-id.
+ * {@link AbstractPerson} which is known to Shongo by user-id.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class UserPerson extends Person
+public class UserPerson extends AbstractPerson
 {
     /**
      * User-id of the person.

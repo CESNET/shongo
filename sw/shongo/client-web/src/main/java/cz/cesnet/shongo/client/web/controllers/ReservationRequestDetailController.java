@@ -221,6 +221,15 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 put("help", roomState.getHelp(messageSource, locale, roomModel.getType()));
             }});
         }
+        List<Map<String, Object>> roomParticipants = new LinkedList<Map<String, Object>>();
+        for (final ParticipantModel roomParticipant : reservationRequestModel.getRoomParticipants()) {
+            roomParticipants.add(new HashMap<String, Object>(){{
+                put("name", roomParticipant.getName());
+                put("role", messageSource.getMessage(
+                        "views.participant.role." + roomParticipant.getRole(), null, locale));
+            }});
+        }
+        data.put("roomParticipants", roomParticipants);
         return data;
     }
 

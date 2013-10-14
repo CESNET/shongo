@@ -48,13 +48,12 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
+
     }
 
     /**
@@ -87,13 +86,11 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
@@ -123,8 +120,8 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalId));
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(terminalId));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 1));
         firstReservationRequest.setSpecification(compartmentSpecification);
 
         allocateAndCheck(firstReservationRequest);
@@ -133,7 +130,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 8));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 8));
         secondReservationRequest.setSpecification(compartmentSpecification);
 
         allocateAndCheck(secondReservationRequest);
@@ -142,7 +139,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         thirddReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         thirddReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
         thirddReservationRequest.setSpecification(compartmentSpecification);
 
         allocateAndCheckFailed(thirddReservationRequest);
@@ -184,13 +181,11 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
+        compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
@@ -223,12 +218,10 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequest);
     }
 
     /**
@@ -259,7 +252,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         secondReservationRequest.setSpecification(compartmentSpecification);
 
         String secondReservationRequestId = allocate(secondReservationRequest);
@@ -290,7 +283,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
@@ -346,12 +339,12 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequestSet.setSpecification(multiCompartmentSpecification);
         // First compartment
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.SIP));
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323));
+        compartmentSpecification.addParticipant(new ExternalEndpointParticipant(Technology.SIP));
+        compartmentSpecification.addParticipant(new ExternalEndpointParticipant(Technology.H323));
         multiCompartmentSpecification.addSpecification(compartmentSpecification);
         // Second compartment
         compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 2));
+        compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.ADOBE_CONNECT, 2));
         multiCompartmentSpecification.addSpecification(compartmentSpecification);
 
         allocateAndCheck(reservationRequestSet);

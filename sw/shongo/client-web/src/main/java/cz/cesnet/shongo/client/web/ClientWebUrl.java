@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.client.web;
 
-import cz.cesnet.shongo.client.web.models.SpecificationType;
-import cz.cesnet.shongo.report.ApiFaultException;
 import org.springframework.web.util.UriUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 /**
  * Definition of URL constants in Shongo web client.
@@ -26,30 +23,46 @@ public class ClientWebUrl
 
     public static final String WIZARD =
             "/wizard";
-    public static final String WIZARD_CREATE_ROOM =
+    public static final String WIZARD_ROOM =
             "/wizard/create";
-    public static final String WIZARD_CREATE_ADHOC_ROOM =
+    public static final String WIZARD_ADHOC_ROOM =
             "/wizard/create/adhoc-room";
-    public static final String WIZARD_CREATE_PERMANENT_ROOM =
+    public static final String WIZARD_PERMANENT_ROOM =
             "/wizard/create/permanent-room";
-    public static final String WIZARD_CREATE_ROOM_ATTRIBUTES =
+    public static final String WIZARD_ROOM_ATTRIBUTES =
             "/wizard/create/attributes";
-    public static final String WIZARD_CREATE_ROOM_ROLES =
+    public static final String WIZARD_ROOM_ROLES =
             "/wizard/create/roles";
-    public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
+    public static final String WIZARD_ROOM_PARTICIPANTS =
+            "/wizard/create/participants";
+    public static final String WIZARD_PARTICIPANT_CREATE =
+            "/wizard/create/participant/create";
+    public static final String WIZARD_ROOM_PARTICIPANT_MODIFY =
+            "/wizard/create/participant/{participantId}/modify";
+    public static final String WIZARD_ROOM_PARTICIPANT_DELETE =
+            "/wizard/create/participant/{participantId}/delete";
+    public static final String WIZARD_ROOM_ROLE_CREATE =
             "/wizard/create/role/create";
-    public static final String WIZARD_CREATE_ROOM_ROLE_DELETE =
-            "/wizard/create/role/{aclRecordId:.+}/delete";
-    public static final String WIZARD_CREATE_ROOM_CONFIRM =
+    public static final String WIZARD_ROOM_ROLE_DELETE =
+            "/wizard/create/role/{roleId}/delete";
+    public static final String WIZARD_ROOM_CONFIRM =
             "/wizard/create/confirm";
-    public static final String WIZARD_CREATE_ROOM_CONFIRMED =
+    public static final String WIZARD_ROOM_CONFIRMED =
             "/wizard/create/confirmed";
 
-    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
-    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM =
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS =
+            "/wizard/create/permanent-room-capacity/participants";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE =
+            "/wizard/create/permanent-room-capacity/participant/create";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY =
+            "/wizard/create/permanent-room-capacity/participant/{participantId}/modify";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE =
+            "/wizard/create/permanent-room-capacity/participant/{participantId}/delete";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM =
             "/wizard/create/permanent-room-capacity/confirm";
-    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED =
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRMED =
             "/wizard/create/permanent-room-capacity/confirmed";
 
     public static final String RESERVATION_REQUEST =
@@ -76,12 +89,20 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/duplicate";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String RESERVATION_REQUEST_ACL =
-            "/reservation-request/{reservationRequestId:.+}/acl";
-    public static final String RESERVATION_REQUEST_ACL_CREATE =
-            "/reservation-request/{reservationRequestId:.+}/acl/create";
-    public static final String RESERVATION_REQUEST_ACL_DELETE =
-            "/reservation-request/{reservationRequestId:.+}/acl/{aclRecordId}/delete";
+    public static final String RESERVATION_REQUEST_ROLES =
+            "/reservation-request/{reservationRequestId:.+}/roles";
+    public static final String RESERVATION_REQUEST_ROLE_CREATE =
+            "/reservation-request/{reservationRequestId:.+}/role/create";
+    public static final String RESERVATION_REQUEST_ROLE_DELETE =
+            "/reservation-request/{reservationRequestId:.+}/role/{roleId}/delete";
+    public static final String RESERVATION_REQUEST_UPDATE =
+            "/reservation-request/update";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_CREATE =
+            "/reservation-request/participant/create";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_MODIFY =
+            "/reservation-request/participant/{participantId}/modify";
+    public static final String RESERVATION_REQUEST_PARTICIPANT_DELETE =
+            "/reservation-request/participant/{participantId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";
@@ -98,6 +119,14 @@ public class ClientWebUrl
             "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
+    public static final String ROOM_PARTICIPANTS =
+            "/room/{roomId:.+}/participants";
+    public static final String ROOM_PARTICIPANT_CREATE =
+            "/room/{roomId:.+}/participant/create";
+    public static final String ROOM_PARTICIPANT_MODIFY =
+            "/room/{roomId:.+}/participant/{participantId}/modify";
+    public static final String ROOM_PARTICIPANT_DELETE =
+            "/room/{roomId:.+}/participant/{participantId}/delete";
     public static final String ROOM_ENTER =
             "/room/{roomId:.+}/enter";
 

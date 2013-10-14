@@ -15,7 +15,7 @@ use Shongo::Console;
 
 our $Type = ordered_hash(
     'UserPerson' => 'Person with user account',
-    'OtherPerson' => 'Person without user account'
+    'AnonymousPerson' => 'Person without user account'
 );
 
 #
@@ -88,7 +88,7 @@ sub on_init()
                 }
             });
         }
-        case 'OtherPerson' {
+        case 'AnonymousPerson' {
             $self->add_attribute('name', {'title' => 'Full Name'});
             $self->add_attribute('email');
         }

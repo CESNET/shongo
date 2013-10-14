@@ -25,7 +25,6 @@
             </c:forEach>
         </ul>
     </c:if>
-
     &nbsp;
     <p><spring:message code="views.wizard.confirmation.chooseFinish"/></p>
 

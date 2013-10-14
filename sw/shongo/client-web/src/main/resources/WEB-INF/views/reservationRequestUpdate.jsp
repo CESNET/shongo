@@ -13,6 +13,17 @@
 
 <script type="text/javascript">
     angular.module('jsp:reservationRequestUpdate', ['tag:reservationRequestForm']);
+
+    /**
+     * Store reservation request form and redirect to given {@code url}.
+     *
+     * @param url
+     */
+    window.redirect = function(url) {
+        $.post('<%= ClientWebUrl.RESERVATION_REQUEST_UPDATE %>',$('#reservationRequest').serialize(), function(){
+            window.location.href = url;
+        });
+    };
 </script>
 
 <div ng-app="jsp:reservationRequestUpdate">
@@ -22,7 +33,32 @@
         <spring:message code="views.reservationRequestUpdate.type.${reservationRequest.specificationType}"/>
     </h1>
 
-    <tag:reservationRequestForm confirmTitle="${confirmTitle}" confirmUrl="" cancelUrl="${cancelUrl}"
-                                permanentRooms="${permanentRooms}"/>
+    <tag:reservationRequestForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"
+                                permanentRooms="${permanentRooms}">
+
+        <div ng-show="$child.technology == 'ADOBE_CONNECT'">
+
+            <%-- Participants --%>
+            <h2><spring:message code="views.reservationRequest.participants"/></h2>
+            <tag:url var="participantBackUrl" value="${requestUrl}">
+                <tag:param name="reuse" value="true"/>
+            </tag:url>
+            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_CREATE %>">
+                <tag:param name="back-url" value="${participantBackUrl}"/>
+            </tag:url>
+            <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_MODIFY %>">
+                <tag:param name="back-url" value="${participantBackUrl}"/>
+            </tag:url>
+            <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_DELETE %>">
+                <tag:param name="back-url" value="${participantBackUrl}"/>
+            </tag:url>
+            <tag:participantList data="${reservationRequest.roomParticipants}"
+                                 createUrl="javascript: redirect('${participantCreateUrl}')"
+                                 modifyUrl="javascript: redirect('${participantModifyUrl}')"
+                                 deleteUrl="javascript: redirect('${participantDeleteUrl}')"/>
+
+        </div>
+
+    </tag:reservationRequestForm>
 
 </div>

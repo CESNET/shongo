@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import jade.content.Concept;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,9 +48,9 @@ public class Room extends IdentifiedComplexType
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
-     * Allowed participants of the room. Type: List<UserInformation>
+     * Allowed participants of the room. Type: List<RoomParticipant>
      */
-    List<UserInformation> participants = new LinkedList<UserInformation>();
+    List<RoomParticipant> participants = new LinkedList<RoomParticipant>();
 
     /**
      * Constructor.
@@ -229,7 +229,7 @@ public class Room extends IdentifiedComplexType
     /**
      * @return {@link #participants}
      */
-    public List<UserInformation> getParticipants()
+    public List<RoomParticipant> getParticipants()
     {
         return participants;
     }
@@ -237,7 +237,7 @@ public class Room extends IdentifiedComplexType
     /**
      * @param participants sets the {@link #participants}
      */
-    public void setParticipants(List<UserInformation> participants)
+    public void setParticipants(List<RoomParticipant> participants)
     {
         this.participants = participants;
     }
@@ -245,16 +245,16 @@ public class Room extends IdentifiedComplexType
     /**
      * @param participant to be added to the {@link #participants}
      */
-    public void addParticipant(UserInformation participant)
+    public void addParticipant(UserInformation participant, ParticipantRole participantRole)
     {
         String userId = participant.getUserId();
-        for (UserInformation existingParticipant : getParticipants()) {
-            if (userId.equals(existingParticipant.getUserId())) {
+        for (RoomParticipant existingParticipant : participants) {
+            if (userId.equals(existingParticipant.getUserInformation().getUserId())) {
                 // Participant is already added to the room
                 return;
             }
         }
-        this.participants.add(participant);
+        this.participants.add(new RoomParticipant(participant, participantRole));
     }
 
     /**
@@ -263,6 +263,21 @@ public class Room extends IdentifiedComplexType
     public void removeParticipant(UserInformation participant)
     {
         participants.remove(participant);
+    }
+
+    /**
+     * @param role
+     * @return true whether {@link #participants} contains {@link RoomParticipant} with given {@code role},
+     *         false otherwise
+     */
+    public boolean hasParticipantWithRole(ParticipantRole role)
+    {
+        for (RoomParticipant participant : participants) {
+            if (role.equals(participant.getRole())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static final String NAME = "name";
@@ -297,7 +312,7 @@ public class Room extends IdentifiedComplexType
         licenseCount = dataMap.getInt(LICENSE_COUNT);
         aliases = dataMap.getList(ALIASES, Alias.class);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
-        participants = dataMap.getList(PARTICIPANTS, UserInformation.class);
+        participants = dataMap.getList(PARTICIPANTS, RoomParticipant.class);
     }
 
     @Override

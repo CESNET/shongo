@@ -32,6 +32,10 @@
 
         // Default requested slot
         $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
+        $scope.roomParticipants = [<c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
+            { name: "${participant.name}", role: "<spring:message code="views.participant.role.${participant.role}"/>" }<c:if test="${!status.last}">,</c:if>
+            </c:forEach>
+        ];
         <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
             <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.stateHelp)" var="stateHelp"/>
             // Default ReservationRequestState
@@ -98,6 +102,7 @@
                     $scope.roomLicenseCount = result.roomLicenseCount;
                     $scope.roomAliases = result.roomAliases;
                     $scope.roomAliasesDescription = result.roomAliasesDescription;
+                    $scope.roomParticipants = result.roomParticipants;
                     $scope.roomState = result.roomState;
                     $scope.allocatedSlot = result.allocatedSlot;
                     if (callback != null) {
@@ -147,7 +152,7 @@
     <dd>
         <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
         <tag:help label="${specificationType}">
-            <spring:message code="help.reservationRequest.specification.${reservationRequest.specificationType}"/>
+            <spring:message code="views.reservationRequest.specificationHelp.${reservationRequest.specificationType}"/>
         </tag:help>
     </dd>
 
@@ -251,7 +256,7 @@
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
             <span ng-show="roomId != null && roomState.started">
-                (<a href="${roomManagementUrl}"><spring:message code="views.list.action.manage.title"/></a>)
+                (<a href="${roomManagementUrl}"><spring:message code="views.reservationRequest.room.manage"/></a>)
             </span>
             <c:if test="${isActive}">
                 <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
@@ -271,6 +276,26 @@
             --%><span id="roomAliases" ng-bind-html="html(roomAliases)" class="tooltip-label dotted"></span>
         </dd>
     </div>
+
+    <%-- Participants --%>
+    <c:if test="${reservationRequest.technology == 'ADOBE_CONNECT'}">
+        <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
+        <dd>
+            <span ng-repeat="roomParticipant in roomParticipants">
+                {{roomParticipant.name}} ({{roomParticipant.role}}){{$last ? '' : ', '}}
+            </span>
+            <span ng-hide="roomParticipants.length">
+                <spring:message code="views.reservationRequest.participants.none"/>
+            </span>
+            <span ng-show="roomState != null && roomState.code != 'STOPPED'">
+                <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
+                    <tag:param name="roomId" value="{{roomId}}" escape="false"/>
+                    <tag:param name="back-url" value="${requestUrl}"/>
+                </tag:url>
+                (<a href="${modifyParticipantsUrl}"><spring:message code="views.reservationRequest.participants.modify"/></a>)
+            </span>
+        </dd>
+    </c:if>
 
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">

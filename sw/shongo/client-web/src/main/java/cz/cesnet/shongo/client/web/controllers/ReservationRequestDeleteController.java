@@ -32,6 +32,9 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
     @Resource
     private ReservationService reservationService;
 
+    @Resource
+    private Cache cache;
+
     /**
      * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDeleteView}
      */
@@ -67,7 +70,8 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
         model.addAttribute("dependencies", dependencies);
 
         // Initialize breadcrumb
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
+        ReservationRequestModel reservationRequestModel =
+                new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         if (breadcrumb != null) {
             breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
                     reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));

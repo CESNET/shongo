@@ -17,7 +17,7 @@
 
 <security:authorize access="isAuthenticated()">
     <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
-    <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_CREATE_ROOM %>">
+    <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
     <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
@@ -49,8 +49,9 @@
         <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
-    <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>">
+    <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
         <tag:param name="permanentRoom" value="{{reservationRequest.id}}" escape="false"/>
+        <tag:param name="force" value="true"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
     <tag:url var="permanentRoomCapacityDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">

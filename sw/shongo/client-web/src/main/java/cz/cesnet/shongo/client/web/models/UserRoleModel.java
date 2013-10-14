@@ -27,8 +27,6 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 
     private CacheProvider cacheProvider;
 
-    private static int lastGeneratedId = 0;
-
     public UserRoleModel(UserInformation userInformation)
     {
         setUser(userInformation);
@@ -45,21 +43,19 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         fromApi(aclRecord);
     }
 
+    public boolean isNew()
+    {
+        return id == null || CommonModel.isNewId(id);
+    }
+
     public String getId()
     {
         return id;
     }
 
-    public void setTemporaryId()
+    public void setNewId()
     {
-        synchronized (UserRoleModel.class) {
-            id = "new-" + String.valueOf(++lastGeneratedId);
-        }
-    }
-
-    private void setId(String id)
-    {
-        this.id = id;
+        this.id = CommonModel.getNewId();
     }
 
     public String getEntityId()
@@ -124,7 +120,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 
     public void fromApi(AclRecord aclRecord)
     {
-        setId(aclRecord.getId());
+        this.id = aclRecord.getId();
         setUserId(aclRecord.getUserId());
         setEntityId(aclRecord.getEntityId());
         setRole(aclRecord.getRole());
@@ -134,7 +130,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     public AclRecord toApi()
     {
         AclRecord aclRecord = new AclRecord();
-        if (!id.startsWith("new-")) {
+        if (!isNew()) {
             aclRecord.setId(id);
         }
         aclRecord.setUserId(user.getUserId());

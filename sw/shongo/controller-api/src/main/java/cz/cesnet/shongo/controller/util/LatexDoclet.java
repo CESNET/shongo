@@ -342,10 +342,9 @@ public class LatexDoclet extends Doclet
                         "AbstractReservationRequest", "ReservationRequest", "ReservationRequestSet",
 
                         "Specification", "ResourceSpecification", "AliasSpecification", "RoomSpecification",
-                        "CompartmentSpecification", "ParticipantSpecification", "ExternalEndpointSpecification",
-                        "ExternalEndpointSetSpecification", "ExistingEndpointSpecification",
-                        "LookupEndpointSpecification",
-                        "PersonSpecification",
+                        "CompartmentSpecification", "AbstractParticipant", "ExternalEndpointParticipant",
+                        "ExternalEndpointSetParticipant", "ExistingEndpointParticipant",
+                        "LookupEndpointParticipant", "PersonParticipant", "InvitedPersonParticipant",
 
                         "ReservationRequestSummary.Type", "ReservationRequestSummary",
 
