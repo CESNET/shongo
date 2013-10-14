@@ -24,6 +24,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -71,14 +72,20 @@ public class WizardRoomController extends WizardParticipantsController
     @Override
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
+        ReservationRequestModel reservationRequest =
+                (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
+
         wizardView.addPage(new WizardPage(Page.ROOM_TYPE, ClientWebUrl.WIZARD_ROOM,
                 "views.wizard.page.createRoom"));
         wizardView.addPage(new WizardPage(Page.ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
                 "views.wizard.page.createRoom.attributes"));
         wizardView.addPage(new WizardPage(Page.ROOM_ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
                 "views.wizard.page.createRoom.roles"));
-        wizardView.addPage(new WizardPage(Page.ROOM_PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
-                "views.wizard.page.createRoom.participants"));
+        if (reservationRequest == null || reservationRequest.getTechnology() == null
+                || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
+            wizardView.addPage(new WizardPage(Page.ROOM_PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
+                    "views.wizard.page.createRoom.participants"));
+        }
         wizardView.addPage(new WizardPage(Page.ROOM_CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
                 "views.wizard.page.createConfirm"));
     }

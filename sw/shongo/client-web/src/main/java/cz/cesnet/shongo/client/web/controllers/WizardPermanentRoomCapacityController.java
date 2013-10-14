@@ -24,6 +24,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -64,14 +65,20 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     @Override
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
+        ReservationRequestModel reservationRequest =
+                (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
+
         wizardView.addPage(new WizardPage(
                 Page.CREATE,
                 ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY,
                 "views.wizard.page.createPermanentRoomCapacity"));
-        wizardView.addPage(new WizardPage(
-                Page.CREATE_PARTICIPANTS,
-                ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS,
-                "views.wizard.page.createRoom.participants"));
+        if (reservationRequest == null || reservationRequest.getTechnology() == null
+                || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
+            wizardView.addPage(new WizardPage(
+                    Page.CREATE_PARTICIPANTS,
+                    ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS,
+                    "views.wizard.page.createRoom.participants"));
+        }
         wizardView.addPage(new WizardPage(
                 Page.CREATE_CONFIRM,
                 ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM,
@@ -114,6 +121,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             reservationRequest = new ReservationRequestModel(new CacheProvider(cache, securityToken));
             wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
+        reservationRequest.setTechnology(null);
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
         if (permanentRoomId != null) {
             reservationRequest.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
@@ -154,7 +162,12 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), ParticipantRole.ADMIN)) {
                 reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
             }
-            return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
+            if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
+                return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
+            }
+            else {
+                return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM;
+            }
         }
     }
 

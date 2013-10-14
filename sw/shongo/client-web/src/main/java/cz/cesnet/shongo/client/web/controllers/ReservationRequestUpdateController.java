@@ -113,7 +113,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
                     ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache);
             model.addAttribute("permanentRooms", permanentRooms);
             reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
-
+            reservationRequestModel.setTechnology(null);
         }
         return "reservationRequestCreate";
     }

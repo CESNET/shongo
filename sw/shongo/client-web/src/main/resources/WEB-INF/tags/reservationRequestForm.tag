@@ -22,6 +22,11 @@
     angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
 
     function ReservationRequestFormController($scope) {
+        // Setup child scope
+        if ( $scope.$parent != null ) {
+            $scope.$parent.$child = $scope;
+        }
+
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
