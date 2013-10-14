@@ -702,9 +702,22 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String principalId = createAdobeConnectUser(userInformation);
             userAttributes.add("principal-id", principalId);
 
-            ParticipantRole role = participant.getRole();
-            //TODO: more user roles
-            userAttributes.add("permission-id", "host");
+            String role = "remove";
+            logger.debug(participant.getRole().toString());
+            switch (participant.getRole()) {
+                case PARTICIPANT:
+                    role = "view";
+                    break;
+                case PRESENTER:
+                    role = "mini-host";
+                    break;
+                case ADMIN:
+                    role = "host";
+                    break;
+            }
+
+            userAttributes.add("permission-id", role);
+
 
             logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.",
                     userInformation.getFullName(), principalId);
