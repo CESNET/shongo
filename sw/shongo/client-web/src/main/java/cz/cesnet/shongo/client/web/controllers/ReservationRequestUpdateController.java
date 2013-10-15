@@ -119,7 +119,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     }
 
     /**
-     * Handle modification of an existing reservation request.
+     * Handle duplication of an existing reservation request.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE, method = RequestMethod.GET)
     public String handleDuplicate(
@@ -136,6 +136,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             reservationRequestModel =
                     new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
             reservationRequestModel.setId(null);
+            reservationRequestModel.setStart(DateTime.now());
         }
 
         model.addAttribute(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
