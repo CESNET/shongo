@@ -653,7 +653,7 @@ ParamsLoop:
 
         Room room = new Room();
         room.setId((String) result.get("conferenceName"));
-        room.setName((String) result.get("conferenceName"));
+        room.addAlias(AliasType.ROOM_NAME, (String) result.get("conferenceName"));
         if (result.containsKey("maximumVideoPorts")) {
             room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
         }
@@ -1029,6 +1029,7 @@ ParamsLoop:
         roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
         roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
+            // TODO: recompute 0-100 to dB
             roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
         }
         roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -34,7 +35,7 @@ public class JadeServiceTest extends AbstractControllerTest
     static {
         ROOM_API = new Room();
         ROOM_API.setId("roomId");
-        ROOM_API.setName("roomName");
+        ROOM_API.addAlias(AliasType.ROOM_NAME, "roomName");
         ROOM_API.setLicenseCount(99);
     }
 

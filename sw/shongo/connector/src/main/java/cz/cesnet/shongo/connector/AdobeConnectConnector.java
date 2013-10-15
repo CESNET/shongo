@@ -604,7 +604,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Element sco = response.getChild("sco");
 
             room.setId(roomId);
-            room.setName(sco.getChildText("name"));
+            room.addAlias(AliasType.ROOM_NAME, sco.getChildText("name"));
             room.setDescription(sco.getChildText("description"));
             if (sco.getChildText("sco-tag") != null) {
                 room.setLicenseCount(Integer.valueOf(sco.getChildText("sco-tag")));
@@ -614,12 +614,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
             room.addTechnology(Technology.ADOBE_CONNECT);
 
-            List<Alias> aliasList = new ArrayList<Alias>();
             String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() +
                     sco.getChildText("url-path");
-            aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
-
-            room.setAliases(aliasList);
+            room.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
 
             // options
             AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();

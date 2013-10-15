@@ -72,7 +72,7 @@ public class Alias extends IdentifiedComplexType
     @Override
     public String toString()
     {
-        return String.format(Alias.class.getSimpleName() + " (type: %s, value: %s)", type.toString(), value);
+        return String.format("Alias (%s: %s)", type.toString(), value);
     }
 
     @Override
@@ -124,4 +124,6 @@ public class Alias extends IdentifiedComplexType
         type = dataMap.getEnum(TYPE, AliasType.class);
         value = dataMap.getString(VALUE);
     }
+
+
 }

@@ -51,8 +51,8 @@ public class JadeSerializationTest extends AbstractControllerTest
                 Assert.assertEquals("1", roomId);
                 Room room = new Room();
                 room.setId("1");
-                room.setName("room");
                 room.setLicenseCount(5);
+                room.addAlias(AliasType.ROOM_NAME, "room");
                 room.addAlias(new Alias(AliasType.H323_E164, "9501"));
                 return room;
             }
@@ -87,7 +87,6 @@ public class JadeSerializationTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Room room = new Room();
-        room.setName("room");
         room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
         getResourceControlService().createRoom(SECURITY_TOKEN, mcuId, room);
     }
@@ -112,8 +111,7 @@ public class JadeSerializationTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
-        room.setName("room");
-        room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
+        room.addAlias(new Alias(AliasType.H323_URI, "test"));
         getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, room);
     }
 
@@ -137,7 +135,7 @@ public class JadeSerializationTest extends AbstractControllerTest
                 Room room = createRoom.getRoom();
                 Assert.assertTrue(room.getName() != null);
                 Assert.assertFalse(room.getDescription() != null);
-                Assert.assertTrue(room.getAliases().size() == 1);
+                Assert.assertEquals(1, room.getAliases().size());
                 Assert.assertEquals("test", room.getAliases().get(0).getValue());
             }
             else if (command instanceof ModifyRoom) {
@@ -147,8 +145,8 @@ public class JadeSerializationTest extends AbstractControllerTest
                 Assert.assertEquals("room", room.getName());
                 Assert.assertTrue(room.getName() != null);
                 Assert.assertFalse(room.getDescription() != null);
-                Assert.assertTrue(room.getAliases().size() == 2);
-                Assert.assertEquals("test", room.getAliases().get(1).getValue());
+                Assert.assertEquals(3, room.getAliases().size());
+                Assert.assertEquals("test", room.getAliases().get(2).getValue());
             }
             else {
                 throw new TodoImplementException(command.getClass());

@@ -18,11 +18,6 @@ import java.util.Set;
 public class Room extends IdentifiedComplexType
 {
     /**
-     * Room name - set by users. Type: String
-     */
-    private String name;
-
-    /**
      * Room description - set by users. Type: String
      */
     private String description;
@@ -43,6 +38,11 @@ public class Room extends IdentifiedComplexType
     private List<Alias> aliases = new LinkedList<Alias>();
 
     /**
+     * Default room layout for participants.
+     */
+    private RoomLayout layout;
+
+    /**
      * Settings of the room. Type: List<RoomSetting>
      */
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
@@ -60,19 +60,15 @@ public class Room extends IdentifiedComplexType
     }
 
     /**
-     * @return name of the room (human-readable); might be <code>null</code> if no name has been assigned
+     * @return {@link Alias#value} for {@link AliasType#ROOM_NAME}
      */
     public String getName()
     {
-        return name;
-    }
-
-    /**
-     * @param name name of the room (human-readable); might be <code>null</code> to unset the room name
-     */
-    public void setName(String name)
-    {
-        this.name = name;
+        Alias alias = getAlias(AliasType.ROOM_NAME);
+        if (alias != null) {
+            return alias.getValue();
+        }
+        return null;
     }
 
     /**
@@ -152,7 +148,7 @@ public class Room extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link Alias} for given {@code aliasType}
+     * @return {@link Alias} for given {@code type}
      */
     public Alias getAlias(AliasType aliasType)
     {
@@ -180,6 +176,33 @@ public class Room extends IdentifiedComplexType
     public void addAlias(Alias alias)
     {
         aliases.add(alias);
+    }
+
+    /**
+     * Adds a new alias under which the room is accessible.
+     *
+     * @param type
+     * @param value
+     */
+    public void addAlias(AliasType type, String value)
+    {
+        addAlias(new Alias(type, value));
+    }
+
+    /**
+     * @return {@link #layout}
+     */
+    public RoomLayout getLayout()
+    {
+        return layout;
+    }
+
+    /**
+     * @param layout sets the {@link #layout}
+     */
+    public void setLayout(RoomLayout layout)
+    {
+        this.layout = layout;
     }
 
     /**
@@ -272,11 +295,11 @@ public class Room extends IdentifiedComplexType
         return false;
     }
 
-    public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
     public static final String TECHNOLOGIES = "technologies";
     public static final String LICENSE_COUNT = "licenseCount";
     public static final String ALIASES = "aliases";
+    public static final String LAYOUT = "layout";
     public static final String ROOM_SETTINGS = "roomSettings";
     public static final String PARTICIPANT_ROLES = "participantRoles";
 
@@ -284,11 +307,11 @@ public class Room extends IdentifiedComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION, description);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(ALIASES, aliases);
+        dataMap.set(LAYOUT, layout);
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(PARTICIPANT_ROLES, participantRoles);
         return dataMap;
@@ -298,11 +321,11 @@ public class Room extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        name = dataMap.getString(NAME);
         description = dataMap.getString(DESCRIPTION);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         licenseCount = dataMap.getInt(LICENSE_COUNT);
         aliases = dataMap.getList(ALIASES, Alias.class);
+        layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         participantRoles = dataMap.getList(PARTICIPANT_ROLES, RoomParticipantRole.class);
     }
@@ -311,7 +334,7 @@ public class Room extends IdentifiedComplexType
     public String toString()
     {
         return String.format(Room.class.getSimpleName()
-                + " (id: %s, name: %s, description: %s, licenses: %d, participantRoles: %s)",
-                getId(), getName(), getDescription(), getLicenseCount(), getParticipantRoles());
+                + " (id: %s, description: %s, licenses: %d, aliases: %s, participantRoles: %s)",
+                getId(), getDescription(), getLicenseCount(), getAliases(), getParticipantRoles());
     }
 }

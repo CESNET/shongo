@@ -31,7 +31,6 @@ sub new()
         'title' => 'Identifier',
         'editable' => 0
     });
-    $self->add_attribute('name', {'required' => 1});
     $self->add_attribute('description');
     $self->add_attribute('licenseCount', {'title' => 'License Count', 'type' => 'int', 'required' => 1});
     $self->add_attribute(

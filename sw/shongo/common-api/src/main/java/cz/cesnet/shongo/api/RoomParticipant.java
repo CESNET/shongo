@@ -29,10 +29,25 @@ public class RoomParticipant extends IdentifiedComplexType
      */
     private DateTime joinTime;
 
+    /**
+     * Overrides the default {@link RoomLayout} or {@code null} if this option isn't available.
+     */
     private RoomLayout layout;
-    private boolean audioMuted;
-    private boolean videoMuted;
-    private int microphoneLevel;
+
+    /**
+     * Specifies whether video is switched off or {@code null} if this option isn't available.
+     */
+    private Boolean audioMuted;
+
+    /**
+     * Specifies whether video is switched off or {@code null} if this option isn't available.
+     */
+    private Boolean videoMuted;
+
+    /**
+     * Specifies whether level of microphone (range 0-100) or {@code null} if this option isn't available.
+     */
+    private Integer microphoneLevel;
 
     /**
      * @return Room unique identifier
@@ -93,7 +108,7 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @return User layout, overriding the room default layout.
+     * @return {@link #layout}
      */
     public RoomLayout getLayout()
     {
@@ -101,7 +116,7 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @param layout User layout, overriding the room default layout.
+     * @param layout sets the {@link #layout}
      */
     public void setLayout(RoomLayout layout)
     {
@@ -109,50 +124,53 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @return Is the user audio-muted?
+     * @return {@link #audioMuted}
      */
-    public boolean getAudioMuted()
+    public Boolean getAudioMuted()
     {
         return audioMuted;
     }
 
     /**
-     * @param audioMuted Is the user audio-muted?
+     * @param audioMuted sets the {@link #audioMuted}
      */
-    public void setAudioMuted(boolean audioMuted)
+    public void setAudioMuted(Boolean audioMuted)
     {
         this.audioMuted = audioMuted;
     }
 
     /**
-     * @return Is the user video-muted?
+     * @return {@link #videoMuted}
      */
-    public boolean getVideoMuted()
+    public Boolean getVideoMuted()
     {
         return videoMuted;
     }
 
     /**
-     * @param videoMuted Is the user video-muted?
+     * @param videoMuted sets the {@link #videoMuted}
      */
-    public void setVideoMuted(boolean videoMuted)
+    public void setVideoMuted(Boolean videoMuted)
     {
         this.videoMuted = videoMuted;
     }
 
     /**
-     * @return Microphone level in milli dB, can be negative
+     * @return {@link #microphoneLevel}
      */
-    public int getMicrophoneLevel()
+    public Integer getMicrophoneLevel()
     {
         return microphoneLevel;
     }
 
     /**
-     * @param microphoneLevel Microphone level in milli dB, can be negative
+     * @param microphoneLevel sets the {@link #microphoneLevel}
      */
-    public void setMicrophoneLevel(int microphoneLevel)
+    public void setMicrophoneLevel(Integer microphoneLevel)
     {
+        if (microphoneLevel != null && (microphoneLevel < 0 || microphoneLevel > 100)) {
+            throw new IllegalArgumentException("Microphone level " + microphoneLevel + " is out of range 0-100.");
+        }
         this.microphoneLevel = microphoneLevel;
     }
 
@@ -191,6 +209,6 @@ public class RoomParticipant extends IdentifiedComplexType
         layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
         audioMuted = dataMap.getBool(AUDIO_MUTED);
         videoMuted = dataMap.getBool(VIDEO_MUTED);
-        microphoneLevel = dataMap.getInt(MICROPHONE_LEVEL);
+        setMicrophoneLevel(dataMap.getInt(MICROPHONE_LEVEL));;
     }
 }
