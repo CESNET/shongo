@@ -699,7 +699,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             userAttributes.add("principal-id", principalId);
 
             String role = "remove";
-            logger.debug(participant.getRole().toString());
             switch (participant.getRole()) {
                 case PARTICIPANT:
                     role = "view";
@@ -1125,11 +1124,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             RoomParticipant roomParticipant = new RoomParticipant();
             roomParticipant.setId(userDetails.getChildText("user-id"));
             roomParticipant.setRoomId(roomId);
-            roomParticipant.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
+            // roomParticipant.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
             roomParticipant.setDisplayName(userDetails.getChildText("username"));
 
             String userOriginalId = getUserOriginalIdByPrincipalId(userDetails.getChildText("principal-id"));
             UserInformation userInformation = getUserInformationByOriginalId(userOriginalId);
+
             if (userInformation != null) {
                 roomParticipant.setUserId(userInformation.getUserId());
             }
