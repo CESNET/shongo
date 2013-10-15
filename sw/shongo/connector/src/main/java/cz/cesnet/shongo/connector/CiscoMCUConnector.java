@@ -1052,44 +1052,45 @@ ParamsLoop:
     }
 
     @Override
-    public void modifyRoomParticipant(String roomId, String roomParticipantId, Map<String, Object> attributes)
+    public void modifyRoomParticipant(RoomParticipant roomParticipant)
             throws CommandException
     {
+        String roomId = roomParticipant.getRoomId();
+        if (roomId == null) {
+            throw new IllegalArgumentException("RoomId must be not null.");
+        }
+        String roomParticipantId = roomParticipant.getId();
+        if (roomParticipantId == null) {
+            throw new IllegalArgumentException("RoomParticipantId must be not null.");
+        }
+
         Command cmd = new Command("participant.modify");
         identifyParticipant(cmd, roomId, roomParticipantId);
 
         // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
         cmd.setParameter("operationScope", "activeState");
 
-        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-            String attName = attribute.getKey();
-            Object attValue = attribute.getValue();
-
-            if (attName.equals(RoomParticipant.DISPLAY_NAME)) {
-                cmd.setParameter("displayNameOverrideValue", truncateString((String) attValue));
-                cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
-            }
-            else if (attName.equals(RoomParticipant.AUDIO_MUTED)) {
-                cmd.setParameter("audioRxMuted", attValue);
-            }
-            else if (attName.equals(RoomParticipant.VIDEO_MUTED)) {
-                cmd.setParameter("videoRxMuted", attValue);
-            }
-            else if (attName.equals(RoomParticipant.MICROPHONE_LEVEL)) {
-                cmd.setParameter("audioRxGainMillidB", attValue);
-                cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
-            }
-            else if (attName.equals(RoomParticipant.LAYOUT)) {
-                RoomLayout layout = (RoomLayout) attValue;
-                cmd.setParameter("focusType",
-                        (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED ? "voiceActivated" : "participant"));
-                logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
-            }
-            else {
-                throw new IllegalArgumentException("Unknown RoomParticipant attribute: " + attName);
-            }
+        // Set parameters
+        if (roomParticipant.getLayout() != null) {
+            RoomLayout layout = roomParticipant.getLayout();
+            cmd.setParameter("focusType", (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
+                                                   ? "voiceActivated" : "participant"));
+            logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
         }
-
+        if (roomParticipant.getDisplayName() != null) {
+            cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
+            cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
+        }
+        if (roomParticipant.getAudioMuted() != null) {
+            cmd.setParameter("audioRxMuted", roomParticipant.getAudioMuted());
+        }
+        if (roomParticipant.getVideoMuted() != null) {
+            cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
+        }
+        if (roomParticipant.getMicrophoneLevel() != null) {
+            cmd.setParameter("audioRxGainMillidB", roomParticipant.getMicrophoneLevel());
+            cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
+        }
         exec(cmd);
     }
 
@@ -1134,37 +1135,51 @@ ParamsLoop:
     @Override
     public void disableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
     {
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
-
-        modifyRoomParticipant(roomId, roomParticipantId, attributes);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setVideoMuted(Boolean.TRUE);
+        modifyRoomParticipant(roomParticipant);
     }
 
     @Override
     public void enableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
     {
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.FALSE);
-
-        modifyRoomParticipant(roomId, roomParticipantId, attributes);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setVideoMuted(Boolean.FALSE);
+        modifyRoomParticipant(roomParticipant);
     }
 
     @Override
     public void muteParticipant(String roomId, String roomParticipantId) throws CommandException
     {
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomParticipant.AUDIO_MUTED, Boolean.TRUE);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setAudioMuted(Boolean.TRUE);
+        modifyRoomParticipant(roomParticipant);
+    }
 
-        modifyRoomParticipant(roomId, roomParticipantId, attributes);
+    @Override
+    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setAudioMuted(Boolean.FALSE);
+        modifyRoomParticipant(roomParticipant);
     }
 
     @Override
     public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level) throws CommandException
     {
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomParticipant.MICROPHONE_LEVEL, level);
-
-        modifyRoomParticipant(roomId, roomParticipantId, attributes);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setMicrophoneLevel(level);
+        modifyRoomParticipant(roomParticipant);
     }
 
     @Override
@@ -1172,15 +1187,6 @@ ParamsLoop:
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException();
-    }
-
-    @Override
-    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomParticipant.AUDIO_MUTED, Boolean.FALSE);
-
-        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     //</editor-fold>

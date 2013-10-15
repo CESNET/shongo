@@ -98,11 +98,9 @@ public interface RoomService
      * <p/>
      * Suitable for setting microphone/playback level, muting/unmuting, user layout, ...
      *
-     * @param roomId            room identifier
-     * @param roomParticipantId identifier of the user within the given room
-     * @param attributes        map of attributes to change
+     * @param roomParticipant  room participant
      */
-    void modifyRoomParticipant(String roomId, String roomParticipantId, Map<String, Object> attributes)
+    void modifyRoomParticipant(RoomParticipant roomParticipant)
             throws CommandException, CommandUnsupportedException;
 
     /**

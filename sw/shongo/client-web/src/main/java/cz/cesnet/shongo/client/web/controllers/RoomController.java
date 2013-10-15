@@ -182,20 +182,8 @@ public class RoomController
                 model.addAttribute("roomRecordings", recordings);
 
                 if (roomModel.isAvailable()) {
-                    Collection<Map> participants = new LinkedList<Map>();
-                    for (RoomParticipant roomParticipant : resourceControlService.listRoomParticipants(securityToken,
-                            resourceId, roomId)) {
-                        UserInformation userInformation = null;
-                        String userId = roomParticipant.getUserId();
-                        if (userId != null) {
-                            userInformation = cache.getUserInformation(securityToken, userId);
-                        }
-                        Map<String, Object> participant = new HashMap<String, Object>();
-                        participant.put("user", userInformation);
-                        participant.put("name",
-                                (userInformation != null ? userInformation.getFullName() : roomParticipant.getDisplayName()));
-                        participants.add(participant);
-                    }
+                    Collection<RoomParticipant> participants = resourceControlService.listRoomParticipants(securityToken,
+                            resourceId, roomId);
                     model.addAttribute("roomParticipants", participants);
                 }
             }
@@ -207,8 +195,66 @@ public class RoomController
         // Reservation request for room
         String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
         model.addAttribute("reservationRequestId", reservationRequestId);
+        model.addAttribute("cacheProvider", new CacheProvider(cache, securityToken));
 
         return "room";
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.GET)
+    public String handleRoomParticipantToggleAudioMuted(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
+        String resourceId = roomExecutable.getResourceId();
+        String resourceRoomId = roomExecutable.getRoomId();
+        RoomParticipant oldRoomParticipant =
+                resourceControlService.getRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(participantId);
+        roomParticipant.setRoomId(resourceRoomId);
+        if (oldRoomParticipant.getAudioMuted() == null) {
+            throw new IllegalStateException("Audio muting is not available.");
+        }
+        roomParticipant.setAudioMuted(!oldRoomParticipant.getAudioMuted());
+        resourceControlService.modifyRoomParticipant(securityToken, resourceId, roomParticipant);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.GET)
+    public String handleRoomParticipantToggleVideoMuted(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
+        String resourceId = roomExecutable.getResourceId();
+        String resourceRoomId = roomExecutable.getRoomId();
+        RoomParticipant oldRoomParticipant =
+                resourceControlService.getRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(participantId);
+        roomParticipant.setRoomId(resourceRoomId);
+        if (oldRoomParticipant.getVideoMuted() == null) {
+            throw new IllegalStateException("Video muting is not available.");
+        }
+        roomParticipant.setVideoMuted(!oldRoomParticipant.getVideoMuted());
+        resourceControlService.modifyRoomParticipant(securityToken, resourceId, roomParticipant);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)
+    public String handleRoomParticipantDisconnect(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
+        String resourceId = roomExecutable.getResourceId();
+        String resourceRoomId = roomExecutable.getRoomId();
+        resourceControlService.disconnectRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANTS, method = RequestMethod.GET)

@@ -174,6 +174,14 @@ public class RoomParticipant extends IdentifiedComplexType
         this.microphoneLevel = microphoneLevel;
     }
 
+    @Override
+    public String toString()
+    {
+        return String.format(RoomParticipant.class.getSimpleName() +
+                " (roomId: %s, roomParticipantId: %s, layout: %s, audioMuted: %s, videoMuted: %s, microphoneLevel: %d)",
+                roomId, id, layout, audioMuted, videoMuted, microphoneLevel);
+    }
+
     public static final String ROOM_ID = "roomId";
     public static final String USER_ID = "userId";
     public static final String DISPLAY_NAME = "displayName";
@@ -207,8 +215,8 @@ public class RoomParticipant extends IdentifiedComplexType
         displayName = dataMap.getString(DISPLAY_NAME);
         joinTime = dataMap.getDateTime(JOIN_TIME);
         layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
-        audioMuted = dataMap.getBool(AUDIO_MUTED);
-        videoMuted = dataMap.getBool(VIDEO_MUTED);
-        setMicrophoneLevel(dataMap.getInt(MICROPHONE_LEVEL));;
+        audioMuted = dataMap.getBoolean(AUDIO_MUTED);
+        videoMuted = dataMap.getBoolean(VIDEO_MUTED);
+        setMicrophoneLevel(dataMap.getInteger(MICROPHONE_LEVEL));;
     }
 }

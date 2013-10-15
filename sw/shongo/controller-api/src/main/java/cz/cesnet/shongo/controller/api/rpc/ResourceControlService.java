@@ -111,8 +111,7 @@ public interface ResourceControlService extends Service
             String roomParticipantId);
 
     @API
-    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId, Map<String, Object> attributes);
+    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant);
 
     @API
     public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -1152,10 +1153,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void modifyRoomParticipant(String roomId, String roomParticipantId, Map attributes)
+    public void modifyRoomParticipant(RoomParticipant roomParticipant)
             throws CommandException, CommandUnsupportedException
     {
-        //TODO
+        throw new TodoImplementException("Modify participant " + roomParticipant);
     }
 
     @java.lang.Override

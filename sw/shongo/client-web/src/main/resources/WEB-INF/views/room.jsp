@@ -167,20 +167,47 @@
             <tr>
                 <th><spring:message code="views.room.currentParticipant.name"/></th>
                 <th><spring:message code="views.room.currentParticipant.email"/></th>
+                <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
             </tr>
             </thead>
             <tbody>
             <c:forEach items="${roomParticipants}" var="participant" varStatus="status">
+                <c:set var="user" value="${participant.userId != null ? cacheProvider.getUserInformation(participant.userId): null}"/>
                 <tr>
-                    <td>${participant.name}</td>
                     <td>
-                        ${participant.user.primaryEmail}
+                        ${user != null ? user.fullName : participant.displayName}
+                    </td>
+                    <td>
+                        ${user.primaryEmail}
+                    </td>
+                    <td>
+                        <c:if test="${participant.audioMuted != null}">
+                            <tag:url var="toggleParticipantAudioMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED %>">
+                                <tag:param name="roomId" value="${room.id}"/>
+                                <tag:param name="participantId" value="${participant.id}"/>
+                            </tag:url>
+                            <spring:message var="toggleParticipantAudioMutedTitle" code="views.room.currentParticipant.audioMuted.${participant.audioMuted ? 'enable' : 'disable'}"/>
+                            <a href="${toggleParticipantAudioMutedUrl}" title="${toggleParticipantAudioMutedTitle}"><i class="icon-volume-${participant.audioMuted ? "off" : "up"}"></i></a>&nbsp;
+                        </c:if>
+                        <c:if test="${participant.videoMuted != null}">
+                            <tag:url var="toggleParticipantVideoMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED %>">
+                                <tag:param name="roomId" value="${room.id}"/>
+                                <tag:param name="participantId" value="${participant.id}"/>
+                            </tag:url>
+                            <spring:message var="toggleParticipantVideoMutedTitle" code="views.room.currentParticipant.videoMuted.${participant.videoMuted ? 'enable' : 'disable'}"/>
+                            <a href="${toggleParticipantVideoMutedUrl}" title="${toggleParticipantVideoMutedTitle}"><i class="icon-eye-${participant.videoMuted ? "close" : "open"}"></i></a>&nbsp;
+                        </c:if>
+                        <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
+                            <tag:param name="roomId" value="${room.id}"/>
+                            <tag:param name="participantId" value="${participant.id}"/>
+                        </tag:url>
+                        <tag:listAction code="disconnect" url="${disconnectParticipantUrl}"/>
                     </td>
                 </tr>
             </c:forEach>
             <c:if test="${roomParticipants.isEmpty()}">
                 <tr>
-                    <td colspan="2" class="empty"><spring:message code="views.list.none"/></td>
+                    <td colspan="3" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
             </c:if>
             </tbody>

@@ -190,21 +190,6 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String dialRoomParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
-    {
-        String agentName = validate(token, deviceResourceId);
-        return (String) performDeviceAction(deviceResourceId, agentName, new DialParticipant(roomId, alias));
-    }
-
-    @Override
-    public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId)
-    {
-        String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomParticipantId));
-    }
-
-    @Override
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
@@ -235,7 +220,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new DeleteRoom(roomId));
     }
 
@@ -250,23 +235,37 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public RoomParticipant getRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         return (RoomParticipant) performDeviceAction(deviceResourceId, agentName, new GetParticipant(roomId, roomParticipantId));
     }
 
     @Override
-    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId, Map<String, Object> attributes)
+    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant)
     {
-        String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new ModifyParticipant(roomId, roomParticipantId, attributes));
+        String agentName = validate(token, deviceResourceId, roomParticipant.getRoomId());
+        performDeviceAction(deviceResourceId, agentName, new ModifyParticipant(roomParticipant));
+    }
+
+    @Override
+    public String dialRoomParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
+    {
+        String agentName = validate(token, deviceResourceId, roomId);
+        return (String) performDeviceAction(deviceResourceId, agentName, new DialParticipant(roomId, alias));
+    }
+
+    @Override
+    public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
+    {
+        String agentName = validate(token, deviceResourceId, roomId);
+        performDeviceAction(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomParticipantId));
     }
 
     @Override
     public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new MuteParticipant(roomId, roomParticipantId));
     }
 
@@ -274,7 +273,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void unmuteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new UnmuteParticipant(roomId, roomParticipantId));
     }
 
@@ -282,7 +281,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void enableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new EnableParticipantVideo(roomId, roomParticipantId));
     }
 
@@ -290,7 +289,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void disableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new DisableParticipantVideo(roomId, roomParticipantId));
     }
 
@@ -298,7 +297,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void setRoomParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId, int level)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new SetParticipantMicrophoneLevel(roomId, roomParticipantId, level));
     }
 
@@ -306,7 +305,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void setRoomParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId, int level)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         performDeviceAction(deviceResourceId, agentName, new SetParticipantPlaybackLevel(roomId, roomParticipantId, level));
     }
 
