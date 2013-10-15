@@ -19,7 +19,7 @@ public interface RecordingService
      * If the room is already being recorded, it does not have any effect and returns 0.
      *
      * @param folderId identifier of room to be stored
-     * @param alias room alias
+     * @param alias    room alias
      * @return recording identifier for further reference, unique among other recordings on the device;
      *         or 0 if the room is already being recorded
      */
@@ -53,7 +53,7 @@ public interface RecordingService
 
     /**
      * Deletes a given recording.
-     *
+     * <p/>
      * If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is
      * deferred to the moment when current operations are completed.
      *
@@ -65,7 +65,7 @@ public interface RecordingService
      * Copy recording to specified folder on device.
      *
      * @param recordingId identifier of the recording to be copied
-     * @param folderId identifier of the folder to be stored in
+     * @param folderId    identifier of the folder to be stored in
      * @throws CommandException
      * @throws CommandUnsupportedException
      */

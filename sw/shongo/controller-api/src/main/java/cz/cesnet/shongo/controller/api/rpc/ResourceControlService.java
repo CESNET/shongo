@@ -74,10 +74,11 @@ public interface ResourceControlService extends Service
     public void stopPresentation(SecurityToken token, String deviceResourceId);
 
     @API
-    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias);
+    public String dialRoomParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias);
 
     @API
-    public void disconnectParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
     public Room getRoom(SecurityToken token, String deviceResourceId, String roomId);
@@ -103,34 +104,39 @@ public interface ResourceControlService extends Service
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId);
 
     @API
-    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId);
+    public Collection<RoomParticipant> listRoomParticipants(SecurityToken token, String deviceResourceId, String roomId);
 
     @API
-    public RoomUser getParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public RoomParticipant getRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
-    public void modifyParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, Map<String, Object> attributes);
+    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, Map<String, Object> attributes);
 
     @API
-    public void muteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
-    public void unmuteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public void unmuteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
-    public void enableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public void enableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
-    public void disableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId, String roomUserId);
+    public void disableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId);
 
     @API
-    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level);
+    public void setRoomParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, int level);
 
     @API
-    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level);
+    public void setRoomParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, int level);
 
     @API
     public void showMessage(SecurityToken token, String deviceResourceId, int duration, String text);

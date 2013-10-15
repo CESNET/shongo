@@ -35,7 +35,7 @@ public class ListParticipants extends ConnectorCommand
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Getting list of all participants in room {}", roomId);
-        return getMultipoint(connector).listParticipants(roomId);
+        return getMultipoint(connector).listRoomParticipants(roomId);
     }
 
     public String toString()

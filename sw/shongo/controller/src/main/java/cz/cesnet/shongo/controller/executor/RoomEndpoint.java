@@ -157,7 +157,7 @@ public abstract class RoomEndpoint extends Endpoint
         Authorization authorization = Authorization.getInstance();
         if (!roomApi.hasParticipantWithRole(ParticipantRole.ADMIN)) {
             for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
-                roomApi.addParticipant(executableOwner, ParticipantRole.ADMIN);
+                roomApi.addParticipantRole(executableOwner.getUserId(), ParticipantRole.ADMIN);
             }
         }
 
@@ -176,7 +176,7 @@ public abstract class RoomEndpoint extends Endpoint
                 AbstractPerson person = personParticipant.getPerson();
                 if (person instanceof UserPerson) {
                     UserPerson userPerson = (UserPerson) person;
-                    roomApi.addParticipant(userPerson.getInformation(), personParticipant.getRole());
+                    roomApi.addParticipantRole(userPerson.getUserId(), personParticipant.getRole());
                 }
             }
         }

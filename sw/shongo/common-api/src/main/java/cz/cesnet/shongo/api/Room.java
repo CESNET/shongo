@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents a virtual room on a multipoint server device.
+ * Represents a meeting room on a multipoint server device.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -48,9 +48,9 @@ public class Room extends IdentifiedComplexType
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
-     * Allowed participants of the room. Type: List<RoomParticipant>
+     * Configuration of participants who has access to this room.
      */
-    List<RoomParticipant> participants = new LinkedList<RoomParticipant>();
+    List<RoomParticipantRole> participantRoles = new LinkedList<RoomParticipantRole>();
 
     /**
      * Constructor.
@@ -227,52 +227,44 @@ public class Room extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #participants}
+     * @return {@link #participantRoles}
      */
-    public List<RoomParticipant> getParticipants()
+    public List<RoomParticipantRole> getParticipantRoles()
     {
-        return participants;
+        return participantRoles;
     }
 
     /**
-     * @param participants sets the {@link #participants}
+     * @param participantRoles sets the {@link #participantRoles}
      */
-    public void setParticipants(List<RoomParticipant> participants)
+    public void setParticipantRoles(List<RoomParticipantRole> participantRoles)
     {
-        this.participants = participants;
+        this.participantRoles = participantRoles;
     }
 
     /**
-     * @param participant to be added to the {@link #participants}
+     * @param userId to be added to the {@link #participantRoles}
+     * @param role
      */
-    public void addParticipant(UserInformation participant, ParticipantRole participantRole)
+    public void addParticipantRole(String userId, ParticipantRole role)
     {
-        String userId = participant.getUserId();
-        for (RoomParticipant existingParticipant : participants) {
-            if (userId.equals(existingParticipant.getUserInformation().getUserId())) {
+        for (RoomParticipantRole existingParticipant : participantRoles) {
+            if (userId.equals(existingParticipant.getUserId())) {
                 // Participant is already added to the room
                 return;
             }
         }
-        this.participants.add(new RoomParticipant(participant, participantRole));
-    }
-
-    /**
-     * @param participant to be removed from the {@link #participants}
-     */
-    public void removeParticipant(UserInformation participant)
-    {
-        participants.remove(participant);
+        this.participantRoles.add(new RoomParticipantRole(userId, role));
     }
 
     /**
      * @param role
-     * @return true whether {@link #participants} contains {@link RoomParticipant} with given {@code role},
+     * @return true whether {@link #participantRoles} contains {@link RoomParticipantRole} with given {@code role},
      *         false otherwise
      */
     public boolean hasParticipantWithRole(ParticipantRole role)
     {
-        for (RoomParticipant participant : participants) {
+        for (RoomParticipantRole participant : participantRoles) {
             if (role.equals(participant.getRole())) {
                 return true;
             }
@@ -286,7 +278,7 @@ public class Room extends IdentifiedComplexType
     public static final String LICENSE_COUNT = "licenseCount";
     public static final String ALIASES = "aliases";
     public static final String ROOM_SETTINGS = "roomSettings";
-    public static final String PARTICIPANTS = "participants";
+    public static final String PARTICIPANT_ROLES = "participantRoles";
 
     @Override
     public DataMap toData()
@@ -298,7 +290,7 @@ public class Room extends IdentifiedComplexType
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(ALIASES, aliases);
         dataMap.set(ROOM_SETTINGS, roomSettings);
-        dataMap.set(PARTICIPANTS, participants);
+        dataMap.set(PARTICIPANT_ROLES, participantRoles);
         return dataMap;
     }
 
@@ -312,14 +304,14 @@ public class Room extends IdentifiedComplexType
         licenseCount = dataMap.getInt(LICENSE_COUNT);
         aliases = dataMap.getList(ALIASES, Alias.class);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
-        participants = dataMap.getList(PARTICIPANTS, RoomParticipant.class);
+        participantRoles = dataMap.getList(PARTICIPANT_ROLES, RoomParticipantRole.class);
     }
 
     @Override
     public String toString()
     {
         return String.format(Room.class.getSimpleName()
-                + " (id: %s, name: %s, description: %s, licenses: %d, participants: %d)",
-                getId(), getName(), getDescription(), getLicenseCount(), getParticipants().size());
+                + " (id: %s, name: %s, description: %s, licenses: %d, participantRoles: %s)",
+                getId(), getName(), getDescription(), getLicenseCount(), getParticipantRoles());
     }
 }

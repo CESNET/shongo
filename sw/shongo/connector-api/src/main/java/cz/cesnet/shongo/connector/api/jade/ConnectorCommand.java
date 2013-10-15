@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.connector.api.jade;
 
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import cz.cesnet.shongo.connector.api.MultipointService;

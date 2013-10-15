@@ -11,16 +11,16 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 public class DisableParticipantVideo extends ConnectorCommand
 {
     private String roomId;
-    private String roomUserId;
+    private String roomParticipantId;
 
     public DisableParticipantVideo()
     {
     }
 
-    public DisableParticipantVideo(String roomId, String roomUserId)
+    public DisableParticipantVideo(String roomId, String roomParticipantId)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     public String getRoomId()
@@ -33,28 +33,28 @@ public class DisableParticipantVideo extends ConnectorCommand
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getRoomParticipantId()
     {
-        return roomUserId;
+        return roomParticipantId;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setRoomParticipantId(String roomParticipantId)
     {
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Disabling video for participant {} in room {}", roomUserId, roomId);
-        getMultipoint(connector).disableParticipantVideo(roomId, roomUserId);
+        logger.debug("Disabling video for participant {} in room {}", roomParticipantId, roomId);
+        getMultipoint(connector).disableParticipantVideo(roomId, roomParticipantId);
         return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(DisableParticipantVideo.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
-                roomId, roomUserId);
+        return String.format(DisableParticipantVideo.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
+                roomId, roomParticipantId);
     }
 }

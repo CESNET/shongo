@@ -52,7 +52,7 @@ public class DialParticipant extends ConnectorCommand
             throw new IllegalStateException("Alias should be set.");
         }
         logger.debug("Dialing user at alias {} into room {}", alias, roomId);
-        return getMultipoint(connector).dialParticipant(roomId, alias);
+        return getMultipoint(connector).dialRoomParticipant(roomId, alias);
     }
 
     public String toString()

@@ -183,16 +183,17 @@ public class RoomController
 
                 if (roomModel.isAvailable()) {
                     Collection<Map> participants = new LinkedList<Map>();
-                    for (RoomUser roomUser : resourceControlService.listParticipants(securityToken, resourceId, roomId)) {
+                    for (RoomParticipant roomParticipant : resourceControlService.listRoomParticipants(securityToken,
+                            resourceId, roomId)) {
                         UserInformation userInformation = null;
-                        String userId = roomUser.getUserId();
+                        String userId = roomParticipant.getUserId();
                         if (userId != null) {
                             userInformation = cache.getUserInformation(securityToken, userId);
                         }
                         Map<String, Object> participant = new HashMap<String, Object>();
                         participant.put("user", userInformation);
                         participant.put("name",
-                                (userInformation != null ? userInformation.getFullName() : roomUser.getDisplayName()));
+                                (userInformation != null ? userInformation.getFullName() : roomParticipant.getDisplayName()));
                         participants.add(participant);
                     }
                     model.addAttribute("roomParticipants", participants);

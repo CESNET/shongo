@@ -13,17 +13,17 @@ import java.util.Map;
 public class ModifyParticipant extends ConnectorCommand
 {
     private String roomId;
-    private String roomUserId;
+    private String roomParticipantId;
     private Map<String, Object> attributes;
 
     public ModifyParticipant()
     {
     }
 
-    public ModifyParticipant(String roomId, String roomUserId, Map<String, Object> attributes)
+    public ModifyParticipant(String roomId, String roomParticipantId, Map<String, Object> attributes)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
         this.attributes = attributes;
     }
 
@@ -47,34 +47,34 @@ public class ModifyParticipant extends ConnectorCommand
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getRoomParticipantId()
     {
-        return roomUserId;
+        return roomParticipantId;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setRoomParticipantId(String roomParticipantId)
     {
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Modifying participant {} in room {}", roomUserId, roomId);
+        logger.debug("Modifying participant {} in room {}", roomParticipantId, roomId);
         if (attributes != null) {
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
                 logger.info("  - setting attribute '{}' to '{}'", entry.getKey(), entry.getValue());
             }
         }
 
-        getMultipoint(connector).modifyParticipant(roomId, roomUserId, attributes);
+        getMultipoint(connector).modifyRoomParticipant(roomId, roomParticipantId, attributes);
         return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(ModifyParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
-                roomId, roomUserId);
+        return String.format(ModifyParticipant.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
+                roomId, roomParticipantId);
     }
 }

@@ -1,85 +1,182 @@
 package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.ParticipantRole;
-import jade.content.Concept;
+import org.joda.time.DateTime;
 
 /**
- * Represents a allowed participant for a {@link Room}.
+ * Represents an active participant session in a {@link Room}.
  *
- * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomParticipant extends AbstractComplexType implements Concept
+public class RoomParticipant extends IdentifiedComplexType
 {
     /**
-     * User information about participant.
+     * {@link Room#id}
      */
-    private UserInformation userInformation;
+    private String roomId;
 
     /**
-     * @see ParticipantRole
+     * Shongo-user-id (if available).
      */
-    private ParticipantRole role;
+    private String userId;
 
     /**
-     * Constructor.
+     * Name of the participant which can be displayed.
      */
-    public RoomParticipant()
+    private String displayName;
+
+    /**
+     * Date/time when the participants joined to the {@link Room} (started the current session).
+     */
+    private DateTime joinTime;
+
+    private RoomLayout layout;
+    private boolean audioMuted;
+    private boolean videoMuted;
+    private int microphoneLevel;
+
+    /**
+     * @return Room unique identifier
+     */
+    public String getRoomId()
     {
+        return roomId;
     }
 
     /**
-     * Constructor.
-     *
-     * @param userInformation sets the {@link #userInformation}
-     * @param role            sets the {@link #role}
+     * @param roomId Room unique identifier
      */
-    public RoomParticipant(UserInformation userInformation, ParticipantRole role)
+    public void setRoomId(String roomId)
     {
-        this.userInformation = userInformation;
-        this.role = role;
+        this.roomId = roomId;
     }
 
     /**
-     * @return {@link #userInformation}
+     * @return the shongo user-id or null
      */
-    public UserInformation getUserInformation()
+    public String getUserId()
     {
-        return userInformation;
+        return userId;
     }
 
     /**
-     * @param userInformation sets the {@link #userInformation}
+     * @param userId sets the shongo user-id
      */
-    public void setUserInformation(UserInformation userInformation)
+    public void setUserId(String userId)
     {
-        this.userInformation = userInformation;
+        this.userId = userId;
     }
 
     /**
-     * @return {@link #role}
+     * @return name of the user displayed to the others (e.g., name of the person, physical room name...)
      */
-    public ParticipantRole getRole()
+    public String getDisplayName()
     {
-        return role;
+        return displayName;
     }
 
     /**
-     * @param role sets the {@link #role}
+     * @param displayName name of the user displayed to the others (e.g., name of the person, physical room name...)
      */
-    public void setRole(ParticipantRole role)
+    public void setDisplayName(String displayName)
     {
-        this.role = role;
+        this.displayName = displayName;
     }
 
-    public static final String USER_INFORMATION = "userInformation";
-    public static final String ROLE = "role";
+    public DateTime getJoinTime()
+    {
+        return joinTime;
+    }
+
+    public void setJoinTime(DateTime joinTime)
+    {
+        this.joinTime = joinTime;
+    }
+
+    /**
+     * @return User layout, overriding the room default layout.
+     */
+    public RoomLayout getLayout()
+    {
+        return layout;
+    }
+
+    /**
+     * @param layout User layout, overriding the room default layout.
+     */
+    public void setLayout(RoomLayout layout)
+    {
+        this.layout = layout;
+    }
+
+    /**
+     * @return Is the user audio-muted?
+     */
+    public boolean getAudioMuted()
+    {
+        return audioMuted;
+    }
+
+    /**
+     * @param audioMuted Is the user audio-muted?
+     */
+    public void setAudioMuted(boolean audioMuted)
+    {
+        this.audioMuted = audioMuted;
+    }
+
+    /**
+     * @return Is the user video-muted?
+     */
+    public boolean getVideoMuted()
+    {
+        return videoMuted;
+    }
+
+    /**
+     * @param videoMuted Is the user video-muted?
+     */
+    public void setVideoMuted(boolean videoMuted)
+    {
+        this.videoMuted = videoMuted;
+    }
+
+    /**
+     * @return Microphone level in milli dB, can be negative
+     */
+    public int getMicrophoneLevel()
+    {
+        return microphoneLevel;
+    }
+
+    /**
+     * @param microphoneLevel Microphone level in milli dB, can be negative
+     */
+    public void setMicrophoneLevel(int microphoneLevel)
+    {
+        this.microphoneLevel = microphoneLevel;
+    }
+
+    public static final String ROOM_ID = "roomId";
+    public static final String USER_ID = "userId";
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String JOIN_TIME = "joinTime";
+    public static final String LAYOUT = "layout";
+    public static final String AUDIO_MUTED = "audioMuted";
+    public static final String VIDEO_MUTED = "videoMuted";
+    public static final String MICROPHONE_LEVEL = "microphoneLevel";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(USER_INFORMATION, userInformation);
-        dataMap.set(ROLE, role);
+        dataMap.set(ROOM_ID, roomId);
+        dataMap.set(USER_ID, userId);
+        dataMap.set(DISPLAY_NAME, displayName);
+        dataMap.set(JOIN_TIME, joinTime);
+        dataMap.set(LAYOUT, layout);
+        dataMap.set(AUDIO_MUTED, audioMuted);
+        dataMap.set(VIDEO_MUTED, videoMuted);
+        dataMap.set(MICROPHONE_LEVEL, microphoneLevel);
         return dataMap;
     }
 
@@ -87,14 +184,13 @@ public class RoomParticipant extends AbstractComplexType implements Concept
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        userInformation = dataMap.getComplexType(USER_INFORMATION, UserInformation.class);
-        role = dataMap.getEnum(ROLE, ParticipantRole.class);
-    }
-
-    @Override
-    public String toString()
-    {
-        return String.format("Participant (userId: %s, name: %s, role: %s)",
-                userInformation.getUserId(), userInformation.getFullName(), role);
+        roomId = dataMap.getString(ROOM_ID);
+        userId = dataMap.getString(USER_ID);
+        displayName = dataMap.getString(DISPLAY_NAME);
+        joinTime = dataMap.getDateTime(JOIN_TIME);
+        layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
+        audioMuted = dataMap.getBool(AUDIO_MUTED);
+        videoMuted = dataMap.getBool(VIDEO_MUTED);
+        microphoneLevel = dataMap.getInt(MICROPHONE_LEVEL);
     }
 }

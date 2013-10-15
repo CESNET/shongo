@@ -912,29 +912,29 @@ ParamsLoop:
     //<editor-fold desc="USER SERVICE">
 
     @Override
-    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException
+    public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException
     {
         Command cmd = new Command("participant.status");
-        identifyParticipant(cmd, roomId, roomUserId);
+        identifyParticipant(cmd, roomId, roomParticipantId);
         cmd.setParameter("operationScope", new String[]{"currentState"});
 
         Map<String, Object> result = exec(cmd);
 
-        return extractRoomUser(result);
+        return extractRoomParticipant(result);
     }
 
     @Override
-    public String dialParticipant(String roomId, Alias alias) throws CommandException
+    public String dialRoomParticipant(String roomId, Alias alias) throws CommandException
     {
-        // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
+        // FIXME: refine just as the createRoom() method - get just a RoomParticipant object and set parameters according to it
 
         // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
         //       thus, commented out the following generation of participant names
-//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions; and it is slow...
+        //String roomParticipantId = generateRoomParticipantId(roomId); // FIXME: treat potential race conditions; and it is slow...
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", truncateString(roomId));
-//        cmd.setParameter("participantName", truncateString(roomUserId));
+        //cmd.setParameter("participantName", truncateString(roomParticipantId));
         cmd.setParameter("address", truncateString(alias.getValue()));
         cmd.setParameter("participantType", "ad_hoc");
         cmd.setParameter("addResponse", Boolean.TRUE);
@@ -952,13 +952,13 @@ ParamsLoop:
     }
 
     /**
-     * Generates a room user ID for a new user.
+     * Generates a new room participant ID.
      *
      * @param roomId technology ID of the room to generate a new user ID for
-     * @return a free roomUserId to be assigned (free in the moment of processing this method, might race condition with
+     * @return a free roomParticipantId to be assigned (free in the moment of processing this method, might race condition with
      *         someone else)
      */
-    private String generateRoomUserId(String roomId) throws CommandException
+    private String generateRoomParticipantId(String roomId) throws CommandException
     {
         List<Map<String, Object>> participants;
         try {
@@ -967,7 +967,7 @@ ParamsLoop:
             participants = execEnumerate(cmd, "participants");
         }
         catch (CommandException e) {
-            throw new CommandException("Cannot generate a new room user ID - cannot list current room users.", e);
+            throw new CommandException("Cannot generate a new room participant ID - cannot list current room participants.", e);
         }
 
         // generate the new ID as maximal ID of present users increased by one
@@ -987,14 +987,14 @@ ParamsLoop:
     }
 
     @Override
-    public Collection<RoomUser> listParticipants(String roomId) throws CommandException
+    public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
     {
         Command cmd = new Command("participant.enumerate");
         cmd.setParameter("operationScope", new String[]{"currentState"});
         cmd.setParameter("enumerateFilter", "connected");
         List<Map<String, Object>> participants = execEnumerate(cmd, "participants");
 
-        List<RoomUser> result = new ArrayList<RoomUser>();
+        List<RoomParticipant> result = new ArrayList<RoomParticipant>();
         for (Map<String, Object> part : participants) {
             if (part == null) {
                 continue;
@@ -1002,36 +1002,36 @@ ParamsLoop:
             if (!roomId.equals(part.get("conferenceName"))) {
                 continue; // not from this room
             }
-            result.add(extractRoomUser(part));
+            result.add(extractRoomParticipant(part));
         }
 
         return result;
     }
 
     /**
-     * Extracts a room-user out of participant.enumerate or participant.status result.
+     * Extracts a {@link RoomParticipant} out of participant.enumerate or participant.status result.
      *
      * @param participant participant structure, as defined in the MCU API, command participant.status
-     * @return room user extracted from the participant structure
+     * @return {@link RoomParticipant} extracted from the participant structure
      */
-    private static RoomUser extractRoomUser(Map<String, Object> participant)
+    private static RoomParticipant extractRoomParticipant(Map<String, Object> participant)
     {
-        RoomUser ru = new RoomUser();
+        RoomParticipant roomParticipant = new RoomParticipant();
 
-        ru.setId((String) participant.get("participantName"));
-        ru.setRoomId((String) participant.get("conferenceName"));
+        roomParticipant.setId((String) participant.get("participantName"));
+        roomParticipant.setRoomId((String) participant.get("conferenceName"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
 
-        ru.setDisplayName((String) state.get("displayName"));
+        roomParticipant.setDisplayName((String) state.get("displayName"));
 
-        ru.setAudioMuted((Boolean) state.get("audioRxMuted"));
-        ru.setVideoMuted((Boolean) state.get("videoRxMuted"));
+        roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
+        roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
-            ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+            roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
         }
-        ru.setJoinTime(new DateTime(state.get("connectTime")));
+        roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
 
         // room layout
         if (state.containsKey("currentLayout")) {
@@ -1045,17 +1045,17 @@ ParamsLoop:
             final Integer layoutIndex = (Integer) state.get("currentLayout");
             RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
 
-            ru.setLayout(rl);
+            roomParticipant.setLayout(rl);
         }
-        return ru;
+        return roomParticipant;
     }
 
     @Override
-    public void modifyParticipant(String roomId, String roomUserId, Map<String, Object> attributes)
+    public void modifyRoomParticipant(String roomId, String roomParticipantId, Map<String, Object> attributes)
             throws CommandException
     {
         Command cmd = new Command("participant.modify");
-        identifyParticipant(cmd, roomId, roomUserId);
+        identifyParticipant(cmd, roomId, roomParticipantId);
 
         // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
         cmd.setParameter("operationScope", "activeState");
@@ -1064,28 +1064,28 @@ ParamsLoop:
             String attName = attribute.getKey();
             Object attValue = attribute.getValue();
 
-            if (attName.equals(RoomUser.DISPLAY_NAME)) {
+            if (attName.equals(RoomParticipant.DISPLAY_NAME)) {
                 cmd.setParameter("displayNameOverrideValue", truncateString((String) attValue));
                 cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
             }
-            else if (attName.equals(RoomUser.AUDIO_MUTED)) {
+            else if (attName.equals(RoomParticipant.AUDIO_MUTED)) {
                 cmd.setParameter("audioRxMuted", attValue);
             }
-            else if (attName.equals(RoomUser.VIDEO_MUTED)) {
+            else if (attName.equals(RoomParticipant.VIDEO_MUTED)) {
                 cmd.setParameter("videoRxMuted", attValue);
             }
-            else if (attName.equals(RoomUser.MICROPHONE_LEVEL)) {
+            else if (attName.equals(RoomParticipant.MICROPHONE_LEVEL)) {
                 cmd.setParameter("audioRxGainMillidB", attValue);
                 cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
             }
-            else if (attName.equals(RoomUser.LAYOUT)) {
+            else if (attName.equals(RoomParticipant.LAYOUT)) {
                 RoomLayout layout = (RoomLayout) attValue;
                 cmd.setParameter("focusType",
                         (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED ? "voiceActivated" : "participant"));
                 logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
             }
             else {
-                throw new IllegalArgumentException("Unknown RoomUser attribute: " + attName);
+                throw new IllegalArgumentException("Unknown RoomParticipant attribute: " + attName);
             }
         }
 
@@ -1093,25 +1093,25 @@ ParamsLoop:
     }
 
     @Override
-    public void disconnectParticipant(String roomId, String roomUserId) throws CommandException
+    public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException
     {
         Command cmd = new Command("participant.remove");
-        identifyParticipant(cmd, roomId, roomUserId);
+        identifyParticipant(cmd, roomId, roomParticipantId);
 
         exec(cmd);
     }
 
-    private void identifyParticipant(Command cmd, String roomId, String roomUserId)
+    private void identifyParticipant(Command cmd, String roomId, String roomParticipantId)
     {
         cmd.setParameter("conferenceName", truncateString(roomId));
-        cmd.setParameter("participantName", truncateString(roomUserId));
+        cmd.setParameter("participantName", truncateString(roomParticipantId));
         // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
         //       numbers, so we distinguish the type by the fact whether the name is a number or not
-        cmd.setParameter("participantType", (StringUtils.isNumeric(roomUserId) ? "ad_hoc" : "by_address"));
+        cmd.setParameter("participantType", (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
     }
 
     @Override
-    public void enableContentProvider(String roomId, String roomUserId)
+    public void enableContentProvider(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         // NOTE: it seems it is not possible to enable content using current API (2.9)
@@ -1119,7 +1119,7 @@ ParamsLoop:
     }
 
     @Override
-    public void disableContentProvider(String roomId, String roomUserId)
+    public void disableContentProvider(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         // NOTE: it seems it is not possible to disable content using current API (2.9)
@@ -1131,55 +1131,55 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException
+    public void disableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
 
-        modifyParticipant(roomId, roomUserId, attributes);
+        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     @Override
-    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException
+    public void enableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.VIDEO_MUTED, Boolean.FALSE);
+        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.FALSE);
 
-        modifyParticipant(roomId, roomUserId, attributes);
+        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     @Override
-    public void muteParticipant(String roomId, String roomUserId) throws CommandException
+    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.AUDIO_MUTED, Boolean.TRUE);
+        attributes.put(RoomParticipant.AUDIO_MUTED, Boolean.TRUE);
 
-        modifyParticipant(roomId, roomUserId, attributes);
+        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     @Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level) throws CommandException
+    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level) throws CommandException
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.MICROPHONE_LEVEL, level);
+        attributes.put(RoomParticipant.MICROPHONE_LEVEL, level);
 
-        modifyParticipant(roomId, roomUserId, attributes);
+        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     @Override
-    public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
+    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException();
     }
 
     @Override
-    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException
+    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.AUDIO_MUTED, Boolean.FALSE);
+        attributes.put(RoomParticipant.AUDIO_MUTED, Boolean.FALSE);
 
-        modifyParticipant(roomId, roomUserId, attributes);
+        modifyRoomParticipant(roomId, roomParticipantId, attributes);
     }
 
     //</editor-fold>
@@ -1210,14 +1210,14 @@ ParamsLoop:
     }
 
     @Override
-    public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
+    public MediaData getReceivedVideoSnapshot(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO: call participant.status and use previewURL
     }
 
     @Override
-    public MediaData getSentVideoSnapshot(String roomId, String roomUserId)
+    public MediaData getSentVideoSnapshot(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
@@ -1392,29 +1392,29 @@ ParamsLoop:
 //        atts2.put(Room.NAME, "shongo-test");
 //        conn.modifyRoom("shongo-testing", atts2, null);
 
-        // test of listParticipants() method
+        // test of listRoomParticipants() method
 //        System.out.println("Listing shongo-test room:");
-//        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
-//        for (RoomUser ru : shongoUsers) {
+//        Collection<RoomParticipant> shongoUsers = conn.listRoomParticipants("shongo-test");
+//        for (RoomParticipant ru : shongoUsers) {
 //            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
 //        }
 //        System.out.println("Listing done");
 
         // user connect by alias
-//        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        String ruId = conn.dialRoomParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
 //        System.out.println("Added user " + ruId);
         // user connect by address
-//        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
+//        String ruId2 = conn.dialRoomParticipant("shongo-test", "147.251.54.102");
         // user disconnect
-//        conn.disconnectParticipant("shongo-test", "participant1");
+//        conn.disconnectRoomParticipant("shongo-test", "participant1");
 
 //        System.out.println("All done, disconnecting");
 
-        // test of modifyParticipant
+        // test of modifyRoomParticipant
 //        Map<String, Object> attributes = new HashMap<String, Object>();
-//        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
-//        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
-//        conn.modifyParticipant("shongo-test", "3447", attributes);
+//        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
+//        attributes.put(RoomParticipant.DISPLAY_NAME, "Ondrej Bouda");
+//        conn.modifyRoomParticipant("shongo-test", "3447", attributes);
 
         //Room room = conn.getRoom("shongo-test");
 

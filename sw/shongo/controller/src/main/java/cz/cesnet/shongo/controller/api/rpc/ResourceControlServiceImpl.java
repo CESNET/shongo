@@ -190,18 +190,18 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
+    public String dialRoomParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
     {
         String agentName = validate(token, deviceResourceId);
         return (String) performDeviceAction(deviceResourceId, agentName, new DialParticipant(roomId, alias));
     }
 
     @Override
-    public void disconnectParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId)
+    public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomUserId));
+        performDeviceAction(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomParticipantId));
     }
 
     @Override
@@ -240,73 +240,74 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId)
+    public Collection<RoomParticipant> listRoomParticipants(SecurityToken token, String deviceResourceId, String roomId)
     {
         String agentName = validate(token, deviceResourceId, roomId);
-        return (List<RoomUser>) performDeviceAction(deviceResourceId, agentName, new ListParticipants(roomId));
+        return (List<RoomParticipant>) performDeviceAction(deviceResourceId, agentName, new ListParticipants(roomId));
     }
 
     @Override
-    public RoomUser getParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId)
+    public RoomParticipant getRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        return (RoomUser) performDeviceAction(deviceResourceId, agentName, new GetParticipant(roomId, roomUserId));
+        return (RoomParticipant) performDeviceAction(deviceResourceId, agentName, new GetParticipant(roomId, roomParticipantId));
     }
 
     @Override
-    public void modifyParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, Map<String, Object> attributes)
+    public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, Map<String, Object> attributes)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new ModifyParticipant(roomId, roomUserId, attributes));
+        performDeviceAction(deviceResourceId, agentName, new ModifyParticipant(roomId, roomParticipantId, attributes));
     }
 
     @Override
-    public void muteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId)
+    public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new MuteParticipant(roomId, roomUserId));
+        performDeviceAction(deviceResourceId, agentName, new MuteParticipant(roomId, roomParticipantId));
     }
 
     @Override
-    public void unmuteParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId)
+    public void unmuteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new UnmuteParticipant(roomId, roomUserId));
+        performDeviceAction(deviceResourceId, agentName, new UnmuteParticipant(roomId, roomParticipantId));
     }
 
     @Override
-    public void enableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId)
+    public void enableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new EnableParticipantVideo(roomId, roomUserId));
+        performDeviceAction(deviceResourceId, agentName, new EnableParticipantVideo(roomId, roomParticipantId));
     }
 
     @Override
-    public void disableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId)
+    public void disableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new DisableParticipantVideo(roomId, roomUserId));
+        performDeviceAction(deviceResourceId, agentName, new DisableParticipantVideo(roomId, roomParticipantId));
     }
 
     @Override
-    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level)
+    public void setRoomParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, int level)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new SetParticipantMicrophoneLevel(roomId, roomUserId, level));
+        performDeviceAction(deviceResourceId, agentName, new SetParticipantMicrophoneLevel(roomId, roomParticipantId, level));
     }
 
     @Override
-    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level)
+    public void setRoomParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
+            String roomParticipantId, int level)
     {
         String agentName = validate(token, deviceResourceId);
-        performDeviceAction(deviceResourceId, agentName, new SetParticipantPlaybackLevel(roomId, roomUserId, level));
+        performDeviceAction(deviceResourceId, agentName, new SetParticipantPlaybackLevel(roomId, roomParticipantId, level));
     }
 
     @Override

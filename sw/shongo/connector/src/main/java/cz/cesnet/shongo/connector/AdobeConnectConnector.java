@@ -2,7 +2,6 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -315,7 +314,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      *
      */
     @java.lang.Override
-    public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
@@ -327,14 +326,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @throws CommandUnsupportedException
      */
     @java.lang.Override
-    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
     }
 
     @java.lang.Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
+    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
@@ -342,14 +341,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
+    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support changing playback level.");
     }
 
     @java.lang.Override
-    public void enableParticipantVideo(String roomId, String roomUserId)
+    public void enableParticipantVideo(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
@@ -357,7 +356,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void disableParticipantVideo(String roomId, String roomUserId)
+    public void disableParticipantVideo(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
@@ -379,14 +378,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
+    public MediaData getReceivedVideoSnapshot(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
     @java.lang.Override
-    public MediaData getSentVideoSnapshot(String roomId, String roomUserId)
+    public MediaData getSentVideoSnapshot(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
@@ -691,14 +690,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param participants Collection of participants
      * @throws CommandException
      */
-    protected void addRoomParticipants(String roomId, List<RoomParticipant> participants) throws CommandException
+    protected void addRoomParticipants(String roomId, List<RoomParticipantRole> participants) throws CommandException
     {
         RequestAttributeList userAttributes = new RequestAttributeList();
         userAttributes.add("acl-id", roomId);
 
-        for (RoomParticipant participant : participants)
-        {
-            UserInformation userInformation = participant.getUserInformation();
+        for (RoomParticipantRole participant : participants) {
+            UserInformation userInformation = getUserInformationById(participant.getUserId());
             String principalId = createAdobeConnectUser(userInformation);
             userAttributes.add("principal-id", principalId);
 
@@ -822,7 +820,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             // Add room participants
             if (room.getLicenseCount() > 0) {
                 startMeeting(roomId);
-                addRoomParticipants(roomId, room.getParticipants());
+                addRoomParticipants(roomId, room.getParticipantRoles());
             }
             else if (room.getLicenseCount() == 0) {
                 endMeeting(roomId);
@@ -882,7 +880,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             //TODO: propagovat prava do nahravek?
             resetPermissions(roomId);
             startMeeting(roomId);
-            addRoomParticipants(roomId, room.getParticipants());
+            addRoomParticipants(roomId, room.getParticipantRoles());
         }
         else if (room.getLicenseCount() == 0) {
             setRecordingPermissionsAsMeetings(roomId);
@@ -1011,75 +1009,101 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public String dialParticipant(String roomId, Alias alias) throws CommandException, CommandUnsupportedException
+    public String dialRoomParticipant(String roomId, Alias alias) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
     /**
-     * Cache of user login (EPPN) by user principal-id.
+     * Cache of user-original-id (EPPN) by user principal-id.
      */
-    private ExpirationMap<String, String> cachedLoginByPrincipalId =
+    private ExpirationMap<String, String> cachedOriginalIdByPrincipalId =
             new ExpirationMap<String, String>(Duration.standardHours(1));
 
     /**
-     * Cache of {@link UserInformation} by user login (EPPN).
+     * Cache of {@link UserInformation} by user-original-id (EPPN).
      */
-    private ExpirationMap<String, UserInformation> cachedUserInformationByLogin =
+    private ExpirationMap<String, UserInformation> cachedUserInformationByOriginalId =
+            new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
+
+    /**
+     * Cache of {@link UserInformation} by shongo-user-id.
+     */
+    private ExpirationMap<String, UserInformation> cachedUserInformationById =
             new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
 
     /**
      * @param userPrincipalId principal-id of an user
-     * @return user login (EPPN) for given {@code userPrincipalId}
+     * @return user-original-id (EPPN) for given {@code userPrincipalId}
      * @throws CommandException
      */
-    public String getUserLoginByPrincipalId(String userPrincipalId) throws CommandException
+    public String getUserOriginalIdByPrincipalId(String userPrincipalId) throws CommandException
     {
-        String userLogin;
-        if (cachedLoginByPrincipalId.contains(userPrincipalId)) {
-            logger.debug("Using cached user login by principal-id '{}'...", userPrincipalId);
-            userLogin = cachedLoginByPrincipalId.get(userPrincipalId);
+        String userOriginalId;
+        if (cachedOriginalIdByPrincipalId.contains(userPrincipalId)) {
+            logger.debug("Using cached user-original-id by principal-id '{}'...", userPrincipalId);
+            userOriginalId = cachedOriginalIdByPrincipalId.get(userPrincipalId);
 
         }
         else {
-            logger.debug("Fetching user login by principal-id '{}'...", userPrincipalId);
+            logger.debug("Fetching user-original-id by principal-id '{}'...", userPrincipalId);
             RequestAttributeList userAttributes = new RequestAttributeList();
             userAttributes.add("filter-principal-id", userPrincipalId);
             Element userResponse = request("principal-list", userAttributes);
 
-            userLogin = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
-            cachedLoginByPrincipalId.put(userPrincipalId, userLogin);
+            userOriginalId = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
+            cachedOriginalIdByPrincipalId.put(userPrincipalId, userOriginalId);
         }
-        return userLogin;
+        return userOriginalId;
     }
 
     /**
-     * @param userLogin login of an user
-     * @return {@link UserInformation} for given {@code userLogin}
+     * @param userOriginalId original-id of an user (EPPN)
+     * @return {@link UserInformation} for given {@code userOriginalId}
      * @throws CommandException
      */
-    public UserInformation getUserInformationByLogin(String userLogin) throws CommandException
+    public UserInformation getUserInformationByOriginalId(String userOriginalId) throws CommandException
     {
         UserInformation userInformation;
-        if (cachedUserInformationByLogin.contains(userLogin)) {
-            logger.debug("Using cached user information by login '{}'...", userLogin);
-            userInformation = cachedUserInformationByLogin.get(userLogin);
+        if (cachedUserInformationByOriginalId.contains(userOriginalId)) {
+            logger.debug("Using cached user information by user-original-id '{}'...", userOriginalId);
+            userInformation = cachedUserInformationByOriginalId.get(userOriginalId);
         }
         else {
-            logger.debug("Fetching user information by login '{}'...", userLogin);
-            userInformation = (UserInformation) performControllerAction(GetUserInformation.byOriginalId(userLogin));
-            cachedUserInformationByLogin.put(userLogin, userInformation);
+            logger.debug("Fetching user information by user-original-id '{}'...", userOriginalId);
+            userInformation = (UserInformation) performControllerAction(GetUserInformation.byOriginalId(userOriginalId));
+            cachedUserInformationByOriginalId.put(userOriginalId, userInformation);
+        }
+        return userInformation;
+    }
+
+    /**
+     * @param userId shongo-user-id
+     * @return {@link UserInformation} for given {@code userId}
+     * @throws CommandException
+     */
+    public UserInformation getUserInformationById(String userId) throws CommandException
+    {
+        UserInformation userInformation;
+        if (cachedUserInformationById.contains(userId)) {
+            logger.debug("Using cached user information by user-id '{}'...", userId);
+            userInformation = cachedUserInformationById.get(userId);
+        }
+        else {
+            logger.debug("Fetching user information by user-id '{}'...", userId);
+            userInformation = (UserInformation) performControllerAction(GetUserInformation.byUserId(userId));
+            cachedUserInformationById.put(userId, userInformation);
         }
         return userInformation;
     }
 
     @java.lang.Override
-    public Collection<RoomUser> listParticipants(String roomId) throws CommandException
+    public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
 
-        ArrayList<RoomUser> participantList = new ArrayList<RoomUser>();
+        ArrayList<RoomParticipant> participantList = new ArrayList<RoomParticipant>();
 
         Element response;
         try {
@@ -1100,63 +1124,63 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
 
         for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
-            RoomUser roomUser = new RoomUser();
-            roomUser.setId(userDetails.getChildText("user-id"));
-            roomUser.setRoomId(roomId);
-            roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
-            roomUser.setDisplayName(userDetails.getChildText("username"));
+            RoomParticipant roomParticipant = new RoomParticipant();
+            roomParticipant.setId(userDetails.getChildText("user-id"));
+            roomParticipant.setRoomId(roomId);
+            roomParticipant.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
+            roomParticipant.setDisplayName(userDetails.getChildText("username"));
 
-            String userLogin = getUserLoginByPrincipalId(userDetails.getChildText("principal-id"));
-            UserInformation userInformation = getUserInformationByLogin(userLogin);
+            String userOriginalId = getUserOriginalIdByPrincipalId(userDetails.getChildText("principal-id"));
+            UserInformation userInformation = getUserInformationByOriginalId(userOriginalId);
             if (userInformation != null) {
-                roomUser.setUserId(userInformation.getUserId());
+                roomParticipant.setUserId(userInformation.getUserId());
             }
 
-            participantList.add(roomUser);
+            participantList.add(roomParticipant);
         }
 
         return Collections.unmodifiableList(participantList);
     }
 
     @java.lang.Override
-    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException
+    public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException
     {
-        Collection<RoomUser> participants = this.listParticipants(roomId);
-        for (RoomUser roomUser : participants) {
-            if (roomUser.getId().equals(roomUserId)) {
-                return roomUser;
+        Collection<RoomParticipant> participants = this.listRoomParticipants(roomId);
+        for (RoomParticipant participant : participants) {
+            if (participant.getId().equals(roomParticipantId)) {
+                return participant;
             }
         }
         return null;
     }
 
     @java.lang.Override
-    public void modifyParticipant(String roomId, String roomUserId, Map attributes)
+    public void modifyRoomParticipant(String roomId, String roomParticipantId, Map attributes)
             throws CommandException, CommandUnsupportedException
     {
         //TODO
     }
 
     @java.lang.Override
-    public void disconnectParticipant(String roomId, String roomUserId)
+    public void disconnectRoomParticipant(String roomId, String roomParticipantId)
             throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
-        attributes.add("user-id", roomUserId);
+        attributes.add("user-id", roomParticipantId);
 
         request("meeting-usermanager-remove-user", attributes);
     }
 
     @java.lang.Override
-    public void enableContentProvider(String roomId, String roomUserId)
+    public void enableContentProvider(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
     }
 
     @java.lang.Override
-    public void disableContentProvider(String roomId, String roomUserId)
+    public void disableContentProvider(String roomId, String roomParticipantId)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");

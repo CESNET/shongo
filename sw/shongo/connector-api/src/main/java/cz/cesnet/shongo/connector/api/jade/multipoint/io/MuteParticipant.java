@@ -11,16 +11,16 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 public class MuteParticipant extends ConnectorCommand
 {
     private String roomId;
-    private String roomUserId;
+    private String roomParticipantId;
 
     public MuteParticipant()
     {
     }
 
-    public MuteParticipant(String roomId, String roomUserId)
+    public MuteParticipant(String roomId, String roomParticipantId)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     public String getRoomId()
@@ -33,28 +33,28 @@ public class MuteParticipant extends ConnectorCommand
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getRoomParticipantId()
     {
-        return roomUserId;
+        return roomParticipantId;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setRoomParticipantId(String roomParticipantId)
     {
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Muting participant {} in room {}", roomUserId, roomId);
-        getMultipoint(connector).muteParticipant(roomId, roomUserId);
+        logger.debug("Muting participant {} in room {}", roomParticipantId, roomId);
+        getMultipoint(connector).muteParticipant(roomId, roomParticipantId);
         return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(MuteParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
-                roomId, roomUserId);
+        return String.format(MuteParticipant.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
+                roomId, roomParticipantId);
     }
 }

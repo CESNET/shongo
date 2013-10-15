@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -604,7 +603,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         // Check room
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN_USER1, roomResourceId, roomId);
         Assert.assertEquals("Room should have 10 licenses.", 10, room.getLicenseCount());
-        Assert.assertEquals("Room should have 2 participants.", 2, room.getParticipants().size());
+        Assert.assertEquals("Room should have 2 participants.", 2, room.getParticipantRoles().size());
 
         // Update alias
         getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user3Id, aliasReservationRequestId, Role.OWNER);
@@ -613,7 +612,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         // Check room
         room = getResourceControlService().getRoom(SECURITY_TOKEN_USER1, roomResourceId, roomId);
         Assert.assertEquals("Room should have 10 licenses.", 10, room.getLicenseCount());
-        Assert.assertEquals("Room should have 3 participants.", 3, room.getParticipants().size());
+        Assert.assertEquals("Room should have 3 participants.", 3, room.getParticipantRoles().size());
 
         // Stop virtual rooms
         result = runExecutor(dateTime.plus(duration));

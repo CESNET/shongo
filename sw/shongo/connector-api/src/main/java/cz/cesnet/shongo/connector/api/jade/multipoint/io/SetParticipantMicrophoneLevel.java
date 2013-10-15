@@ -11,17 +11,17 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 public class SetParticipantMicrophoneLevel extends ConnectorCommand
 {
     private String roomId;
-    private String roomUserId;
+    private String roomParticipantId;
     private int level;
 
     public SetParticipantMicrophoneLevel()
     {
     }
 
-    public SetParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
+    public SetParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
         this.level = level;
     }
 
@@ -35,14 +35,14 @@ public class SetParticipantMicrophoneLevel extends ConnectorCommand
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getRoomParticipantId()
     {
-        return roomUserId;
+        return roomParticipantId;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setRoomParticipantId(String roomParticipantId)
     {
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     public int getLevel()
@@ -59,8 +59,8 @@ public class SetParticipantMicrophoneLevel extends ConnectorCommand
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Setting microphone level to {} for participant {} in room {}",
-                new Object[]{level, roomUserId, roomId});
-        getMultipoint(connector).setParticipantMicrophoneLevel(roomId, roomUserId, level);
+                new Object[]{level, roomParticipantId, roomId});
+        getMultipoint(connector).setParticipantMicrophoneLevel(roomId, roomParticipantId, level);
         return null;
     }
 
@@ -68,6 +68,6 @@ public class SetParticipantMicrophoneLevel extends ConnectorCommand
     public String toString()
     {
         return String.format(SetParticipantMicrophoneLevel.class.getSimpleName()
-                + " (roomId: %s, roomUserId: %s, level: %d)", roomId, roomUserId, level);
+                + " (roomId: %s, roomParticipantId: %s, level: %d)", roomId, roomParticipantId, level);
     }
 }

@@ -254,7 +254,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'dialParticipant', @supportedMethods) {
+    if (grep $_ eq 'dialRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "dial-participant" => {
                 desc => "Dial participant",
@@ -267,7 +267,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'disconnectParticipant', @supportedMethods) {
+    if (grep $_ eq 'disconnectRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "disconnect-participant" => {
                 desc => "Disconnect participant from a room",
@@ -341,7 +341,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'listParticipants', @supportedMethods) {
+    if (grep $_ eq 'listRoomParticipants', @supportedMethods) {
         $shell->add_commands({
             "list-participants" => {
                 desc => "List participants in a given room",
@@ -353,7 +353,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'getParticipant', @supportedMethods) {
+    if (grep $_ eq 'getRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "get-participant" => {
                 desc => "Gets user information and room settings for given participant.",
@@ -366,7 +366,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'modifyParticipant', @supportedMethods) {
+    if (grep $_ eq 'modifyRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "modify-participant" => {
                 desc => "Modifies some participant settings.",
@@ -379,7 +379,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'muteParticipant', @supportedMethods) {
+    if (grep $_ eq 'muteRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "mute-participant" => {
                 desc => "Mutes a participant in a room",
@@ -392,7 +392,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'unmuteParticipant', @supportedMethods) {
+    if (grep $_ eq 'unmuteRoomParticipant', @supportedMethods) {
         $shell->add_commands({
             "unmute-participant" => {
                 desc => "Unmutes a participant in a room",
@@ -405,7 +405,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'enableParticipantVideo', @supportedMethods) {
+    if (grep $_ eq 'enableRoomParticipantVideo', @supportedMethods) {
         $shell->add_commands({
             "enable-participant-video" => {
                 desc => "Enables video from a participant in a room",
@@ -418,7 +418,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'disableParticipantVideo', @supportedMethods) {
+    if (grep $_ eq 'disableRoomParticipantVideo', @supportedMethods) {
         $shell->add_commands({
             "disable-participant-video" => {
                 desc => "Disables video from a participant in a room",
@@ -431,7 +431,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'setParticipantMicrophoneLevel', @supportedMethods) {
+    if (grep $_ eq 'setRoomParticipantMicrophoneLevel', @supportedMethods) {
         $shell->add_commands({
             "set-participant-microphone-level" => {
                 desc => "Sets microphone level of a participant in a room",
@@ -444,7 +444,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'setParticipantPlaybackLevel', @supportedMethods) {
+    if (grep $_ eq 'setRoomParticipantPlaybackLevel', @supportedMethods) {
         $shell->add_commands({
             "set-participant-playback-level" => {
                 desc => "Sets playback level of a participant in a room",
@@ -664,7 +664,7 @@ sub resource_dial_participant
     my $alias = Shongo::ClientCli::API::Alias->create()->to_xml();
 
     my $callId = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.dialParticipant',
+        'ResourceControl.dialRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         $alias
@@ -686,7 +686,7 @@ sub resource_disconnect_participant
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.disconnectParticipant',
+        'ResourceControl.disconnectRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -856,7 +856,7 @@ sub resource_list_participants
     my ($resourceId, $roomId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.listParticipants',
+        'ResourceControl.listRoomParticipants',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId)
     );
@@ -872,11 +872,11 @@ sub resource_list_participants
         'data' => []
     };
     # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
-    foreach my $roomUser (@{$response}) {
+    foreach my $roomParticipant (@{$response}) {
         push(@{$table->{'data'}}, {
-            'id' => $roomUser->{'userId'},
-            'name' => $roomUser->{'displayName'},
-            'joinTime' => [$roomUser->{'joinTime'}, datetime_format($roomUser->{'joinTime'})]
+            'id' => $roomParticipant->{'userId'},
+            'name' => $roomParticipant->{'displayName'},
+            'joinTime' => [$roomParticipant->{'joinTime'}, datetime_format($roomParticipant->{'joinTime'})]
         });
     }
     console_print_table($table);
@@ -890,7 +890,7 @@ sub resource_get_participant
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $participant = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.getParticipant',
+        'ResourceControl.getRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -926,7 +926,7 @@ sub resource_modify_participant
     my $microphoneLevel = console_read_value('Microphone level', 0, '^\\d+$', undef);
     my $playbackLevel = console_read_value('Playback level', 0, '^\\d+$', undef);
 
-    # NOTE: attribute names must match RoomUser attribute name constants
+    # NOTE: attribute names must match RoomParticipant attribute name constants
     my %attributes = ();
     if ( defined $displayName ) {
         $attributes{'displayName'} = $displayName;
@@ -946,7 +946,7 @@ sub resource_modify_participant
     # TODO: offer modification of room layout
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.modifyParticipant',
+        'ResourceControl.modifyRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
@@ -962,7 +962,7 @@ sub resource_mute_participant
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.muteParticipant',
+        'ResourceControl.muteRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -977,7 +977,7 @@ sub resource_unmute_participant
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.unmuteParticipant',
+        'ResourceControl.unmuteRoomParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -992,7 +992,7 @@ sub resource_enable_participant_video
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.enableParticipantVideo',
+        'ResourceControl.enableRoomParticipantVideo',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -1007,7 +1007,7 @@ sub resource_disable_participant_video
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.disableParticipantVideo',
+        'ResourceControl.disableRoomParticipantVideo',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
@@ -1023,7 +1023,7 @@ sub resource_set_participant_microphone_level
     my $level = console_read_value('Level', 1, '^\\d+$', undef);
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.setParticipantMicrophoneLevel',
+        'ResourceControl.setRoomParticipantMicrophoneLevel',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
@@ -1040,7 +1040,7 @@ sub resource_set_participant_playback_level
     my $level = console_read_value('Level', 1, '^\\d+$', undef);
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.setParticipantPlaybackLevel',
+        'ResourceControl.setRoomParticipantPlaybackLevel',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),

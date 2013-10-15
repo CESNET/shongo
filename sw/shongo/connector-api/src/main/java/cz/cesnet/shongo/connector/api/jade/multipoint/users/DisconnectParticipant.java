@@ -11,16 +11,16 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 public class DisconnectParticipant extends ConnectorCommand
 {
     private String roomId;
-    private String roomUserId;
+    private String roomParticipantId;
 
     public DisconnectParticipant()
     {
     }
 
-    public DisconnectParticipant(String roomId, String roomUserId)
+    public DisconnectParticipant(String roomId, String roomParticipantId)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     public String getRoomId()
@@ -33,27 +33,27 @@ public class DisconnectParticipant extends ConnectorCommand
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getRoomParticipantId()
     {
-        return roomUserId;
+        return roomParticipantId;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setRoomParticipantId(String roomParticipantId)
     {
-        this.roomUserId = roomUserId;
+        this.roomParticipantId = roomParticipantId;
     }
 
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Disconnecting participant {} from the room {}", roomUserId, roomId);
-        getMultipoint(connector).disconnectParticipant(roomId, roomUserId);
+        logger.debug("Disconnecting participant {} from the room {}", roomParticipantId, roomId);
+        getMultipoint(connector).disconnectRoomParticipant(roomId, roomParticipantId);
         return null;
     }
 
     public String toString()
     {
-        return String.format(DisconnectParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
-                roomId, roomUserId);
+        return String.format(DisconnectParticipant.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
+                roomId, roomParticipantId);
     }
 }
