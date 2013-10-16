@@ -219,15 +219,8 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @PathVariable(value = "participantId") String participantId)
     {
-        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
-        String resourceId = roomExecutable.getResourceId();
-        String resourceRoomId = roomExecutable.getRoomId();
-        Set<String> participantIds = new HashSet<String>();
-        participantIds.add(participantId);
         try {
-            Map<String, MediaData> participantSnapshots = resourceControlService.getRoomParticipantSnapshots(
-                securityToken, resourceId, resourceRoomId, participantIds);
-            MediaData participantSnapshot = participantSnapshots.get(participantId);
+            MediaData participantSnapshot = cache.getRoomParticipantSnapshot(securityToken, roomId, participantId);
             if (participantSnapshot != null) {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(participantSnapshot.getType().toString()));

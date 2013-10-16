@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.api.MediaData;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -42,6 +44,11 @@ public class Cache
      */
     private static final long RESERVATION_REQUEST_EXPIRATION_MINUTES = 5;
 
+    /**
+     * Expiration of room participant snapshots.
+     */
+    private static final long ROOM_PARTICIPANT_SNAPSHOT_EXPIRATION_SECONDS = 20;
+
     @Resource
     private AuthorizationService authorizationService;
 
@@ -50,6 +57,9 @@ public class Cache
 
     @Resource
     private ExecutableService executableService;
+
+    @Resource
+    private ResourceControlService resourceControlService;
 
     /**
      * {@link UserInformation}s by user-ids.
@@ -67,6 +77,9 @@ public class Cache
      */
     private ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
             new ExpirationMap<String, ReservationRequestSummary>();
+
+    private ExpirationMap<String, MediaData> roomParticipantSnapshotCache =
+            new ExpirationMap<String, MediaData>();
 
     /**
      * Cached information for single user.
@@ -96,6 +109,8 @@ public class Cache
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
         reservationRequestById.setExpiration(Duration.standardMinutes(RESERVATION_REQUEST_EXPIRATION_MINUTES));
+        roomParticipantSnapshotCache.setExpiration(
+                Duration.standardSeconds(ROOM_PARTICIPANT_SNAPSHOT_EXPIRATION_SECONDS));
     }
 
     /**
@@ -314,5 +329,29 @@ public class Cache
     {
         Executable executable = executableService.getExecutable(securityToken, executableId);
         return getReservationRequestIdByExecutable(securityToken, executable);
+    }
+
+    /**
+     * @param securityToken
+     * @param roomId
+     * @param roomParticipantId
+     * @return {@link MediaData} snapshot of room participant
+     */
+    public MediaData getRoomParticipantSnapshot(SecurityToken securityToken, String roomId, String roomParticipantId)
+    {
+        String cacheId = roomId + ":" + roomParticipantId;
+        MediaData roomParticipantSnapshot = roomParticipantSnapshotCache.get(cacheId);
+        if (roomParticipantSnapshot == null) {
+            RoomExecutable roomExecutable = (RoomExecutable) executableService.getExecutable(securityToken, roomId);
+            String resourceId = roomExecutable.getResourceId();
+            String resourceRoomId = roomExecutable.getRoomId();
+            Set<String> roomParticipantIds = new HashSet<String>();
+            roomParticipantIds.add(roomParticipantId);
+            Map<String, MediaData> participantSnapshots = resourceControlService.getRoomParticipantSnapshots(
+                    securityToken, resourceId, resourceRoomId, roomParticipantIds);
+            roomParticipantSnapshot = participantSnapshots.get(roomParticipantId);
+            roomParticipantSnapshotCache.put(cacheId, roomParticipantSnapshot);
+        }
+        return roomParticipantSnapshot;
     }
 }
