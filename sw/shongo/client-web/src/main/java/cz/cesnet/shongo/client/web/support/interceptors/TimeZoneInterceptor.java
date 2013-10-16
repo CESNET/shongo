@@ -23,7 +23,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 {
     private static Logger logger = LoggerFactory.getLogger(TimeZoneInterceptor.class);
 
-    private final static String REQUEST_URL_SESSION_ATTRIBUTE = "requestedUrl";
+    private final static String REQUEST_URL_SESSION_ATTRIBUTE = "SHONGO_REQUEST_URL";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)

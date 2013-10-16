@@ -165,7 +165,7 @@ public class BackUrl
         /**
          * Session attribute in which the back URLs are stored.
          */
-        public final static String BACK_URL_SESSION_ATTRIBUTE = "backUrl";
+        public final static String BACK_URL_SESSION_ATTRIBUTE = "SHONGO_BACK_URL";
 
         /**
          * Map of back URL by request URL.

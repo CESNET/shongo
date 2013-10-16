@@ -18,7 +18,7 @@
 <%@attribute name="deleteUrl" required="false" %>
 <%@attribute name="detailed" required="false" %>
 
-<c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+<c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
 <c:if test="${!advancedUserInterface}">
     <c:set var="modifyUrl" value="${null}"/>

@@ -24,7 +24,7 @@ public class UserSession implements Serializable
 {
     private static Logger logger = LoggerFactory.getLogger(UserSession.class);
 
-    public final static String USER_SESSION_ATTRIBUTE = "user";
+    public final static String USER_SESSION_ATTRIBUTE = "SHONGO_USER";
     public final static String USER_INTERFACE_SETTINGS_ATTRIBUTE = "client.ui.type";
 
     /**

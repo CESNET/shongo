@@ -87,7 +87,7 @@
                             <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
                             <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
                         </li>
-                        <c:if test="${sessionScope.user.admin}">
+                        <c:if test="${sessionScope.SHONGO_USER.admin}">
                             <li>
                                 <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST %>"/>
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
@@ -126,13 +126,13 @@
                     </tag:url>
                     <tag:url var="advancedUserInterfaceUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
                         <tag:param name="name" value="user-interface"/>
-                        <tag:param name="value" value="${sessionScope.user.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}"/>
+                        <tag:param name="value" value="${sessionScope.SHONGO_USER.advancedUserInterface ? 'BEGINNER' : 'ADVANCED'}"/>
                         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                     </tag:url>
                     <tag:url var="logoutUrl" value="<%= ClientWebUrl.LOGOUT %>"/>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.user.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
+                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.SHONGO_USER.admin}">&nbsp;(<spring:message code="views.layout.user.admin"/>)</c:if>
                             <b class="icon-cog"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
@@ -142,7 +142,7 @@
                             <li class="divider"></li>
                             <li>
                                 <a class="menuitem" href="${advancedUserInterfaceUrl}">
-                                    <c:if test="${sessionScope.user.advancedUserInterface}"><span class="icon-ok"></span></c:if><%--
+                                    <c:if test="${sessionScope.SHONGO_USER.advancedUserInterface}"><span class="icon-ok"></span></c:if><%--
                                     --%><spring:message code="views.layout.settings.advancedUserInterface"/>
                                 </a>
                             </li>
@@ -157,7 +157,7 @@
                 <%-- Timezone --%>
                 <li>
                     <spring:message code="views.layout.timezone" var="timeZoneTitle"/>
-                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.user.timeZone)" var="timeZone"/>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.SHONGO_USER.timeZone)" var="timeZone"/>
                     <span class="navbar-text timezone" title="${timeZoneTitle}">${timeZone}</span>
                 </li>
 

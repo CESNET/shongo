@@ -16,7 +16,7 @@
 </security:authorize>
 
 <security:authorize access="isAuthenticated()">
-    <c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+    <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
     <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>

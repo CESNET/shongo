@@ -7,7 +7,7 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="advancedUserInterface" value="${sessionScope.user.advancedUserInterface}"/>
+<c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>

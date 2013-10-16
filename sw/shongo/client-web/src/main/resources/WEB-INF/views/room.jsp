@@ -166,7 +166,14 @@
             <thead>
             <tr>
                 <th><spring:message code="views.room.currentParticipant.name"/></th>
-                <th><spring:message code="views.room.currentParticipant.email"/></th>
+                <c:if test="${room.technology == 'H323_SIP'}">
+                    <th style="min-width: 150px; width: 150px;">
+                        <spring:message code="views.room.currentParticipant.preview"/>
+                    </th>
+                </c:if>
+                <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+                    <th><spring:message code="views.room.currentParticipant.email"/></th>
+                </c:if>
                 <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
             </tr>
             </thead>
@@ -176,17 +183,23 @@
                 <tr>
                     <td>
                         ${user != null ? user.fullName : participant.displayName}
-                        <c:if test="${participant.videoSnapshot}">
-                            <tag:url var="participantVideoSnapshotUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT %>">
-                                <tag:param name="roomId" value="${room.id}"/>
-                                <tag:param name="participantId" value="${participant.id}"/>
-                            </tag:url>
-                            <img src="${participantVideoSnapshotUrl}"/>
-                        </c:if>
                     </td>
-                    <td>
-                        ${user.primaryEmail}
-                    </td>
+                    <c:if test="${room.technology == 'H323_SIP'}">
+                        <td>
+                            <c:if test="${participant.videoSnapshot}">
+                                <tag:url var="participantVideoSnapshotUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT %>">
+                                    <tag:param name="roomId" value="${room.id}"/>
+                                    <tag:param name="participantId" value="${participant.id}"/>
+                                </tag:url>
+                                <img src="${participantVideoSnapshotUrl}" style="height: 40px;"/>
+                            </c:if>
+                        </td>
+                    </c:if>
+                    <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+                        <td>
+                            ${user.primaryEmail}
+                        </td>
+                    </c:if>
                     <td>
                         <c:if test="${participant.audioMuted != null}">
                             <tag:url var="toggleParticipantAudioMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED %>">
