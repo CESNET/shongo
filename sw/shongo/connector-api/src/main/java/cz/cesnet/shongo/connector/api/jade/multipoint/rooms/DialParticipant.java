@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.users;
+package cz.cesnet.shongo.connector.api.jade.multipoint.rooms;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;

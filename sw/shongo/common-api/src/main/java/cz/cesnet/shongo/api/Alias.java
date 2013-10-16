@@ -124,6 +124,4 @@ public class Alias extends IdentifiedComplexType
         type = dataMap.getEnum(TYPE, AliasType.class);
         value = dataMap.getString(VALUE);
     }
-
-
 }

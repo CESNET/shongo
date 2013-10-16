@@ -119,6 +119,8 @@ public class ClientWebUrl
             "/room/list/data";
     public static final String ROOM_MANAGEMENT =
             "/room/{roomId:.+}";
+    public static final String ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT =
+            "/room/{roomId:.+}/participant/{participantId}/video-snapshot";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED =
             "/room/{roomId:.+}/participant/{participantId}/toggle-audio-muted";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED =

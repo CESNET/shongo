@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.connector.api.jade.endpoint.Dial;
 import cz.cesnet.shongo.connector.api.jade.endpoint.HangUpAll;
-import cz.cesnet.shongo.connector.api.jade.multipoint.users.DialParticipant;
-import cz.cesnet.shongo.connector.api.jade.multipoint.users.DisconnectParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DialParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;

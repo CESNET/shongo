@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.MediaData;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 

@@ -1133,7 +1133,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @Override
-    public MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId)
+    public Map<String, MediaData> getRoomParticipantSnapshots(String roomId, Set<String> roomParticipantIds)
             throws CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");

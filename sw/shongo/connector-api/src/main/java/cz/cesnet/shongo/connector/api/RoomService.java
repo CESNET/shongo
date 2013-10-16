@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.RoomParticipant;
-import cz.cesnet.shongo.api.RoomSummary;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -93,13 +92,13 @@ public interface RoomService
             throws CommandException, CommandUnsupportedException;
 
     /**
-     * Gets a snapshot of the video stream received by a user in a room.
+     * Gets a snapshots of the participants in a room.
      *
-     * @param roomId            room identifier where the user resides
-     * @param roomParticipantId identifier of the user within the room
-     * @return image data; see the type of the returned object to get the image format
+     * @param roomId             room identifier where the user resides
+     * @param roomParticipantIds identifiers of the participants within the room
+     * @return map of image data for each participant identifier
      */
-    MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId)
+    Map<String, MediaData> getRoomParticipantSnapshots(String roomId, Set<String> roomParticipantIds)
             throws CommandException, CommandUnsupportedException;
 
     /**

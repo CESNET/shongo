@@ -7,7 +7,6 @@ import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
 import cz.cesnet.shongo.connector.api.jade.endpoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.io.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.*;
-import cz.cesnet.shongo.connector.api.jade.multipoint.users.*;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -27,6 +26,7 @@ import javax.persistence.EntityManagerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource service implementation.
@@ -237,6 +237,14 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     {
         String agentName = validate(token, deviceResourceId, roomId);
         return (RoomParticipant) performDeviceAction(deviceResourceId, agentName, new GetParticipant(roomId, roomParticipantId));
+    }
+
+    @Override
+    public Map<String, MediaData> getRoomParticipantSnapshots(SecurityToken token, String deviceResourceId,
+            String roomId, Set<String> roomParticipantIds)
+    {
+        String agentName = validate(token, deviceResourceId, roomId);
+        return (Map<String, MediaData>) performDeviceAction(deviceResourceId, agentName, new GetParticipantSnapshots(roomId, roomParticipantIds));
     }
 
     @Override

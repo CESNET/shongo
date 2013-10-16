@@ -76,6 +76,11 @@ public class DataMap
         setNotNull(property, value);
     }
 
+    public void set(String property, byte[] value)
+    {
+        setNotNull(property, value);
+    }
+
     public <E extends Enum> void set(String property, E enumValue)
     {
         setNotNull(property, Converter.convertEnumToString(enumValue));
@@ -182,6 +187,11 @@ public class DataMap
     public Long getLong(String property)
     {
         return Converter.convertToLong(data.get(property));
+    }
+
+    public byte[] getByteArray(String property)
+    {
+        return Converter.convertToByteArray(data.get(property));
     }
 
     public Integer getIntegerRequired(String property)

@@ -42,7 +42,6 @@ public class ConnectorOntology extends AbstractOntology
             add(packageName + ".endpoint");
             add(packageName + ".multipoint.io");
             add(packageName + ".multipoint.rooms");
-            add(packageName + ".multipoint.users");
             add(packageName + ".recording");
 
             // Add all API classes

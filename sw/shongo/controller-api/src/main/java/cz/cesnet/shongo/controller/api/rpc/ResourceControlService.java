@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface to the service handling control operations on resources.
@@ -109,6 +112,19 @@ public interface ResourceControlService extends Service
     @API
     public RoomParticipant getRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId);
+
+    /**
+     * Gets a snapshots of the participants in a room.
+     *
+     * @param token            security token
+     * @param deviceResourceId
+     * @param roomId             room identifier where the user resides
+     * @param roomParticipantIds identifiers of the participants within the room
+     * @return map of image data for each participant identifier
+     */
+    @API
+    Map<String, MediaData> getRoomParticipantSnapshots(SecurityToken token, String deviceResourceId, String roomId,
+            Set<String> roomParticipantIds);
 
     @API
     public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant);

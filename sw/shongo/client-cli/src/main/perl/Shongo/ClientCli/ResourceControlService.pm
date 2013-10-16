@@ -866,6 +866,7 @@ sub resource_list_participants
     my $table = {
         'columns' => [
             {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'userId',   'title' => 'UserId'},
             {'field' => 'name', 'title' => 'Name'},
             {'field' => 'joinTime', 'title' => 'Join Time'},
         ],
@@ -874,7 +875,8 @@ sub resource_list_participants
     # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $roomParticipant (@{$response}) {
         push(@{$table->{'data'}}, {
-            'id' => $roomParticipant->{'userId'},
+            'id' => $roomParticipant->{'id'},
+            'userId' => $roomParticipant->{'userId'},
             'name' => $roomParticipant->{'displayName'},
             'joinTime' => [$roomParticipant->{'joinTime'}, datetime_format($roomParticipant->{'joinTime'})]
         });

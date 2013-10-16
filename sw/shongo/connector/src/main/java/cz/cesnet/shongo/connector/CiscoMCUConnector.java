@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -14,16 +15,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.tika.Tika;
 import org.apache.tika.detect.DefaultDetector;
-import org.apache.tika.detect.MagicDetector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -31,6 +28,7 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +117,18 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * Cache of results of previous calls to commands supporting revision numbers.
      * Map of cache ID to previous results.
      */
-    private Map<String, ResultsCache> resultsCache = new HashMap<String, ResultsCache>();
+    private final Map<String, ResultsCache> resultsCache = new HashMap<String, ResultsCache>();
+
+    /**
+     * Cache of snapshot URL for room participants ("roomId:roomParticipantId").
+     */
+    private final Map<String, String> roomParticipantSnapshotUrlCache = new HashMap<String, String>();
+
+    /**
+     * Cache of {@link MediaData} snapshots for room participants ("roomId:roomParticipantId").
+     */
+    private final ExpirationMap<String, MediaData> roomParticipantSnapshotCache =
+            new ExpirationMap<String, MediaData>(Duration.standardSeconds(10));
 
     /**
      * @return URL for communication with the device via XML-RPC API
@@ -527,31 +536,22 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
     @Override
-    public MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId) throws CommandException
+    public Map<String, MediaData> getRoomParticipantSnapshots(String roomId, Set<String> roomParticipantIds)
+            throws CommandException
     {
-        StringBuilder fileBuilder = new StringBuilder();
-        fileBuilder.append("/conference_participant_video.jpeg?conference=");
-        fileBuilder.append(roomId);
-        fileBuilder.append("&participant=");
-        fileBuilder.append(roomParticipantId);
-        fileBuilder.append("&size=qcif");
-        MediaData mediaData = execHttp(fileBuilder.toString());
-        MediaType mediaType = mediaData.getType();
-        String type = mediaType.getType();
-        if (mediaType.equals(MediaType.TEXT_PLAIN)) {
-            String error = new String(mediaData.getData());
-            if (error.contains("Unable to generate participant preview")) {
-                throw new CommandException("Cannot get participant snapshot. Participant doesn't exist.");
+        Map<String, MediaData> participantSnapshots = new HashMap<String, MediaData>();
+        for (String roomParticipantId : roomParticipantIds) {
+            String cacheId = roomId + ":" + roomParticipantId;
+            synchronized (roomParticipantSnapshotCache) {
+                MediaData roomParticipantSnapshot = roomParticipantSnapshotCache.get(cacheId);
+                if (roomParticipantSnapshot == null) {
+                    roomParticipantSnapshot = getRoomParticipantSnapshot(roomId, roomParticipantId);
+                    roomParticipantSnapshotCache.put(cacheId, roomParticipantSnapshot);
+                }
+                participantSnapshots.put(roomParticipantId, roomParticipantSnapshot);
             }
-            else {
-                throw new CommandException("Cannot get participant snapshot." + error);
-            }
-
         }
-        if (!type.equals("image")) {
-            throw new CommandException("Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
-        }
-        return mediaData;
+        return participantSnapshots;
     }
 
     @Override
@@ -1202,12 +1202,14 @@ ParamsLoop:
      * @param participant participant structure, as defined in the MCU API, command participant.status
      * @return {@link RoomParticipant} extracted from the participant structure
      */
-    private static RoomParticipant extractRoomParticipant(Map<String, Object> participant)
+    private RoomParticipant extractRoomParticipant(Map<String, Object> participant)
     {
         RoomParticipant roomParticipant = new RoomParticipant();
 
-        roomParticipant.setId((String) participant.get("participantName"));
-        roomParticipant.setRoomId((String) participant.get("conferenceName"));
+        String participantId = (String) participant.get("participantName");
+        String roomId = (String) participant.get("conferenceName");
+        roomParticipant.setId(participantId);
+        roomParticipant.setRoomId(roomId);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
@@ -1221,6 +1223,15 @@ ParamsLoop:
             roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
         }
         roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
+
+        String previewUrl = (String) state.get("previewURL");
+        if (previewUrl != null && !previewUrl.isEmpty()) {
+            String cacheId = roomId + ":" + participantId;
+            synchronized (roomParticipantSnapshotUrlCache) {
+                roomParticipantSnapshotUrlCache.put(cacheId, previewUrl);
+            }
+            roomParticipant.setVideoSnapshot(true);
+        }
 
         // room layout
         if (state.containsKey("currentLayout")) {
@@ -1246,6 +1257,54 @@ ParamsLoop:
         // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
         //       numbers, so we distinguish the type by the fact whether the name is a number or not
         cmd.setParameter("participantType", (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
+    }
+
+    /**
+     * @param roomId
+     * @param roomParticipantId
+     * @return snapshot {@link MediaData} for given {@code roomId} and {@code roomParticipantId}
+     * @throws CommandException
+     */
+    private MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId) throws CommandException
+    {
+        String roomParticipantSnapshotUrl;
+        String cacheId = roomId + ":" + roomParticipantId;
+        synchronized (roomParticipantSnapshotUrlCache) {
+            roomParticipantSnapshotUrl = roomParticipantSnapshotUrlCache.get(cacheId);
+            if (roomParticipantSnapshotUrl == null) {
+                Command cmd = new Command("participant.status");
+                cmd.setParameter("operationScope", new String[]{"currentState"});
+                identifyParticipant(cmd, roomId, roomParticipantId);
+                Map<String, Object> result = execApi(cmd);
+                @SuppressWarnings("unchecked")
+                Map<String, Object> state = (Map<String, Object>) result.get("currentState");
+                roomParticipantSnapshotUrl = (String) state.get("previewURL");
+                if (roomParticipantSnapshotUrl == null) {
+                    throw new CommandException("Participant " + roomParticipantId + " doesn't have snapshot.");
+                }
+                roomParticipantSnapshotUrlCache.put(cacheId, roomParticipantSnapshotUrl);
+            }
+        }
+
+        logger.debug("Fetching snapshot for participant {} in room {}...", roomParticipantId, roomId);
+        MediaData mediaData = execHttp(roomParticipantSnapshotUrl);
+        MediaType mediaType = mediaData.getType();
+        String type = mediaType.getType();
+        if (mediaType.equals(MediaType.TEXT_PLAIN)) {
+            String error = new String(mediaData.getData());
+            if (error.contains("Unable to generate participant preview")) {
+                throw new CommandException("Cannot get snapshot for participant " +  roomParticipantId
+                        + ". Participant doesn't exist.");
+            }
+            else {
+                throw new CommandException("Cannot get snapshot for participant " + roomParticipantId + "." + error);
+            }
+
+        }
+        if (!type.equals("image")) {
+            throw new CommandException("Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
+        }
+        return mediaData;
     }
 
     /**
@@ -1292,7 +1351,7 @@ ParamsLoop:
         connector.connect(Address.parseAddress(address), username, password);
 
         // Participant snapshot
-        //MediaData mediaData = connector.getRoomParticipantSnapshot("YY-shongo-local-qgotdi", "4");
+        //MediaData mediaData = connector.getRoomParticipantSnapshots("YY-shongo-local-qgotdi", "4");
         //System.out.println(mediaData.getType() + " " + mediaData.getData());
 
         // Room status by multiple threads

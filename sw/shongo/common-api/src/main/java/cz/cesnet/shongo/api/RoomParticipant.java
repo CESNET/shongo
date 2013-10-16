@@ -45,6 +45,11 @@ public class RoomParticipant extends IdentifiedComplexType
     private Boolean videoMuted;
 
     /**
+     * Specifies whether participant has video snapshot.
+     */
+    private boolean videoSnapshot;
+
+    /**
      * Specifies whether level of microphone (range 0-100) or {@code null} if this option isn't available.
      */
     private Integer microphoneLevel;
@@ -156,6 +161,22 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #videoSnapshot}
+     */
+    public boolean isVideoSnapshot()
+    {
+        return videoSnapshot;
+    }
+
+    /**
+     * @param videoSnapshot sets the {@link #videoSnapshot}
+     */
+    public void setVideoSnapshot(boolean videoSnapshot)
+    {
+        this.videoSnapshot = videoSnapshot;
+    }
+
+    /**
      * @return {@link #microphoneLevel}
      */
     public Integer getMicrophoneLevel()
@@ -178,8 +199,8 @@ public class RoomParticipant extends IdentifiedComplexType
     public String toString()
     {
         return String.format(RoomParticipant.class.getSimpleName() +
-                " (roomId: %s, roomParticipantId: %s, layout: %s, audioMuted: %s, videoMuted: %s, microphoneLevel: %d)",
-                roomId, id, layout, audioMuted, videoMuted, microphoneLevel);
+                " (roomId: %s, roomParticipantId: %s, layout: %s, audioMuted: %s, videoMuted: %s, videoSnapshot: %s, microphoneLevel: %d)",
+                roomId, id, layout, audioMuted, videoMuted, videoSnapshot, microphoneLevel);
     }
 
     public static final String ROOM_ID = "roomId";
@@ -189,6 +210,7 @@ public class RoomParticipant extends IdentifiedComplexType
     public static final String LAYOUT = "layout";
     public static final String AUDIO_MUTED = "audioMuted";
     public static final String VIDEO_MUTED = "videoMuted";
+    public static final String VIDEO_SNAPSHOT = "videoSnapshot";
     public static final String MICROPHONE_LEVEL = "microphoneLevel";
 
     @Override
@@ -202,6 +224,7 @@ public class RoomParticipant extends IdentifiedComplexType
         dataMap.set(LAYOUT, layout);
         dataMap.set(AUDIO_MUTED, audioMuted);
         dataMap.set(VIDEO_MUTED, videoMuted);
+        dataMap.set(VIDEO_SNAPSHOT, videoSnapshot);
         dataMap.set(MICROPHONE_LEVEL, microphoneLevel);
         return dataMap;
     }
@@ -217,6 +240,7 @@ public class RoomParticipant extends IdentifiedComplexType
         layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
         audioMuted = dataMap.getBoolean(AUDIO_MUTED);
         videoMuted = dataMap.getBoolean(VIDEO_MUTED);
+        videoSnapshot = dataMap.getBool(VIDEO_SNAPSHOT);
         setMicrophoneLevel(dataMap.getInteger(MICROPHONE_LEVEL));;
     }
 }

@@ -176,6 +176,13 @@
                 <tr>
                     <td>
                         ${user != null ? user.fullName : participant.displayName}
+                        <c:if test="${participant.videoSnapshot}">
+                            <tag:url var="participantVideoSnapshotUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT %>">
+                                <tag:param name="roomId" value="${room.id}"/>
+                                <tag:param name="participantId" value="${participant.id}"/>
+                            </tag:url>
+                            <img src="${participantVideoSnapshotUrl}"/>
+                        </c:if>
                     </td>
                     <td>
                         ${user.primaryEmail}

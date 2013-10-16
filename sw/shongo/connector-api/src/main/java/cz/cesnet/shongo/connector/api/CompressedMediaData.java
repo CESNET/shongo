@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.MediaData;
+
 /**
- * {@link MediaData} which are compressed by any {@link CompressionAlgorithm}.
+ * {@link cz.cesnet.shongo.api.MediaData} which are compressed by any {@link CompressionAlgorithm}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

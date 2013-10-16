@@ -1,5 +1,7 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.AliasType;
+import jade.content.Concept;
 import org.apache.tika.mime.MediaType;
 
 /**
@@ -9,7 +11,7 @@ import org.apache.tika.mime.MediaType;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class MediaData
+public class MediaData extends AbstractComplexType implements Concept
 {
     /**
      * Type of the data.
@@ -70,5 +72,25 @@ public class MediaData
     public void setData(byte[] data)
     {
         this.data = data;
+    }
+
+    private static final String TYPE = "type";
+    private static final String DATA = "data";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TYPE, type.toString());
+        dataMap.set(DATA, data);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        type = MediaType.parse(dataMap.getString(TYPE));
+        data = dataMap.getByteArray(DATA);
     }
 }

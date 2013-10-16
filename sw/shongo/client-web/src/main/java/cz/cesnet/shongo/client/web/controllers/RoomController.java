@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
@@ -9,6 +10,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -16,10 +18,18 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
+import cz.cesnet.shongo.report.ApiFaultException;
+import cz.cesnet.shongo.report.ReportException;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -39,6 +49,8 @@ import java.util.*;
 @SessionAttributes({RoomController.PARTICIPANT_ATTRIBUTE})
 public class RoomController
 {
+    private static Logger logger = LoggerFactory.getLogger(RoomController.class);
+
     protected static final String PARTICIPANT_ATTRIBUTE = "participant";
 
     @Resource
@@ -198,6 +210,36 @@ public class RoomController
         model.addAttribute("cacheProvider", new CacheProvider(cache, securityToken));
 
         return "room";
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT)
+    @IgnoreDateTimeZone
+    public ResponseEntity<byte[]> handleRoomParticipantVideoSnapshot(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
+        String resourceId = roomExecutable.getResourceId();
+        String resourceRoomId = roomExecutable.getRoomId();
+        Set<String> participantIds = new HashSet<String>();
+        participantIds.add(participantId);
+        try {
+            Map<String, MediaData> participantSnapshots = resourceControlService.getRoomParticipantSnapshots(
+                securityToken, resourceId, resourceRoomId, participantIds);
+            MediaData participantSnapshot = participantSnapshots.get(participantId);
+            if (participantSnapshot != null) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(participantSnapshot.getType().toString()));
+                headers.setCacheControl("no-cache, no-store, must-revalidate");
+                headers.setPragma("no-cache");
+                return new ResponseEntity<byte[]>(participantSnapshot.getData(), headers, HttpStatus.OK);
+            }
+        }
+        catch (Exception exception) {
+            logger.warn("Failed to get participant snapshot", exception);
+        }
+        return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.GET)

@@ -114,6 +114,23 @@ public class Converter
     }
 
     /**
+     * Convert given {@code value} to {@link byte[]}.
+     *
+     * @param value
+     * @return converted {@link byte[]} value
+     */
+    public static byte[] convertToByteArray(Object value)
+    {
+        if (value == null) {
+            return  null;
+        }
+        else if (value instanceof byte[]) {
+            return (byte[]) value;
+        }
+        throw new TodoImplementException(value.getClass());
+    }
+
+    /**
      * Convert given {@link Class} {@code value} to {@link String}.
      *
      * @param value
