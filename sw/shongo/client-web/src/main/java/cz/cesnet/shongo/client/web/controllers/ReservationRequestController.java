@@ -195,7 +195,8 @@ public class ReservationRequestController
                     ReservationRequestSummary.AliasSpecification alias =
                             (ReservationRequestSummary.AliasSpecification) specification;
                     if (technology != null) {
-                        item.put("technology", technology.getTitle());
+                        item.put("technology", technology);
+                        item.put("technologyTitle", technology.getTitle());
                     }
                     if (alias.getAliasType().equals(AliasType.ROOM_NAME)) {
                         item.put("roomName", alias.getValue());
@@ -234,7 +235,8 @@ public class ReservationRequestController
                     ReservationRequestSummary.RoomSpecification room =
                             (ReservationRequestSummary.RoomSpecification) specification;
                     if (technology != null) {
-                        item.put("technology", technology.getTitle());
+                        item.put("technology", technology);
+                        item.put("technologyTitle", technology.getTitle());
                     }
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
                     item.put("roomParticipantCount", room.getParticipantCount());

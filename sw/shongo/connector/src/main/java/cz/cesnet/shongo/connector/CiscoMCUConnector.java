@@ -9,6 +9,24 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.MagicDetector;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -71,9 +89,19 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     public static final int DEFAULT_PORT = 443;
 
     /**
-     * {@link XmlRpcClient} used for the communication with the device.
+     * {@link XmlRpcClient} used for the XML-RPC API communication with the device.
      */
-    private XmlRpcClient client;
+    private XmlRpcClient xmlRpcClient;
+
+    /**
+     * {@link XmlRpcClient} used for the Http communication with the device.
+     */
+    private HttpClient httpClient;
+
+    /**
+     * Detector for {@link MediaType}s.
+     */
+    private DefaultDetector detector = new DefaultDetector();
 
     /**
      * Authentication for the device.
@@ -87,6 +115,29 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private Pattern roomNumberFromH323Number = null;
     private Pattern roomNumberFromSIPURI = null;
 
+    /**
+     * Cache of results of previous calls to commands supporting revision numbers.
+     * Map of cache ID to previous results.
+     */
+    private Map<String, ResultsCache> resultsCache = new HashMap<String, ResultsCache>();
+
+    /**
+     * @return URL for communication with the device via XML-RPC API
+     */
+    private URL getDeviceApiUrl() throws MalformedURLException
+    {
+        // RPC2 is a fixed path given by Cisco, see the API docs
+        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "/RPC2");
+    }
+
+    /**
+     * @param file relative file
+     * @return URL for communication with the device via Http
+     */
+    private URL getDeviceHttpUrl(String file) throws MalformedURLException
+    {
+        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), file);
+    }
 
     // COMMON SERVICE
 
@@ -114,17 +165,22 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         initOptions();
 
         try {
-            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            config.setServerURL(getDeviceURL());
             // not standard basic auth - credentials are to be passed together with command parameters
             authUsername = username;
             authPassword = password;
 
-            client = new XmlRpcClient();
-            client.setConfig(config);
-            client.setTransportFactory(new KeepAliveTransportFactory(client));
-
+            // Trust device certificate
             ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
+
+            // Create XmlRpcClient for XML-RPC API communication
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(getDeviceApiUrl());
+            xmlRpcClient = new XmlRpcClient();
+            xmlRpcClient.setConfig(config);
+            xmlRpcClient.setTransportFactory(new KeepAliveTransportFactory(xmlRpcClient));
+
+            // Create XmlRpcClient for Http communication
+            httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
 
             initDeviceInfo();
         }
@@ -139,9 +195,555 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     }
 
+    @Override
+    public synchronized void disconnect() throws CommandException
+    {
+        // TODO: consider publishing feedback events from the MCU
+        // no real operation - the communication protocol is stateless
+        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        xmlRpcClient = null; // just for sure the attributes are not used anymore
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="ROOM SERVICE">
+
+    @Override
+    public Collection<RoomSummary> getRoomList() throws CommandException
+    {
+        Command cmd = new Command("conference.enumerate");
+        cmd.setParameter("moreThanFour", Boolean.TRUE);
+        cmd.setParameter("enumerateFilter", "!completed");
+
+        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
+        List<Map<String, Object>> conferences = execApiEnumerate(cmd, "conferences");
+        for (Map<String, Object> conference : conferences) {
+            RoomSummary info = extractRoomSummary(conference);
+            rooms.add(info);
+        }
+
+        return rooms;
+    }
+
+    @Override
+    public Room getRoom(String roomId) throws CommandException
+    {
+        Command cmd = new Command("conference.status");
+        cmd.setParameter("conferenceName", truncateString(roomId));
+        Map<String, Object> result = execApi(cmd);
+
+        Room room = new Room();
+        room.setId((String) result.get("conferenceName"));
+        room.addAlias(AliasType.ROOM_NAME, (String) result.get("conferenceName"));
+        if (result.containsKey("maximumVideoPorts")) {
+            room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+        }
+        room.addTechnology(Technology.H323);
+
+        if (result.containsKey("description") && !result.get("description").equals("")) {
+            room.setDescription((String) result.get("description"));
+        }
+
+        // aliases
+        if (result.containsKey("numericId") && !result.get("numericId").equals("")) {
+            Alias numAlias = new Alias(AliasType.H323_E164, (String) result.get("numericId"));
+            room.addAlias(numAlias);
+        }
+
+        // options
+        H323RoomSetting h323RoomSetting = new H323RoomSetting();
+        if (!result.get("pin").equals("")) {
+            h323RoomSetting.setPin((String) result.get("pin"));
+        }
+        h323RoomSetting.setListedPublicly(!(Boolean) result.get("private"));
+        h323RoomSetting.setAllowContent((Boolean) result.get("contentContribution"));
+        h323RoomSetting.setJoinAudioMuted((Boolean) result.get("joinAudioMuted"));
+        h323RoomSetting.setJoinVideoMuted((Boolean) result.get("joinVideoMuted"));
+        h323RoomSetting.setRegisterWithGatekeeper((Boolean) result.get("registerWithGatekeeper"));
+        h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
+        h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
+        h323RoomSetting.setConferenceMeEnabled((Boolean) result.get("conferenceMeEnabled"));
+        room.addRoomSetting(h323RoomSetting);
+
+        return room;
+    }
+
+    @Override
+    public String createRoom(Room room) throws CommandException
+    {
+        Command cmd = new Command("conference.create");
+
+        cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
+
+        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("maximumAudioPorts", 0); // audio-only participants are forced to use video slots
+        cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
+
+        // defaults (may be overridden by specified room options
+        cmd.setParameter("registerWithGatekeeper", Boolean.FALSE);
+        cmd.setParameter("registerWithSIPRegistrar", Boolean.FALSE);
+        cmd.setParameter("private", Boolean.TRUE);
+        cmd.setParameter("contentContribution", Boolean.TRUE);
+        cmd.setParameter("contentTransmitResolutions", "allowAll");
+        cmd.setParameter("joinAudioMuted", Boolean.FALSE);
+        cmd.setParameter("joinVideoMuted", Boolean.FALSE);
+        cmd.setParameter("startLocked", Boolean.FALSE);
+        cmd.setParameter("conferenceMeEnabled", Boolean.FALSE);
+
+        setConferenceParametersByRoom(cmd, room);
+
+        // Room name must be filled
+        if (cmd.getParameterValue("conferenceName") == null) {
+            throw new RuntimeException("Room name must be filled for the new room.");
+        }
+
+        execApi(cmd);
+
+        return (String) cmd.getParameterValue("conferenceName");
+    }
+
+    private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
+    {
+        // Set the room forever
+        cmd.setParameter("durationSeconds", 0);
+
+        // Set the license count
+        cmd.setParameter("maximumVideoPorts", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
+
+        // Set the description
+        if (room.getDescription() != null) {
+            cmd.setParameter("description", truncateString(room.getDescription()));
+        }
+
+        // Create/Update aliases
+        if (room.getAliases() != null) {
+            for (Alias alias : room.getAliases()) {
+                // Derive number/name of the room
+                String roomNumber = null;
+                String roomName = null;
+                Matcher m;
+
+                switch (alias.getType()) {
+                    case ROOM_NAME:
+                        roomName = alias.getValue();
+                        break;
+                    case H323_E164:
+                        if (roomNumberFromH323Number == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
+                        }
+                        m = roomNumberFromH323Number.matcher(alias.getValue());
+                        if (!m.find()) {
+                            throw new CommandException("Invalid E164 number: " + alias.getValue());
+                        }
+                        roomNumber = m.group(1);
+                        break;
+                    case SIP_URI:
+                        if (roomNumberFromSIPURI == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set SIP URI to room - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
+                        }
+                        m = roomNumberFromSIPURI.matcher(alias.getValue());
+                        if (m.find()) {
+                            // SIP URI contains number
+                            roomNumber = m.group(1);
+                        }
+                        else {
+                            // SIP URI contains name
+                            String value = alias.getValue();
+                            int atSign = value.indexOf('@');
+                            assert atSign > 0;
+                            roomName = value.substring(0, atSign);
+                        }
+                        break;
+                    case H323_URI:
+                    case H323_IP:
+                    case SIP_IP:
+                        // TODO: Check the alias value
+                        break;
+                    default:
+                        throw new CommandException("Unrecognized alias: " + alias.toString());
+                }
+
+                if (roomNumber != null) {
+                    // Check we are not already assigning a different number to the room
+                    final Object oldRoomNumber = cmd.getParameterValue("numericId");
+                    if (oldRoomNumber != null && !oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
+                        // multiple number aliases
+                        throw new CommandException(String.format(
+                                "The connector supports only one number for a room, requested another: %s", alias));
+                    }
+                    cmd.setParameter("numericId", truncateString(roomNumber));
+                }
+
+                if (roomName != null) {
+                    // Check that more aliases do not request different room name
+                    final Object oldRoomName = cmd.getParameterValue("conferenceName");
+                    if (oldRoomName != null && !oldRoomName.equals("") && !oldRoomName.equals(roomName)) {
+                        throw new CommandException(String.format(
+                                "The connector supports only one room name, requested another: %s", alias));
+                    }
+                    cmd.setParameter("conferenceName", truncateString(roomName));
+                }
+            }
+        }
+
+        H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
+        if (h323RoomSetting != null) {
+            if (h323RoomSetting.getPin() != null) {
+                cmd.setParameter("pin", h323RoomSetting.getPin());
+            }
+            if (h323RoomSetting.getListedPublicly() != null) {
+                cmd.setParameter("private", !h323RoomSetting.getListedPublicly());
+            }
+            if (h323RoomSetting.getAllowContent() != null) {
+                cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
+            }
+            if (h323RoomSetting.getJoinAudioMuted() != null) {
+                cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
+            }
+            if (h323RoomSetting.getJoinVideoMuted() != null) {
+                cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
+            }
+            if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
+                cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
+            }
+            if (h323RoomSetting.getRegisterWithRegistrar() != null) {
+                cmd.setParameter("registerWithSIPRegistrar", h323RoomSetting.getRegisterWithRegistrar());
+            }
+            if (h323RoomSetting.getStartLocked() != null) {
+                cmd.setParameter("startLocked", h323RoomSetting.getStartLocked());
+            }
+            if (h323RoomSetting.getConferenceMeEnabled() != null) {
+                cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
+            }
+            if (h323RoomSetting.getAllowGuests() != null) {
+                throw new CommandException("Room Setting " + H323RoomSetting.ALLOW_GUESTS + "is not implemented yet.");
+            }
+        }
+    }
+
+    @Override
+    public String modifyRoom(Room room) throws CommandException
+    {
+        // build the command
+        Command cmd = new Command("conference.modify");
+
+        cmd.setParameter("conferenceName", truncateString(room.getId()));
+        setConferenceParametersByRoom(cmd, room);
+
+        execApi(cmd);
+
+        return room.getId();
+    }
+
+    @Override
+    public void deleteRoom(String roomId) throws CommandException
+    {
+        Command cmd = new Command("conference.destroy");
+        cmd.setParameter("conferenceName", truncateString(roomId));
+        execApi(cmd);
+    }
+
+    @Override
+    public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    @Override
+    public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="ROOM CONTENT SERVICE">
+
+    @Override
+    public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    @Override
+    public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    @Override
+    public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    @Override
+    public void addRoomContent(String roomId, String name, MediaData data)
+            throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="USER SERVICE">
+
+    @Override
+    public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
+    {
+        Command cmd = new Command("participant.enumerate");
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+        cmd.setParameter("enumerateFilter", "connected");
+        List<Map<String, Object>> participants = execApiEnumerate(cmd, "participants");
+
+        List<RoomParticipant> result = new ArrayList<RoomParticipant>();
+        for (Map<String, Object> part : participants) {
+            if (part == null) {
+                continue;
+            }
+            if (!roomId.equals(part.get("conferenceName"))) {
+                continue; // not from this room
+            }
+            result.add(extractRoomParticipant(part));
+        }
+
+        return result;
+    }
+
+    @Override
+    public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException
+    {
+        Command cmd = new Command("participant.status");
+        identifyParticipant(cmd, roomId, roomParticipantId);
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+
+        Map<String, Object> result = execApi(cmd);
+
+        return extractRoomParticipant(result);
+    }
+
+    @Override
+    public MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId) throws CommandException
+    {
+        StringBuilder fileBuilder = new StringBuilder();
+        fileBuilder.append("/conference_participant_video.jpeg?conference=");
+        fileBuilder.append(roomId);
+        fileBuilder.append("&participant=");
+        fileBuilder.append(roomParticipantId);
+        fileBuilder.append("&size=qcif");
+        MediaData mediaData = execHttp(fileBuilder.toString());
+        MediaType mediaType = mediaData.getType();
+        String type = mediaType.getType();
+        if (mediaType.equals(MediaType.TEXT_PLAIN)) {
+            String error = new String(mediaData.getData());
+            if (error.contains("Unable to generate participant preview")) {
+                throw new CommandException("Cannot get participant snapshot. Participant doesn't exist.");
+            }
+            else {
+                throw new CommandException("Cannot get participant snapshot." + error);
+            }
+
+        }
+        if (!type.equals("image")) {
+            throw new CommandException("Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
+        }
+        return mediaData;
+    }
+
+    @Override
+    public void modifyRoomParticipant(RoomParticipant roomParticipant)
+            throws CommandException
+    {
+        String roomId = roomParticipant.getRoomId();
+        if (roomId == null) {
+            throw new IllegalArgumentException("RoomId must be not null.");
+        }
+        String roomParticipantId = roomParticipant.getId();
+        if (roomParticipantId == null) {
+            throw new IllegalArgumentException("RoomParticipantId must be not null.");
+        }
+
+        Command cmd = new Command("participant.modify");
+        identifyParticipant(cmd, roomId, roomParticipantId);
+
+        // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
+        cmd.setParameter("operationScope", "activeState");
+
+        // Set parameters
+        if (roomParticipant.getLayout() != null) {
+            RoomLayout layout = roomParticipant.getLayout();
+            cmd.setParameter("focusType", (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
+                                                   ? "voiceActivated" : "participant"));
+            logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
+        }
+        if (roomParticipant.getDisplayName() != null) {
+            cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
+            cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
+        }
+        if (roomParticipant.getAudioMuted() != null) {
+            cmd.setParameter("audioRxMuted", roomParticipant.getAudioMuted());
+        }
+        if (roomParticipant.getVideoMuted() != null) {
+            cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
+        }
+        if (roomParticipant.getMicrophoneLevel() != null) {
+            cmd.setParameter("audioRxGainMillidB", roomParticipant.getMicrophoneLevel());
+            cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
+        }
+        execApi(cmd);
+    }
+
+    @Override
+    public String dialRoomParticipant(String roomId, Alias alias) throws CommandException
+    {
+        // FIXME: refine just as the createRoom() method - get just a RoomParticipant object and set parameters according to it
+
+        // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
+        //       thus, commented out the following generation of participant names
+        //String roomParticipantId = generateRoomParticipantId(roomId); // FIXME: treat potential race conditions; and it is slow...
+
+        Command cmd = new Command("participant.add");
+        cmd.setParameter("conferenceName", truncateString(roomId));
+        //cmd.setParameter("participantName", truncateString(roomParticipantId));
+        cmd.setParameter("address", truncateString(alias.getValue()));
+        cmd.setParameter("participantType", "ad_hoc");
+        cmd.setParameter("addResponse", Boolean.TRUE);
+
+        Map<String, Object> result = execApi(cmd);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> participant = (Map<String, Object>) result.get("participant");
+        if (participant == null) {
+            return null;
+        }
+        else {
+            return String.valueOf(participant.get("participantName"));
+        }
+    }
+
+    @Override
+    public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException
+    {
+        Command cmd = new Command("participant.remove");
+        identifyParticipant(cmd, roomId, roomParticipantId);
+
+        execApi(cmd);
+    }
+
+    @Override
+    public void enableContentProvider(String roomId, String roomParticipantId)
+            throws CommandException, CommandUnsupportedException
+    {
+        // NOTE: it seems it is not possible to enable content using current API (2.9)
+        throw new CommandUnsupportedException();
+    }
+
+    @Override
+    public void disableContentProvider(String roomId, String roomParticipantId)
+            throws CommandException, CommandUnsupportedException
+    {
+        // NOTE: it seems it is not possible to disable content using current API (2.9)
+        throw new CommandUnsupportedException();
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="I/O SERVICE">
+
+    @Override
+    public void disableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setVideoMuted(Boolean.TRUE);
+        modifyRoomParticipant(roomParticipant);
+    }
+
+    @Override
+    public void enableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setVideoMuted(Boolean.FALSE);
+        modifyRoomParticipant(roomParticipant);
+    }
+
+    @Override
+    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setAudioMuted(Boolean.TRUE);
+        modifyRoomParticipant(roomParticipant);
+    }
+
+    @Override
+    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setAudioMuted(Boolean.FALSE);
+        modifyRoomParticipant(roomParticipant);
+    }
+
+    @Override
+    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level)
+            throws CommandException
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+        roomParticipant.setId(roomParticipantId);
+        roomParticipant.setRoomId(roomId);
+        roomParticipant.setMicrophoneLevel(level);
+        modifyRoomParticipant(roomParticipant);
+    }
+
+    @Override
+    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
+            throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException();
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="MONITORING SERVICE">
+
+    @Override
+    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException
+    {
+        Map<String, Object> health = execApi(new Command("device.health.query"));
+        Map<String, Object> status = execApi(new Command("device.query"));
+
+        DeviceLoadInfo info = new DeviceLoadInfo();
+        info.setCpuLoad(((Integer) health.get("cpuLoad")).doubleValue());
+        if (status.containsKey("uptime")) {
+            info.setUptime((Integer) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
+        }
+
+        // NOTE: memory and disk usage not accessible via API
+
+        return info;
+    }
+
+    @Override
+    public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    //</editor-fold>
+
     private void initDeviceInfo() throws CommandException
     {
-        Map<String, Object> device = exec(new Command("device.query"));
+        Map<String, Object> device = execApi(new Command("device.query"));
 
         try {
             Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
@@ -194,25 +796,75 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         }
     }
 
-    @Override
-    public synchronized void disconnect() throws CommandException
+    /**
+     * Perform http request for given {@code file}
+     * @param file
+     * @return content as {@link MediaData}
+     * @throws CommandException
+     */
+    private synchronized MediaData execHttp(String file) throws CommandException
     {
-        // TODO: consider publishing feedback events from the MCU
-        // no real operation - the communication protocol is stateless
-        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
-        client = null; // just for sure the attributes are not used anymore
+        try {
+            URL requestUrl = getDeviceHttpUrl(file);
+            HttpGet request = new HttpGet(requestUrl.toURI());
+            HttpContext context = new BasicHttpContext();
+            HttpResponse response = httpClient.execute(request, context);
+            HttpRequest responseRequest = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+            StatusLine responseStatusLine = response.getStatusLine();
+            if (responseStatusLine.getStatusCode() == HttpStatus.SC_OK) {
+                if (responseRequest.getRequestLine().getUri().startsWith("/login.html")) {
+                    // Perform login
+                    loginHttp();
+                    // Perform the request again
+                    response = httpClient.execute(request, context);
+                }
+                HttpEntity responseEntity = response.getEntity();
+                if (responseEntity != null) {
+                    byte[] mediaContent = EntityUtils.toByteArray(responseEntity);
+                    MediaType mediaType = detector.detect(TikaInputStream.get(mediaContent), new Metadata());
+                    return new MediaData(mediaType, mediaContent);
+                }
+            }
+            throw new RuntimeException(response.getStatusLine().toString());
+        }
+        catch (CommandException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            throw new CommandException("Http request " + file + " failed.", exception);
+        }
     }
 
-
     /**
-     * Returns the URL on which to communicate with the device.
-     *
-     * @return URL for communication with the device
+     * Try to login for {@link #httpClient}
+     * @throws CommandException when login fails
      */
-    private URL getDeviceURL() throws MalformedURLException
+    private void loginHttp() throws CommandException
     {
-        // RPC2 is a fixed path given by Cisco, see the API docs
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "/RPC2");
+        try {
+            HttpPost request = new HttpPost("https://mcuc.cesnet.cz/login_change.html");
+            List<NameValuePair> parameters = new ArrayList<NameValuePair>(2);
+            parameters.add(new BasicNameValuePair("user_name", authUsername));
+            parameters.add(new BasicNameValuePair("password", authPassword));
+            parameters.add(new BasicNameValuePair("ok", "OK"));
+            request.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
+            HttpContext context = new BasicHttpContext();
+            HttpResponse response = httpClient.execute(request, context);
+            HttpRequest responseRequest = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+            StatusLine responseStatusLine = response.getStatusLine();
+            if (responseStatusLine.getStatusCode() != HttpStatus.SC_OK) {
+                throw new RuntimeException("Wrong status " + responseStatusLine);
+            }
+            String responseRequestUrl = responseRequest.getRequestLine().getUri();
+            if (!responseRequestUrl.startsWith("/index.html")) {
+                throw new RuntimeException("Wrong url " + responseRequestUrl);
+            }
+            logger.debug("Http login successful.");
+        }
+        catch (Exception exception) {
+            logger.error("Http login failed.", exception);
+            throw new CommandException("Http login failed", exception);
+        }
     }
 
     /**
@@ -221,7 +873,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param command a command to the device; note that some parameters may be added to the command
      * @return output of the command
      */
-    private synchronized Map<String, Object> exec(Command command) throws CommandException
+    private synchronized Map<String, Object> execApi(Command command) throws CommandException
     {
         command.unsetParameter("authenticationPassword");
         logger.debug(String.format("%s issuing command '%s' on %s",
@@ -231,7 +883,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         command.setParameter("authenticationPassword", authPassword);
         Object[] params = new Object[]{command.getParameters()};
         try {
-            return (Map<String, Object>) client.execute(command.getCommand(), params);
+            return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
         }
         catch (XmlRpcException e) {
             throw new CommandException(e.getMessage());
@@ -250,10 +902,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param command   command for enumerating the objects; note that some parameters may be added to the command
      * @param enumField the field within result containing the list of enumerated objects
      * @return list of objects from the enumField, each as a map from field names to values;
-     *         the list is unmodifiable (so that it may be reused by the execEnumerate() method)
+     *         the list is unmodifiable (so that it may be reused by the execApiEnumerate() method)
      * @throws CommandException
      */
-    private List<Map<String, Object>> execEnumerate(Command command, String enumField) throws CommandException
+    private synchronized List<Map<String, Object>> execApiEnumerate(Command command, String enumField)
+            throws CommandException
     {
         List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
@@ -264,14 +917,14 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         for (int enumPage = 0; ; enumPage++) {
             // safety pages number check - to prevent infinite loop if the device does not work correctly
             if (enumPage >= ENUMERATE_PAGES_LIMIT) {
-                String message = String
-                        .format("Enumerate pages safety limit reached - the device gave more than %d result pages!",
-                                ENUMERATE_PAGES_LIMIT);
+                String message = String.format(
+                        "Enumerate pages safety limit reached - the device gave more than %d result pages!",
+                        ENUMERATE_PAGES_LIMIT);
                 throw new CommandException(message);
             }
 
             // ask for data
-            Map<String, Object> result = exec(command);
+            Map<String, Object> result = execApi(command);
             // get the revision number of the first page - for using cache
             if (enumPage == 0) {
                 currentRevision = (Integer) result.get("currentRevision"); // might not exist in the result and be null
@@ -301,19 +954,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         return Collections.unmodifiableList(results);
     }
-
-    private static RoomSummary extractRoomSummary(Map<String, Object> conference)
-    {
-        RoomSummary roomSummary = new RoomSummary();
-        roomSummary.setId((String) conference.get("conferenceName"));
-        roomSummary.setName((String) conference.get("conferenceName"));
-        roomSummary.setDescription((String) conference.get("description"));
-        roomSummary.setAlias((String) conference.get("numericId"));
-        String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
-        roomSummary.setStartDateTime(new DateTime(conference.get(timeField)));
-        return roomSummary;
-    }
-
 
     /**
      * For string parameters, MCU accepts only strings of limited length.
@@ -462,6 +1102,353 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
     /**
+     * Returns the revision number of the previous call of the given command.
+     * <p/>
+     * The purpose of this method is to enable caching of previous calls and asking for just the difference since then.
+     * <p/>
+     * All the parameters of the command are considered, except enumerateID, lastRevision, and listAll.
+     * <p/>
+     * Note that the return value must be boxed, because the MCU API does not say anything about the revision numbers
+     * issued by the device. So it may have any value, thus, we must recognize the special case by the null value.
+     *
+     * @param command a command which will be performed
+     * @return revision number of the previous call of the given command,
+     *         or null if the command has not been issued yet or does not support revision numbers
+     */
+    private Integer getCachedRevision(Command command)
+    {
+        if (command.getCommand().equals("autoAttendant.enumerate")) {
+            return null; // disabled for the autoAttendant.enumerate command - it is broken on the device
+        }
+        String cacheId = getCommandCacheId(command);
+        ResultsCache rc = resultsCache.get(cacheId);
+        return (rc == null ? null : rc.getRevision());
+    }
+
+    private String getCommandCacheId(Command command)
+    {
+        final String[] ignoredParams = new String[]{
+                "enumerateID", "lastRevision", "listAll", "authenticationUser", "authenticationPassword"
+        };
+
+        StringBuilder sb = new StringBuilder(command.getCommand());
+ParamsLoop:
+        for (Map.Entry<String, Object> entry : command.getParameters().entrySet()) {
+            for (String ignoredParam : ignoredParams) {
+                if (entry.getKey().equals(ignoredParam)) {
+                    continue ParamsLoop; // the parameter is ignored
+                }
+            }
+            sb.append(";");
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(entry.getValue());
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates a new room participant ID.
+     *
+     * @param roomId technology ID of the room to generate a new user ID for
+     * @return a free roomParticipantId to be assigned (free in the moment of processing this method, might race condition with
+     *         someone else)
+     */
+    private String generateRoomParticipantId(String roomId) throws CommandException
+    {
+        List<Map<String, Object>> participants;
+        try {
+            Command cmd = new Command("participant.enumerate");
+            cmd.setParameter("operationScope", new String[]{"currentState"});
+            participants = execApiEnumerate(cmd, "participants");
+        }
+        catch (CommandException e) {
+            throw new CommandException(
+                    "Cannot generate a new room participant ID - cannot list current room participants.", e);
+        }
+
+        // generate the new ID as maximal ID of present users increased by one
+        int maxFound = 0;
+        Pattern pattern = Pattern.compile("^participant(\\d+)$");
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue;
+            }
+            Matcher m = pattern.matcher((String) part.get("participantName"));
+            if (m.find()) {
+                maxFound = Math.max(maxFound, Integer.parseInt(m.group(1)));
+            }
+        }
+
+        return String.format("participant%d", maxFound + 1);
+    }
+
+    private static RoomSummary extractRoomSummary(Map<String, Object> conference)
+    {
+        RoomSummary roomSummary = new RoomSummary();
+        roomSummary.setId((String) conference.get("conferenceName"));
+        roomSummary.setName((String) conference.get("conferenceName"));
+        roomSummary.setDescription((String) conference.get("description"));
+        roomSummary.setAlias((String) conference.get("numericId"));
+        String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
+        roomSummary.setStartDateTime(new DateTime(conference.get(timeField)));
+        return roomSummary;
+    }
+
+    /**
+     * Extracts a {@link RoomParticipant} out of participant.enumerate or participant.status result.
+     *
+     * @param participant participant structure, as defined in the MCU API, command participant.status
+     * @return {@link RoomParticipant} extracted from the participant structure
+     */
+    private static RoomParticipant extractRoomParticipant(Map<String, Object> participant)
+    {
+        RoomParticipant roomParticipant = new RoomParticipant();
+
+        roomParticipant.setId((String) participant.get("participantName"));
+        roomParticipant.setRoomId((String) participant.get("conferenceName"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
+
+        roomParticipant.setDisplayName((String) state.get("displayName"));
+
+        roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
+        roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
+        if (state.get("audioRxGainMode").equals("fixed")) {
+            // TODO: recompute 0-100 to dB
+            roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+        }
+        roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
+
+        // room layout
+        if (state.containsKey("currentLayout")) {
+            RoomLayout.VoiceSwitching vs;
+            if (state.get("focusType").equals("voiceActivated")) {
+                vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
+            }
+            else {
+                vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
+            }
+            final Integer layoutIndex = (Integer) state.get("currentLayout");
+            RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
+
+            roomParticipant.setLayout(rl);
+        }
+        return roomParticipant;
+    }
+
+    private void identifyParticipant(Command cmd, String roomId, String roomParticipantId)
+    {
+        cmd.setParameter("conferenceName", truncateString(roomId));
+        cmd.setParameter("participantName", truncateString(roomParticipantId));
+        // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
+        //       numbers, so we distinguish the type by the fact whether the name is a number or not
+        cmd.setParameter("participantType", (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
+    }
+
+    /**
+     * An example of interaction with the device.
+     * <p/>
+     * Just for debugging purposes.
+     *
+     * @param args
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
+    {
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+        final String address;
+        final String username;
+        final String password;
+
+        if (args.length > 0) {
+            address = args[0];
+        }
+        else {
+            System.out.print("address: ");
+            address = in.readLine();
+        }
+
+        if (args.length > 1) {
+            username = args[1];
+        }
+        else {
+            System.out.print("username: ");
+            username = in.readLine();
+        }
+
+        if (args.length > 2) {
+            password = args[2];
+        }
+        else {
+            System.out.print("password: ");
+            password = in.readLine();
+        }
+
+        CiscoMCUConnector connector = new CiscoMCUConnector();
+        connector.connect(Address.parseAddress(address), username, password);
+
+        // Participant snapshot
+        //MediaData mediaData = connector.getRoomParticipantSnapshot("YY-shongo-local-qgotdi", "4");
+        //System.out.println(mediaData.getType() + " " + mediaData.getData());
+
+        // Room status by multiple threads
+        /*List<Thread> threads = new LinkedList<Thread>();
+        for (int i = 0; i < 2; i++ ) {
+            Thread thread = new Thread() {
+                @Override
+                public void run()
+                {
+                    try {
+                        Room shongoTestRoom = conn.getRoom("shongo-test");
+                        System.out.println("shongo-test room:");
+                        System.out.println(shongoTestRoom);
+                    }
+                    catch (CommandException exception) {
+                        exception.printStackTrace();
+                    }
+                    super.run();
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            }
+            catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }*/
+
+        // gatekeeper status
+//        Map<String, Object> gkInfo = conn.execApi(new Command("gatekeeper.query"));
+//        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
+
+        // test of getRoomList() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
+//                    room.getStartDateTime(), room.getOwner());
+//        }
+
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
+//        Command enumParticipantsCmd = new Command("participant.enumerate");
+//        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
+//        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
+//        List<Map<String, Object>> participants = conn.execApiEnumerate(enumParticipantsCmd, "participants");
+//        List<Map<String, Object>> participants2 = conn.execApiEnumerate(enumParticipantsCmd, "participants");
+
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
+//        Command enumConfCmd = new Command("conference.enumerate");
+//        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
+//        enumConfCmd.setParameter("enumerateFilter", "completed");
+//        List<Map<String, Object>> confs = conn.execApiEnumerate(enumConfCmd, "conferences");
+//        List<Map<String, Object>> confs2 = conn.execApiEnumerate(enumConfCmd, "conferences");
+
+        // test of getRoom() command
+//        Room shongoTestRoom = conn.getRoom("shongo-test");
+//        System.out.println("shongo-test room:");
+//        System.out.println(shongoTestRoom);
+
+        // test of deleteRoom() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+//        System.out.println("Deleting 'shongo-test'");
+//        conn.deleteRoom("shongo-test");
+//        roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+
+        // test of createRoom() method
+//        Room newRoom = new Room("shongo-test9", 5);
+//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087209"));
+//        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
+//        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+
+        // test of bad caching
+//        Room newRoom = new Room("shongo-testX", 5);
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
+//        Collection<RoomSummary> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : roomList) {
+//            System.out.println(roomSummary);
+//        }
+//        conn.deleteRoom(newRoomId);
+//        System.out.println("Deleted room " + newRoomId);
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
+//        Collection<RoomSummary> newRoomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : newRoomList) {
+//            System.out.println(roomSummary);
+//        }
+//        atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom(changedRoomId, atts, null);
+
+        // test of modifyRoom() method
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
+//        opts.put(Room.Option.LISTED_PUBLICLY, false);
+//        opts.put(Room.Option.PIN, "1234");
+//        conn.modifyRoom("shongo-test", atts, opts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2, null);
+
+        // test of listRoomParticipants() method
+//        System.out.println("Listing shongo-test room:");
+//        Collection<RoomParticipant> shongoUsers = conn.listRoomParticipants("shongo-test");
+//        for (RoomParticipant ru : shongoUsers) {
+//            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
+//        }
+//        System.out.println("Listing done");
+
+        // user connect by alias
+//        String ruId = conn.dialRoomParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        System.out.println("Added user " + ruId);
+        // user connect by address
+//        String ruId2 = conn.dialRoomParticipant("shongo-test", "147.251.54.102");
+        // user disconnect
+//        conn.disconnectRoomParticipant("shongo-test", "participant1");
+
+//        System.out.println("All done, disconnecting");
+
+        // test of modifyRoomParticipant
+//        Map<String, Object> attributes = new HashMap<String, Object>();
+//        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
+//        attributes.put(RoomParticipant.DISPLAY_NAME, "Ondrej Bouda");
+//        conn.modifyRoomParticipant("shongo-test", "3447", attributes);
+
+        //Room room = conn.getRoom("shongo-test");
+
+        connector.disconnect();
+    }
+
+    /**
      * Cache storing results from a single command.
      * <p/>
      * Stores the revision number and the corresponding result set.
@@ -568,864 +1555,4 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         }
 
     }
-
-    /**
-     * Cache of results of previous calls to commands supporting revision numbers.
-     * Map of cache ID to previous results.
-     */
-    private Map<String, ResultsCache> resultsCache = new HashMap<String, ResultsCache>();
-
-    /**
-     * Returns the revision number of the previous call of the given command.
-     * <p/>
-     * The purpose of this method is to enable caching of previous calls and asking for just the difference since then.
-     * <p/>
-     * All the parameters of the command are considered, except enumerateID, lastRevision, and listAll.
-     * <p/>
-     * Note that the return value must be boxed, because the MCU API does not say anything about the revision numbers
-     * issued by the device. So it may have any value, thus, we must recognize the special case by the null value.
-     *
-     * @param command a command which will be performed
-     * @return revision number of the previous call of the given command,
-     *         or null if the command has not been issued yet or does not support revision numbers
-     */
-    private Integer getCachedRevision(Command command)
-    {
-        if (command.getCommand().equals("autoAttendant.enumerate")) {
-            return null; // disabled for the autoAttendant.enumerate command - it is broken on the device
-        }
-        String cacheId = getCommandCacheId(command);
-        ResultsCache rc = resultsCache.get(cacheId);
-        return (rc == null ? null : rc.getRevision());
-    }
-
-    private String getCommandCacheId(Command command)
-    {
-        final String[] ignoredParams = new String[]{
-                "enumerateID", "lastRevision", "listAll", "authenticationUser", "authenticationPassword"
-        };
-
-        StringBuilder sb = new StringBuilder(command.getCommand());
-ParamsLoop:
-        for (Map.Entry<String, Object> entry : command.getParameters().entrySet()) {
-            for (String ignoredParam : ignoredParams) {
-                if (entry.getKey().equals(ignoredParam)) {
-                    continue ParamsLoop; // the parameter is ignored
-                }
-            }
-            sb.append(";");
-            sb.append(entry.getKey());
-            sb.append("=");
-            sb.append(entry.getValue());
-        }
-
-        return sb.toString();
-    }
-
-
-    //</editor-fold>
-
-    //<editor-fold desc="ROOM SERVICE">
-
-    @Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
-    {
-        Command cmd = new Command("conference.enumerate");
-        cmd.setParameter("moreThanFour", Boolean.TRUE);
-        cmd.setParameter("enumerateFilter", "!completed");
-
-        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
-        List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
-        for (Map<String, Object> conference : conferences) {
-            RoomSummary info = extractRoomSummary(conference);
-            rooms.add(info);
-        }
-
-        return rooms;
-    }
-
-    @Override
-    public Room getRoom(String roomId) throws CommandException
-    {
-        Command cmd = new Command("conference.status");
-        cmd.setParameter("conferenceName", truncateString(roomId));
-        Map<String, Object> result = exec(cmd);
-
-        Room room = new Room();
-        room.setId((String) result.get("conferenceName"));
-        room.addAlias(AliasType.ROOM_NAME, (String) result.get("conferenceName"));
-        if (result.containsKey("maximumVideoPorts")) {
-            room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
-        }
-        room.addTechnology(Technology.H323);
-
-        if (result.containsKey("description") && !result.get("description").equals("")) {
-            room.setDescription((String) result.get("description"));
-        }
-
-        // aliases
-        if (result.containsKey("numericId") && !result.get("numericId").equals("")) {
-            Alias numAlias = new Alias(AliasType.H323_E164, (String) result.get("numericId"));
-            room.addAlias(numAlias);
-        }
-
-        // options
-        H323RoomSetting h323RoomSetting = new H323RoomSetting();
-        if (!result.get("pin").equals("")) {
-            h323RoomSetting.setPin((String) result.get("pin"));
-        }
-        h323RoomSetting.setListedPublicly(!(Boolean) result.get("private"));
-        h323RoomSetting.setAllowContent((Boolean) result.get("contentContribution"));
-        h323RoomSetting.setJoinAudioMuted((Boolean) result.get("joinAudioMuted"));
-        h323RoomSetting.setJoinVideoMuted((Boolean) result.get("joinVideoMuted"));
-        h323RoomSetting.setRegisterWithGatekeeper((Boolean) result.get("registerWithGatekeeper"));
-        h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
-        h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
-        h323RoomSetting.setConferenceMeEnabled((Boolean) result.get("conferenceMeEnabled"));
-        room.addRoomSetting(h323RoomSetting);
-
-        return room;
-    }
-
-    @Override
-    public String createRoom(Room room) throws CommandException
-    {
-        Command cmd = new Command("conference.create");
-
-        cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
-
-        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
-        cmd.setParameter("maximumAudioPorts", 0); // audio-only participants are forced to use video slots
-        cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
-
-        // defaults (may be overridden by specified room options
-        cmd.setParameter("registerWithGatekeeper", Boolean.FALSE);
-        cmd.setParameter("registerWithSIPRegistrar", Boolean.FALSE);
-        cmd.setParameter("private", Boolean.TRUE);
-        cmd.setParameter("contentContribution", Boolean.TRUE);
-        cmd.setParameter("contentTransmitResolutions", "allowAll");
-        cmd.setParameter("joinAudioMuted", Boolean.FALSE);
-        cmd.setParameter("joinVideoMuted", Boolean.FALSE);
-        cmd.setParameter("startLocked", Boolean.FALSE);
-        cmd.setParameter("conferenceMeEnabled", Boolean.FALSE);
-
-        setConferenceParametersByRoom(cmd, room);
-
-        // Room name must be filled
-        if (cmd.getParameterValue("conferenceName") == null) {
-            throw new RuntimeException("Room name must be filled for the new room.");
-        }
-
-        exec(cmd);
-
-        return (String) cmd.getParameterValue("conferenceName");
-    }
-
-    private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
-    {
-        // Set the room forever
-        cmd.setParameter("durationSeconds", 0);
-
-        // Set the license count
-        cmd.setParameter("maximumVideoPorts", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
-
-        // Set the description
-        if (room.getDescription() != null) {
-            cmd.setParameter("description", truncateString(room.getDescription()));
-        }
-
-        // Create/Update aliases
-        if (room.getAliases() != null) {
-            for (Alias alias : room.getAliases()) {
-                // Derive number/name of the room
-                String roomNumber = null;
-                String roomName = null;
-                Matcher m;
-
-                switch (alias.getType()) {
-                    case ROOM_NAME:
-                        roomName = alias.getValue();
-                        break;
-                    case H323_E164:
-                        if (roomNumberFromH323Number == null) {
-                            throw new CommandException(String.format(
-                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
-                                    ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
-                        }
-                        m = roomNumberFromH323Number.matcher(alias.getValue());
-                        if (!m.find()) {
-                            throw new CommandException("Invalid E164 number: " + alias.getValue());
-                        }
-                        roomNumber = m.group(1);
-                        break;
-                    case SIP_URI:
-                        if (roomNumberFromSIPURI == null) {
-                            throw new CommandException(String.format(
-                                    "Cannot set SIP URI to room - missing connector device option '%s'",
-                                    ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
-                        }
-                        m = roomNumberFromSIPURI.matcher(alias.getValue());
-                        if (m.find()) {
-                            // SIP URI contains number
-                            roomNumber = m.group(1);
-                        }
-                        else {
-                            // SIP URI contains name
-                            String value = alias.getValue();
-                            int atSign = value.indexOf('@');
-                            assert atSign > 0;
-                            roomName = value.substring(0, atSign);
-                        }
-                        break;
-                    case H323_URI:
-                    case H323_IP:
-                    case SIP_IP:
-                        // TODO: Check the alias value
-                        break;
-                    default:
-                        throw new CommandException("Unrecognized alias: " + alias.toString());
-                }
-
-                if (roomNumber != null) {
-                    // Check we are not already assigning a different number to the room
-                    final Object oldRoomNumber = cmd.getParameterValue("numericId");
-                    if (oldRoomNumber != null && !oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
-                        // multiple number aliases
-                        throw new CommandException(String.format(
-                                "The connector supports only one number for a room, requested another: %s", alias));
-                    }
-                    cmd.setParameter("numericId", truncateString(roomNumber));
-                }
-
-                if (roomName != null) {
-                    // Check that more aliases do not request different room name
-                    final Object oldRoomName = cmd.getParameterValue("conferenceName");
-                    if (oldRoomName != null && !oldRoomName.equals("") && !oldRoomName.equals(roomName)) {
-                        throw new CommandException(String.format(
-                                "The connector supports only one room name, requested another: %s", alias));
-                    }
-                    cmd.setParameter("conferenceName", truncateString(roomName));
-                }
-            }
-        }
-
-        H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
-        if (h323RoomSetting != null) {
-            if (h323RoomSetting.getPin() != null) {
-                cmd.setParameter("pin", h323RoomSetting.getPin());
-            }
-            if (h323RoomSetting.getListedPublicly() != null) {
-                cmd.setParameter("private", !h323RoomSetting.getListedPublicly());
-            }
-            if (h323RoomSetting.getAllowContent() != null) {
-                cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
-            }
-            if (h323RoomSetting.getJoinAudioMuted() != null) {
-                cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
-            }
-            if (h323RoomSetting.getJoinVideoMuted() != null) {
-                cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
-            }
-            if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
-                cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
-            }
-            if (h323RoomSetting.getRegisterWithRegistrar() != null) {
-                cmd.setParameter("registerWithSIPRegistrar", h323RoomSetting.getRegisterWithRegistrar());
-            }
-            if (h323RoomSetting.getStartLocked() != null) {
-                cmd.setParameter("startLocked", h323RoomSetting.getStartLocked());
-            }
-            if (h323RoomSetting.getConferenceMeEnabled() != null) {
-                cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
-            }
-            if (h323RoomSetting.getAllowGuests() != null) {
-                throw new CommandException("Room Setting " + H323RoomSetting.ALLOW_GUESTS + "is not implemented yet.");
-            }
-        }
-    }
-
-    @Override
-    public String modifyRoom(Room room) throws CommandException
-    {
-        // build the command
-        Command cmd = new Command("conference.modify");
-
-        cmd.setParameter("conferenceName", truncateString(room.getId()));
-        setConferenceParametersByRoom(cmd, room);
-
-        exec(cmd);
-
-        return room.getId();
-    }
-
-    @Override
-    public void deleteRoom(String roomId) throws CommandException
-    {
-        Command cmd = new Command("conference.destroy");
-        cmd.setParameter("conferenceName", truncateString(roomId));
-        exec(cmd);
-    }
-
-    @Override
-    public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="ROOM CONTENT SERVICE">
-
-    @Override
-    public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public void addRoomContent(String roomId, String name, MediaData data)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="USER SERVICE">
-
-    @Override
-    public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        Command cmd = new Command("participant.status");
-        identifyParticipant(cmd, roomId, roomParticipantId);
-        cmd.setParameter("operationScope", new String[]{"currentState"});
-
-        Map<String, Object> result = exec(cmd);
-
-        return extractRoomParticipant(result);
-    }
-
-    @Override
-    public String dialRoomParticipant(String roomId, Alias alias) throws CommandException
-    {
-        // FIXME: refine just as the createRoom() method - get just a RoomParticipant object and set parameters according to it
-
-        // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
-        //       thus, commented out the following generation of participant names
-        //String roomParticipantId = generateRoomParticipantId(roomId); // FIXME: treat potential race conditions; and it is slow...
-
-        Command cmd = new Command("participant.add");
-        cmd.setParameter("conferenceName", truncateString(roomId));
-        //cmd.setParameter("participantName", truncateString(roomParticipantId));
-        cmd.setParameter("address", truncateString(alias.getValue()));
-        cmd.setParameter("participantType", "ad_hoc");
-        cmd.setParameter("addResponse", Boolean.TRUE);
-
-        Map<String, Object> result = exec(cmd);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> participant = (Map<String, Object>) result.get("participant");
-        if (participant == null) {
-            return null;
-        }
-        else {
-            return String.valueOf(participant.get("participantName"));
-        }
-    }
-
-    /**
-     * Generates a new room participant ID.
-     *
-     * @param roomId technology ID of the room to generate a new user ID for
-     * @return a free roomParticipantId to be assigned (free in the moment of processing this method, might race condition with
-     *         someone else)
-     */
-    private String generateRoomParticipantId(String roomId) throws CommandException
-    {
-        List<Map<String, Object>> participants;
-        try {
-            Command cmd = new Command("participant.enumerate");
-            cmd.setParameter("operationScope", new String[]{"currentState"});
-            participants = execEnumerate(cmd, "participants");
-        }
-        catch (CommandException e) {
-            throw new CommandException("Cannot generate a new room participant ID - cannot list current room participants.", e);
-        }
-
-        // generate the new ID as maximal ID of present users increased by one
-        int maxFound = 0;
-        Pattern pattern = Pattern.compile("^participant(\\d+)$");
-        for (Map<String, Object> part : participants) {
-            if (!part.get("conferenceName").equals(roomId)) {
-                continue;
-            }
-            Matcher m = pattern.matcher((String) part.get("participantName"));
-            if (m.find()) {
-                maxFound = Math.max(maxFound, Integer.parseInt(m.group(1)));
-            }
-        }
-
-        return String.format("participant%d", maxFound + 1);
-    }
-
-    @Override
-    public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
-    {
-        Command cmd = new Command("participant.enumerate");
-        cmd.setParameter("operationScope", new String[]{"currentState"});
-        cmd.setParameter("enumerateFilter", "connected");
-        List<Map<String, Object>> participants = execEnumerate(cmd, "participants");
-
-        List<RoomParticipant> result = new ArrayList<RoomParticipant>();
-        for (Map<String, Object> part : participants) {
-            if (part == null) {
-                continue;
-            }
-            if (!roomId.equals(part.get("conferenceName"))) {
-                continue; // not from this room
-            }
-            result.add(extractRoomParticipant(part));
-        }
-
-        return result;
-    }
-
-    /**
-     * Extracts a {@link RoomParticipant} out of participant.enumerate or participant.status result.
-     *
-     * @param participant participant structure, as defined in the MCU API, command participant.status
-     * @return {@link RoomParticipant} extracted from the participant structure
-     */
-    private static RoomParticipant extractRoomParticipant(Map<String, Object> participant)
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-
-        roomParticipant.setId((String) participant.get("participantName"));
-        roomParticipant.setRoomId((String) participant.get("conferenceName"));
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
-
-        roomParticipant.setDisplayName((String) state.get("displayName"));
-
-        roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
-        roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
-        if (state.get("audioRxGainMode").equals("fixed")) {
-            // TODO: recompute 0-100 to dB
-            roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
-        }
-        roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
-
-        // room layout
-        if (state.containsKey("currentLayout")) {
-            RoomLayout.VoiceSwitching vs;
-            if (state.get("focusType").equals("voiceActivated")) {
-                vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
-            }
-            else {
-                vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
-            }
-            final Integer layoutIndex = (Integer) state.get("currentLayout");
-            RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
-
-            roomParticipant.setLayout(rl);
-        }
-        return roomParticipant;
-    }
-
-    @Override
-    public void modifyRoomParticipant(RoomParticipant roomParticipant)
-            throws CommandException
-    {
-        String roomId = roomParticipant.getRoomId();
-        if (roomId == null) {
-            throw new IllegalArgumentException("RoomId must be not null.");
-        }
-        String roomParticipantId = roomParticipant.getId();
-        if (roomParticipantId == null) {
-            throw new IllegalArgumentException("RoomParticipantId must be not null.");
-        }
-
-        Command cmd = new Command("participant.modify");
-        identifyParticipant(cmd, roomId, roomParticipantId);
-
-        // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
-        cmd.setParameter("operationScope", "activeState");
-
-        // Set parameters
-        if (roomParticipant.getLayout() != null) {
-            RoomLayout layout = roomParticipant.getLayout();
-            cmd.setParameter("focusType", (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
-                                                   ? "voiceActivated" : "participant"));
-            logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
-        }
-        if (roomParticipant.getDisplayName() != null) {
-            cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
-            cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
-        }
-        if (roomParticipant.getAudioMuted() != null) {
-            cmd.setParameter("audioRxMuted", roomParticipant.getAudioMuted());
-        }
-        if (roomParticipant.getVideoMuted() != null) {
-            cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
-        }
-        if (roomParticipant.getMicrophoneLevel() != null) {
-            cmd.setParameter("audioRxGainMillidB", roomParticipant.getMicrophoneLevel());
-            cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
-        }
-        exec(cmd);
-    }
-
-    @Override
-    public void disconnectRoomParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        Command cmd = new Command("participant.remove");
-        identifyParticipant(cmd, roomId, roomParticipantId);
-
-        exec(cmd);
-    }
-
-    private void identifyParticipant(Command cmd, String roomId, String roomParticipantId)
-    {
-        cmd.setParameter("conferenceName", truncateString(roomId));
-        cmd.setParameter("participantName", truncateString(roomParticipantId));
-        // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
-        //       numbers, so we distinguish the type by the fact whether the name is a number or not
-        cmd.setParameter("participantType", (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
-    }
-
-    @Override
-    public void enableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // NOTE: it seems it is not possible to enable content using current API (2.9)
-        throw new CommandUnsupportedException();
-    }
-
-    @Override
-    public void disableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // NOTE: it seems it is not possible to disable content using current API (2.9)
-        throw new CommandUnsupportedException();
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="I/O SERVICE">
-
-    @Override
-    public void disableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setVideoMuted(Boolean.TRUE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void enableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setVideoMuted(Boolean.FALSE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setAudioMuted(Boolean.TRUE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setAudioMuted(Boolean.FALSE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setMicrophoneLevel(level);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException();
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="MONITORING SERVICE">
-
-    @Override
-    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException
-    {
-        Map<String, Object> health = exec(new Command("device.health.query"));
-        Map<String, Object> status = exec(new Command("device.query"));
-
-        DeviceLoadInfo info = new DeviceLoadInfo();
-        info.setCpuLoad(((Integer) health.get("cpuLoad")).doubleValue());
-        if (status.containsKey("uptime")) {
-            info.setUptime((Integer) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
-        }
-
-        // NOTE: memory and disk usage not accessible via API
-
-        return info;
-    }
-
-    @Override
-    public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public MediaData getReceivedVideoSnapshot(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO: call participant.status and use previewURL
-    }
-
-    @Override
-    public MediaData getSentVideoSnapshot(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    //</editor-fold>
-
-    /**
-     * An example of interaction with the device.
-     * <p/>
-     * Just for debugging purposes.
-     *
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
-    {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
-        final String address;
-        final String username;
-        final String password;
-
-        if (args.length > 0) {
-            address = args[0];
-        }
-        else {
-            System.out.print("address: ");
-            address = in.readLine();
-        }
-
-        if (args.length > 1) {
-            username = args[1];
-        }
-        else {
-            System.out.print("username: ");
-            username = in.readLine();
-        }
-
-        if (args.length > 2) {
-            password = args[2];
-        }
-        else {
-            System.out.print("password: ");
-            password = in.readLine();
-        }
-
-        final CiscoMCUConnector conn = new CiscoMCUConnector();
-        conn.connect(Address.parseAddress(address), username, password);
-
-        // Room status by multiple threads
-        /*List<Thread> threads = new LinkedList<Thread>();
-        for (int i = 0; i < 2; i++ ) {
-            Thread thread = new Thread() {
-                @Override
-                public void run()
-                {
-                    try {
-                        Room shongoTestRoom = conn.getRoom("shongo-test");
-                        System.out.println("shongo-test room:");
-                        System.out.println(shongoTestRoom);
-                    }
-                    catch (CommandException exception) {
-                        exception.printStackTrace();
-                    }
-                    super.run();
-                }
-            };
-            thread.start();
-            threads.add(thread);
-        }
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            }
-            catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }*/
-
-        // gatekeeper status
-//        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
-//        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
-
-        // test of getRoomList() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
-//                    room.getStartDateTime(), room.getOwner());
-//        }
-
-        // test that the second enumeration query fills data that has not changed and therefore were not transferred
-//        Command enumParticipantsCmd = new Command("participant.enumerate");
-//        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
-//        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
-//        List<Map<String, Object>> participants = conn.execEnumerate(enumParticipantsCmd, "participants");
-//        List<Map<String, Object>> participants2 = conn.execEnumerate(enumParticipantsCmd, "participants");
-
-        // test that the second enumeration query fills data that has not changed and therefore were not transferred
-//        Command enumConfCmd = new Command("conference.enumerate");
-//        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
-//        enumConfCmd.setParameter("enumerateFilter", "completed");
-//        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
-//        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
-
-        // test of getRoom() command
-//        Room shongoTestRoom = conn.getRoom("shongo-test");
-//        System.out.println("shongo-test room:");
-//        System.out.println(shongoTestRoom);
-
-        // test of deleteRoom() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-//        System.out.println("Deleting 'shongo-test'");
-//        conn.deleteRoom("shongo-test");
-//        roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-
-        // test of createRoom() method
-//        Room newRoom = new Room("shongo-test9", 5);
-//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087209"));
-//        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
-//        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
-//        String newRoomId = conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoomId);
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-
-        // test of bad caching
-//        Room newRoom = new Room("shongo-testX", 5);
-//        String newRoomId = conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoomId);
-//        Collection<RoomSummary> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomSummary roomSummary : roomList) {
-//            System.out.println(roomSummary);
-//        }
-//        conn.deleteRoom(newRoomId);
-//        System.out.println("Deleted room " + newRoomId);
-//        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-testing");
-//        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
-//        Collection<RoomSummary> newRoomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomSummary roomSummary : newRoomList) {
-//            System.out.println(roomSummary);
-//        }
-//        atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-test");
-//        conn.modifyRoom(changedRoomId, atts, null);
-
-        // test of modifyRoom() method
-//        System.out.println("Modifying shongo-test");
-//        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-testing");
-//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
-//        opts.put(Room.Option.LISTED_PUBLICLY, false);
-//        opts.put(Room.Option.PIN, "1234");
-//        conn.modifyRoom("shongo-test", atts, opts);
-//        Map<String, Object> atts2 = new HashMap<String, Object>();
-//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-//        atts2.put(Room.NAME, "shongo-test");
-//        conn.modifyRoom("shongo-testing", atts2, null);
-
-        // test of listRoomParticipants() method
-//        System.out.println("Listing shongo-test room:");
-//        Collection<RoomParticipant> shongoUsers = conn.listRoomParticipants("shongo-test");
-//        for (RoomParticipant ru : shongoUsers) {
-//            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
-//        }
-//        System.out.println("Listing done");
-
-        // user connect by alias
-//        String ruId = conn.dialRoomParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
-//        System.out.println("Added user " + ruId);
-        // user connect by address
-//        String ruId2 = conn.dialRoomParticipant("shongo-test", "147.251.54.102");
-        // user disconnect
-//        conn.disconnectRoomParticipant("shongo-test", "participant1");
-
-//        System.out.println("All done, disconnecting");
-
-        // test of modifyRoomParticipant
-//        Map<String, Object> attributes = new HashMap<String, Object>();
-//        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
-//        attributes.put(RoomParticipant.DISPLAY_NAME, "Ondrej Bouda");
-//        conn.modifyRoomParticipant("shongo-test", "3447", attributes);
-
-        //Room room = conn.getRoom("shongo-test");
-
-        conn.disconnect();
-    }
-
 }

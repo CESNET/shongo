@@ -116,7 +116,7 @@
             <c:if test="${specificationType != 'ADHOC_ROOM'}">
                 <td>{{reservationRequest.roomName}}</td>
             </c:if>
-            <td>{{reservationRequest.technology}}</td>
+            <td>{{reservationRequest.technologyTitle}}</td>
             <c:if test="${specificationType == 'ADHOC_ROOM'}">
                 <td>{{reservationRequest.roomParticipantCount}}</td>
             </c:if>

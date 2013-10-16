@@ -379,20 +379,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public MediaData getReceivedVideoSnapshot(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
-    }
-
-    @java.lang.Override
-    public MediaData getSentVideoSnapshot(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
-    }
-
-    @java.lang.Override
     public String startRecording(String folderId, Alias alias)
             throws CommandException
     {
@@ -1005,12 +991,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         request("sco-update", attributes);
     }
 
-    @java.lang.Override
-    public String dialRoomParticipant(String roomId, Alias alias) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
-    }
-
     /**
      * Cache of user-original-id (EPPN) by user principal-id.
      */
@@ -1152,11 +1132,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return null;
     }
 
+    @Override
+    public MediaData getRoomParticipantSnapshot(String roomId, String roomParticipantId)
+            throws CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
+    }
+
     @java.lang.Override
-    public void modifyRoomParticipant(RoomParticipant roomParticipant)
-            throws CommandException, CommandUnsupportedException
+    public void modifyRoomParticipant(RoomParticipant roomParticipant) throws CommandUnsupportedException
     {
         throw new TodoImplementException("Modify participant " + roomParticipant);
+    }
+
+    @java.lang.Override
+    public String dialRoomParticipant(String roomId, Alias alias) throws CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
     @java.lang.Override

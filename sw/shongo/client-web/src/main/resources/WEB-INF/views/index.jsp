@@ -147,7 +147,7 @@
                         <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
                         <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
                     </td>
-                    <td>{{reservationRequest.technology}}</td>
+                    <td>{{reservationRequest.technologyTitle}}</td>
                     <td>
                         <span ng-bind-html="reservationRequest.earliestSlot"></span>
                         <span ng-show="reservationRequest.futureSlotCount">
@@ -166,7 +166,7 @@
                         </tag:help>
                     </td>
                     <td>
-                        <span ng-show="reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE'">
+                        <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
                             <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
                         </span>
                         <tag:listAction code="show" titleCode="views.index.dashboard.showDetail" url="${reservationRequestDetailUrl}" tabindex="2"/>

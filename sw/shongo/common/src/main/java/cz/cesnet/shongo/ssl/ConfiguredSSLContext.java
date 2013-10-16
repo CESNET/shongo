@@ -102,7 +102,7 @@ public class ConfiguredSSLContext
     /**
      * @return new {@link HttpClient} configured with the {@link ConfiguredSSLContext}
      */
-    public HttpClient createHttpClient()
+    public DefaultHttpClient createHttpClient()
     {
         ConfiguredSSLContext configuredSSLContext = getInstance();
         SchemeRegistry registry = new SchemeRegistry();

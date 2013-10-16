@@ -1,52 +1,63 @@
 package cz.cesnet.shongo.connector.api;
 
+import org.apache.tika.mime.MediaType;
+
 /**
  * Custom media data.
  * <p/>
  * Typically used for uploading or downloading some content (images, documents, etc.) with content type information.
  *
- * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class MediaData
 {
-    private ContentType contentType;
+    /**
+     * Type of the data.
+     */
+    private MediaType type;
+
+    /**
+     * The content. To be interpreted according to the content type.
+     */
     private byte[] data;
-    private CompressionAlgorithm compressionAlgorithm;
 
     /**
-     * @return Algorithm used to compress data.
+     * Constructor.
      */
-    public CompressionAlgorithm getCompressionAlgorithm()
+    public MediaData()
     {
-        return compressionAlgorithm;
     }
 
     /**
-     * @param compressionAlgorithm Algorithm used to compress data.
+     * Constructor.
+     *
+     * @param type sets the {@link #type}
+     * @param data sets the {@link #data}
      */
-    public void setCompressionAlgorithm(CompressionAlgorithm compressionAlgorithm)
+    public MediaData(MediaType type, byte[] data)
     {
-        this.compressionAlgorithm = compressionAlgorithm;
+        this.type = type;
+        this.data = data;
     }
 
     /**
-     * @return Type of the data.
+     * @return {@link #type}
      */
-    public ContentType getContentType()
+    public MediaType getType()
     {
-        return contentType;
+        return type;
     }
 
     /**
-     * @param contentType Type of the data.
+     * @param type sets the {@link #type}
      */
-    public void setContentType(ContentType contentType)
+    public void setType(MediaType type)
     {
-        this.contentType = contentType;
+        this.type = type;
     }
 
     /**
-     * @return The content. To be interpreted according to the content type.
+     * @return {@link #data}
      */
     public byte[] getData()
     {
@@ -54,7 +65,7 @@ public class MediaData
     }
 
     /**
-     * @param data The content. To be interpreted according to the content type.
+     * @param data sets the {@link #data}
      */
     public void setData(byte[] data)
     {

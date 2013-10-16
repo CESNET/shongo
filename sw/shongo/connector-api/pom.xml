@@ -20,6 +20,15 @@
             <artifactId>common-api</artifactId>
             <version>${shongo.version}</version>
         </dependency>
+
+        <!-- Used for mime type detections
+             @see https://tika.apache.org/0.10/detection.html
+        -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.4</version>
+        </dependency>
     </dependencies>
 
 </project>
