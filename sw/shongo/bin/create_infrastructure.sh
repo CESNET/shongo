@@ -3,7 +3,7 @@ cd `dirname $0`
 # Create testing infrastructure in running Shongo controller.
 #
 #   "create_infrastructure.sh (localhost)"  Create infrastructure on localhost
-#   "create_infrastructure.sh shongo"       Create infrastructure on shongo.cesnet.cz
+#   "create_infrastructure.sh meetings"     Create infrastructure on meetings.cesnet.cz
 #   "create_infrastructure.sh shongo-dev"   Create infrastructure on shongo-dev.cesnet.cz
 #
 
@@ -14,20 +14,19 @@ then
 fi
 
 case $MODE in
-    shongo )
-        CONTROLLER=195.113.151.174
+    meetings )
+        CONTROLLER=meetings.cesnet.cz
         NAME_PREFIX=ZZ-shongo-
         DEVICE_NAME_PREFIX=
         MCU_CESNET_LICENSE_COUNT=15
-        MCU_CESNET_NAME_PREFIX=
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=200:399
         CONNECT_CESNET=https://connect.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
-        RESOURCE_ADMIN_EMAIL=vidcon@cesnet.cz
+        RESOURCE_ADMIN_EMAIL=srom.martin@gmail.cz
         ;;
     shongo-dev )
-        CONTROLLER=195.113.151.181
+        CONTROLLER=shongo-dev.cesnet.cz
         NAME_PREFIX=shongo-dev-
         DEVICE_NAME_PREFIX=YY-
         MCU_CESNET_LICENSE_COUNT=10
@@ -215,6 +214,27 @@ EOF
 #
 # CREATE RESERVATIONS
 #
+
+# Command for listing not-shongo MCU rooms
+<<COMMENT
+bin/client_cli.sh --connect meetings.cesnet.cz --root --cmd "control-resource 4 list-rooms" \
+    | grep "^|.\+|.\+|" \
+    | grep -v "exe:\|-+-\|| Description" \
+    | sed -r -e "s/^\| *([^\|]+) *\|.*/\1/g" \
+    | sed -r -e "s/[ \t]*$//g" \
+    | sort
+COMMENT
+
+# Command for listing not-shongo ADOBE CONNECT rooms
+<<COMMENT
+bin/client_cli.sh --connect meetings.cesnet.cz --root --cmd "control-resource 24 list-rooms" \
+    | grep "^|.\+|.\+|" \
+    | grep -v "exe:\|-+-\|| Description" \
+    | sed -r -e "s/^\|[^\|]+\|[^\|]+\|[^\|]+\| *\/([^\|]+)\/ *\|.*/\1/g" \
+    | grep -v "^|" \
+    | sed -r -e "s/[ \t]*$//g" \
+    | sort
+COMMENT
 
 # Pattern for each line from room files
 PATTERN="[ \t]*\(.\+\)[ \t]*"
