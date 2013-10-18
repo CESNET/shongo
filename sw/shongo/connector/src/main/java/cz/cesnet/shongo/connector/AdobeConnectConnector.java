@@ -1437,12 +1437,27 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void checkAllRoomsCapacity() throws CommandException
     {
+        Element response = request("report-active-meetings",new RequestAttributeList());
+
         RequestAttributeList attributes = new RequestAttributeList();
-        Element response = request("report-active-meetings",attributes);
+        attributes.add("sco-id",getMeetingsFolderID());
+        attributes.add("type","meeting");
+        Element shongoRoomsElement = request("sco-contents",attributes);
+
+        List<String> shongoRooms = new ArrayList<String>();
+        for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {
+            shongoRooms.add(sco.getAttributeValue("sco-id"));
+        }
 
         for (Element sco : response.getChild("report-active-meetings").getChildren())
         {
-            checkRoomCapacity(sco.getAttributeValue("sco-id"));
+            String scoId = sco.getAttributeValue("sco-id");
+            if (shongoRooms.contains(scoId)) {
+                checkRoomCapacity(scoId);
+            }
+            else {
+                logger.debug("There is active room (sco-id: " + scoId + ", url: " + sco.getChildText("url-path") + ", name: " + sco.getChildText("name") + "), which was not created by shongo.");
+            }
         }
     }
 
