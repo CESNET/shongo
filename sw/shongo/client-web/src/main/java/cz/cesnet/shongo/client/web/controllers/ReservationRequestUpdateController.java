@@ -164,7 +164,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
-            return "redirect:" + BackUrl.getInstance(request).getUrlNoBreadcrumb(
+            return "redirect:" + BackUrl.getInstance(request).applyToUrl(
                     ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
         }
         else {
@@ -223,7 +223,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
-            return "redirect:" + BackUrl.getInstance(request).getUrlNoBreadcrumb(
+            return "redirect:" + BackUrl.getInstance(request).applyToUrl(
                     ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
         }
         else {

@@ -13,7 +13,9 @@
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>"/>
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
