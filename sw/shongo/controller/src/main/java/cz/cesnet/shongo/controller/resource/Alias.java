@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 
 import javax.persistence.*;
@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Alias extends PersistentObject implements Cloneable
+public class Alias extends SimplePersistentObject implements Cloneable
 {
     /**
      * Type of alias.

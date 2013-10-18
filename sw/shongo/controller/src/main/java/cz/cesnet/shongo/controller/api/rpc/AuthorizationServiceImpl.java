@@ -78,7 +78,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     /**
      * @param entityId      of entity which should be checked for existence
      * @param entityManager which can be used
-     * @return {@link PersistentObject} for given {@code entityId}
+     * @return {@link cz.cesnet.shongo.PersistentObject} for given {@code entityId}
      * @throws CommonReportSet.EntityNotFoundException
      *
      */

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -17,7 +17,7 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PreprocessedState extends PersistentObject
+public class PreprocessedState extends SimplePersistentObject
 {
     /**
      * Reservation request to which the state belongs.

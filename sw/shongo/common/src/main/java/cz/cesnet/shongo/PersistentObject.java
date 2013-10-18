@@ -2,13 +2,13 @@ package cz.cesnet.shongo;
 
 import org.hibernate.proxy.HibernateProxy;
 
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 /**
- * Represents an object that can be persisted to a database (must contain unique identifier).
+ * Represents an object that can be persisted to a database (must contain unique identifier),
+ * but without the {@link Id} mapping.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -18,7 +18,7 @@ public abstract class PersistentObject
     /**
      * Persistent object must have an unique identifier.
      */
-    private Long id;
+    protected Long id;
 
     /**
      * Auto generated id counter.
@@ -39,12 +39,8 @@ public abstract class PersistentObject
     /**
      * @return {@link #id}
      */
-    @Id
-    @GeneratedValue
-    public Long getId()
-    {
-        return id;
-    }
+    @Transient
+    public abstract Long getId();
 
     /**
      * @param id
@@ -130,7 +126,7 @@ public abstract class PersistentObject
     }
 
     /**
-     * Get implementation for given {@code object} in case that it is a {@link HibernateProxy}.
+     * Get implementation for given {@code object} in case that it is a {@link org.hibernate.proxy.HibernateProxy}.
      * <p/>
      * Getters which uses this method for retrieving the values should not be annotated with
      * {@link javax.persistence.Access} equaled to {@link javax.persistence.AccessType#FIELD},

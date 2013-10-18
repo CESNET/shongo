@@ -42,8 +42,11 @@ our $ConnectionState = {
 #
 our $Type = ordered_hash(
     'CompartmentExecutable' => 'Compartment',
-    'RoomExecutable' => 'Room'
+    'RoomExecutable' => 'Room',
+    'UsedRoomExecutable' => 'Used Room'
 );
+
+our $Technology = $Shongo::ClientCli::API::DeviceResource::Technology;
 
 #
 # Create a new instance of alias
@@ -171,6 +174,41 @@ sub on_init()
                 'type' => 'collection',
                 'item' => {
                     'short' => 1
+                }
+            });
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Technology',
+                    'enum' => $Technology
+                }
+            });
+        }
+        case 'UsedRoomExecutable' {
+            $self->add_attribute(
+                'roomExecutableId', {
+                    'title' => 'Used Room'
+                }
+            );
+            $self->add_attribute(
+                'licenseCount', {
+                    'title' => 'Number of Licenses'
+                }
+            );
+            $self->add_attribute('resourceId', {
+                'title' => 'Resource Identifier'
+            });
+            $self->add_attribute('aliases', {
+                'type' => 'collection',
+                'item' => {
+                    'short' => 1
+                }
+            });
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Technology',
+                    'enum' => $Technology
                 }
             });
         }

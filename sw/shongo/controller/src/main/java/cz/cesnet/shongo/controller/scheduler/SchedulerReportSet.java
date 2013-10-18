@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -39,7 +40,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "resource_id")
         public cz.cesnet.shongo.controller.resource.Resource getResource()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(resource);
+            return SimplePersistentObject.getLazyImplementation(resource);
         }
 
         public void setResource(cz.cesnet.shongo.controller.resource.Resource resource)
@@ -837,7 +838,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "executable_id")
         public cz.cesnet.shongo.controller.executor.Executable getExecutable()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(executable);
+            return SimplePersistentObject.getLazyImplementation(executable);
         }
 
         public void setExecutable(cz.cesnet.shongo.controller.executor.Executable executable)
@@ -1074,7 +1075,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "endpointfrom_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointFrom()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointFrom);
+            return SimplePersistentObject.getLazyImplementation(endpointFrom);
         }
 
         public void setEndpointFrom(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom)
@@ -1087,7 +1088,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "endpointto_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointTo()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointTo);
+            return SimplePersistentObject.getLazyImplementation(endpointTo);
         }
 
         public void setEndpointTo(cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
@@ -1364,7 +1365,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "reservationrequest_id")
         public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
+            return SimplePersistentObject.getLazyImplementation(reservationRequest);
         }
 
         public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
@@ -1493,7 +1494,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "reservation_id")
         public cz.cesnet.shongo.controller.reservation.Reservation getReservation()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservation);
+            return SimplePersistentObject.getLazyImplementation(reservation);
         }
 
         public void setReservation(cz.cesnet.shongo.controller.reservation.Reservation reservation)
@@ -1539,7 +1540,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "reservationrequest_id")
         public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
+            return SimplePersistentObject.getLazyImplementation(reservationRequest);
         }
 
         public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
@@ -1552,7 +1553,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
         public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
+            return SimplePersistentObject.getLazyImplementation(usageReservationRequest);
         }
 
         public void setUsageReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest)
@@ -2635,7 +2636,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "specification_id")
         public cz.cesnet.shongo.controller.request.Specification getSpecification()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(specification);
+            return SimplePersistentObject.getLazyImplementation(specification);
         }
 
         public void setSpecification(cz.cesnet.shongo.controller.request.Specification specification)
@@ -2747,7 +2748,7 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "specification_id")
         public cz.cesnet.shongo.controller.request.Specification getSpecification()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(specification);
+            return SimplePersistentObject.getLazyImplementation(specification);
         }
 
         public void setSpecification(cz.cesnet.shongo.controller.request.Specification specification)

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -10,7 +10,6 @@ import javax.persistence.Entity;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Transient;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -20,7 +19,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class DateTimeSlot extends PersistentObject implements Cloneable
+public abstract class DateTimeSlot extends SimplePersistentObject implements Cloneable
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number

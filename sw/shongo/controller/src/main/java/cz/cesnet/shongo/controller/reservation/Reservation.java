@@ -7,8 +7,6 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.report.AbstractReport;
-import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -55,6 +53,15 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * {@link Executable} which is allocated for execution by the {@link Reservation}.
      */
     private Executable executable;
+
+    @Id
+    @SequenceGenerator(name = "reservation_id", sequenceName = "reservation_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "reservation_id")
+    @Override
+    public Long getId()
+    {
+        return id;
+    }
 
     /**
      * @return {@link #allocation#getReservationRequest()}
@@ -308,7 +315,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      */
     public void clearChildReservations()
     {
-        while(!childReservations.isEmpty()) {
+        while (!childReservations.isEmpty()) {
             removeChildReservation(childReservations.get(0));
         }
     }
@@ -431,7 +438,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     }
 
     /**
-     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api   {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      * @param admin
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)

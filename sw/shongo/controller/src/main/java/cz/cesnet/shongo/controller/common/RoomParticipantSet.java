@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 
 import javax.persistence.*;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Represents a set of {@link AbstractParticipant}s.
@@ -12,7 +10,7 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class RoomParticipantSet extends PersistentObject
+public class RoomParticipantSet extends SimplePersistentObject
 {
 
 

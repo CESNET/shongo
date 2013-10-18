@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -16,7 +16,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PeriodicDateTime extends PersistentObject implements Cloneable
+public class PeriodicDateTime extends SimplePersistentObject implements Cloneable
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -448,7 +448,7 @@ public class PeriodicDateTime extends PersistentObject implements Cloneable
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
     @Entity
-    public static class Rule extends PersistentObject implements Cloneable
+    public static class Rule extends SimplePersistentObject implements Cloneable
     {
         /**
          * Type of rule.

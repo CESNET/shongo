@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource.value;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Capability;
@@ -19,7 +19,7 @@ import java.util.Set;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class ValueProvider extends PersistentObject
+public abstract class ValueProvider extends SimplePersistentObject
 {
     /**
      * {@link Capability} which owns the {@link ValueProvider}.

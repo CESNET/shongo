@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.Executor;
 
 import javax.persistence.*;
@@ -12,7 +11,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Migration extends PersistentObject
+public class Migration extends SimplePersistentObject
 {
     /**
      * {@link Executable} from which the migration should be performed.

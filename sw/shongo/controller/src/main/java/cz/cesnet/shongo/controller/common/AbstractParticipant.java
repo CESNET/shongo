@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.request.*;
@@ -17,7 +16,7 @@ import java.util.Map;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractParticipant extends PersistentObject implements Cloneable
+public abstract class AbstractParticipant extends SimplePersistentObject implements Cloneable
 {
     /**
      * Synchronize properties from given {@code specification}.

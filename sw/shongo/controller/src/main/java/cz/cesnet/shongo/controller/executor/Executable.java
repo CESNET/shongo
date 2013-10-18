@@ -73,6 +73,15 @@ public abstract class Executable extends PersistentObject implements ReportableS
      */
     private List<ExecutableReport> cachedSortedReports;
 
+    @Id
+    @SequenceGenerator(name = "executable_id", sequenceName = "executable_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "executable_id")
+    @Override
+    public Long getId()
+    {
+        return id;
+    }
+
     /**
      * @return {@link #slotStart}
      */

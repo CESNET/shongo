@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.QueryFilter;
-import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -223,7 +221,7 @@ public class ExecutableManager extends AbstractManager
 
         List<Executable> referencedExecutables = new LinkedList<Executable>();
         for (Executable executableForDeletion : executablesForDeletion) {
-            getReferencedExecutables(PersistentObject.getLazyImplementation(executableForDeletion),
+            getReferencedExecutables(SimplePersistentObject.getLazyImplementation(executableForDeletion),
                     referencedExecutables);
         }
         // Move all reused reservations to the end

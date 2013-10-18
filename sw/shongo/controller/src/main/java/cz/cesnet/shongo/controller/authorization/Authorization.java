@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.UserPerson;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

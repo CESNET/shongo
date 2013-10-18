@@ -136,7 +136,10 @@ elsif ( defined($file) ) {
 elsif ( $scripting ) {
     my $command = '';
     while ( my $line = <STDIN> ) {
-        if ( $line =~ /^\s*$/ ) {
+        if ( $line =~ /^(\s*(#.+)?|})\s*$/ ) {
+            if ( $line =~ /^}\s*$/ ) {
+                $command .= '}';
+            }
             if ( !($command =~ /^\s*$/) ) {
                 $shell->command($command);
                 $command = '';

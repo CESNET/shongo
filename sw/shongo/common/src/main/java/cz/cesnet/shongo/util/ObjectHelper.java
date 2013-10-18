@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.util;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ public class ObjectHelper
      * @return true if both objects are same,
      *         false otherwise
      */
-    public static boolean isSame(PersistentObject object1, PersistentObject object2)
+    public static boolean isSame(SimplePersistentObject object1, SimplePersistentObject object2)
     {
         if (object1 == object2) {
             return true;

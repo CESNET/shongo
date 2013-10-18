@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -13,7 +13,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class DateTimeSpecification extends PersistentObject
+public class DateTimeSpecification extends SimplePersistentObject
 {
     /**
      * @see Type

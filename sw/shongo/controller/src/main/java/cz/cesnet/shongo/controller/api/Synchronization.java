@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class Synchronization
 {
-    public static abstract class Handler<T extends PersistentObject, A>
+    public static abstract class Handler<T extends SimplePersistentObject, A>
     {
         private Class<T> objectClass;
 
@@ -45,7 +45,7 @@ public class Synchronization
         objects.addAll(apiObjects);
     }
 
-    public static <T extends PersistentObject, A extends IdentifiedComplexType>
+    public static <T extends SimplePersistentObject, A extends IdentifiedComplexType>
     boolean synchronizeCollection(Collection<T> objects, Collection<A> apiObjects, Handler<T, A> handler)
     {
         Map<Long, T> existingObjects = new HashMap<Long, T>();
@@ -71,7 +71,7 @@ public class Synchronization
         return true;
     }
 
-    public static <T extends PersistentObject>
+    public static <T extends SimplePersistentObject>
     boolean synchronizeCollectionPartial(Collection<T> objects, Collection<Object> apiObjects, Handler<T, Object> handler)
     {
         Map<Long, T> existingObjects = new HashMap<Long, T>();

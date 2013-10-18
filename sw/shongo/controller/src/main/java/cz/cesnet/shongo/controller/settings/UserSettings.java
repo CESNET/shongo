@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.settings;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTimeZone;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class UserSettings extends PersistentObject
+public class UserSettings extends SimplePersistentObject
 {
     /**
      * User-id.

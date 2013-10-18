@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
@@ -13,6 +13,6 @@ import javax.persistence.InheritanceType;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Mode extends PersistentObject
+public abstract class Mode extends SimplePersistentObject
 {
 }

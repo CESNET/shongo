@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -23,7 +23,7 @@ import javax.persistence.*;
 @org.hibernate.annotations.Table(appliesTo = "acl_record", indexes = {
         @Index(name = "acl_record_entity", columnNames = {"entity_id", "entity_type"})
 })
-public class AclRecord extends PersistentObject
+public class AclRecord extends SimplePersistentObject
 {
     /**
      * User-id of the ACL.

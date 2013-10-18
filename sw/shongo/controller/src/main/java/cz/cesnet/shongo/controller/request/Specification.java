@@ -1,10 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.controller.api.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.report.ReportableSimple;
 
 import javax.persistence.*;
@@ -20,7 +19,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Specification extends PersistentObject implements ReportableSimple
+public abstract class Specification extends SimplePersistentObject implements ReportableSimple
 {
     /**
      * Set of {@link Technology}s which are required/supported by this {@link Specification}.

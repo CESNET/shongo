@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.Entity;
@@ -14,7 +14,7 @@ import javax.persistence.InheritanceType;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class RoomSetting extends PersistentObject
+public abstract class RoomSetting extends SimplePersistentObject
 {
     /**
      * @return {@link RoomSetting} converted to {@link cz.cesnet.shongo.api.RoomSetting}

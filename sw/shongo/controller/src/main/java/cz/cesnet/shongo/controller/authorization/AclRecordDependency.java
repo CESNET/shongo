@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 
 import javax.persistence.*;
 
@@ -11,7 +11,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"parent_acl_record_id", "child_acl_record_id"}))
-public class AclRecordDependency extends PersistentObject
+public class AclRecordDependency extends SimplePersistentObject
 {
     /**
      * Parent {@link AclRecord}.

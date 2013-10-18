@@ -18,7 +18,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -101,6 +102,15 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
      */
     private ReservationRequestReusement reusement;
+
+    @Id
+    @SequenceGenerator(name = "reservation_request_id", sequenceName = "reservation_request_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "reservation_request_id")
+    @Override
+    public Long getId()
+    {
+        return id;
+    }
 
     /**
      * @return {@link #createdAt}
@@ -477,7 +487,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     protected abstract cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi();
 
     /**
-     * @param api         {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api      {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      * @param userType
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.UserType userType)

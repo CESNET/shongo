@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -53,7 +54,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "jadereport_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(jadeReport);
+            return SimplePersistentObject.getLazyImplementation(jadeReport);
         }
 
         public void setJadeReport(cz.cesnet.shongo.JadeReport jadeReport)

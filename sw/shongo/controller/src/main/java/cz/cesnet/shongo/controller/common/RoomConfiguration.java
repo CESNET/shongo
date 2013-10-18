@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 
 import javax.persistence.*;
@@ -12,7 +12,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class RoomConfiguration extends PersistentObject
+public class RoomConfiguration extends SimplePersistentObject
 {
     /**
      * Set of technologies which the room shall support (if the set is empty the room shall support all possible technologies).

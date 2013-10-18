@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
 
@@ -13,7 +13,7 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class AbstractPerson extends PersistentObject implements Cloneable
+public abstract class AbstractPerson extends SimplePersistentObject implements Cloneable
 {
     /**
      * @return {@link cz.cesnet.shongo.PersonInformation} for the {@link AbstractPerson}

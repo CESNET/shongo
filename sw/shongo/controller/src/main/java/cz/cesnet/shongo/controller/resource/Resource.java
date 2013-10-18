@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
@@ -75,6 +74,15 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     public Resource()
     {
+    }
+
+    @Id
+    @SequenceGenerator(name = "resource_id", sequenceName = "resource_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "resource_id")
+    @Override
+    public Long getId()
+    {
+        return id;
     }
 
     /**
@@ -493,7 +501,8 @@ public class Resource extends PersistentObject implements ReportableComplex
                     }
                 });
         Synchronization.synchronizeCollection(administrators, resourceApi.getAdministrators(),
-                new Synchronization.Handler<AbstractPerson, cz.cesnet.shongo.controller.api.AbstractPerson>(AbstractPerson.class)
+                new Synchronization.Handler<AbstractPerson, cz.cesnet.shongo.controller.api.AbstractPerson>(
+                        AbstractPerson.class)
                 {
                     @Override
                     public AbstractPerson createFromApi(cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
@@ -502,7 +511,8 @@ public class Resource extends PersistentObject implements ReportableComplex
                     }
 
                     @Override
-                    public void updateFromApi(AbstractPerson object, cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
+                    public void updateFromApi(AbstractPerson object,
+                            cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
                     {
                         object.fromApi(objectApi);
                     }

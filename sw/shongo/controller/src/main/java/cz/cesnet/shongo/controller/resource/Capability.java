@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 
@@ -13,7 +13,7 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Capability extends PersistentObject
+public abstract class Capability extends SimplePersistentObject
 {
     /**
      * Resource to which the capability is applied.
