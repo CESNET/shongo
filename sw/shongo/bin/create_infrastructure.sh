@@ -23,7 +23,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=200:399
         CONNECT_CESNET=https://connect.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
-        RESOURCE_ADMIN_EMAIL=srom.martin@gmail.cz
+        RESOURCE_ADMIN_EMAIL=meetings-announce@cesnet.cz
         ;;
     shongo-dev )
         CONTROLLER=shongo-dev.cesnet.cz

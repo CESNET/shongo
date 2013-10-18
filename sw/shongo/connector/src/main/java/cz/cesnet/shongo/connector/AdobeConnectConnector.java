@@ -597,7 +597,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 room.setLicenseCount(Integer.valueOf(sco.getChildText("sco-tag")));
             }
             else {
-                throw new CommandException("Licence count not set for room " + roomId + ".");
+                logger.warn("Licence count not set for room " + roomId + " (using 0 licenses).");
+                room.setLicenseCount(0);
             }
             room.addTechnology(Technology.ADOBE_CONNECT);
 
