@@ -10,11 +10,12 @@ command:
 
 To run controller on localhost at port 8008 type:
 
-    bun/controller.sh
+    bin/controller.sh
 
 To connect to the controller use the client application:
 
     bin/client_cli.sh
+
 
 REQUIREMENTS
 
@@ -28,6 +29,7 @@ To install java on Ubuntu/Debian system type
 the following command:
 
     sudo apt-get install sun-java6-jdk
+
 
 CONFIGURATION OF POSTGRESQL DATABASE
 
@@ -61,6 +63,19 @@ Add the following lines to controller.cfg.xml configuration file:
         <username>shongo</username>
         <password>shongo</password>
     </database>
+
+
+NAGIOS NRPE
+
+Install nagios NRPE server:
+
+    apt-get install nagios-nrpe-server
+
+Add "nagios.cesnet.cz" to "allowed_hosts" in "/etc/nagios/nrpe.cfg".
+Add also the following to "/etc/nagios/nrpe.cfg":
+
+    command[check_shongo_controller]=<shongo>/sw/shongo/bin/check_shongo.sh -c shongo-dev.cesnet.cz controller
+    command[check_shongo_connector]=<shongo>/sw/shongo/bin/check_shongo.sh -c shongo-dev.cesnet.cz connector <agent-names>
 
 HIBERNATE NOTES
 

@@ -105,7 +105,7 @@
                 <form:radiobutton path="type" value="USER" ng-model="type"/>&nbsp;
                 <span><spring:message code="views.participant.type.USER"/></span>
                 &nbsp;&nbsp;
-                <form:radiobutton path="type" value="ANONYMOUS" ng-model="type"/>&nbsp;
+                <form:radiobutton path="type" value="ANONYMOUS" ng-model="type" disabled="true"/>&nbsp;
                 <spring:message code="views.participant.type.ANONYMOUS"/>
                 <form:errors path="type" cssClass="error"/>
             </div>
