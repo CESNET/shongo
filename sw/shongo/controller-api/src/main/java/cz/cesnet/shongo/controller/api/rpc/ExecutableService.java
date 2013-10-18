@@ -61,4 +61,16 @@ public interface ExecutableService extends Service
      */
     @API
     public void updateExecutable(SecurityToken securityToken, String executableId);
+
+    /**
+     * Attach {@link cz.cesnet.shongo.controller.api.ExecutableState#NOT_STARTED} room executable to an existing room in
+     * target device.
+     *
+     * @param securityToken    token of the user requesting the operation
+     * @param roomExecutableId identifier of room executable
+     * @param deviceRoomId     identifier of room in target device
+     */
+    @API
+    public void attachRoomExecutable(SecurityToken securityToken, String roomExecutableId, String deviceRoomId);
+
 }

@@ -676,6 +676,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void addRoomParticipants(String roomId, List<RoomParticipantRole> participants) throws CommandException
     {
+        if (participants.size() == 0) {
+            return;
+        }
         RequestAttributeList userAttributes = new RequestAttributeList();
         userAttributes.add("acl-id", roomId);
 

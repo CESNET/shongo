@@ -29,7 +29,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Scheduler extends Component implements Component.AuthorizationAware, Component.NotificationManagerAware
+public class Scheduler extends SwitchableComponent implements Component.AuthorizationAware, Component.NotificationManagerAware
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
@@ -85,6 +85,11 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      */
     public void run(Interval interval, EntityManager entityManager)
     {
+        if (!isEnabled()) {
+            logger.warn("Skipping scheduler because it is disabled...");
+            return;
+        }
+
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
         logger.debug("Running scheduler for interval '{}'...", dateTimeFormatter.formatInterval(interval));
 

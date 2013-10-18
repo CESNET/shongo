@@ -20,7 +20,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Preprocessor extends Component implements Component.AuthorizationAware
+public class Preprocessor extends SwitchableComponent implements Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
@@ -62,6 +62,11 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
      */
     public synchronized void run(Interval interval, EntityManager entityManager)
     {
+        if (!isEnabled()) {
+            logger.warn("Skipping preprocessor because it is disabled...");
+            return;
+        }
+
         // Round interval start to whole hours (otherwise the reservation requests with future date/time slots
         // would be always processed, because the interval would keep changing all the time)
         DateTime intervalStart = interval.getStart();

@@ -86,7 +86,7 @@ $RUN_CLIENT_CLI <<EOF
         name: 'mcu-cesnet',
         description: 'H.323/SIP MCU at CESNET',
         allocatable: 1,
-        maximumFuture: 'P4M',
+        maximumFuture: 'P1Y',
         technologies: ['H323','SIP'],
         address: '195.113.222.60',
         mode: {
@@ -102,7 +102,7 @@ $RUN_CLIENT_CLI <<EOF
             aliases: [
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{value}' }
             ],
-            maximumFuture: 'P1Y',
+            maximumFuture: 'P4Y',
             permanentRoom: 1,
         },{
             class: 'AliasProviderCapability',
@@ -117,7 +117,7 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'SIP_URI', value: '$MCU_CESNET_NUMBER_PREFIX{value}@cesnet.cz' },
                 { type: 'SIP_IP', value: '195.113.222.60 {value}#' }
             ],
-            maximumFuture: 'P1Y',
+            maximumFuture: 'P4Y',
             permanentRoom: 1,
         }],
         administrators: [
@@ -130,7 +130,7 @@ $RUN_CLIENT_CLI <<EOF
         name: 'mcu-muni',
         description: 'H.323/SIP MCU at MUNI',
         allocatable: 0,
-        maximumFuture: 'P4M',
+        maximumFuture: 'P1Y',
         technologies: ['H323','SIP'],
         address: '147.251.15.253',
         mode: {
@@ -148,7 +148,7 @@ $RUN_CLIENT_CLI <<EOF
         name: 'connect-cesnet',
         description: 'Adobe Connect server at CESNET',
         allocatable: 1,
-        maximumFuture: 'P4M',
+        maximumFuture: 'P1Y',
         address: '$CONNECT_CESNET',
         technologies: ['ADOBE_CONNECT'],
         mode: {
@@ -169,7 +169,7 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{requested-value}' },
                 { type: 'ADOBE_CONNECT_URI', value: '{device.address}/$DEVICE_NAME_PREFIX{value}' }
             ],
-            maximumFuture: 'P1Y',
+            maximumFuture: 'P4Y',
             permanentRoom: 1,
         }],
         administrators: [

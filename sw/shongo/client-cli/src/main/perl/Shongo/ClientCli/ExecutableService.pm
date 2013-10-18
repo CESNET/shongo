@@ -69,6 +69,14 @@ sub populate()
                 }
             }
         },
+        'attach-room' => {
+            desc => 'Attach existing device room to not started room executable',
+            args => '[room-executable-id][device-room-id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                attach_room(@args);
+            }
+        },
     });
 }
 
@@ -164,6 +172,25 @@ sub update_executable()
     );
     if ( defined($response) ) {
         console_print_info("Executable '$id' has been updated.");
+    }
+}
+
+sub attach_room()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<room-executable-id> <device-room-id>' must be specified.");
+        return;
+    }
+    my $room_executable_id = $args[0];
+    my $device_room_id = $args[1];
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Executable.attachRoomExecutable',
+        RPC::XML::string->new($room_executable_id),
+        RPC::XML::string->new($device_room_id)
+    );
+    if ( defined($response) ) {
+        console_print_info("Room '$device_room_id' has been attached to room executable '$room_executable_id'.");
     }
 }
 

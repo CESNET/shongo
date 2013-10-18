@@ -1,21 +1,25 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
-import cz.cesnet.shongo.controller.api.ExecutableSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -30,7 +34,7 @@ import java.util.*;
  */
 public class ExecutableServiceImpl extends AbstractServiceImpl
         implements ExecutableService, Component.EntityManagerFactoryAware,
-                   Component.AuthorizationAware
+                   Component.AuthorizationAware, Component.ControllerAgentAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -42,6 +46,11 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
      */
     private Authorization authorization;
 
+    /**
+     * @see ControllerAgent
+     */
+    private ControllerAgent controllerAgent;
+
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
@@ -52,6 +61,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public void setAuthorization(Authorization authorization)
     {
         this.authorization = authorization;
+    }
+
+    @Override
+    public void setControllerAgent(ControllerAgent controllerAgent)
+    {
+        this.controllerAgent = controllerAgent;
     }
 
     @Override
@@ -335,6 +350,75 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableToUpdate.setNextAttempt(DateTime.now());
             }
 
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void attachRoomExecutable(SecurityToken securityToken, String roomExecutableId, String deviceRoomId)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(roomExecutableId, EntityType.EXECUTABLE);
+        try {
+            // Get and check room executable
+            ResourceRoomEndpoint roomExecutable =
+                    entityManager.find(ResourceRoomEndpoint.class, entityId.getPersistenceId());
+            if (roomExecutable == null) {
+                ControllerReportSetHelper.throwEntityNotFoundFault(RoomExecutable.class, entityId.getPersistenceId());
+                return;
+            }
+            DeviceResource deviceResource = roomExecutable.getDeviceResource();
+            if (!authorization.hasPermission(securityToken, roomExecutable, Permission.WRITE) ||
+                    !authorization.hasPermission(securityToken, deviceResource, Permission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", entityId);
+            }
+            if (!deviceResource.isManaged()) {
+                throw new CommonReportSet.UnknownErrorException("Device is not managed.");
+            }
+            if (!roomExecutable.getState().equals(cz.cesnet.shongo.controller.executor.Executable.State.NOT_STARTED)) {
+                throw new CommonReportSet.UnknownErrorException("Room executable must be NOT_STARTED.");
+            }
+            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
+            String agentName = managedMode.getConnectorAgentName();
+
+            // Get and check device room
+            GetRoom deviceAction = new GetRoom(deviceRoomId);
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, deviceAction);
+            if (!sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
+                throw new ControllerReportSet.DeviceCommandFailedException(EntityIdentifier.formatId(deviceResource),
+                        deviceAction.toString(), sendLocalCommand.getJadeReport());
+            }
+            Room deviceRoom = (Room) sendLocalCommand.getResult();
+            if (deviceRoom == null) {
+                throw new CommonReportSet.UnknownErrorException("Device room doesn't exist.");
+            }
+            List<ResourceRoomEndpoint> roomExecutables = entityManager.createQuery(
+                    "SELECT executable FROM ResourceRoomEndpoint executable"
+                            + " WHERE executable.roomProviderCapability = :roomProvider"
+                            + " AND executable.roomId = :roomId",
+                    ResourceRoomEndpoint.class)
+                    .setParameter("roomProvider", roomExecutable.getRoomProviderCapability())
+                    .setParameter("roomId", deviceRoomId)
+                    .getResultList();
+            if (roomExecutables.size() > 0) {
+                throw new CommonReportSet.UnknownErrorException("Device room is already used in " +
+                        EntityIdentifier.formatId(roomExecutables.get(0)) + ".");
+            }
+
+            // Attach device room to room executable
+            entityManager.getTransaction().begin();
+            roomExecutable.setState(cz.cesnet.shongo.controller.executor.Executable.State.MODIFIED);
+            roomExecutable.setRoomId(deviceRoomId);
+            executableManager.update(roomExecutable);
             entityManager.getTransaction().commit();
         }
         finally {

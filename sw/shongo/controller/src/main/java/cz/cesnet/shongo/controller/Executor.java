@@ -18,7 +18,7 @@ import java.util.Collection;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Executor extends Component
+public class Executor extends SwitchableComponent
         implements Component.WithThread, Component.EntityManagerFactoryAware, Component.ControllerAgentAware, Runnable
 {
     /**
@@ -177,6 +177,11 @@ public class Executor extends Component
      */
     public ExecutionResult execute(DateTime dateTime)
     {
+        if (!isEnabled()) {
+            logger.warn("Skipping executor because it is disabled...");
+            return new ExecutionResult();
+        }
+
         // Globally synchronized (see ThreadLock documentation)
         //logger.info("Executor waiting for lock...............................");
         synchronized (ThreadLock.class) {

@@ -47,7 +47,7 @@ public class ControllerShell extends Shell
                     controllerContainer, controllerAgent.getLocalName()));
             addCommands(controllerAgent.createCommandSet());
         }
-        addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
+        addCommand("log", "[rpc|sql|sql-param] Toggle logging specified type", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)
@@ -86,7 +86,7 @@ public class ControllerShell extends Shell
                 }
             }
         });
-        addCommand("filter", "Filter logging by string (warning and errors are always not filtered)",
+        addCommand("log-filter", "[*|<filter>] Filter logging by string (warning and errors are always not filtered)",
                 new CommandHandler()
                 {
                     @Override
@@ -112,7 +112,7 @@ public class ControllerShell extends Shell
                         consoleAppender.setFilter(filter);
                     }
                 });
-        addCommand("notification", "Configure notification executor (on/off/redirect)", new CommandHandler()
+        addCommand("notification", "[on|off|redirect <email-address>] Configure notification executor", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)
@@ -159,6 +159,49 @@ public class ControllerShell extends Shell
                         }
                     });
                     ControllerShell.logger.info("Notifications are redirected to {}.", email);
+                }
+            }
+        });
+        addCommand("worker", "[on|off] Switch on/off preprocessor and scheduler", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (args.length <= 1) {
+                    return;
+                }
+                Preprocessor preprocessor = controller.getComponent(Preprocessor.class);
+                Scheduler scheduler = controller.getComponent(Scheduler.class);
+                if (args[1].equals("on")) {
+                    ControllerShell.logger.info("Preprocessor and scheduler are enabled.");
+                    preprocessor.setEnabled(true);
+                    scheduler.setEnabled(true);
+                }
+                else if (args[1].equals("off")) {
+                    ControllerShell.logger.info("Preprocessor and scheduler are disabled.");
+                    preprocessor.setEnabled(false);
+                    scheduler.setEnabled(false);
+                }
+            }
+        });
+        addCommand("executor", "[on|off] Switch on/off executor", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (args.length <= 1) {
+                    return;
+                }
+                Executor executor = controller.getComponent(Executor.class);
+                if (args[1].equals("on")) {
+                    ControllerShell.logger.info("Executor is enabled.");
+                    executor.setEnabled(true);
+                }
+                else if (args[1].equals("off")) {
+                    ControllerShell.logger.info("Executor is disabled.");
+                    executor.setEnabled(false);
                 }
             }
         });
