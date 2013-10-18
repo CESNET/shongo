@@ -170,6 +170,9 @@ sub on_init()
             $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier'
             });
+            $self->add_attribute('roomId', {
+                'title' => 'Room Identifier'
+            });
             $self->add_attribute('aliases', {
                 'type' => 'collection',
                 'item' => {

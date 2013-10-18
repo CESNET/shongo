@@ -458,12 +458,18 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             recording.setId(resultRecording.getAttributeValue("sco-id"));
             recording.setName(resultRecording.getChildText("name"));
 
-            String desciption = resultRecording.getChildText("description");
-            recording.setDescription(desciption == null ? "" : desciption);
+            String description = resultRecording.getChildText("description");
+            recording.setDescription(description == null ? "" : description);
 
-            recording.setBeginDate(DateTime.parse(resultRecording.getChildText("date-begin")));
-            recording.setDuration(new Period(DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(
-                    resultRecording.getChildText("duration")).getMillis()));
+            String dateBegin = resultRecording.getChildText("date-begin");
+            if (dateBegin != null) {
+                recording.setBeginDate(DateTime.parse(dateBegin));
+            }
+            String duration = resultRecording.getChildText("duration");
+            if (duration != null) {
+                DateTime durationDateTime = DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(duration);
+                recording.setDuration(new Period(durationDateTime.getMillis()));
+            }
 
             String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                     + resultRecording.getChildText("url-path");
