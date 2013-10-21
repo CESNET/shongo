@@ -158,6 +158,11 @@ public class Configuration extends CombinedConfiguration
     public static final String NOTIFICATION_RESERVATION_REQUEST_URL = "notification.reservation-request-url";
 
     /**
+     * Url where user can change his settings.
+     */
+    public static final String NOTIFICATION_USER_SETTINGS_URL = "notification.user-settings-url";
+
+    /**
      * Constructor.
      */
     public Configuration()
@@ -196,13 +201,25 @@ public class Configuration extends CombinedConfiguration
      * @param reservationRequestId
      * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL} for given {@code reservationRequestId}
      */
-    public String getReservationRequestUrl(String reservationRequestId)
+    public String getNotificationReservationRequestUrl(String reservationRequestId)
     {
         String reservationRequestUrl = getString(NOTIFICATION_RESERVATION_REQUEST_URL);
         if (reservationRequestUrl == null || reservationRequestUrl.isEmpty()) {
             return null;
         }
         return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
+    }
+
+    /**
+     * @return {@link #NOTIFICATION_USER_SETTINGS_URL}
+     */
+    public String getNotificationUserSettingsUrl()
+    {
+        String reservationRequestUrl = getString(NOTIFICATION_USER_SETTINGS_URL);
+        if (reservationRequestUrl == null || reservationRequestUrl.isEmpty()) {
+            return null;
+        }
+        return reservationRequestUrl;
     }
 
     /**

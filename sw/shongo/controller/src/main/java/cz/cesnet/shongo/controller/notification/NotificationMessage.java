@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import org.apache.commons.lang.StringUtils;
 
@@ -21,12 +23,22 @@ public class NotificationMessage
     }};
 
     /**
-     * Languag string for each {@link #AVAILABLE_LOCALES}.
+     * Language string for each {@link #AVAILABLE_LOCALES}.
      */
     public static Map<String, String> LANGUAGE_STRING = new HashMap<String, String>() {{
         put(UserSettings.LOCALE_ENGLISH.getLanguage(), "ENGLISH VERSION");
         put(UserSettings.LOCALE_CZECH.getLanguage(), "ČESKÁ VERZE");
     }};
+
+    /**
+     * Use settings string for each {@link #AVAILABLE_LOCALES}.
+     */
+    public static Map<String, String> USER_SETTINGS_STRING = new HashMap<String, String>() {{
+        put(UserSettings.LOCALE_ENGLISH.getLanguage(), "you can select your preferred language at ");
+        put(UserSettings.LOCALE_CZECH.getLanguage(), "preferovaný jazyk si můžete zvolit na ");
+    }};
+
+    private String userSettingsUrl;
 
     private Set<String> languages = new HashSet<String>();
 
@@ -34,8 +46,11 @@ public class NotificationMessage
 
     private StringBuilder content = new StringBuilder();
 
-    public NotificationMessage()
+    public NotificationMessage(PersonInformation recipient, cz.cesnet.shongo.controller.Configuration configuration)
     {
+        if (recipient instanceof UserInformation) {
+            userSettingsUrl = configuration.getNotificationUserSettingsUrl();
+        }
     }
 
     public NotificationMessage(String language, String title, String content)
@@ -71,7 +86,8 @@ public class NotificationMessage
             content.append("\n\n");
         }
 
-        String languageString = LANGUAGE_STRING.get(message.getPrimaryLanguage());
+        String language = message.getPrimaryLanguage();
+        String languageString = LANGUAGE_STRING.get(language);
         appendLine(languageString);
 
         languages.addAll(message.getLanguages());
@@ -79,6 +95,10 @@ public class NotificationMessage
             title = message.getTitle();
         }
         appendLine(message.getTitle());
+        if (userSettingsUrl != null) {
+            String userSettingsString = USER_SETTINGS_STRING.get(language);
+            appendLine("(" + userSettingsString + userSettingsUrl + ")");
+        }
         content.append("\n");
         content.append(message.getContent());
     }

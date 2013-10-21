@@ -15,6 +15,23 @@ public class UserPerson extends AbstractPerson
     private String userId;
 
     /**
+     * Constructor.
+     */
+    public UserPerson()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userId sets the {@link #userId}
+     */
+    public UserPerson(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()

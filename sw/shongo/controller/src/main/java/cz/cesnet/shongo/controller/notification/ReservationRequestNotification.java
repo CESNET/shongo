@@ -44,10 +44,10 @@ public class ReservationRequestNotification extends ConfigurableNotification
     public ReservationRequestNotification(AbstractReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
     {
-        super(authorizationManager.getUserSettingsProvider());
+        super(authorizationManager.getUserSettingsProvider(), configuration);
 
         this.id = EntityIdentifier.formatId(reservationRequest);
-        this.url = configuration.getReservationRequestUrl(this.id);
+        this.url = configuration.getNotificationReservationRequestUrl(this.id);
         this.updatedAt = reservationRequest.getUpdatedAt();
         this.updatedBy = reservationRequest.getUpdatedBy();
         this.description = reservationRequest.getDescription();
@@ -101,7 +101,8 @@ public class ReservationRequestNotification extends ConfigurableNotification
     @Override
     protected NotificationMessage renderMessageForConfiguration(ConfigurableNotification.Configuration configuration)
     {
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
+                this.configuration.getNotificationUserSettingsUrl());
 
         // Number of child notifications of each type
         int allocationFailedNotifications = 0;

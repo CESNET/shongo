@@ -115,6 +115,7 @@
     <!-- Configuration of notifications -->
     <notification>
         <!--<reservation-request-url></reservation-request-url>-->
+        <!--<user-settings-url></user-settings-url>-->
     </notification>
 
     <!-- Configuration of domain administrators-->

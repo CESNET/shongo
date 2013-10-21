@@ -2,10 +2,10 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.util.MessageSource;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +22,11 @@ import java.util.*;
 public abstract class ConfigurableNotification extends AbstractNotification
 {
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
+
+    /**
+     * @see cz.cesnet.shongo.controller.Configuration
+     */
+    protected cz.cesnet.shongo.controller.Configuration configuration;
 
     /**
      * @see cz.cesnet.shongo.controller.settings.UserSettingsProvider
@@ -42,19 +47,15 @@ public abstract class ConfigurableNotification extends AbstractNotification
 
     /**
      * Constructor.
-     */
-    protected ConfigurableNotification()
-    {
-    }
-
-    /**
-     * Constructor.
      *
      * @param userSettingsProvider sets the {@link #userSettingsProvider}
      */
-    public ConfigurableNotification(UserSettingsProvider userSettingsProvider)
+    public ConfigurableNotification(UserSettingsProvider userSettingsProvider,
+            cz.cesnet.shongo.controller.Configuration configuration)
     {
+
         this.userSettingsProvider = userSettingsProvider;
+        this.configuration = configuration;
     }
 
     /**
@@ -160,7 +161,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
         else {
             // Multiple messages
-            NotificationMessage notificationMessage = new NotificationMessage();
+            NotificationMessage notificationMessage = new NotificationMessage(recipient, configuration);
             for (Configuration configuration : configurations) {
                 NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration);
                 notificationMessage.appendMessage(configurationMessage);
@@ -199,6 +200,11 @@ public abstract class ConfigurableNotification extends AbstractNotification
     public static class ConfiguredRenderContext extends RenderContext
     {
         /**
+         * @see cz.cesnet.shongo.controller.Configuration#NOTIFICATION_USER_SETTINGS_URL
+         */
+        private String userSettingsUrl;
+
+        /**
          * @see ConfigurableNotification.Configuration
          */
         private Configuration configuration;
@@ -207,12 +213,15 @@ public abstract class ConfigurableNotification extends AbstractNotification
          * Constructor.
          *
          * @param configuration sets the {@link #configuration}
+         *                      @param messageSourceFileName
+         *                      @param userSettingsUrl
          */
-        public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName)
+        public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName, String userSettingsUrl)
         {
             super(new MessageSource("notification/" + messageSourceFileName, configuration.getLocale()));
 
             this.configuration = configuration;
+            this.userSettingsUrl = userSettingsUrl;
         }
 
         /**
@@ -241,6 +250,23 @@ public abstract class ConfigurableNotification extends AbstractNotification
         public DateTimeZone getTimeZone()
         {
             return configuration.getTimeZone();
+        }
+
+        /**
+         * @return true whether {@link #configuration#getTimeZone()} is default {@link DateTimeZone},
+         *         false otherwise
+         */
+        public boolean isTimeZoneDefault()
+        {
+            return configuration.getTimeZone().equals(DateTimeZone.getDefault());
+        }
+
+        /**
+         * @return {@link #userSettingsUrl}
+         */
+        public String getUserSettingsUrl()
+        {
+            return userSettingsUrl;
         }
     }
 

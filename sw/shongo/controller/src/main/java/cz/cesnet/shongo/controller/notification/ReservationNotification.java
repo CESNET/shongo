@@ -95,7 +95,8 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     @Override
     protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
+                this.configuration.getNotificationUserSettingsUrl());
         renderContext.addParameter("target", target);
 
         StringBuilder titleBuilder = new StringBuilder();

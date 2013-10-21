@@ -60,7 +60,8 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     {
         Locale locale = configuration.getLocale();
         DateTimeZone timeZone = configuration.getTimeZone();
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
+                this.configuration.getNotificationUserSettingsUrl());
         renderContext.addParameter("target", target);
         renderContext.addParameter("userError", this.userError.getMessage(locale, timeZone));
         if (configuration.isAdministrator()) {

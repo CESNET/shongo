@@ -33,11 +33,11 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest,
             cz.cesnet.shongo.controller.Configuration configuration, UserSettingsProvider userSettingsProvider)
     {
-        super(userSettingsProvider);
+        super(userSettingsProvider, configuration);
 
         if (reservationRequest != null) {
             this.reservationRequestId = EntityIdentifier.formatId(reservationRequest);
-            this.reservationRequestUrl = configuration.getReservationRequestUrl(this.reservationRequestId);
+            this.reservationRequestUrl = configuration.getNotificationReservationRequestUrl(this.reservationRequestId);
             this.reservationRequestDescription = reservationRequest.getDescription();
             this.reservationRequestUpdatedAt = reservationRequest.getUpdatedAt();
             this.reservationRequestUpdatedBy = reservationRequest.getUpdatedBy();
