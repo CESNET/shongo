@@ -34,7 +34,7 @@
 <%-- Header --%>
 <head>
     <title>
-        Shongo
+        <spring:message code="system.name"/>
         <c:choose>
             <c:when test="${title.getClass().name == 'java.lang.String'}">
                 <spring:message code="${title}" var="title"/>
