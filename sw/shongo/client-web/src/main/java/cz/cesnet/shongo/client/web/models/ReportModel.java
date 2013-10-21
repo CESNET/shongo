@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.controller.ControllerConnectException;
@@ -214,7 +213,7 @@ public class ReportModel
             if (userSession != null) {
                 attributes.put("Language", userSession.getLocale());
                 attributes.put("Timezone", userSession.getTimeZone());
-                attributes.put("Administrator", userSession.isAdmin());
+                attributes.put("Administrator", userSession.isAdminMode());
                 attributes.put("Advanced UI", userSession.isAdvancedUserInterface());
             }
             contextBuilder.append(formatAttributes(attributes));

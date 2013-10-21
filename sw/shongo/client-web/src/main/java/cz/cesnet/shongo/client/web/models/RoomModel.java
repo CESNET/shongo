@@ -172,7 +172,7 @@ public class RoomModel
         // Room state
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
-        if (!this.state.isAvailable() && userSession.isAdmin()) {
+        if (!this.state.isAvailable() && userSession.isAdminMode()) {
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
         }

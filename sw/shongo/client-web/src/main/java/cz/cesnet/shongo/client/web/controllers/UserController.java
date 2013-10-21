@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
+import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -60,7 +61,7 @@ public class UserController
             Model model)
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
-        model.addAttribute("userSettings", userSettings);
+        model.addAttribute("userSettings", new UserSettingsModel(userSettings));
         model.addAttribute("timeZones", TimeZoneModel.getTimeZones(DateTime.now()));
         return "userSettings";
     }
@@ -75,14 +76,23 @@ public class UserController
             @PathVariable(value = "name") String name,
             @PathVariable(value = "value") String value)
     {
-        UserSettings userSettings = authorizationService.getUserSettings(securityToken);
-        if (name.equals("user-interface")) {
-            userSettings.setAttribute(UserSession.USER_INTERFACE_SETTINGS_ATTRIBUTE, value);
+        UserSettingsModel userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
+        if (name.equals("userInterface")) {
+            userSettings.setUserInterface(UserSettingsModel.UserInterface.valueOf(value));
+        }
+        else if (name.equals("localeDefaultWarning")) {
+            userSettings.setLocaleDefaultWarning(Boolean.parseBoolean(value));
+        }
+        else if (name.equals("timeZoneDefaultWarning")) {
+            userSettings.setTimeZoneDefaultWarning(Boolean.parseBoolean(value));
+        }
+        else if (name.equals("adminMode")) {
+            userSettings.setAdminMode(Boolean.parseBoolean(value));
         }
         else {
             throw new IllegalArgumentException(name);
         }
-        authorizationService.updateUserSettings(securityToken, userSettings);
+        authorizationService.updateUserSettings(securityToken, userSettings.toApi());
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
         return "redirect:" + BackUrl.getInstance(request);
@@ -96,9 +106,9 @@ public class UserController
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             HttpServletRequest request,
-            @ModelAttribute("userSettings") UserSettings userSettings)
+            @ModelAttribute("userSettings") UserSettingsModel userSettings)
     {
-        authorizationService.updateUserSettings(securityToken, userSettings);
+        authorizationService.updateUserSettings(securityToken, userSettings.toApi());
         sessionStatus.setComplete();
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);

@@ -45,7 +45,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                 if (allocationState.equals(AllocationState.ALLOCATION_FAILED)) {
                     AllocationStateReport allocationStateReport = reservationRequest.getAllocationStateReport();
                     StringBuilder allocationStateHelpBuilder = new StringBuilder();
-                    if (userSession.isAdmin()) {
+                    if (userSession.isAdminMode()) {
                         allocationStateHelpBuilder.append(allocationStateHelp);
                         allocationStateHelpBuilder.append("<pre>");
                         allocationStateHelpBuilder.append(allocationStateReport.toString(

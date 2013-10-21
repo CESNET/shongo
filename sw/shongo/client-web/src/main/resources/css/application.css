@@ -287,6 +287,17 @@ form span.error {
     margin-bottom: -10px;
 }
 
+/* Warning block */
+span.warning {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: block;
+    padding: 10px 10px 10px 20px;
+    border: solid 1px #888888;
+    font-size: 20px;
+    background-color: #FAE6E6;
+}
+
 /* Block of actions (What do you want to do?) */
 div.actions {
     margin-top: 15px;

@@ -110,6 +110,19 @@ public class UserSettings extends AbstractComplexType
      * @param name
      * @return value of attribute with given {@code name}
      */
+    public boolean getAttributeBool(String name)
+    {
+        String value = attributes.get(name);
+        if (value == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    /**
+     * @param name
+     * @return value of attribute with given {@code name}
+     */
     public <T extends Enum<T>> T getAttribute(String name, Class<T> enumClass)
     {
         String value = getAttribute(name);

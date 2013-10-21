@@ -25,7 +25,6 @@ public class UserSession implements Serializable
     private static Logger logger = LoggerFactory.getLogger(UserSession.class);
 
     public final static String USER_SESSION_ATTRIBUTE = "SHONGO_USER";
-    public final static String USER_INTERFACE_SETTINGS_ATTRIBUTE = "client.ui.type";
 
     /**
      * Current session {@link Locale}.
@@ -33,19 +32,29 @@ public class UserSession implements Serializable
     private Locale locale;
 
     /**
+     * @see UserSettingsModel#localeDefaultWarning
+     */
+    private boolean localeDefaultWarning;
+
+    /**
      * Current session {@link DateTimeZone}.
      */
     private DateTimeZone timeZone;
 
     /**
-     * Specifies whether current session is in {@link UserSettings#adminMode}.
+     * @see UserSettingsModel#timeZoneDefaultWarning
      */
-    private boolean admin;
+    private boolean timeZoneDefaultWarning;
 
     /**
-     * @see UserInterface
+     * @see UserSettingsModel#adminMode
      */
-    private UserInterface userInterface;
+    private Boolean adminMode;
+
+    /**
+     * @see UserSettingsModel.UserInterface
+     */
+    private UserSettingsModel.UserInterface userInterface;
 
     /**
      * Constructor.
@@ -54,8 +63,8 @@ public class UserSession implements Serializable
     {
         this.locale = null;
         this.timeZone = null;
-        this.admin = false;
-        this.userInterface = UserInterface.BEGINNER;
+        this.adminMode = null;
+        this.userInterface = UserSettingsModel.DEFAULT_USER_INTERFACE;
     }
 
     /**
@@ -75,6 +84,14 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @return {@link #localeDefaultWarning}
+     */
+    public boolean isLocaleDefaultWarning()
+    {
+        return localeDefaultWarning;
+    }
+
+    /**
      * @return {@link #timeZone}
      */
     public DateTimeZone getTimeZone()
@@ -91,44 +108,45 @@ public class UserSession implements Serializable
     }
 
     /**
-     * @return {@link #admin}
+     * @return {@link #timeZoneDefaultWarning}
      */
-    public boolean isAdmin()
+    public boolean isTimeZoneDefaultWarning()
     {
-        return admin;
+        return timeZoneDefaultWarning;
     }
 
     /**
-     * @param admin sets the {@link #admin}
+     * @return {@link #adminMode}
      */
-    public void setAdmin(boolean admin)
+    public boolean isAdminMode()
     {
-        this.admin = admin;
+        return (adminMode != null ? adminMode : false);
+    }
+
+    /**
+     * @return true whether {@link #adminMode} is available,
+     *         false otherwise
+     */
+    public boolean isAdminModeAvailable()
+    {
+        return adminMode != null;
     }
 
     /**
      * @return {@link #userInterface}
      */
-    public UserInterface getUserInterface()
+    public UserSettingsModel.UserInterface getUserInterface()
     {
         return userInterface;
     }
 
     /**
-     * @return true whether {@link #userInterface} is {@link UserInterface#ADVANCED},
+     * @return true whether {@link #userInterface} is {@link UserSettingsModel.UserInterface#ADVANCED},
      *         false otherwise
      */
     public boolean isAdvancedUserInterface()
     {
-        return userInterface.equals(UserInterface.ADVANCED);
-    }
-
-    /**
-     * @param userInterface sets the {@link #userInterface}
-     */
-    public void setUserInterface(UserInterface userInterface)
-    {
-        this.userInterface = userInterface;
+        return userInterface.equals(UserSettingsModel.UserInterface.ADVANCED);
     }
 
     /**
@@ -152,23 +170,25 @@ public class UserSession implements Serializable
      * @param request       to be used for loading
      * @param securityToken to be used for loading
      */
-    public void loadUserSettings(UserSettings userSettings, HttpServletRequest request, SecurityToken securityToken)
+    public void loadUserSettings(UserSettingsModel userSettings, HttpServletRequest request,
+            SecurityToken securityToken)
     {
-        Locale locale;
         if (userSettings.getLocale() != null) {
-            locale = userSettings.getLocale();
+            setLocale(userSettings.getLocale());
+            localeDefaultWarning = false;
         }
         else {
-            locale = request.getLocale();
+            localeDefaultWarning = userSettings.isLocaleDefaultWarning();
         }
-        setLocale(locale);
-        setTimeZone(userSettings.getTimeZone());
-        setAdmin(userSettings.getAdminMode() != null ? userSettings.getAdminMode() : false);
-
-        UserInterface userInterface = userSettings.getAttribute(USER_INTERFACE_SETTINGS_ATTRIBUTE, UserInterface.class);
-        if (userInterface != null) {
-            setUserInterface(userInterface);
+        if (userSettings.getTimeZone() != null) {
+            setTimeZone(userSettings.getTimeZone());
+            timeZoneDefaultWarning = false;
         }
+        else {
+            timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
+        }
+        adminMode = (userSettings.isAdminModeAvailable() ? userSettings.isAdminMode() : null);
+        userInterface = userSettings.getUserInterface();
 
         update(request, securityToken.getUserInformation());
     }
@@ -189,26 +209,9 @@ public class UserSession implements Serializable
         }
 
         logger.info("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
-                locale, timeZone, admin, userInterface, (userInformation != null ? userInformation : "anonymous")
+                locale, timeZone, adminMode, userInterface, (userInformation != null ? userInformation : "anonymous")
         });
 
         WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);
     }
-
-    /**
-     * Type of user interface.
-     */
-    public static enum UserInterface
-    {
-        /**
-         * UI for beginners.
-         */
-        BEGINNER,
-
-        /**
-         * UI for advanced users.
-         */
-        ADVANCED
-    }
-
 }

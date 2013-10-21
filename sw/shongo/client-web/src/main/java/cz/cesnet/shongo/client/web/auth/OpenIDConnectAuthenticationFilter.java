@@ -5,6 +5,7 @@ import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.controllers.UserController;
 import cz.cesnet.shongo.client.web.models.UserSession;
+import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -187,9 +188,9 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         AuthenticationManager authenticationManager = this.getAuthenticationManager();
         Authentication authentication =  authenticationManager.authenticate(authenticationToken);
         SecurityToken securityToken = authenticationToken.getSecurityToken();
-        UserSettings userSettings;
+        UserSettingsModel userSettings;
         try {
-            userSettings = authorizationService.getUserSettings(securityToken);
+            userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
         }
         catch (ControllerConnectException exception) {
                 throw new AuthenticationServiceException("Cannot load user settings.", exception);

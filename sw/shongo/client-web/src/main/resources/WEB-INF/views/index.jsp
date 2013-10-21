@@ -85,6 +85,35 @@
 
     <div ng-app="jsp:indexDashboard">
 
+        <c:if test="${sessionScope.SHONGO_USER.localeDefaultWarning}">
+            <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+            </tag:url>
+            <tag:url var="ignoreUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                <tag:param name="name" value="localeDefaultWarning"/>
+                <tag:param name="value" value="false"/>
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+            </tag:url>
+            <span class="warning">
+                <spring:message code="views.index.localeDefaultWarning" arguments="${userSettingsUrl}"/>
+                <a class="pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+            </span>
+        </c:if>
+        <c:if test="${sessionScope.SHONGO_USER.timeZoneDefaultWarning}">
+            <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+            </tag:url>
+            <tag:url var="ignoreUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                <tag:param name="name" value="timeZoneDefaultWarning"/>
+                <tag:param name="value" value="false"/>
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+            </tag:url>
+            <span class="warning">
+                <spring:message code="views.index.timeZoneDefaultWarning" arguments="${userSettingsUrl}"/>
+                <a class="pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+            </span>
+        </c:if>
+
         <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
             <span><spring:message code="views.select.action"/></span>
             <ul>
