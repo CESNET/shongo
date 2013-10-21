@@ -1,9 +1,12 @@
 <%--
   -- Wizard page for setting participant attributes.
   --%>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+
+<tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PARTICIPANTS %>"/>
 
 <script type="text/javascript">
     angular.module('jsp:wizardCreateParticipant', ['tag:participantForm']);
@@ -26,7 +29,7 @@
 
     <hr/>
 
-    <tag:participantForm confirmTitle="${confirmTitle}"/>
+    <tag:participantForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"/>
 
     <hr/>
 

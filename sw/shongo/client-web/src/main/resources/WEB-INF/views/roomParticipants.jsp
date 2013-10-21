@@ -21,6 +21,9 @@
         <c:when test="${room.type == 'PERMANENT_ROOM'}">
             <spring:message code="views.roomParticipants.heading" arguments="${room.name}"/>
         </c:when>
+        <c:when test="${room.type == 'USED_ROOM'}">
+            <spring:message code="views.roomParticipants.headingCapacity" arguments="${room.name}"/>
+        </c:when>
         <c:otherwise>
             <spring:message code="views.roomParticipants.headingAdhoc"/>
         </c:otherwise>

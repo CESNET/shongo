@@ -107,22 +107,18 @@
                 <spring:message code="views.aclRecord.role"/>:
             </form:label>
             <div class="controls">
+                <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
                 <form:select path="role" tabindex="${tabIndex}">
-                    <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
                     <c:forEach items="${roles}" var="role">
                         <form:option value="${role}"><spring:message code="views.aclRecord.role.${role}"/></form:option>
                     </c:forEach>
                 </form:select>
                 <form:errors path="role" cssClass="error"/>
                 <tag:help>
-                    <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
-                    <p><spring:message code="views.aclRecord.roleHelp.OWNER"/></p>
-                    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-                        <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
-                        <p><spring:message code="views.aclRecord.roleHelp.RESERVATION_REQUEST_USER"/></p>
-                    </c:if>
-                    <strong><spring:message code="views.aclRecord.role.READER"/></strong>
-                    <p><spring:message code="views.aclRecord.roleHelp.READER"/></p>
+                    <c:forEach items="${roles}" var="role">
+                        <strong><spring:message code="views.aclRecord.role.${role}"/></strong>
+                        <p><spring:message code="views.aclRecord.roleHelp.${role}"/></p>
+                    </c:forEach>
                 </tag:help>
             </div>
         </div>

@@ -11,6 +11,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
+<%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
 <%
@@ -28,7 +29,9 @@
 <tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
     <tag:param name="userId" value=":userId"/>
 </tag:url>
-<tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
+<c:if test="${empty cancelUrl}">
+    <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
+</c:if>
 
 <script type="text/javascript">
     angular.module('tag:participantForm', ['ngTooltip']);
