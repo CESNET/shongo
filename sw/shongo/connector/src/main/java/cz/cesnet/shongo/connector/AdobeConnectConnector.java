@@ -1123,16 +1123,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             String userOriginalId = getUserOriginalIdByPrincipalId(userDetails.getChildText("principal-id"));
 
-            // If participant is not registred (guest)
-            UserInformation userInformation;
+            // If participant is registered (is not guest)
             if (userOriginalId != null) {
-                userInformation = getUserInformationByOriginalId(userOriginalId);
-            } else {
-                userInformation = new UserInformation();
-                userInformation.setFirstName(userDetails.getChildText("username"));
-            }
-
-            if (userInformation != null) {
+                UserInformation userInformation = getUserInformationByOriginalId(userOriginalId);
                 roomParticipant.setUserId(userInformation.getUserId());
             }
 
