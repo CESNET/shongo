@@ -199,6 +199,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         endMeetingAttributes.add("sco-id", roomId);
         endMeetingAttributes.add("state", state.toString());
         if (message != null) {
+            // Replace all sequences of " " and "." by single space
+            message = message.replaceAll("[ \\.]+", " ");
             try {
                 endMeetingAttributes.add("message",URLEncoder.encode(message,"UTF8"));
             }
@@ -228,14 +230,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        //TODO: change NAME
-        String message = "Capacity of this room has ended.";
+        String message = "The room is currently unavailable for joining / Do místnosti se aktuálně není možné připojit";
 
         endMeeting(roomId, message, false, null);
     }
 
     /**
-     * End current session, set message show after stoping meeting, set url to be redirect (for recreating rooms)
+     * End current session, set message show after stopping meeting, set url to be redirect (for recreating rooms)
      *
      * @param roomId identifier of the room
      * @param message message shown after ending meeting session
