@@ -230,7 +230,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        String message = "The room is currently unavailable for joining / Do místnosti se aktuálně není možné připojit";
+        String message = "The room is currently unavailable for joining / Do mistnosti se aktualne neni mozne pripojit";
 
         endMeeting(roomId, message, false, null);
     }
