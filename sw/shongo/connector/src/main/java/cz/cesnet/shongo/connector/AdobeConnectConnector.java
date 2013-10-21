@@ -229,7 +229,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected void endMeeting(String roomId) throws CommandException
     {
         //TODO: change NAME
-        String message = "Capacity of the room has ended. For new request visit Shongo (do not click on \"Start meeting\" button below).";
+        String message = "Capacity of this room has ended.";
 
         endMeeting(roomId, message, false, null);
     }
@@ -1021,7 +1021,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
     /**
      * @param userPrincipalId principal-id of an user
-     * @return user-original-id (EPPN) for given {@code userPrincipalId}
+     * @return user-original-id (EPPN) for given {@code userPrincipalId} or null when user was not found
      * @throws CommandException
      */
     public String getUserOriginalIdByPrincipalId(String userPrincipalId) throws CommandException
@@ -1037,6 +1037,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             RequestAttributeList userAttributes = new RequestAttributeList();
             userAttributes.add("filter-principal-id", userPrincipalId);
             Element userResponse = request("principal-list", userAttributes);
+
+            if (userResponse.getChild("principal-list").getChild("principal") == null) {
+                return null;
+            }
 
             userOriginalId = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
             cachedOriginalIdByPrincipalId.put(userPrincipalId, userOriginalId);
@@ -1118,7 +1122,15 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             roomParticipant.setDisplayName(userDetails.getChildText("username"));
 
             String userOriginalId = getUserOriginalIdByPrincipalId(userDetails.getChildText("principal-id"));
-            UserInformation userInformation = getUserInformationByOriginalId(userOriginalId);
+
+            // If participant is not registred (guest)
+            UserInformation userInformation;
+            if (userOriginalId != null) {
+                userInformation = getUserInformationByOriginalId(userOriginalId);
+            } else {
+                userInformation = new UserInformation();
+                userInformation.setFirstName(userDetails.getChildText("username"));
+            }
 
             if (userInformation != null) {
                 roomParticipant.setUserId(userInformation.getUserId());

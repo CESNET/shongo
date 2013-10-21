@@ -32,6 +32,7 @@
         <module name="controller" />
         <module name="controller-api" />
         <module name="tool-report-generator" />
+        <module name="xml-rpc-test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
