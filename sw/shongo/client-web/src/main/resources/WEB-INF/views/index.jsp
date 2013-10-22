@@ -29,6 +29,7 @@
         <tag:param name="specification-type" value="PERMANENT_ROOM_CAPACITY"/>
         <tag:param name="permanent-room=" value=":permanent-room-id"/>
         <tag:param name="count" value="5"/>
+        <tag:param name="sort" value="SLOT_NEAREST"/>
     </tag:url>
     <tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
         <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
