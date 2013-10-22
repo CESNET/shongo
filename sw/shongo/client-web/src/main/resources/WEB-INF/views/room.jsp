@@ -19,7 +19,7 @@
 </tag:url>
 
 <script type="text/javascript">
-    angular.module('jsp:room', ['ngTooltip']);
+    angular.module('jsp:room', ['ngTooltip', 'ngPagination']);
 
     function MoreDetailController($scope) {
         $scope.show = false;
@@ -175,143 +175,163 @@
     </c:if>
 
     <%-- Runtime management - Current Participants --%>
-    <c:if test="${roomParticipants != null}">
-        <h2><spring:message code="views.room.currentParticipants"/></h2>
-        <p><spring:message code="views.room.currentParticipants.help"/></p>
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th><spring:message code="views.room.currentParticipant.name"/></th>
-                <c:if test="${room.technology == 'H323_SIP'}">
-                    <th style="min-width: 150px; width: 150px;">
-                        <spring:message code="views.room.currentParticipant.preview"/>
-                    </th>
-                </c:if>
-                <c:if test="${room.technology == 'ADOBE_CONNECT'}">
-                    <th><spring:message code="views.room.currentParticipant.email"/></th>
-                </c:if>
-                <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
-            </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${roomParticipants}" var="participant" varStatus="status">
-                <c:set var="user" value="${participant.userId != null ? cacheProvider.getUserInformation(participant.userId): null}"/>
+    <c:if test="${room.available}">
+        <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA%>" var="roomParticipantsUrl">
+            <tag:param name="roomId" value=":id"/>
+        </tag:url>
+        <div ng-controller="PaginationController"
+             ng-init="init('reservationRequestDetail.permanentRoomUsages', '${roomParticipantsUrl}', {id: '${room.id}'})">
+            <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+            <spring:message code="views.button.refresh" var="paginationRefresh"/>
+            <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
+            <h2><spring:message code="views.room.currentParticipants"/></h2>
+            <p><spring:message code="views.room.currentParticipants.help"/></p>
+            <div class="spinner" ng-hide="ready || errorContent"></div>
+            <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
+            <table class="table table-striped table-hover" ng-show="ready">
+                <thead>
                 <tr>
-                    <td>
-                        ${user != null ? user.fullName : participant.displayName}
+                    <th><spring:message code="views.room.currentParticipant.name"/></th>
+                    <c:if test="${room.technology == 'H323_SIP'}">
+                        <th style="min-width: 150px; width: 150px;">
+                            <spring:message code="views.room.currentParticipant.preview"/>
+                        </th>
+                    </c:if>
+                    <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+                        <th><spring:message code="views.room.currentParticipant.email"/></th>
+                    </c:if>
+                    <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="roomParticipant in items">
+                    <td>{{roomParticipant.name}}
                     </td>
                     <c:if test="${room.technology == 'H323_SIP'}">
                         <td>
-                            <c:if test="${participant.videoSnapshot}">
+                            <span ng-show="roomParticipant.videoSnapshot">
                                 <tag:url var="participantVideoSnapshotUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT %>">
                                     <tag:param name="roomId" value="${room.id}"/>
-                                    <tag:param name="participantId" value="${participant.id}"/>
+                                    <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                                 </tag:url>
-                                <img src="${participantVideoSnapshotUrl}" style="height: 40px;"/>
-                            </c:if>
+                                <img ng-src="${participantVideoSnapshotUrl}" style="height: 40px;"/>
+                            </span>
                         </td>
                     </c:if>
                     <c:if test="${room.technology == 'ADOBE_CONNECT'}">
                         <td>
-                            ${user.primaryEmail}
+                            {{romParticipant.email}}
                         </td>
                     </c:if>
                     <td>
-                        <c:if test="${participant.audioMuted != null}">
+                        <span ng-show="roomParticipant.audioMuted != null">
                             <tag:url var="toggleParticipantAudioMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED %>">
                                 <tag:param name="roomId" value="${room.id}"/>
-                                <tag:param name="participantId" value="${participant.id}"/>
+                                <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                             </tag:url>
-                            <spring:message var="toggleParticipantAudioMutedTitle" code="views.room.currentParticipant.audioMuted.${participant.audioMuted ? 'enable' : 'disable'}"/>
-                            <a href="${toggleParticipantAudioMutedUrl}" title="${toggleParticipantAudioMutedTitle}"><i class="icon-volume-${participant.audioMuted ? "off" : "up"}"></i></a>&nbsp;
-                        </c:if>
-                        <c:if test="${participant.videoMuted != null}">
+                            <spring:message var="participantAudioMuteTitle" code="views.room.currentParticipant.audioMuted.disable"/>
+                            <spring:message var="participantAudioUnMuteTitle" code="views.room.currentParticipant.audioMuted.enable"/>
+                            <a href="${toggleParticipantAudioMutedUrl}" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
+                        </span>
+                        <span ng-show="roomParticipant.videoMuted != null">
                             <tag:url var="toggleParticipantVideoMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED %>">
                                 <tag:param name="roomId" value="${room.id}"/>
-                                <tag:param name="participantId" value="${participant.id}"/>
+                                <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                             </tag:url>
-                            <spring:message var="toggleParticipantVideoMutedTitle" code="views.room.currentParticipant.videoMuted.${participant.videoMuted ? 'enable' : 'disable'}"/>
-                            <a href="${toggleParticipantVideoMutedUrl}" title="${toggleParticipantVideoMutedTitle}"><i class="icon-eye-${participant.videoMuted ? "close" : "open"}"></i></a>&nbsp;
-                        </c:if>
+                            <spring:message var="participantVideoMuteTitle" code="views.room.currentParticipant.videoMuted.disable"/>
+                            <spring:message var="participantVideoUnMuteTitle" code="views.room.currentParticipant.videoMuted.enable"/>
+                            <a href="${toggleParticipantVideoMutedUrl}" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-eye-{{roomParticipant.videoMuted ? 'close' : 'open'}}"></i></a>&nbsp;
+                        </span>
                         <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
                             <tag:param name="roomId" value="${room.id}"/>
-                            <tag:param name="participantId" value="${participant.id}"/>
+                            <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                         </tag:url>
                         <tag:listAction code="disconnect" url="${disconnectParticipantUrl}"/>
                     </td>
                 </tr>
-            </c:forEach>
-            <c:if test="${roomParticipants.isEmpty()}">
-                <tr>
-                    <td colspan="3" class="empty"><spring:message code="views.list.none"/></td>
+                </tbody>
+                <tbody>
+                <tr ng-hide="items.length">
+                    <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
-            </c:if>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </c:if>
 
     <%-- Runtime management - Recordings --%>
-    <c:if test="${roomRecordings != null}">
-        <h2><spring:message code="views.room.recordings"/></h2>
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th><spring:message code="views.room.recording.name"/></th>
-                <th><spring:message code="views.room.recording.uploaded"/></th>
-                <th><spring:message code="views.room.recording.duration"/></th>
-                <th>
-                    <c:choose>
-                        <c:when test="${isWritable}">
-                            <spring:message code="views.room.recording.editableUrl"/>
-                        </c:when>
-                        <c:otherwise>
-                            <spring:message code="views.room.recording.url"/>
-                        </c:otherwise>
-                    </c:choose>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${roomRecordings}" var="recording" varStatus="status">
+    <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+        <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA %>" var="roomRecordingsUrl">
+            <tag:param name="roomId" value=":id"/>
+        </tag:url>
+        <div ng-controller="PaginationController"
+             ng-init="init('reservationRequestDetail.permanentRoomUsages', '${roomRecordingsUrl}', {id: '${room.id}'})">
+            <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+            <spring:message code="views.button.refresh" var="paginationRefresh"/>
+            <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
+            <h2><spring:message code="views.room.recordings"/></h2>
+            <div class="spinner" ng-hide="ready || errorContent"></div>
+            <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
+            <table class="table table-striped table-hover" ng-show="ready">
+                <thead>
                 <tr>
-                    <td>
+                    <th><spring:message code="views.room.recording.name"/></th>
+                    <th><spring:message code="views.room.recording.uploaded"/></th>
+                    <th><spring:message code="views.room.recording.duration"/></th>
+                    <th>
                         <c:choose>
-                            <c:when test="${not empty recording.description}">
-                                <tag:help label="${recording.name}">
-                                    <strong><spring:message code="views.room.recording.description"/>:</strong>
-                                    ${recording.description}
-                                </tag:help>
+                            <c:when test="${isWritable}">
+                                <spring:message code="views.room.recording.editableUrl"/>
                             </c:when>
                             <c:otherwise>
-                                ${recording.name}
+                                <spring:message code="views.room.recording.url"/>
                             </c:otherwise>
                         </c:choose>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="roomRecording in items">
+                    <td>
+                        <span ng-show="roomRecording.description">
+                            <tag:help label="{{roomRecording.name}}">
+                                <strong><spring:message code="views.room.recording.description"/>:</strong>
+                                {{roomRecording.description}}
+                            </tag:help>
+                        </span>
+                        <span ng-hide="roomRecording.description">
+                            {{roomRecording.name}}
+                        </span>
                     </td>
                     <td>
-                        <tag:format value="${recording.beginDate}"/>
+                        {{roomRecording.beginDate}}
                     </td>
                     <td>
-                        <tag:format value="${recording.duration}" style="time"/>
+                        {{roomRecording.duration}}
                     </td>
                     <td>
                         <c:choose>
                             <c:when test="${isWritable}">
-                                <a href="${recording.editableUrl}" target="_blank">${recording.editableUrl}</a>
+                                <a href="{{roomRecording.editableUrl}}" target="_blank">{{roomRecording.editableUrl}}</a>
                             </c:when>
                             <c:otherwise>
-                                <a href="${recording.url}" target="_blank">${recording.url}</a>
+                                <a href="{{roomRecording.url}}" target="_blank">{{roomRecording.url}}</a>
                             </c:otherwise>
                         </c:choose>
                     </td>
                 </tr>
-            </c:forEach>
-            <c:if test="${roomRecordings.isEmpty()}">
-                <tr>
+                </tbody>
+                <tbody>
+                <tr ng-hide="items.length">
                     <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
-            </c:if>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </c:if>
 </div>
 
