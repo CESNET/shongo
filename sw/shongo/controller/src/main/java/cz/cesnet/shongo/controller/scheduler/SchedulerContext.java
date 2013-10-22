@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
@@ -16,6 +15,7 @@ import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -779,8 +779,30 @@ public class SchedulerContext
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, requestedSlot);
             applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+            RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>() {
+                @Override
+                protected Bucket createBucket(DateTime rangeValue)
+                {
+                    return new RoomBucket(rangeValue);
+                }
+            };
             for (RoomReservation roomReservation : roomReservations) {
-                usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
+                rangeSet.add(roomReservation, roomReservation.getSlotStart(), roomReservation.getSlotEnd());
+            }
+
+            List<RoomBucket> roomBuckets = new LinkedList<RoomBucket>();
+            roomBuckets.addAll(rangeSet.getBuckets(requestedSlot.getStart(), requestedSlot.getEnd(), RoomBucket.class));
+            Collections.sort(roomBuckets, new Comparator<RoomBucket>()
+            {
+                @Override
+                public int compare(RoomBucket roomBucket1, RoomBucket roomBucket2)
+                {
+                    return -Double.compare(roomBucket1.getLicenseCount(), roomBucket2.getLicenseCount());
+                }
+            });
+            if (roomBuckets.size() > 0) {
+                RoomBucket roomBucket = roomBuckets.get(0);
+                usedLicenseCount = roomBucket.getLicenseCount();
             }
         }
         else {
@@ -947,6 +969,46 @@ public class SchedulerContext
     }
 
     /**
+     * @param allocation
+     * @return {@link Reservation} which can be reused from given {@code allocation} for {@link #requestedSlot}
+     * @throws SchedulerException
+     */
+    public Reservation getReusableReservation(Allocation allocation)
+            throws SchedulerException
+    {
+        AbstractReservationRequest reservationRequest = allocation.getReservationRequest();
+
+        // Find reusable reservation
+        Reservation reusableReservation = null;
+        Interval reservationInterval = null;
+        for (Reservation reservation : allocation.getReservations()) {
+            reservationInterval = reservation.getSlot();
+            if (reservationInterval.contains(requestedSlot)) {
+                reusableReservation = reservation;
+                break;
+            }
+        }
+        if (reusableReservation == null) {
+            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest, reservationInterval);
+        }
+
+        // Check the reusable reservation
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<ExistingReservation> existingReservations =
+                reservationManager.getExistingReservations(reusableReservation, requestedSlot);
+        applyAvailableReservations(existingReservations);
+        if (existingReservations.size() > 0) {
+            ExistingReservation existingReservation = existingReservations.get(0);
+            Interval usageSlot = existingReservation.getSlot();
+            Reservation usageReservation = existingReservation.getTopReservation();
+            AbstractReservationRequest usageReservationRequest = usageReservation.getReservationRequest();
+            throw new SchedulerReportSet.ReservationAlreadyUsedException(reusableReservation, reservationRequest,
+                    usageReservationRequest, usageSlot);
+        }
+        return reusableReservation;
+    }
+
+    /**
      * Type of objects in the {@link Savepoint#changes}
      */
     private static enum ObjectType
@@ -985,42 +1047,56 @@ public class SchedulerContext
     }
 
     /**
-     * @param allocation
-     * @return {@link Reservation} which can be reused from given {@code allocation} for {@link #requestedSlot}
-     * @throws SchedulerException
+     * {@link RangeSet.Bucket} for {@link RoomReservation}s.
      */
-    public Reservation getReusableReservation(Allocation allocation)
-            throws SchedulerException
+    private static class RoomBucket extends RangeSet.Bucket<DateTime, RoomReservation>
     {
-        AbstractReservationRequest reservationRequest = allocation.getReservationRequest();
+        /**
+         * Sum of {@link RoomReservation#getRoomConfiguration()#getLicenseCount()}
+         */
+        private int licenseCount = 0;
 
-        // Find reusable reservation
-        Reservation reusableReservation = null;
-        Interval reservationInterval = null;
-        for (Reservation reservation : allocation.getReservations()) {
-            reservationInterval = reservation.getSlot();
-            if (reservationInterval.contains(requestedSlot)) {
-                reusableReservation = reservation;
-                break;
+        /**
+         * Constructor.
+         *
+         * @param rangeValue
+         */
+        public RoomBucket(DateTime rangeValue)
+        {
+            super(rangeValue);
+        }
+
+        /**
+         * @return {@link #licenseCount}
+         */
+        private int getLicenseCount()
+        {
+            return licenseCount;
+        }
+
+        @Override
+        public boolean add(RoomReservation roomReservation)
+        {
+            if (super.add(roomReservation)) {
+                this.licenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
+                return true;
+            }
+            else {
+                return false;
             }
         }
-        if (reusableReservation == null) {
-            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest, reservationInterval);
-        }
 
-        // Check the reusable reservation
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(reusableReservation, requestedSlot);
-        applyAvailableReservations(existingReservations);
-        if (existingReservations.size() > 0) {
-            ExistingReservation existingReservation = existingReservations.get(0);
-            Interval usageSlot = existingReservation.getSlot();
-            Reservation usageReservation = existingReservation.getTopReservation();
-            AbstractReservationRequest usageReservationRequest = usageReservation.getReservationRequest();
-            throw new SchedulerReportSet.ReservationAlreadyUsedException(reusableReservation, reservationRequest,
-                    usageReservationRequest, usageSlot);
+        @Override
+        public boolean remove(Object object)
+        {
+            if (super.remove(object)) {
+                RoomReservation roomReservation = (RoomReservation) object;
+                this.licenseCount -= roomReservation.getRoomConfiguration().getLicenseCount();
+                return true;
+            }
+            else {
+                return false;
+            }
         }
-        return reusableReservation;
     }
 }

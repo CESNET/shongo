@@ -21,10 +21,62 @@ import java.util.*;
 public class AvailableRoomTest extends AbstractSchedulerTest
 {
     @Test
-    public void test() throws Exception
+    public void testSingleDevice() throws Exception
     {
-        EntityManager entityManager = getEntityManager();
+        // -----------------------------------------------------
+        // Create one MCU and allocate some virtual rooms on it
+        // -----------------------------------------------------
+        DeviceResource mcu = new DeviceResource();
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.ADOBE_CONNECT);
+        mcu.addCapability(new RoomProviderCapability(50));
+        mcu.setAllocatable(true);
+        createResource(mcu);
 
+        RoomReservation room1 = new RoomReservation();
+        room1.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
+        room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
+        room1.getRoomConfiguration().setLicenseCount(10);
+        createReservation(room1);
+
+        RoomReservation room2 = new RoomReservation();
+        room2.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
+        room2.setSlot(DateTime.parse("5"), DateTime.parse("50"));
+        room2.getRoomConfiguration().setLicenseCount(20);
+        createReservation(room2);
+
+        RoomReservation room3 = new RoomReservation();
+        room3.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
+        room3.setSlot(DateTime.parse("50"), DateTime.parse("95"));
+        room3.getRoomConfiguration().setLicenseCount(30);
+        createReservation(room3);
+
+        RoomReservation room4 = new RoomReservation();
+        room4.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
+        room4.setSlot(DateTime.parse("10"), DateTime.parse("40"));
+        room4.getRoomConfiguration().setLicenseCount(5);
+        createReservation(room4);
+
+        RoomReservation room5 = new RoomReservation();
+        room5.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
+        room5.setSlot(DateTime.parse("60"), DateTime.parse("90"));
+        room5.getRoomConfiguration().setLicenseCount(5);
+        createReservation(room5);
+
+        // -----------------------------
+        // Test available virtual rooms
+        // -----------------------------
+
+        checkAvailableRoom(Interval.parse("20/30"), 15);
+        checkAvailableRoom(Interval.parse("70/90"), 5);
+        checkAvailableRoom(Interval.parse("1/100"), 5);
+        checkAvailableRoom(Interval.parse("1/5"), 40);
+        checkAvailableRoom(Interval.parse("95/100"), 40);
+    }
+
+    @Test
+    public void testMultipleDevices() throws Exception
+    {
         // -----------------------------------------------------
         // Create two MCUs and allocate some virtual rooms on it
         // -----------------------------------------------------
@@ -121,7 +173,7 @@ public class AvailableRoomTest extends AbstractSchedulerTest
      * @param technologies
      * @return list of {@link AvailableRoom}
      */
-    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
+    private List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Set<Technology> technologies)
     {
         Cache cache = getCache();
@@ -139,7 +191,7 @@ public class AvailableRoomTest extends AbstractSchedulerTest
     /**
      * @see {@link #findAvailableRooms}
      */
-    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
+    private List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Technology[] technologies)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
@@ -150,9 +202,23 @@ public class AvailableRoomTest extends AbstractSchedulerTest
     /**
      * @see {@link #findAvailableRooms}
      */
-    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount)
+    private List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount)
     {
         return findAvailableRooms(interval, requiredLicenseCount, (Set<Technology>) null);
+    }
+
+    /**
+     * Check available room license count.
+     *
+     * @param interval
+     * @param availableLicenseCount
+     */
+    private void checkAvailableRoom(Interval interval, int availableLicenseCount)
+    {
+        List<AvailableRoom> availableRooms = findAvailableRooms(interval, 0);
+        Assert.assertEquals(1, availableRooms.size());
+        AvailableRoom availableRoom = availableRooms.get(0);
+        Assert.assertEquals(availableLicenseCount, availableRoom.getAvailableLicenseCount());
     }
 
     private void sortResult(List<AvailableRoom> result)

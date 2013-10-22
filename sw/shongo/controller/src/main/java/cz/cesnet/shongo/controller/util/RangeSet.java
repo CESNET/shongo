@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.util;
 
+import org.joda.time.DateTime;
+
 import java.util.*;
 
 /**
@@ -42,7 +44,7 @@ public class RangeSet<V, R> implements Iterable<V>
         R floor = bucketMap.floorKey(start);
         R ceiling = bucketMap.ceilingKey(end);
         if (!start.equals(floor)) {
-            Bucket<R, V> newBucket = new Bucket<R, V>(start);
+            Bucket<R, V> newBucket = createBucket(start);
             newBucket.addOwnerValue(value);
             bucketMap.put(start, newBucket);
             if (floor != null) {
@@ -55,7 +57,7 @@ public class RangeSet<V, R> implements Iterable<V>
             bucketMap.get(start).addOwnerValue(value);
         }
         if (!end.equals(ceiling)) {
-            Bucket<R, V> newBucket = new Bucket<R, V>(end);
+            Bucket<R, V> newBucket = createBucket(end);
             newBucket.addOwnerValue(value);
             bucketMap.put(end, newBucket);
             if (ceiling != null) {
@@ -79,6 +81,7 @@ public class RangeSet<V, R> implements Iterable<V>
 
         return true;
     }
+
 
     /**
      * Remove owner value from bucket and if bucket hasn't any owner remove it from the set.
@@ -164,6 +167,39 @@ public class RangeSet<V, R> implements Iterable<V>
     }
 
     /**
+     * @param start
+     * @param end
+     * @return collection of {@link Bucket}s the given range
+     */
+    public <B extends Bucket<R, V>> Collection<B> getBuckets(R start, R end, Class<B> bucketClass)
+    {
+        if (!bucketMap.isEmpty()) {
+            R floor = bucketMap.floorKey(start);
+            R ceiling = bucketMap.ceilingKey(end);
+            if (floor == null) {
+                floor = bucketMap.firstKey();
+            }
+            if (ceiling == null) {
+                ceiling = bucketMap.lastKey();
+            }
+            NavigableMap<R, Bucket<R, V>> subMap = bucketMap.subMap(floor, true, ceiling, false);
+            return (Collection<B>) subMap.values();
+        }
+        else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * @param rangeValue
+     * @return new instance of {@link Bucket}
+     */
+    protected Bucket<R, V> createBucket(R rangeValue)
+    {
+        return new Bucket<R, V>(rangeValue);
+    }
+
+    /**
      * @return collection of buckets from the set
      */
     protected Collection<Bucket<R, V>> getBuckets()
@@ -215,7 +251,7 @@ public class RangeSet<V, R> implements Iterable<V>
      * @param <R>
      * @param <V>
      */
-    protected static class Bucket<R, V> extends HashSet<V>
+    public static class Bucket<R, V> extends HashSet<V>
     {
         /**
          * Starting range value.
