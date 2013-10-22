@@ -13,8 +13,10 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -61,6 +63,9 @@ public class RoomController
 
     @Resource
     private ResourceControlService resourceControlService;
+
+    @Resource
+    private AuthorizationService authorizationService;
 
     @Resource
     private Cache cache;
@@ -197,6 +202,7 @@ public class RoomController
                     Collection<RoomParticipant> participants = resourceControlService.listRoomParticipants(securityToken,
                             resourceId, roomId);
                     model.addAttribute("roomParticipants", participants);
+                    model.addAttribute("cacheProvider", new CacheProvider(cache, securityToken));
                 }
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
@@ -207,7 +213,17 @@ public class RoomController
         // Reservation request for room
         String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
         model.addAttribute("reservationRequestId", reservationRequestId);
-        model.addAttribute("cacheProvider", new CacheProvider(cache, securityToken));
+
+        // Add use roles
+        // Add user roles
+        AclRecordListRequest userRoleRequest = new AclRecordListRequest();
+        userRoleRequest.setSecurityToken(securityToken);
+        userRoleRequest.addEntityId(reservationRequestId);
+        List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
+        for (AclRecord aclRecord : authorizationService.listAclRecords(userRoleRequest)) {
+            userRoles.add(new UserRoleModel(aclRecord, cacheProvider));
+        }
+        model.addAttribute("userRoles", userRoles);
 
         return "room";
     }
@@ -293,7 +309,7 @@ public class RoomController
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANTS, method = RequestMethod.GET)
-    public String handleRoomParticipants(
+    public String handleRoomParticipantList(
             UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String executableId,
@@ -310,7 +326,7 @@ public class RoomController
                 roomExecutable, cacheProvider, messageProvider, executableService, userSession);
         roomModel.disableDependentParticipants();
         model.addAttribute("room", roomModel);
-        return "roomParticipants";
+        return "roomParticipantList";
     }
 
         /**

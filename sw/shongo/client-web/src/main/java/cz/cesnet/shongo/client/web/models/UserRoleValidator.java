@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.controller.api.AclRecord;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 /**
- * {@link Validator} for {@link AclRecord}.
+ * {@link Validator} for {@link UserRoleModel}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

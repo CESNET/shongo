@@ -1,5 +1,5 @@
 <%--
-  -- Page for displaying details about a single reservation request.
+  -- Page for configuration of room participants.
   --%>
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" %>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
@@ -9,28 +9,15 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <script type="text/javascript">
-    angular.module('jsp:roomParticipants', ['ngTooltip']);
-
-    function MoreDetailController($scope) {
-        $scope.show = false;
-    }
+    angular.module('jsp:roomParticipantList', ['ngTooltip']);
 </script>
 
 <h1>
-    <c:choose>
-        <c:when test="${room.type == 'PERMANENT_ROOM'}">
-            <spring:message code="views.roomParticipants.heading" arguments="${room.name}"/>
-        </c:when>
-        <c:when test="${room.type == 'USED_ROOM'}">
-            <spring:message code="views.roomParticipants.headingCapacity" arguments="${room.name}"/>
-        </c:when>
-        <c:otherwise>
-            <spring:message code="views.roomParticipants.headingAdhoc"/>
-        </c:otherwise>
-    </c:choose>
+    <spring:message code="views.roomParticipantList.heading"/>
+    <spring:message code="views.room.for.${room.type}" arguments="${room.name}"/>
 </h1>
 
-<div ng-app="jsp:roomParticipants">
+<div ng-app="jsp:roomParticipantList">
 
     <p><spring:message code="views.room.participants.help"/></p>
     <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">

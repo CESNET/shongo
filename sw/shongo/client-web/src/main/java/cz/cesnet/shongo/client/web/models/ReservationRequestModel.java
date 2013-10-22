@@ -560,6 +560,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
         }
         permanentRoomReservationRequest = cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
+        roomName = permanentRoomReservationRequest.getRoomName();
         addPermanentRoomParticipants();
     }
 

@@ -17,9 +17,9 @@
 <c:set var="tableHead">
     <thead>
     <tr>
-        <th><spring:message code="views.aclRecord.user"/></th>
-        <th><spring:message code="views.aclRecord.role"/></th>
-        <th><spring:message code="views.aclRecord.email"/></th>
+        <th><spring:message code="views.userRole.user"/></th>
+        <th><spring:message code="views.userRole.role"/></th>
+        <th><spring:message code="views.userRole.email"/></th>
         <c:if test="${isWritable && not empty deleteUrl}">
             <th style="min-width: 85px; width: 85px;">
                 <spring:message code="views.list.action"/>
@@ -44,7 +44,7 @@
                 </tag:url>
                 <tr>
                     <td>${userRole.user.fullName} (${userRole.user.originalId})</td>
-                    <td><spring:message code="views.aclRecord.role.${userRole.role}"/></td>
+                    <td><spring:message code="views.userRole.role.${userRole.role}"/></td>
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>

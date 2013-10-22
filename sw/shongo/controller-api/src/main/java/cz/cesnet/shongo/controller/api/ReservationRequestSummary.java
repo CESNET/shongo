@@ -64,16 +64,6 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private ExecutableState executableState;
 
     /**
-     * @see cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification
-     */
-    private Specification specification;
-
-    /**
-     * Technologies which are .
-     */
-    private Set<Technology> specificationTechnologies = new HashSet<Technology>();
-
-    /**
      * Reused reservation request identifier.
      */
     private String reusedReservationRequestId;
@@ -88,6 +78,31 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * reservation request and whose slot is active.
      */
     private ExecutableState usageExecutableState;
+
+    /**
+     * @see SpecificationType
+     */
+    private SpecificationType specificationType;
+
+    /**
+     * Technologies which are .
+     */
+    private Set<Technology> specificationTechnologies = new HashSet<Technology>();
+
+    /**
+     * Specification {@link Resource#getId()}
+     */
+    private String resourceId;
+
+    /**
+     * Specification participant count for the room.
+     */
+    private Integer roomParticipantCount;
+
+    /**
+     * Specification name of the room.
+     */
+    private String roomName;
 
     /**
      * @return {@link #type}
@@ -234,46 +249,6 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #specification}
-     */
-    public Specification getSpecification()
-    {
-        return specification;
-    }
-
-    /**
-     * @param specification sets the {@link #specification}
-     */
-    public void setSpecification(Specification specification)
-    {
-        this.specification = specification;
-    }
-
-    /**
-     * @return {@link #specificationTechnologies}
-     */
-    public Set<Technology> getSpecificationTechnologies()
-    {
-        return specificationTechnologies;
-    }
-
-    /**
-     * @param specificationTechnologies sets the {@link #specificationTechnologies}
-     */
-    public void setSpecificationTechnologies(Set<Technology> specificationTechnologies)
-    {
-        this.specificationTechnologies = specificationTechnologies;
-    }
-
-    /**
-     * @param technology to be added to the {@link #specificationTechnologies}
-     */
-    public void addSpecificationTechnology(Technology technology)
-    {
-        this.specificationTechnologies.add(technology);
-    }
-
-    /**
      * @return {@link #reusedReservationRequestId}
      */
     public String getReusedReservationRequestId()
@@ -321,6 +296,94 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         this.usageExecutableState = usageExecutableState;
     }
 
+    /**
+     * @return {@link #specificationType}
+     */
+    public SpecificationType getSpecificationType()
+    {
+        return specificationType;
+    }
+
+    /**
+     * @param specificationType sets the {@link #specificationType}
+     */
+    public void setSpecificationType(SpecificationType specificationType)
+    {
+        this.specificationType = specificationType;
+    }
+
+    /**
+     * @return {@link #specificationTechnologies}
+     */
+    public Set<Technology> getSpecificationTechnologies()
+    {
+        return specificationTechnologies;
+    }
+
+    /**
+     * @param specificationTechnologies sets the {@link #specificationTechnologies}
+     */
+    public void setSpecificationTechnologies(Set<Technology> specificationTechnologies)
+    {
+        this.specificationTechnologies = specificationTechnologies;
+    }
+
+    /**
+     * @param technology to be added to the {@link #specificationTechnologies}
+     */
+    public void addSpecificationTechnology(Technology technology)
+    {
+        this.specificationTechnologies.add(technology);
+    }
+
+    /**
+     * @return {@link #resourceId}
+     */
+    public String getResourceId()
+    {
+        return resourceId;
+    }
+
+    /**
+     * @param resourceId sets the {@link #resourceId}
+     */
+    public void setResourceId(String resourceId)
+    {
+        this.resourceId = resourceId;
+    }
+
+    /**
+     * @return {@link #roomParticipantCount}
+     */
+    public Integer getRoomParticipantCount()
+    {
+        return roomParticipantCount;
+    }
+
+    /**
+     * @param roomParticipantCount sets the {@link #roomParticipantCount}
+     */
+    public void setRoomParticipantCount(Integer roomParticipantCount)
+    {
+        this.roomParticipantCount = roomParticipantCount;
+    }
+
+    /**
+     * @return {@link #roomName}
+     */
+    public String getRoomName()
+    {
+        return roomName;
+    }
+
+    /**
+     * @param roomName sets the {@link #roomName}
+     */
+    public void setRoomName(String roomName)
+    {
+        this.roomName = roomName;
+    }
+
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
     private static final String USER_ID = "userId";
@@ -330,11 +393,14 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String FUTURE_SLOT_COUNT = "futureSlotCount";
     private static final String ALLOCATION_STATE = "allocationState";
     private static final String EXECUTABLE_STATE = "executableState";
-    private static final String SPECIFICATION = "specification";
-    private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String LAST_RESERVATION_ID = "lastReservationId";
     private static final String USAGE_EXECUTABLE_STATE = "usageExecutableState";
+    private static final String SPECIFICATION_TYPE = "specificationType";
+    private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
+    private static final String RESOURCE_ID = "resourceId";
+    private static final String ROOM_PARTICIPANT_COUNT = "roomParticipantCount";
+    private static final String ROOM_NAME = "roomName";
 
     @Override
     public DataMap toData()
@@ -349,11 +415,14 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(FUTURE_SLOT_COUNT, futureSlotCount);
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(EXECUTABLE_STATE, executableState);
-        dataMap.set(SPECIFICATION, specification);
-        dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(LAST_RESERVATION_ID, lastReservationId);
         dataMap.set(USAGE_EXECUTABLE_STATE, usageExecutableState);
+        dataMap.set(SPECIFICATION_TYPE, specificationType);
+        dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
+        dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(ROOM_PARTICIPANT_COUNT, roomParticipantCount);
+        dataMap.set(ROOM_NAME, roomName);
         return dataMap;
     }
 
@@ -370,173 +439,24 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         futureSlotCount = dataMap.getInteger(FUTURE_SLOT_COUNT);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         executableState = dataMap.getEnum(EXECUTABLE_STATE, ExecutableState.class);
-        specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
-        specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         lastReservationId = dataMap.getString(LAST_RESERVATION_ID);
         usageExecutableState = dataMap.getEnum(USAGE_EXECUTABLE_STATE, ExecutableState.class);
+        specificationType = dataMap.getEnum(SPECIFICATION_TYPE, SpecificationType.class);
+        specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
+        resourceId = dataMap.getString(RESOURCE_ID);
+        roomParticipantCount = dataMap.getInteger(ROOM_PARTICIPANT_COUNT);
+        roomName = dataMap.getString(ROOM_NAME);
     }
 
     /**
-     * Type of {@link AbstractReservationRequest}.
+     * Type of specification for {@link ReservationRequestSummary}.
      */
-    public abstract static class Specification extends IdentifiedComplexType
+    public static enum SpecificationType
     {
-    }
-
-    /**
-     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a resource.
-     */
-    public static class ResourceSpecification extends Specification
-    {
-        /**
-         * {@link Resource#getId()}
-         */
-        private String resourceId;
-
-        /**
-         * @return {@link #resourceId}
-         */
-        public String getResourceId()
-        {
-            return resourceId;
-        }
-
-        /**
-         * @param resourceId sets the {@link #resourceId}
-         */
-        public void setResourceId(String resourceId)
-        {
-            this.resourceId = resourceId;
-        }
-
-        private static final String RESOURCE_ID = "resourceId";
-
-        @Override
-        public DataMap toData()
-        {
-            DataMap dataMap = super.toData();
-            dataMap.set(RESOURCE_ID, resourceId);
-            return dataMap;
-        }
-
-        @Override
-        public void fromData(DataMap dataMap)
-        {
-            super.fromData(dataMap);
-            resourceId = dataMap.getString(RESOURCE_ID);
-        }
-    }
-
-    /**
-     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a virtual room.
-     */
-    public static class RoomSpecification extends Specification
-    {
-        /**
-         * Requested participant count for the room.
-         */
-        private Integer participantCount;
-
-        /**
-         * @return {@link #participantCount}
-         */
-        public Integer getParticipantCount()
-        {
-            return participantCount;
-        }
-
-        /**
-         * @param participantCount sets the {@link #participantCount}
-         */
-        public void setParticipantCount(Integer participantCount)
-        {
-            this.participantCount = participantCount;
-        }
-
-        private static final String PARTICIPANT_COUNT = "participantCount";
-
-        @Override
-        public DataMap toData()
-        {
-            DataMap dataMap = super.toData();
-            dataMap.set(PARTICIPANT_COUNT, participantCount);
-            return dataMap;
-        }
-
-        @Override
-        public void fromData(DataMap dataMap)
-        {
-            super.fromData(dataMap);
-            participantCount = dataMap.getInteger(PARTICIPANT_COUNT);
-        }
-    }
-
-    /**
-     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a {@link Alias}.
-     */
-    public static class AliasSpecification extends Specification
-    {
-        /**
-         * Requested {@link cz.cesnet.shongo.AliasType} for the {@link Alias}.
-         */
-        private cz.cesnet.shongo.AliasType aliasType;
-
-        /**
-         * Requested value for the {@link Alias}.
-         */
-        private String value;
-
-        /**
-         * @return {@link #aliasType}
-         */
-        public AliasType getAliasType()
-        {
-            return aliasType;
-        }
-
-        /**
-         * @param aliasType sets the {@link #aliasType}
-         */
-        public void setAliasType(AliasType aliasType)
-        {
-            this.aliasType = aliasType;
-        }
-
-        /**
-         * @return {@link #value}
-         */
-        public String getValue()
-        {
-            return value;
-        }
-
-        /**
-         * @param value sets the {@link #value}
-         */
-        public void setValue(String value)
-        {
-            this.value = value;
-        }
-
-        private static final String ALIAS_TYPE = "aliasType";
-        private static final String VALUE = "value";
-
-        @Override
-        public DataMap toData()
-        {
-            DataMap dataMap = super.toData();
-            dataMap.set(ALIAS_TYPE, aliasType);
-            dataMap.set(VALUE, value);
-            return dataMap;
-        }
-
-        @Override
-        public void fromData(DataMap dataMap)
-        {
-            super.fromData(dataMap);
-            aliasType = dataMap.getEnum(ALIAS_TYPE, AliasType.class);
-            value = dataMap.getString(VALUE);
-        }
+        RESOURCE,
+        ROOM,
+        ALIAS,
+        OTHER
     }
 }

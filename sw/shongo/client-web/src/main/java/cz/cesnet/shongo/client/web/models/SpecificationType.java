@@ -54,20 +54,18 @@ public enum SpecificationType
      */
     public static SpecificationType fromReservationRequestSummary(ReservationRequestSummary reservationRequestSummary)
     {
-        ReservationRequestSummary.Specification specification = reservationRequestSummary.getSpecification();
-        if (specification instanceof ReservationRequestSummary.RoomSpecification) {
-            ReservationRequestSummary.RoomSpecification room =
-                    (ReservationRequestSummary.RoomSpecification) specification;
-            if (reservationRequestSummary.getReusedReservationRequestId() != null) {
-                return PERMANENT_ROOM_CAPACITY;
-            }
-            else {
-                return ADHOC_ROOM;
-            }
+        switch (reservationRequestSummary.getSpecificationType()) {
+            case ROOM:
+                if (reservationRequestSummary.getReusedReservationRequestId() != null) {
+                    return PERMANENT_ROOM_CAPACITY;
+                }
+                else {
+                    return ADHOC_ROOM;
+                }
+            case ALIAS:
+                return PERMANENT_ROOM;
+            default:
+                throw new TodoImplementException(reservationRequestSummary.getSpecificationType());
         }
-        else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
-            return PERMANENT_ROOM;
-        }
-        throw new TodoImplementException(specification.getClass());
     }
 }

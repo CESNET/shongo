@@ -89,12 +89,6 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/duplicate";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String RESERVATION_REQUEST_ROLES =
-            "/reservation-request/{reservationRequestId:.+}/roles";
-    public static final String RESERVATION_REQUEST_ROLE_CREATE =
-            "/reservation-request/{reservationRequestId:.+}/role/create";
-    public static final String RESERVATION_REQUEST_ROLE_DELETE =
-            "/reservation-request/{reservationRequestId:.+}/role/{roleId}/delete";
     public static final String RESERVATION_REQUEST_UPDATE =
             "/reservation-request/update";
     public static final String RESERVATION_REQUEST_PARTICIPANT_CREATE =
@@ -103,6 +97,15 @@ public class ClientWebUrl
             "/reservation-request/participant/{participantId}/modify";
     public static final String RESERVATION_REQUEST_PARTICIPANT_DELETE =
             "/reservation-request/participant/{participantId}/delete";
+
+    public static final String USER_ROLE_LIST =
+            "/user-role/{entityId:.+}/list";
+    public static final String USER_ROLE_LIST_DATA =
+            "/user-role/{entityId:.+}/list/data";
+    public static final String USER_ROLE_CREATE =
+            "/user-role/{entityId:.+}/create";
+    public static final String USER_ROLE_DELETE =
+            "/user-role/{entityId:.+}/{roleId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";

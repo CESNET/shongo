@@ -1062,28 +1062,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         String type = record[12].toString().trim();
         if (type.equals("ALIAS")) {
-            ReservationRequestSummary.AliasSpecification aliasSpecification =
-                    new ReservationRequestSummary.AliasSpecification();
-            aliasSpecification.setAliasType(AliasType.ROOM_NAME);
-            aliasSpecification.setValue(record[15] != null ? record[15].toString() : null);
-            reservationRequestSummary.setSpecification(aliasSpecification);
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ALIAS);
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("ROOM")) {
-            ReservationRequestSummary.RoomSpecification roomSpecification =
-                    new ReservationRequestSummary.RoomSpecification();
-            if (record[14] != null) {
-                roomSpecification.setParticipantCount(((Number) record[14]).intValue());
-            }
-            reservationRequestSummary.setSpecification(roomSpecification);
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
+            reservationRequestSummary.setRoomParticipantCount(((Number) record[14]).intValue());
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("RESOURCE")) {
-            ReservationRequestSummary.ResourceSpecification resourceSpecification =
-                    new ReservationRequestSummary.ResourceSpecification();
-            if (record[16] != null) {
-                resourceSpecification.setResourceId(EntityIdentifier.formatId(
-                        EntityType.RESOURCE, ((Number) record[16]).longValue()));
-            }
-            reservationRequestSummary.setSpecification(resourceSpecification);
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
+            reservationRequestSummary.setResourceId(EntityIdentifier.formatId(
+                    EntityType.RESOURCE, ((Number) record[16]).longValue()));
+        }
+        else {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
         }
         if (record[13] != null) {
             String technologies = record[13].toString();

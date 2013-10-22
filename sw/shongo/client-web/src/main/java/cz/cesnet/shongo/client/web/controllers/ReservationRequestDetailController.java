@@ -9,9 +9,11 @@ import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -38,6 +40,9 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
     @Resource
     private ExecutableService executableService;
+
+    @Resource
+    private AuthorizationService authorizationService;
 
     @Resource
     private Cache cache;
@@ -154,6 +159,14 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, cacheProvider,
                 messageProvider, executableService, userSession);
+
+        // Add user roles
+        AclRecordListRequest userRoleRequest = new AclRecordListRequest();
+        userRoleRequest.setSecurityToken(securityToken);
+        userRoleRequest.addEntityId(reservationRequestId);
+        for (AclRecord aclRecord : authorizationService.listAclRecords(userRoleRequest)) {
+            reservationRequestModel.addUserRole(new UserRoleModel(aclRecord, cacheProvider));
+        }
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
@@ -382,11 +395,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 item.put("futureSlotCount", futureSlotCount);
             }
 
-            ReservationRequestSummary.RoomSpecification roomSpecification =
-                    (ReservationRequestSummary.RoomSpecification) reservationRequest.getSpecification();
-            if (roomSpecification != null) {
-                item.put("roomParticipantCount", roomSpecification.getParticipantCount());
-            }
+            item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
         }
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());

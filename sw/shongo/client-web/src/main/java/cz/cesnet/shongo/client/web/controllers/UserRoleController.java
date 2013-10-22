@@ -1,16 +1,21 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.SpecificationType;
+import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,8 +33,11 @@ import java.util.*;
  */
 @Controller
 @SessionAttributes({"userRole"})
-public class ReservationRequestRoleController
+public class UserRoleController
 {
+    @Resource
+    private ReservationService reservationService;
+
     @Resource
     private AuthorizationService authorizationService;
 
@@ -40,14 +48,38 @@ public class ReservationRequestRoleController
     private MessageSource messageSource;
 
     /**
-     * Handle data request for reservation request {@link UserRoleModel}s.
+     * Handle list of user roles view.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLES, method = RequestMethod.GET)
-    @ResponseBody
-    public Map handleRoles(
+    @RequestMapping(value = ClientWebUrl.USER_ROLE_LIST, method = RequestMethod.GET)
+    public ModelAndView handleListView(
             Locale locale,
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @PathVariable(value = "entityId") String entityId)
+    {
+        ModelAndView modelAndView = new ModelAndView("userRoleList");
+        modelAndView.addObject("entityId", entityId);
+        if (entityId.contains(":req:")) {
+            ReservationRequestSummary reservationRequest = cache.getReservationRequestSummary(securityToken, entityId);
+            SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
+            modelAndView.addObject("headingFor",
+                    messageSource.getMessage("views.reservationRequest.for." + specificationType,
+                            new Object[]{reservationRequest.getRoomName()}, locale));
+        }
+        else {
+            throw new UnsupportedApiException(entityId);
+        }
+        return modelAndView;
+    }
+
+    /**
+     * Handle data request for reservation request {@link UserRoleModel}s.
+     */
+    @RequestMapping(value = ClientWebUrl.USER_ROLE_LIST_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleListData(
+            Locale locale,
+            SecurityToken securityToken,
+            @PathVariable(value = "entityId") String entityId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
@@ -56,7 +88,7 @@ public class ReservationRequestRoleController
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        request.addEntityId(reservationRequestId);
+        request.addEntityId(entityId);
         ListResponse<AclRecord> response = authorizationService.listAclRecords(request);
 
         // Build response
@@ -66,7 +98,7 @@ public class ReservationRequestRoleController
             item.put("id", aclRecord.getId());
             item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
             String role = aclRecord.getRole().toString();
-            item.put("role", messageSource.getMessage("views.aclRecord.role." + role, null, locale));
+            item.put("role", messageSource.getMessage("views.userRole.role." + role, null, locale));
             item.put("deletable", aclRecord.isDeletable());
             items.add(item);
         }
@@ -80,27 +112,27 @@ public class ReservationRequestRoleController
     /**
      * Handle creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.GET)
     public ModelAndView handleRoleCreate(
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+            @PathVariable(value = "entityId") String entityId)
     {
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
-        userRole.setEntityId(reservationRequestId);
+        userRole.setEntityId(entityId);
         return handleRoleCreate(userRole);
     }
 
     /**
      * Handle confirmation of creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.POST)
     public Object handleRoleCreateProcess(
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @PathVariable(value = "entityId") String entityId,
             @ModelAttribute("userRole") UserRoleModel userRole,
             BindingResult result)
     {
-        if (!userRole.getEntityId().equals(reservationRequestId)) {
+        if (!userRole.getEntityId().equals(entityId)) {
             throw new IllegalStateException("Acl record entity id doesn't match the reservation request id.");
         }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
@@ -111,23 +143,23 @@ public class ReservationRequestRoleController
         authorizationService.createAclRecord(securityToken,
                 userRole.getUserId(), userRole.getEntityId(), userRole.getRole());
 
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
     }
 
     /**
      * Handle deletion of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ROLE_DELETE,
+    @RequestMapping(value = ClientWebUrl.USER_ROLE_DELETE,
             method = RequestMethod.GET)
     public String handleRoleDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @PathVariable(value = "entityId") String entityId,
             @PathVariable(value = "roleId") String userRoleId,
             Model model)
     {
         AclRecordListRequest request = new AclRecordListRequest();
         request.setSecurityToken(securityToken);
-        request.addEntityId(reservationRequestId);
+        request.addEntityId(entityId);
         request.addRole(Role.OWNER);
         ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
         if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(userRoleId)) {
@@ -136,7 +168,7 @@ public class ReservationRequestRoleController
             return "message";
         }
         authorizationService.deleteAclRecord(securityToken, userRoleId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
     }
 
     /**
@@ -144,7 +176,7 @@ public class ReservationRequestRoleController
      */
     private ModelAndView handleRoleCreate(UserRoleModel userRole)
     {
-        ModelAndView modelAndView = new ModelAndView("reservationRequestRole");
+        ModelAndView modelAndView = new ModelAndView("userRole");
         modelAndView.addObject("userRole", userRole);
         return modelAndView;
     }

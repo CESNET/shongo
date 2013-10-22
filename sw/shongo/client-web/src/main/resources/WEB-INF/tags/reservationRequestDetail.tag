@@ -12,6 +12,7 @@
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@attribute name="isActive" required="true" type="java.lang.Boolean" %>
 <%@attribute name="detailUrl" required="false" %>
+<%@attribute name="modifyUserRolesUrl" required="false" %>
 
 <c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
 <tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE %>">
@@ -195,10 +196,10 @@
                     <tag:url var="permanentRoomDetailUrl" value="${detailUrl}">
                         <tag:param name="reservationRequestId" value="${reservationRequest.permanentRoomReservationRequestId}"/>
                     </tag:url>
-                    <a href="${permanentRoomDetailUrl}" tabindex="2">${reservationRequest.permanentRoomReservationRequest.specification.value}</a>
+                    <a href="${permanentRoomDetailUrl}" tabindex="2">${reservationRequest.permanentRoomReservationRequest.roomName}</a>
                 </c:when>
                 <c:otherwise>
-                    ${reservationRequest.permanentRoomReservationRequest.specification.value}
+                    ${reservationRequest.permanentRoomReservationRequest.roomName}
                 </c:otherwise>
             </c:choose>
         </dd>
@@ -276,6 +277,19 @@
             --%><span id="roomAliases" ng-bind-html="html(roomAliases)" class="tooltip-label dotted"></span>
         </dd>
     </div>
+
+    <%-- User roles --%>
+    <c:if test="${not empty reservationRequest.userRoles}">
+        <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
+        <dd>
+            <c:forEach items="${reservationRequest.userRoles}" var="userRole" varStatus="status">
+                ${userRole.user.fullName} (<spring:message code="views.userRole.role.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
+            </c:forEach>
+            <c:if test="${not empty modifyUserRolesUrl}">
+                (<a href="${modifyUserRolesUrl}"><spring:message code="views.reservationRequest.userRoles.modify"/></a>)
+            </c:if>
+        </dd>
+    </c:if>
 
     <%-- Participants --%>
     <c:if test="${reservationRequest.technology == 'ADOBE_CONNECT'}">

@@ -185,64 +185,46 @@ public class ReservationRequestController
 
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);
-            ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             item.put("type", specificationType);
             item.put("typeMessage", messageSource.getMessage(
                     "views.reservationRequest.specification." + specificationType, null, locale));
             switch (specificationType) {
                 case PERMANENT_ROOM:
                 {
-                    ReservationRequestSummary.AliasSpecification alias =
-                            (ReservationRequestSummary.AliasSpecification) specification;
                     if (technology != null) {
                         item.put("technology", technology);
                         item.put("technologyTitle", technology.getTitle());
                     }
-                    if (alias.getAliasType().equals(AliasType.ROOM_NAME)) {
-                        item.put("roomName", alias.getValue());
-                    }
+                    item.put("roomName", reservationRequest.getRoomName());
                     break;
                 }
                 case PERMANENT_ROOM_CAPACITY:
                 {
-                    ReservationRequestSummary.RoomSpecification room =
-                            (ReservationRequestSummary.RoomSpecification) specification;
                     String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
                     item.put("roomReservationRequestId", reusedReservationRequestId);
-                    item.put("roomParticipantCount", room.getParticipantCount());
+                    item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
                             "views.reservationRequest.specification.roomParticipantCountMessage",
-                            new Object[]{room.getParticipantCount()}, locale));
+                            new Object[]{reservationRequest.getRoomParticipantCount()}, locale));
 
                     ReservationRequestSummary reusedReservationRequest =
                             cache.getReservationRequestSummary(securityToken, reusedReservationRequestId);
                     if (reusedReservationRequest != null) {
-                        ReservationRequestSummary.AliasSpecification aliasSpecification =
-                                (ReservationRequestSummary.AliasSpecification)
-                                        reusedReservationRequest.getSpecification();
-                        if (aliasSpecification != null && AliasType.ROOM_NAME
-                                .equals(aliasSpecification.getAliasType())) {
-                            item.put("room", aliasSpecification.getValue());
-                        }
-                        else {
-                            throw new UnsupportedApiException(aliasSpecification);
-                        }
+                        item.put("room", reusedReservationRequest.getRoomName());
                     }
                     break;
                 }
                 case ADHOC_ROOM:
                 {
-                    ReservationRequestSummary.RoomSpecification room =
-                            (ReservationRequestSummary.RoomSpecification) specification;
                     if (technology != null) {
                         item.put("technology", technology);
                         item.put("technologyTitle", technology.getTitle());
                     }
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
-                    item.put("roomParticipantCount", room.getParticipantCount());
+                    item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
                             "views.reservationRequest.specification.roomParticipantCountMessage",
-                            new Object[]{room.getParticipantCount()}, locale));
+                            new Object[]{reservationRequest.getRoomParticipantCount()}, locale));
                     break;
                 }
             }

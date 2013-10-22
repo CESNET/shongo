@@ -9,10 +9,10 @@
 <c:set var="entityType"><%= cz.cesnet.shongo.controller.EntityType.RESERVATION_REQUEST %></c:set>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestRole', ['tag:userRoleForm']);
+    angular.module('jsp:userRole', ['tag:userRoleForm']);
 </script>
 
-<div ng-app="jsp:reservationRequestRole">
+<div ng-app="jsp:userRole">
 
     <tag:userRoleForm entityType="${entityType}" confirmTitle="views.button.add"/>
 

@@ -86,6 +86,22 @@
             </tag:help>
         </dd>
 
+        <c:if test="${not empty userRoles}">
+            <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
+            <dd>
+                <c:forEach items="${userRoles}" var="userRole" varStatus="status">
+                    ${userRole.user.fullName} (<spring:message code="views.userRole.role.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
+                </c:forEach>
+                <c:if test="${isWritable}">
+                    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
+                        <tag:param name="entityId" value="${reservationRequestId}"/>
+                        <tag:param name="back-url" value="${requestUrl}"/>
+                    </tag:url>
+                    (<a href="${modifyUserRolesUrl}"><spring:message code="views.reservationRequest.userRoles.modify"/></a>)
+                </c:if>
+            </dd>
+        </c:if>
+
         <div ng-controller="MoreDetailController">
 
             <div ng-show="show">

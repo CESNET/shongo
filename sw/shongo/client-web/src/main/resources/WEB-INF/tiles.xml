@@ -136,11 +136,6 @@
         </put-list-attribute>
     </definition>
 
-    <definition name="reservationRequestRole" extends="layoutAngularForm">
-        <put-attribute name="title" value="views.reservationRequestRole.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestRole.jsp" type="template"/>
-    </definition>
-
     <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
         <put-attribute name="confirmTitle" value=""/>
     </definition>
@@ -170,6 +165,17 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
     </definition>
 
+    <definition name="userRole" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.userRole.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/userRole.jsp" type="template"/>
+    </definition>
+
+    <definition name="userRoleList" extends="layoutAngular">
+        <put-attribute name="title" value="views.userRoleList.title"/>
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/userRoleList.jsp" type="template"/>
+    </definition>
+
     <definition name="roomList" extends="layoutAngular">
         <put-attribute name="title" value="views.roomList.title"/>
         <put-attribute name="heading" value=""/>
@@ -182,10 +188,10 @@
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
     </definition>
 
-    <definition name="roomParticipants" extends="layoutAngular">
-        <put-attribute name="title" value="views.roomParticipants.title"/>
+    <definition name="roomParticipantList" extends="layoutAngular">
+        <put-attribute name="title" value="views.roomParticipantList.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/roomParticipants.jsp" type="template"/>
+        <put-attribute name="body" value="/WEB-INF/views/roomParticipantList.jsp" type="template"/>
     </definition>
 
     <definition name="participant" extends="layoutAngularForm">

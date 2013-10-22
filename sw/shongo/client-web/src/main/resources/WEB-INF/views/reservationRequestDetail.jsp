@@ -47,16 +47,8 @@
             <spring:message code="views.reservationRequestDetail.title"/>
         </c:otherwise>
     </c:choose>
-    <c:choose>
-        <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-            <spring:message code="views.reservationRequestDetail.title.forRoom"
-                            arguments="${reservationRequest.roomName}"/>
-        </c:when>
-        <c:when test="${reservationRequest.specificationType == 'ADHOC_ROOM'}">
-            <spring:message code="views.reservationRequestDetail.title.forRoom.adhoc" var="adhocRoomName"/>
-            <spring:message code="views.reservationRequestDetail.title.forRoom" arguments="${adhocRoomName}"/>
-        </c:when>
-    </c:choose>
+    <spring:message code="views.reservationRequest.for.${reservationRequest.specificationType}"
+                    arguments="${reservationRequest.roomName}"/>
 </h1>
 
 <div ng-app="jsp:reservationRequestDetail">
@@ -161,22 +153,13 @@
     </c:if>
 
     <%-- Detail of request --%>
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${reservationRequestDetailUrl}" isActive="${isActive}"/>
-
-    <%-- User roles --%>
-    <hr/>
-    <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
-    <tag:url var="aclUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLES %>">
-        <tag:param name="reservationRequestId" value=":id"/>
-    </tag:url>
-    <tag:url var="aclCreateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLE_CREATE %>">
-        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    </tag:url>
-    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_ROLE_DELETE %>">
-        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    </tag:url>
-    <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
-                      isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${participantDeleteUrl}"/>
+    <c:if test="${isWritable}">
+        <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
+            <tag:param name="entityId" value="${reservationRequest.id}"/>
+            <tag:param name="back-url" value="${requestUrl}"/>
+        </tag:url>
+    </c:if>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${reservationRequestDetailUrl}" isActive="${isActive}" modifyUserRolesUrl="${modifyUserRolesUrl}"/>
 
     <c:if test="${isActive}">
 
@@ -193,6 +176,7 @@
                 <tag:url var="createUsageUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
                     <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
+                    <tag:param name="back-url" value="${requestUrl}"/>
                 </tag:url>
                 <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
             </c:if>

@@ -84,7 +84,7 @@
         <c:if test="${not empty userRole.entityId}">
             <div class="control-group">
                 <form:label class="control-label" path="entityId">
-                    <spring:message code="views.aclRecord.entity.${entityType}"/>:
+                    <spring:message code="views.userRole.entityType.${entityType}"/>:
                 </form:label>
                 <div class="controls double-width">
                     <form:input path="entityId" readonly="true" tabindex="${tabIndex}"/>
@@ -94,7 +94,7 @@
 
         <div class="control-group">
             <form:label class="control-label" path="userId">
-                <spring:message code="views.aclRecord.user"/>:
+                <spring:message code="views.userRole.user"/>:
             </form:label>
             <div class="controls double-width">
                 <form:input path="userId" cssErrorClass="error" tabindex="${tabIndex}"/>
@@ -104,20 +104,20 @@
 
         <div class="control-group">
             <form:label class="control-label" path="role">
-                <spring:message code="views.aclRecord.role"/>:
+                <spring:message code="views.userRole.role"/>:
             </form:label>
             <div class="controls">
                 <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
                 <form:select path="role" tabindex="${tabIndex}">
                     <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.aclRecord.role.${role}"/></form:option>
+                        <form:option value="${role}"><spring:message code="views.userRole.role.${role}"/></form:option>
                     </c:forEach>
                 </form:select>
                 <form:errors path="role" cssClass="error"/>
                 <tag:help>
                     <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.aclRecord.role.${role}"/></strong>
-                        <p><spring:message code="views.aclRecord.roleHelp.${role}"/></p>
+                        <strong><spring:message code="views.userRole.role.${role}"/></strong>
+                        <p><spring:message code="views.userRole.roleHelp.${role}"/></p>
                     </c:forEach>
                 </tag:help>
             </div>

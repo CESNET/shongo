@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -323,18 +324,12 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         request.setCount(null);
         response = getReservationService().listReservationRequests(request);
         Assert.assertEquals(9, response.getItemCount());
-        Assert.assertEquals(ReservationRequestSummary.RoomSpecification.class,
-                response.getItem(0).getSpecification().getClass());
-        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class,
-                response.getItem(1).getSpecification().getClass());
-        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class,
-                response.getItem(2).getSpecification().getClass());
-        ReservationRequestSummary.AliasSpecification a1 =
-                (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
-        ReservationRequestSummary.AliasSpecification a2 =
-                (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
-        Assert.assertEquals(AliasType.ROOM_NAME, a1.getAliasType());
-        Assert.assertEquals(AliasType.ROOM_NAME, a2.getAliasType());
+        Assert.assertEquals(ReservationRequestSummary.SpecificationType.ROOM,
+                response.getItem(0).getSpecificationType());
+        Assert.assertEquals(ReservationRequestSummary.SpecificationType.ALIAS,
+                response.getItem(1).getSpecificationType());
+        Assert.assertEquals(ReservationRequestSummary.SpecificationType.ALIAS,
+                response.getItem(2).getSpecificationType());
     }
 
     /**
@@ -488,7 +483,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         resource.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        Interval interval = Interval.parse("2012-01-01/2012-12-31");
+        Interval interval = new Interval(DateTime.now(), Period.years(1));
         Object result;
 
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecification = new cz.cesnet.shongo.controller.api.AliasSpecification();
