@@ -198,7 +198,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         RequestAttributeList endMeetingAttributes = new RequestAttributeList();
         endMeetingAttributes.add("sco-id", roomId);
         endMeetingAttributes.add("state", state.toString());
-        if (message != null) {
+
+        // Not working on connect.cesnet.cz
+        /*if (message != null) {
             // Replace all sequences of " " and "." by single space
             message = message.replaceAll("[ \\.]+", " ");
             try {
@@ -207,7 +209,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             catch (UnsupportedEncodingException e) {
                 throw new CommandException("Error while message encoding.", e);
             }
-        }
+        }*/
+
         if (redirect == true && url != null) {
             endMeetingAttributes.add("redirect",redirect.toString());
             endMeetingAttributes.add("url",url);
@@ -230,7 +233,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        String message = "Unavailable / Nedostupna";
+        String message = "The room is currently unavailable for joining / Do mistnosti se aktualne neni mozne pripojit";
 
         endMeeting(roomId, message, false, null);
     }
