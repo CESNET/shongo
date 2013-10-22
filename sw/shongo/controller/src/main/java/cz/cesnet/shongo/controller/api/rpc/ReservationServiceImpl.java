@@ -103,9 +103,19 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             Interval interval = request.getSlot();
-            String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
+
+            // We must check only the future (because scheduler allocates only in future)
+            DateTime dateTimeNow = DateTime.now();
+            if (interval.getStart().isBefore(dateTimeNow)) {
+                interval = interval.withStart(dateTimeNow);
+            }
+
+            // Create scheduler context
             SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, authorization, interval);
             schedulerContext.setPurpose(request.getPurpose());
+
+            // Ignore reservations for already allocated reservation request
+            String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
             if (ignoredReservationRequestId != null) {
                 EntityIdentifier entityId = EntityIdentifier.parse(
                         ignoredReservationRequestId, EntityType.RESERVATION_REQUEST);
@@ -141,7 +151,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     schedulerContext.getReusableReservation(reservationRequest.getAllocation());
                 }
 
-                // Check specification
+                // Check specification availability
                 Specification specificationApi = request.getSpecification();
                 if (specificationApi != null) {
                     cz.cesnet.shongo.controller.request.Specification specification =
