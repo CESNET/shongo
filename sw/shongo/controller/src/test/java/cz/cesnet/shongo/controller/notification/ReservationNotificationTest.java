@@ -5,9 +5,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import org.joda.time.DateTimeZone;
@@ -137,15 +135,18 @@ public class ReservationNotificationTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testPermanentRoom() throws Exception
+    public void testPermanentRoomAndCapacity() throws Exception
     {
         DeviceResource aliasProvider = new DeviceResource();
-        aliasProvider.addTechnology(Technology.H323);
         aliasProvider.addTechnology(Technology.SIP);
         aliasProvider.setName("aliasProvider");
         aliasProvider.addCapability(new RoomProviderCapability(10));
-        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withPermanentRoom());
-        aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withPermanentRoom());
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{hash}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
+        aliasProviderCapability.setPermanentRoom(true);
+        aliasProvider.addCapability(aliasProviderCapability);
         aliasProvider.setAllocatable(true);
         aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
@@ -155,6 +156,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withPermanentRoom());
+        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
@@ -167,13 +169,26 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
+        ReservationRequest capacityReservationRequest = new ReservationRequest();
+        capacityReservationRequest.setDescription("Capacity Reservation Request");
+        capacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
+        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest.setSpecification(new RoomSpecification(5, Technology.SIP));
+        capacityReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        capacityReservationRequest.setReusedReservationRequestId(reservationRequestId);
+        String capacityReservationRequestId = allocate(capacityReservationRequest);
+        checkAllocated(capacityReservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, capacityReservationRequestId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
         // 1x system-admin: allocation-failed
         // 2x resource-admin: new, deleted
         // 3x user: changes (allocation-failed), changes (new), changes (deleted)
-        Assert.assertEquals(6, notificationExecutor.getNotificationCount());
+        // 2x resource-admin: new, deleted
+        // 2x user: changes (new), changes (deleted)
+        Assert.assertEquals(10, notificationExecutor.getNotificationCount());
     }
 
     /**

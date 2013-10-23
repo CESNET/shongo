@@ -138,7 +138,6 @@ public class Allocation extends SimplePersistentObject
             return reservations.get(0);
         }
         else {
-            // TODO: Remove getCurrentReservation and find it in the client
             return reservations.get(reservations.size() - 1);
         }
     }

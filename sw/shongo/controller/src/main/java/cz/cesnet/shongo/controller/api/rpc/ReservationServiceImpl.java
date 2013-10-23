@@ -954,6 +954,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                 reservationRequestManager.get(entityId.getPersistenceId());
+        if (reservationRequest.getState().equals(AbstractReservationRequest.State.DELETED)) {
+            throw new ControllerReportSet.ReservationRequestDeletedException(reusedReservationRequestId);
+        }
         if (!authorization.hasPermission(securityToken, reservationRequest, Permission.PROVIDE_RESERVATION_REQUEST)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
                     "provide reservation request %s", entityId);

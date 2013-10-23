@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.request.ReservationRequest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -46,12 +47,14 @@ public class ReservationRequestNotification extends ConfigurableNotification
     {
         super(authorizationManager.getUserSettingsProvider(), configuration);
 
+        EntityManager entityManager = authorizationManager.getEntityManager();
+
         this.id = EntityIdentifier.formatId(reservationRequest);
         this.url = configuration.getNotificationReservationRequestUrl(this.id);
         this.updatedAt = reservationRequest.getUpdatedAt();
         this.updatedBy = reservationRequest.getUpdatedBy();
         this.description = reservationRequest.getDescription();
-        this.target = Target.createInstance(reservationRequest.getSpecification());
+        this.target = Target.createInstance(reservationRequest, entityManager);
 
         for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, Role.OWNER)) {
             addRecipient(authorizationManager.getUserInformation(userId), false);

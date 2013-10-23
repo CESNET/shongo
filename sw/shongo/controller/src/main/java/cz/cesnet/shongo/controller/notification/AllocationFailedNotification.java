@@ -9,6 +9,7 @@ import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
+import javax.persistence.EntityManager;
 import java.util.Locale;
 
 /**
@@ -36,8 +37,10 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     {
         super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 
+        EntityManager entityManager = authorizationManager.getEntityManager();
+
         this.requestedSlot = reservationRequest.getSlot();
-        this.target = Target.createInstance(reservationRequest.getSpecification());
+        this.target = Target.createInstance(reservationRequest, entityManager);
         this.userError = reservationRequest.getAllocationStateReport(Report.UserType.USER).toUserError();
         this.adminReport = reservationRequest.getAllocationStateReport(Report.UserType.DOMAIN_ADMIN);
         for (PersonInformation administrator : configuration.getAdministrators()) {

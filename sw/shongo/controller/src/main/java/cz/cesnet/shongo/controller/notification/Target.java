@@ -246,7 +246,7 @@ public abstract class Target
         private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
-        public Room(RoomSpecification roomSpecification)
+        public Room(RoomSpecification roomSpecification, Target reusedTarget)
         {
             technologies.addAll(roomSpecification.getTechnologies());
             licenseCount = roomSpecification.getParticipantCount();
@@ -262,6 +262,10 @@ public abstract class Target
                         pin = h323RoomSetting.getPin();
                     }
                 }
+            }
+            if (reusedTarget instanceof Alias) {
+                alias = (Alias) reusedTarget;
+                name = alias.getRoomName();
             }
         }
 
@@ -371,8 +375,9 @@ public abstract class Target
         }
     }
 
-    public static Target createInstance(Specification specification)
+    public static Target createInstance(AbstractReservationRequest reservationRequest, EntityManager entityManager)
     {
+        Specification specification = reservationRequest.getSpecification();
         if (specification instanceof ValueSpecification) {
             return new Value((ValueSpecification) specification);
         }
@@ -383,7 +388,15 @@ public abstract class Target
             return new Alias((AliasSetSpecification) specification);
         }
         else if (specification instanceof RoomSpecification) {
-            return new Room((RoomSpecification) specification);
+            Target reusedTarget = null;
+            Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+            if (reusedAllocation != null) {
+                Reservation reusedReservation = reusedAllocation.getCurrentReservation();
+                if (reusedReservation != null) {
+                    reusedTarget = createInstance(reusedReservation, entityManager);
+                }
+            }
+            return new Room((RoomSpecification) specification, reusedTarget);
         }
         else {
             return new Other(specification);
