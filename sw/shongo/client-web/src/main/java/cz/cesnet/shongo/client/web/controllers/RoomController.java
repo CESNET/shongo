@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.RoomCache;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
@@ -19,9 +20,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import cz.cesnet.shongo.report.ApiFaultException;
-import cz.cesnet.shongo.report.ReportException;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -62,13 +60,13 @@ public class RoomController
     private ExecutableService executableService;
 
     @Resource
-    private ResourceControlService resourceControlService;
-
-    @Resource
     private AuthorizationService authorizationService;
 
     @Resource
     private Cache cache;
+
+    @Resource
+    private RoomCache roomCache;
 
     @Resource
     private MessageSource messageSource;
@@ -167,12 +165,13 @@ public class RoomController
     public String handleRoomManagement(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String executableId,
+            @PathVariable(value = "roomId") String roomId,
             Model model)
     {
-        // Get room executable
-        Executable executable = getExecutable(securityToken, executableId);
-        RoomExecutable roomExecutable = getPrimaryRoomFromExecutable(securityToken, executable);
+        // Get target room executable
+        Executable executable = getExecutable(securityToken, roomId);
+        RoomExecutable roomExecutable = getTargetRoomFromExecutable(securityToken, executable);
+        roomId = roomExecutable.getId();
 
         // Room model
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -184,26 +183,9 @@ public class RoomController
 
         // Runtime room
         if (roomModel.isStarted()) {
-            String resourceId = roomExecutable.getResourceId();
-            String roomId = roomExecutable.getRoomId();
-            Set<Technology> technologies = roomExecutable.getTechnologies();
-
             try {
-                Room room = resourceControlService.getRoom(securityToken, resourceId, roomId);
+                Room room = roomCache.getRoom(securityToken, roomId);
                 model.addAttribute("roomRuntime", room);
-
-                Collection<Recording> recordings = null;
-                if (technologies.size() == 1 && technologies.contains(Technology.ADOBE_CONNECT)) {
-                    recordings = resourceControlService.listRecordings(securityToken, resourceId, roomId);
-                }
-                model.addAttribute("roomRecordings", recordings);
-
-                if (roomModel.isAvailable()) {
-                    Collection<RoomParticipant> participants = resourceControlService.listRoomParticipants(securityToken,
-                            resourceId, roomId);
-                    model.addAttribute("roomParticipants", participants);
-                    model.addAttribute("cacheProvider", new CacheProvider(cache, securityToken));
-                }
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
                 model.addAttribute("roomNotAvailable", true);
@@ -228,6 +210,96 @@ public class RoomController
         return "room";
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleRoomManagementParticipants(
+            Locale locale,
+            DateTimeZone timeZone,
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "start", required = false) Integer start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
+    {
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        List<RoomParticipant> roomParticipants = roomCache.getRoomParticipants(securityToken, roomId);
+        int maxIndex = Math.max(0, roomParticipants.size() - 1);
+        if (start > maxIndex) {
+            start = maxIndex;
+        }
+        int end = start + count;
+        if (end > roomParticipants.size()) {
+            end = roomParticipants.size();
+        }
+        List<Map> items = new LinkedList<Map>();
+        for (RoomParticipant roomParticipant : roomParticipants.subList(start, end)) {
+            UserInformation user = null;
+            String userId = roomParticipant.getUserId();
+            if (userId != null) {
+                user = cacheProvider.getUserInformation(userId);
+            }
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("id", roomParticipant.getId());
+            item.put("name", (user != null ? user.getFullName() : roomParticipant.getDisplayName()));
+            item.put("email", (user != null ? user.getPrimaryEmail() : null));
+            item.put("audioMuted", roomParticipant.getAudioMuted());
+            item.put("videoMuted", roomParticipant.getVideoMuted());
+            item.put("videoSnapshot", roomParticipant.isVideoSnapshot());
+            items.add(item);
+        }
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("start", start);
+        data.put("count", roomParticipants.size());
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
+        data.put("items", items);
+        return data;
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleRoomManagementRecordings(
+            Locale locale,
+            DateTimeZone timeZone,
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "start", required = false) Integer start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
+    {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
+                DateTimeFormatter.Type.SHORT, locale, timeZone);
+        List<Recording> recordings = roomCache.getRoomRecordings(securityToken, roomId);
+        int maxIndex = Math.max(0, recordings.size() - 1);
+        if (start > maxIndex) {
+            start = maxIndex;
+        }
+        int end = start + count;
+        if (end > recordings.size()) {
+            end = maxIndex;
+        }
+        List<Map> items = new LinkedList<Map>();
+        for (Recording recording : recordings.subList(start, end)) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("name", recording.getName());
+            item.put("description", recording.getDescription());
+            item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
+            item.put("duration", dateTimeFormatter.formatDuration(recording.getDuration()));
+            item.put("url", recording.getUrl());
+            item.put("editableUrl", recording.getEditableUrl());
+            items.add(item);
+        }
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("start", start);
+        data.put("count", recordings.size());
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
+        data.put("items", items);
+        return data;
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT)
     @IgnoreDateTimeZone
     public ResponseEntity<byte[]> handleRoomParticipantVideoSnapshot(
@@ -236,7 +308,7 @@ public class RoomController
             @PathVariable(value = "participantId") String participantId)
     {
         try {
-            MediaData participantSnapshot = cache.getRoomParticipantSnapshot(securityToken, roomId, participantId);
+            MediaData participantSnapshot = roomCache.getRoomParticipantSnapshot(securityToken, roomId, participantId);
             if (participantSnapshot != null) {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(participantSnapshot.getType().toString()));
@@ -257,20 +329,24 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @PathVariable(value = "participantId") String participantId)
     {
-        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
-        String resourceId = roomExecutable.getResourceId();
-        String resourceRoomId = roomExecutable.getRoomId();
-        RoomParticipant oldRoomParticipant =
-                resourceControlService.getRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(participantId);
-        roomParticipant.setRoomId(resourceRoomId);
+        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, roomId, participantId);
+        RoomParticipant roomParticipant = new RoomParticipant(participantId);
         if (oldRoomParticipant.getAudioMuted() == null) {
             throw new IllegalStateException("Audio muting is not available.");
         }
         roomParticipant.setAudioMuted(!oldRoomParticipant.getAudioMuted());
-        resourceControlService.modifyRoomParticipant(securityToken, resourceId, roomParticipant);
+        roomCache.modifyRoomParticipant(securityToken, roomId, roomParticipant);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantToggleAudioMutedPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantToggleAudioMuted(securityToken, roomId, participantId);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.GET)
@@ -279,20 +355,24 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @PathVariable(value = "participantId") String participantId)
     {
-        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
-        String resourceId = roomExecutable.getResourceId();
-        String resourceRoomId = roomExecutable.getRoomId();
-        RoomParticipant oldRoomParticipant =
-                resourceControlService.getRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(participantId);
-        roomParticipant.setRoomId(resourceRoomId);
+        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, roomId, participantId);
+        RoomParticipant roomParticipant = new RoomParticipant(participantId);
         if (oldRoomParticipant.getVideoMuted() == null) {
             throw new IllegalStateException("Video muting is not available.");
         }
         roomParticipant.setVideoMuted(!oldRoomParticipant.getVideoMuted());
-        resourceControlService.modifyRoomParticipant(securityToken, resourceId, roomParticipant);
+        roomCache.modifyRoomParticipant(securityToken, roomId, roomParticipant);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantToggleVideoMutedPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantToggleVideoMuted(securityToken, roomId, participantId);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)
@@ -301,11 +381,18 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @PathVariable(value = "participantId") String participantId)
     {
-        RoomExecutable roomExecutable = (RoomExecutable) getRoomExecutable(securityToken, roomId);
-        String resourceId = roomExecutable.getResourceId();
-        String resourceRoomId = roomExecutable.getRoomId();
-        resourceControlService.disconnectRoomParticipant(securityToken, resourceId, resourceRoomId, participantId);
+        roomCache.disconnectRoomParticipant(securityToken, roomId, participantId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantDisconnectPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantDisconnect(securityToken, roomId, participantId);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANTS, method = RequestMethod.GET)
@@ -433,7 +520,7 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId)
     {
         Executable executable = getExecutable(securityToken, roomId);
-        RoomExecutable roomExecutable = getPrimaryRoomFromExecutable(securityToken, executable);
+        RoomExecutable roomExecutable = getTargetRoomFromExecutable(securityToken, executable);
         Alias adobeConnectUrl = roomExecutable.getAliasByType(AliasType.ADOBE_CONNECT_URI);
         if (adobeConnectUrl == null) {
             throw new UnsupportedApiException(roomExecutable.getId());
@@ -458,7 +545,7 @@ public class RoomController
         return executable;
     }
 
-    private RoomExecutable getPrimaryRoomFromExecutable(SecurityToken securityToken, Executable executable)
+    private RoomExecutable getTargetRoomFromExecutable(SecurityToken securityToken, Executable executable)
     {
         RoomExecutable roomExecutable;
         if (executable instanceof RoomExecutable) {

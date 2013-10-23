@@ -80,15 +80,14 @@
         </tr>
         </tbody>
     </table>
-    <c:choose>
-        <c:when test="${not empty createUrl}">
-            <a class="btn btn-primary" href="${createUrl}" tabindex="1" ng-show="${not empty createWhen ? createWhen : 'true'}">
-                <spring:message code="views.button.create"/>
-            </a>
-            <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
-        </c:when>
-        <c:otherwise>
-            <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
-        </c:otherwise>
-    </c:choose>
+    <pagination-pages class="${(not empty createUrl) ? 'pull-right' : ''}" ng-show="ready">
+        <spring:message code="views.pagination.pages"/>
+    </pagination-pages>
 </div>
+<c:if test="${not empty createUrl}">
+    <div class="table-actions">
+        <a class="btn btn-primary" href="${createUrl}" tabindex="1" ng-show="${not empty createWhen ? createWhen : 'true'}">
+            <spring:message code="views.button.create"/>
+        </a>
+    </div>
+</c:if>

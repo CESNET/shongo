@@ -115,7 +115,7 @@
             </tr>
             </tbody>
         </table>
-        <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
+        <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
     </div>
 
 </div>

@@ -47,7 +47,10 @@
         <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.AuthorizationService" type="java.lang.Class"/>
     </bean>
 
-    <bean id="userCache" class="cz.cesnet.shongo.client.web.Cache">
+    <bean id="cache" class="cz.cesnet.shongo.client.web.Cache">
+    </bean>
+
+    <bean id="roomManagementCache" class="cz.cesnet.shongo.client.web.RoomCache">
     </bean>
 
     <!-- Create permission evaluator -->

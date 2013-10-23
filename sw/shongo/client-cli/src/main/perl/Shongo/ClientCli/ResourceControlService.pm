@@ -1103,7 +1103,7 @@ sub resource_list_recordings
     my ($resourceId, $roomId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.listRecordings',
+        'ResourceControl.listRoomRecordings',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId)
     );

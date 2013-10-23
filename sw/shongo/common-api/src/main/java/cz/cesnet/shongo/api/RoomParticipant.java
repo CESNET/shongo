@@ -55,6 +55,23 @@ public class RoomParticipant extends IdentifiedComplexType
     private Integer microphoneLevel;
 
     /**
+     * Constructor.
+     */
+    public RoomParticipant()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param id sets the {@link #id}
+     */
+    public RoomParticipant(String id)
+    {
+        this.id = id;
+    }
+
+    /**
      * @return Room unique identifier
      */
     public String getRoomId()
