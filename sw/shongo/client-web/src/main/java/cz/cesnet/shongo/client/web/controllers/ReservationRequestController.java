@@ -168,6 +168,7 @@ public class ReservationRequestController
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
             item.put("isWritable", permissions.contains(Permission.WRITE));
+            item.put("isProvidable", permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());

@@ -217,7 +217,7 @@
                     ng-class="{'deprecated': reservationRequest.isDeprecated}">
                     <td ng-controller="PermanentRoomCapacitiesController" colspan="6" ng-show="items != null">
                         <div style="position: relative;">
-                            <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.state != 'ALLOCATED_FINISHED'">
+                            <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
                                 <a class="btn" href="${createPermanentRoomCapacityUrl}" tabindex="1">
                                     <spring:message code="views.index.dashboard.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
                                 </a>

@@ -278,7 +278,7 @@
     </c:if>
 
     <%-- Runtime management - Recordings --%>
-    <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+    <c:if test="${room.started && room.technology == 'ADOBE_CONNECT'}">
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA %>" var="roomRecordingsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>
@@ -352,7 +352,7 @@
     </c:if>
 
     <div class="table-actions" style="text-align: right;">
-        <c:if test="${room.state.started && room.licenseCount == 0}">
+        <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
                 <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
                 <tag:param name="permanentRoom" value="${room.id}"/>
