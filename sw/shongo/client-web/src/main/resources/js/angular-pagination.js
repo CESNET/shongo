@@ -35,7 +35,7 @@ paginationModule.controller('ReadyController', function ($scope) {
  * $scope.ready        - can be used to determine whether data can be shown
  * $scope.errorContent - can be used to show an error
  */
-paginationModule.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
+paginationModule.controller('PaginationController', function ($scope, $element, $resource, $window, $cookieStore) {
     // Resource used for fetching items
     $scope.resource = null;
     // Current page index
@@ -107,10 +107,25 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     /**
      * First time data is ready.
      */
-    $scope.setReady = function () {
-        $scope.ready = true;
+    $scope.setReady = function (ready) {
+        if (ready == null) {
+            ready = true;
+        }
+
+        // Update element height
+        if (ready) {
+            $element.css('height', "auto");
+        }
+        else if ($scope.ready) {
+            var height = parseInt($element.css('height'));
+            $element.css('height', height + "px");
+        }
+
+        // Set new ready
+        $scope.ready = ready;
+
         // Update parent readyCount
-        if ($scope.$parent != null) {
+        if (ready && $scope.$parent != null && $scope.$parent.readyCount > 0) {
             $scope.$parent.readyCount--;
         }
     };
@@ -121,7 +136,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * @param data to be set
      */
     var setData = function (data) {
-        $scope.ready = true;
+        $scope.setReady(true);
         $scope.error = false;
         $scope.errorContent = null;
         if ($scope.$parent != null) {
@@ -162,20 +177,22 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * Error happened.
      */
     $scope.setError = function (response) {
-        // Get error content
-        var errorContent = $('#page-content', response.data).html().trim();
+        if (response.status == 500) {
+            // Get error content
+            var errorContent = $('#page-content', response.data).html().trim();
 
-        // Replace back-url by current-url
-        var currentUrl = location.pathname + location.search;
-        errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
+            // Replace back-url by current-url
+            var currentUrl = location.pathname + location.search;
+            errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
 
-        // Set error
-        $scope.error = true;
-        $scope.errorContent = errorContent ;
-        if ($scope.$parent != null) {
-            $scope.$parent.error = true;
-            $scope.$parent.errorContent = $scope.errorContent;
+            // Set error content
+            $scope.errorContent = errorContent ;
+            if ($scope.$parent != null) {
+                $scope.$parent.error = true;
+                $scope.$parent.errorContent = $scope.errorContent;
+            }
         }
+        $scope.error = true;
     };
 
     /**
@@ -208,11 +225,11 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             if (configuration != null) {
                 $scope.pageSize = configuration.pageSize;
                 $scope.setPage(configuration.pageIndex, function () {
-                    $scope.setReady();
+                    $scope.setReady(true);
                 });
             }
             else {
-                $scope.setReady();
+                $scope.setReady(true);
             }
         });
     };
@@ -278,7 +295,8 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
             listParameters['sort'] = $scope.sort;
             listParameters['sort-desc'] = $scope.sortDesc;
         }
-        $scope.ready = false;
+
+        $scope.setReady(false);
         return $scope.resource.list(listParameters, callback, function(response){
             $scope.setError(response);
         });

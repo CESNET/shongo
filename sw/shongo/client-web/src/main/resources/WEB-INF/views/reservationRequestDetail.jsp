@@ -185,7 +185,7 @@
 
     </c:if>
 
-    <div class="pull-right">
+    <div class="pull-right table-actions">
         <a class="btn btn-primary" href="${backUrl}" tabindex="1">
             <spring:message code="views.button.back"/>
         </a>

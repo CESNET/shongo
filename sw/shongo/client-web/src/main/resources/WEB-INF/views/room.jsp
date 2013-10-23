@@ -24,6 +24,20 @@
     function MoreDetailController($scope) {
         $scope.show = false;
     }
+
+    function RoomParticipantController($scope, $timeout) {
+        /**
+         * @param url for modifying participant
+         */
+        $scope.modify = function(url) {
+            $.post(url, function(){
+                $timeout(function(){
+                    $scope.$parent.refresh();
+                }, 0);
+            });
+        };
+    }
+
 </script>
 
 <h1>
@@ -179,14 +193,14 @@
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA%>" var="roomParticipantsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>
-        <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestDetail.permanentRoomUsages', '${roomParticipantsUrl}', {id: '${room.id}'})">
+        <div id = "roomParticipants" ng-controller="PaginationController"
+             ng-init="init('room.participants', '${roomParticipantsUrl}', {id: '${room.id}'})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
+            <h2><spring:message code="views.room.currentParticipants"/></h2>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.room.currentParticipants"/></h2>
             <p><spring:message code="views.room.currentParticipants.help"/></p>
             <div class="spinner" ng-hide="ready || errorContent"></div>
             <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
@@ -222,10 +236,10 @@
                     </c:if>
                     <c:if test="${room.technology == 'ADOBE_CONNECT'}">
                         <td>
-                            {{romParticipant.email}}
+                            {{roomParticipant.email}}
                         </td>
                     </c:if>
-                    <td>
+                    <td ng-controller="RoomParticipantController">
                         <span ng-show="roomParticipant.audioMuted != null">
                             <tag:url var="toggleParticipantAudioMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED %>">
                                 <tag:param name="roomId" value="${room.id}"/>
@@ -233,7 +247,7 @@
                             </tag:url>
                             <spring:message var="participantAudioMuteTitle" code="views.room.currentParticipant.audioMuted.disable"/>
                             <spring:message var="participantAudioUnMuteTitle" code="views.room.currentParticipant.audioMuted.enable"/>
-                            <a href="${toggleParticipantAudioMutedUrl}" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modify('${toggleParticipantAudioMutedUrl}')" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
                         </span>
                         <span ng-show="roomParticipant.videoMuted != null">
                             <tag:url var="toggleParticipantVideoMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED %>">
@@ -242,13 +256,14 @@
                             </tag:url>
                             <spring:message var="participantVideoMuteTitle" code="views.room.currentParticipant.videoMuted.disable"/>
                             <spring:message var="participantVideoUnMuteTitle" code="views.room.currentParticipant.videoMuted.enable"/>
-                            <a href="${toggleParticipantVideoMutedUrl}" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-eye-{{roomParticipant.videoMuted ? 'close' : 'open'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modify('${toggleParticipantVideoMutedUrl}')" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-eye-{{roomParticipant.videoMuted ? 'close' : 'open'}}"></i></a>&nbsp;
                         </span>
                         <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
                             <tag:param name="roomId" value="${room.id}"/>
                             <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                         </tag:url>
-                        <tag:listAction code="disconnect" url="${disconnectParticipantUrl}"/>
+                        <spring:message var="participantDisconnectTitle" code="views.room.currentParticipant.disconnect"/>
+                        <a href="" ng-click="modify('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="icon-remove"></i></a>
                     </td>
                 </tr>
                 </tbody>
@@ -258,6 +273,7 @@
                 </tr>
                 </tbody>
             </table>
+            <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
         </div>
     </c:if>
 
@@ -267,7 +283,7 @@
             <tag:param name="roomId" value=":id"/>
         </tag:url>
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestDetail.permanentRoomUsages', '${roomRecordingsUrl}', {id: '${room.id}'})">
+             ng-init="init('room.recordings', '${roomRecordingsUrl}', {id: '${room.id}'})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -331,22 +347,24 @@
                 </tr>
                 </tbody>
             </table>
+            <pagination-pages ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
         </div>
     </c:if>
-</div>
 
-<div class="pull-right">
-    <c:if test="${room.state.started && room.licenseCount == 0}">
-        <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-            <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
-            <tag:param name="permanentRoom" value="${room.id}"/>
-            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-        </tag:url>
-        <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
-            <spring:message code="views.room.requestCapacity"/>
+    <div class="table-actions" style="text-align: right;">
+        <c:if test="${room.state.started && room.licenseCount == 0}">
+            <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+                <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+                <tag:param name="permanentRoom" value="${room.id}"/>
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+            </tag:url>
+            <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
+                <spring:message code="views.room.requestCapacity"/>
+            </a>
+        </c:if>
+        <a class="btn" href="javascript: location.reload();">
+            <spring:message code="views.button.refresh"/>
         </a>
-    </c:if>
-    <a class="btn" href="javascript: location.reload();">
-        <spring:message code="views.button.refresh"/>
-    </a>
+    </div>
+
 </div>

@@ -11,7 +11,9 @@ import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +136,7 @@ public class RoomCache
      * @param roomExecutableId
      * @return collection of {@link Recording}s for given {@code roomExecutableId}
      */
-    public Collection<Recording> getRoomRecordings(SecurityToken securityToken, String roomExecutableId)
+    public List<Recording> getRoomRecordings(SecurityToken securityToken, String roomExecutableId)
     {
         synchronized (roomRecordingsCache) {
             List<Recording> roomRecordings = roomRecordingsCache.get(roomExecutableId);
@@ -231,6 +233,12 @@ public class RoomCache
         String resourceId = roomExecutable.getResourceId();
         String resourceRoomId = roomExecutable.getRoomId();
         resourceControlService.disconnectRoomParticipant(securityToken, resourceId, resourceRoomId, roomParticipantId);
+        synchronized (roomParticipantCache) {
+            roomParticipantCache.remove(roomParticipantId);
+        }
+        synchronized (roomParticipantsCache) {
+            roomParticipantsCache.remove(roomExecutableId);
+        }
     }
 
     /**

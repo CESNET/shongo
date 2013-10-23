@@ -223,9 +223,17 @@ public class RoomController
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        List<Map> participants = new LinkedList<Map>();
-        for (RoomParticipant roomParticipant : roomCache.getRoomParticipants(securityToken, roomId)) {
-
+        List<RoomParticipant> roomParticipants = roomCache.getRoomParticipants(securityToken, roomId);
+        int maxIndex = Math.max(0, roomParticipants.size() - 1);
+        if (start > maxIndex) {
+            start = maxIndex;
+        }
+        int end = start + count;
+        if (end > roomParticipants.size()) {
+            end = roomParticipants.size();
+        }
+        List<Map> items = new LinkedList<Map>();
+        for (RoomParticipant roomParticipant : roomParticipants.subList(start, end)) {
             UserInformation user = null;
             String userId = roomParticipant.getUserId();
             if (userId != null) {
@@ -238,14 +246,14 @@ public class RoomController
             item.put("audioMuted", roomParticipant.getAudioMuted());
             item.put("videoMuted", roomParticipant.getVideoMuted());
             item.put("videoSnapshot", roomParticipant.isVideoSnapshot());
-            participants.add(item);
+            items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", 0);
-        data.put("count", participants.size());
+        data.put("start", start);
+        data.put("count", roomParticipants.size());
         data.put("sort", sort);
         data.put("sort-desc", sortDescending);
-        data.put("items", participants);
+        data.put("items", items);
         return data;
     }
 
@@ -261,13 +269,34 @@ public class RoomController
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
-        Collection<Recording> recordings = roomCache.getRoomRecordings(securityToken, roomId);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
+                DateTimeFormatter.Type.SHORT, locale, timeZone);
+        List<Recording> recordings = roomCache.getRoomRecordings(securityToken, roomId);
+        int maxIndex = Math.max(0, recordings.size() - 1);
+        if (start > maxIndex) {
+            start = maxIndex;
+        }
+        int end = start + count;
+        if (end > recordings.size()) {
+            end = maxIndex;
+        }
+        List<Map> items = new LinkedList<Map>();
+        for (Recording recording : recordings.subList(start, end)) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("name", recording.getName());
+            item.put("description", recording.getDescription());
+            item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
+            item.put("duration", dateTimeFormatter.formatDuration(recording.getDuration()));
+            item.put("url", recording.getUrl());
+            item.put("editableUrl", recording.getEditableUrl());
+            items.add(item);
+        }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", 0);
+        data.put("start", start);
         data.put("count", recordings.size());
         data.put("sort", sort);
         data.put("sort-desc", sortDescending);
-        data.put("items", recordings);
+        data.put("items", items);
         return data;
     }
 
@@ -310,6 +339,16 @@ public class RoomController
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantToggleAudioMutedPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantToggleAudioMuted(securityToken, roomId, participantId);
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.GET)
     public String handleRoomParticipantToggleVideoMuted(
             SecurityToken securityToken,
@@ -326,6 +365,16 @@ public class RoomController
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantToggleVideoMutedPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantToggleVideoMuted(securityToken, roomId, participantId);
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)
     public String handleRoomParticipantDisconnect(
             SecurityToken securityToken,
@@ -334,6 +383,16 @@ public class RoomController
     {
         roomCache.disconnectRoomParticipant(securityToken, roomId, participantId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantDisconnectPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantDisconnect(securityToken, roomId, participantId);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANTS, method = RequestMethod.GET)

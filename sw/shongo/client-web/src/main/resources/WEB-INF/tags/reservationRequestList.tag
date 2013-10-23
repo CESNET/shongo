@@ -173,12 +173,13 @@
         </tr>
         </tbody>
     </table>
-    <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
-    <c:if test="${not empty createUrl}">
+    <pagination-pages class="pull-right" ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
+</div>
+<c:if test="${not empty createUrl}">
+    <div class="table-actions">
         <a class="btn btn-primary" href="${createUrl}" tabindex="1">
             <spring:message code="views.button.create"/>
         </a>
-        &nbsp;
-    </c:if>
-</div>
+    </div>
+</c:if>
 
