@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.support.editors;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -22,6 +23,13 @@ public class DateTimeEditor extends PropertyEditorSupport
 
     private static final DateTimeFormatter dateTimePrinter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
 
+    private DateTimeZone timeZone;
+
+    public DateTimeEditor(DateTimeZone timeZone)
+    {
+        this.timeZone = timeZone;
+    }
+
     @Override
     public String getAsText()
     {
@@ -42,7 +50,7 @@ public class DateTimeEditor extends PropertyEditorSupport
             setValue(null);
         }
         else {
-            setValue(dateTimeParser.parseDateTime(text));
+            setValue(dateTimeParser.withZone(timeZone).parseDateTime(text));
         }
     }
 }

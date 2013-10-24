@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -66,9 +67,9 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     private Breadcrumb breadcrumb;
 
     @InitBinder
-    public void initBinder(WebDataBinder binder)
+    public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
     {
-        binder.registerCustomEditor(DateTime.class, new DateTimeEditor());
+        binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
         binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
         binder.registerCustomEditor(Period.class, new PeriodEditor());
     }
