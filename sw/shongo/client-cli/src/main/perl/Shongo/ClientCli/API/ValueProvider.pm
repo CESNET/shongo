@@ -1,5 +1,5 @@
 #
-# Alias for video conference devices
+# ValueProvider for devices providing virtual rooms
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #

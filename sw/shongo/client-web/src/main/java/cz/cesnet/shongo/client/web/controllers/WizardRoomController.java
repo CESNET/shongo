@@ -104,7 +104,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Book new videoconference room.
+     * Book new virtual room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
     public ModelAndView handleRoomType(
@@ -121,7 +121,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Change new videoconference room to ad-hoc type and show form for editing room attributes.
+     * Change new virtual room to ad-hoc type and show form for editing room attributes.
      *
      * @param reservationRequest session attribute is required
      */
@@ -134,7 +134,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Change new videoconference room to permanent type and show form for editing room attributes.
+     * Change new virtual room to permanent type and show form for editing room attributes.
      *
      * @param reservationRequest session attribute is required
      */

@@ -1,5 +1,5 @@
 #
-# Compartment of video conference devices
+# Compartment of virtual rooms
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #

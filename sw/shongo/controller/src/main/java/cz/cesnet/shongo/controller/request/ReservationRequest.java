@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a request created by an user to get allocated some resources for video conference calls.
+ * Represents a request created by an user to get allocated some resources for conference calls.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

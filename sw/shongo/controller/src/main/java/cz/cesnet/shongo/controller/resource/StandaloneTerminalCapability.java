@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import javax.persistence.Entity;
 
 /**
- * Capability tells that the device can participate even in 2-point video conference call
+ * Capability tells that the device can participate even in 2-point calls
  * (that means without a device with {@link RoomProviderCapability ).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>

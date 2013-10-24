@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 /**
- * Represents enumeration of who should initiate a video conference call.
+ * Represents enumeration of who should initiate a conference call.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

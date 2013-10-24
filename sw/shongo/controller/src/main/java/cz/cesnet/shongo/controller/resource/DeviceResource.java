@@ -225,7 +225,7 @@ public class DeviceResource extends Resource
     }
 
     /**
-     * @return true if device resource is terminal (can participate in video conferences),
+     * @return true if device resource is terminal (can participate in conference calls),
      *         false otherwise
      */
     @Transient
@@ -235,8 +235,8 @@ public class DeviceResource extends Resource
     }
 
     /**
-     * @return true if device resource is standalone terminal (can participate in video conferences and also
-     *         in 2-point video conferences),
+     * @return true if device resource is standalone terminal (can participate in conference calls and also
+     *         in 2-point calls),
      *         false otherwise
      */
     @Transient

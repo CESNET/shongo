@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Capability tells that the device is able to participate in a video conference call.
+ * Capability tells that the device is able to participate in a conference call.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
