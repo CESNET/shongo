@@ -26,10 +26,10 @@ index 8e8c486..78b5299 100644
    // Fixed grid
    #grid > .core(@gridColumnWidth768, @gridGutterWidth768);
 diff --git a/less/responsive.less b/less/responsive.less
-index 9e5f9b1..482d41f 100644
+index 9e5f9b1..ce0ee79 100644
 --- a/less/responsive.less
 +++ b/less/responsive.less
-@@ -38,11 +38,11 @@
+@@ -38,7 +38,7 @@
  @import "responsive-768px-979px.less";
  
  // Phones to portrait tablets and narrow desktops
@@ -38,15 +38,28 @@ index 9e5f9b1..482d41f 100644
  
  
  // RESPONSIVE NAVBAR
- // ------------------
- 
- // From 979px and below, show a button to toggle navbar contents
--@import "responsive-navbar.less";
-+//@import "responsive-navbar.less";
 diff --git a/less/variables.less b/less/variables.less
-index 31c131b..db327b2 100644
+index 31c131b..21a2f39 100644
 --- a/less/variables.less
 +++ b/less/variables.less
+@@ -167,7 +167,7 @@
+ 
+ // Horizontal forms & lists
+ // -------------------------
+-@horizontalComponentOffset:       180px;
++@horizontalComponentOffset:       200px;
+ 
+ 
+ // Wells
+@@ -177,7 +177,7 @@
+ 
+ // Navbar
+ // -------------------------
+-@navbarCollapseWidth:             979px;
++@navbarCollapseWidth:             1000px;
+ @navbarCollapseDesktopWidth:      @navbarCollapseWidth + 1;
+ 
+ @navbarHeight:                    40px;
 @@ -272,7 +272,7 @@
  // Default 940px grid
  // -------------------------

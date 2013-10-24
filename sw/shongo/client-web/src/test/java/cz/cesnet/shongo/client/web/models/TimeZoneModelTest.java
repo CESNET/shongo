@@ -16,12 +16,16 @@ import java.util.regex.Pattern;
  */
 public class TimeZoneModelTest
 {
-
-
     @Test
     public void test() throws Exception
     {
-        Map<String, String> timeZones = TimeZoneModel.getTimeZones(DateTime.now());
+        System.err.println("\nCS\n");
+        Map<String, String> timeZonesCs = TimeZoneModel.getTimeZones(new Locale("cs"), DateTime.now());
+        for (String timeZoneId : timeZonesCs.keySet()) {
+            System.out.printf("%s -> %s\n", timeZoneId, timeZonesCs.get(timeZoneId));
+        }
+        System.err.println("\nEnglish\n");
+        Map<String, String> timeZones = TimeZoneModel.getTimeZones(new Locale("en"), DateTime.now());
         for (String timeZoneId : timeZones.keySet()) {
             System.out.printf("%s -> %s\n", timeZoneId, timeZones.get(timeZoneId));
         }

@@ -81,6 +81,21 @@
             <%-- Left panel - application name and main links --%>
             <div class="main">
                 <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
+                <div class="pull-left">
+                    <ul class="nav" role="navigation">
+                        <%-- Button which represents collapsed main links --%>
+                        <li>
+                            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                                <div>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </div>
+                                <span>&nbsp;<spring:message code="views.layout.menu"/></span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
                 <div class="nav-collapse collapse pull-left">
                     <ul class="nav" role="navigation">
                         <li>
@@ -93,23 +108,20 @@
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
                             </li>
                         </c:if>
+                        <security:authorize access="isAuthenticated()">
+                            <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
+                                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                            </tag:url>
+                            <li>
+                                <a class="menuitem" href="${userSettingsUrl}"><spring:message code="views.layout.settings"/></a>
+                            </li>
+                        </security:authorize>
                     </ul>
                 </div>
             </div>
 
             <%-- Right panel - user, timezone, language --%>
             <ul class="nav pull-right">
-                <%-- Button which represents collapsed main links --%>
-                <li>
-                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                        <div>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </div>
-                        <span>&nbsp;<spring:message code="views.layout.menu"/></span>
-                    </button>
-                </li>
 
                 <%-- Login button --%>
                 <security:authorize access="!isAuthenticated()">
@@ -132,8 +144,9 @@
                     <tag:url var="logoutUrl" value="<%= ClientWebUrl.LOGOUT %>"/>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.SHONGO_USER.adminMode}">&nbsp;(<spring:message code="views.layout.user.adminMode"/>)</c:if>
                             <b class="icon-cog"></b>
+                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.SHONGO_USER.adminMode}">&nbsp;(<spring:message code="views.layout.user.adminMode"/>)</c:if>
+                            <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
                             <li>

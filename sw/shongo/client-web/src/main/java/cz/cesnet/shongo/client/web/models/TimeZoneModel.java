@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * TODO:
+ * Model for {@link DateTimeZone}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -29,7 +29,7 @@ public class TimeZoneModel
      * Formatter for timezone name.
      */
     private static org.joda.time.format.DateTimeFormatter TIME_ZONE_NAME_FORMATTER =
-            DateTimeFormat.forPattern("ZZZ (ZZ)");
+            DateTimeFormat.forPattern("ZZZ");
 
     /**
      * Formatter for timezone.
@@ -41,6 +41,12 @@ public class TimeZoneModel
      * List of available time zones.
      */
     private static List<DateTimeZone> timeZones = null;
+
+    /**
+     * Map of available time zones by locale.
+     */
+    private static Map<Locale, Map<DateTimeZone, String>> timeZonesByLocale =
+            new HashMap<Locale, Map<DateTimeZone, String>>();
 
     /**
      * @return {@link #timeZones}
@@ -72,21 +78,59 @@ public class TimeZoneModel
     }
 
     /**
+     * @param locale
+     * @return map time zone name by {@link DateTimeZone} for given {@code locale}
+     */
+    private static Map<DateTimeZone, String> getTimeZones(Locale locale)
+    {
+        Map<DateTimeZone, String> timeZones = timeZonesByLocale.get(locale);
+        if (timeZones == null) {
+            timeZones = new HashMap<DateTimeZone, String>();
+            for (DateTimeZone timeZone : getTimeZones()) {
+                String timeZoneName = TIME_ZONE_NAME_FORMATTER.withZone(timeZone).print(0);
+                timeZoneName = timeZoneName.replaceAll("_", " ");
+                if (locale.getLanguage().equals("cs")) {
+                    timeZoneName = timeZoneName.replaceAll("Africa/", "Afrika/");
+                    timeZoneName = timeZoneName.replaceAll("America/", "Amerika/");
+                    timeZoneName = timeZoneName.replaceAll("Antarctica/", "Antarktida/");
+                    timeZoneName = timeZoneName.replaceAll("Asia/", "Asie/");
+                    timeZoneName = timeZoneName.replaceAll("Atlantic/", "Atlanský oceán/");
+                    timeZoneName = timeZoneName.replaceAll("Australia/", "Austrálie/");
+                    timeZoneName = timeZoneName.replaceAll("Europe/", "Evropa/");
+                    timeZoneName = timeZoneName.replaceAll("/Prague", "/Praha");
+                    timeZoneName = timeZoneName.replaceAll("Indian/", "Indický oceán/");
+                    timeZoneName = timeZoneName.replaceAll("Pacific/", "Pacifik/");
+                    timeZoneName = timeZoneName.replaceAll("UTC", "Koordinovaný světový čas");
+                }
+                timeZoneName = timeZoneName.replaceAll("/", " / ");
+                timeZones.put(timeZone, timeZoneName);
+            }
+            timeZonesByLocale.put(locale, timeZones);
+        }
+        return timeZones;
+
+    }
+
+    /**
      * @param dateTime
      * @return map of timeZoneId => timeZoneName
      */
-    public static Map<String, String> getTimeZones(DateTime dateTime)
+    public static Map<String, String> getTimeZones(Locale locale, DateTime dateTime)
     {
         Map<String, String> timeZones = new TreeMap<String, String>();
-        for (DateTimeZone timeZone : getTimeZones()) {
-            String timeZoneName = TIME_ZONE_NAME_FORMATTER.withZone(timeZone).print(dateTime);
-            timeZoneName = timeZoneName.replaceAll("US/", "United States/");
-            timeZoneName = timeZoneName.replaceAll("_", " ");
-            timeZones.put(timeZone.getID(), timeZoneName);
+        for (Map.Entry<DateTimeZone, String> timeZoneEntry : getTimeZones(locale).entrySet()) {
+            DateTimeZone timeZone = timeZoneEntry.getKey();
+            String timeZoneName = timeZoneEntry.getValue();
+            String timeZoneOffset = TIME_ZONE_FORMATTER.withZone(timeZone).print(dateTime);
+            timeZones.put(timeZone.getID(), timeZoneName + " (" + timeZoneOffset + ")");
         }
         return timeZones;
     }
 
+    /**
+     * @param timeZone
+     * @return formatted given {@code timeZone}
+     */
     public static String formatTimeZone(DateTimeZone timeZone)
     {
         return TIME_ZONE_FORMATTER.withZone(timeZone).print(DateTime.now());

@@ -27,6 +27,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Controller for retrieving {@link UserInformation}.
@@ -56,13 +57,13 @@ public class UserController
      */
     @RequestMapping(value = ClientWebUrl.USER_SETTINGS, method = RequestMethod.GET)
     public String handleUserSettings(
+            Locale locale,
             SecurityToken securityToken,
-            HttpServletRequest request,
             Model model)
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", new UserSettingsModel(userSettings));
-        model.addAttribute("timeZones", TimeZoneModel.getTimeZones(DateTime.now()));
+        model.addAttribute("timeZones", TimeZoneModel.getTimeZones(locale, DateTime.now()));
         return "userSettings";
     }
 

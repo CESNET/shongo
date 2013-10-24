@@ -219,6 +219,10 @@ form span.error {
 
 /* Layout - Navigation */
 .navbar .navbar-inner {
+    padding-left: 5px;
+    padding-right: 10px;
+}
+.navbar .nav>li>a {
     padding-left: 10px;
     padding-right: 10px;
 }
