@@ -19,25 +19,51 @@
 </tag:url>
 
 <script type="text/javascript">
-    angular.module('jsp:room', ['ngTooltip', 'ngPagination']);
+    var module = angular.module('jsp:room', ['ui.bootstrap', 'ngTooltip', 'ngPagination']);
 
-    function MoreDetailController($scope) {
+    module.controller('MoreDetailController', function($scope) {
         $scope.show = false;
-    }
+    });
 
-    function RoomParticipantController($scope, $timeout) {
+    module.controller('RoomParticipantController', function($scope, $timeout, $modal) {
         /**
          * @param url for modifying participant
          */
-        $scope.modify = function(url) {
+        $scope.modifyByUrl = function(url) {
             $.post(url, function(){
                 $timeout(function(){
                     $scope.$parent.refresh();
                 }, 0);
             });
         };
-    }
 
+        /**
+         * Show modify dialog.
+         */
+        $scope.modify = function() {
+            var dialog = $modal.open({
+                templateUrl: "roomParticipantDialog.html",
+                controller: "RoomParticipantDialogCtrl",
+                backdrop: "static",
+                windowClass: "center"
+
+            });
+            dialog.result.then(function(result) {
+                console.debug('Result:', result);
+            }, function () {
+                console.debug('Cancelled.');
+            });
+        };
+    });
+
+    module.controller('RoomParticipantDialogCtrl', function ($scope, $modalInstance) {
+        $scope.save = function () {
+            $modalInstance.close('save');
+        };
+        $scope.cancel = function () {
+            $modalInstance.dismiss();
+        };
+    });
 </script>
 
 <h1>
@@ -248,6 +274,57 @@
                         </td>
                     </c:if>
                     <td ng-controller="RoomParticipantController">
+
+                        <script type="text/ng-template" id="roomParticipantDialog.html">
+                            <div class="modal-header">
+                                <h3>Modify room participant</h3>
+                            </div>
+                            <div class="modal-body">
+                                <form class="form-horizontal">
+                                    <div class="control-group">
+                                        <label class="control-label" for="name">
+                                            Name:
+                                        </label>
+                                        <div class="controls">
+                                            <input id="name" type="text" readonly="true" tabindex="1"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label" for="layout">
+                                            Layout:
+                                        </label>
+                                        <div class="controls">
+                                            <input id="layout" type="text" tabindex="1"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label" for="microphoneLevel">
+                                            Microphone level:
+                                        </label>
+                                        <div class="controls">
+                                            <input id="microphoneLevel" type="text" tabindex="1"/>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input type="checkbox" tabindex="1"/>&nbsp;Video Muted
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <input type="checkbox" tabindex="1"/>&nbsp;Audio Muted
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button ng-click="save()" class="btn btn-primary" ><spring:message code="views.button.save"/></button>
+                                <button ng-click="cancel()" class="btn" ><spring:message code="views.button.cancel"/></button>
+                            </div>
+                        </script>
+                        <spring:message var="participantModifyTitle" code="views.button.modify"/>
+                        <a href="" ng-click="modify()" title="${participantModifyTitle}"><i class="icon-pencil"></i></a>
+
                         <span ng-show="roomParticipant.audioMuted != null">
                             <tag:url var="toggleParticipantAudioMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED %>">
                                 <tag:param name="roomId" value="${room.id}"/>
@@ -255,8 +332,9 @@
                             </tag:url>
                             <spring:message var="participantAudioMuteTitle" code="views.room.currentParticipant.audioMuted.disable"/>
                             <spring:message var="participantAudioUnMuteTitle" code="views.room.currentParticipant.audioMuted.enable"/>
-                            <a href="" ng-click="modify('${toggleParticipantAudioMutedUrl}')" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${toggleParticipantAudioMutedUrl}')" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
                         </span>
+
                         <span ng-show="roomParticipant.videoMuted != null">
                             <tag:url var="toggleParticipantVideoMutedUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED %>">
                                 <tag:param name="roomId" value="${room.id}"/>
@@ -264,14 +342,17 @@
                             </tag:url>
                             <spring:message var="participantVideoMuteTitle" code="views.room.currentParticipant.videoMuted.disable"/>
                             <spring:message var="participantVideoUnMuteTitle" code="views.room.currentParticipant.videoMuted.enable"/>
-                            <a href="" ng-click="modify('${toggleParticipantVideoMutedUrl}')" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-eye-{{roomParticipant.videoMuted ? 'close' : 'open'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${toggleParticipantVideoMutedUrl}')" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-eye-{{roomParticipant.videoMuted ? 'close' : 'open'}}"></i></a>&nbsp;
                         </span>
+
                         <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
                             <tag:param name="roomId" value="${room.id}"/>
                             <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                         </tag:url>
+
                         <spring:message var="participantDisconnectTitle" code="views.room.currentParticipant.disconnect"/>
-                        <a href="" ng-click="modify('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="icon-remove"></i></a>
+                        <a href="" ng-click="modifyByUrl('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="icon-remove"></i></a>
+
                     </td>
                 </tr>
                 </tbody>

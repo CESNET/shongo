@@ -186,6 +186,9 @@
         <put-attribute name="title" value="views.room.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular-ui-bootstrap.min.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="roomParticipantList" extends="layoutAngular">
