@@ -116,6 +116,10 @@
             </dd>
         </c:if>
 
+        <dd>
+            <a href="${reservationRequestDetailUrl}"><spring:message code="views.room.showReservationRequest"/></a>
+        </dd>
+
         <div ng-controller="MoreDetailController">
 
             <div ng-show="show">
