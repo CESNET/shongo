@@ -178,6 +178,9 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
      */
     $scope.setError = function (response) {
         if (response.status == 500) {
+            // Update element height
+            $element.css('height', "auto");
+
             // Get error content
             var errorContent = $('#page-content', response.data).html().trim();
 

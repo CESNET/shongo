@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -246,6 +247,10 @@ public class RoomController
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", roomParticipant.getId());
             item.put("name", (user != null ? user.getFullName() : roomParticipant.getDisplayName()));
+            ParticipantRole roomParticipantRole = roomParticipant.getRole();
+            if (roomParticipantRole != null) {
+                item.put("role", messageSource.getMessage("views.participant.role." + roomParticipantRole, null, locale));
+            }
             item.put("email", (user != null ? user.getPrimaryEmail() : null));
             item.put("audioMuted", roomParticipant.getAudioMuted());
             item.put("videoMuted", roomParticipant.getVideoMuted());

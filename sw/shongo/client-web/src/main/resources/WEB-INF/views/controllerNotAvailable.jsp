@@ -7,6 +7,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tag:url value="<%= ClientWebUrl.REPORT %>" var="reportUrl">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>

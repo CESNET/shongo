@@ -193,7 +193,7 @@
     </c:if>
 
     <%-- Runtime management - Current Participants --%>
-    <c:if test="${room.available}">
+    <c:if test="${!roomNotAvailable && room.available}">
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA%>" var="roomParticipantsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>
@@ -218,6 +218,7 @@
                         </th>
                     </c:if>
                     <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+                        <th><spring:message code="views.room.currentParticipant.role"/></th>
                         <th><spring:message code="views.room.currentParticipant.email"/></th>
                     </c:if>
                     <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
@@ -239,6 +240,9 @@
                         </td>
                     </c:if>
                     <c:if test="${room.technology == 'ADOBE_CONNECT'}">
+                        <td>
+                            {{roomParticipant.role}}
+                        </td>
                         <td>
                             {{roomParticipant.email}}
                         </td>
@@ -282,7 +286,7 @@
     </c:if>
 
     <%-- Runtime management - Recordings --%>
-    <c:if test="${room.started && room.technology == 'ADOBE_CONNECT'}">
+    <c:if test="${!roomNotAvailable && room.started && room.technology == 'ADOBE_CONNECT'}">
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA %>" var="roomRecordingsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>

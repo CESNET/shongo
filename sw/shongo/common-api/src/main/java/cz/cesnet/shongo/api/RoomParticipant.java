@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.ParticipantRole;
 import org.joda.time.DateTime;
 
 /**
@@ -20,9 +21,14 @@ public class RoomParticipant extends IdentifiedComplexType
     private String userId;
 
     /**
-     * Name of the participant which can be displayed.
+     * Name of the user displayed to the others (e.g., name of the person, physical room name...).
      */
     private String displayName;
+
+    /**
+     * Role of the participant.
+     */
+    private ParticipantRole role;
 
     /**
      * Date/time when the participants joined to the {@link Room} (started the current session).
@@ -72,7 +78,7 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @return Room unique identifier
+     * @return {@link #roomId}
      */
     public String getRoomId()
     {
@@ -80,7 +86,7 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @param roomId Room unique identifier
+     * @param roomId sets the {@link #roomId}
      */
     public void setRoomId(String roomId)
     {
@@ -104,7 +110,7 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @return name of the user displayed to the others (e.g., name of the person, physical room name...)
+     * @return {@link #displayName}
      */
     public String getDisplayName()
     {
@@ -112,11 +118,27 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @param displayName name of the user displayed to the others (e.g., name of the person, physical room name...)
+     * @param displayName sets the {@link #displayName}
      */
     public void setDisplayName(String displayName)
     {
         this.displayName = displayName;
+    }
+
+    /**
+     * @return {@link #role}
+     */
+    public ParticipantRole getRole()
+    {
+        return role;
+    }
+
+    /**
+     * @param role sets the {@link #role}
+     */
+    public void setRole(ParticipantRole role)
+    {
+        this.role = role;
     }
 
     public DateTime getJoinTime()
@@ -223,6 +245,7 @@ public class RoomParticipant extends IdentifiedComplexType
     public static final String ROOM_ID = "roomId";
     public static final String USER_ID = "userId";
     public static final String DISPLAY_NAME = "displayName";
+    public static final String ROLE = "role";
     public static final String JOIN_TIME = "joinTime";
     public static final String LAYOUT = "layout";
     public static final String AUDIO_MUTED = "audioMuted";
@@ -237,6 +260,7 @@ public class RoomParticipant extends IdentifiedComplexType
         dataMap.set(ROOM_ID, roomId);
         dataMap.set(USER_ID, userId);
         dataMap.set(DISPLAY_NAME, displayName);
+        dataMap.set(ROLE, role);
         dataMap.set(JOIN_TIME, joinTime);
         dataMap.set(LAYOUT, layout);
         dataMap.set(AUDIO_MUTED, audioMuted);
@@ -253,6 +277,7 @@ public class RoomParticipant extends IdentifiedComplexType
         roomId = dataMap.getString(ROOM_ID);
         userId = dataMap.getString(USER_ID);
         displayName = dataMap.getString(DISPLAY_NAME);
+        role = dataMap.getEnum(ROLE, ParticipantRole.class);
         joinTime = dataMap.getDateTime(JOIN_TIME);
         layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
         audioMuted = dataMap.getBoolean(AUDIO_MUTED);
