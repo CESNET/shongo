@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
@@ -12,8 +13,6 @@ import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.TodoImplementException;
-import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -70,7 +69,7 @@ public class ServiceImpl implements Service
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
-            RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, roomId, DateTime.now());
+            RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, roomId);
             if (roomEndpoint == null) {
                 throw new CommandException(
                         String.format("No room '%s' was found for resource with agent '%s'.", roomId, agentName));
@@ -102,7 +101,7 @@ public class ServiceImpl implements Service
                 try {
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
                     RoomEndpoint roomEndpoint =
-                            executableManager.getRoomEndpoint(deviceResourceId, targetId, DateTime.now());
+                            executableManager.getRoomEndpoint(deviceResourceId, targetId);
                     if (roomEndpoint == null) {
                         throw new CommandException(String.format(
                                 "No room '%s' was found for resource with agent '%s'.", targetId, agentName));

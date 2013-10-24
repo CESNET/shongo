@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -389,7 +390,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             if (!authorization.hasPermission(securityToken, deviceResource, Permission.CONTROL_RESOURCE)) {
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(
-                        deviceResourceIdentifier.getPersistenceId(), roomId, DateTime.now());
+                        deviceResourceIdentifier.getPersistenceId(), roomId);
                 if (roomEndpoint == null
                         || !authorization.hasPermission(securityToken, roomEndpoint, Permission.READ)) {
                     ControllerReportSetHelper.throwSecurityNotAuthorizedFault(

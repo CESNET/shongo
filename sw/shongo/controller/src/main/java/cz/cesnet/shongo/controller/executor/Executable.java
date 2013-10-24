@@ -755,13 +755,23 @@ public abstract class Executable extends PersistentObject implements ReportableS
     }
 
     /**
-     * States which represents {@link Executable} which is is created only for
+     * States which represents {@link Executable} which is created only for
      * {@link cz.cesnet.shongo.controller.scheduler.SchedulerReport} and thus it is not allocated.
      */
     public static final Set<State> NOT_ALLOCATED_STATES = new HashSet<State>()
     {{
             add(State.NOT_ALLOCATED);
             add(State.TO_DELETE);
+        }};
+
+    /**
+     * States which represents {@link Executable} which is started.
+     */
+    public static final Set<State> STARTED_STATES = new HashSet<State>()
+    {{
+            add(State.STARTED);
+            add(State.MODIFIED);
+            add(State.STOPPING_FAILED);
         }};
 
     /**

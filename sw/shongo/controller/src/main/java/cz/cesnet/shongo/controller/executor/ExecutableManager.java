@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -241,11 +242,10 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param deviceResourceId
      * @param roomId
-     * @param referenceDateTime
      * @return {@link RoomEndpoint} in given {@code deviceResourceId} with given {@code roomId}
-     *         and taking place in given {@code referenceDateTime}
+     *         and currently taking place
      */
-    public RoomEndpoint getRoomEndpoint(Long deviceResourceId, String roomId, DateTime referenceDateTime)
+    public RoomEndpoint getRoomEndpoint(Long deviceResourceId, String roomId)
     {
         ResourceRoomEndpoint resourceRoomEndpoint;
         try {
@@ -253,11 +253,10 @@ public class ExecutableManager extends AbstractManager
                     "SELECT room FROM ResourceRoomEndpoint room"
                             + " WHERE room.roomProviderCapability.resource.id = :resourceId"
                             + " AND room.roomId = :roomId"
-                            + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime",
-                    ResourceRoomEndpoint.class)
+                            + " AND room.state IN(:startedStates)", ResourceRoomEndpoint.class)
                     .setParameter("resourceId", deviceResourceId)
                     .setParameter("roomId", roomId)
-                    .setParameter("dateTime", referenceDateTime)
+                    .setParameter("startedStates", Executable.STARTED_STATES)
                     .getSingleResult();
         }
         catch (NoResultException exception) {
@@ -266,9 +265,9 @@ public class ExecutableManager extends AbstractManager
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
                         + " WHERE room.roomEndpoint = :room"
-                        + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", UsedRoomEndpoint.class)
+                        + " AND room.state IN(:startedStates)", UsedRoomEndpoint.class)
                 .setParameter("room", resourceRoomEndpoint)
-                .setParameter("dateTime", referenceDateTime)
+                .setParameter("startedStates", Executable.STARTED_STATES)
                 .getResultList();
         if (usedRoomEndpoints.size() == 0) {
             return resourceRoomEndpoint;
@@ -277,7 +276,7 @@ public class ExecutableManager extends AbstractManager
             return usedRoomEndpoints.get(0);
         }
         throw new RuntimeException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
-                + "s taking place at " + referenceDateTime.toString() + ".");
+                + "s taking place at " + DateTime.now() + ".");
     }
 
     /**
