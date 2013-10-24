@@ -665,12 +665,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
                 }
-                if (!start.equals(end)) {
-                    return new Period(start, end);
-                }
-                else {
-                    return new Period(start.withTime(0, 0, 0, 0), end.withTime(23,59,59,0));
-                }
+                return new Period(start.withTime(0, 0, 0, 0), end.withTime(23,59,59,0));
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
@@ -696,7 +691,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public Interval getSlot()
     {
-        return new Interval(start, getDuration());
+        switch (specificationType) {
+            case PERMANENT_ROOM:
+                return new Interval(start.withTime(0, 0, 0, 0), getDuration());
+            default:
+                return new Interval(start, getDuration());
+        }
     }
 
     /**
@@ -706,16 +706,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public AbstractReservationRequest toApi()
     {
-        // Determine duration (and end)
-        Period duration = getDuration();
-        end = start.plus(duration);
+        // Determine slot
+        Interval slot = getSlot();
 
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
         if (periodicityType == PeriodicityType.NONE) {
             // Create single reservation request
             ReservationRequest reservationRequest = new ReservationRequest();
-            reservationRequest.setSlot(start, end);
+            reservationRequest.setSlot(slot.getStart(), slot.getEnd());
             abstractReservationRequest = reservationRequest;
         }
         else {
@@ -735,8 +734,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             // Create set of reservation requests
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
-            periodicDateTimeSlot.setStart(start);
-            periodicDateTimeSlot.setDuration(duration);
+            periodicDateTimeSlot.setStart(slot.getStart());
+            periodicDateTimeSlot.setDuration(slot.toPeriod());
             periodicDateTimeSlot.setPeriod(period);
             periodicDateTimeSlot.setEnd(periodicityEnd);
             reservationRequestSet.addSlot(periodicDateTimeSlot);
