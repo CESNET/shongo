@@ -252,6 +252,8 @@ public class RoomController
                 item.put("role", messageSource.getMessage("views.participant.role." + roomParticipantRole, null, locale));
             }
             item.put("email", (user != null ? user.getPrimaryEmail() : null));
+            item.put("layout", roomParticipant.getLayout());
+            item.put("microphoneLevel", roomParticipant.getMicrophoneLevel());
             item.put("audioMuted", roomParticipant.getAudioMuted());
             item.put("videoMuted", roomParticipant.getVideoMuted());
             item.put("videoSnapshot", roomParticipant.isVideoSnapshot());
@@ -332,56 +334,57 @@ public class RoomController
         return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.GET)
-    public String handleRoomParticipantToggleAudioMuted(
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.GET)
+    @ResponseBody
+    public String handleRoomParticipantModify(
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
+            @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
+            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
+            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
     {
         RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, roomId, participantId);
         RoomParticipant roomParticipant = new RoomParticipant(participantId);
-        if (oldRoomParticipant.getAudioMuted() == null) {
-            throw new IllegalStateException("Audio muting is not available.");
+        if (layout != null) {
+            if (oldRoomParticipant.getLayout() == null) {
+                throw new IllegalStateException("Layout is not available.");
+            }
+            roomParticipant.setLayout(layout);
         }
-        roomParticipant.setAudioMuted(!oldRoomParticipant.getAudioMuted());
+        if (microphoneLevel != null) {
+            roomParticipant.setMicrophoneLevel(microphoneLevel);
+        }
+        if (audioMuted != null) {
+            if (oldRoomParticipant.getAudioMuted() == null) {
+                throw new IllegalStateException("Audio muting is not available.");
+            }
+            roomParticipant.setAudioMuted(audioMuted);
+        }
+        if (videoMuted != null) {
+            if (oldRoomParticipant.getVideoMuted() == null) {
+                throw new IllegalStateException("Video muting is not available.");
+            }
+            roomParticipant.setVideoMuted(videoMuted);
+        }
         roomCache.modifyRoomParticipant(securityToken, roomId, roomParticipant);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.POST)
     @ResponseBody
-    public void handleRoomParticipantToggleAudioMutedPost(
+    public void handleRoomParticipantModifyPost(
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
+            @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
+            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
+            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
     {
-        handleRoomParticipantToggleAudioMuted(securityToken, roomId, participantId);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.GET)
-    public String handleRoomParticipantToggleVideoMuted(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
-    {
-        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, roomId, participantId);
-        RoomParticipant roomParticipant = new RoomParticipant(participantId);
-        if (oldRoomParticipant.getVideoMuted() == null) {
-            throw new IllegalStateException("Video muting is not available.");
-        }
-        roomParticipant.setVideoMuted(!oldRoomParticipant.getVideoMuted());
-        roomCache.modifyRoomParticipant(securityToken, roomId, roomParticipant);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED, method = RequestMethod.POST)
-    @ResponseBody
-    public void handleRoomParticipantToggleVideoMutedPost(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
-    {
-        handleRoomParticipantToggleVideoMuted(securityToken, roomId, participantId);
+        handleRoomParticipantModify(securityToken, roomId, participantId,
+                layout, microphoneLevel, audioMuted, videoMuted);
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)

@@ -128,10 +128,8 @@ public class ClientWebUrl
             "/room/{roomId:.+}/recordings/data";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT =
             "/room/{roomId:.+}/participant/{participantId}/video-snapshot";
-    public static final String ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_AUDIO_MUTED =
-            "/room/{roomId:.+}/participant/{participantId}/toggle-audio-muted";
-    public static final String ROOM_MANAGEMENT_PARTICIPANT_TOGGLE_VIDEO_MUTED =
-            "/room/{roomId:.+}/participant/{participantId}/toggle-video-muted";
+    public static final String ROOM_MANAGEMENT_PARTICIPANT_MODIFY =
+            "/room/{roomId:.+}/participant/{participantId}/manage";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT =
             "/room/{roomId:.+}/participant/{participantId}/disconnect";
     public static final String ROOM_PARTICIPANTS =

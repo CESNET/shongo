@@ -7,7 +7,10 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.connector.api.DeviceInfo;
+import cz.cesnet.shongo.connector.api.MultipointService;
+import cz.cesnet.shongo.connector.api.UsageStats;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
@@ -70,6 +73,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * Maximum length of string which can be sent to the device.
      */
     private static final int STRING_MAX_LENGTH = 31;
+
+    /**
+     * Max gain of dB.
+     */
+    private static final int MAX_ABS_GAIN_DB = 20;
 
     /**
      * A safety limit for number of enumerate pages.
@@ -576,9 +584,18 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // Set parameters
         if (roomParticipant.getLayout() != null) {
             RoomLayout layout = roomParticipant.getLayout();
-            cmd.setParameter("focusType", (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
-                                                   ? "voiceActivated" : "participant"));
-            logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
+            String focusType = (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
+                                        ? "voiceActivated" : "participant");
+            cmd.setParameter("focusType", focusType);
+            if (focusType.equals("participant")) {
+                Map<String, String> focusParticipant = new HashMap<String, String>();
+                focusParticipant.put("participantName", truncateString(roomParticipantId));
+                focusParticipant.put("participantType",
+                        (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
+                cmd.setParameter("focusParticipant", focusParticipant);
+            }
+            logger.info("Setting only voice-switching mode (focusType = {})."
+                    + " The layout itself cannot be set by Cisco MCU.", focusType);
         }
         if (roomParticipant.getDisplayName() != null) {
             cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
@@ -591,7 +608,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
         }
         if (roomParticipant.getMicrophoneLevel() != null) {
-            cmd.setParameter("audioRxGainMillidB", roomParticipant.getMicrophoneLevel());
+            int gainDb = ((MAX_ABS_GAIN_DB * (roomParticipant.getMicrophoneLevel() - 5)) / 5) * 1000;
+            cmd.setParameter("audioRxGainMillidB", gainDb);
             cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
         }
         execApi(cmd);
@@ -798,6 +816,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Perform http request for given {@code file}
+     *
      * @param file
      * @return content as {@link MediaData}
      * @throws CommandException
@@ -837,6 +856,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Try to login for {@link #httpClient}
+     *
      * @throws CommandException when login fails
      */
     private void loginHttp() throws CommandException
@@ -1219,8 +1239,8 @@ ParamsLoop:
         roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
         roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
-            // TODO: recompute 0-100 to dB
-            roomParticipant.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+            int gainDb = (Integer) state.get("audioRxGainMillidB");
+            roomParticipant.setMicrophoneLevel((((gainDb / 1000) * 5) / MAX_ABS_GAIN_DB) + 5);
         }
         roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
 
@@ -1293,7 +1313,7 @@ ParamsLoop:
         if (mediaType.equals(MediaType.TEXT_PLAIN)) {
             String error = new String(mediaData.getData());
             if (error.contains("Unable to generate participant preview")) {
-                throw new CommandException("Cannot get snapshot for participant " +  roomParticipantId
+                throw new CommandException("Cannot get snapshot for participant " + roomParticipantId
                         + ". Participant doesn't exist.");
             }
             else {
@@ -1302,7 +1322,8 @@ ParamsLoop:
 
         }
         if (!type.equals("image")) {
-            throw new CommandException("Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
+            throw new CommandException(
+                    "Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
         }
         return mediaData;
     }

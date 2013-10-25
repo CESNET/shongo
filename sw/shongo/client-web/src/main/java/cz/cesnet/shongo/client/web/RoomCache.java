@@ -170,6 +170,9 @@ public class RoomCache
                 String resourceRoomId = roomExecutable.getRoomId();
                 roomParticipant = resourceControlService.getRoomParticipant(
                         securityToken, resourceId, resourceRoomId, roomParticipantId);
+                if (roomParticipant == null) {
+                    throw new IllegalArgumentException("Room participant " + roomParticipantId + " doesn't exist.");
+                }
                 roomParticipantCache.put(cacheId, roomParticipant);
             }
             return roomParticipant;

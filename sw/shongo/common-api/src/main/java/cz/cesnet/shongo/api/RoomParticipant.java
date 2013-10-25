@@ -228,8 +228,8 @@ public class RoomParticipant extends IdentifiedComplexType
      */
     public void setMicrophoneLevel(Integer microphoneLevel)
     {
-        if (microphoneLevel != null && (microphoneLevel < 0 || microphoneLevel > 100)) {
-            throw new IllegalArgumentException("Microphone level " + microphoneLevel + " is out of range 0-100.");
+        if (microphoneLevel != null && (microphoneLevel < 1 || microphoneLevel > 10)) {
+            throw new IllegalArgumentException("Microphone level " + microphoneLevel + " is out of range 1-10.");
         }
         this.microphoneLevel = microphoneLevel;
     }
