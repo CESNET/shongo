@@ -2,8 +2,6 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
@@ -127,7 +125,8 @@ public class RoomController
             }
 
             RoomState roomState = RoomState.fromRoomState(
-                    executableSummary.getState(), executableSummary.getRoomLicenseCount(), executableSummary.getRoomUsageState());
+                    executableSummary.getState(), executableSummary.getRoomLicenseCount(),
+                    executableSummary.getRoomUsageState());
             RoomType roomType = RoomType.fromExecutableSummary(executableSummary);
 
             item.put("state", roomState);
@@ -215,6 +214,34 @@ public class RoomController
         return "room";
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_MODIFY, method = RequestMethod.GET)
+    @ResponseBody
+    public String handleRoomModify(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout)
+    {
+        Room room = roomCache.getRoom(securityToken, roomId);
+        if (layout != null) {
+            if (room.getLayout() == null) {
+                throw new IllegalStateException("Layout is not available.");
+            }
+            room.setLayout(layout);
+        }
+        roomCache.modifyRoom(securityToken, roomId, room);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_MODIFY, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomModifyPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout)
+    {
+        handleRoomModify(securityToken, roomId, layout);
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Map handleRoomManagementParticipants(
@@ -249,7 +276,8 @@ public class RoomController
             item.put("name", (user != null ? user.getFullName() : roomParticipant.getDisplayName()));
             ParticipantRole roomParticipantRole = roomParticipant.getRole();
             if (roomParticipantRole != null) {
-                item.put("role", messageSource.getMessage("views.participant.role." + roomParticipantRole, null, locale));
+                item.put("role",
+                        messageSource.getMessage("views.participant.role." + roomParticipantRole, null, locale));
             }
             item.put("email", (user != null ? user.getPrimaryEmail() : null));
             item.put("layout", roomParticipant.getLayout());
@@ -428,9 +456,9 @@ public class RoomController
         return "roomParticipantList";
     }
 
-        /**
-         * Show form for adding new participant for ad-hoc/permanent room.
-         */
+    /**
+     * Show form for adding new participant for ad-hoc/permanent room.
+     */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
             SecurityToken securityToken,

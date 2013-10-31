@@ -18,9 +18,28 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
+<jsp:include page="../templates/roomParticipantDialog.jsp"/>
 <script type="text/javascript">
     var module = angular.module('jsp:room', ['jsp:roomParticipantDialog', 'ngTooltip', 'ngPagination']);
-    module.controller('MoreDetailController', function($scope) {
+    module.controller('RoomController', function($scope) {
+        <c:if test="${roomRuntime != null}">
+            $scope.layout = "${roomRuntime.layout != null ? roomRuntime.layout : 'OTHER'}";
+            <tag:url var="modifyRoomUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_MODIFY %>">
+                <tag:param name="roomId" value="${room.id}"/>
+                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                <tag:param name="layout" value=":layout"/>
+            </tag:url>
+            $scope.$watch("layout", function (newVal, oldVal) {
+                if (newVal != oldVal) {
+                    var url = "${modifyRoomUrl}";
+                    url = url.replace(":layout", newVal);
+                    console.debug(url);
+                    $.post(url);
+                }
+            });
+        </c:if>
+    });
+    module.controller('RoomDetailController', function($scope) {
         $scope.show = false;
     });
     module.controller('RoomParticipantController', function($scope, $timeout, $roomParticipantDialog) {
@@ -71,6 +90,20 @@
             });
         };
     });
+
+    $(function () {
+        function formatRoomLayout(roomLayout) {
+            return "<span class='" + roomLayout.id + "'>" + roomLayout.text +"</span>";
+        }
+        $(".room-layout").select2({
+            width: "200px",
+            minimumResultsForSearch: -1,
+            dropdownCssClass: "room-layout",
+            formatResult: formatRoomLayout,
+            formatSelection: formatRoomLayout,
+            escapeMarkup: function(markup) { return markup; }
+        });
+    });
 </script>
 
 <h1>
@@ -87,7 +120,7 @@
 <div ng-app="jsp:room">
 
     <%-- Detail of room --%>
-    <dl class="dl-horizontal">
+    <dl class="dl-horizontal" ng-controller="RoomController">
 
         <dt><spring:message code="views.room.technology"/>:</dt>
         <dd>${room.technology.title}</dd>
@@ -153,7 +186,19 @@
             <a href="${reservationRequestDetailUrl}"><spring:message code="views.room.showReservationRequest"/></a>
         </dd>
 
-        <div ng-controller="MoreDetailController">
+        <c:if test="${room.technology == 'H323_SIP'}">
+            <dt class="control-label"><spring:message code="views.room.layout"/>:</dt>
+            <dd>
+                <spring:eval var="layouts" expression="T(cz.cesnet.shongo.api.RoomLayout).values()"/>
+                <select class="room-layout" ng-model="layout">
+                    <c:forEach items="${layouts}" var="layout">
+                        <option value="${layout}"><spring:message code="views.room.layout.${layout}"/></option>
+                    </c:forEach>
+                </select>
+            </dd>
+        </c:if>
+
+        <div ng-controller="RoomDetailController">
 
             <div ng-show="show">
 
@@ -302,7 +347,6 @@
                                 <a href="" ng-click="modifyByUrl('${participantModifyUrl}?videoMuted=' + !roomParticipant.videoMuted)" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-{{roomParticipant.videoMuted ? 'minus-sign-alt' : 'facetime-video'}}"></i></a>&nbsp;
                             </span>
                             <%-- Modify dialog --%>
-                            <jsp:include page="../templates/roomParticipantDialog.jsp"/>
                             <span ng-show="isEditable(roomParticipant)">
                                 <spring:message var="participantModifyTitle" code="views.button.modify"/>
                                 <a href="" ng-click="modify(roomParticipant, '${participantModifyUrl}')" title="${participantModifyTitle}"><i class="icon-pencil"></i></a>&nbsp;

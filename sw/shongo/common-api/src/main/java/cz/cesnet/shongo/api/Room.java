@@ -60,6 +60,14 @@ public class Room extends IdentifiedComplexType
     }
 
     /**
+     * Constructor.
+     */
+    public Room(String roomId)
+    {
+        this.id = roomId;
+    }
+
+    /**
      * @return {@link Alias#value} for {@link AliasType#ROOM_NAME}
      */
     public String getName()
@@ -334,7 +342,7 @@ public class Room extends IdentifiedComplexType
     public String toString()
     {
         return String.format(Room.class.getSimpleName()
-                + " (id: %s, description: %s, licenses: %d, aliases: %s, participantRoles: %s)",
-                getId(), getDescription(), getLicenseCount(), getAliases(), getParticipantRoles());
+                + " (id: %s, description: %s, licenses: %d, layout: %s, aliases: %s, participantRoles: %s)",
+                getId(), getDescription(), getLicenseCount(), getLayout(), getAliases(), getParticipantRoles());
     }
 }

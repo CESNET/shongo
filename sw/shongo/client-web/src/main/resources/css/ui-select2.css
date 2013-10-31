@@ -318,7 +318,7 @@ Version: 3.4.1 Timestamp: Thu Jun 27 18:02:10 PDT 2013
     -moz-border-radius-bottomright: 0;
     border-bottom-right-radius: 0;
 
-    background-color: #eee;
+    background-color: #fff;
     background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, white), color-stop(0.5, #eeeeee));
     background-image: -webkit-linear-gradient(center bottom, white 0%, #eeeeee 50%);
     background-image: -moz-linear-gradient(center bottom, white 0%, #eeeeee 50%);
@@ -423,7 +423,7 @@ Version: 3.4.1 Timestamp: Thu Jun 27 18:02:10 PDT 2013
 .select2-results .select2-no-results,
 .select2-results .select2-searching,
 .select2-results .select2-selection-limit {
-    background: #f4f4f4;
+    background: #transparent;
     display: list-item;
 }
 
@@ -753,4 +753,8 @@ select.select2 {
     background: none !important;
     border: none !important;
 }
+
+.bigdrop.select2-container .select2-results {max-height: 200px;}
+.bigdrop .select2-results {max-height: 200px;}
+.bigdrop .select2-choices {min-height: 150px; max-height: 150px; overflow-y: auto;}
 

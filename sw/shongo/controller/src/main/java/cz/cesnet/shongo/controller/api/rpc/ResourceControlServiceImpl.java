@@ -214,7 +214,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public String modifyRoom(SecurityToken token, String deviceResourceId, Room room)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, room.getId());
         return (String) performDeviceAction(deviceResourceId, agentName, new ModifyRoom(room));
     }
 

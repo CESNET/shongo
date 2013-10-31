@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -267,6 +268,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             room.addAlias(numAlias);
         }
 
+        // layout
+        if (result.containsKey("customLayout")) {
+            room.setLayout(getRoomLayoutByLayoutIndex((Integer) result.get("customLayout")));
+        }
+
         // options
         H323RoomSetting h323RoomSetting = new H323RoomSetting();
         if (!result.get("pin").equals("")) {
@@ -291,6 +297,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         Command cmd = new Command("conference.create");
 
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
+        cmd.setParameter("newParticipantsCustomLayout", Boolean.TRUE);
 
         cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
         cmd.setParameter("maximumAudioPorts", 0); // audio-only participants are forced to use video slots
@@ -326,6 +333,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         // Set the license count
         cmd.setParameter("maximumVideoPorts", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
+
+        // Default layout
+        RoomLayout roomLayout = room.getLayout();
+        if (roomLayout != null) {
+            Integer layoutIndex = getLayoutIndexByRoomLayout(roomLayout);
+            if (layoutIndex != null) {
+                cmd.setParameter("customLayout", layoutIndex);
+            }
+        }
 
         // Set the description
         if (room.getDescription() != null) {
@@ -583,19 +599,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         // Set parameters
         if (roomParticipant.getLayout() != null) {
-            RoomLayout layout = roomParticipant.getLayout();
-            String focusType = (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED
-                                        ? "voiceActivated" : "participant");
-            cmd.setParameter("focusType", focusType);
-            if (focusType.equals("participant")) {
-                Map<String, String> focusParticipant = new HashMap<String, String>();
-                focusParticipant.put("participantName", truncateString(roomParticipantId));
-                focusParticipant.put("participantType",
-                        (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
-                cmd.setParameter("focusParticipant", focusParticipant);
+            Integer layoutIndex = getLayoutIndexByRoomLayout(roomParticipant.getLayout());
+            if (layoutIndex != null) {
+                cmd.setParameter("cpLayout", "layout" + layoutIndex);
             }
-            logger.info("Setting only voice-switching mode (focusType = {})."
-                    + " The layout itself cannot be set by Cisco MCU.", focusType);
         }
         if (roomParticipant.getDisplayName() != null) {
             cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
@@ -1255,17 +1262,7 @@ ParamsLoop:
 
         // room layout
         if (state.containsKey("currentLayout")) {
-            RoomLayout.VoiceSwitching vs;
-            if (state.get("focusType").equals("voiceActivated")) {
-                vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
-            }
-            else {
-                vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
-            }
-            final Integer layoutIndex = (Integer) state.get("currentLayout");
-            RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
-
-            roomParticipant.setLayout(rl);
+            roomParticipant.setLayout(getRoomLayoutByLayoutIndex((Integer) state.get("currentLayout")));
         }
         return roomParticipant;
     }
@@ -1634,5 +1631,49 @@ ParamsLoop:
             }
         }
 
+    }
+
+    /**
+     * @param layoutIndex   index of the layout as defined by Cisco
+     * @return room layout according to the given Cisco layout index
+     */
+    public static RoomLayout getRoomLayoutByLayoutIndex(int layoutIndex)
+    {
+        switch (layoutIndex) {
+            case 1:
+                return RoomLayout.SPEAKER;
+            case 2:
+            case 3:
+            case 4:
+            case 8:
+            case 9:
+                return RoomLayout.GRID;
+            case 5:
+            case 6:
+            case 7:
+                return RoomLayout.SPEAKER_CORNER;
+            default:
+                return RoomLayout.OTHER;
+        }
+    }
+
+    /**
+     * @param roomLayout
+     * @return Cisco layout index according to the given room layout
+     */
+    public static Integer getLayoutIndexByRoomLayout(RoomLayout roomLayout)
+    {
+        switch (roomLayout) {
+            case OTHER:
+                return null;
+            case SPEAKER:
+                return 1;
+            case SPEAKER_CORNER:
+                return 5;
+            case GRID:
+                return 3;
+            default:
+                throw new TodoImplementException(roomLayout);
+        }
     }
 }

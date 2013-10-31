@@ -105,6 +105,25 @@ public class RoomCache
     }
 
     /**
+     * Modify given {@code room}.
+     *
+     * @param securityToken
+     * @param room
+     */
+    public void modifyRoom(SecurityToken securityToken, String roomExecutableId, Room room)
+    {
+        synchronized (roomCache) {
+            RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
+            String resourceId = roomExecutable.getResourceId();
+            if (!room.getId().equals(roomExecutable.getRoomId())) {
+                throw new IllegalArgumentException("Room doesn't correspond to given executable.");
+            }
+            resourceControlService.modifyRoom(securityToken, resourceId, room);
+            roomCache.put(roomExecutableId, room);
+        }
+    }
+
+    /**
      * @param securityToken
      * @param roomExecutableId
      * @return collection of {@link RoomParticipant}s for given {@code roomExecutableId}

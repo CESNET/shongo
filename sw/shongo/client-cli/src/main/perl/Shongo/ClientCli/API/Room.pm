@@ -13,6 +13,14 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::ClientCli::API::RoomSettings;
 
+# Enumeration of room layouts
+our $Layout = ordered_hash(
+    'OTHER' => 'Other',
+    'SPEAKER' => 'Speaker',
+    'SPEAKER_CORNER' => 'Speaker Corner',
+    'GRID' => 'Grid'
+);
+
 #
 # Create a new instance of alias
 #
@@ -50,6 +58,10 @@ sub new()
             'class' => 'Shongo::ClientCli::API::Alias',
             'short' => 1
         }
+    });
+    $self->add_attribute('layout', {
+        'type' => 'enum',
+        'enum' =>  $Layout
     });
     $self->add_attribute('roomSettings', {
         'title' => 'Room Settings',
