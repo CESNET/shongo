@@ -154,6 +154,9 @@ form .controls .description {
     margin-top: 5px;
     margin-bottom: -8px;
 }
+form .controls div.select2-container {
+    width: 218px;
+}
 form input[type="radio"], form input[type="checkbox"] {
     height: 20px;
     line-height: normal;
@@ -177,7 +180,8 @@ form .double-width input {
 form .double-width textarea {
     width: 336px;
 }
-form .double-width select {
+form .double-width select,
+form .double-width div.select2-container {
     width: 350px;
 }
 /* Form - reCaptcha*/

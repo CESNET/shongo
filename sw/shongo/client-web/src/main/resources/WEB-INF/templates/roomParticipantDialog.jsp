@@ -24,21 +24,13 @@
             }
         };
     });
-    module.controller("RoomParticipantDialogController", function($scope, $modalInstance, data) {
+    module.controller("RoomParticipantDialogController", function($scope, $modalInstance, data, $timeout) {
         $scope.data = data;
         $scope.data.enableMicrophoneLevel = $scope.data.microphoneLevel != null;
         if (!$scope.data.enableMicrophoneLevel) {
             $scope.data.microphoneLevel = 5;
         }
         $scope.originalMicrophoneLevel = $scope.data.microphoneLevel;
-        if ($scope.data.layout != null) {
-            if ($scope.data.layout.indexOf("VOICE_SWITCHED") != -1) {
-                $scope.data.layout = "VOICE_SWITCHED_SPEAKER_CORNER";
-            }
-            else {
-                $scope.data.layout = "SPEAKER_CORNER";
-            }
-        }
         $scope.save = function () {
             if ($scope.data.microphoneLevel == null) {
                 $scope.data.microphoneLevel = $scope.originalMicrophoneLevel;
@@ -51,7 +43,12 @@
         $scope.cancel = function () {
             $modalInstance.dismiss();
         };
+        $timeout(function () {
+            // init room layout
+            tagRoomLayout_participantLayoutInit();
+        }, 0);
     });
+    <tag:roomLayout id="participantLayout" content="javascript"/>
 </script>
 
 <script type="text/ng-template" id="/roomParticipantDialog.html">
@@ -69,14 +66,11 @@
                 </div>
             </div>
             <div class="control-group" ng-show="data.layout != null">
-                <label class="control-label" for="layout">
+                <label class="control-label" for="participantLayout">
                     <spring:message code="views.room.currentParticipant.layout"/>:
                 </label>
                 <div class="controls">
-                    <select id="layout" ng-model="data.layout" tabindex="1">
-                        <option value="SPEAKER_CORNER"><spring:message code="views.room.currentParticipant.layout.NOT_VOICE_SWITCHED"/></option>
-                        <option value="VOICE_SWITCHED_SPEAKER_CORNER"><spring:message code="views.room.currentParticipant.layout.VOICE_SWITCHED"/></option>
-                    </select>
+                    <tag:roomLayout id="participantLayout" model="data.layout" content="html"/>
                 </div>
             </div>
             <c:if test="${room.technology == 'H323_SIP'}">

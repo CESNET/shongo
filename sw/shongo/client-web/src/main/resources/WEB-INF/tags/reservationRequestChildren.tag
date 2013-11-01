@@ -1,7 +1,7 @@
 <%--
   -- Child reservation requests.
   --%>
-<%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
+<%@ tag body-content="empty" %>
 <%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>

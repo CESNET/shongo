@@ -13,6 +13,7 @@ import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.MultipointService;
 import cz.cesnet.shongo.connector.api.UsageStats;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import cz.cesnet.shongo.util.MathHelper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -534,14 +535,14 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         List<Map<String, Object>> participants = execApiEnumerate(cmd, "participants");
 
         List<RoomParticipant> result = new ArrayList<RoomParticipant>();
-        for (Map<String, Object> part : participants) {
-            if (part == null) {
+        for (Map<String, Object> participant : participants) {
+            if (participant == null) {
                 continue;
             }
-            if (!roomId.equals(part.get("conferenceName"))) {
+            if (!roomId.equals(participant.get("conferenceName"))) {
                 continue; // not from this room
             }
-            result.add(extractRoomParticipant(part));
+            result.add(extractRoomParticipant(participant));
         }
 
         return result;
@@ -597,13 +598,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
         cmd.setParameter("operationScope", "activeState");
 
+        // @see extractRoomParticipant for more info we we don't return participant layout
+        //if (roomParticipant.getLayout() != null) {
+        //    Integer layoutIndex = getLayoutIndexByRoomLayout(roomParticipant.getLayout());
+        //    if (layoutIndex != null) {
+        //        cmd.setParameter("cpLayout", "layout" + layoutIndex);
+        //    }
+        //}
+
         // Set parameters
-        if (roomParticipant.getLayout() != null) {
-            Integer layoutIndex = getLayoutIndexByRoomLayout(roomParticipant.getLayout());
-            if (layoutIndex != null) {
-                cmd.setParameter("cpLayout", "layout" + layoutIndex);
-            }
-        }
         if (roomParticipant.getDisplayName() != null) {
             cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
             cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
@@ -615,9 +618,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
         }
         if (roomParticipant.getMicrophoneLevel() != null) {
-            int gainDb = ((MAX_ABS_GAIN_DB * (roomParticipant.getMicrophoneLevel() - 5)) / 5) * 1000;
-            cmd.setParameter("audioRxGainMillidB", gainDb);
-            cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
+            double gainDb = MathHelper.getDbFromPercent(
+                    ((double) roomParticipant.getMicrophoneLevel() - 5.0) / 5.0, MAX_ABS_GAIN_DB);
+            cmd.setParameter("audioRxGainMillidB", (int)(gainDb * 1000.0));
+            cmd.setParameter("audioRxGainMode", "fixed");
+        }
+        else {
+            cmd.setParameter("audioRxGainMode", "default");
         }
         execApi(cmd);
     }
@@ -1246,8 +1253,8 @@ ParamsLoop:
         roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
         roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
-            int gainDb = (Integer) state.get("audioRxGainMillidB");
-            roomParticipant.setMicrophoneLevel((((gainDb / 1000) * 5) / MAX_ABS_GAIN_DB) + 5);
+            double gainDb = (double)((Integer) state.get("audioRxGainMillidB")) / 1000.0;
+            roomParticipant.setMicrophoneLevel((int) (MathHelper.getPercentFromDb(gainDb, MAX_ABS_GAIN_DB * 5.0) + 5));
         }
         roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
 
@@ -1260,10 +1267,13 @@ ParamsLoop:
             roomParticipant.setVideoSnapshot(true);
         }
 
-        // room layout
-        if (state.containsKey("currentLayout")) {
-            roomParticipant.setLayout(getRoomLayoutByLayoutIndex((Integer) state.get("currentLayout")));
-        }
+        // We can't get room layout, because it is current participant layout and not the configured one
+        // (we need "cpLayout" attribute but it is missing).
+        // If we configure a "GRID" layout, and only one participant is present the "currentLayout=1",
+        // but we need "cpLayout=<grid-index>"
+        //if (currentState.containsKey("currentLayout")) {
+        //    roomParticipant.setLayout(getRoomLayoutByLayoutIndex((Integer) currentState.get("currentLayout")));
+        //}
         return roomParticipant;
     }
 
@@ -1637,7 +1647,7 @@ ParamsLoop:
      * @param layoutIndex   index of the layout as defined by Cisco
      * @return room layout according to the given Cisco layout index
      */
-    public static RoomLayout getRoomLayoutByLayoutIndex(int layoutIndex)
+    private static RoomLayout getRoomLayoutByLayoutIndex(int layoutIndex)
     {
         switch (layoutIndex) {
             case 1:
@@ -1661,7 +1671,7 @@ ParamsLoop:
      * @param roomLayout
      * @return Cisco layout index according to the given room layout
      */
-    public static Integer getLayoutIndexByRoomLayout(RoomLayout roomLayout)
+    private static Integer getLayoutIndexByRoomLayout(RoomLayout roomLayout)
     {
         switch (roomLayout) {
             case OTHER:

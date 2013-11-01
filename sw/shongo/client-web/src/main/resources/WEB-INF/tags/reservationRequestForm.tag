@@ -1,7 +1,6 @@
 <%--
   -- Reservation request form.
   --%>
-<%@ tag trimDirectiveWhitespaces="true" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>

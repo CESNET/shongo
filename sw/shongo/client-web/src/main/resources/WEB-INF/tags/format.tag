@@ -1,4 +1,3 @@
-<%@ tag trimDirectiveWhitespaces="true" %>
 <%@ tag import="cz.cesnet.shongo.TodoImplementException" %>
 <%@ tag import="org.joda.time.*" %>
 <%@ tag import="cz.cesnet.shongo.util.DateTimeFormatter" %>

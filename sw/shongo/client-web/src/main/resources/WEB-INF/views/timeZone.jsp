@@ -2,7 +2,6 @@
   -- Page for time zone detection in javascript.
   -- It redirects to "/" with "time-zone-offset" parameter set.
   --%>
-<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>

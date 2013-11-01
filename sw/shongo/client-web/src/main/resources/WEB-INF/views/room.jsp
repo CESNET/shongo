@@ -1,7 +1,6 @@
 <%--
   -- Page for displaying details about a single reservation request.
   --%>
-<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -18,7 +17,6 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
-<jsp:include page="../templates/roomParticipantDialog.jsp"/>
 <script type="text/javascript">
     var module = angular.module('jsp:room', ['jsp:roomParticipantDialog', 'ngTooltip', 'ngPagination']);
     module.controller('RoomController', function($scope) {
@@ -33,7 +31,6 @@
                 if (newVal != oldVal) {
                     var url = "${modifyRoomUrl}";
                     url = url.replace(":layout", newVal);
-                    console.debug(url);
                     $.post(url);
                 }
             });
@@ -90,20 +87,6 @@
             });
         };
     });
-
-    $(function () {
-        function formatRoomLayout(roomLayout) {
-            return "<span class='" + roomLayout.id + "'>" + roomLayout.text +"</span>";
-        }
-        $(".room-layout").select2({
-            width: "200px",
-            minimumResultsForSearch: -1,
-            dropdownCssClass: "room-layout",
-            formatResult: formatRoomLayout,
-            formatSelection: formatRoomLayout,
-            escapeMarkup: function(markup) { return markup; }
-        });
-    });
 </script>
 
 <h1>
@@ -118,6 +101,8 @@
 </h1>
 
 <div ng-app="jsp:room">
+
+    <jsp:include page="../templates/roomParticipantDialog.jsp"/>
 
     <%-- Detail of room --%>
     <dl class="dl-horizontal" ng-controller="RoomController">
@@ -186,16 +171,13 @@
             <a href="${reservationRequestDetailUrl}"><spring:message code="views.room.showReservationRequest"/></a>
         </dd>
 
-        <c:if test="${room.technology == 'H323_SIP'}">
-            <dt class="control-label"><spring:message code="views.room.layout"/>:</dt>
-            <dd>
-                <spring:eval var="layouts" expression="T(cz.cesnet.shongo.api.RoomLayout).values()"/>
-                <select class="room-layout" ng-model="layout">
-                    <c:forEach items="${layouts}" var="layout">
-                        <option value="${layout}"><spring:message code="views.room.layout.${layout}"/></option>
-                    </c:forEach>
-                </select>
-            </dd>
+        <c:if test="${roomRuntime != null}">
+            <c:if test="${room.technology == 'H323_SIP'}">
+                <dt class="control-label"><spring:message code="views.room.layout"/>:</dt>
+                <dd>
+                    <tag:roomLayout id="roomLayout" model="layout" width="200px"/>
+                </dd>
+            </c:if>
         </c:if>
 
         <div ng-controller="RoomDetailController">

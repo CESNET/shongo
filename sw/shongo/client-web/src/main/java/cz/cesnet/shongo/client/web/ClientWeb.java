@@ -32,7 +32,6 @@ import java.util.jar.Manifest;
  */
 public class ClientWeb
 {
-
     public static void main(final String[] arguments) throws Exception
     {
         Locale.setDefault(UserSettings.LOCALE_ENGLISH);
@@ -67,6 +66,7 @@ public class ClientWeb
         ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
 
         WebAppContext webAppContext = new WebAppContext();
+        webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath("/");
         webAppContext.setParentLoaderPriority(true);

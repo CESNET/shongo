@@ -1,4 +1,3 @@
-<%@ tag trimDirectiveWhitespaces="true" %>
 <%@ tag import="net.tanesha.recaptcha.ReCaptcha" %>
 <%@ tag import="java.util.Properties" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.ReportModel" %>

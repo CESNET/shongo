@@ -2,7 +2,7 @@
 <%--
   -- Reservation request form.
   --%>
-<%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
+<%@ tag body-content="empty" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>

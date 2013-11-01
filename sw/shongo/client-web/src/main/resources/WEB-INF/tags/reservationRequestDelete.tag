@@ -1,7 +1,7 @@
 <%--
   -- Confirmation for deletion of reservation request delete or display dependencies.
   --%>
-<%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
+<%@ tag body-content="empty" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>

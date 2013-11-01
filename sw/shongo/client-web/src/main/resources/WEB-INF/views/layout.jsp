@@ -1,7 +1,6 @@
 <%--
   -- Page layout template to which are inserted all other pages into "body" attribute.
   --%>
-<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ page import="org.springframework.web.util.UriComponentsBuilder" %>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ page import="cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor" %>
