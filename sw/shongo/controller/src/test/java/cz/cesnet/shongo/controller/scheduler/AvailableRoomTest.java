@@ -36,31 +36,31 @@ public class AvailableRoomTest extends AbstractSchedulerTest
         RoomReservation room1 = new RoomReservation();
         room1.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
-        room1.getRoomConfiguration().setLicenseCount(10);
+        room1.setLicenseCount(10);
         createReservation(room1);
 
         RoomReservation room2 = new RoomReservation();
         room2.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
         room2.setSlot(DateTime.parse("5"), DateTime.parse("50"));
-        room2.getRoomConfiguration().setLicenseCount(20);
+        room2.setLicenseCount(20);
         createReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
         room3.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
         room3.setSlot(DateTime.parse("50"), DateTime.parse("95"));
-        room3.getRoomConfiguration().setLicenseCount(30);
+        room3.setLicenseCount(30);
         createReservation(room3);
 
         RoomReservation room4 = new RoomReservation();
         room4.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
         room4.setSlot(DateTime.parse("10"), DateTime.parse("40"));
-        room4.getRoomConfiguration().setLicenseCount(5);
+        room4.setLicenseCount(5);
         createReservation(room4);
 
         RoomReservation room5 = new RoomReservation();
         room5.setRoomProviderCapability(mcu.getCapability(RoomProviderCapability.class));
         room5.setSlot(DateTime.parse("60"), DateTime.parse("90"));
-        room5.getRoomConfiguration().setLicenseCount(5);
+        room5.setLicenseCount(5);
         createReservation(room5);
 
         // -----------------------------
@@ -90,7 +90,7 @@ public class AvailableRoomTest extends AbstractSchedulerTest
         RoomReservation room1 = new RoomReservation();
         room1.setRoomProviderCapability(mcu1.getCapability(RoomProviderCapability.class));
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
-        room1.getRoomConfiguration().setLicenseCount(25);
+        room1.setLicenseCount(25);
         createReservation(room1);
 
         DeviceResource mcu2 = new DeviceResource();
@@ -103,13 +103,13 @@ public class AvailableRoomTest extends AbstractSchedulerTest
         RoomReservation room2 = new RoomReservation();
         room2.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
-        room2.getRoomConfiguration().setLicenseCount(50);
+        room2.setLicenseCount(50);
         createReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
         room3.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
-        room3.getRoomConfiguration().setLicenseCount(30);
+        room3.setLicenseCount(30);
         createReservation(room3);
 
         // ---------------------------------

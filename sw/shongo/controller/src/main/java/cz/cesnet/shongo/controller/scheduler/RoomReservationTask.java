@@ -417,7 +417,7 @@ public class RoomReservationTask extends ReservationTask
             // Setup room reservation
             roomReservation.setSlot(interval);
             roomReservation.setRoomProviderCapability(roomProviderCapability);
-            roomReservation.setRoomConfiguration(roomConfiguration);
+            roomReservation.setLicenseCount(roomConfiguration.getLicenseCount());
             roomReservation.setExecutable(roomEndpoint);
 
             endReport();

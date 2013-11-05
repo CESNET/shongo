@@ -25,9 +25,9 @@ public class RoomReservation extends Reservation implements EndpointProvider
     private RoomProviderCapability roomProviderCapability;
 
     /**
-     * @see RoomConfiguration
+     * Number of licenses which are allocated.
      */
-    private RoomConfiguration roomConfiguration = new RoomConfiguration();
+    private int licenseCount;
 
     /**
      * Constructor.
@@ -64,20 +64,20 @@ public class RoomReservation extends Reservation implements EndpointProvider
     }
 
     /**
-     * @return {@link #roomConfiguration}
+     * @return {@link #licenseCount}
      */
-    @OneToOne(cascade = CascadeType.ALL)
-    public RoomConfiguration getRoomConfiguration()
+    @Column(nullable = false)
+    public int getLicenseCount()
     {
-        return roomConfiguration;
+        return licenseCount;
     }
 
     /**
-     * @param roomConfiguration sets the {@link #roomConfiguration}
+     * @param licenseCount sets the {@link #licenseCount}
      */
-    public void setRoomConfiguration(RoomConfiguration roomConfiguration)
+    public void setLicenseCount(int licenseCount)
     {
-        this.roomConfiguration = roomConfiguration;
+        this.licenseCount = licenseCount;
     }
 
     @Override
@@ -110,20 +110,7 @@ public class RoomReservation extends Reservation implements EndpointProvider
         DeviceResource deviceResource = getDeviceResource();
         roomReservationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
         roomReservationApi.setResourceName(deviceResource.getName());
-        roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
+        roomReservationApi.setLicenseCount(getLicenseCount());
         super.toApi(api, admin);
-    }
-
-    @PreRemove
-    private void onDelete()
-    {
-        Executable executable = getExecutable();
-        if (executable instanceof RoomEndpoint) {
-            RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
-            RoomConfiguration roomEndpointConfiguration = roomEndpoint.getRoomConfiguration();
-            if (roomConfiguration == roomEndpointConfiguration) {
-                roomConfiguration = null;
-            }
-        }
     }
 }

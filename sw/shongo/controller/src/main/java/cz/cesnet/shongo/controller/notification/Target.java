@@ -274,28 +274,27 @@ public abstract class Target
             super(reservation.getDeviceResource());
 
             RoomProviderCapability roomProviderCapability = reservation.getRoomProviderCapability();
-            RoomConfiguration roomConfiguration = reservation.getRoomConfiguration();
-            technologies.addAll(roomConfiguration.getTechnologies());
-            licenseCount = roomConfiguration.getLicenseCount();
+            licenseCount = reservation.getLicenseCount();
             availableLicenseCount = roomProviderCapability.getLicenseCount();
-            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-                if (roomSetting instanceof H323RoomSetting) {
-                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
-                    if (h323RoomSetting.getPin() != null) {
-                        pin = h323RoomSetting.getPin();
-                    }
-                }
-            }
 
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, reservation.getSlot());
             for (RoomReservation roomReservation : roomReservations) {
-                availableLicenseCount -= roomReservation.getRoomConfiguration().getLicenseCount();
+                availableLicenseCount -= roomReservation.getLicenseCount();
             }
 
             RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
             if (roomEndpoint != null) {
+                technologies.addAll(roomEndpoint.getTechnologies());
+                for (RoomSetting roomSetting : roomEndpoint.getRoomConfiguration().getRoomSettings()) {
+                    if (roomSetting instanceof H323RoomSetting) {
+                        H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                        if (h323RoomSetting.getPin() != null) {
+                            pin = h323RoomSetting.getPin();
+                        }
+                    }
+                }
                 for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
                     if (alias.getType().equals(AliasType.ROOM_NAME)) {
                         name = alias.getValue();

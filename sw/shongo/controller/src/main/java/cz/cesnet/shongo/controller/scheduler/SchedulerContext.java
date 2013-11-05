@@ -1052,7 +1052,7 @@ public class SchedulerContext
     private static class RoomBucket extends RangeSet.Bucket<DateTime, RoomReservation>
     {
         /**
-         * Sum of {@link RoomReservation#getRoomConfiguration()#getLicenseCount()}
+         * Sum of {@link RoomReservation#getLicenseCount()}
          */
         private int licenseCount = 0;
 
@@ -1078,7 +1078,7 @@ public class SchedulerContext
         public boolean add(RoomReservation roomReservation)
         {
             if (super.add(roomReservation)) {
-                this.licenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
+                this.licenseCount += roomReservation.getLicenseCount();
                 return true;
             }
             else {
@@ -1091,7 +1091,7 @@ public class SchedulerContext
         {
             if (super.remove(object)) {
                 RoomReservation roomReservation = (RoomReservation) object;
-                this.licenseCount -= roomReservation.getRoomConfiguration().getLicenseCount();
+                this.licenseCount -= roomReservation.getLicenseCount();
                 return true;
             }
             else {
