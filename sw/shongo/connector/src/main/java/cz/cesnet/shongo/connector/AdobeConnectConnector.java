@@ -385,65 +385,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return null;  //TODO
     }
 
-    @java.lang.Override
-    public String startRecording(String folderId, Alias alias)
-            throws CommandException
+    @Override
+    public String createRecordingFolder(String description) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", folderId);
-        attributes.add("active", "true");
-
-        request("meeting-recorder-activity-update", attributes);
-
-        RequestAttributeList recAttributes = new RequestAttributeList();
-        recAttributes.add("sco-id", folderId);
-
-        Element response = request("meeting-recorder-activity-info", recAttributes);
-
-        //TODO: return 0 for allready recording - maybe
-        return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
+        throw new TodoImplementException("AdobeConnectConnector.createRecordingFolder");
     }
 
-    @java.lang.Override
-    public void stopRecording(String recordingId) throws CommandException
+    @Override
+    public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", recordingId);
-        attributes.add("active", "false");
-
-        request("meeting-recorder-activity-update", attributes);
+        throw new TodoImplementException("AdobeConnectConnector.deleteRecordingFolder");
     }
 
-    @java.lang.Override
-    public Recording getRecording(String recordingId) throws CommandException
-    {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", recordingId);
-
-        Element response = request("sco-info", attributes);
-
-        Recording recording = new Recording();
-
-        recording.setName(response.getChild("sco").getChildText("name"));
-
-        String description = response.getChild("sco").getChildText("description");
-        recording.setDescription(description == null ? "" : description);
-
-        recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
-        //TODO: Duration
-        recording.setDuration(new Interval(DateTime.parse(response.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
-                .getChild("sco").getChildText("url-path");
-
-        recording.setUrl(baseUrl);
-        recording.setEditableUrl(baseUrl + "?pbMode=edit");
-        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
-
-        //TODO: vse ostatni
-
-        return recording;
-    }
-
+    @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException
     {
         //TODO: rozeznat folderId a roomId, zatim jen id mistnosti
@@ -494,7 +448,71 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @Override
-    public void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
+    public Recording getRecording(String recordingId) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", recordingId);
+
+        Element response = request("sco-info", attributes);
+
+        Recording recording = new Recording();
+
+        recording.setName(response.getChild("sco").getChildText("name"));
+
+        String description = response.getChild("sco").getChildText("description");
+        recording.setDescription(description == null ? "" : description);
+
+        recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
+        //TODO: Duration
+        recording.setDuration(new Interval(DateTime.parse(response.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                .getChild("sco").getChildText("url-path");
+
+        recording.setUrl(baseUrl);
+        recording.setEditableUrl(baseUrl + "?pbMode=edit");
+        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+
+        //TODO: vse ostatni
+
+        return recording;
+    }
+
+    @Override
+    public String startRecording(String folderId, Alias alias)
+            throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", folderId);
+        attributes.add("active", "true");
+
+        request("meeting-recorder-activity-update", attributes);
+
+        RequestAttributeList recAttributes = new RequestAttributeList();
+        recAttributes.add("sco-id", folderId);
+
+        Element response = request("meeting-recorder-activity-info", recAttributes);
+
+        //TODO: return 0 for allready recording - maybe
+        return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
+    }
+
+    @Override
+    public void stopRecording(String recordingId) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", recordingId);
+        attributes.add("active", "false");
+
+        request("meeting-recorder-activity-update", attributes);
+    }
+
+    @Override
+    public void deleteRecording(String recordingId) throws CommandException
+    {
+        deleteSCO(recordingId);
+    }
+
+    private void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
     {
         RequestAttributeList folderAttributes = new RequestAttributeList();
         folderAttributes.add("folder-id",recordingsFolderID);
@@ -509,12 +527,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         request("sco-move", moveAttributes);
         //TODO: vyresit opravneni
-    }
-
-    @java.lang.Override
-    public void deleteRecording(String recordingId) throws CommandException
-    {
-        deleteSCO(recordingId);
     }
 
     @java.lang.Override

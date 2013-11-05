@@ -1,22 +1,26 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 
+import java.util.Collection;
+
 /**
- * Interface to the service handling operations on {@link cz.cesnet.shongo.controller.api.Executable}s.
+ * Interface to the service handling operations on {@link Executable}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface ExecutableService extends Service
 {
     /**
-     * Lists all the {@link cz.cesnet.shongo.controller.api.Executable}s.
+     * Lists all the {@link Executable}s.
      *
      * @param request {@link ExecutableListRequest}
      * @return {@link ListResponse} of {@link ExecutableSummary}s
@@ -25,13 +29,23 @@ public interface ExecutableService extends Service
     public ListResponse<ExecutableSummary> listExecutables(ExecutableListRequest request);
 
     /**
-     * Gets the complete compartment object.
+     * Gets the {@link Executable} for given {@code executableId}.
      *
      * @param securityToken token of the user requesting the operation
      * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
      */
     @API
     public Executable getExecutable(SecurityToken securityToken, String executableId);
+
+
+    /**
+     * Lists {@link Recording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.
+     *
+     * @param request {@link ExecutableRecordingListRequest}
+     * @return {@link ListResponse} of {@link Recording}s
+     */
+    @API
+    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request);
 
     /**
      * Updates executable configuration.

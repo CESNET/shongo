@@ -14,60 +14,64 @@ import java.util.Collection;
 public interface RecordingService
 {
     /**
-     * Immediately starts recording in a room.
-     * <p/>
-     * If the room is already being recorded, it does not have any effect and returns 0.
+     * Create a new folder where one or more recordings can be stored.
      *
-     * @param folderId identifier of room to be stored
-     * @param alias    room alias
-     * @return recording identifier for further reference, unique among other recordings on the device;
-     *         or 0 if the room is already being recorded
+     * @param description of the folder by which the folder and it's recordings can be found in case of manual lookup
+     * @return identifier of newly created folder (unique among other folders on the device)
+     * @throws CommandException
      */
-    String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException;
+    public String createRecordingFolder(String description) throws CommandException;
 
     /**
-     * Stops recording.
+     * Delete existing folder for storing recordings.
      *
-     * @param recordingId identifier of the recording to stop, previously returned by the <code>startRecording</code>
-     *                    method
+     * @param recordingFolderId identifier of the folder to be deleted
+     * @throws CommandException
+     */
+    public void deleteRecordingFolder(String recordingFolderId) throws CommandException;
+
+    /**
+     * Returns collections of recordings for folder with given {@code recordingFolderId}.
+     *
+     * @param recordingFolderId identifier of folder, where requested recordings are stored
+     * @return collection of {@link Recording}s
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    public Collection<Recording> listRecordings(String recordingFolderId)
+            throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Returns information about the recording.
+     *
+     * @param recordingId identifier of the recording, previously returned by the {@link #startRecording} method
+     * @return {@link Recording} with given {@code recordingId}
+     */
+    public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Immediately starts recording a meeting specified by given {@code alias}.
+     *
+     * @param recordingFolderId identifier of folder, where the recording should be stored
+     * @param alias             alias of an endpoint which should be recorded (it can be a virtual room)
+     * @return identifier of the recording for further reference (unique among other recordings on the device)
+     */
+    public String startRecording(String recordingFolderId, Alias alias) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Stops recording which was started by the {@link #startRecording}.
+     *
+     * @param recordingId identifier of the recording to stop, previously returned by the {@link #startRecording} method
      */
     void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
-     * Returns info about the recording.
-     *
-     * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
-     * @return information about a recording with recordingId
-     */
-    Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException;
-
-    /**
-     * Returns URL for every recording.
-     *
-     * @param folderId identifier of room or folder, where recordings are stored
-     * @return collection of URLs
-     * @throws CommandException
-     * @throws CommandUnsupportedException
-     */
-    Collection<Recording> listRecordings(String folderId) throws CommandException, CommandUnsupportedException;
-
-    /**
-     * Deletes a given recording.
+     * Deletes a recording with given {@code recordingId}.
      * <p/>
      * If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is
      * deferred to the moment when current operations are completed.
      *
-     * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
+     * @param recordingId identifier of the recording, previously returned by the {@link #startRecording} method
      */
     void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException;
-
-    /**
-     * Copy recording to specified folder on device.
-     *
-     * @param recordingId identifier of the recording to be copied
-     * @param folderId    identifier of the folder to be stored in
-     * @throws CommandException
-     * @throws CommandUnsupportedException
-     */
-    void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException;
 }

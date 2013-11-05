@@ -3,12 +3,14 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -241,6 +243,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
+    }
+
+    @Override
+    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request)
+    {
+        throw new TodoImplementException("ExecutableService.listExecutableRecordings");
     }
 
     @Override

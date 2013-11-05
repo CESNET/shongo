@@ -5,7 +5,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 /**
- * Represents a recording multipoint device or endpoint recording server.
+ * Represents a recording in multipoint device or endpoint recording server.
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */

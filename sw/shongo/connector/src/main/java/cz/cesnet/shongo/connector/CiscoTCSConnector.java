@@ -1,6 +1,7 @@
  package cz.cesnet.shongo.connector;
 
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.Recording;
@@ -98,39 +99,45 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException
+    public String createRecordingFolder(String description) throws CommandException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
     }
 
     @Override
-    public void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException
-    {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.deleteRecordingFolder");
     }
 
     @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.listRecordings");
+    }
+
+    @Override
+    public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        throw new TodoImplementException("CiscoTCSConnector.getRecording");
+    }
+
+    @Override
+    public String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException
+    {
+        throw new TodoImplementException("CiscoTCSConnector.startRecording");
+    }
+
+    @Override
+    public void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        throw new TodoImplementException("CiscoTCSConnector.stopRecording");
     }
 
     @Override
     public void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
-    {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.deleteRecording");
     }
 
     protected void request(String action, Map<String, String> attributes) throws CommandException
