@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.AbstractParticipant;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -54,6 +52,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      * List of {@link AbstractParticipant}s for the room.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * List of {@link EndpointServiceSpecification}s for the room.
+     */
+    private List<EndpointServiceSpecification> serviceSpecifications = new LinkedList<EndpointServiceSpecification>();
 
     /**
      * Constructor.
@@ -199,6 +202,27 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
     }
 
+    /**
+     * @return {@link #serviceSpecifications}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<EndpointServiceSpecification> getServiceSpecifications()
+    {
+        return Collections.unmodifiableList(serviceSpecifications);
+    }
+
+    /**
+     * @param serviceSpecifications sets the {@link #serviceSpecifications}
+     */
+    public void setServiceSpecifications(List<EndpointServiceSpecification> serviceSpecifications)
+    {
+        this.serviceSpecifications.clear();
+        for (EndpointServiceSpecification serviceSpecification : serviceSpecifications) {
+            this.serviceSpecifications.add(serviceSpecification.clone());
+        }
+    }
+
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
@@ -226,6 +250,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             modified = true;
         }
 
+        if (!serviceSpecifications.equals(roomSpecification.getServiceSpecifications())) {
+            setServiceSpecifications(roomSpecification.getServiceSpecifications());
+            modified = true;
+        }
+
         return modified;
     }
 
@@ -237,7 +266,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
         roomReservationTask.setDeviceResource(getDeviceResource());
-        roomReservationTask.setParticipants(getParticipants());
+        roomReservationTask.addParticipants(getParticipants());
+        roomReservationTask.addServiceSpecifications(getServiceSpecifications());
         return roomReservationTask;
     }
 
@@ -267,6 +297,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
         for (AbstractParticipant participant : getParticipants()) {
             roomSpecificationApi.addParticipant(participant.toApi());
+        }
+        for (EndpointServiceSpecification serviceSpecification : getServiceSpecifications()) {
+            roomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
         }
         super.toApi(specificationApi);
     }
@@ -342,6 +375,28 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     @Override
                     public void updateFromApi(AbstractParticipant object,
                             cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+        Synchronization.synchronizeCollection(serviceSpecifications, roomSpecificationApi.getServiceSpecifications(),
+                new Synchronization.Handler<EndpointServiceSpecification, cz.cesnet.shongo.controller.api.EndpointServiceSpecification>(
+                        EndpointServiceSpecification.class)
+                {
+                    @Override
+                    public EndpointServiceSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.EndpointServiceSpecification objectApi)
+                    {
+                        EndpointServiceSpecification serviceSpecification =
+                                (EndpointServiceSpecification) EndpointServiceSpecification.createFromApi(
+                                        objectApi, entityManager);
+                        serviceSpecification.fromApi(objectApi, entityManager);
+                        return serviceSpecification;
+                    }
+
+                    @Override
+                    public void updateFromApi(EndpointServiceSpecification object,
+                            cz.cesnet.shongo.controller.api.EndpointServiceSpecification objectApi)
                     {
                         object.fromApi(objectApi, entityManager);
                     }

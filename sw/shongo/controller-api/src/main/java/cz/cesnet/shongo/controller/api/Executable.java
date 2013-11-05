@@ -144,5 +144,4 @@ public class Executable extends IdentifiedComplexType
         stateReport = dataMap.getComplexType(STATE_REPORT, ExecutableStateReport.class);
         migratedExecutable = dataMap.getComplexType(MIGRATED_EXECUTABLE, Executable.class);
     }
-
 }

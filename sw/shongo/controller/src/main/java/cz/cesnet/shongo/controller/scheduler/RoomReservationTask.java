@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
+import cz.cesnet.shongo.controller.request.EndpointServiceSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -44,7 +45,7 @@ public class RoomReservationTask extends ReservationTask
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
-     * Collection of {@link AliasSpecification} for {@link Alias}es which shoudl be allocated for the room.
+     * Collection of {@link AliasSpecification} for {@link Alias}es which should be allocated for the room.
      */
     private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
@@ -58,6 +59,11 @@ public class RoomReservationTask extends ReservationTask
      * List of {@link AbstractParticipant}s for the permanent room.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * Collection of {@link EndpointServiceSpecification} which should be allocated for the room.
+     */
+    private List<EndpointServiceSpecification> serviceSpecifications = new LinkedList<EndpointServiceSpecification>();
 
     /**
      * Constructor.
@@ -103,11 +109,19 @@ public class RoomReservationTask extends ReservationTask
     }
 
     /**
-     * @param participants sets the {@link #participants}
+     * @param participants to be added to the {@link #participants}
      */
-    public void setParticipants(List<AbstractParticipant> participants)
+    public void addParticipants(List<AbstractParticipant> participants)
     {
-        this.participants = participants;
+        this.participants.addAll(participants);
+    }
+
+    /**
+     * @param serviceSpecifications to be added to the {@link #serviceSpecifications}
+     */
+    public void addServiceSpecifications(List<EndpointServiceSpecification> serviceSpecifications)
+    {
+        this.serviceSpecifications.addAll(serviceSpecifications);
     }
 
     @Override

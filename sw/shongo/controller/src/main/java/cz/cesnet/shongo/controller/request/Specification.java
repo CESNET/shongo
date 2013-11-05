@@ -4,6 +4,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.report.ReportableSimple;
 
 import javax.persistence.*;
@@ -149,15 +150,29 @@ public abstract class Specification extends SimplePersistentObject implements Re
     }
 
     /**
-     * @param api from which {@link Specification} should be created
+     * @param specificationApi from which {@link Specification} should be created
      * @return new instance of {@link Specification} for given {@code api}
      */
-    public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
+    public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
             EntityManager entityManager)
     {
-        Class<? extends Specification> specificationClass = getClassFromApi(api.getClass());
+        Class<? extends Specification> specificationClass = getClassFromApi(specificationApi.getClass());
+        if (specificationClass.equals(EndpointServiceSpecification.class)) {
+            cz.cesnet.shongo.controller.api.EndpointServiceSpecification endpointServiceSpecificationApi =
+                    (cz.cesnet.shongo.controller.api.EndpointServiceSpecification) specificationApi;
+            switch (endpointServiceSpecificationApi.getType()) {
+                case RECORDING:
+                    specificationClass = RecordingServiceSpecification.class;
+                    break;
+                case STREAMING:
+                    specificationClass = StreamingServiceSpecification.class;
+                    break;
+                default:
+                    throw new TodoImplementException(endpointServiceSpecificationApi.getType());
+            }
+        }
         Specification specification = ClassHelper.createInstanceFromClass(specificationClass);
-        specification.fromApi(api, entityManager);
+        specification.fromApi(specificationApi, entityManager);
         return specification;
     }
 
@@ -211,6 +226,8 @@ public abstract class Specification extends SimplePersistentObject implements Re
                 ResourceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomSpecification.class,
                 RoomSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.EndpointServiceSpecification.class,
+                EndpointServiceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.CompartmentSpecification.class,
                 CompartmentSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.MultiCompartmentSpecification.class,

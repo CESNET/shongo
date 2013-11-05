@@ -103,6 +103,12 @@ public abstract class Capability extends SimplePersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.AliasProviderCapability) {
             capability = new AliasProviderCapability();
         }
+        else if (api instanceof cz.cesnet.shongo.controller.api.RecordingCapability) {
+            capability = new RecordingCapability();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.StreamingCapability) {
+            capability = new RecordingCapability();
+        }
         else {
             throw new TodoImplementException(api.getClass());
         }

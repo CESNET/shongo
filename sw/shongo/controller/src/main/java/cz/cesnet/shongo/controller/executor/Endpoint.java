@@ -34,6 +34,11 @@ public abstract class Endpoint extends Executable
     private List<Alias> assignedAliases = new ArrayList<Alias>();
 
     /**
+     * {@link EndpointService}s for this {@link Endpoint}.
+     */
+    private List<EndpointService> services = new ArrayList<EndpointService>();
+
+    /**
      * @return {@link #persons}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -75,6 +80,24 @@ public abstract class Endpoint extends Executable
     public void clearAssignedAliases()
     {
         assignedAliases.clear();
+    }
+
+    /**
+     * @return {@link #services}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<EndpointService> getServices()
+    {
+        return services;
+    }
+
+    /**
+     * @param service to be added to the {@link #services}
+     */
+    public void addService(EndpointService service)
+    {
+        services.add(service);
     }
 
     /**

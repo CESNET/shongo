@@ -38,7 +38,7 @@ public class RoomSpecification extends Specification
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
-     * {@link cz.cesnet.shongo.controller.api.AliasSpecification}s for the virtual room.
+     * {@link AliasSpecification}s for the virtual room.
      */
     private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
@@ -46,6 +46,11 @@ public class RoomSpecification extends Specification
      * Collection of {@link AbstractParticipant}s for the meeting room.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * {@link EndpointServiceSpecification}s for the virtual room.
+     */
+    private List<EndpointServiceSpecification> serviceSpecifications = new LinkedList<EndpointServiceSpecification>();
 
     /**
      * Constructor.
@@ -263,12 +268,29 @@ public class RoomSpecification extends Specification
         participants.add(participant);
     }
 
+    /**
+     * @return {@link #serviceSpecifications}
+     */
+    public List<EndpointServiceSpecification> getServiceSpecifications()
+    {
+        return serviceSpecifications;
+    }
+
+    /**
+     * @param serviceSpecification to be added to the {@link #serviceSpecifications}
+     */
+    public void addServiceSpecification(EndpointServiceSpecification serviceSpecification)
+    {
+        serviceSpecifications.add(serviceSpecification);
+    }
+
     public static final String RESOURCE_ID = "resourceId";
     public static final String TECHNOLOGIES = "technologies";
     public static final String PARTICIPANT_COUNT = "participantCount";
     public static final String ROOM_SETTINGS = "roomSettings";
     public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
     public static final String PARTICIPANTS = "participants";
+    public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 
     @Override
     public DataMap toData()
@@ -280,6 +302,7 @@ public class RoomSpecification extends Specification
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(ALIAS_SPECIFICATIONS, aliasSpecifications);
         dataMap.set(PARTICIPANTS, participants);
+        dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
 
@@ -292,6 +315,6 @@ public class RoomSpecification extends Specification
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
-        participants = dataMap.getList(PARTICIPANTS, AbstractParticipant.class);
+        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, EndpointServiceSpecification.class);
     }
 }
