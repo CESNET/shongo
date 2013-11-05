@@ -1,24 +1,6 @@
-Database migrations (should be placed into data/controller.log file)
---------------------------------------------------------------------
-
-[2013-01-02] Move alias_id values to connection table and delete tables connection by address/alias
-
-SET SCHEMA PUBLIC
-UPDATE CONNECTION SET ALIAS_ID = (SELECT ALIAS_ID FROM CONNECTION_BY_ALIAS WHERE ID = CONNECTION.ID)
-DROP TABLE CONNECTION_BY_ADDRESS
-DROP TABLE CONNECTION_BY_ALIAS
-COMMIT
-
-[2013-04-05] Delete old ACL management
-
-SET SCHEMA PUBLIC
-DROP TABLE PUBLIC.ACL_RECORD_CREATE_REQUEST
-DROP TABLE PUBLIC.ACL_RECORD_DELETE_REQUEST
-DROP TABLE PUBLIC.ACL_RECORD_DEPENDENCY
-COMMIT
-
-[2013-07-29] Create missing indexes to foreign keys in PostgreSQL
-
+/**
+ * Create missing indexes to foreign keys in PostgreSQL.
+ */
 select pg_index.indexrelid::regclass, 'create index ' || relname || '_' ||
          array_to_string(column_name_list, '_') || '_idx on ' || conrelid ||
          ' (' || array_to_string(column_name_list, ',') || ')'
