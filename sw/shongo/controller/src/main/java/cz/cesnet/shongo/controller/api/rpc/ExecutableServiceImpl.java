@@ -352,9 +352,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executablesToUpdate.add(migration.getTargetExecutable());
             }
 
-            int maxAttemptCount = getConfiguration().getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
+            int maxAttemptCount = getConfiguration().getInt(ControllerConfiguration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
             DateTime dateTimeNow = DateTime.now();
-            for (cz.cesnet.shongo.controller.executor.Executable executableToUpdate : executablesToUpdate) {
+            for (cz.cesnet.shongo.controller.booking.executable.Executable executableToUpdate : executablesToUpdate) {
                 if (executableToUpdate.getSlot().contains(dateTimeNow)) {
                     // Schedule next attempt
                     if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
@@ -364,10 +364,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 }
                 else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
                     // Set executable as stopped
-                    cz.cesnet.shongo.controller.executor.Executable.State state = executableToUpdate.getState();
+                    cz.cesnet.shongo.controller.booking.executable.Executable.State state = executableToUpdate.getState();
                     if (state.isStarted() ||
-                            state.equals(cz.cesnet.shongo.controller.executor.Executable.State.STARTING_FAILED)) {
-                        executableToUpdate.setState(cz.cesnet.shongo.controller.executor.Executable.State.STOPPED);
+                            state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                        executableToUpdate.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                     }
                 }
             }

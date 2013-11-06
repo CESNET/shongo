@@ -33,7 +33,7 @@ public class ControllerAgent extends Agent
      *
      * @param configuration to initialize from
      */
-    public ControllerAgent(Configuration configuration)
+    public ControllerAgent(ControllerConfiguration configuration)
     {
         setCommandTimeout((int) configuration.getJadeCommandTimeout().getMillis());
     }
