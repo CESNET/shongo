@@ -142,22 +142,6 @@
             </div>
         </c:if>
 
-        <div class="control-group">
-            <form:label class="control-label" path="purpose">
-                <spring:message code="views.reservationRequest.purpose"/>:
-            </form:label>
-            <div class="controls">
-                <form:select path="purpose" tabindex="${tabIndex}">
-                    <form:option value="SCIENCE">
-                        <spring:message code="views.reservationRequest.purpose.SCIENCE"/>
-                    </form:option>
-                    <form:option value="EDUCATION">
-                        <spring:message code="views.reservationRequest.purpose.EDUCATION"/>
-                    </form:option>
-                </form:select>
-            </div>
-        </div>
-
         <c:choose>
             <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
                 <div class="control-group">

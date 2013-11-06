@@ -242,12 +242,6 @@
     <dt><spring:message code="views.reservationRequest.description"/>:</dt>
     <dd>${reservationRequest.description}</dd>
 
-    <%-- Purpose --%>
-    <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
-    <dd>
-        <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
-    </dd>
-
     <%-- State --%>
     <div ng-show="state">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>

@@ -31,6 +31,8 @@ import java.util.*;
  */
 public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
+    public static final ReservationRequestPurpose PURPOSE = ReservationRequestPurpose.USER;
+
     private CacheProvider cacheProvider;
 
     private String id;
@@ -42,8 +44,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     protected String description;
 
     protected DateTime dateTime;
-
-    protected ReservationRequestPurpose purpose;
 
     protected TechnologyModel technology;
 
@@ -158,16 +158,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setDescription(String description)
     {
         this.description = description;
-    }
-
-    public ReservationRequestPurpose getPurpose()
-    {
-        return purpose;
-    }
-
-    public void setPurpose(ReservationRequestPurpose purpose)
-    {
-        this.purpose = purpose;
     }
 
     public TechnologyModel getTechnology()
@@ -462,7 +452,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         type = abstractReservationRequest.getType();
         dateTime = abstractReservationRequest.getDateTime();
         description = abstractReservationRequest.getDescription();
-        purpose = abstractReservationRequest.getPurpose();
 
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
@@ -744,7 +733,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (!Strings.isNullOrEmpty(id)) {
             abstractReservationRequest.setId(id);
         }
-        abstractReservationRequest.setPurpose(purpose);
+        abstractReservationRequest.setPurpose(PURPOSE);
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
@@ -815,7 +804,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
         attributes.put("ID", id);
         attributes.put("Type", specificationType);
-        attributes.put("Purpose", purpose);
         attributes.put("Description", description);
         attributes.put("Technology", technology);
         attributes.put("Start", start);

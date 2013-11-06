@@ -6,6 +6,11 @@ package cz.cesnet.shongo.controller;
 public enum ReservationRequestPurpose
 {
     /**
+     * Reservation will be used e.g., for user purposes.
+     */
+    USER(0, true, false),
+
+    /**
      * Reservation will be used e.g., for research purposes.
      */
     SCIENCE(0, true, false),

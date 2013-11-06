@@ -370,7 +370,6 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", reservationRequest.getId());
             item.put("description", reservationRequest.getDescription());
-            item.put("purpose", reservationRequest.getPurpose());
             usages.add(item);
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);

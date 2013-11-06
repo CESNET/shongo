@@ -54,7 +54,6 @@ public class ReservationRequestValidator implements Validator
     {
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "purpose", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
@@ -114,7 +113,7 @@ public class ReservationRequestValidator implements Validator
 
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
-            availabilityCheckRequest.setPurpose(reservationRequestModel.getPurpose());
+            availabilityCheckRequest.setPurpose(ReservationRequestModel.PURPOSE);
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());

@@ -149,7 +149,6 @@ public class ReservationRequestController
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", reservationRequestId);
             item.put("description", reservationRequest.getDescription());
-            item.put("purpose", reservationRequest.getPurpose());
             item.put("dateTime", formatter.formatDate(reservationRequest.getDateTime()));
             items.add(item);
 
