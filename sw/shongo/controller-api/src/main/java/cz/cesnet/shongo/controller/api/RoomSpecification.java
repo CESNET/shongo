@@ -48,9 +48,9 @@ public class RoomSpecification extends Specification
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
-     * {@link EndpointServiceSpecification}s for the virtual room.
+     * {@link ExecutableServiceSpecification}s for the virtual room.
      */
-    private List<EndpointServiceSpecification> serviceSpecifications = new LinkedList<EndpointServiceSpecification>();
+    private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
 
     /**
      * Constructor.
@@ -271,7 +271,7 @@ public class RoomSpecification extends Specification
     /**
      * @return {@link #serviceSpecifications}
      */
-    public List<EndpointServiceSpecification> getServiceSpecifications()
+    public List<ExecutableServiceSpecification> getServiceSpecifications()
     {
         return serviceSpecifications;
     }
@@ -279,7 +279,7 @@ public class RoomSpecification extends Specification
     /**
      * @param serviceSpecification to be added to the {@link #serviceSpecifications}
      */
-    public void addServiceSpecification(EndpointServiceSpecification serviceSpecification)
+    public void addServiceSpecification(ExecutableServiceSpecification serviceSpecification)
     {
         serviceSpecifications.add(serviceSpecification);
     }
@@ -315,6 +315,6 @@ public class RoomSpecification extends Specification
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
-        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, EndpointServiceSpecification.class);
+        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

@@ -4,6 +4,11 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.request.PreprocessorState;
+import cz.cesnet.shongo.controller.booking.request.PreprocessorStateManager;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -12,7 +17,7 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 
 /**
- * Tests for changing state of a {@link cz.cesnet.shongo.controller.request.ReservationRequestSet}.
+ * Tests for changing state of a {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

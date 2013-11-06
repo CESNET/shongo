@@ -10,7 +10,7 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.resource.value.ValueProvider}s.
+ * Tests for {@link cz.cesnet.shongo.controller.booking.value.provider.ValueProvider}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

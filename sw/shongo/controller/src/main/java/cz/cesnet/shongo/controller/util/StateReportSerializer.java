@@ -2,10 +2,8 @@ package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractEntityReport;
-import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.api.ExecutableStateReport;
-import cz.cesnet.shongo.controller.executor.ExecutableReport;
-import cz.cesnet.shongo.controller.scheduler.TechnologySet;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableReport;
 import cz.cesnet.shongo.report.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

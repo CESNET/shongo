@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.request.Specification;
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 
 /**
  * Interface which can be implemented by a {@link Specification} and it tells that the {@link Specification} should be

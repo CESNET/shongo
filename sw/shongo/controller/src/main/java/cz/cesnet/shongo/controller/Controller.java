@@ -5,10 +5,14 @@ import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.manager.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.scheduler.Preprocessor;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
@@ -64,7 +68,7 @@ public class Controller
     /**
      * Configuration of the controller.
      */
-    protected Configuration configuration;
+    protected ControllerConfiguration configuration;
 
     /**
      * Entity manager factory.
@@ -164,7 +168,7 @@ public class Controller
     /**
      * @return {@link #configuration}
      */
-    public Configuration getConfiguration()
+    public ControllerConfiguration getConfiguration()
     {
         return configuration;
     }
@@ -174,7 +178,7 @@ public class Controller
      */
     private void setConfiguration(org.apache.commons.configuration.AbstractConfiguration configuration)
     {
-        this.configuration = new Configuration();
+        this.configuration = new ControllerConfiguration();
         // System properties has the highest priority
         this.configuration.addConfiguration(new SystemConfiguration());
         // Passed configuration has lower priority
@@ -198,7 +202,7 @@ public class Controller
         Locale.setDefault(defaultLocale);
 
         // Initialize default timezone
-        String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
+        String timeZoneId = this.configuration.getString(ControllerConfiguration.TIMEZONE);
         if (timeZoneId != null && !timeZoneId.isEmpty()) {
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
             logger.info("Configuring default timezone to {}.", dateTimeZone.getID());
@@ -208,8 +212,8 @@ public class Controller
 
         // Initialize domain
         Domain localDomain = new Domain();
-        localDomain.setName(this.configuration.getString(Configuration.DOMAIN_NAME));
-        localDomain.setOrganization(this.configuration.getString(Configuration.DOMAIN_ORGANIZATION));
+        localDomain.setName(this.configuration.getString(ControllerConfiguration.DOMAIN_NAME));
+        localDomain.setOrganization(this.configuration.getString(ControllerConfiguration.DOMAIN_ORGANIZATION));
         Domain.setLocalDomain(localDomain);
 
         // Create email sender
@@ -261,7 +265,7 @@ public class Controller
      */
     public String getRpcHost()
     {
-        return configuration.getString(Configuration.RPC_HOST);
+        return configuration.getString(ControllerConfiguration.RPC_HOST);
     }
 
     /**
@@ -269,7 +273,7 @@ public class Controller
      */
     public int getRpcPort()
     {
-        return configuration.getInt(Configuration.RPC_PORT);
+        return configuration.getInt(ControllerConfiguration.RPC_PORT);
     }
 
     /**
@@ -277,7 +281,7 @@ public class Controller
      */
     public String getJadeHost()
     {
-        return configuration.getString(Configuration.JADE_HOST);
+        return configuration.getString(ControllerConfiguration.JADE_HOST);
     }
 
     /**
@@ -285,7 +289,7 @@ public class Controller
      */
     public int getJadePort()
     {
-        return configuration.getInt(Configuration.JADE_PORT);
+        return configuration.getInt(ControllerConfiguration.JADE_PORT);
     }
 
     /**
@@ -301,7 +305,7 @@ public class Controller
      */
     public String getJadePlatformId()
     {
-        return configuration.getString(Configuration.JADE_PLATFORM_ID);
+        return configuration.getString(ControllerConfiguration.JADE_PLATFORM_ID);
     }
 
     /**
@@ -503,7 +507,7 @@ public class Controller
         }
 
         // Add jade agent
-        addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+        addJadeAgent(configuration.getString(ControllerConfiguration.JADE_AGENT_NAME), jadeAgent);
 
         return jadeContainer;
     }
@@ -535,8 +539,8 @@ public class Controller
     {
         WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
                 authorization, entityManagerFactory);
-        workerThread.setPeriod(configuration.getDuration(Configuration.WORKER_PERIOD));
-        workerThread.setLookahead(configuration.getPeriod(Configuration.WORKER_LOOKAHEAD));
+        workerThread.setPeriod(configuration.getDuration(ControllerConfiguration.WORKER_PERIOD));
+        workerThread.setLookahead(configuration.getPeriod(ControllerConfiguration.WORKER_LOOKAHEAD));
         addThread(workerThread);
     }
 
@@ -756,17 +760,17 @@ public class Controller
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
             String host = commandLine.getOptionValue(optionHost.getOpt());
-            System.setProperty(Configuration.RPC_HOST, host);
-            System.setProperty(Configuration.JADE_HOST, host);
+            System.setProperty(ControllerConfiguration.RPC_HOST, host);
+            System.setProperty(ControllerConfiguration.JADE_HOST, host);
         }
         if (commandLine.hasOption(optionRpcPort.getOpt())) {
-            System.setProperty(Configuration.RPC_PORT, commandLine.getOptionValue(optionRpcPort.getOpt()));
+            System.setProperty(ControllerConfiguration.RPC_PORT, commandLine.getOptionValue(optionRpcPort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePort.getOpt())) {
-            System.setProperty(Configuration.JADE_PORT, commandLine.getOptionValue(optionJadePort.getOpt()));
+            System.setProperty(ControllerConfiguration.JADE_PORT, commandLine.getOptionValue(optionJadePort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePlatform.getOpt())) {
-            System.setProperty(Configuration.JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
+            System.setProperty(ControllerConfiguration.JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
         // Get configuration file name
@@ -778,9 +782,9 @@ public class Controller
         Controller controller = new Controller(configurationFileName);
 
         // Configure SSL host verification mappings
-        Configuration configuration = controller.getConfiguration();
+        ControllerConfiguration configuration = controller.getConfiguration();
         for (HierarchicalConfiguration mapping :
-                configuration.configurationsAt(Configuration.SSL_HOST_VERIFICATION_MAPPINGS)) {
+                configuration.configurationsAt(ControllerConfiguration.SSL_HOST_VERIFICATION_MAPPINGS)) {
             String mappedHost = mapping.getString("[@mapped-host]");
             String targetHost = mapping.getString("[@target-host]");
             logger.info("Configuring SSL host verification mapping from '{}' to '{}'.", mappedHost, targetHost);
@@ -791,13 +795,13 @@ public class Controller
         Timer timer = new Timer();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("hibernate.connection.driver_class",
-                controller.getConfiguration().getString(Configuration.DATABASE_DRIVER));
+                controller.getConfiguration().getString(ControllerConfiguration.DATABASE_DRIVER));
         properties.put("hibernate.connection.url",
-                controller.getConfiguration().getString(Configuration.DATABASE_URL));
+                controller.getConfiguration().getString(ControllerConfiguration.DATABASE_URL));
         properties.put("hibernate.connection.username",
-                controller.getConfiguration().getString(Configuration.DATABASE_USERNAME));
+                controller.getConfiguration().getString(ControllerConfiguration.DATABASE_USERNAME));
         properties.put("hibernate.connection.password",
-                controller.getConfiguration().getString(Configuration.DATABASE_PASSWORD));
+                controller.getConfiguration().getString(ControllerConfiguration.DATABASE_PASSWORD));
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 

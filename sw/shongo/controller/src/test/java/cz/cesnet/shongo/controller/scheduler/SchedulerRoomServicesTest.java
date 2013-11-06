@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -70,7 +68,7 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.addTechnology(Technology.SIP);
         roomSpecification.setParticipantCount(5);
-        roomSpecification.addServiceSpecification(EndpointServiceSpecification.createRecording());
+        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
@@ -115,7 +113,7 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         ReservationRequest recordingReservationRequest = new ReservationRequest();
         recordingReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        recordingReservationRequest.setSpecification(EndpointServiceSpecification.createRecording(roomExecutableId));
+        recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
         allocateAndCheck(recordingReservationRequest);
     }
 }

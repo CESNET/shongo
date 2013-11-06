@@ -4,7 +4,7 @@ import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.topology.Edge;
 import cz.cesnet.shongo.controller.cache.topology.Node;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 
 import java.util.ArrayList;
 import java.util.List;

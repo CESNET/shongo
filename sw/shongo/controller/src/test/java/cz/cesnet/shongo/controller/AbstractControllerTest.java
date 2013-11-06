@@ -7,8 +7,9 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.scheduler.Preprocessor;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -75,12 +76,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private Cache cache;
 
     /**
-     * @see Preprocessor
+     * @see cz.cesnet.shongo.controller.scheduler.Preprocessor
      */
     private Preprocessor preprocessor;
 
     /**
-     * @see Scheduler
+     * @see cz.cesnet.shongo.controller.scheduler.Scheduler
      */
     private Scheduler scheduler;
 
@@ -95,7 +96,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private Interval workingInterval = Temporal.INTERVAL_INFINITE;
 
     /**
-     * @return {@link Configuration} from the {@link #controller}
+     * @return {@link ControllerConfiguration} from the {@link #controller}
      */
     public Controller getController()
     {
@@ -199,11 +200,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public static void setupSystemProperties()
     {
         // Do not change default timezone by the controller
-        System.setProperty(Configuration.TIMEZONE, "");
+        System.setProperty(ControllerConfiguration.TIMEZONE, "");
 
         // Change XML-RPC port
-        System.setProperty(Configuration.RPC_PORT, "8484");
-        System.setProperty(Configuration.JADE_PORT, "8585");
+        System.setProperty(ControllerConfiguration.RPC_PORT, "8484");
+        System.setProperty(ControllerConfiguration.JADE_PORT, "8585");
     }
 
     @Override
@@ -231,7 +232,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
                         this.jadeContainer = AbstractControllerTest.jadeContainer;
 
                         // Add jade agent
-                        addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+                        addJadeAgent(configuration.getString(ControllerConfiguration.JADE_AGENT_NAME), jadeAgent);
                     }
                     jadeContainer.waitForJadeAgentsToStart();
                     return AbstractControllerTest.jadeContainer;
@@ -301,7 +302,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Run {@link Scheduler}.
+     * Run {@link cz.cesnet.shongo.controller.scheduler.Scheduler}.
      *
      * @param interval
      */
@@ -324,7 +325,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Run {@link Preprocessor} and {@link Scheduler}.
+     * Run {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} and {@link Scheduler}.
      *
      * @param interval
      */
@@ -351,7 +352,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Run {@link Preprocessor} and {@link Scheduler}.
+     * Run {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} and {@link Scheduler}.
      */
     protected void runPreprocessorAndScheduler()
     {
@@ -360,7 +361,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Run {@link Preprocessor} and {@link Scheduler}.
+     * Run {@link Preprocessor} and {@link cz.cesnet.shongo.controller.scheduler.Scheduler}.
      *
      * @param interval
      */

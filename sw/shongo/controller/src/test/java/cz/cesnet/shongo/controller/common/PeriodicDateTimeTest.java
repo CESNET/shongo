@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;

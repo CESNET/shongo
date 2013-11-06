@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.Migration;
 import org.junit.Assert;
 import org.junit.Test;
 

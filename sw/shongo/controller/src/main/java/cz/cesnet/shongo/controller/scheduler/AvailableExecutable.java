@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 
 /**
  * Represents a {@link Executable} which is available by {@link AvailableReservation}.

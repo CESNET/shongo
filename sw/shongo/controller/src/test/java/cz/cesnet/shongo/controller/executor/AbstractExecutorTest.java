@@ -10,9 +10,8 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@link cz.cesnet.shongo.controller.AbstractControllerTest} which provides a {@link cz.cesnet.shongo.controller.Executor} instance to extending classes.
+ * {@link cz.cesnet.shongo.controller.AbstractControllerTest} which provides a {@link Executor} instance to extending classes.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -38,7 +37,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     private static Logger logger = LoggerFactory.getLogger(AbstractExecutorTest.class);
 
     /**
-     * @see cz.cesnet.shongo.controller.Executor
+     * @see Executor
      */
     private Executor executor;
 
@@ -48,10 +47,10 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     public AbstractExecutorTest()
     {
         // Executor configuration
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_NEXT_ATTEMPT, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_EXECUTABLE_START, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_EXECUTABLE_END, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_EXECUTABLE_NEXT_ATTEMPT, "PT0S");
     }
 
     /**

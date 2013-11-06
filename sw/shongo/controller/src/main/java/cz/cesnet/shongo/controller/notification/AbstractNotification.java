@@ -443,7 +443,7 @@ public abstract class AbstractNotification implements Notification
 
         /**
          * @param userId user-id
-         * @return {@link cz.cesnet.shongo.controller.common.AbstractPerson} for given {@code userId}
+         * @return {@link cz.cesnet.shongo.controller.booking.person.AbstractPerson} for given {@code userId}
          */
         public AbstractPerson getUserPerson(String userId)
         {

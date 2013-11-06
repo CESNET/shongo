@@ -1,18 +1,23 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.EndpointReservation;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import org.joda.time.Interval;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for a {@link cz.cesnet.shongo.controller.request.CompartmentSpecification}.
+ * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for a {@link cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -103,7 +108,8 @@ public class ResourceReservationTask extends ReservationTask
                 ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
                 List<RoomReservation> roomReservations =
                         reservationManager.getRoomReservations(roomProviderCapability, interval);
-                schedulerContext.applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+                schedulerContext.applyReservations(roomProviderCapability.getId(),
+                        roomReservations, RoomReservation.class);
                 if (roomReservations.size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);

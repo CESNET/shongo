@@ -23,7 +23,7 @@ import org.junit.Test;
 public class ExecutableReportTest extends AbstractControllerTest
 {
     /**
-     * @see cz.cesnet.shongo.controller.Executor
+     * @see Executor
      */
     private Executor executor;
 
@@ -33,9 +33,9 @@ public class ExecutableReportTest extends AbstractControllerTest
     public ExecutableReportTest()
     {
         // Executor configuration
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_EXECUTABLE_START, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_EXECUTABLE_END, "PT0S");
+        System.setProperty(ControllerConfiguration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ExecutableReportTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and execute it.
      *
      * @throws Exception
      */

@@ -5,15 +5,21 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.AbstractParticipant;
-import cz.cesnet.shongo.controller.common.AbstractPerson;
-import cz.cesnet.shongo.controller.common.AnonymousPerson;
-import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
+import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointParticipant;
+import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;
+import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.person.AnonymousPerson;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +28,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Test for processing {@link cz.cesnet.shongo.controller.request.ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
+ * Test for processing {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

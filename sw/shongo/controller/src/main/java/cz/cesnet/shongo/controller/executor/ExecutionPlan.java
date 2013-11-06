@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

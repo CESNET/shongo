@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.booking.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
@@ -241,7 +242,7 @@ public class ResourceCache extends AbstractCache<Resource>
                 resourceManager.listResourceReservationsInInterval(resourceId, schedulerContext.getRequestedSlot());
 
         // Apply transaction
-        schedulerContext.applyResourceReservations(resourceId, resourceReservations);
+        schedulerContext.applyReservations(resourceId, resourceReservations, ResourceReservation.class);
 
         // Perform check
         if (resourceReservations.size() > 0) {
@@ -251,7 +252,7 @@ public class ResourceCache extends AbstractCache<Resource>
 
     /**
      * Checks whether given {@code capability} is available for given {@code reservationRequest}.
-     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
+     * Device resources with {@link cz.cesnet.shongo.controller.booking.room.RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
      * @param capability       to be checked
      * @param schedulerContext for checking
@@ -276,7 +277,7 @@ public class ResourceCache extends AbstractCache<Resource>
 
     /**
      * Checks whether given {@code resource} is available for given {@code context}.
-     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
+     * Device resources with {@link cz.cesnet.shongo.controller.booking.room.RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
      * @param resource         to be checked
      * @param schedulerContext for checking

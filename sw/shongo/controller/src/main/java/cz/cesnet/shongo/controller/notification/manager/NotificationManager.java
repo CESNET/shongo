@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
 import cz.cesnet.shongo.controller.notification.Notification;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class NotificationManager extends Component
     }
 
     @Override
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         super.init(configuration);
 

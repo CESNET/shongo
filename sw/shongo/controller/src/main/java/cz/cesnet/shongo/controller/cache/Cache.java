@@ -2,12 +2,12 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
-     * Maximum duration of a {@link RoomReservation}.
+     * Maximum duration of a {@link cz.cesnet.shongo.controller.booking.room.RoomReservation}.
      */
     private Period roomReservationMaximumDuration;
 
@@ -46,7 +46,12 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private Map<Long, RoomProviderCapability> roomProviderById = new HashMap<Long, RoomProviderCapability>();
 
     /**
-     * {@link EntityManagerFactory} used to load resources in {@link #init(cz.cesnet.shongo.controller.Configuration)} method.
+     * Set of existing {@link RecordingCapability}.
+     */
+    private Map<Long, RecordingCapability> recordersById = new HashMap<Long, RecordingCapability>();
+
+    /**
+     * {@link EntityManagerFactory} used to load resources in {@link #init(cz.cesnet.shongo.controller.ControllerConfiguration)} method.
      */
     private EntityManagerFactory entityManagerFactory;
 
@@ -90,11 +95,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     @Override
-    public synchronized void init(Configuration configuration)
+    public synchronized void init(ControllerConfiguration configuration)
     {
         super.init(configuration);
 
-        roomReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_ROOM_MAX_DURATION);
+        roomReservationMaximumDuration = configuration.getPeriod(ControllerConfiguration.RESERVATION_ROOM_MAX_DURATION);
 
         logger.debug("Starting cache...");
 
@@ -146,6 +151,16 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             // Add room provider to the set of existing room providers
             roomProvider.checkPersisted();
             roomProviderById.put(roomProvider.getId(), roomProvider);
+        }
+
+        // Add recording capability
+        RecordingCapability recorder = resource.getCapability(RecordingCapability.class);
+        if (recorder != null) {
+            // Load lazy collections
+            recorder.loadLazyProperties();
+            // Add recorder to the set of existing recorders
+            recorder.checkPersisted();
+            recordersById.put(recorder.getId(), recorder);
         }
 
         // Process all alias providers in the resource
@@ -201,6 +216,12 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             roomProviderById.remove(roomProvider.getId());
         }
 
+        // Remove recording capability
+        RecordingCapability recorder = resource.getCapability(RecordingCapability.class);
+        if (recorder != null) {
+            recordersById.remove(recorder.getId());
+        }
+
         // Process all alias providers in the resource
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -223,6 +244,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public Collection<RoomProviderCapability> getRoomProviders()
     {
         return roomProviderById.values();
+    }
+
+    /**
+     * @return collection of existing {@link RoomProviderCapability}s
+     */
+    public Collection<RecordingCapability> getRecorders()
+    {
+        return recordersById.values();
     }
 
     /**

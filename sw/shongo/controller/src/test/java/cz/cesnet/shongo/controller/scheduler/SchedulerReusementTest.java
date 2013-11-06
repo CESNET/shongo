@@ -13,7 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.executor.Compartment}.
+ * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

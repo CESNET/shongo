@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,17 +13,17 @@ import java.util.List;
 public class ExecutionResult
 {
     /**
-     * List of {@link cz.cesnet.shongo.controller.executor.Executable} which were started.
+     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were started.
      */
     private List<Executable> startedExecutables = new ArrayList<Executable>();
 
     /**
-     * List of {@link cz.cesnet.shongo.controller.executor.Executable} which were updated.
+     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were updated.
      */
     private List<Executable> updatedExecutables = new ArrayList<Executable>();
 
     /**
-     * List of {@link cz.cesnet.shongo.controller.executor.Executable} which were stopped.
+     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were stopped.
      */
     private List<Executable> stoppedExecutables = new ArrayList<Executable>();
 

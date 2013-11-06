@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for {@link DateTimeSpecification}
+ * Tests for {@link cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

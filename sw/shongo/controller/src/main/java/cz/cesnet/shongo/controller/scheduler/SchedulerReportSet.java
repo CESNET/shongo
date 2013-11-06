@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -17,7 +16,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ResourceReport")
     public static class ResourceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.resource.Resource resource;
+        protected cz.cesnet.shongo.controller.booking.resource.Resource resource;
 
         public ResourceReport()
         {
@@ -30,7 +29,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource";
         }
 
-        public ResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -38,12 +37,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "resource_id")
-        public cz.cesnet.shongo.controller.resource.Resource getResource()
+        public cz.cesnet.shongo.controller.booking.resource.Resource getResource()
         {
-            return SimplePersistentObject.getLazyImplementation(resource);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(resource);
         }
 
-        public void setResource(cz.cesnet.shongo.controller.resource.Resource resource)
+        public void setResource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             this.resource = resource;
         }
@@ -97,7 +96,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-not-allocatable";
         }
 
-        public ResourceNotAllocatableReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotAllocatableReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -149,14 +148,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceNotAllocatableException(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotAllocatableException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             ResourceNotAllocatableReport report = new ResourceNotAllocatableReport();
             report.setResource(resource);
             this.report = report;
         }
 
-        public ResourceNotAllocatableException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotAllocatableException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             super(throwable);
             ResourceNotAllocatableReport report = new ResourceNotAllocatableReport();
@@ -189,7 +188,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-already-allocated";
         }
 
-        public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceAlreadyAllocatedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -241,14 +240,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceAlreadyAllocatedException(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceAlreadyAllocatedException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             ResourceAlreadyAllocatedReport report = new ResourceAlreadyAllocatedReport();
             report.setResource(resource);
             this.report = report;
         }
 
-        public ResourceAlreadyAllocatedException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceAlreadyAllocatedException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             super(throwable);
             ResourceAlreadyAllocatedReport report = new ResourceAlreadyAllocatedReport();
@@ -283,7 +282,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-not-available";
         }
 
-        public ResourceNotAvailableReport(cz.cesnet.shongo.controller.resource.Resource resource, org.joda.time.DateTime maxDateTime)
+        public ResourceNotAvailableReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.DateTime maxDateTime)
         {
             setResource(resource);
             setMaxDateTime(maxDateTime);
@@ -349,7 +348,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceNotAvailableException(cz.cesnet.shongo.controller.resource.Resource resource, org.joda.time.DateTime maxDateTime)
+        public ResourceNotAvailableException(cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.DateTime maxDateTime)
         {
             ResourceNotAvailableReport report = new ResourceNotAvailableReport();
             report.setResource(resource);
@@ -357,7 +356,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource, org.joda.time.DateTime maxDateTime)
+        public ResourceNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource, org.joda.time.DateTime maxDateTime)
         {
             super(throwable);
             ResourceNotAvailableReport report = new ResourceNotAvailableReport();
@@ -400,7 +399,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-room-capacity-exceeded";
         }
 
-        public ResourceRoomCapacityExceededReport(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        public ResourceRoomCapacityExceededReport(cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
         {
             setResource(resource);
             setAvailableLicenseCount(availableLicenseCount);
@@ -478,7 +477,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceRoomCapacityExceededException(cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        public ResourceRoomCapacityExceededException(cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
         {
             ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
             report.setResource(resource);
@@ -487,7 +486,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceRoomCapacityExceededException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
+        public ResourceRoomCapacityExceededException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource, Integer availableLicenseCount, Integer maxLicenseCount)
         {
             super(throwable);
             ResourceRoomCapacityExceededReport report = new ResourceRoomCapacityExceededReport();
@@ -515,6 +514,98 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * The resource {@link #resource} doesn't have any available licenses for recording.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceRecordingCapacityExceededReport")
+    public static class ResourceRecordingCapacityExceededReport extends ResourceReport
+    {
+        public ResourceRecordingCapacityExceededReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-recording-capacity-exceeded";
+        }
+
+        public ResourceRecordingCapacityExceededReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            setResource(resource);
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("resource", resource);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-recording-capacity-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceRecordingCapacityExceededReport}.
+     */
+    public static class ResourceRecordingCapacityExceededException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceRecordingCapacityExceededException(ResourceRecordingCapacityExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceRecordingCapacityExceededException(Throwable throwable, ResourceRecordingCapacityExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceRecordingCapacityExceededException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            ResourceRecordingCapacityExceededReport report = new ResourceRecordingCapacityExceededReport();
+            report.setResource(resource);
+            this.report = report;
+        }
+
+        public ResourceRecordingCapacityExceededException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
+        {
+            super(throwable);
+            ResourceRecordingCapacityExceededReport report = new ResourceRecordingCapacityExceededReport();
+            report.setResource(resource);
+            this.report = report;
+        }
+
+        @Override
+        public ResourceRecordingCapacityExceededReport getReport()
+        {
+            return (ResourceRecordingCapacityExceededReport) report;
+        }
+    }
+
+    /**
      * The resource {@link #resource} is not endpoint.
      */
     @javax.persistence.Entity
@@ -532,7 +623,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-not-endpoint";
         }
 
-        public ResourceNotEndpointReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotEndpointReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -584,14 +675,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceNotEndpointException(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotEndpointException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             ResourceNotEndpointReport report = new ResourceNotEndpointReport();
             report.setResource(resource);
             this.report = report;
         }
 
-        public ResourceNotEndpointException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceNotEndpointException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             super(throwable);
             ResourceNotEndpointReport report = new ResourceNotEndpointReport();
@@ -624,7 +715,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "resource-multiple-requested";
         }
 
-        public ResourceMultipleRequestedReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceMultipleRequestedReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -676,14 +767,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ResourceMultipleRequestedException(cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceMultipleRequestedException(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             ResourceMultipleRequestedReport report = new ResourceMultipleRequestedReport();
             report.setResource(resource);
             this.report = report;
         }
 
-        public ResourceMultipleRequestedException(Throwable throwable, cz.cesnet.shongo.controller.resource.Resource resource)
+        public ResourceMultipleRequestedException(Throwable throwable, cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             super(throwable);
             ResourceMultipleRequestedReport report = new ResourceMultipleRequestedReport();
@@ -815,7 +906,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ExecutableReusingReport")
     public static class ExecutableReusingReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.executor.Executable executable;
+        protected cz.cesnet.shongo.controller.booking.executable.Executable executable;
 
         public ExecutableReusingReport()
         {
@@ -828,7 +919,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "executable-reusing";
         }
 
-        public ExecutableReusingReport(cz.cesnet.shongo.controller.executor.Executable executable)
+        public ExecutableReusingReport(cz.cesnet.shongo.controller.booking.executable.Executable executable)
         {
             setExecutable(executable);
         }
@@ -836,12 +927,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "executable_id")
-        public cz.cesnet.shongo.controller.executor.Executable getExecutable()
+        public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
         {
-            return SimplePersistentObject.getLazyImplementation(executable);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(executable);
         }
 
-        public void setExecutable(cz.cesnet.shongo.controller.executor.Executable executable)
+        public void setExecutable(cz.cesnet.shongo.controller.booking.executable.Executable executable)
         {
             this.executable = executable;
         }
@@ -1049,9 +1140,9 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ConnectionReport")
     public static abstract class ConnectionReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.executor.Endpoint endpointFrom;
+        protected cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom;
 
-        protected cz.cesnet.shongo.controller.executor.Endpoint endpointTo;
+        protected cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo;
 
         public ConnectionReport()
         {
@@ -1064,7 +1155,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "connection";
         }
 
-        public ConnectionReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public ConnectionReport(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             setEndpointFrom(endpointFrom);
             setEndpointTo(endpointTo);
@@ -1073,12 +1164,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST, fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "endpointfrom_id")
-        public cz.cesnet.shongo.controller.executor.Endpoint getEndpointFrom()
+        public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointFrom()
         {
-            return SimplePersistentObject.getLazyImplementation(endpointFrom);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointFrom);
         }
 
-        public void setEndpointFrom(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom)
+        public void setEndpointFrom(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom)
         {
             this.endpointFrom = endpointFrom;
         }
@@ -1086,12 +1177,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST, fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "endpointto_id")
-        public cz.cesnet.shongo.controller.executor.Endpoint getEndpointTo()
+        public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointTo()
         {
-            return SimplePersistentObject.getLazyImplementation(endpointTo);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointTo);
         }
 
-        public void setEndpointTo(cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public void setEndpointTo(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             this.endpointTo = endpointTo;
         }
@@ -1099,11 +1190,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.PreRemove
         public void preRemove()
         {
-            if (endpointFrom.getState() == cz.cesnet.shongo.controller.executor.Executable.State.NOT_ALLOCATED) {
-                endpointFrom.setState(cz.cesnet.shongo.controller.executor.Executable.State.TO_DELETE);
+            if (endpointFrom.getState() == cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_ALLOCATED) {
+                endpointFrom.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.TO_DELETE);
             }
-            if (endpointTo.getState() == cz.cesnet.shongo.controller.executor.Executable.State.NOT_ALLOCATED) {
-                endpointTo.setState(cz.cesnet.shongo.controller.executor.Executable.State.TO_DELETE);
+            if (endpointTo.getState() == cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_ALLOCATED) {
+                endpointTo.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.TO_DELETE);
             }
         }
     }
@@ -1128,7 +1219,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "connection-between";
         }
 
-        public ConnectionBetweenReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo, cz.cesnet.shongo.Technology technology)
+        public ConnectionBetweenReport(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo, cz.cesnet.shongo.Technology technology)
         {
             setEndpointFrom(endpointFrom);
             setEndpointTo(endpointTo);
@@ -1198,7 +1289,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "connection-from-to";
         }
 
-        public ConnectionFromToReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public ConnectionFromToReport(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             setEndpointFrom(endpointFrom);
             setEndpointTo(endpointTo);
@@ -1254,7 +1345,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "connection-to-multiple";
         }
 
-        public ConnectionToMultipleReport(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public ConnectionToMultipleReport(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             setEndpointFrom(endpointFrom);
             setEndpointTo(endpointTo);
@@ -1308,7 +1399,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ConnectionToMultipleException(cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public ConnectionToMultipleException(cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             ConnectionToMultipleReport report = new ConnectionToMultipleReport();
             report.setEndpointFrom(endpointFrom);
@@ -1316,7 +1407,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ConnectionToMultipleException(Throwable throwable, cz.cesnet.shongo.controller.executor.Endpoint endpointFrom, cz.cesnet.shongo.controller.executor.Endpoint endpointTo)
+        public ConnectionToMultipleException(Throwable throwable, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointFrom, cz.cesnet.shongo.controller.booking.executable.Endpoint endpointTo)
         {
             super(throwable);
             ConnectionToMultipleReport report = new ConnectionToMultipleReport();
@@ -1339,7 +1430,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
     public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
+        protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest;
 
         protected org.joda.time.Interval interval;
 
@@ -1354,7 +1445,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "reservation-request-not-usable";
         }
 
-        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             setReservationRequest(reservationRequest);
             setInterval(interval);
@@ -1363,12 +1454,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "reservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
-            return SimplePersistentObject.getLazyImplementation(reservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
         }
 
-        public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public void setReservationRequest(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
         {
             this.reservationRequest = reservationRequest;
         }
@@ -1433,7 +1524,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
@@ -1441,7 +1532,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             super(throwable);
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
@@ -1450,7 +1541,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
             return getReport().getReservationRequest();
         }
@@ -1471,7 +1562,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ReservationReport")
     public static abstract class ReservationReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.reservation.Reservation reservation;
+        protected cz.cesnet.shongo.controller.booking.reservation.Reservation reservation;
 
         public ReservationReport()
         {
@@ -1484,7 +1575,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "reservation";
         }
 
-        public ReservationReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public ReservationReport(cz.cesnet.shongo.controller.booking.reservation.Reservation reservation)
         {
             setReservation(reservation);
         }
@@ -1492,12 +1583,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "reservation_id")
-        public cz.cesnet.shongo.controller.reservation.Reservation getReservation()
+        public cz.cesnet.shongo.controller.booking.reservation.Reservation getReservation()
         {
-            return SimplePersistentObject.getLazyImplementation(reservation);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservation);
         }
 
-        public void setReservation(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public void setReservation(cz.cesnet.shongo.controller.booking.reservation.Reservation reservation)
         {
             this.reservation = reservation;
         }
@@ -1510,9 +1601,9 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ReservationAlreadyUsedReport")
     public static class ReservationAlreadyUsedReport extends ReservationReport
     {
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
+        protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest;
 
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest;
+        protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest;
 
         protected org.joda.time.Interval usageInterval;
 
@@ -1527,7 +1618,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "reservation-already-used";
         }
 
-        public ReservationAlreadyUsedReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        public ReservationAlreadyUsedReport(cz.cesnet.shongo.controller.booking.reservation.Reservation reservation, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             setReservation(reservation);
             setReservationRequest(reservationRequest);
@@ -1538,12 +1629,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "reservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
-            return SimplePersistentObject.getLazyImplementation(reservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
         }
 
-        public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
+        public void setReservationRequest(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
         {
             this.reservationRequest = reservationRequest;
         }
@@ -1551,12 +1642,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
         {
-            return SimplePersistentObject.getLazyImplementation(usageReservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
         }
 
-        public void setUsageReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest)
+        public void setUsageReservationRequest(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest)
         {
             this.usageReservationRequest = usageReservationRequest;
         }
@@ -1623,7 +1714,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationAlreadyUsedException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        public ReservationAlreadyUsedException(cz.cesnet.shongo.controller.booking.reservation.Reservation reservation, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
             report.setReservation(reservation);
@@ -1633,7 +1724,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationAlreadyUsedException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        public ReservationAlreadyUsedException(Throwable throwable, cz.cesnet.shongo.controller.booking.reservation.Reservation reservation, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
         {
             super(throwable);
             ReservationAlreadyUsedReport report = new ReservationAlreadyUsedReport();
@@ -1644,12 +1735,12 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
             return getReport().getReservationRequest();
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getUsageReservationRequest()
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
         {
             return getReport().getUsageReservationRequest();
         }
@@ -1684,7 +1775,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "reservation-reusing";
         }
 
-        public ReservationReusingReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public ReservationReusingReport(cz.cesnet.shongo.controller.booking.reservation.Reservation reservation)
         {
             setReservation(reservation);
         }
@@ -2075,6 +2166,250 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Requested service slot {@link #serviceSlot} is outside the executable slot {@link #executableSlot}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ExecutableServiceInvalidSlotReport")
+    public static class ExecutableServiceInvalidSlotReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected org.joda.time.Interval executableSlot;
+
+        protected org.joda.time.Interval serviceSlot;
+
+        public ExecutableServiceInvalidSlotReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-service-invalid-slot";
+        }
+
+        public ExecutableServiceInvalidSlotReport(org.joda.time.Interval executableSlot, org.joda.time.Interval serviceSlot)
+        {
+            setExecutableSlot(executableSlot);
+            setServiceSlot(serviceSlot);
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="executableslot_start"),@javax.persistence.Column(name="executableslot_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getExecutableSlot()
+        {
+            return executableSlot;
+        }
+
+        public void setExecutableSlot(org.joda.time.Interval executableSlot)
+        {
+            this.executableSlot = executableSlot;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="serviceslot_start"),@javax.persistence.Column(name="serviceslot_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getServiceSlot()
+        {
+            return serviceSlot;
+        }
+
+        public void setServiceSlot(org.joda.time.Interval serviceSlot)
+        {
+            this.serviceSlot = serviceSlot;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("executableSlot", executableSlot);
+            parameters.put("serviceSlot", serviceSlot);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("executable-service-invalid-slot", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ExecutableServiceInvalidSlotReport}.
+     */
+    public static class ExecutableServiceInvalidSlotException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ExecutableServiceInvalidSlotException(ExecutableServiceInvalidSlotReport report)
+        {
+            this.report = report;
+        }
+
+        public ExecutableServiceInvalidSlotException(Throwable throwable, ExecutableServiceInvalidSlotReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ExecutableServiceInvalidSlotException(org.joda.time.Interval executableSlot, org.joda.time.Interval serviceSlot)
+        {
+            ExecutableServiceInvalidSlotReport report = new ExecutableServiceInvalidSlotReport();
+            report.setExecutableSlot(executableSlot);
+            report.setServiceSlot(serviceSlot);
+            this.report = report;
+        }
+
+        public ExecutableServiceInvalidSlotException(Throwable throwable, org.joda.time.Interval executableSlot, org.joda.time.Interval serviceSlot)
+        {
+            super(throwable);
+            ExecutableServiceInvalidSlotReport report = new ExecutableServiceInvalidSlotReport();
+            report.setExecutableSlot(executableSlot);
+            report.setServiceSlot(serviceSlot);
+            this.report = report;
+        }
+
+        public org.joda.time.Interval getExecutableSlot()
+        {
+            return getReport().getExecutableSlot();
+        }
+
+        public org.joda.time.Interval getServiceSlot()
+        {
+            return getReport().getServiceSlot();
+        }
+
+        @Override
+        public ExecutableServiceInvalidSlotReport getReport()
+        {
+            return (ExecutableServiceInvalidSlotReport) report;
+        }
+    }
+
+    /**
+     * Recording service cannot be allocated for the room endpoint {@link #roomEndpointId} because it is always recordable.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("RoomEndpointAlwaysRecordableReport")
+    public static class RoomEndpointAlwaysRecordableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected String roomEndpointId;
+
+        public RoomEndpointAlwaysRecordableReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "room-endpoint-always-recordable";
+        }
+
+        public RoomEndpointAlwaysRecordableReport(String roomEndpointId)
+        {
+            setRoomEndpointId(roomEndpointId);
+        }
+
+        @javax.persistence.Column
+        public String getRoomEndpointId()
+        {
+            return roomEndpointId;
+        }
+
+        public void setRoomEndpointId(String roomEndpointId)
+        {
+            this.roomEndpointId = roomEndpointId;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("roomEndpointId", roomEndpointId);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("room-endpoint-always-recordable", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link RoomEndpointAlwaysRecordableReport}.
+     */
+    public static class RoomEndpointAlwaysRecordableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public RoomEndpointAlwaysRecordableException(RoomEndpointAlwaysRecordableReport report)
+        {
+            this.report = report;
+        }
+
+        public RoomEndpointAlwaysRecordableException(Throwable throwable, RoomEndpointAlwaysRecordableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public RoomEndpointAlwaysRecordableException(String roomEndpointId)
+        {
+            RoomEndpointAlwaysRecordableReport report = new RoomEndpointAlwaysRecordableReport();
+            report.setRoomEndpointId(roomEndpointId);
+            this.report = report;
+        }
+
+        public RoomEndpointAlwaysRecordableException(Throwable throwable, String roomEndpointId)
+        {
+            super(throwable);
+            RoomEndpointAlwaysRecordableReport report = new RoomEndpointAlwaysRecordableReport();
+            report.setRoomEndpointId(roomEndpointId);
+            this.report = report;
+        }
+
+        public String getRoomEndpointId()
+        {
+            return getReport().getRoomEndpointId();
+        }
+
+        @Override
+        public RoomEndpointAlwaysRecordableReport getReport()
+        {
+            return (RoomEndpointAlwaysRecordableReport) report;
+        }
+    }
+
+    /**
      * Allocating the resource {@link #resource}.
      */
     @javax.persistence.Entity
@@ -2092,7 +2427,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-resource";
         }
 
-        public AllocatingResourceReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public AllocatingResourceReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -2246,7 +2581,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-value";
         }
 
-        public AllocatingValueReport(cz.cesnet.shongo.controller.resource.Resource resource)
+        public AllocatingValueReport(cz.cesnet.shongo.controller.booking.resource.Resource resource)
         {
             setResource(resource);
         }
@@ -2291,7 +2626,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
     public static class AllocatingRoomReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies;
+        protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies;
 
         protected Integer participantCount;
 
@@ -2306,19 +2641,19 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-room";
         }
 
-        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies, Integer participantCount)
+        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies, Integer participantCount)
         {
             setTechnologies(technologies);
             setParticipantCount(participantCount);
         }
 
         @javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
-        public java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> getTechnologies()
+        public java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> getTechnologies()
         {
             return technologies;
         }
 
-        public void setTechnologies(java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> technologies)
+        public void setTechnologies(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies)
         {
             this.technologies = technologies;
         }
@@ -2613,7 +2948,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("SpecificationNotReadyReport")
     public static class SpecificationNotReadyReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.request.Specification specification;
+        protected cz.cesnet.shongo.controller.booking.specification.Specification specification;
 
         public SpecificationNotReadyReport()
         {
@@ -2626,7 +2961,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "specification-not-ready";
         }
 
-        public SpecificationNotReadyReport(cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotReadyReport(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             setSpecification(specification);
         }
@@ -2634,12 +2969,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "specification_id")
-        public cz.cesnet.shongo.controller.request.Specification getSpecification()
+        public cz.cesnet.shongo.controller.booking.specification.Specification getSpecification()
         {
-            return SimplePersistentObject.getLazyImplementation(specification);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(specification);
         }
 
-        public void setSpecification(cz.cesnet.shongo.controller.request.Specification specification)
+        public void setSpecification(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             this.specification = specification;
         }
@@ -2691,14 +3026,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public SpecificationNotReadyException(cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotReadyException(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             SpecificationNotReadyReport report = new SpecificationNotReadyReport();
             report.setSpecification(specification);
             this.report = report;
         }
 
-        public SpecificationNotReadyException(Throwable throwable, cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotReadyException(Throwable throwable, cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             super(throwable);
             SpecificationNotReadyReport report = new SpecificationNotReadyReport();
@@ -2706,7 +3041,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.Specification getSpecification()
+        public cz.cesnet.shongo.controller.booking.specification.Specification getSpecification()
         {
             return getReport().getSpecification();
         }
@@ -2725,7 +3060,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("SpecificationNotAllocatableReport")
     public static class SpecificationNotAllocatableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.request.Specification specification;
+        protected cz.cesnet.shongo.controller.booking.specification.Specification specification;
 
         public SpecificationNotAllocatableReport()
         {
@@ -2738,7 +3073,7 @@ public class SchedulerReportSet extends AbstractReportSet
             return "specification-not-allocatable";
         }
 
-        public SpecificationNotAllocatableReport(cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotAllocatableReport(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             setSpecification(specification);
         }
@@ -2746,12 +3081,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "specification_id")
-        public cz.cesnet.shongo.controller.request.Specification getSpecification()
+        public cz.cesnet.shongo.controller.booking.specification.Specification getSpecification()
         {
-            return SimplePersistentObject.getLazyImplementation(specification);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(specification);
         }
 
-        public void setSpecification(cz.cesnet.shongo.controller.request.Specification specification)
+        public void setSpecification(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             this.specification = specification;
         }
@@ -2803,14 +3138,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public SpecificationNotAllocatableException(cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotAllocatableException(cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             SpecificationNotAllocatableReport report = new SpecificationNotAllocatableReport();
             report.setSpecification(specification);
             this.report = report;
         }
 
-        public SpecificationNotAllocatableException(Throwable throwable, cz.cesnet.shongo.controller.request.Specification specification)
+        public SpecificationNotAllocatableException(Throwable throwable, cz.cesnet.shongo.controller.booking.specification.Specification specification)
         {
             super(throwable);
             SpecificationNotAllocatableReport report = new SpecificationNotAllocatableReport();
@@ -2818,7 +3153,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.Specification getSpecification()
+        public cz.cesnet.shongo.controller.booking.specification.Specification getSpecification()
         {
             return getReport().getSpecification();
         }
@@ -3056,6 +3391,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceAlreadyAllocatedReport.class);
         addReportClass(ResourceNotAvailableReport.class);
         addReportClass(ResourceRoomCapacityExceededReport.class);
+        addReportClass(ResourceRecordingCapacityExceededReport.class);
         addReportClass(ResourceNotEndpointReport.class);
         addReportClass(ResourceMultipleRequestedReport.class);
         addReportClass(ResourceNotFoundReport.class);
@@ -3073,6 +3409,8 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ValueAlreadyAllocatedReport.class);
         addReportClass(ValueInvalidReport.class);
         addReportClass(ValueNotAvailableReport.class);
+        addReportClass(ExecutableServiceInvalidSlotReport.class);
+        addReportClass(RoomEndpointAlwaysRecordableReport.class);
         addReportClass(AllocatingResourceReport.class);
         addReportClass(AllocatingAliasReport.class);
         addReportClass(AllocatingValueReport.class);

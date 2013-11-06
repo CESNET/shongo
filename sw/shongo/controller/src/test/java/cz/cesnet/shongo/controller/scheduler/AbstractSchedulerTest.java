@@ -5,8 +5,8 @@ import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;
@@ -14,7 +14,7 @@ import org.junit.Before;
 import javax.persistence.EntityManager;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask}.
+ * Tests for {@link cz.cesnet.shongo.controller.booking.compartment.CompartmentReservationTask}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

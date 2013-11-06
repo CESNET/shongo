@@ -1,20 +1,24 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.AbstractPerson;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * {@link ConfigurableNotification} for a {@link Reservation}.
+ * {@link ConfigurableNotification} for a {@link cz.cesnet.shongo.controller.booking.reservation.Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -41,7 +45,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
      * @param configuration
      */
     public ReservationNotification(Type type, Reservation reservation, AbstractReservationRequest reservationRequest,
-            AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
+            AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
         super(reservationRequest, configuration, authorizationManager.getUserSettingsProvider());
 

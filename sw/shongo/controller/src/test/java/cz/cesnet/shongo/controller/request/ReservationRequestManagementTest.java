@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
 
 /**
- * Tests for creating, updating and deleting {@link AbstractReservationRequest}s.
+ * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

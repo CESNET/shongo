@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 
 import java.util.*;
 

@@ -962,6 +962,18 @@
         </report>
 
         <report extends="resource">
+            <id>resource-recording-capacity-exceeded</id>
+            <classification severity="error"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The resource ${resource.id} doesn't have any available licenses for recording.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report extends="resource">
             <id>resource-not-endpoint</id>
             <classification severity="error"/>
             <description>
@@ -1208,6 +1220,42 @@
             <visible>user</visible>
         </report>
 
+        <!--
+          - EXECUTABLE SERVICES
+          -->
+
+        <report>
+            <id>executable-service-invalid-slot</id>
+            <classification severity="error"/>
+            <params>
+                <param name="executableSlot" type="Interval"/>
+                <param name="serviceSlot" type="Interval"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Requested service slot ${serviceSlot} is outside the executable slot ${executableSlot}.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>room-endpoint-always-recordable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="roomEndpointId" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Recording service cannot be allocated for the room endpoint ${roomEndpointId} because it is always recordable.
+            </message>
+            <visible>user</visible>
+        </report>
+
+
 
         <!--
           - ALLOCATING reports
@@ -1397,7 +1445,7 @@
 
     <scope name="executor">
 
-        <template extends="cz.cesnet.shongo.controller.executor.ExecutableReport">
+        <template extends="cz.cesnet.shongo.controller.booking.executable.ExecutableReport">
             <visible>domain-admin resource-admin</visible>
             <persistent>true</persistent>
         </template>

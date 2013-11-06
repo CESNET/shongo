@@ -4,15 +4,19 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.common.AbstractParticipant;
-import cz.cesnet.shongo.controller.executor.Compartment;
-import cz.cesnet.shongo.controller.executor.Endpoint;
-import cz.cesnet.shongo.controller.executor.EndpointProvider;
-import cz.cesnet.shongo.controller.request.ExistingEndpointParticipant;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSetParticipant;
-import cz.cesnet.shongo.controller.request.Specification;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.compartment.CompartmentReservationTask;
+import cz.cesnet.shongo.controller.booking.resource.StandaloneTerminalCapability;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.compartment.Compartment;
+import cz.cesnet.shongo.controller.booking.executable.Endpoint;
+import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
+import cz.cesnet.shongo.controller.booking.participant.ExistingEndpointParticipant;
+import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Tests for {@link CompartmentReservationTask}.
+ * Tests for {@link cz.cesnet.shongo.controller.booking.compartment.CompartmentReservationTask}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

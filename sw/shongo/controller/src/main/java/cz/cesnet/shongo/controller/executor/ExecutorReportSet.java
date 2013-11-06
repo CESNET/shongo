@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -15,7 +14,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CommandFailedReport")
-    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
+    public static class CommandFailedReport extends cz.cesnet.shongo.controller.booking.executable.ExecutableReport
     {
         protected String command;
 
@@ -54,7 +53,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @javax.persistence.JoinColumn(name = "jadereport_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
-            return SimplePersistentObject.getLazyImplementation(jadeReport);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(jadeReport);
         }
 
         public void setJadeReport(cz.cesnet.shongo.JadeReport jadeReport)
@@ -156,7 +155,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("RoomNotStartedReport")
-    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
+    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.booking.executable.ExecutableReport
     {
         protected String roomName;
 

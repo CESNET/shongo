@@ -14,6 +14,7 @@ public class AllocationStateReportMessages
     public static final String RESOURCE_ALREADY_ALLOCATED = "resource-already-allocated";
     public static final String RESOURCE_NOT_AVAILABLE = "resource-not-available";
     public static final String RESOURCE_ROOM_CAPACITY_EXCEEDED = "resource-room-capacity-exceeded";
+    public static final String RESOURCE_RECORDING_CAPACITY_EXCEEDED = "resource-recording-capacity-exceeded";
     public static final String RESOURCE_NOT_ENDPOINT = "resource-not-endpoint";
     public static final String RESOURCE_MULTIPLE_REQUESTED = "resource-multiple-requested";
     public static final String RESOURCE_NOT_FOUND = "resource-not-found";
@@ -29,6 +30,8 @@ public class AllocationStateReportMessages
     public static final String VALUE_ALREADY_ALLOCATED = "value-already-allocated";
     public static final String VALUE_INVALID = "value-invalid";
     public static final String VALUE_NOT_AVAILABLE = "value-not-available";
+    public static final String EXECUTABLE_SERVICE_INVALID_SLOT = "executable-service-invalid-slot";
+    public static final String ROOM_ENDPOINT_ALWAYS_RECORDABLE = "room-endpoint-always-recordable";
     public static final String ALLOCATING_RESOURCE = "allocating-resource";
     public static final String ALLOCATING_ALIAS = "allocating-alias";
     public static final String ALLOCATING_VALUE = "allocating-value";
@@ -52,6 +55,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated.");
         addMessage(RESOURCE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${maxDateTime}.");
         addMessage(RESOURCE_ROOM_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} has available only ${availableLicenseCount} from ${maxLicenseCount} licenses.");
+        addMessage(RESOURCE_RECORDING_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} doesn't have any available licenses for recording.");
         addMessage(RESOURCE_NOT_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not endpoint.");
         addMessage(RESOURCE_MULTIPLE_REQUESTED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is requested multiple times.");
         addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No available resource was found for the following specification: Technologies: ${technologies}");
@@ -67,6 +71,8 @@ public class AllocationStateReportMessages
         addMessage(VALUE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is already allocated in interval ${interval}.");
         addMessage(VALUE_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is invalid.");
         addMessage(VALUE_NOT_AVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "No value is available.");
+        addMessage(EXECUTABLE_SERVICE_INVALID_SLOT, new Report.UserType[]{}, Report.Language.ENGLISH, "Requested service slot ${serviceSlot} is outside the executable slot ${executableSlot}.");
+        addMessage(ROOM_ENDPOINT_ALWAYS_RECORDABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Recording service cannot be allocated for the room endpoint ${roomEndpointId} because it is always recordable.");
         addMessage(ALLOCATING_RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating the resource ${resource.id}.");
         addMessage(ALLOCATING_ALIAS, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating alias for the following specification: \n  Technology: ${ifEmpty(technologies, \"Any\")} \n  Alias Type: ${ifEmpty(aliasTypes, \"Any\")} \n       Value: ${ifEmpty(value, \"Any\")}");
         addMessage(ALLOCATING_VALUE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating value in the resource ${resource.id}.");

@@ -171,7 +171,7 @@ public class RangeSet<V, R> implements Iterable<V>
      * @param end
      * @return collection of {@link Bucket}s the given range
      */
-    public <B extends Bucket<R, V>> Collection<B> getBuckets(R start, R end, Class<B> bucketClass)
+    public Collection<Bucket<R, V>> getBuckets(R start, R end)
     {
         if (!bucketMap.isEmpty()) {
             R floor = bucketMap.floorKey(start);
@@ -183,11 +183,22 @@ public class RangeSet<V, R> implements Iterable<V>
                 ceiling = bucketMap.lastKey();
             }
             NavigableMap<R, Bucket<R, V>> subMap = bucketMap.subMap(floor, true, ceiling, false);
-            return (Collection<B>) subMap.values();
+            return subMap.values();
         }
         else {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * @param start
+     * @param end
+     * @param bucketClass
+     * @return collection of {@link Bucket}s the given range
+     */
+    public <B extends Bucket<R, V>> Collection<B> getBuckets(R start, R end, Class<B> bucketClass)
+    {
+        return (Collection<B>) getBuckets(start, end);
     }
 
     /**

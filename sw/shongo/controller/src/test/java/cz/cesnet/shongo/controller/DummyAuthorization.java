@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.TodoImplementException;
 import org.slf4j.Logger;
@@ -86,7 +85,7 @@ public class DummyAuthorization extends Authorization
      */
     public DummyAuthorization(EntityManagerFactory entityManagerFactory)
     {
-        this(new Configuration());
+        this(new ControllerConfiguration());
 
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -96,7 +95,7 @@ public class DummyAuthorization extends Authorization
      *
      * @param configuration to be used
      */
-    public DummyAuthorization(Configuration configuration)
+    public DummyAuthorization(ControllerConfiguration configuration)
     {
         super(configuration);
 
@@ -142,7 +141,7 @@ public class DummyAuthorization extends Authorization
      * @return new instance of {@link DummyAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists
      */
-    public static DummyAuthorization createInstance(Configuration configuration) throws IllegalStateException
+    public static DummyAuthorization createInstance(ControllerConfiguration configuration) throws IllegalStateException
     {
         DummyAuthorization authorization = new DummyAuthorization(configuration);
         Authorization.setInstance(authorization);

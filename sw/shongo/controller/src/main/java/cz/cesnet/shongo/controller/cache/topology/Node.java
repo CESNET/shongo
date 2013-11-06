@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.cache.topology;
 
 import cz.cesnet.shongo.PrintableObject;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,11 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 

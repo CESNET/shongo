@@ -2,19 +2,27 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.H323RoomSetting;
-import cz.cesnet.shongo.controller.common.RoomConfiguration;
-import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
-import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import org.hibernate.engine.internal.StatefulPersistenceContext;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
+import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
@@ -40,7 +48,7 @@ public abstract class Target
     {
     }
 
-    private Target(cz.cesnet.shongo.controller.resource.Resource resource)
+    private Target(cz.cesnet.shongo.controller.booking.resource.Resource resource)
     {
         setResource(resource);
     }
@@ -63,7 +71,7 @@ public abstract class Target
         return resourceName;
     }
 
-    protected void setResource(cz.cesnet.shongo.controller.resource.Resource resource)
+    protected void setResource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
     {
         resourceId = EntityIdentifier.formatId(resource);
         resourceName = resource.getName();
@@ -110,13 +118,13 @@ public abstract class Target
 
         private Set<Technology> technologies = new HashSet<Technology>();
 
-        private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
-                new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
+        private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
+                new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
         public Alias(RoomEndpoint roomEndpoint)
         {
             permanentRoom = true;
-            for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
+            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
                 aliases.add(alias);
                 Technology technology = alias.getTechnology();
                 if (!technology.equals(Technology.ALL)) {
@@ -155,14 +163,14 @@ public abstract class Target
         {
             Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
             if (aliasTypes.size() == 1) {
-                cz.cesnet.shongo.controller.resource.Alias alias = new cz.cesnet.shongo.controller.resource.Alias();
+                cz.cesnet.shongo.controller.booking.alias.Alias alias = new cz.cesnet.shongo.controller.booking.alias.Alias();
                 alias.setType(aliasTypes.iterator().next());
                 alias.setValue(aliasSpecification.getValue());
                 aliases.add(alias);
             }
             technologies.addAll(aliasSpecification.getTechnologies());
             if (technologies.isEmpty()) {
-                for (cz.cesnet.shongo.controller.resource.Alias alias : aliases) {
+                for (cz.cesnet.shongo.controller.booking.alias.Alias alias : aliases) {
                     Technology technology = alias.getTechnology();
                     if (!technology.equals(Technology.ALL)) {
                         technologies.add(technology);
@@ -185,7 +193,7 @@ public abstract class Target
                 permanentRoom = true;
             }
 
-            for (cz.cesnet.shongo.controller.resource.Alias alias : aliasReservation.getAliases()) {
+            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : aliasReservation.getAliases()) {
                 aliases.add(alias);
                 Technology technology = alias.getTechnology();
                 if (!technology.equals(Technology.ALL)) {
@@ -204,14 +212,14 @@ public abstract class Target
             return technologies;
         }
 
-        public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
+        public List<cz.cesnet.shongo.controller.booking.alias.Alias> getAliases()
         {
             return aliases;
         }
 
         public String getRoomName()
         {
-            for (cz.cesnet.shongo.controller.resource.Alias alias : aliases) {
+            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : aliases) {
                 if (alias.getType().equals(AliasType.ROOM_NAME)) {
                     return alias.getValue();
                 }
@@ -243,8 +251,8 @@ public abstract class Target
 
         private String pin;
 
-        private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
-                new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
+        private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
+                new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
         public Room(RoomSpecification roomSpecification, Target reusedTarget)
         {
@@ -295,7 +303,7 @@ public abstract class Target
                         }
                     }
                 }
-                for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
+                for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
                     if (alias.getType().equals(AliasType.ROOM_NAME)) {
                         name = alias.getValue();
                     }
@@ -330,7 +338,7 @@ public abstract class Target
             return technologies;
         }
 
-        public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
+        public List<cz.cesnet.shongo.controller.booking.alias.Alias> getAliases()
         {
             return aliases;
         }

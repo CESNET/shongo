@@ -14,13 +14,10 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.persistence.EntityManager;
 
 /**
  * Tests for {@link cz.cesnet.shongo.JadeReport}s,
@@ -45,7 +42,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(cz.cesnet.shongo.controller.resource.DeviceResource deviceResource)
+            protected String getAgentName(cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource)
             {
                 return "mcu";
             }

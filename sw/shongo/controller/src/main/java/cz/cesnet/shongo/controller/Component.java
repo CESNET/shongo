@@ -13,14 +13,14 @@ import javax.persistence.EntityManagerFactory;
 public abstract class Component
 {
     /**
-     * @see Configuration
+     * @see ControllerConfiguration
      */
-    private Configuration configuration;
+    private ControllerConfiguration configuration;
 
     /**
      * @return {@link #configuration}
      */
-    public Configuration getConfiguration()
+    public ControllerConfiguration getConfiguration()
     {
         return configuration;
     }
@@ -30,7 +30,7 @@ public abstract class Component
      */
     public final void init()
     {
-        init(new Configuration());
+        init(new ControllerConfiguration());
     }
 
     /**
@@ -38,7 +38,7 @@ public abstract class Component
      *
      * @param configuration
      */
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         this.configuration = configuration;
     }

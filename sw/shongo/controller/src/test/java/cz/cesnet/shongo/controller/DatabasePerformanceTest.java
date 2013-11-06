@@ -6,8 +6,9 @@ import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.util.NativeQuery;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.scheduler.Preprocessor;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.log4j.Level;
 import org.junit.Test;
@@ -123,9 +124,10 @@ public class DatabasePerformanceTest
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
 
-            cz.cesnet.shongo.controller.request.ReservationRequest persistentReservationRequest =
-                    entityManager.find(cz.cesnet.shongo.controller.request.ReservationRequest.class,
-                            EntityIdentifier.parseId(cz.cesnet.shongo.controller.request.ReservationRequest.class,
+            cz.cesnet.shongo.controller.booking.request.ReservationRequest persistentReservationRequest =
+                    entityManager.find(cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
+                            EntityIdentifier.parseId(
+                                    cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
                                     reservationRequestId));
 
             enableSqlLogger(true);

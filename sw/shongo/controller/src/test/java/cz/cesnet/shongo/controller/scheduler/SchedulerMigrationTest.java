@@ -5,9 +5,8 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.*;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,9 +55,9 @@ public class SchedulerMigrationTest extends AbstractControllerTest
         // Set the allocated room as started, because a migration is allocated only for started rooms
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(EntityIdentifier.parseId(
-                cz.cesnet.shongo.controller.executor.Executable.class, reservation.getExecutable().getId()));
-        executable.setState(Executable.State.STARTED);
+        cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(EntityIdentifier.parseId(
+                cz.cesnet.shongo.controller.booking.executable.Executable.class, reservation.getExecutable().getId()));
+        executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
         executableManager.update(executable);
         entityManager.close();
 

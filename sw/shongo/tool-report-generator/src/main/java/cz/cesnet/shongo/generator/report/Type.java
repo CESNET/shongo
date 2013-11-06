@@ -129,14 +129,14 @@ public abstract class Type
         types.put("Technology", new EnumAtomicType("cz.cesnet.shongo.Technology"));
         types.put("AliasType", new EnumAtomicType("cz.cesnet.shongo.AliasType"));
 
-        types.put("Resource", new EntityType("cz.cesnet.shongo.controller.resource.Resource"));
-        types.put("Capability", new EntityType("cz.cesnet.shongo.controller.resource.Capability"));
-        types.put("Specification", new EntityType("cz.cesnet.shongo.controller.request.Specification"));
-        types.put("Reservation", new EntityType("cz.cesnet.shongo.controller.reservation.Reservation"));
-        types.put("AbstractReservationRequest", new EntityType("cz.cesnet.shongo.controller.request.AbstractReservationRequest"));
-        types.put("ReservationRequest", new EntityType("cz.cesnet.shongo.controller.request.ReservationRequest"));
-        types.put("Executable", new EntityType("cz.cesnet.shongo.controller.executor.Executable"));
-        types.put("Endpoint", new EntityType("cz.cesnet.shongo.controller.executor.Endpoint",
+        types.put("Resource", new EntityType("cz.cesnet.shongo.controller.booking.resource.Resource"));
+        types.put("Capability", new EntityType("cz.cesnet.shongo.controller.booking.resource.Capability"));
+        types.put("Specification", new EntityType("cz.cesnet.shongo.controller.booking.specification.Specification"));
+        types.put("Reservation", new EntityType("cz.cesnet.shongo.controller.booking.reservation.Reservation"));
+        types.put("AbstractReservationRequest", new EntityType("cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest"));
+        types.put("ReservationRequest", new EntityType("cz.cesnet.shongo.controller.booking.request.ReservationRequest"));
+        types.put("Executable", new EntityType("cz.cesnet.shongo.controller.booking.executable.Executable"));
+        types.put("Endpoint", new EntityType("cz.cesnet.shongo.controller.booking.executable.Endpoint",
                 EntityType.CASCADE_PERSIST)
         {
             @Override
@@ -144,14 +144,14 @@ public abstract class Type
             {
                 Collection<String> persistencePreRemove = super.getPersistencePreRemove(variableName);
                 persistencePreRemove.add("if (" + variableName + ".getState() == " +
-                        "cz.cesnet.shongo.controller.executor.Executable.State.NOT_ALLOCATED) {");
+                        "cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_ALLOCATED) {");
                 persistencePreRemove.add("    " + variableName + ".setState(" +
-                        "cz.cesnet.shongo.controller.executor.Executable.State.TO_DELETE);");
+                        "cz.cesnet.shongo.controller.booking.executable.Executable.State.TO_DELETE);");
                 persistencePreRemove.add("}");
                 return persistencePreRemove;
             }
         });
-        types.put("TechnologySet", new EntityType("cz.cesnet.shongo.controller.scheduler.TechnologySet",
+        types.put("TechnologySet", new EntityType("cz.cesnet.shongo.controller.booking.TechnologySet",
                 EntityType.CASCADE_ALL));
         types.put("JadeReport", new EntityType("cz.cesnet.shongo.JadeReport",
                 EntityType.IS_REPORT | EntityType.CASCADE_ALL));

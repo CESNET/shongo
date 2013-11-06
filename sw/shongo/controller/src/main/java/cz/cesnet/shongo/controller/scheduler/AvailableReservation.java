@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 
 /**
  * Represents a {@link Reservation} which can be reused/reallocated by the scheduler (the resources allocated by

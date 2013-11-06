@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.notification.manager;
 
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.notification.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public abstract class NotificationExecutor
      *
      * @param configuration from which the {@link NotificationExecutor} can load settings
      */
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
     }
 

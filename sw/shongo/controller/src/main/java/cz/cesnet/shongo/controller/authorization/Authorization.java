@@ -4,7 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.common.UserPerson;
+import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,11 +71,11 @@ public abstract class Authorization
      *
      * @param config to load authorization configuration from
      */
-    protected Authorization(Configuration config)
+    protected Authorization(ControllerConfiguration config)
     {
-        cache.setUserIdExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_ID));
-        cache.setUserInformationExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_INFORMATION));
-        cache.setAclExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_ACL));
+        cache.setUserIdExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_USER_ID));
+        cache.setUserInformationExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_USER_INFORMATION));
+        cache.setAclExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_ACL));
     }
 
     /**

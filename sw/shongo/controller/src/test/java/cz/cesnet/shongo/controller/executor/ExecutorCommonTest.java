@@ -9,6 +9,10 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.booking.compartment.Compartment;
+import cz.cesnet.shongo.controller.booking.compartment.Connection;
+import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -20,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.Executor}.
+ * Tests for {@link Executor}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -29,7 +33,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     private static Logger logger = LoggerFactory.getLogger(ExecutorCommonTest.class);
 
     /**
-     * Allocate {@link RoomEndpoint} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -150,7 +154,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -199,7 +203,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -253,7 +257,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint} through {@link AliasReservation} and reuse it by {@link RoomReservation}.
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} through {@link AliasReservation} and reuse it by {@link RoomReservation}.
      * The preference of reused room is also tested by presence of fake connect server (which should not be used).
      *
      * @throws Exception
@@ -328,9 +332,9 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both of them separately (first {@link RoomEndpoint} and then
-     * {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.booking.compartment.Compartment} and execute
+     * both of them separately (first {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and then
+     * {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}).
      *
      * @throws Exception
      */
@@ -398,8 +402,8 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both at once ({@link RoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.booking.compartment.Compartment} and execute
+     * both at once ({@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} through the {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}).
      *
      * @throws Exception
      */

@@ -15,10 +15,12 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ManagedMode;
+import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -72,7 +74,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(authorization, Authorization.class);
@@ -124,7 +126,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (request.getRoomId() != null) {
                 queryFilter.addFilter("executable_summary.room_id = :roomId");
                 queryFilter.addFilterParameter("roomId", EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.executor.Executable.class, request.getRoomId()));
+                        cz.cesnet.shongo.controller.booking.executable.Executable.class, request.getRoomId()));
             }
 
             // Sort query part
@@ -174,7 +176,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableSummary.setType(ExecutableSummary.Type.valueOf(record[1].toString().trim()));
                 executableSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
                 executableSummary.setState(
-                        cz.cesnet.shongo.controller.executor.Executable.State.valueOf(record[4].toString()).toApi());
+                        cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(record[4].toString()).toApi());
 
                 switch (executableSummary.getType()) {
                     case USED_ROOM:
@@ -197,7 +199,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         }
                         if (record[11] != null) {
                             executableSummary.setRoomUsageState(
-                                    cz.cesnet.shongo.controller.executor.Executable.State.valueOf(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
                                             record[11].toString()).toApi());
                         }
                         if (record[12] != null) {
@@ -225,7 +227,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
         try {
-            cz.cesnet.shongo.controller.executor.Executable executable =
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
@@ -233,7 +235,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             Executable executableApi = executable.toApi(authorization.isAdmin(securityToken));
-            cz.cesnet.shongo.controller.reservation.Reservation reservation =
+            cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {
                 executableApi.setReservationId(EntityIdentifier.formatId(reservation));
@@ -263,16 +265,16 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.executor.Executable executable =
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
-                cz.cesnet.shongo.controller.executor.Executable.State executableState = executable.getState();
-                if (executableState.equals(cz.cesnet.shongo.controller.executor.Executable.State.STARTED)) {
-                    executable.setState(cz.cesnet.shongo.controller.executor.Executable.State.MODIFIED);
+                cz.cesnet.shongo.controller.booking.executable.Executable.State executableState = executable.getState();
+                if (executableState.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED)) {
+                    executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.MODIFIED);
                 }
             }
 
@@ -296,7 +298,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.executor.Executable executable =
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
@@ -310,7 +312,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         }
         catch (javax.persistence.RollbackException exception) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
-                    cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
+                    cz.cesnet.shongo.controller.booking.executable.Executable.class, entityId.getPersistenceId());
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -334,17 +336,17 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.executor.Executable executable =
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update executable %s", entityId);
             }
 
-            Set<cz.cesnet.shongo.controller.executor.Executable> executablesToUpdate =
-                    new HashSet<cz.cesnet.shongo.controller.executor.Executable>();
+            Set<cz.cesnet.shongo.controller.booking.executable.Executable> executablesToUpdate =
+                    new HashSet<cz.cesnet.shongo.controller.booking.executable.Executable>();
             executablesToUpdate.add(executable);
-            cz.cesnet.shongo.controller.executor.Migration migration = executable.getMigration();
+            Migration migration = executable.getMigration();
             if (migration != null) {
                 executablesToUpdate.add(migration.getSourceExecutable());
                 executablesToUpdate.add(migration.getTargetExecutable());
@@ -404,7 +406,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!deviceResource.isManaged()) {
                 throw new CommonReportSet.UnknownErrorException("Device is not managed.");
             }
-            if (!roomExecutable.getState().equals(cz.cesnet.shongo.controller.executor.Executable.State.NOT_STARTED)) {
+            if (!roomExecutable.getState().equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
                 throw new CommonReportSet.UnknownErrorException("Room executable must be NOT_STARTED.");
             }
             ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
@@ -436,7 +438,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             // Attach device room to room executable
             entityManager.getTransaction().begin();
-            roomExecutable.setState(cz.cesnet.shongo.controller.executor.Executable.State.MODIFIED);
+            roomExecutable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.MODIFIED);
             roomExecutable.setRoomId(deviceRoomId);
             executableManager.update(roomExecutable);
             entityManager.getTransaction().commit();

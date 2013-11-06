@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 import org.joda.time.DateTime;
 
@@ -31,7 +32,7 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
      * @param userSettingsProvider
      */
     public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            cz.cesnet.shongo.controller.Configuration configuration, UserSettingsProvider userSettingsProvider)
+            ControllerConfiguration configuration, UserSettingsProvider userSettingsProvider)
     {
         super(userSettingsProvider, configuration);
 

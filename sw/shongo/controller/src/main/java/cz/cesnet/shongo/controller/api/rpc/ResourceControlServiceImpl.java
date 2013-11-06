@@ -11,16 +11,14 @@ import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ManagedMode;
-import cz.cesnet.shongo.controller.resource.Mode;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
+import cz.cesnet.shongo.controller.booking.resource.Mode;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -72,7 +70,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         checkDependency(controllerAgent, ControllerAgent.class);
         checkDependency(authorization, Authorization.class);

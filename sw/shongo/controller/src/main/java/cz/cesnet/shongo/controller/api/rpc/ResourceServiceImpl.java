@@ -5,12 +5,15 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.AvailableRoom;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.hibernate.exception.ConstraintViolationException;
@@ -75,7 +78,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
@@ -100,7 +103,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             userId = resourceApi.getUserId();
         }
 
-        cz.cesnet.shongo.controller.resource.Resource resource;
+        cz.cesnet.shongo.controller.booking.resource.Resource resource;
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -110,7 +113,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Create resource from API
-            resource = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resourceApi, entityManager);
+            resource = cz.cesnet.shongo.controller.booking.resource.Resource.createFromApi(resourceApi, entityManager);
             resource.setUserId(userId);
 
             // Save it
@@ -154,7 +157,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Get reservation request
-            cz.cesnet.shongo.controller.resource.Resource resource =
+            cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, resource, Permission.WRITE)) {
@@ -195,7 +198,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             // Get the resource
-            cz.cesnet.shongo.controller.resource.Resource resource =
+            cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, resource, Permission.WRITE)) {
@@ -251,10 +254,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
                     AclRecord.EntityType.RESOURCE, Permission.READ);
             String filterUserId = QueryFilter.getUserIdFromFilter(filter);
-            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
+            List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
-            for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
+            for (cz.cesnet.shongo.controller.booking.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();
                 summary.setId(EntityIdentifier.formatId(resource));
                 summary.setUserId(resource.getUserId());
@@ -269,7 +272,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     }
                     summary.setTechnologies(stringBuilder.toString());
                 }
-                cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
+                cz.cesnet.shongo.controller.booking.resource.Resource parentResource = resource.getParentResource();
                 if (parentResource != null) {
                     summary.setParentResourceId(EntityIdentifier.formatId(parentResource));
                 }
@@ -292,7 +295,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
         try {
-            cz.cesnet.shongo.controller.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
+            cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, resource, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
@@ -319,7 +322,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
         try {
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+            cz.cesnet.shongo.controller.booking.resource.Resource resourceImpl =
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(securityToken, resourceImpl, Permission.READ)) {
@@ -346,19 +349,19 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             resourceAllocation.setInterval(interval);
 
             // Fill resource allocations
-            Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
+            Collection<cz.cesnet.shongo.controller.booking.resource.ResourceReservation> resourceReservations =
                     resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
-            for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
+            for (ResourceReservation resourceReservation : resourceReservations) {
                 resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdmin(securityToken)));
             }
 
             // Fill alias allocations
-            List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
-                    resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
-            for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
-                List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
+            List<cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability> aliasProviders =
+                    resourceImpl.getCapabilities(AliasProviderCapability.class);
+            for (AliasProviderCapability aliasProvider : aliasProviders) {
+                List<cz.cesnet.shongo.controller.booking.alias.AliasReservation> aliasReservations =
                         resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
-                for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
+                for (AliasReservation aliasReservation : aliasReservations) {
                     resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdmin(securityToken)));
                 }
             }

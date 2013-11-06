@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableReport;
+import cz.cesnet.shongo.controller.booking.executable.Migration;
 import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 

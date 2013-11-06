@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -294,9 +295,9 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
 
         // Verify that all executables created for scheduler reports has been deleted
         EntityManager entityManager = createEntityManager();
-        List<cz.cesnet.shongo.controller.executor.Executable> executables = entityManager.createQuery(
+        List<cz.cesnet.shongo.controller.booking.executable.Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable",
-                cz.cesnet.shongo.controller.executor.Executable.class).getResultList();
+                Executable.class).getResultList();
         Assert.assertEquals(0, executables.size());
         entityManager.close();
     }

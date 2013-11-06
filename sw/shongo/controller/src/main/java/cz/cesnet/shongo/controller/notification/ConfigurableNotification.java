@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettings;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
@@ -24,9 +25,9 @@ public abstract class ConfigurableNotification extends AbstractNotification
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
 
     /**
-     * @see cz.cesnet.shongo.controller.Configuration
+     * @see cz.cesnet.shongo.controller.ControllerConfiguration
      */
-    protected cz.cesnet.shongo.controller.Configuration configuration;
+    protected ControllerConfiguration configuration;
 
     /**
      * @see cz.cesnet.shongo.controller.settings.UserSettingsProvider
@@ -51,7 +52,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
      * @param userSettingsProvider sets the {@link #userSettingsProvider}
      */
     public ConfigurableNotification(UserSettingsProvider userSettingsProvider,
-            cz.cesnet.shongo.controller.Configuration configuration)
+            ControllerConfiguration configuration)
     {
 
         this.userSettingsProvider = userSettingsProvider;
@@ -200,7 +201,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     public static class ConfiguredRenderContext extends RenderContext
     {
         /**
-         * @see cz.cesnet.shongo.controller.Configuration#NOTIFICATION_USER_SETTINGS_URL
+         * @see cz.cesnet.shongo.controller.ControllerConfiguration#NOTIFICATION_USER_SETTINGS_URL
          */
         private String userSettingsUrl;
 

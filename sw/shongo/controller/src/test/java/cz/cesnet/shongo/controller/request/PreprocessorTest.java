@@ -3,9 +3,17 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
+import cz.cesnet.shongo.controller.booking.compartment.MultiCompartmentSpecification;
+import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;
+import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.common.AnonymousPerson;
-import cz.cesnet.shongo.controller.common.PeriodicDateTime;
+import cz.cesnet.shongo.controller.booking.person.AnonymousPerson;
+import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;
+import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -20,8 +28,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 
 /**
- * Tests for using {@link Preprocessor} that synchronizes {@link ReservationRequestSet}(s)
- * with {@link ReservationRequest}(s).
+ * Tests for using {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} that synchronizes {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet}(s)
+ * with {@link cz.cesnet.shongo.controller.booking.request.ReservationRequest}(s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

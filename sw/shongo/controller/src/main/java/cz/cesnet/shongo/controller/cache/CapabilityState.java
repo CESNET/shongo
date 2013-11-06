@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.resource.Capability;
-import cz.cesnet.shongo.controller.resource.DeviceCapability;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.Capability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Current state of a single {@link cz.cesnet.shongo.controller.resource.Capability} type for all resources which have it.
+ * Current state of a single {@link cz.cesnet.shongo.controller.booking.resource.Capability} type for all resources which have it.
  */
 public class CapabilityState
 {
     /**
-     * Type of {@link cz.cesnet.shongo.controller.resource.Capability} for which the state is managed.
+     * Type of {@link cz.cesnet.shongo.controller.booking.resource.Capability} for which the state is managed.
      */
     Class<? extends Capability> capabilityType;
 
@@ -27,7 +27,7 @@ public class CapabilityState
     private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
 
     /**
-     * Map of {@link cz.cesnet.shongo.controller.resource.DeviceResource} ids by theirs technology.
+     * Map of {@link cz.cesnet.shongo.controller.booking.resource.DeviceResource} ids by theirs technology.
      */
     private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
 

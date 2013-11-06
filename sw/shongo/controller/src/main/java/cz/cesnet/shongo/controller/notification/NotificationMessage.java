@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import org.apache.commons.lang.StringUtils;
 
@@ -46,7 +47,7 @@ public class NotificationMessage
 
     private StringBuilder content = new StringBuilder();
 
-    public NotificationMessage(PersonInformation recipient, cz.cesnet.shongo.controller.Configuration configuration)
+    public NotificationMessage(PersonInformation recipient, ControllerConfiguration configuration)
     {
         if (recipient instanceof UserInformation) {
             userSettingsUrl = configuration.getNotificationUserSettingsUrl();

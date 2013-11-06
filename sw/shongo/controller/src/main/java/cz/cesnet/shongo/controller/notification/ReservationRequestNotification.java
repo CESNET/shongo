@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -43,7 +44,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
      * @param authorizationManager
      */
     public ReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
+            AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
         super(authorizationManager.getUserSettingsProvider(), configuration);
 

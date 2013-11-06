@@ -5,16 +5,24 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -43,12 +51,12 @@ public class SchedulerContext
     private final AuthorizationManager authorizationManager;
 
     /**
-     * Represents a minimum date/time before which the {@link Reservation}s cannot be allocated.
+     * Represents a minimum date/time before which the {@link cz.cesnet.shongo.controller.booking.reservation.Reservation}s cannot be allocated.
      */
     private final DateTime minimumDateTime;
 
     /**
-     * Requested slot for which the {@link Reservation}s should be allocated.
+     * Requested slot for which the {@link cz.cesnet.shongo.controller.booking.reservation.Reservation}s should be allocated.
      */
     private Interval requestedSlot;
 
@@ -80,7 +88,7 @@ public class SchedulerContext
             new HashMap<Reservation, AvailableReservation<? extends Reservation>>();
 
     /**
-     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link AliasProviderCapability} identifiers.
+     * Map of {@link AvailableReservation}s ({@link cz.cesnet.shongo.controller.booking.alias.AliasReservation}s) by {@link AliasProviderCapability} identifiers.
      */
     private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
             new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
@@ -96,22 +104,10 @@ public class SchedulerContext
     private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
 
     /**
-     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s.
+     * {@link ReservationTransaction} by {@link Reservation} class.
      */
-    private ReservationTransaction<ResourceReservation> resourceReservationTransaction =
-            new ReservationTransaction<ResourceReservation>();
-
-    /**
-     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ValueReservation}s.
-     */
-    private ReservationTransaction<ValueReservation> valueReservationTransaction =
-            new ReservationTransaction<ValueReservation>();
-
-    /**
-     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s.
-     */
-    private ReservationTransaction<RoomReservation> roomReservationTransaction =
-            new ReservationTransaction<RoomReservation>();
+    private Map<Class<? extends TargetedReservation>, ReservationTransaction<TargetedReservation>> reservationTransactionByType =
+            new HashMap<Class<? extends TargetedReservation>, ReservationTransaction<TargetedReservation>>();
 
     /**
      * Set of resources referenced from {@link ResourceReservation}s in the context.
@@ -398,19 +394,29 @@ public class SchedulerContext
     }
 
     /**
+     * @param entityId for which the {@link AvailableReservation}s should be returned
+     * @return {@link AvailableReservation}s ({@link ResourceReservation}s) for given {@code resource}
+     */
+    public <T extends TargetedReservation> Set<AvailableReservation<T>> getAvailableReservations(Long entityId,
+            Class<T> reservationType)
+    {
+        @SuppressWarnings("unchecked")
+        ReservationTransaction<T> reservationTransaction = (ReservationTransaction<T>)
+                reservationTransactionByType.get(getReservationTransactionType(reservationType));
+        if (reservationTransaction == null) {
+            return Collections.emptySet();
+        }
+        return reservationTransaction.getAvailableReservations(entityId);
+    }
+
+    /**
      * @param aliasProvider
      * @return collection of {@link AvailableReservation}s ({@link AliasReservation}s) for given {@code aliasProvider}
      */
     public Collection<AvailableReservation<AliasReservation>> getAvailableAliasReservations(
             AliasProviderCapability aliasProvider)
     {
-        Long aliasProviderId = aliasProvider.getId();
-        Set<AvailableReservation<AliasReservation>> availableReservations =
-                availableReservationsByAliasProviderId.get(aliasProviderId);
-        if (availableReservations != null) {
-            return availableReservations;
-        }
-        return Collections.emptyList();
+        return getAvailableReservations(aliasProvider.getId(), AliasReservation.class);
     }
 
     /**
@@ -419,7 +425,7 @@ public class SchedulerContext
      */
     public Set<AvailableReservation<ResourceReservation>> getAvailableResourceReservations(Resource resource)
     {
-        return resourceReservationTransaction.getAvailableReservations(resource.getId());
+        return getAvailableReservations(resource.getId(), ResourceReservation.class);
     }
 
     /**
@@ -428,7 +434,7 @@ public class SchedulerContext
      */
     public Set<AvailableReservation<ValueReservation>> getAvailableValueReservations(ValueProvider valueProvider)
     {
-        return valueReservationTransaction.getAvailableReservations(valueProvider.getId());
+        return getAvailableReservations(valueProvider.getId(), ValueReservation.class);
     }
 
     /**
@@ -437,7 +443,7 @@ public class SchedulerContext
      */
     public Set<AvailableReservation<RoomReservation>> getAvailableRoomReservations(RoomProviderCapability roomProvider)
     {
-        return roomReservationTransaction.getAvailableReservations(roomProvider.getId());
+        return getAvailableReservations(roomProvider.getId(), RoomReservation.class);
     }
 
     /**
@@ -451,23 +457,17 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.ADDED);
 
-        if (reservation.getSlot().contains(getRequestedSlot())) {
-            if (reservation instanceof ResourceReservation) {
-                ResourceReservation resourceReservation = (ResourceReservation) reservation;
-                Resource resource = resourceReservation.getResource();
-                resourceReservationTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
-                addReferencedResource(resource);
+        if (reservation.getSlot().contains(getRequestedSlot()) && reservation instanceof TargetedReservation) {
+            TargetedReservation targetedReservation = (TargetedReservation) reservation;
+            Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
+            ReservationTransaction<TargetedReservation> reservationTransaction =
+                    reservationTransactionByType.get(reservationType);
+            if (reservationTransaction == null) {
+                reservationTransaction = new ReservationTransaction<TargetedReservation>();
+                reservationTransactionByType.put(reservationType, reservationTransaction);
             }
-            else if (reservation instanceof ValueReservation) {
-                ValueReservation valueReservation = (ValueReservation) reservation;
-                valueReservationTransaction.addAllocatedReservation(
-                        valueReservation.getValueProvider().getId(), valueReservation);
-            }
-            else if (reservation instanceof RoomReservation) {
-                RoomReservation roomReservation = (RoomReservation) reservation;
-                roomReservationTransaction.addAllocatedReservation(
-                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
-            }
+            reservationTransaction.addAllocatedReservation(
+                    targetedReservation.getTargetId(), targetedReservation);
         }
     }
 
@@ -482,22 +482,15 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.REMOVED);
 
-        if (reservation.getSlot().contains(getRequestedSlot())) {
-            if (reservation instanceof ResourceReservation) {
-                ResourceReservation resourceReservation = (ResourceReservation) reservation;
-                Resource resource = resourceReservation.getResource();
-                resourceReservationTransaction.removeAllocatedReservation(resource.getId(), resourceReservation);
-                addReferencedResource(resource);
-            }
-            else if (reservation instanceof ValueReservation) {
-                ValueReservation valueReservation = (ValueReservation) reservation;
-                valueReservationTransaction.removeAllocatedReservation(
-                        valueReservation.getValueProvider().getId(), valueReservation);
-            }
-            else if (reservation instanceof RoomReservation) {
-                RoomReservation roomReservation = (RoomReservation) reservation;
-                roomReservationTransaction.removeAllocatedReservation(
-                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
+        if (reservation.getSlot().contains(getRequestedSlot()) && reservation instanceof TargetedReservation) {
+
+            TargetedReservation targetedReservation = (TargetedReservation) reservation;
+            Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
+            ReservationTransaction<TargetedReservation> reservationTransaction =
+                    reservationTransactionByType.get(reservationType);
+            if (reservationTransaction != null) {
+                reservationTransaction.removeAllocatedReservation(
+                        targetedReservation.getTargetId(), targetedReservation);
             }
         }
     }
@@ -569,31 +562,17 @@ public class SchedulerContext
             }
         }
 
-        if (targetReservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) targetReservation;
-            resourceReservationTransaction.addAvailableReservation(resourceReservation.getResource().getId(),
-                    availableReservation.cast(ResourceReservation.class));
-        }
-        else if (targetReservation instanceof ValueReservation) {
-            ValueReservation valueReservation = (ValueReservation) targetReservation;
-            valueReservationTransaction.addAvailableReservation(valueReservation.getValueProvider().getId(),
-                    availableReservation.cast(ValueReservation.class));
-        }
-        else if (targetReservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) targetReservation;
-            roomReservationTransaction.addAvailableReservation(roomReservation.getRoomProviderCapability().getId(),
-                    availableReservation.cast(RoomReservation.class));
-        }
-        else if (targetReservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) targetReservation;
-            Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
-            Set<AvailableReservation<AliasReservation>> availableReservations =
-                    availableReservationsByAliasProviderId.get(aliasProviderId);
-            if (availableReservations == null) {
-                availableReservations = new HashSet<AvailableReservation<AliasReservation>>();
-                availableReservationsByAliasProviderId.put(aliasProviderId, availableReservations);
+        if (targetReservation instanceof TargetedReservation) {
+            TargetedReservation targetedReservation = (TargetedReservation) targetReservation;
+            Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
+            ReservationTransaction<TargetedReservation> reservationTransaction =
+                    reservationTransactionByType.get(reservationType);
+            if (reservationTransaction == null) {
+                reservationTransaction = new ReservationTransaction<TargetedReservation>();
+                reservationTransactionByType.put(reservationType, reservationTransaction);
             }
-            availableReservations.add(availableReservation.cast(AliasReservation.class));
+            reservationTransaction.addAvailableReservation(
+                    targetedReservation.getTargetId(), availableReservation.cast(TargetedReservation.class));
         }
 
         // Add all child reservations
@@ -633,28 +612,14 @@ public class SchedulerContext
             availableExecutables.remove(executable);
         }
 
-        if (targetReservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) targetReservation;
-            resourceReservationTransaction.removeAvailableReservation(resourceReservation.getResource().getId(),
-                    availableReservation.cast(ResourceReservation.class));
-        }
-        else if (targetReservation instanceof ValueReservation) {
-            ValueReservation aliasReservation = (ValueReservation) targetReservation;
-            valueReservationTransaction.removeAvailableReservation(aliasReservation.getValueProvider().getId(),
-                    availableReservation.cast(ValueReservation.class));
-        }
-        else if (targetReservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) targetReservation;
-            roomReservationTransaction.removeAvailableReservation(roomReservation.getRoomProviderCapability().getId(),
-                    availableReservation.cast(RoomReservation.class));
-        }
-        else if (targetReservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) targetReservation;
-            Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
-            Set<AvailableReservation<AliasReservation>> availableReservations =
-                    availableReservationsByAliasProviderId.get(aliasProviderId);
-            if (availableReservations != null) {
-                availableReservations.remove(availableReservation.cast(AliasReservation.class));
+        if (targetReservation instanceof TargetedReservation) {
+            TargetedReservation targetedReservation = (TargetedReservation) targetReservation;
+            Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
+            ReservationTransaction<TargetedReservation> reservationTransaction =
+                    reservationTransactionByType.get(reservationType);
+            if (reservationTransaction != null) {
+                reservationTransaction.removeAvailableReservation(
+                        targetedReservation.getTargetId(), availableReservation.cast(TargetedReservation.class));
             }
         }
 
@@ -735,41 +700,25 @@ public class SchedulerContext
     }
 
     /**
-     * Apply {@link #resourceReservationTransaction} to given {@code resourceReservations}.
+     * Apply {@link #reservationTransactionByType} to given {@code reservations}.
      *
      * @param resourceId
-     * @param resourceReservations
+     * @param reservations
      */
-    public void applyResourceReservations(Long resourceId, List<ResourceReservation> resourceReservations)
+    public <T extends TargetedReservation> void applyReservations(Long resourceId, List<T> reservations,
+            Class<T> reservationType)
     {
-        resourceReservationTransaction.applyReservations(resourceId, resourceReservations);
-    }
-
-    /**
-     * Apply {@link #roomReservationTransaction} to given {@code roomReservations}.
-     *
-     * @param roomProviderId
-     * @param roomReservations
-     */
-    public void applyRoomReservations(Long roomProviderId, List<RoomReservation> roomReservations)
-    {
-        roomReservationTransaction.applyReservations(roomProviderId, roomReservations);
-    }
-
-    /**
-     * Apply {@link #valueReservationTransaction} to given {@code valueReservations}.
-     *
-     * @param valueProviderId
-     * @param valueReservations
-     */
-    public void applyValueReservations(Long valueProviderId, List<ValueReservation> valueReservations)
-    {
-        valueReservationTransaction.applyReservations(valueProviderId, valueReservations);
+        @SuppressWarnings("unchecked")
+        ReservationTransaction<T> reservationTransaction = (ReservationTransaction<T>)
+                reservationTransactionByType.get(getReservationTransactionType(reservationType));
+        if (reservationTransaction != null) {
+            reservationTransaction.applyReservations(resourceId, reservations);
+        }
     }
 
     /**
      * @param roomProviderCapability
-     * @return {@link AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
+     * @return {@link cz.cesnet.shongo.controller.booking.room.AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
      */
     public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability)
     {
@@ -778,10 +727,11 @@ public class SchedulerContext
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, requestedSlot);
-            applyRoomReservations(roomProviderCapability.getId(), roomReservations);
-            RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>() {
+            applyReservations(roomProviderCapability.getId(), roomReservations, RoomReservation.class);
+            RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>()
+            {
                 @Override
-                protected Bucket createBucket(DateTime rangeValue)
+                protected Bucket<DateTime, RoomReservation> createBucket(DateTime rangeValue)
                 {
                     return new RoomBucket(rangeValue);
                 }
@@ -808,11 +758,7 @@ public class SchedulerContext
         else {
             usedLicenseCount = roomProviderCapability.getLicenseCount();
         }
-        AvailableRoom availableRoom = new AvailableRoom();
-        availableRoom.setRoomProviderCapability(roomProviderCapability);
-        availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
-        availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
-        return availableRoom;
+        return new AvailableRoom(roomProviderCapability, usedLicenseCount);
     }
 
     /**
@@ -849,6 +795,29 @@ public class SchedulerContext
             reservationManager.delete(reservation, authorizationManager);
         }
     }
+
+    /**
+     * @param targetedReservation
+     * @return type for {@link #reservationTransactionByType}
+     */
+    private Class<? extends TargetedReservation> getReservationTransactionType(TargetedReservation targetedReservation)
+    {
+        return getReservationTransactionType(targetedReservation.getClass());
+    }
+
+    /**
+     * @param reservationType
+     * @return type for {@link #reservationTransactionByType}
+     */
+    private Class<? extends TargetedReservation> getReservationTransactionType(
+            Class<? extends TargetedReservation> reservationType)
+    {
+        if (ResourceReservation.class.isAssignableFrom(reservationType)) {
+            return ResourceReservation.class;
+        }
+        return reservationType;
+    }
+
 
     /**
      * Represents a savepoint for the {@link SchedulerContext} to which it can be reverted.

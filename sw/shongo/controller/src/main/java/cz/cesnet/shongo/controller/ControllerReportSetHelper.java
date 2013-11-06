@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 
 /**
  * Extensions for {@link CommonReportSet} and {@link ControllerReportSet}.

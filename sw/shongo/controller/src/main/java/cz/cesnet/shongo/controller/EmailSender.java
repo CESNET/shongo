@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Helper object for sending email.
+ * Helper object for sending emails.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -43,17 +43,17 @@ public class EmailSender
      *
      * @param configuration from which the SMTP configuration should be loaded
      */
-    public EmailSender(Configuration configuration)
+    public EmailSender(ControllerConfiguration configuration)
     {
         // Skip configuration without host
-        if (!configuration.containsKey(Configuration.SMTP_HOST)) {
+        if (!configuration.containsKey(ControllerConfiguration.SMTP_HOST)) {
             logger.warn("Cannot initialize email notifications because SMTP configuration is empty.");
             return;
         }
 
-        String port = configuration.getString(Configuration.SMTP_PORT);
+        String port = configuration.getString(ControllerConfiguration.SMTP_PORT);
         Properties properties = new Properties();
-        properties.setProperty("mail.smtp.host", configuration.getString(Configuration.SMTP_HOST));
+        properties.setProperty("mail.smtp.host", configuration.getString(ControllerConfiguration.SMTP_HOST));
         properties.setProperty("mail.smtp.port", port);
         if (!port.equals("25")) {
             properties.setProperty("mail.smtp.starttls.enable", "true");
@@ -61,15 +61,15 @@ public class EmailSender
             properties.setProperty("mail.smtp.socketFactory.fallback", "false");
         }
 
-        sender = configuration.getString(Configuration.SMTP_SENDER);
-        subjectPrefix = configuration.getString(Configuration.SMTP_SUBJECT_PREFIX);
+        sender = configuration.getString(ControllerConfiguration.SMTP_SENDER);
+        subjectPrefix = configuration.getString(ControllerConfiguration.SMTP_SUBJECT_PREFIX);
 
         Authenticator authenticator = null;
-        if (configuration.containsKey(Configuration.SMTP_USERNAME)) {
+        if (configuration.containsKey(ControllerConfiguration.SMTP_USERNAME)) {
             properties.setProperty("mail.smtp.auth", "true");
             authenticator = new PasswordAuthenticator(
-                    configuration.getString(Configuration.SMTP_USERNAME),
-                    configuration.getString(Configuration.SMTP_PASSWORD));
+                    configuration.getString(ControllerConfiguration.SMTP_USERNAME),
+                    configuration.getString(ControllerConfiguration.SMTP_PASSWORD));
         }
 
         session = Session.getDefaultInstance(properties, authenticator);

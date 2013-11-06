@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.controller.common.AbstractPerson;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -266,7 +266,7 @@ public class Reporter
             logger.warn("Cannot get administrator emails because controller doesn't exist.");
             return Collections.emptySet();
         }
-        Configuration configuration = Controller.getInstance().getConfiguration();
+        ControllerConfiguration configuration = Controller.getInstance().getConfiguration();
         Set<String> administratorEmails = new HashSet<String>();
         for (PersonInformation administrator : configuration.getAdministrators()) {
             String administratorEmail = administrator.getPrimaryEmail();

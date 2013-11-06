@@ -2,13 +2,13 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
 
@@ -59,7 +59,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void init(Configuration configuration)
+    public void init(ControllerConfiguration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(controllerAgent, ControllerAgent.class);
@@ -102,7 +102,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
         List<DeviceResource> deviceResourceList = resourceManager.listManagedDevices();
         Map<String, DeviceResource> deviceResourceMap = new HashMap<String, DeviceResource>();
         for (DeviceResource deviceResource : deviceResourceList) {
-            String agentName = ((cz.cesnet.shongo.controller.resource.ManagedMode) deviceResource.getMode())
+            String agentName = ((cz.cesnet.shongo.controller.booking.resource.ManagedMode) deviceResource.getMode())
                     .getConnectorAgentName();
             deviceResourceMap.put(agentName, deviceResource);
         }
