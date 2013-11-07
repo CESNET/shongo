@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.UserSettings;

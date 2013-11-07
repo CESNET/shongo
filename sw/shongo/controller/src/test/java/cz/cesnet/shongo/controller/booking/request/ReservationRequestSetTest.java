@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -20,6 +20,8 @@ import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.Preprocessor;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +30,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Test for processing {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
+ * Test for processing {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet} by {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} and {@link cz.cesnet.shongo.controller.scheduler.Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

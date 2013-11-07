@@ -1,11 +1,13 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;

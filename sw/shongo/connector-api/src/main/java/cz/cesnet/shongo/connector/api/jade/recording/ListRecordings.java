@@ -6,6 +6,7 @@ import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
+ * @see {@link cz.cesnet.shongo.connector.api.RecordingService#listRecordings}
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ListRecordings extends ConnectorCommand

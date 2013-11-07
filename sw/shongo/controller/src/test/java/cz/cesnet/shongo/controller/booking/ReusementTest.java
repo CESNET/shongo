@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -17,7 +17,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerReusementTest extends AbstractControllerTest
+public class ReusementTest extends AbstractControllerTest
 {
     @Test
     public void testTerminal() throws Exception

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerMaintenanceTest extends AbstractControllerTest
+public class MaintenanceTest extends AbstractControllerTest
 {
     /**
      * Test create permanent {@link ResourceReservation}s.

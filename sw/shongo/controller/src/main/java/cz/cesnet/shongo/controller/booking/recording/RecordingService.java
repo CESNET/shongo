@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
 
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 
@@ -68,5 +69,23 @@ public class RecordingService extends ExecutableService
         else if (!isActive && recordingId != null) {
             throw new IllegalStateException("Inactive recording service shouldn't have recording identifier.");
         }
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.ExecutableService createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.RecordingService();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi)
+    {
+        super.toApi(executableServiceApi);
+
+        cz.cesnet.shongo.controller.api.RecordingService recordingServiceApi =
+                (cz.cesnet.shongo.controller.api.RecordingService) executableServiceApi;
+
+        recordingServiceApi.setResourceId(EntityIdentifier.formatId(recordingCapability.getResource()));
+        recordingServiceApi.setRecordingId(recordingId);
     }
 }

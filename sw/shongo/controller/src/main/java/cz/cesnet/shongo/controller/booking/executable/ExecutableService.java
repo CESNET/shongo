@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -14,7 +15,7 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class ExecutableService extends SimplePersistentObject
+public abstract class ExecutableService extends SimplePersistentObject
 {
     /**
      * {@link Executable} for which the {@link ExecutableService} is allocated.
@@ -153,7 +154,34 @@ public class ExecutableService extends SimplePersistentObject
     }
 
     /**
+     * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.ExecutableService}
+     */
+    public final cz.cesnet.shongo.controller.api.ExecutableService toApi()
+    {
+        cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi = createApi();
+        toApi(executableServiceApi);
+        return executableServiceApi;
+    }
+
+    /**
+     * @return new instance of {@link cz.cesnet.shongo.controller.api.ExecutableService}
+     */
+    protected abstract cz.cesnet.shongo.controller.api.ExecutableService createApi();
+
+    /**
+     * Synchronize to {@link cz.cesnet.shongo.controller.api.ExecutableService}.
      *
+     * @param executableServiceApi which should be filled from this {@link ExecutableService}
+     */
+    public void toApi(cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi)
+    {
+        executableServiceApi.setId(getId());
+        executableServiceApi.setActive(State.ACTIVE.equals(state));
+        executableServiceApi.setSlot(getSlot());
+    }
+
+    /**
+     * Enumeration of possible states for {@link ExecutableService}.
      */
     public static enum State
     {
@@ -172,5 +200,4 @@ public class ExecutableService extends SimplePersistentObject
          */
         ACTIVE
     }
-
 }

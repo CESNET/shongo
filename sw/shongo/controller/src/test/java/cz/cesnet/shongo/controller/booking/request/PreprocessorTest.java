@@ -1,11 +1,8 @@
-package cz.cesnet.shongo.controller.request;
+package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
 import cz.cesnet.shongo.controller.booking.compartment.MultiCompartmentSpecification;
 import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;

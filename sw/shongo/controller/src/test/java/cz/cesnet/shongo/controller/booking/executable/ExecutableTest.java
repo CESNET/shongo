@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.executor;
+package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -13,6 +13,8 @@ import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.compartment.Connection;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.AbstractExecutorTest;
+import cz.cesnet.shongo.controller.executor.ExecutionResult;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -24,13 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests for {@link Executor}.
+ * Tests for {@link cz.cesnet.shongo.controller.executor.Executor}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutorCommonTest extends AbstractExecutorTest
+public class ExecutableTest extends AbstractExecutorTest
 {
-    private static Logger logger = LoggerFactory.getLogger(ExecutorCommonTest.class);
+    private static Logger logger = LoggerFactory.getLogger(ExecutableTest.class);
 
     /**
      * Allocate {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} and execute it.
@@ -598,7 +600,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
                 UsedRoomEndpoint.class, result.getStartedExecutables().get(1).getClass());
 
         // Get room id
-        RoomExecutable roomExecutable = (RoomExecutable) getExecutorService().getExecutable(
+        RoomExecutable roomExecutable = (RoomExecutable) getExecutableService().getExecutable(
                 SECURITY_TOKEN_USER1, aliasReservation.getExecutable().getId());
         String roomId = roomExecutable.getRoomId();
         String roomResourceId = roomExecutable.getResourceId();

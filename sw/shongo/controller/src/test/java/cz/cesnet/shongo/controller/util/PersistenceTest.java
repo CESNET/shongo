@@ -1,14 +1,9 @@
-package cz.cesnet.shongo.controller.common;
+package cz.cesnet.shongo.controller.util;
 
-import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AclRecordDependency;
 import cz.cesnet.shongo.util.Timer;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,7 +15,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

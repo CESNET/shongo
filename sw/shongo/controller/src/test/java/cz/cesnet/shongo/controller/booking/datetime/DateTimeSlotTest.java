@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.common;
+package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSlot;
 import cz.cesnet.shongo.controller.booking.datetime.PeriodicDateTime;

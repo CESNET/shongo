@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.executor;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.jade.CommandDisabledException;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -9,13 +9,12 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
+import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.joda.time.DateTime;
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@link cz.cesnet.shongo.controller.AbstractControllerTest} which provides a {@link Executor} instance to extending classes.
+ * {@link cz.cesnet.shongo.controller.AbstractControllerTest} which provides a {@link cz.cesnet.shongo.controller.executor.Executor} instance to extending classes.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -37,7 +36,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     private static Logger logger = LoggerFactory.getLogger(AbstractExecutorTest.class);
 
     /**
-     * @see Executor
+     * @see cz.cesnet.shongo.controller.executor.Executor
      */
     private Executor executor;
 
@@ -72,7 +71,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     /**
      * @return {@link cz.cesnet.shongo.controller.api.rpc.ExecutableService} from the {@link #controllerClient}
      */
-    public ExecutableService getExecutorService()
+    public ExecutableService getExecutableService()
     {
         return getControllerClient().getService(ExecutableService.class);
     }
@@ -116,6 +115,11 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     protected static class TestAgent extends Agent
     {
         /**
+         * Specifies whether device is disabled and should throw error for every request.
+         */
+        protected boolean disabled = false;
+
+        /**
          * List of performed actions on connector.
          */
         private List<Command> performedCommands = new ArrayList<Command>();
@@ -125,6 +129,22 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
          */
         public TestAgent()
         {
+        }
+
+        /**
+         * @return {@link #disabled}
+         */
+        public boolean isDisabled()
+        {
+            return disabled;
+        }
+
+        /**
+         * @param disabled sets the {@link #disabled}
+         */
+        public void setDisabled(boolean disabled)
+        {
+            this.disabled = disabled;
         }
 
         /**
@@ -161,6 +181,16 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
             throw new RuntimeException("Command of type '" + type.getSimpleName() + "' was not found.");
         }
 
+        /**
+         * @throws CommandDisabledException if {@link #disabled} is {@code true}
+         */
+        protected void checkDisabled()
+        {
+            if (disabled) {
+                throw new CommandDisabledException();
+            }
+        }
+
         @Override
         protected void setup()
         {
@@ -171,6 +201,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         @Override
         public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
+            checkDisabled();
             performedCommands.add(command);
             logger.debug("ConnectorAgent '{}' receives command '{}'.", getName(), command.getClass().getSimpleName());
             return null;
@@ -183,29 +214,13 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     public class McuTestAgent extends TestAgent
     {
         /**
-         * Specifies whether device is disabled and should throw error for every request.
-         */
-        private boolean disabled = false;
-
-        /**
          * Rooms.
          */
         private Map<String, Room> rooms = new HashMap<String, Room>();
 
-        /**
-         * @param disabled sets the {@link #disabled}
-         */
-        public void setDisabled(boolean disabled)
-        {
-            this.disabled = disabled;
-        }
-
         @Override
         public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
-            if (disabled) {
-                throw new CommandDisabledException();
-            }
             Object result = super.handleCommand(command, sender);
             if (command instanceof CreateRoom) {
                 CreateRoom createRoom = (CreateRoom) command;

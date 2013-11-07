@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.compartment;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.CompartmentSpecification;
+import cz.cesnet.shongo.controller.api.MultiCompartmentSpecification;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import org.junit.Assert;
@@ -19,7 +21,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerCompartmentTest extends AbstractControllerTest
+public class CompartmentTest extends AbstractControllerTest
 {
     /**
      * Test for two standalone terminals with single technology.
@@ -48,7 +50,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
@@ -86,7 +88,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
@@ -120,7 +122,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(terminalId));
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 1));
         firstReservationRequest.setSpecification(compartmentSpecification);
@@ -130,7 +132,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 8));
         secondReservationRequest.setSpecification(compartmentSpecification);
 
@@ -139,7 +141,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest thirddReservationRequest = new ReservationRequest();
         thirddReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         thirddReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 2));
         thirddReservationRequest.setSpecification(compartmentSpecification);
 
@@ -181,7 +183,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(firstTerminalId));
         compartmentSpecification.addParticipant(new ExistingEndpointParticipant(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
@@ -218,7 +220,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
@@ -252,7 +254,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         secondReservationRequest.setSpecification(compartmentSpecification);
 
@@ -283,7 +285,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
         String reservationRequestId = allocate(reservationRequest);
@@ -336,10 +338,10 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot("2012-06-01T15", "PT1H");
         reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W", "2012-07-15"));
-        MultiCompartmentSpecification multiCompartmentSpecification = new MultiCompartmentSpecification();
+        cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecification = new MultiCompartmentSpecification();
         reservationRequestSet.setSpecification(multiCompartmentSpecification);
         // First compartment
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecification = new cz.cesnet.shongo.controller.api.CompartmentSpecification();
         compartmentSpecification.addParticipant(new ExternalEndpointParticipant(Technology.SIP));
         compartmentSpecification.addParticipant(new ExternalEndpointParticipant(Technology.H323));
         multiCompartmentSpecification.addSpecification(compartmentSpecification);

@@ -1,9 +1,20 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.api.jade.Command;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
+import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.RecordingCapability;
+import cz.cesnet.shongo.controller.api.RecordingService;
+import cz.cesnet.shongo.controller.AbstractExecutorTest;
+import jade.core.AID;
+import junit.framework.Assert;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.junit.Test;
 
 /**
@@ -11,7 +22,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerRoomServicesTest extends AbstractControllerTest
+public class RecordingServiceTest extends AbstractExecutorTest
 {
     /**
      * Booking the recording separately from the room.
@@ -25,7 +36,7 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         mcu.setName("connect");
         mcu.addTechnology(Technology.ADOBE_CONNECT);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new RecordingCapability());
+        mcu.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
         mcu.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -49,7 +60,7 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         tcs.setName("tcs");
         tcs.addTechnology(Technology.H323);
         tcs.addTechnology(Technology.SIP);
-        tcs.addCapability(new RecordingCapability(5));
+        tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(5));
         tcs.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, tcs);
 
@@ -82,13 +93,10 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
     @Test
     public void testRoomRecordingSeparately() throws Exception
     {
-        DeviceResource tcs = new DeviceResource();
-        tcs.setName("tcs");
-        tcs.addTechnology(Technology.H323);
-        tcs.addTechnology(Technology.SIP);
-        tcs.addCapability(new RecordingCapability(5));
-        tcs.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, tcs);
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
+        TcsTestAgent tcsAgent = getController().addJadeAgent("tcs", new TcsTestAgent());
+
+        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -96,10 +104,20 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        mcu.setMode(new ManagedMode("mcu"));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new RecordingCapability(2));
+        tcs.setAllocatable(true);
+        tcs.setMode(new ManagedMode("tcs"));
+        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
-        roomReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
@@ -108,12 +126,62 @@ public class SchedulerRoomServicesTest extends AbstractControllerTest
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        cz.cesnet.shongo.controller.api.RecordingService recordingService = roomExecutable.getService(
+                cz.cesnet.shongo.controller.api.RecordingService.class);
         String roomExecutableId = roomExecutable.getId();
+        Assert.assertNull(recordingService);
 
         ReservationRequest recordingReservationRequest = new ReservationRequest();
-        recordingReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        recordingReservationRequest.setSlot(dateTime, Period.hours(1));
         recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
         allocateAndCheck(recordingReservationRequest);
+
+        // Check executable before execution
+        roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
+        recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        Assert.assertEquals(tcsId, recordingService.getResourceId());
+        Assert.assertNull(recordingService.getRecordingId());
+
+        // Check executable after execution
+        runExecutor(dateTime);
+        roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
+        recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        Assert.assertEquals(tcsId, recordingService.getResourceId());
+        Assert.assertNotNull(recordingService.getRecordingId());
+
+        // Second recording should pass
+        recordingReservationRequest = new ReservationRequest();
+        recordingReservationRequest.setSlot(dateTime, Period.hours(1));
+        recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
+        allocateAndCheck(recordingReservationRequest);
+
+        // Third recording should fail
+        recordingReservationRequest = new ReservationRequest();
+        recordingReservationRequest.setSlot(dateTime, Period.hours(1));
+        recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
+        allocateAndCheckFailed(recordingReservationRequest);
+    }
+
+    /**
+     * Testing MCU agent.
+     */
+    public class TcsTestAgent extends TestAgent
+    {
+        @Override
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        {
+            Object result = super.handleCommand(command, sender);
+            if (command instanceof StartRecording) {
+                return "1";
+            }
+            if (command instanceof StopRecording) {
+            }
+            return result;
+        }
     }
 }

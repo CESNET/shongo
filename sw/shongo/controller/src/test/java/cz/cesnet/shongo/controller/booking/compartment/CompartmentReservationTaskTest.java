@@ -1,8 +1,9 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.compartment;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
@@ -17,6 +18,7 @@ import cz.cesnet.shongo.controller.booking.participant.ExistingEndpointParticipa
 import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.scheduler.*;
 import org.junit.Assert;
 import org.junit.Test;
 

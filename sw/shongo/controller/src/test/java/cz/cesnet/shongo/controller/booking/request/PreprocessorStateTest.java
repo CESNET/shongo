@@ -1,13 +1,9 @@
-package cz.cesnet.shongo.controller.request;
+package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.request.PreprocessorState;
-import cz.cesnet.shongo.controller.booking.request.PreprocessorStateManager;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

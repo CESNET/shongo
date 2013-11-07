@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;

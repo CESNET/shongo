@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -18,7 +19,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerModificationTest extends AbstractControllerTest
+public class ReservationRequestModificationTest extends AbstractControllerTest
 {
     @Test
     public void testExtension() throws Exception
@@ -31,7 +32,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2012
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -43,7 +44,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-01-01/2013-01-01"), resourceReservation.getSlot());
 
         // Extend reservation for 2013
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -53,7 +54,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-07-01/2014-01-01"), resourceReservation.getSlot());
 
         // Extend reservation for 2014
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2015-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -63,7 +64,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2013-07-01/2015-01-01"), resourceReservation.getSlot());
 
         // Check all reservations
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(3, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -85,7 +86,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation from 2012 to 2013
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -97,7 +98,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-01-01/2014-01-01"), resourceReservation.getSlot());
 
         // Shorten the reservation to only 2012
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -107,7 +108,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
 
         // Check all reservations
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(2, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -132,7 +133,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-02-01T00:00", "2012-03-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -145,7 +146,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -157,7 +158,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
 
         // Check all reservations
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(1, reservationIds.size());
         Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -180,7 +181,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -193,7 +194,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -205,7 +206,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
 
         // Check all reservations
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(2, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -230,7 +231,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -243,7 +244,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -252,7 +253,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         checkNotAllocated(requestId);
 
         // Check all reservations
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(1, reservationIds.size());
         Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -276,7 +277,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         // Allocate a new alias reservation
-        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest aliasReservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
@@ -289,7 +290,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         checkAllocated(aliasReservationRequestId);
 
         // Allocate a room capacity
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(

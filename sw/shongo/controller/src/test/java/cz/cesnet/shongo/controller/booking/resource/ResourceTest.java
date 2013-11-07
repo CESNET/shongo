@@ -1,9 +1,15 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,7 +19,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceTest
+public class ResourceTest extends AbstractControllerTest
 {
     @Test
     public void testIsAvailableAt() throws Exception
@@ -48,5 +54,34 @@ public class ResourceTest
         Assert.assertTrue(capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P8M")), dateTime));
         Assert.assertFalse(
                 capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P13M")), dateTime));
+    }
+
+    @Test
+    public void testAllocationOnlyToFuture() throws Exception
+    {
+        cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(new cz.cesnet.shongo.controller.api.ResourceSpecification(resourceId));
+        String request1Id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
+
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot("2011-01-01T00:00", "P1Y");
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new cz.cesnet.shongo.controller.api.ResourceSpecification(resourceId));
+        String request2Id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
+
+        runScheduler(Interval.parse("2012-07-01/2012-08-01"));
+
+        cz.cesnet.shongo.controller.api.ResourceReservation resourceReservation = (ResourceReservation) checkAllocated(request1Id);
+        Assert.assertEquals("Allocated time slot should be only in future.",
+                Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
+
+        checkNotAllocated(request2Id);
     }
 }

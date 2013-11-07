@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -7,6 +7,10 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AliasProviderCapability;
+import cz.cesnet.shongo.controller.api.AliasReservation;
+import cz.cesnet.shongo.controller.api.AliasSetSpecification;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,7 +22,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerAliasTest extends AbstractControllerTest
+public class AliasTest extends AbstractControllerTest
 {
     /**
      * Test allocation of aliases.
@@ -31,20 +35,20 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
+        aliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("test", AliasType.ROOM_NAME));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestFirst.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequestFirst);
+        reservationRequestFirst.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequestFirst);
         Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSecond.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        reservationRequestSecond.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
         allocateAndCheckFailed(reservationRequestSecond);
 
         runScheduler();
@@ -67,7 +71,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
         firstAliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.setValueProvider(valueProviderId);
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         firstAliasProvider.addCapability(aliasProviderCapability);
@@ -76,7 +80,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
         secondAliasProvider.setAllocatable(true);
-        aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.setValueProvider(valueProviderId);
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         secondAliasProvider.addCapability(aliasProviderCapability);
@@ -86,22 +90,22 @@ public class SchedulerAliasTest extends AbstractControllerTest
         firstReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstReservationRequest.setSpecification(
-                new AliasSpecification(AliasType.ROOM_NAME).withResourceId(firstAliasProviderId));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(firstReservationRequest);
+                new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME).withResourceId(firstAliasProviderId));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(firstReservationRequest);
         Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSecond.setSpecification(
-                new AliasSpecification(AliasType.ROOM_NAME).withResourceId(secondAliasProviderId));
+                new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME).withResourceId(secondAliasProviderId));
         allocateAndCheckFailed(reservationRequestSecond);
 
         // Test also without resource id
         ReservationRequest reservationRequestThird = new ReservationRequest();
         reservationRequestThird.setSlot("2013-01-01T00:00", "P1Y");
         reservationRequestThird.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestThird.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        reservationRequestThird.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
         allocateAndCheck(reservationRequestThird);
     }
 
@@ -122,7 +126,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("firstAliasProvider");
         aliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId));
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
@@ -133,8 +137,8 @@ public class SchedulerAliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals(2, aliasReservation.getAliases().size());
         Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
@@ -142,8 +146,8 @@ public class SchedulerAliasTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("Test Test"));
-        aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME).withValue("Test Test"));
+        aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals("Requested value should be filtered.", "test-test", aliasReservation.getValue());
         Assert.assertEquals(2, aliasReservation.getAliases().size());
         Assert.assertEquals("Test Test", aliasReservation.getAlias(AliasType.ROOM_NAME).getValue());
@@ -161,7 +165,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("firstAliasProvider");
         aliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, new ValueProvider.Pattern("{hash}")));
 
@@ -173,8 +177,8 @@ public class SchedulerAliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals(2, aliasReservation.getAliases().size());
         Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
@@ -197,7 +201,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("firstAliasProvider");
         aliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL,
                         new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId)));
@@ -209,8 +213,8 @@ public class SchedulerAliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals(2, aliasReservation.getAliases().size());
         Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
@@ -228,14 +232,14 @@ public class SchedulerAliasTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI).withAllowedAnyRequestedValue());
+                new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI).withAllowedAnyRequestedValue());
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test"));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test"));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
     }
 
@@ -250,7 +254,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability = new cz.cesnet.shongo.controller.api.AliasProviderCapability();
         aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "950087{value}"));
         aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{number:090:099}"));
         aliasProvider.addCapability(aliasProviderCapability);
@@ -259,8 +263,8 @@ public class SchedulerAliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164).withValue("950087095"));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_E164).withValue("950087095"));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals("Requested value should be allocated.", "095", aliasReservation.getValue());
     }
 
@@ -277,21 +281,21 @@ public class SchedulerAliasTest extends AbstractControllerTest
         connectServer.setAllocatable(true);
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
         connectServer.addCapability(
-                new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI).withRestrictedToResource());
+                new cz.cesnet.shongo.controller.api.AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI).withRestrictedToResource());
         getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
+                new cz.cesnet.shongo.controller.api.AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
+        aliasReservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.api.AliasReservation) allocateAndCheck(aliasReservationRequest);
         Assert.assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
     }
 
@@ -306,29 +310,29 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
         firstAliasProvider.setAllocatable(true);
-        firstAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.H323_URI));
+        firstAliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.H323_URI));
         getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
         secondAliasProvider.setAllocatable(true);
-        secondAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.SIP_URI));
+        secondAliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.SIP_URI));
         getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
-        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.H323_URI));
-        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.SIP_URI));
+        cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_URI));
+        aliasSetSpecification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.SIP_URI));
         reservationRequest.setSpecification(aliasSetSpecification);
         Reservation reservation = allocateAndCheck(reservationRequest);
         List<String> childReservationIds = reservation.getChildReservationIds();
         Assert.assertEquals("Reservation should have two child alias reservations.", 2, childReservationIds.size());
-        AliasReservation reservationFirst = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
+        cz.cesnet.shongo.controller.api.AliasReservation reservationFirst = (cz.cesnet.shongo.controller.api.AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
                 childReservationIds.get(0));
         Assert.assertEquals(firstAliasProvider.getName(), reservationFirst.getValueReservation().getResourceName());
-        AliasReservation reservationSecond = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
+        cz.cesnet.shongo.controller.api.AliasReservation reservationSecond = (cz.cesnet.shongo.controller.api.AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
                 childReservationIds.get(1));
         Assert.assertEquals(secondAliasProvider.getName(), reservationSecond.getValueReservation().getResourceName());
     }
@@ -344,7 +348,7 @@ public class SchedulerAliasTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        AliasProviderCapability aliasProviderCapability =
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderCapability =
                 new AliasProviderCapability("{hash}").withAllowedAnyRequestedValue();
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}"));
@@ -354,13 +358,13 @@ public class SchedulerAliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        AliasSpecification aliasSpecification = new AliasSpecification();
+        cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecification = new AliasSpecification();
         aliasSpecification.addAliasType(AliasType.ROOM_NAME);
         aliasSpecification.addTechnology(Technology.H323);
         aliasSpecification.addTechnology(Technology.SIP);
         aliasSpecification.setValue("test");
         reservationRequest.setSpecification(aliasSpecification);
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
         Assert.assertEquals("Room name alias for H.323 or SIP should be allocated.", "test", aliasReservation.getValue());
     }
 }
