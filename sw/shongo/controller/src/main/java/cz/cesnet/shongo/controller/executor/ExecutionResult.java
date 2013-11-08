@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 
 import java.util.ArrayList;
@@ -13,19 +14,29 @@ import java.util.List;
 public class ExecutionResult
 {
     /**
-     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were started.
+     * List of {@link Executable} which were started.
      */
     private List<Executable> startedExecutables = new ArrayList<Executable>();
 
     /**
-     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were updated.
+     * List of {@link Executable} which were updated.
      */
     private List<Executable> updatedExecutables = new ArrayList<Executable>();
 
     /**
-     * List of {@link cz.cesnet.shongo.controller.booking.executable.Executable} which were stopped.
+     * List of {@link Executable} which were stopped.
      */
     private List<Executable> stoppedExecutables = new ArrayList<Executable>();
+
+    /**
+     * List of {@link ExecutableService} which were activated.
+     */
+    private List<ExecutableService> activatedExecutableServices = new ArrayList<ExecutableService>();
+
+    /**
+     * List of {@link ExecutableService} which were deactivated.
+     */
+    private List<ExecutableService> deactivatedExecutableServices = new ArrayList<ExecutableService>();
 
     /**
      * @param startedExecutable to be added to the {@link #startedExecutables}
@@ -55,6 +66,22 @@ public class ExecutionResult
     }
 
     /**
+     * @param activatedExecutableService to be added to the {@link #activatedExecutableServices}
+     */
+    public synchronized void addActivatedExecutableService(ExecutableService activatedExecutableService)
+    {
+        activatedExecutableServices.add(activatedExecutableService);
+    }
+
+    /**
+     * @param deactivatedExecutableService to be added to the {@link #deactivatedExecutableServices}
+     */
+    public synchronized void addDeactivatedExecutableService(ExecutableService deactivatedExecutableService)
+    {
+        deactivatedExecutableServices.add(deactivatedExecutableService);
+    }
+
+    /**
      * @return {@link #startedExecutables}
      */
     public synchronized List<Executable> getStartedExecutables()
@@ -76,5 +103,21 @@ public class ExecutionResult
     public synchronized List<Executable> getStoppedExecutables()
     {
         return stoppedExecutables;
+    }
+
+    /**
+     * @return {@link #activatedExecutableServices}
+     */
+    public List<ExecutableService> getActivatedExecutableServices()
+    {
+        return activatedExecutableServices;
+    }
+
+    /**
+     * @return {@link #deactivatedExecutableServices}
+     */
+    public List<ExecutableService> getDeactivatedExecutableServices()
+    {
+        return deactivatedExecutableServices;
     }
 }

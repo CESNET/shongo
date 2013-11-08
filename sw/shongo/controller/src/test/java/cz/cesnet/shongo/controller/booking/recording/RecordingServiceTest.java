@@ -11,11 +11,15 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
 import cz.cesnet.shongo.controller.api.RecordingService;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
+import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 /**
  * Tests for booking recording and streaming services for rooms.
@@ -144,13 +148,33 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(tcsId, recordingService.getResourceId());
         Assert.assertNull(recordingService.getRecordingId());
 
+        // Check execution
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("One executable service should be activated.",
+                1, result.getActivatedExecutableServices().size());
+
         // Check executable after execution
-        runExecutor(dateTime);
         roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
         recordingService = roomExecutable.getService(RecordingService.class);
         Assert.assertNotNull(recordingService);
         Assert.assertEquals(tcsId, recordingService.getResourceId());
         Assert.assertNotNull(recordingService.getRecordingId());
+
+        // Check execution
+        result = runExecutor(dateTime.plusHours(2));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable service should be deactivated.",
+                1, result.getDeactivatedExecutableServices().size());
+
+        // Check performed actions on TCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+            }}, tcsAgent.getPerformedCommandClasses());
 
         // Second recording should pass
         recordingReservationRequest = new ReservationRequest();

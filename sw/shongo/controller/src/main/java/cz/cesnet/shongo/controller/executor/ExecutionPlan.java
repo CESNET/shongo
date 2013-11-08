@@ -49,8 +49,8 @@ public class ExecutionPlan
     /**
      * Map of {@link ExecutionAction} by {@link Executable} (used by {@link ExecutionAction}s for building dependencies).
      */
-    final Map<Long, ExecutionAction.AbstractExecutableAction> actionByExecutableId =
-            new HashMap<Long, ExecutionAction.AbstractExecutableAction>();
+    final Map<Long, ExecutionAction.AbstractExecutionTargetAction> actionByExecutionTargetId =
+            new HashMap<Long, ExecutionAction.AbstractExecutionTargetAction>();
 
     /**
      * Constructor.
@@ -88,21 +88,22 @@ public class ExecutionPlan
     }
 
     /**
-     * @param executable
+     * @param executionTarget
      * @return {@link ExecutionAction.AbstractExecutableAction} for given {@code executable}
      */
-    public ExecutionAction.AbstractExecutableAction getActionByExecutable(Executable executable)
+    public ExecutionAction.AbstractExecutionTargetAction getActionByExecutionTarget(ExecutionTarget executionTarget)
     {
-        return actionByExecutableId.get(executable.getId());
+        return actionByExecutionTargetId.get(executionTarget.getId());
     }
 
     /**
-     * @param executable
+     * @param executionTarget
      * @param executionAction to be set from given {@code executable}
      */
-    public void setActionByExecutable(Executable executable, ExecutionAction.AbstractExecutableAction executionAction)
+    public void setActionByExecutionTarget(ExecutionTarget executionTarget,
+            ExecutionAction.AbstractExecutionTargetAction executionAction)
     {
-        actionByExecutableId.put(executable.getId(), executionAction);
+        actionByExecutionTargetId.put(executionTarget.getId(), executionAction);
     }
 
     /**
@@ -249,6 +250,7 @@ public class ExecutionPlan
         }
         ExecutionResult executionResult = new ExecutionResult();
         for (ExecutionAction executionAction : completedActions) {
+            entityManager.refresh(executionAction.target);
             boolean result = executionAction.finish(entityManager, referenceDateTime, executionResult);
             Object target = executionAction.getTarget();
             if (target instanceof ExecutionTarget) {

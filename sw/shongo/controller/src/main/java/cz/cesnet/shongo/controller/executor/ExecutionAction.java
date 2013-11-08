@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -203,26 +201,26 @@ public abstract class ExecutionAction<T> extends Thread
     }
 
     /**
-     * Abstract {@link ExecutionAction} for {@link Executable}s.
+     * Abstract {@link ExecutionAction} for {@link ExecutableService}s.
      */
-    public static abstract class AbstractExecutableAction extends ExecutionAction<Executable>
+    public static abstract class AbstractExecutionTargetAction<T extends ExecutionTarget> extends ExecutionAction<T>
     {
         /**
          * Constructor.
          *
-         * @param executable sets the {@link #target}
+         * @param executionTarget sets the {@link #target}
          */
-        public AbstractExecutableAction(Executable executable)
+        public AbstractExecutionTargetAction(T executionTarget)
         {
-            super(executable);
+            super(executionTarget);
         }
 
         @Override
         public void buildDependencies()
         {
             // Setup dependencies in this action and parents in child actions
-            for (Executable childExecutable : target.getExecutionDependencies()) {
-                ExecutionAction childExecutionAction = executionPlan.getActionByExecutable(childExecutable);
+            for (ExecutionTarget childExecutionTarget : target.getExecutionDependencies()) {
+                ExecutionAction childExecutionAction = executionPlan.getActionByExecutionTarget(childExecutionTarget);
 
                 // Child executable doesn't exists in the plan, so it is automatically satisfied
                 if (childExecutionAction == null) {
@@ -239,22 +237,50 @@ public abstract class ExecutionAction<T> extends Thread
         {
             super.afterInit();
 
-            if (executionPlan.getActionByExecutable(target) != null) {
-                throw new IllegalStateException("Executable already exists in the execution plan.");
+            if (executionPlan.getActionByExecutionTarget(target) != null) {
+                throw new IllegalStateException("Execution target already exists in the execution plan.");
             }
-            executionPlan.setActionByExecutable(target, this);
+            executionPlan.setActionByExecutionTarget(target, this);
+        }
+
+        @Override
+        public boolean finish(EntityManager entityManager, DateTime referenceDateTime,
+                ExecutionResult executionResult)
+        {
+            return performFinish(executionResult);
+        }
+
+        /**
+         * @param executionResult to be filled
+         * @return true whether this action succeeds,
+         *         false otherwise
+         */
+        protected abstract boolean performFinish(ExecutionResult executionResult);
+    }
+
+    /**
+     * Abstract {@link ExecutionAction} for {@link Executable}s.
+     */
+    public static abstract class AbstractExecutableAction extends AbstractExecutionTargetAction<Executable>
+    {
+        /**
+         * Constructor.
+         *
+         * @param executable sets the {@link #target}
+         */
+        public AbstractExecutableAction(Executable executable)
+        {
+            super(executable);
         }
 
         @Override
         public final boolean finish(EntityManager entityManager, DateTime referenceDateTime,
                 ExecutionResult executionResult)
         {
-            entityManager.refresh(target);
             if (target.getState().equals(Executable.State.SKIPPED)) {
                 target.setState(target.getDefaultState());
             }
-
-            return performFinish(executionResult);
+            return super.finish(entityManager, referenceDateTime, executionResult);
         }
 
         /**
@@ -474,11 +500,11 @@ public abstract class ExecutionAction<T> extends Thread
         @Override
         public void buildDependencies()
         {
-            ExecutionAction sourceAction = executionPlan.getActionByExecutable(target.getSourceExecutable());
+            ExecutionAction sourceAction = executionPlan.getActionByExecutionTarget(target.getSourceExecutable());
             if (!(sourceAction instanceof StopExecutableAction)) {
                 throw new RuntimeException("Source executable is not planned for stopping.");
             }
-            ExecutionAction targetAction = executionPlan.getActionByExecutable(target.getTargetExecutable());
+            ExecutionAction targetAction = executionPlan.getActionByExecutionTarget(target.getTargetExecutable());
             if (!(targetAction instanceof StartExecutableAction)) {
                 throw new RuntimeException("Target executable is not planned for starting.");
             }
@@ -513,11 +539,119 @@ public abstract class ExecutionAction<T> extends Thread
     }
 
     /**
+     * {@link ExecutionAction} for starting {@link Executable}.
+     */
+    public static class ActivateExecutableServiceAction extends AbstractExecutionTargetAction<ExecutableService>
+    {
+        /**
+         * Constructor.
+         *
+         * @param executableService sets the {@link #target}
+         */
+        public ActivateExecutableServiceAction(ExecutableService executableService)
+        {
+            super(executableService);
+        }
+
+        @Override
+        public int getExecutionPriority()
+        {
+            return PRIORITY_ACTIVATE;
+        }
+
+        @Override
+        protected void perform(ExecutableManager executableManager)
+        {
+            try {
+                Executor executor = getExecutor();
+                ExecutableService executableService = executableManager.getService(this.target.getId());
+                executableService.activate(executor, executableManager);
+            }
+            catch (Exception exception) {
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Activation failed", exception);
+            }
+        }
+
+        @Override
+        protected boolean performFinish(ExecutionResult executionResult)
+        {
+            if (target.getState().equals(ExecutableService.State.ACTIVE)) {
+                executionResult.addActivatedExecutableService(target);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Activate [srv:%d] for [exe:%d]", target.getId(), target.getExecutable().getId());
+        }
+    }
+
+    /**
+     * {@link ExecutionAction} for starting {@link Executable}.
+     */
+    public static class DeactivateExecutableServiceAction extends AbstractExecutionTargetAction<ExecutableService>
+    {
+        /**
+         * Constructor.
+         *
+         * @param executableService sets the {@link #target}
+         */
+        public DeactivateExecutableServiceAction(ExecutableService executableService)
+        {
+            super(executableService);
+        }
+
+        @Override
+        public int getExecutionPriority()
+        {
+            return PRIORITY_DEACTIVATE;
+        }
+
+        @Override
+        protected void perform(ExecutableManager executableManager)
+        {
+            try {
+                Executor executor = getExecutor();
+                ExecutableService executableService = executableManager.getService(this.target.getId());
+                executableService.deactivate(executor, executableManager);
+            }
+            catch (Exception exception) {
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Deactivation failed", exception);
+            }
+        }
+
+        @Override
+        protected boolean performFinish(ExecutionResult executionResult)
+        {
+            if (target.getState().equals(ExecutableService.State.NOT_ACTIVE)) {
+                executionResult.addDeactivatedExecutableService(target);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("DeActivate [srv:%d] for [exe:%d]", target.getId(), target.getExecutable().getId());
+        }
+    }
+
+    /**
      * Action Priority.
      */
-    private static final int PRIORITY_STOP = 4;
-    private static final int PRIORITY_MIGRATE = 3;
-    private static final int PRIORITY_START = 2;
-    private static final int PRIORITY_UPDATE = 1;
+    private static final int PRIORITY_DEACTIVATE = 6;
+    private static final int PRIORITY_STOP = 5;
+    private static final int PRIORITY_MIGRATE = 4;
+    private static final int PRIORITY_START = 3;
+    private static final int PRIORITY_UPDATE = 2;
+    private static final int PRIORITY_ACTIVATE = 1;
     private static final int PRIORITY_DEFAULT = 0;
 }

@@ -71,17 +71,35 @@ public class ExecutableManager extends AbstractManager
     public Executable get(Long executableId) throws CommonReportSet.EntityNotFoundException
     {
         try {
-            Executable executable = entityManager.createQuery(
+            return entityManager.createQuery(
                     "SELECT executable FROM Executable executable"
                             + " WHERE executable.id = :id AND executable.state != :notAllocated",
                     Executable.class)
                     .setParameter("id", executableId)
                     .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)
                     .getSingleResult();
-            return executable;
         }
         catch (NoResultException exception) {
             return ControllerReportSetHelper.throwEntityNotFoundFault(Executable.class, executableId);
+        }
+    }
+
+    /**
+     * @param executableServiceId of the {@link ExecutableService}
+     * @return {@link ExecutableService} with given id
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link ExecutableService} doesn't exist
+     */
+    public ExecutableService getService(Long executableServiceId)
+    {
+        try {
+            return entityManager.createQuery("SELECT service FROM ExecutableService service WHERE service.id = :id",
+                    ExecutableService.class)
+                    .setParameter("id", executableServiceId)
+                    .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return ControllerReportSetHelper.throwEntityNotFoundFault(ExecutableService.class, executableServiceId);
         }
     }
 
@@ -132,21 +150,19 @@ public class ExecutableManager extends AbstractManager
      */
     public List<Executable> listExecutablesForStart(DateTime referenceDateTime, int maxAttemptCount)
     {
-        List<Executable> executables = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:notStartedStates)"
                         + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
-                        + " AND (executable.slotStart <= :startingDateTime AND executable.slotEnd >= :startingDateTime)"
+                        + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
-                .setParameter("startingDateTime", referenceDateTime)
                 .setParameter("notStartedStates", EnumSet.of(Executable.State.NOT_STARTED))
                 .setParameter("startingFailedState", Executable.State.STARTING_FAILED)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
-        return executables;
     }
 
     /**
@@ -157,7 +173,7 @@ public class ExecutableManager extends AbstractManager
      */
     public List<Executable> listExecutablesForUpdate(DateTime referenceDateTime, int maxAttemptCount)
     {
-        List<Executable> executables = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE executable.state IN(:states)"
                         + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
@@ -168,7 +184,6 @@ public class ExecutableManager extends AbstractManager
                 .setParameter("states", EnumSet.of(Executable.State.MODIFIED))
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
-        return executables;
     }
 
     /**
@@ -178,47 +193,65 @@ public class ExecutableManager extends AbstractManager
      */
     public List<Executable> listExecutablesForStop(DateTime referenceDateTime, int maxAttemptCount)
     {
-        List<Executable> executables = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:startedStates)"
                         + "        OR (executable.nextAttempt != NULL AND executable.state = :stoppingFailedState))"
-                        + " AND (executable.slotStart > :stoppingDateTime OR executable.slotEnd <= :stoppingDateTime)"
+                        + " AND (executable.slotStart > :dateTime OR executable.slotEnd <= :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
-                .setParameter("stoppingDateTime", referenceDateTime)
                 .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED,
                         Executable.State.MODIFIED))
                 .setParameter("stoppingFailedState", Executable.State.STOPPING_FAILED)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
-        return executables;
     }
 
     /**
      * @param referenceDateTime which represents now
      * @param maxAttemptCount
-     * @return list of {@link ExecutableService}s which should be started for given {@code referenceDateTime}
+     * @return list of {@link ExecutableService}s which should be activated for given {@code referenceDateTime}
      */
-    /*public List<ExecutableService> listExecutableServicesForStart(DateTime referenceDateTime, int maxAttemptCount)
+    public List<ExecutableService> listServicesForActivation(DateTime referenceDateTime, int maxAttemptCount)
     {
-        List<Executable> executableServices = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT service FROM ExecutableService service"
-                        + " WHERE (executable.state IN(:notStartedStates)"
-                        + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
-                        + " AND (executable.slotStart <= :startingDateTime AND executable.slotEnd >= :startingDateTime)"
-                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
-                        + " AND (executable.attemptCount < :maxAttemptCount)",
-                Executable.class)
+                        + " WHERE (service.state IN(:notActiveStates)"
+                        + "        OR (service.nextAttempt != NULL AND service.state = :activationFailedState))"
+                        + " AND (service.slotStart <= :dateTime AND service.slotEnd >= :dateTime)"
+                        + " AND ((service.nextAttempt IS NULL AND service.attemptCount = 0) OR service.nextAttempt <= :dateTime)"
+                        + " AND (service.attemptCount < :maxAttemptCount)",
+                ExecutableService.class)
                 .setParameter("dateTime", referenceDateTime)
-                .setParameter("startingDateTime", referenceDateTime)
-                .setParameter("preparedState", ExecutableService.State.PREPARED)
-                .setParameter("startingFailedState", Executable.State.STARTING_FAILED)
+                .setParameter("notActiveStates", EnumSet.of(ExecutableService.State.PREPARED))
+                .setParameter("activationFailedState", ExecutableService.State.ACTIVATION_FAILED)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
-        return executableServices;
-    }*/
+    }
+
+    /**
+     * @param referenceDateTime which represents now
+     * @param maxAttemptCount
+     * @return list of {@link ExecutableService}s which should be deactivated for given {@code referenceDateTime}
+     */
+    public List<ExecutableService> listServicesForDeactivation(DateTime referenceDateTime, int maxAttemptCount)
+    {
+        return entityManager.createQuery(
+                "SELECT service FROM ExecutableService service"
+                        + " WHERE (service.state IN(:activeStates)"
+                        + "        OR (service.nextAttempt != NULL AND service.state = :deactivationFailedState))"
+                        + " AND (service.slotStart > :dateTime OR service.slotEnd <= :dateTime)"
+                        + " AND ((service.nextAttempt IS NULL AND service.attemptCount = 0) OR service.nextAttempt <= :dateTime)"
+                        + " AND (service.attemptCount < :maxAttemptCount)",
+                ExecutableService.class)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("activeStates", EnumSet.of(ExecutableService.State.ACTIVE))
+                .setParameter("deactivationFailedState", ExecutableService.State.DEACTIVATION_FAILED)
+                .setParameter("maxAttemptCount", maxAttemptCount)
+                .getResultList();
+    }
 
     /**
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
@@ -365,13 +398,14 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param executable       to which the {@code executionReport} will be added
+     * @param executionTarget to which the {@code executionReport} will be added
      * @param executionReport to be added to the {@code executable}
      */
-    public void createExecutableReport(Executable executable, cz.cesnet.shongo.controller.executor.ExecutionReport executionReport)
+    public void createExecutionReport(ExecutionTarget executionTarget,
+            cz.cesnet.shongo.controller.executor.ExecutionReport executionReport)
     {
         executionReport.setDateTime(DateTime.now());
-        executable.addReport(executionReport);
+        executionTarget.addReport(executionReport);
 
         executionReports.add(executionReport);
     }

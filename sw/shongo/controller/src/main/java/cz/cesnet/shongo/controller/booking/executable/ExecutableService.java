@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.executable;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.Executor;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -101,6 +102,62 @@ public abstract class ExecutableService extends ExecutionTarget
         executableServiceApi.setSlot(getSlot());
     }
 
+    /**
+     * Activate this {@link ExecutableService}.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    public final void activate(Executor executor, ExecutableManager executableManager)
+    {
+        if (getState().equals(State.ACTIVE)) {
+            throw new IllegalStateException(
+                    String.format("Executable service '%d' can be activated only if it is not activated yet.", getId()));
+        }
+        State state = onActivate(executor, executableManager);
+        setState(state);
+    }
+
+    /**
+     * Deactivate this {@link ExecutableService}.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    public final void deactivate(Executor executor, ExecutableManager executableManager)
+    {
+        if (!getState().equals(State.ACTIVE)) {
+            throw new IllegalStateException(
+                    String.format("Executable service '%d' can be deactivated only if it is activated.", getId()));
+        }
+        State state = onDeactivate(executor, executableManager);
+        setState(state);
+    }
+
+    /**
+     * Activate this {@link Executable}.
+     *
+     * @param executor
+     * @param executableManager
+     * @return new {@link State}
+     */
+    protected State onActivate(Executor executor, ExecutableManager executableManager)
+    {
+        return State.ACTIVE;
+    }
+
+    /**
+     * Deactivate this {@link Executable}.
+     *
+     * @param executor
+     * @param executableManager
+     * @return new {@link State}
+     */
+    protected State onDeactivate(Executor executor, ExecutableManager executableManager)
+    {
+        return State.NOT_ACTIVE;
+    }
+
     @Transient
     @Override
     public String getReportDescription()
@@ -140,6 +197,16 @@ public abstract class ExecutableService extends ExecutionTarget
         /**
          * {@link ExecutableService} is active (is started).
          */
-        ACTIVE
+        ACTIVE,
+
+        /**
+         * {@link ExecutableService} activation failed.
+         */
+        ACTIVATION_FAILED,
+
+        /**
+         * {@link ExecutableService} deactivation failed.
+         */
+        DEACTIVATION_FAILED
     }
 }

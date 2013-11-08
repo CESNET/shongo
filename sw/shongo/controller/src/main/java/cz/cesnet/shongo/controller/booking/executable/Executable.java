@@ -156,7 +156,8 @@ public abstract class Executable extends ExecutionTarget
      * @return collection of execution dependencies
      */
     @Transient
-    public Collection<Executable> getExecutionDependencies()
+    @Override
+    public Collection<? extends ExecutionTarget> getExecutionDependencies()
     {
         return childExecutables;
     }
@@ -285,9 +286,9 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * Start given {@code executable}.
+     * Start this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      */
     public final void start(Executor executor, ExecutableManager executableManager)
@@ -301,9 +302,9 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * Update given {@code executable}.
+     * Update this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      * @return new {@link State} or null when the state hasn't changed
      */
@@ -321,9 +322,9 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * Start given {@code executable}.
+     * Start this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      */
     public final void stop(Executor executor, ExecutableManager executableManager)
@@ -339,7 +340,7 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Start this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      * @return new {@link State}
      */
@@ -351,7 +352,7 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Update this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      * @return new {@link State} or null when the state should not change
      */
@@ -363,7 +364,7 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Stop this {@link Executable}.
      *
-     * @param executor          which is executing
+     * @param executor
      * @param executableManager
      * @return new {@link State}
      */

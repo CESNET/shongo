@@ -220,10 +220,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             return Executable.State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         catch (ExecutorReportSet.CommandFailedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         return Executable.State.STARTING_FAILED;
     }
@@ -236,10 +236,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             return Executable.State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         catch (ExecutorReportSet.CommandFailedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         return null;
     }
@@ -252,10 +252,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             return Executable.State.STOPPED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         catch (ExecutorReportSet.CommandFailedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         return Executable.State.STOPPING_FAILED;
     }

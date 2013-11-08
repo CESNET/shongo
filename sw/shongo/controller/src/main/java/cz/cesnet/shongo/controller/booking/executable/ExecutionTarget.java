@@ -10,10 +10,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a {@link PersistentObject} which can be executed by {@link ExecutionAction}.
@@ -259,5 +256,14 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
             });
         }
         return cachedSortedReports;
+    }
+
+    /**
+     * @return collection of {@link ExecutionTarget} dependencies
+     */
+    @Transient
+    public Collection<? extends ExecutionTarget> getExecutionDependencies()
+    {
+        return Collections.emptyList();
     }
 }

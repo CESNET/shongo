@@ -246,8 +246,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             cz.cesnet.shongo.api.Alias alias = roomApi.getAlias(AliasType.ROOM_NAME);
             throw new ExecutorReportSet.RoomNotStartedException(alias != null ? alias.getValue() : null);
         }
-        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
 
         DeviceResource deviceResource = getDeviceResource();
         if (deviceResource.isManaged()) {
@@ -267,19 +265,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
         }
         else {
-            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
+            throw new IllegalStateException("Device resource is not managed.");
         }
     }
 
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
-        executor.getLogger().debug("Starting room '{}' for {} licenses.", new Object[]{getId(), getLicenseCount()});
-        List<Alias> aliases = getAliases();
-        for (Alias alias : aliases) {
-            executor.getLogger().debug("Room '{}' has allocated alias '{}'.", getId(), alias.getValue());
-        }
-
         DeviceResource deviceResource = getDeviceResource();
         if (deviceResource.isManaged()) {
             ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
@@ -294,13 +286,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
             else {
-                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
         }
         else {
-            throw new TodoImplementException("TODO: Implement creating room in not managed device resource.");
+            throw new IllegalStateException("Device resource is not managed.");
         }
     }
 
@@ -324,10 +316,10 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             return State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         catch (ExecutorReportSet.CommandFailedException exception) {
-            executableManager.createExecutableReport(this, exception.getReport());
+            executableManager.createExecutionReport(this, exception.getReport());
         }
         return null;
     }
@@ -335,8 +327,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
-        executor.getLogger().debug("Stopping room '{}' for {} licenses.", getId(), getLicenseCount());
-
         DeviceResource deviceResource = getDeviceResource();
         if (deviceResource.isManaged()) {
             ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
@@ -351,13 +341,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPED;
             }
             else {
-                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
         }
         else {
-            throw new TodoImplementException("TODO: Implement stopping room in not managed device resource.");
+            throw new IllegalStateException("Device resource is not managed.");
         }
     }
 
