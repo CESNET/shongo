@@ -4,9 +4,7 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableReport;
 import cz.cesnet.shongo.controller.booking.executable.Migration;
-import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -18,8 +16,13 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ExecutionAction extends Thread
+public abstract class ExecutionAction<T> extends Thread
 {
+    /**
+     * Target for which the {@link ExecutionAction} is being executed.
+     */
+    protected T target;
+
     /**
      * {@link ExecutionPlan} from which the {@link ExecutionAction} should be removed when it is done.
      */
@@ -45,9 +48,20 @@ public abstract class ExecutionAction extends Thread
 
     /**
      * Constructor.
+     *
+     * @param target sets the {@link #target}
      */
-    public ExecutionAction()
+    public ExecutionAction(T target)
     {
+        this.target = target;
+    }
+
+    /**
+     * @return {@link #target}
+     */
+    public T getTarget()
+    {
+        return target;
     }
 
     /**
@@ -110,7 +124,7 @@ public abstract class ExecutionAction extends Thread
      * @param actionFrom
      * @param actionTo
      */
-    protected void createDependency(ExecutionAction actionFrom, ExecutionAction actionTo)
+    protected void createDependency(ExecutionAction<?> actionFrom, ExecutionAction<?> actionTo)
     {
         // This action is dependent to all child actions (requires them)
         actionFrom.dependencies.add(actionTo);
@@ -170,8 +184,8 @@ public abstract class ExecutionAction extends Thread
             entityManager.getTransaction().commit();
 
             // Reporting
-            for (ExecutableReport executableReport : executableManager.getExecutableReports()) {
-                Reporter.report(executableReport.getExecutable(), executableReport);
+            for (cz.cesnet.shongo.controller.executor.ExecutionReport executionReport : executableManager.getExecutionReports()) {
+                Reporter.report(executionReport.getExecutionTarget(), executionReport);
             }
         }
         catch (Exception exception) {
@@ -191,36 +205,23 @@ public abstract class ExecutionAction extends Thread
     /**
      * Abstract {@link ExecutionAction} for {@link Executable}s.
      */
-    public static abstract class AbstractExecutableAction extends ExecutionAction
+    public static abstract class AbstractExecutableAction extends ExecutionAction<Executable>
     {
-        /**
-         * {@link Executable} which should be started ({@link Executable#start} should be invoked).
-         */
-        protected Executable executable;
-
         /**
          * Constructor.
          *
-         * @param executable sets the {@link #executable}
+         * @param executable sets the {@link #target}
          */
         public AbstractExecutableAction(Executable executable)
         {
-            this.executable = executable;
-        }
-
-        /**
-         * @return {@link #executable}
-         */
-        public Executable getExecutable()
-        {
-            return executable;
+            super(executable);
         }
 
         @Override
         public void buildDependencies()
         {
             // Setup dependencies in this action and parents in child actions
-            for (Executable childExecutable : executable.getExecutionDependencies()) {
+            for (Executable childExecutable : target.getExecutionDependencies()) {
                 ExecutionAction childExecutionAction = executionPlan.getActionByExecutable(childExecutable);
 
                 // Child executable doesn't exists in the plan, so it is automatically satisfied
@@ -238,39 +239,22 @@ public abstract class ExecutionAction extends Thread
         {
             super.afterInit();
 
-            if (executionPlan.getActionByExecutable(executable) != null) {
+            if (executionPlan.getActionByExecutable(target) != null) {
                 throw new IllegalStateException("Executable already exists in the execution plan.");
             }
-            executionPlan.setActionByExecutable(executable, this);
+            executionPlan.setActionByExecutable(target, this);
         }
 
         @Override
         public final boolean finish(EntityManager entityManager, DateTime referenceDateTime,
                 ExecutionResult executionResult)
         {
-            entityManager.refresh(executable);
-            if (executable.getState().equals(Executable.State.SKIPPED)) {
-                executable.setState(executable.getDefaultState());
+            entityManager.refresh(target);
+            if (target.getState().equals(Executable.State.SKIPPED)) {
+                target.setState(target.getDefaultState());
             }
 
-            if (performFinish(executionResult)) {
-                executable.setNextAttempt(null);
-                executable.setAttemptCount(0);
-                return true;
-            }
-            else {
-                executable.setNextAttempt(null);
-                executable.setAttemptCount(executable.getAttemptCount() + 1);
-
-                ExecutableReport lastReport = executable.getLastReport();
-                if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
-                    Executor executor = getExecutor();
-                    if (executable.getAttemptCount() < executor.getMaxAttemptCount()) {
-                        executable.setNextAttempt(referenceDateTime.plus(executor.getNextAttempt()));
-                    }
-                }
-                return false;
-            }
+            return performFinish(executionResult);
         }
 
         /**
@@ -289,7 +273,7 @@ public abstract class ExecutionAction extends Thread
         /**
          * Constructor.
          *
-         * @param executable sets the {@link #executable}
+         * @param executable sets the {@link #target}
          */
         public StartExecutableAction(Executable executable)
         {
@@ -307,7 +291,7 @@ public abstract class ExecutionAction extends Thread
         {
             try {
                 Executor executor = getExecutor();
-                Executable executable = executableManager.get(this.executable.getId());
+                Executable executable = executableManager.get(this.target.getId());
                 executable.start(executor, executableManager);
                 if (executable.getState().isStarted()) {
                     if (executable instanceof RoomEndpoint && hasParents()) {
@@ -329,8 +313,8 @@ public abstract class ExecutionAction extends Thread
         @Override
         protected boolean performFinish(ExecutionResult executionResult)
         {
-            if (executable.getState().isStarted()) {
-                executionResult.addStartedExecutable(executable);
+            if (target.getState().isStarted()) {
+                executionResult.addStartedExecutable(target);
                 return true;
             }
             else {
@@ -341,7 +325,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         public String toString()
         {
-            return String.format("Start [exe:%d]", executable.getId());
+            return String.format("Start [exe:%d]", target.getId());
         }
     }
 
@@ -353,7 +337,7 @@ public abstract class ExecutionAction extends Thread
         /**
          * Constructor.
          *
-         * @param executable sets the {@link #executable}
+         * @param executable sets the {@link #target}
          */
         public UpdateExecutableAction(Executable executable)
         {
@@ -370,7 +354,7 @@ public abstract class ExecutionAction extends Thread
         protected void perform(ExecutableManager executableManager)
         {
             try {
-                Executable executable = executableManager.get(this.executable.getId());
+                Executable executable = executableManager.get(this.target.getId());
                 executable.update(getExecutor(), executableManager);
             }
             catch (Exception exception) {
@@ -381,12 +365,12 @@ public abstract class ExecutionAction extends Thread
         @Override
         protected boolean performFinish(ExecutionResult executionResult)
         {
-            if (!executable.getState().isModified()) {
-                if (executable.getState().equals(Executable.State.SKIPPED)) {
-                    executable.setState(Executable.State.STARTED);
+            if (!target.getState().isModified()) {
+                if (target.getState().equals(Executable.State.SKIPPED)) {
+                    target.setState(Executable.State.STARTED);
                 }
                 else {
-                    executionResult.addUpdatedExecutable(executable);
+                    executionResult.addUpdatedExecutable(target);
                 }
                 return true;
             }
@@ -398,7 +382,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         public String toString()
         {
-            return String.format("Update [exe:%d]", executable.getId());
+            return String.format("Update [exe:%d]", target.getId());
         }
     }
 
@@ -410,7 +394,7 @@ public abstract class ExecutionAction extends Thread
         /**
          * Constructor.
          *
-         * @param executable sets the {@link #executable}
+         * @param executable sets the {@link #target}
          */
         public StopExecutableAction(Executable executable)
         {
@@ -439,7 +423,7 @@ public abstract class ExecutionAction extends Thread
         protected void perform(ExecutableManager executableManager)
         {
             try {
-                Executable executable = executableManager.get(this.executable.getId());
+                Executable executable = executableManager.get(this.target.getId());
                 executable.stop(getExecutor(), executableManager);
             }
             catch (Exception exception) {
@@ -450,8 +434,8 @@ public abstract class ExecutionAction extends Thread
         @Override
         protected boolean performFinish(ExecutionResult executionResult)
         {
-            if (!executable.getState().isStarted()) {
-                executionResult.addStoppedExecutable(executable);
+            if (!target.getState().isStarted()) {
+                executionResult.addStoppedExecutable(target);
                 return true;
             }
             else {
@@ -462,20 +446,15 @@ public abstract class ExecutionAction extends Thread
         @Override
         public String toString()
         {
-            return String.format("Stop [exe:%d]", executable.getId());
+            return String.format("Stop [exe:%d]", target.getId());
         }
     }
 
     /**
      * {@link ExecutionAction} for stopping {@link Executable}.
      */
-    public static class MigrationAction extends ExecutionAction
+    public static class MigrationAction extends ExecutionAction<Migration>
     {
-        /**
-         * {@link Migration} which should be performed.
-         */
-        private Migration migration;
-
         /**
          * Constructor.
          *
@@ -483,15 +462,7 @@ public abstract class ExecutionAction extends Thread
          */
         public MigrationAction(Migration migration)
         {
-            this.migration = migration;
-        }
-
-        /**
-         * @return {@link #migration}
-         */
-        public Migration getMigration()
-        {
-            return migration;
+            super(migration);
         }
 
         @Override
@@ -503,15 +474,15 @@ public abstract class ExecutionAction extends Thread
         @Override
         public void buildDependencies()
         {
-            ExecutionAction sourceAction = executionPlan.getActionByExecutable(migration.getSourceExecutable());
+            ExecutionAction sourceAction = executionPlan.getActionByExecutable(target.getSourceExecutable());
             if (!(sourceAction instanceof StopExecutableAction)) {
                 throw new RuntimeException("Source executable is not planned for stopping.");
             }
-            ExecutionAction targetAction = executionPlan.getActionByExecutable(migration.getTargetExecutable());
+            ExecutionAction targetAction = executionPlan.getActionByExecutable(target.getTargetExecutable());
             if (!(targetAction instanceof StartExecutableAction)) {
                 throw new RuntimeException("Target executable is not planned for starting.");
             }
-            if (migration.isReplacement()) {
+            if (target.isReplacement()) {
                 sourceAction.setSkipPerform(true);
                 targetAction.setSkipPerform(true);
             }
@@ -524,7 +495,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         protected void perform(ExecutableManager executableManager)
         {
-            migration.perform(getExecutor(), executableManager);
+            target.perform(getExecutor(), executableManager);
         }
 
         @Override
@@ -537,7 +508,7 @@ public abstract class ExecutionAction extends Thread
         public String toString()
         {
             return String.format("Migration [from-exe:%d, to-exe:%d]",
-                    migration.getSourceExecutable().getId(), migration.getTargetExecutable().getId());
+                    target.getSourceExecutable().getId(), target.getTargetExecutable().getId());
         }
     }
 

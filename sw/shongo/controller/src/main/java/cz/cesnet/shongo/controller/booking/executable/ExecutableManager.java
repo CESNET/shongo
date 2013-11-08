@@ -25,9 +25,9 @@ import java.util.*;
 public class ExecutableManager extends AbstractManager
 {
     /**
-     * List of {@link ExecutableReport}s which have been created.
+     * List of {@link cz.cesnet.shongo.controller.executor.ExecutionReport}s which have been created.
      */
-    private List<ExecutableReport> executableReports = new LinkedList<ExecutableReport>();
+    private List<cz.cesnet.shongo.controller.executor.ExecutionReport> executionReports = new LinkedList<cz.cesnet.shongo.controller.executor.ExecutionReport>();
 
     /**
      * @param entityManager sets the {@link #entityManager}
@@ -197,6 +197,30 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
+     * @param referenceDateTime which represents now
+     * @param maxAttemptCount
+     * @return list of {@link ExecutableService}s which should be started for given {@code referenceDateTime}
+     */
+    /*public List<ExecutableService> listExecutableServicesForStart(DateTime referenceDateTime, int maxAttemptCount)
+    {
+        List<Executable> executableServices = entityManager.createQuery(
+                "SELECT service FROM ExecutableService service"
+                        + " WHERE (executable.state IN(:notStartedStates)"
+                        + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
+                        + " AND (executable.slotStart <= :startingDateTime AND executable.slotEnd >= :startingDateTime)"
+                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
+                        + " AND (executable.attemptCount < :maxAttemptCount)",
+                Executable.class)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("startingDateTime", referenceDateTime)
+                .setParameter("preparedState", ExecutableService.State.PREPARED)
+                .setParameter("startingFailedState", Executable.State.STARTING_FAILED)
+                .setParameter("maxAttemptCount", maxAttemptCount)
+                .getResultList();
+        return executableServices;
+    }*/
+
+    /**
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
      * any {@link Reservation} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
@@ -341,23 +365,23 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param executable       to which the {@code executableReport} will be added
-     * @param executableReport to be added to the {@code executable}
+     * @param executable       to which the {@code executionReport} will be added
+     * @param executionReport to be added to the {@code executable}
      */
-    public void createExecutableReport(Executable executable, ExecutableReport executableReport)
+    public void createExecutableReport(Executable executable, cz.cesnet.shongo.controller.executor.ExecutionReport executionReport)
     {
-        executableReport.setDateTime(DateTime.now());
-        executable.addReport(executableReport);
+        executionReport.setDateTime(DateTime.now());
+        executable.addReport(executionReport);
 
-        executableReports.add(executableReport);
+        executionReports.add(executionReport);
     }
 
     /**
-     * @return {@link #executableReports}
+     * @return {@link #executionReports}
      */
-    public List<ExecutableReport> getExecutableReports()
+    public List<cz.cesnet.shongo.controller.executor.ExecutionReport> getExecutionReports()
     {
-        return executableReports;
+        return executionReports;
     }
 
     /**

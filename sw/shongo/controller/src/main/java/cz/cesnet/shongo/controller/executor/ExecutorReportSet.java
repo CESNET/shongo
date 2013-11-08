@@ -14,7 +14,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("CommandFailedReport")
-    public static class CommandFailedReport extends cz.cesnet.shongo.controller.booking.executable.ExecutableReport
+    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutionReport
     {
         protected String command;
 
@@ -155,7 +155,7 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("RoomNotStartedReport")
-    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.booking.executable.ExecutableReport
+    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutionReport
     {
         protected String roomName;
 

@@ -1445,7 +1445,7 @@
 
     <scope name="executor">
 
-        <template extends="cz.cesnet.shongo.controller.booking.executable.ExecutableReport">
+        <template extends="cz.cesnet.shongo.controller.executor.ExecutionReport">
             <visible>domain-admin resource-admin</visible>
             <persistent>true</persistent>
         </template>

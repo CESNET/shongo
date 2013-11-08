@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -14,8 +15,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class ExecutableService extends SimplePersistentObject
+public abstract class ExecutableService extends ExecutionTarget
 {
     /**
      * {@link Executable} for which the {@link ExecutableService} is allocated.
@@ -26,16 +26,6 @@ public abstract class ExecutableService extends SimplePersistentObject
      * @see State
      */
     private State state;
-
-    /**
-     * Interval start date/time.
-     */
-    private DateTime slotStart;
-
-    /**
-     * Interval end date/time.
-     */
-    private DateTime slotEnd;
 
     /**
      * @return {@link #executable}
@@ -85,75 +75,6 @@ public abstract class ExecutableService extends SimplePersistentObject
     }
 
     /**
-     * @return {@link #slotStart}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getSlotStart()
-    {
-        return slotStart;
-    }
-
-    /**
-     * @param slotStart sets the {@link #slotStart}
-     */
-    public void setSlotStart(DateTime slotStart)
-    {
-        this.slotStart = slotStart;
-    }
-
-    /**
-     * @return {@link #slotEnd}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getSlotEnd()
-    {
-        return slotEnd;
-    }
-
-    /**
-     * @param slotEnd sets the {@link #slotEnd}
-     */
-    public void setSlotEnd(DateTime slotEnd)
-    {
-        this.slotEnd = slotEnd;
-    }
-
-    /**
-     * @return slot ({@link #slotStart}, {@link #slotEnd})
-     */
-    @Transient
-    public Interval getSlot()
-    {
-        return new Interval(slotStart, slotEnd);
-    }
-
-    /**
-     * @param slot sets the slot
-     */
-    @Transient
-    public void setSlot(Interval slot)
-    {
-        setSlot(slot.getStart(), slot.getEnd());
-    }
-
-    /**
-     * Sets the slot to new interval created from given {@code start} and {@code end}.
-     *
-     * @param slotStart
-     * @param slotEnd
-     */
-    @Transient
-    public void setSlot(DateTime slotStart, DateTime slotEnd)
-    {
-        this.slotStart = slotStart;
-        this.slotEnd = slotEnd;
-    }
-
-    /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.ExecutableService}
      */
     public final cz.cesnet.shongo.controller.api.ExecutableService toApi()
@@ -178,6 +99,27 @@ public abstract class ExecutableService extends SimplePersistentObject
         executableServiceApi.setId(getId());
         executableServiceApi.setActive(State.ACTIVE.equals(state));
         executableServiceApi.setSlot(getSlot());
+    }
+
+    @Transient
+    @Override
+    public String getReportDescription()
+    {
+        return EntityIdentifier.formatId(this);
+    }
+
+    @Transient
+    @Override
+    public String getReportContextName()
+    {
+        return "executable " + EntityIdentifier.formatId(this);
+    }
+
+    @Transient
+    @Override
+    public String getReportContextDetail()
+    {
+        return null;
     }
 
     /**

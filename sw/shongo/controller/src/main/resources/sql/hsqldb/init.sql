@@ -88,8 +88,8 @@ SELECT
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
         ELSE 'OTHER'
     END AS type,
-    executable.slot_start AS slot_start,
-    executable.slot_end AS slot_end,
+    execution_target.slot_start AS slot_start,
+    execution_target.slot_end AS slot_end,
     executable.state AS state,
     NULL AS room_name,
     NULL AS room_technologies,
@@ -101,6 +101,7 @@ SELECT
     NULL AS room_usage_state,
     NULL AS room_usage_license_count
 FROM executable
+LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
 LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
 LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id

@@ -28,34 +28,13 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject implements ReportableSimple, Reporter.ReportContext
+public abstract class Executable extends ExecutionTarget
 {
-    /**
-     * Interval start date/time.
-     */
-    private DateTime slotStart;
-
-    /**
-     * Interval end date/time.
-     */
-    private DateTime slotEnd;
 
     /**
      * Current state of the {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
      */
     private State state;
-
-    /**
-     * Attempt count.
-     */
-    private int attemptCount;
-
-    /**
-     * Date/time for next attempt to start/stop/update executable. If this date/time is empty, the executable
-     * should be started/updated/stopped as soon as possible.
-     */
-    private DateTime nextAttempt;
 
     /**
      * {@link Migration} to be performed to initialize this {@link Executable} from another {@link Executable}.
@@ -72,96 +51,19 @@ public abstract class Executable extends PersistentObject implements ReportableS
      */
     private List<ExecutableService> services = new ArrayList<ExecutableService>();
 
-    /**
-     * List of report for this object.
-     */
-    private List<ExecutableReport> reports = new LinkedList<ExecutableReport>();
-
-    /**
-     * Cached sorted {@link #reports}.
-     */
-    private List<ExecutableReport> cachedSortedReports;
-
-    @Id
-    @SequenceGenerator(name = "executable_id", sequenceName = "executable_id_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "executable_id")
     @Override
-    public Long getId()
-    {
-        return id;
-    }
-
-    /**
-     * @return {@link #slotStart}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getSlotStart()
-    {
-        return slotStart;
-    }
-
-    /**
-     * @param slotStart sets the {@link #slotStart}
-     */
-    public void setSlotStart(DateTime slotStart)
-    {
-        this.slotStart = slotStart;
-        for (Executable childExecutable : childExecutables) {
-            childExecutable.setSlotStart(slotStart);
-        }
-    }
-
-    /**
-     * @return {@link #slotEnd}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getSlotEnd()
-    {
-        return slotEnd;
-    }
-
-    /**
-     * @param slotEnd sets the {@link #slotEnd}
-     */
     public void setSlotEnd(DateTime slotEnd)
     {
-        this.slotEnd = slotEnd;
+        super.setSlotEnd(slotEnd);
         for (Executable childExecutable : childExecutables) {
             childExecutable.setSlotEnd(slotEnd);
         }
     }
 
-    /**
-     * @return slot ({@link #slotStart}, {@link #slotEnd})
-     */
-    @Transient
-    public Interval getSlot()
-    {
-        return new Interval(slotStart, slotEnd);
-    }
-
-    /**
-     * @param slot sets the slot
-     */
-    public void setSlot(Interval slot)
-    {
-        setSlot(slot.getStart(), slot.getEnd());
-    }
-
-    /**
-     * Sets the slot to new interval created from given {@code start} and {@code end}.
-     *
-     * @param slotStart
-     * @param slotEnd
-     */
+    @Override
     public void setSlot(DateTime slotStart, DateTime slotEnd)
     {
-        this.slotStart = slotStart;
-        this.slotEnd = slotEnd;
+        super.setSlot(slotStart, slotEnd);
         for (Executable childExecutable : childExecutables) {
             childExecutable.setSlot(slotStart, slotEnd);
         }
@@ -200,41 +102,6 @@ public abstract class Executable extends PersistentObject implements ReportableS
                 }
             }
         }
-    }
-
-    /**
-     * @return {@link #attemptCount}
-     */
-    @Column(nullable = false, columnDefinition = "integer default 0")
-    public int getAttemptCount()
-    {
-        return attemptCount;
-    }
-
-    /**
-     * @param attemptCount sets the {@link #attemptCount}
-     */
-    public void setAttemptCount(int attemptCount)
-    {
-        this.attemptCount = attemptCount;
-    }
-
-    /**
-     * @return {@link #nextAttempt}
-     */
-    @Column
-    @Type(type = "DateTime")
-    public DateTime getNextAttempt()
-    {
-        return nextAttempt;
-    }
-
-    /**
-     * @param nextAttempt sets the {@link #nextAttempt}
-     */
-    public void setNextAttempt(DateTime nextAttempt)
-    {
-        this.nextAttempt = nextAttempt;
     }
 
     /**
@@ -329,109 +196,13 @@ public abstract class Executable extends PersistentObject implements ReportableS
     }
 
     /**
-     * @return {@link #reports}
-     */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "executable", orphanRemoval = true)
-    @Access(AccessType.FIELD)
-    public List<ExecutableReport> getReports()
-    {
-        return Collections.unmodifiableList(reports);
-    }
-
-    /**
-     * @param reports sets the {@link #reports}
-     */
-    public void setReports(List<ExecutableReport> reports)
-    {
-        this.reports.clear();
-        for (ExecutableReport report : reports) {
-            this.reports.add(report);
-        }
-        cachedSortedReports = null;
-    }
-
-    /**
-     * @param report to be added to the {@link #reports}
-     */
-    public void addReport(ExecutableReport report)
-    {
-        // Manage bidirectional association
-        if (reports.contains(report) == false) {
-            reports.add(report);
-            report.setExecutable(this);
-        }
-        cachedSortedReports = null;
-    }
-
-    /**
-     * @param report to be removed from the {@link #reports}
-     */
-    public void removeReport(ExecutableReport report)
-    {
-        // Manage bidirectional association
-        if (reports.contains(report)) {
-            reports.remove(report);
-            report.setExecutable(null);
-        }
-        cachedSortedReports = null;
-    }
-
-    /**
-     * Remove all {@link ExecutableReport}s from the {@link #reports}.
-     */
-    public void clearReports()
-    {
-        reports.clear();
-        cachedSortedReports.clear();
-    }
-
-    /**
-     * @return last added {@link ExecutableReport}
-     */
-    @Transient
-    public ExecutableReport getLastReport()
-    {
-        return (reports.size() > 0 ? getCachedSortedReports().get(0) : null);
-    }
-
-    /**
-     * @return number of {@link ExecutableReport}s
-     */
-    @Transient
-    public int getReportCount()
-    {
-        return reports.size();
-    }
-
-    /**
-     * @return {@link #cachedSortedReports}
-     */
-    @Transient
-    private List<ExecutableReport> getCachedSortedReports()
-    {
-        if (cachedSortedReports == null) {
-            cachedSortedReports = new LinkedList<ExecutableReport>();
-            cachedSortedReports.addAll(reports);
-            Collections.sort(cachedSortedReports, new Comparator<ExecutableReport>()
-            {
-                @Override
-                public int compare(ExecutableReport o1, ExecutableReport o2)
-                {
-                    return -o1.getDateTime().compareTo(o2.getDateTime());
-                }
-            });
-        }
-        return cachedSortedReports;
-    }
-
-    /**
      * @return formatted {@link #reports} as string
      */
     @Transient
     protected ExecutableStateReport getExecutableStateReport(Report.UserType userType)
     {
         ExecutableStateReport executableStateReport = new ExecutableStateReport(userType);
-        for (ExecutableReport report : getCachedSortedReports()) {
+        for (cz.cesnet.shongo.controller.executor.ExecutionReport report : getCachedSortedReports()) {
             executableStateReport.addReport(new StateReportSerializer(report));
         }
         return executableStateReport;
@@ -689,7 +460,7 @@ public abstract class Executable extends PersistentObject implements ReportableS
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
-         * {@link ExecutableReport}) and the entity for which it has been stored has been deleted
+         * {@link cz.cesnet.shongo.controller.executor.ExecutionReport}) and the entity for which it has been stored has been deleted
          * and thus the {@link Executable} should be also deleted.
          */
         TO_DELETE(false, false),

@@ -251,8 +251,8 @@ SELECT
   DISTINCT ON(room_endpoint_usage_slots.id) /* only one usage for each set of room endpoint */
   room_endpoint_usage_slots.id AS id,
   executable.id AS usage_id,
-  executable.slot_start AS slot_start,
-  executable.slot_end AS slot_end,
+  execution_target.slot_start AS slot_start,
+  execution_target.slot_end AS slot_end,
   executable.state AS state,
   room_configuration.license_count
 FROM (
@@ -268,6 +268,7 @@ FROM (
   LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = room_endpoint_usage_slots.id
   LEFT JOIN executable ON executable.id = used_room_endpoint.id
                           AND executable.slot_end = room_endpoint_usage_slots.slot_end_future_min
+  LEFT JOIN execution_target ON execution_target.id = executable.id
   LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
   LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
 /* we want one room endpoint usage which has the earliest slot ending */
@@ -287,8 +288,8 @@ CREATE VIEW executable_summary AS
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
         ELSE 'OTHER'
     END AS type,
-    executable.slot_start AS slot_start,
-    executable.slot_end AS slot_end,
+    execution_target.slot_start AS slot_start,
+    execution_target.slot_end AS slot_end,
     executable.state AS state,
     alias.value AS room_name,
     string_agg(DISTINCT room_configuration_technologies.technologies, ',') AS room_technologies,
@@ -299,6 +300,7 @@ CREATE VIEW executable_summary AS
     room_endpoint_earliest_usage.state AS room_usage_state,
     room_endpoint_earliest_usage.license_count AS room_usage_license_count
   FROM executable
+    LEFT JOIN execution_target ON execution_target.id = executable.id
     LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
     LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
     LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id

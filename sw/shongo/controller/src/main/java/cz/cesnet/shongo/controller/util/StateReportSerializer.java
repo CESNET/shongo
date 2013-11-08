@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractEntityReport;
 import cz.cesnet.shongo.controller.api.ExecutableStateReport;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableReport;
 import cz.cesnet.shongo.report.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -29,9 +28,9 @@ public class StateReportSerializer extends HashMap<String, Object>
     {
         put(AbstractEntityReport.ID, report.getUniqueId());
         put(AbstractEntityReport.TYPE, report.getType());
-        if (report instanceof ExecutableReport) {
-            ExecutableReport executableReport = (ExecutableReport) report;
-            put(ExecutableStateReport.DATE_TIME, executableReport.getDateTime());
+        if (report instanceof cz.cesnet.shongo.controller.executor.ExecutionReport) {
+            cz.cesnet.shongo.controller.executor.ExecutionReport executionReport = (cz.cesnet.shongo.controller.executor.ExecutionReport) report;
+            put(ExecutableStateReport.DATE_TIME, executionReport.getDateTime());
         }
         for (Map.Entry<String, Object> parameter : report.getParameters().entrySet()) {
             String name = parameter.getKey();

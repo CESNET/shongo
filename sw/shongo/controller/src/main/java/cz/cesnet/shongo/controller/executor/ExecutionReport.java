@@ -1,5 +1,7 @@
-package cz.cesnet.shongo.controller.booking.executable;
+package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
 import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 
@@ -11,7 +13,7 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class ExecutableReport extends AbstractReport
+public abstract class ExecutionReport extends AbstractReport
 {
     /**
      * Persistent object must have an unique id.
@@ -19,9 +21,9 @@ public abstract class ExecutableReport extends AbstractReport
     private Long id;
 
     /**
-     * {@link Executable} to which the {@link cz.cesnet.shongo.report.AbstractReport} belongs.
+     * {@link ExecutionTarget} to which the {@link ExecutionReport} belongs.
      */
-    private Executable executable;
+    private ExecutionTarget executionTarget;
 
     /**
      * Date/time when the report was created.
@@ -31,7 +33,7 @@ public abstract class ExecutableReport extends AbstractReport
     /**
      * Constructor.
      */
-    public ExecutableReport()
+    public ExecutionReport()
     {
     }
 
@@ -54,30 +56,30 @@ public abstract class ExecutableReport extends AbstractReport
     }
 
     /**
-     * @return {@link #executable}
+     * @return {@link #executionTarget}
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public Executable getExecutable()
+    public ExecutionTarget getExecutionTarget()
     {
-        return executable;
+        return executionTarget;
     }
 
     /**
-     * @param executable sets the {@link #executable}
+     * @param ExecutionTarget sets the {@link #executionTarget}
      */
-    public void setExecutable(Executable executable)
+    public void setExecutionTarget(ExecutionTarget ExecutionTarget)
     {
         // Manage bidirectional association
-        if (executable != this.executable) {
-            if (this.executable != null) {
-                Executable oldExecutable = this.executable;
-                this.executable = null;
-                oldExecutable.removeReport(this);
+        if (ExecutionTarget != this.executionTarget) {
+            if (this.executionTarget != null) {
+                ExecutionTarget oldExecutionTarget = this.executionTarget;
+                this.executionTarget = null;
+                oldExecutionTarget.removeReport(this);
             }
-            if (executable != null) {
-                this.executable = executable;
-                this.executable.addReport(this);
+            if (ExecutionTarget != null) {
+                this.executionTarget = ExecutionTarget;
+                this.executionTarget.addReport(this);
             }
         }
     }

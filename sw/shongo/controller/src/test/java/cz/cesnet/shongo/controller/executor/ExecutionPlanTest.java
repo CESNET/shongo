@@ -164,7 +164,7 @@ public class ExecutionPlanTest
                 executionPlan.popExecutionActions(ExecutionAction.AbstractExecutableAction.class);
         Set<Executable> presentExecutables = new HashSet<Executable>();
         for (ExecutionAction.AbstractExecutableAction executionAction : executionActions) {
-            presentExecutables.add(executionAction.getExecutable());
+            presentExecutables.add(executionAction.getTarget());
         }
         Set<Executable> expectedExecutables = new HashSet<Executable>();
         Collections.addAll(expectedExecutables, executables);
@@ -182,7 +182,7 @@ public class ExecutionPlanTest
                 executionPlan.popExecutionActions(ExecutionAction.MigrationAction.class);
         Set<Migration> presentExecutables = new HashSet<Migration>();
         for (ExecutionAction.MigrationAction executionAction : executionActions) {
-            presentExecutables.add(executionAction.getMigration());
+            presentExecutables.add(executionAction.getTarget());
         }
         Set<Migration> expectedExecutables = new HashSet<Migration>();
         Collections.addAll(expectedExecutables, migrations);

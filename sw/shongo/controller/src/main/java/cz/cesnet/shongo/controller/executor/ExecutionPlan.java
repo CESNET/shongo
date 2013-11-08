@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
+import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,7 +207,7 @@ public class ExecutionPlan
     /**
      * @param executionAction to be removed from the {@link ExecutionPlan} (it satisfies all dependencies to given {@code executionAction})
      */
-    public synchronized void removeExecutionAction(ExecutionAction executionAction)
+    public synchronized void removeExecutionAction(ExecutionAction<?> executionAction)
     {
         logger.debug("{} ended.", executionAction);
 
@@ -247,7 +249,27 @@ public class ExecutionPlan
         }
         ExecutionResult executionResult = new ExecutionResult();
         for (ExecutionAction executionAction : completedActions) {
-            executionAction.finish(entityManager, referenceDateTime, executionResult);
+            boolean result = executionAction.finish(entityManager, referenceDateTime, executionResult);
+            Object target = executionAction.getTarget();
+            if (target instanceof ExecutionTarget) {
+                ExecutionTarget executionTarget = (ExecutionTarget) target;
+                if (result) {
+                    executionTarget.setNextAttempt(null);
+                    executionTarget.setAttemptCount(0);
+                }
+                else {
+                    executionTarget.setNextAttempt(null);
+                    executionTarget.setAttemptCount(executionTarget.getAttemptCount() + 1);
+
+                    cz.cesnet.shongo.controller.executor.ExecutionReport lastReport = executionTarget.getLastReport();
+                    if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
+                        Executor executor = getExecutor();
+                        if (executionTarget.getAttemptCount() < executor.getMaxAttemptCount()) {
+                            executionTarget.setNextAttempt(referenceDateTime.plus(executor.getNextAttempt()));
+                        }
+                    }
+                }
+            }
         }
         return executionResult;
     }
