@@ -135,8 +135,7 @@
             <dd>
                 ${room.licenseCount}
                 <c:if test="${room.licenseCountUntil != null}">
-                    (<spring:message code="views.room.licenseCountUntil"/>
-                    <tag:format value="${room.licenseCountUntil}"/>)
+                    (<spring:message code="views.room.licenseCountUntil"/>&nbsp;<tag:format value="${room.licenseCountUntil}"/>)
                 </c:if>
             </dd>
         </c:if>
