@@ -144,9 +144,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check executable before execution
         roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
         recordingService = roomExecutable.getService(RecordingService.class);
-        Assert.assertNotNull(recordingService);
-        Assert.assertEquals(tcsId, recordingService.getResourceId());
-        Assert.assertNull(recordingService.getRecordingId());
+        Assert.assertNotNull("Recording service should be allocated.", recordingService);
+        Assert.assertEquals("TCS should be allocated as recording device", tcsId, recordingService.getResourceId());
+        Assert.assertFalse("Recording should not be active", recordingService.isActive());
+        Assert.assertNull("Recording should not be recorded", recordingService.getRecordingId());
 
         // Check execution
         ExecutionResult result = runExecutor(dateTime);

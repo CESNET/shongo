@@ -1,12 +1,7 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
-import cz.cesnet.shongo.SimplePersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executor;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 
 import javax.persistence.*;
 
@@ -112,7 +107,8 @@ public abstract class ExecutableService extends ExecutionTarget
     {
         if (getState().equals(State.ACTIVE)) {
             throw new IllegalStateException(
-                    String.format("Executable service '%d' can be activated only if it is not activated yet.", getId()));
+                    String.format("Executable service '%d' can be activated only if it is not activated yet.",
+                            getId()));
         }
         State state = onActivate(executor, executableManager);
         setState(state);
