@@ -12,8 +12,7 @@
 </script>
 
 <h1>
-    <spring:message code="views.roomParticipantList.heading"/>
-    <spring:message code="views.room.for.${room.type}" arguments="${room.name}"/>
+    <spring:message code="views.roomParticipantList.heading"/>&nbsp;<spring:message code="views.room.for.${room.type}" arguments="${room.name}"/>
 </h1>
 
 <div ng-app="jsp:roomParticipantList">

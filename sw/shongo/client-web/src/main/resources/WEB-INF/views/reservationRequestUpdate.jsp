@@ -29,8 +29,8 @@
 <div ng-app="jsp:reservationRequestUpdate">
 
     <h1>
-        <spring:message code="${title}"/>
-        <spring:message code="views.reservationRequestUpdate.type.${reservationRequest.specificationType}"/>
+        <spring:message code="${title}"/>&nbsp;<%--
+        --%><spring:message code="views.reservationRequestUpdate.type.${reservationRequest.specificationType}"/>
     </h1>
 
     <tag:reservationRequestForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"

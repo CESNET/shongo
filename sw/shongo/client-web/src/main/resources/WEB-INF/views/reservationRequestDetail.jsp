@@ -46,8 +46,8 @@
         <c:otherwise>
             <spring:message code="views.reservationRequestDetail.title"/>
         </c:otherwise>
-    </c:choose>
-    <spring:message code="views.reservationRequest.for.${reservationRequest.specificationType}"
+    </c:choose>&nbsp;<%--
+    --%><spring:message code="views.reservationRequest.for.${reservationRequest.specificationType}"
                     arguments="${reservationRequest.roomName}"/>
 </h1>
 

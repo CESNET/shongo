@@ -12,8 +12,7 @@
 </script>
 
 <h1>
-    <spring:message code="views.userRoleList.heading"/>
-    ${headingFor}
+    <spring:message code="views.userRoleList.heading"/>&nbsp;${headingFor}
 </h1>
 
 <div ng-app="jsp:userRoleList">
