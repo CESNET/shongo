@@ -5,26 +5,21 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AliasReservation;
-import cz.cesnet.shongo.controller.api.AliasSetSpecification;
-import cz.cesnet.shongo.controller.api.AliasSpecification;
-import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.api.RoomSpecification;
-import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.request.*;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -225,9 +220,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
 
             if (reusedReservationRequestId != null) {
-                cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reusedReservationRequest = reservationRequestManager.get(
-                        EntityIdentifier.parseId(
-                                cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class, reusedReservationRequestId));
+                cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reusedReservationRequest = reservationRequestManager
+                        .get(
+                                EntityIdentifier.parseId(
+                                        cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
+                                        reusedReservationRequestId));
                 if (reusedReservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
                     authorizationManager.createAclRecordsForChildEntity(reusedReservationRequest, reservationRequest);
                 }
@@ -358,7 +355,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if(!abstractReservationRequest.getState().equals(
+            if (!abstractReservationRequest.getState().equals(
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.State.ACTIVE)) {
                 throw new ControllerReportSet.ReservationRequestNotRevertibleException(
                         EntityIdentifier.formatId(abstractReservationRequest));
@@ -367,7 +364,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (abstractReservationRequest instanceof ReservationRequest) {
                 ReservationRequest reservationRequest =
                         (ReservationRequest) abstractReservationRequest;
-                if ( reservationRequest.getAllocationState().equals(
+                if (reservationRequest.getAllocationState().equals(
                         ReservationRequest.AllocationState.ALLOCATED)) {
                     throw new ControllerReportSet.ReservationRequestNotRevertibleException(
                             EntityIdentifier.formatId(abstractReservationRequest));
@@ -822,7 +819,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             + " )");
                     queryFilter.addFilterParameter("alias",
                             cz.cesnet.shongo.controller.booking.alias.AliasReservation.class);
-                    queryFilter.addFilterParameter("raw", cz.cesnet.shongo.controller.booking.reservation.Reservation.class);
+                    queryFilter.addFilterParameter("raw",
+                            cz.cesnet.shongo.controller.booking.reservation.Reservation.class);
                 }
                 else {
                     // List only reservations of given classes
@@ -890,7 +888,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Filter reservations by technologies
             Set<Technology> technologies = request.getTechnologies();
             if (technologies.size() > 0) {
-                Iterator<cz.cesnet.shongo.controller.booking.reservation.Reservation> iterator = reservations.iterator();
+                Iterator<cz.cesnet.shongo.controller.booking.reservation.Reservation> iterator = reservations
+                        .iterator();
                 while (iterator.hasNext()) {
                     cz.cesnet.shongo.controller.booking.reservation.Reservation reservation = iterator.next();
                     if (reservation instanceof cz.cesnet.shongo.controller.booking.alias.AliasReservation) {

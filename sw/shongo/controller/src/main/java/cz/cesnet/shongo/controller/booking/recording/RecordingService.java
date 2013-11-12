@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
-
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -33,6 +31,13 @@ public class RecordingService extends ExecutableService
      * Current identifier of {@link cz.cesnet.shongo.api.Recording}.
      */
     private String recordingId;
+
+    /**
+     * Constructor.
+     */
+    public RecordingService()
+    {
+    }
 
     /**
      * @return {@link #recordingCapability}

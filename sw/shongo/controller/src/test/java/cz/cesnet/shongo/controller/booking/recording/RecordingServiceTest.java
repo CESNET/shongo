@@ -84,11 +84,17 @@ public class RecordingServiceTest extends AbstractExecutorTest
         roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequestId = getReservationService().modifyReservationRequest(
                 SECURITY_TOKEN, roomReservationRequest);
+        runScheduler(dateTime.plusHours(1));
+        roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
+        roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        roomExecutableId = roomExecutable.getId();
 
         // Check execution
-        result = runExecutor(dateTime);
-        Assert.assertEquals("One executable should be updated.",
-                1, result.getUpdatedExecutables().size());
+        result = runExecutor(dateTime.plusHours(1));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
         Assert.assertEquals("One executable service should be activated.",
                 1, result.getActivatedExecutableServices().size());
 

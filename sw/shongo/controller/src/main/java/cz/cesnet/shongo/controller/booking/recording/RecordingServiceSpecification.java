@@ -22,7 +22,7 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public RecordingServiceReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
         RecordingServiceReservationTask recordingServiceReservationTask =
                 new RecordingServiceReservationTask(schedulerContext);

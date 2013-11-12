@@ -105,8 +105,7 @@ public abstract class ReservationTask
         }
         catch (SchedulerException exception) {
             addReport(exception.getTopReport());
-            exception.setReport(getCurrentReport());
-            throw exception;
+            throw new SchedulerException(getCurrentReport());
         }
     }
 
@@ -242,7 +241,9 @@ public abstract class ReservationTask
     {
         SchedulerReport report = activeReports.pop();
 
-        report.addChildReport(errorReport);
+        if (errorReport != report) {
+            report.addChildReport(errorReport);
+        }
     }
 
     /**

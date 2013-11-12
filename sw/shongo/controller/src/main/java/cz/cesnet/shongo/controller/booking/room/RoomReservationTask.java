@@ -3,20 +3,24 @@ package cz.cesnet.shongo.controller.booking.room;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
-import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservationTask;
-import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
-import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
-import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
+import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
+import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.recording.RecordingService;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservationTask;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceSpecification;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -183,30 +187,6 @@ public class RoomReservationTask extends ReservationTask
             try {
                 Reservation reservation = allocateVariant(roomProviderVariant);
                 if (reservation != null) {
-                    Executable executable = reservation.getExecutable();
-                    if (executable != null) {
-                        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-                            if (serviceSpecification instanceof ReservationTaskProvider) {
-                                ReservationTaskProvider reservationTaskProvider =
-                                        (ReservationTaskProvider) serviceSpecification;
-                                ReservationTask serviceReservationTask =
-                                        reservationTaskProvider.createReservationTask(schedulerContext);
-                                if (serviceReservationTask instanceof RecordingServiceReservationTask) {
-                                    RecordingServiceReservationTask recordingServiceReservationTask =
-                                            (RecordingServiceReservationTask) serviceReservationTask;
-                                    recordingServiceReservationTask.setExecutable(executable);
-                                    addChildReservation(recordingServiceReservationTask);
-                                }
-                                else {
-                                    throw new TodoImplementException(serviceReservationTask.getClass());
-                                }
-
-                            }
-                            else {
-                                throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
-                            }
-                        }
-                    }
                     return reservation;
                 }
             }
@@ -496,6 +476,49 @@ public class RoomReservationTask extends ReservationTask
                     }
                     else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
                         roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
+                    }
+
+                    // Allocate automatic services
+                    RecordingService automaticRecordingService = null;
+                    if (roomProviderCapability.isRoomRecordable()) {
+                        automaticRecordingService = new RecordingService();
+                        RecordingCapability recordingCapability =
+                                deviceResource.getCapability(RecordingCapability.class);
+                        automaticRecordingService.setRecordingCapability(recordingCapability);
+                        automaticRecordingService.setSlot(interval);
+                        automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);
+                        roomEndpoint.addService(automaticRecordingService);
+                    }
+
+                    // Allocate requested services
+                    for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+                        if (serviceSpecification instanceof RecordingServiceSpecification) {
+                            RecordingServiceSpecification recordingServiceSpecification =
+                                    (RecordingServiceSpecification) serviceSpecification;
+                            if (automaticRecordingService != null) {
+                                // Recording don't have to be allocated
+                                if (recordingServiceSpecification.isEnabled()) {
+                                    // Recording should be automatically started
+                                    automaticRecordingService.setState(ExecutableService.State.PREPARED);
+                                }
+                            }
+                            else {
+                                // Recording must be allocated
+                                RecordingServiceReservationTask recordingServiceReservationTask =
+                                        recordingServiceSpecification.createReservationTask(schedulerContext);
+                                recordingServiceReservationTask.setExecutable(roomEndpoint);
+                                addChildReservation(recordingServiceReservationTask);
+                            }
+                        }
+                        else if (serviceSpecification instanceof ReservationTaskProvider) {
+                            ReservationTaskProvider reservationTaskProvider =
+                                    (ReservationTaskProvider) serviceSpecification;
+                            ReservationTask serviceReservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
+                            addChildReservation(serviceReservationTask);
+                        }
+                        else {
+                            throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
+                        }
                     }
                 }
             }
