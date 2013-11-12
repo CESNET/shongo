@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservationTask;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -23,7 +24,7 @@ import org.joda.time.Interval;
 import java.util.*;
 
 /**
- * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for a {@link RoomReservation}.
+ * Represents {@link ReservationTask} for a {@link RoomReservation}.<
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -182,6 +183,30 @@ public class RoomReservationTask extends ReservationTask
             try {
                 Reservation reservation = allocateVariant(roomProviderVariant);
                 if (reservation != null) {
+                    Executable executable = reservation.getExecutable();
+                    if (executable != null) {
+                        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+                            if (serviceSpecification instanceof ReservationTaskProvider) {
+                                ReservationTaskProvider reservationTaskProvider =
+                                        (ReservationTaskProvider) serviceSpecification;
+                                ReservationTask serviceReservationTask =
+                                        reservationTaskProvider.createReservationTask(schedulerContext);
+                                if (serviceReservationTask instanceof RecordingServiceReservationTask) {
+                                    RecordingServiceReservationTask recordingServiceReservationTask =
+                                            (RecordingServiceReservationTask) serviceReservationTask;
+                                    recordingServiceReservationTask.setExecutable(executable);
+                                    addChildReservation(recordingServiceReservationTask);
+                                }
+                                else {
+                                    throw new TodoImplementException(serviceReservationTask.getClass());
+                                }
+
+                            }
+                            else {
+                                throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
+                            }
+                        }
+                    }
                     return reservation;
                 }
             }

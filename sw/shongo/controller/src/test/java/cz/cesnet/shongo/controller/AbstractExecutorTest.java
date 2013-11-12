@@ -9,6 +9,8 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
+import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -242,6 +244,50 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
                 GetRoom getRoom = (GetRoom) command;
                 String roomId = getRoom.getRoomId();
                 return rooms.get(roomId);
+            }
+            return result;
+        }
+    }
+
+    /**
+     * Testing Connect agent.
+     */
+    public class ConnectTestAgent extends TestAgent
+    {
+        /**
+         * Rooms.
+         */
+        private Map<String, Room> rooms = new HashMap<String, Room>();
+
+        @Override
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        {
+            Object result = super.handleCommand(command, sender);
+            if (command instanceof CreateRoom) {
+                CreateRoom createRoom = (CreateRoom) command;
+                String roomId = String.valueOf(rooms.size() + 1);
+                rooms.put(roomId, createRoom.getRoom());
+                return roomId;
+            }
+            else if (command instanceof ModifyRoom) {
+                ModifyRoom modifyRoom = (ModifyRoom) command;
+                Room room = modifyRoom.getRoom();
+                String roomId = room.getId();
+                if (!rooms.containsKey(roomId)) {
+                    throw new RuntimeException("Room not found.");
+                }
+                rooms.put(roomId, room);
+                return roomId;
+            }
+            else if (command instanceof GetRoom) {
+                GetRoom getRoom = (GetRoom) command;
+                String roomId = getRoom.getRoomId();
+                return rooms.get(roomId);
+            }
+            else if (command instanceof StartRecording) {
+                return "1";
+            }
+            else if (command instanceof StopRecording) {
             }
             return result;
         }

@@ -23,11 +23,11 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * TODO:
+ * Represents {@link ReservationTask} for a {@link RecordingServiceReservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RecordingReservationTask extends ReservationTask
+public class RecordingServiceReservationTask extends ReservationTask
 {
     private Executable executable;
 
@@ -46,7 +46,7 @@ public class RecordingReservationTask extends ReservationTask
     /**
      * Constructor.
      */
-    public RecordingReservationTask(SchedulerContext schedulerContext)
+    public RecordingServiceReservationTask(SchedulerContext schedulerContext)
     {
         super(schedulerContext);
     }

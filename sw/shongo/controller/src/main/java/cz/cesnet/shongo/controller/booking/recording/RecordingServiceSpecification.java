@@ -24,9 +24,10 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
     @Override
     public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        RecordingReservationTask recordingReservationTask = new RecordingReservationTask(schedulerContext);
-        recordingReservationTask.setExecutable(getExecutable());
-        recordingReservationTask.setEnabled(isEnabled());
-        return recordingReservationTask;
+        RecordingServiceReservationTask recordingServiceReservationTask =
+                new RecordingServiceReservationTask(schedulerContext);
+        recordingServiceReservationTask.setExecutable(getExecutable());
+        recordingServiceReservationTask.setEnabled(isEnabled());
+        return recordingServiceReservationTask;
     }
 }

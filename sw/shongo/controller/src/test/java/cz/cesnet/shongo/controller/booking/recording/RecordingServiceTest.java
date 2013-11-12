@@ -36,20 +36,87 @@ public class RecordingServiceTest extends AbstractExecutorTest
     @Test
     public void testAlwaysRecordableRoom() throws Exception
     {
-        DeviceResource mcu = new DeviceResource();
-        mcu.setName("connect");
-        mcu.addTechnology(Technology.ADOBE_CONNECT);
-        mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
-        mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        ConnectTestAgent connectAgent = getController().addJadeAgent("connect", new ConnectTestAgent());
+
+        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
+
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10));
+        connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
+        connect.setAllocatable(true);
+        connect.setMode(new ManagedMode(connectAgent.getName()));
+        String connectId = getResourceService().createResource(SECURITY_TOKEN, connect);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
-        roomReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         roomReservationRequest.setSpecification(new RoomSpecification(5, Technology.ADOBE_CONNECT));
-        RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        String roomExecutableId = roomExecutable.getId();
+        RecordingService recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull("Recording service should be allocated.", recordingService);
+        Assert.assertEquals("Connect should be allocated as recording device", connectId, recordingService.getResourceId());
+        Assert.assertFalse("Recording should not be active", recordingService.isActive());
+        Assert.assertNull("Recording should not be recorded", recordingService.getRecordingId());
+
+        // Check execution
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("None executable service should be activated.",
+                0, result.getActivatedExecutableServices().size());
+
+        // Check executable after execution
+        roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
+        recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        Assert.assertEquals(connectId, recordingService.getResourceId());
+        Assert.assertNull(recordingService.getRecordingId());
+
+        // Request starting of the service
+        roomReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, roomReservationRequestId);
+        RoomSpecification roomSpecification = (RoomSpecification) roomReservationRequest.getSpecification();
+        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomReservationRequestId = getReservationService().modifyReservationRequest(
+                SECURITY_TOKEN, roomReservationRequest);
+
+        // Check execution
+        result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be updated.",
+                1, result.getUpdatedExecutables().size());
+        Assert.assertEquals("One executable service should be activated.",
+                1, result.getActivatedExecutableServices().size());
+
+        // Check executable after execution
+        roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
+        recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        Assert.assertEquals(connectId, recordingService.getResourceId());
+        Assert.assertTrue(recordingService.isActive());
+        Assert.assertNotNull(recordingService.getRecordingId());
+
+        // Check execution
+        result = runExecutor(dateTime.plusHours(2));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable service should be deactivated.",
+                1, result.getDeactivatedExecutableServices().size());
+
+        // Check performed actions on TCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, connectAgent.getPerformedCommandClasses());
+
     }
 
     /**
@@ -60,13 +127,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
     @Test
     public void testRoomRecordingAtOnce() throws Exception
     {
-        DeviceResource tcs = new DeviceResource();
-        tcs.setName("tcs");
-        tcs.addTechnology(Technology.H323);
-        tcs.addTechnology(Technology.SIP);
-        tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(5));
-        tcs.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, tcs);
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
+        TcsTestAgent tcsAgent = getController().addJadeAgent("tcs", new TcsTestAgent());
+
+        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -74,10 +138,20 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(2));
+        tcs.setAllocatable(true);
+        tcs.setMode(new ManagedMode(tcsAgent.getName()));
+        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
-        roomReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
@@ -87,6 +161,41 @@ public class RecordingServiceTest extends AbstractExecutorTest
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        String roomExecutableId = roomExecutable.getId();
+        RecordingService recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull("Recording service should be allocated.", recordingService);
+        Assert.assertEquals("TCS should be allocated as recording device", tcsId, recordingService.getResourceId());
+        Assert.assertFalse("Recording should not be active", recordingService.isActive());
+        Assert.assertNull("Recording should not be recorded", recordingService.getRecordingId());
+
+        // Check execution
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("One executable service should be activated.",
+                1, result.getActivatedExecutableServices().size());
+
+        // Check executable after execution
+        roomExecutable = (RoomExecutable) getExecutableService().getExecutable(SECURITY_TOKEN, roomExecutableId);
+        recordingService = roomExecutable.getService(RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        Assert.assertEquals(tcsId, recordingService.getResourceId());
+        Assert.assertTrue(recordingService.isActive());
+        Assert.assertNotNull(recordingService.getRecordingId());
+
+        // Check execution
+        result = runExecutor(dateTime.plusHours(2));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable service should be deactivated.",
+                1, result.getDeactivatedExecutableServices().size());
+
+        // Check performed actions on TCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+            }}, tcsAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -108,7 +217,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        mcu.setMode(new ManagedMode("mcu"));
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         DeviceResource tcs = new DeviceResource();
@@ -117,7 +226,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         tcs.addTechnology(Technology.SIP);
         tcs.addCapability(new RecordingCapability(2));
         tcs.setAllocatable(true);
-        tcs.setMode(new ManagedMode("tcs"));
+        tcs.setMode(new ManagedMode(tcsAgent.getName()));
         String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -130,8 +239,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
-        cz.cesnet.shongo.controller.api.RecordingService recordingService = roomExecutable.getService(
-                cz.cesnet.shongo.controller.api.RecordingService.class);
+        RecordingService recordingService = roomExecutable.getService(RecordingService.class);
         String roomExecutableId = roomExecutable.getId();
         Assert.assertNull(recordingService);
 
@@ -161,6 +269,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         recordingService = roomExecutable.getService(RecordingService.class);
         Assert.assertNotNull(recordingService);
         Assert.assertEquals(tcsId, recordingService.getResourceId());
+        Assert.assertTrue(recordingService.isActive());
         Assert.assertNotNull(recordingService.getRecordingId());
 
         // Check execution
@@ -204,7 +313,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
             if (command instanceof StartRecording) {
                 return "1";
             }
-            if (command instanceof StopRecording) {
+            else if (command instanceof StopRecording) {
             }
             return result;
         }
