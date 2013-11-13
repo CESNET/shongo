@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -47,6 +50,21 @@ public class RecordingService extends ExecutableService
     public RecordingCapability getRecordingCapability()
     {
         return recordingCapability;
+    }
+
+    /**
+     * @return {@link #executable} as {@link RecordableEndpoint}
+     */
+    @Transient
+    public RecordableEndpoint getRecordingEndpoint()
+    {
+        if (executable instanceof RecordableEndpoint) {
+            return (RecordableEndpoint) executable;
+        }
+        else {
+            throw new TodoImplementException(
+                    executable.getClass() + " doesn't implement " + RecordableEndpoint.class.getSimpleName() + ".");
+        }
     }
 
     /**
@@ -112,8 +130,30 @@ public class RecordingService extends ExecutableService
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            executor.getLogger().warn("!!!FILL StartRecording ARGUMENTS!!!");
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new StartRecording());
+            RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+            String recordingFolderId;
+            synchronized (RecordableEndpoint.SYNCHRONIZATION.get(recordableEndpoint.getId())) {
+                recordingFolderId = recordableEndpoint.getRecordingFolderId();
+                if (recordingFolderId == null) {
+                    SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRecordingFolder(
+                            recordableEndpoint.getRecordingFolderDescription()));
+                    if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                        recordingFolderId = (String) sendLocalCommand.getResult();
+                        recordableEndpoint.setRecordingFolderId(recordingFolderId);
+
+                    }
+                    else {
+                        executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                                sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                        return State.ACTIVATION_FAILED;
+                    }
+                }
+            }
+
+            Alias alias = recordableEndpoint.getRecordingAlias();
+
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new StartRecording(recordingFolderId, alias.toApi()));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 recordingId = (String) sendLocalCommand.getResult();
                 if (recordingId == null) {

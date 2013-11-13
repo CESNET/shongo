@@ -483,7 +483,7 @@ public class RoomReservationTask extends ReservationTask
                     if (roomProviderCapability.isRoomRecordable()) {
                         automaticRecordingService = new RecordingService();
                         RecordingCapability recordingCapability =
-                                deviceResource.getCapability(RecordingCapability.class);
+                                deviceResource.getCapabilityRequired(RecordingCapability.class);
                         automaticRecordingService.setRecordingCapability(recordingCapability);
                         automaticRecordingService.setSlot(interval);
                         automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);

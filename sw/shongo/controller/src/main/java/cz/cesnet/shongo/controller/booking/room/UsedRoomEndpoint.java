@@ -3,6 +3,7 @@
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
@@ -130,6 +131,13 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
             usedRoomExecutableEndpointApi.addRoomSetting(roomSetting.toApi());
         }
+    }
+
+    @Transient
+    @Override
+    public DeviceResource getDeviceResource()
+    {
+        return roomEndpoint.getDeviceResource();
     }
 
     @Override

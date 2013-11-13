@@ -16,7 +16,7 @@ public abstract class ExecutableService extends ExecutionTarget
     /**
      * {@link Executable} for which the {@link ExecutableService} is allocated.
      */
-    private Executable executable;
+    protected Executable executable;
 
     /**
      * @see State

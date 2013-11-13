@@ -179,6 +179,21 @@ public class Resource extends PersistentObject implements ReportableComplex
 
     /**
      * @param capabilityType
+     * @return capability of given {@code capabilityType} if exists, null otherwise
+     * @throws IllegalStateException when multiple capabilities of given {@code capabilityType} exists
+     */
+    public <T extends Capability> T getCapabilityRequired(Class<T> capabilityType)
+    {
+        T capability = getCapability(capabilityType);
+        if (capability == null) {
+            throw new RuntimeException("Resource '" + EntityIdentifier.formatId(this)
+                    + "' doesn't have required capability " + capabilityType.getSimpleName() + ".");
+        }
+        return capability;
+    }
+
+    /**
+     * @param capabilityType
      * @return list of capabilities with given {@code capabilityType}
      */
     public <T extends Capability> List<T> getCapabilities(Class<T> capabilityType)

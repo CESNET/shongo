@@ -77,6 +77,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      * @return {@link DeviceResource} for the {@link #roomProviderCapability}
      */
     @Transient
+    @Override
     public DeviceResource getDeviceResource()
     {
         return roomProviderCapability.getDeviceResource();

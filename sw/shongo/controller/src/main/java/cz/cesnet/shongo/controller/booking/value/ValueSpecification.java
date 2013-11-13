@@ -173,11 +173,7 @@ public class ValueSpecification extends Specification
                 Resource.class, valueSpecificationApi.getResourceId());
         ResourceManager resourceManager = new ResourceManager(entityManager);
         Resource resource = resourceManager.get(resourceId);
-        ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
-        if (valueProviderCapability == null) {
-            throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
-                    valueSpecificationApi.getResourceId(), ValueProviderCapability.class.getSimpleName()));
-        }
+        ValueProviderCapability valueProviderCapability = resource.getCapabilityRequired(ValueProviderCapability.class);
         setValueProvider(valueProviderCapability.getValueProvider());
 
         Synchronization.synchronizeCollection(values, valueSpecificationApi.getValues());

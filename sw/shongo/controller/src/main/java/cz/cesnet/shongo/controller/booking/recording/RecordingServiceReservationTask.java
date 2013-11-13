@@ -70,21 +70,26 @@ public class RecordingServiceReservationTask extends ReservationTask
 
         // Check executable
         Set<Technology> technologies = new HashSet<Technology>();
-        if (executable instanceof RoomEndpoint) {
-            RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
-            RoomProviderCapability roomProviderCapability = getRoomProvider(roomEndpoint);
-            DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
+
+        if (executable instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) executable;
+            DeviceResource deviceResource = recordableEndpoint.getDeviceResource();
             RecordingCapability recordingCapability = deviceResource.getCapability(RecordingCapability.class);
 
             // Set required technologies for recorder
-            technologies.addAll(roomEndpoint.getTechnologies());
+            technologies.addAll(recordableEndpoint.getTechnologies());
 
             // If room is not automatically recordable
             if (recordingCapability == null) {
-                // Allocate room license for recording
-                RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, 1, false);
-                roomReservationTask.setRoomProviderCapability(roomProviderCapability);
-                addChildReservation(roomReservationTask);
+                // Additional allocate something for executable
+                if (executable instanceof RoomEndpoint) {
+                    // Allocate one room license for recording
+                    RoomProviderCapability roomProviderCapability =
+                            deviceResource.getCapabilityRequired(RoomProviderCapability.class);
+                    RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, 1, false);
+                    roomReservationTask.setRoomProviderCapability(roomProviderCapability);
+                    addChildReservation(roomReservationTask);
+                }
             }
             else {
                 // Check whether licenses aren't unlimited (otherwise the rooms are always recordable
@@ -96,7 +101,8 @@ public class RecordingServiceReservationTask extends ReservationTask
             }
         }
         else {
-            throw new TodoImplementException(executable.getClass());
+            throw new TodoImplementException(
+                    executable.getClass() + " doesn't implement " + RecordableEndpoint.class.getSimpleName() + ".");
         }
 
         // Find matching recorders
@@ -198,25 +204,6 @@ public class RecordingServiceReservationTask extends ReservationTask
             return recordingServiceReservation;
         }
         throw new SchedulerException(getCurrentReport());
-    }
-
-    /**
-     * @param roomEndpoint
-     * @return {@link RoomProviderCapability} for given {@code roomEndpoint}
-     */
-    private RoomProviderCapability getRoomProvider(RoomEndpoint roomEndpoint)
-    {
-        if (roomEndpoint instanceof ResourceRoomEndpoint) {
-            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-            return resourceRoomEndpoint.getRoomProviderCapability();
-        }
-        else if (roomEndpoint instanceof UsedRoomEndpoint) {
-            UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
-            return getRoomProvider(usedRoomEndpoint.getRoomEndpoint());
-        }
-        else {
-            throw new TodoImplementException(roomEndpoint.getClass());
-        }
     }
 
     /**

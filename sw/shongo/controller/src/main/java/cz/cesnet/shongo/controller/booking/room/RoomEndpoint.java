@@ -2,9 +2,14 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
@@ -32,7 +37,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class RoomEndpoint extends Endpoint
+public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoint
 {
     /**
      * @see RoomConfiguration
@@ -48,6 +53,11 @@ public abstract class RoomEndpoint extends Endpoint
      * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the {@link RoomEndpoint}.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * @see RecordableEndpoint#getRecordingFolderId()
+     */
+    private String recordingFolderId;
 
     /**
      * @return {@link #roomConfiguration}
@@ -88,10 +98,10 @@ public abstract class RoomEndpoint extends Endpoint
     public final String getRoomDescriptionApi()
     {
         if (roomDescription != null) {
-            return String.format("[exe:%d] %s", getId(), roomDescription);
+            return String.format("[%s:exe:%d] %s", Domain.getLocalDomainName(), getId(), roomDescription);
         }
         else {
-            return String.format("[exe:%d]", getId());
+            return String.format("[%s:exe:%d]", Domain.getLocalDomainName(), getId());
         }
     }
 
@@ -124,6 +134,19 @@ public abstract class RoomEndpoint extends Endpoint
         participants.add(participant);
     }
 
+    @Column
+    @Override
+    public String getRecordingFolderId()
+    {
+        return recordingFolderId;
+    }
+
+    @Override
+    public void setRecordingFolderId(String recordingFolderId)
+    {
+        this.recordingFolderId = recordingFolderId;
+    }
+
     @Override
     @Transient
     public int getCount()
@@ -139,6 +162,30 @@ public abstract class RoomEndpoint extends Endpoint
             throw new IllegalStateException("Room configuration hasn't been set yet.");
         }
         return roomConfiguration.getTechnologies();
+    }
+
+    @Transient
+    @Override
+    public Alias getRecordingAlias()
+    {
+        Alias callableAlias = null;
+        for (Alias alias : getAliases()) {
+            if (alias.isCallable()) {
+                callableAlias = alias;
+                break;
+            }
+        }
+        if (callableAlias == null) {
+            throw new RuntimeException("No callable alias exists for '" + EntityIdentifier.formatId(this) + ".");
+        }
+        return callableAlias;
+    }
+
+    @Transient
+    @Override
+    public String getRecordingFolderDescription()
+    {
+        return String.format("[%s:exe:%d][res:%d][room:%s]", Domain.getLocalDomainName(), getId(), getDeviceResource().getId(), getRoomId());
     }
 
     /**

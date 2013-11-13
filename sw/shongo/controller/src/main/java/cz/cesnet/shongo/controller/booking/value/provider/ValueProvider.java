@@ -176,11 +176,8 @@ public abstract class ValueProvider extends SimplePersistentObject
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, (String) object);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
-            ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
-            if (valueProviderCapability == null) {
-                throw new RuntimeException(String.format("Resource '%s' doesn't have value provider capability.",
-                        resourceId));
-            }
+            ValueProviderCapability valueProviderCapability =
+                    resource.getCapabilityRequired(ValueProviderCapability.class);
             if (valueProvider != null) {
                 entityManager.remove(valueProvider);
             }

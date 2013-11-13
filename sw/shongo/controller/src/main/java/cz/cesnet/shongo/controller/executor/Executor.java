@@ -33,7 +33,7 @@ public class Executor extends SwitchableComponent
     /**
      * {@link EntityManagerFactory} used for loading {@link Executable}s for execution.
      */
-    private EntityManagerFactory entityManagerFactory;
+    public EntityManagerFactory entityManagerFactory;
 
     /**
      * @see cz.cesnet.shongo.controller.ControllerAgent

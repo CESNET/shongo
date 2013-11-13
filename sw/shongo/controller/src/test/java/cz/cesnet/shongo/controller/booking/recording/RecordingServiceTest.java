@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -43,7 +45,8 @@ public class RecordingServiceTest extends AbstractExecutorTest
         DeviceResource connect = new DeviceResource();
         connect.setName("connect");
         connect.addTechnology(Technology.ADOBE_CONNECT);
-        connect.addCapability(new RoomProviderCapability(10));
+        connect.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
+        connect.addCapability(new AliasProviderCapability("{hash}@cesnet.cz", AliasType.ADOBE_CONNECT_URI));
         connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
         connect.setAllocatable(true);
         connect.setMode(new ManagedMode(connectAgent.getName()));
@@ -118,6 +121,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
@@ -142,7 +146,8 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164}));
+        mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -199,6 +204,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
@@ -221,7 +227,8 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164}));
+        mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -288,6 +295,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
@@ -316,8 +324,11 @@ public class RecordingServiceTest extends AbstractExecutorTest
         public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
             Object result = super.handleCommand(command, sender);
-            if (command instanceof StartRecording) {
-                return "1";
+            if (command instanceof CreateRecordingFolder) {
+                return "folder1";
+            }
+            else if (command instanceof StartRecording) {
+                return "recording1";
             }
             else if (command instanceof StopRecording) {
             }

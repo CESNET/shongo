@@ -7,7 +7,7 @@ import cz.cesnet.shongo.Technology;
 import javax.persistence.*;
 
 /**
- * Represents a specific technology alias.
+ * Represents an identifier/number or any other value depicting some callable target.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -51,6 +51,15 @@ public class Alias extends SimplePersistentObject implements Cloneable
     public AliasType getType()
     {
         return type;
+    }
+
+    /**
+     * @return {@link AliasType#isCallable()}
+     */
+    @Transient
+    public boolean isCallable()
+    {
+        return type.isCallable();
     }
 
     /**

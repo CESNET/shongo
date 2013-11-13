@@ -84,6 +84,14 @@ public enum AliasType
     }
 
     /**
+     * @return {@link AliasValueType#callable} for {@link #valueType}
+     */
+    public boolean isCallable()
+    {
+        return valueType.isCallable();
+    }
+
+    /**
      * @return formatted given {@code aliasTypes} as string
      */
     public static String formatAliasTypes(Set<AliasType> aliasTypes)

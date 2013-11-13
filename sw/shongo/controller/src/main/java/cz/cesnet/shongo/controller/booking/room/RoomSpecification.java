@@ -264,7 +264,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     {
         RoomProviderCapability roomProviderCapability = null;
         if (deviceResource != null) {
-            roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
+            roomProviderCapability = deviceResource.getCapabilityRequired(RoomProviderCapability.class);
         }
 
         RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, getParticipantCount());

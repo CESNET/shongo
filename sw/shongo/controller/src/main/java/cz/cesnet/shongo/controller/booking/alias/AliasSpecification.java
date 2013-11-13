@@ -376,11 +376,7 @@ public class AliasSpecification extends Specification
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, aliasSpecificationApi.getResourceId());
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
-            AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
-            if (aliasProviderCapability == null) {
-                throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
-                        AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId()));
-            }
+            AliasProviderCapability aliasProviderCapability = resource.getCapabilityRequired(AliasProviderCapability.class);
             setAliasProviderCapability(aliasProviderCapability);
         }
         setPermanentRoom(aliasSpecificationApi.isPermanentRoom());
