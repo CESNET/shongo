@@ -92,6 +92,11 @@ public class RoomModel
     private List<Participant> participants = new LinkedList<Participant>();
 
     /**
+     * {@link RecordingService} for recording the room.
+     */
+    private RecordingService recordingService;
+
+    /**
      * Constructor.
      *
      * @param roomExecutable       to initialize the {@link RoomModel} from
@@ -176,6 +181,9 @@ public class RoomModel
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
         }
+
+        // Recordable
+        this.recordingService = roomExecutable.getService(RecordingService.class);
     }
 
     /**
@@ -316,6 +324,22 @@ public class RoomModel
                 participant.setNullId();
             }
         }
+    }
+
+    /**
+     * @return {@link #recordingService}
+     */
+    public RecordingService getRecordingService()
+    {
+        return recordingService;
+    }
+
+    /**
+     * @return {@link #recordingService} is not null
+     */
+    public boolean isRecordable()
+    {
+        return recordingService != null;
     }
 
     /**

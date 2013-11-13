@@ -75,6 +75,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected Integer roomPin;
 
+    protected boolean roomRecorded;
+
     protected AdobeConnectAccessMode roomAccessMode;
 
     protected List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
@@ -307,6 +309,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomPin = roomPin;
     }
 
+    public boolean isRoomRecorded()
+    {
+        return roomRecorded;
+    }
+
+    public void setRoomRecorded(boolean roomRecorded)
+    {
+        this.roomRecorded = roomRecorded;
+    }
+
     public AdobeConnectAccessMode getRoomAccessMode()
     {
         return roomAccessMode;
@@ -448,6 +460,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             roomParticipants.clear();
             for (AbstractParticipant participant : roomSpecification.getParticipants()) {
                 roomParticipants.add(new ParticipantModel(participant, cacheProvider));
+            }
+            for (ExecutableServiceSpecification serviceSpecification : roomSpecification.getServiceSpecifications()) {
+                switch (serviceSpecification.getType()) {
+                    case RECORDING:
+                        roomRecorded = serviceSpecification.isEnabled();
+                        break;
+                }
             }
         }
         else {
@@ -592,6 +611,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
+                if (roomRecorded) {
+                    roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+                }
                 for (ParticipantModel participant : roomParticipants) {
                     if (participant.getId() == null) {
                         continue;
@@ -644,6 +666,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     }
                     adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+                }
+                if (roomRecorded) {
+                    roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
                 for (ParticipantModel participant : roomParticipants) {
                     if (participant.getId() == null) {

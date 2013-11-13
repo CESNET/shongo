@@ -36,6 +36,7 @@ public class AllocationStateReportMessages
     public static final String ALLOCATING_ALIAS = "allocating-alias";
     public static final String ALLOCATING_VALUE = "allocating-value";
     public static final String ALLOCATING_ROOM = "allocating-room";
+    public static final String ALLOCATING_RECORDING_SERVICE = "allocating-recording-service";
     public static final String ALLOCATING_COMPARTMENT = "allocating-compartment";
     public static final String ALLOCATING_EXECUTABLE = "allocating-executable";
     public static final String SPECIFICATION_CHECKING_AVAILABILITY = "specification-checking-availability";
@@ -77,6 +78,7 @@ public class AllocationStateReportMessages
         addMessage(ALLOCATING_ALIAS, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating alias for the following specification: \n  Technology: ${ifEmpty(technologies, \"Any\")} \n  Alias Type: ${ifEmpty(aliasTypes, \"Any\")} \n       Value: ${ifEmpty(value, \"Any\")}");
         addMessage(ALLOCATING_VALUE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating value in the resource ${resource.id}.");
         addMessage(ALLOCATING_ROOM, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating room for the following specification: \n    Technology: ${technologies} \n  Participants: ${participantCount}");
+        addMessage(ALLOCATING_RECORDING_SERVICE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating recording service for the following specification: \n    Enabled: ${enabled}");
         addMessage(ALLOCATING_COMPARTMENT, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating compartment.");
         addMessage(ALLOCATING_EXECUTABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating executable.");
         addMessage(SPECIFICATION_CHECKING_AVAILABILITY, new Report.UserType[]{}, Report.Language.ENGLISH, "Checking specification availability report.");

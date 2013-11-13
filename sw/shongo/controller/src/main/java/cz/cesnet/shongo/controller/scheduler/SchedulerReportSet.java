@@ -2702,6 +2702,74 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Allocating recording service for the following specification: 
+     *     Enabled: {@link #enabled}
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("AllocatingRecordingServiceReport")
+    public static class AllocatingRecordingServiceReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected Boolean enabled;
+
+        public AllocatingRecordingServiceReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "allocating-recording-service";
+        }
+
+        public AllocatingRecordingServiceReport(Boolean enabled)
+        {
+            setEnabled(enabled);
+        }
+
+        @javax.persistence.Column
+        public Boolean getEnabled()
+        {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled)
+        {
+            this.enabled = enabled;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("enabled", enabled);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("allocating-recording-service", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
      * Allocating compartment.
      */
     @javax.persistence.Entity
@@ -3415,6 +3483,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(AllocatingAliasReport.class);
         addReportClass(AllocatingValueReport.class);
         addReportClass(AllocatingRoomReport.class);
+        addReportClass(AllocatingRecordingServiceReport.class);
         addReportClass(AllocatingCompartmentReport.class);
         addReportClass(AllocatingExecutableReport.class);
         addReportClass(SpecificationCheckingAvailabilityReport.class);

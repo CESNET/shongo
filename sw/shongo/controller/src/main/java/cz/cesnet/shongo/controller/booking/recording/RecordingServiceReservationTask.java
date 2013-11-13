@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.recording;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.TechnologySet;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -11,10 +12,7 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
+import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -33,6 +31,14 @@ public class RecordingServiceReservationTask extends ReservationTask
 
     private boolean enabled;
 
+    /**
+     * Constructor.
+     */
+    public RecordingServiceReservationTask(SchedulerContext schedulerContext)
+    {
+        super(schedulerContext);
+    }
+
     public void setExecutable(Executable executable)
     {
         this.executable = executable;
@@ -43,12 +49,10 @@ public class RecordingServiceReservationTask extends ReservationTask
         this.enabled = enabled;
     }
 
-    /**
-     * Constructor.
-     */
-    public RecordingServiceReservationTask(SchedulerContext schedulerContext)
+    @Override
+    protected SchedulerReport createMainReport()
     {
-        super(schedulerContext);
+        return new SchedulerReportSet.AllocatingRecordingServiceReport(enabled);
     }
 
     @Override

@@ -98,6 +98,7 @@ public abstract class Type
     }
 
     static {
+        types.put("Boolean", new AtomicType("Boolean"));
         types.put("Integer", new AtomicType("Integer"));
         types.put("String", new AtomicType("String")
         {

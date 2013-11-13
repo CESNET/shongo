@@ -25,6 +25,7 @@ our $Type = ordered_hash(
     'TerminalCapability' => 'Terminal',
     'StandaloneTerminalCapability' => 'Standalone Terminal',
     'RoomProviderCapability' => 'Room Provider',
+    'RecordingCapability' => 'Recording',
 );
 
 #
@@ -157,6 +158,13 @@ sub on_init()
             $self->add_attribute('permanentRoom', {
                 'title' => 'Permanent Room',
                 'type' => 'bool'
+            });
+        }
+        case 'RecordingCapability' {
+            $self->add_attribute('licenseCount', {
+                'title' => 'Number of Licenses',
+                'required' => 0,
+                'type' => 'int'
             });
         }
     }

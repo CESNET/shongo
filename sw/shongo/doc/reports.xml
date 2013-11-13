@@ -1322,6 +1322,22 @@
         </report>
 
         <report>
+            <id>allocating-recording-service</id>
+            <classification severity="info"/>
+            <params>
+                <param name="enabled" type="Boolean"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Allocating recording service for the following specification:
+                \n    Enabled: ${enabled}
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
             <id>allocating-compartment</id>
             <classification severity="info"/>
             <description>

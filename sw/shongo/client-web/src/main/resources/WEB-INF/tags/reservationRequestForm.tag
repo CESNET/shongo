@@ -357,6 +357,17 @@
                     <form:errors path="roomPin" cssClass="error"/>
                 </div>
             </div>
+
+            <div class="control-group">
+                <form:label class="control-label" path="roomRecorded">
+                    <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
+                </form:label>
+                <div class="controls">
+                    <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" value="xx"/>
+                    <form:errors path="roomRecorded" cssClass="error"/>&nbsp;<%--
+                    --%><tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
+                </div>
+            </div>
         </c:if>
 
     </fieldset>

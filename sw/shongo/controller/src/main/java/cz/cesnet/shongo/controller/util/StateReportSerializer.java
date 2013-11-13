@@ -35,7 +35,7 @@ public class StateReportSerializer extends HashMap<String, Object>
         for (Map.Entry<String, Object> parameter : report.getParameters().entrySet()) {
             String name = parameter.getKey();
             Object value = parameter.getValue();
-            if (value instanceof String || value instanceof Integer || value instanceof Enum) {
+            if (value instanceof String || value instanceof Integer || value instanceof Enum || value instanceof Boolean) {
                 put(name, value);
             }
             else if (value instanceof DateTime || value instanceof Interval || value instanceof Period) {
