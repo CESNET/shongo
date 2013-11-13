@@ -4,6 +4,8 @@ import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executor;
 
 import javax.persistence.*;
+import java.util.Collection;
+import java.util.LinkedList;
 
 /**
  * Represents a service for an {@link Executable}.
@@ -68,6 +70,15 @@ public abstract class ExecutableService extends ExecutionTarget
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    @Transient
+    @Override
+    public Collection<? extends ExecutionTarget> getExecutionDependencies()
+    {
+        Collection<ExecutionTarget> executionTargets = new LinkedList<ExecutionTarget>();
+        executionTargets.add(executable);
+        return executionTargets;
     }
 
     /**

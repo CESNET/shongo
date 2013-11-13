@@ -152,9 +152,6 @@ public abstract class Executable extends ExecutionTarget
         childExecutables.add(executable);
     }
 
-    /**
-     * @return collection of execution dependencies
-     */
     @Transient
     @Override
     public Collection<? extends ExecutionTarget> getExecutionDependencies()

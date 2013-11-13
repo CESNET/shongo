@@ -159,11 +159,10 @@ public class ExecutionPlan
             }
         }
         // Find actions for popping
-        for (Iterator<ExecutionAction> iterator = satisfiedActions.iterator(); iterator.hasNext(); ) {
-            ExecutionAction executionAction = iterator.next();
+        for (ExecutionAction executionAction : new LinkedList<ExecutionAction>(satisfiedActions)) {
             if (executionAction.isSkipPerform()) {
-                completedActions.add(executionAction);
-                iterator.remove();
+                completeExecutionAction(executionAction);
+                satisfiedActions.remove(executionAction);
                 continue;
             }
             int actionPriority = executionAction.getExecutionPriority();
@@ -215,6 +214,14 @@ public class ExecutionPlan
         if (!poppedActions.remove(executionAction)) {
             throw new IllegalArgumentException("Execution action hasn't been popped (or has already been removed).");
         }
+        completeExecutionAction(executionAction);
+    }
+
+    /**
+     * @param executionAction to be marked as completed and to satisfy all dependents
+     */
+    private void completeExecutionAction(ExecutionAction<?> executionAction)
+    {
         completedActions.add(executionAction);
         for (ExecutionAction parentExecutionAction : executionAction.parents) {
             parentExecutionAction.dependencies.remove(executionAction);

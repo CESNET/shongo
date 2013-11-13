@@ -613,6 +613,13 @@ public abstract class ExecutionAction<T> extends Thread
         }
 
         @Override
+        protected void createDependency(ExecutionAction actionFrom, ExecutionAction actionTo)
+        {
+            // Deactivation must be done in reverse order than activation
+            super.createDependency(actionTo, actionFrom);
+        }
+
+        @Override
         protected void perform(ExecutableManager executableManager)
         {
             try {
