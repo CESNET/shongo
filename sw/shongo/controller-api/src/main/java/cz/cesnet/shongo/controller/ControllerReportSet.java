@@ -26,6 +26,7 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int RESERVATION_REQUEST_EMPTY_DURATION = 114;
     public static final int RESERVATION_REQUEST_NOT_REUSABLE = 115;
     public static final int EXECUTABLE_INVALID_CONFIGURATION = 116;
+    public static final int EXECUTABLE_NOT_RECORDABLE = 117;
 
     /**
      * Set of report messages.
@@ -48,6 +49,7 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
         addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
         addMessage("executable-invalid-configuration", new Report.UserType[]{}, Report.Language.ENGLISH, "Configuration ${configuration} is invalid for executable with identifier ${id}.");
+        addMessage("executable-not-recordable", new Report.UserType[]{}, Report.Language.ENGLISH, "Executable with identifier ${id} isn't recordable.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
@@ -2474,6 +2476,143 @@ public class ControllerReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Executable with identifier {@link #id} isn't recordable.
+     */
+    public static class ExecutableNotRecordableReport extends AbstractReport implements ApiFault
+    {
+        protected String id;
+
+        public ExecutableNotRecordableReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-not-recordable";
+        }
+
+        public ExecutableNotRecordableReport(String id)
+        {
+            setId(id);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return EXECUTABLE_NOT_RECORDABLE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ExecutableNotRecordableException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("id", id);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("executable-not-recordable", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ExecutableNotRecordableReport}.
+     */
+    public static class ExecutableNotRecordableException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ExecutableNotRecordableException(ExecutableNotRecordableReport report)
+        {
+            this.report = report;
+        }
+
+        public ExecutableNotRecordableException(Throwable throwable, ExecutableNotRecordableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ExecutableNotRecordableException(String id)
+        {
+            ExecutableNotRecordableReport report = new ExecutableNotRecordableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public ExecutableNotRecordableException(Throwable throwable, String id)
+        {
+            super(throwable);
+            ExecutableNotRecordableReport report = new ExecutableNotRecordableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        @Override
+        public ExecutableNotRecordableReport getReport()
+        {
+            return (ExecutableNotRecordableReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ExecutableNotRecordableReport) report;
+        }
+    }
+
     @Override
     protected void fillReportClasses()
     {
@@ -2494,5 +2633,6 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(ReservationRequestEmptyDurationReport.class);
         addReportClass(ReservationRequestNotReusableReport.class);
         addReportClass(ExecutableInvalidConfigurationReport.class);
+        addReportClass(ExecutableNotRecordableReport.class);
     }
 }

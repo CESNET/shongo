@@ -471,8 +471,8 @@ sub control_resource()
     if (grep $_ eq 'listRecordings', @supportedMethods) {
         $shell->add_commands({
             "list-recordings" => {
-                desc => "List recordings in a given room",
-                minargs => 1, args => "[roomId]",
+                desc => "List recordings in a given folder",
+                minargs => 1, args => "[recordingFolderId]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
                     resource_list_recordings($resourceId, $args[0]);
@@ -1100,18 +1100,20 @@ sub resource_get_device_load_info
 
 sub resource_list_recordings
 {
-    my ($resourceId, $roomId) = @_;
+    my ($resourceId, $recordingFolderId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.listRoomRecordings',
+        'ResourceControl.listRecordings',
         RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId)
+        RPC::XML::string->new($recordingFolderId)
     );
     if ( !defined($response) ) {
         return;
     }
     my $table = {
         'columns' => [
+            {'field' => 'name',  'title' => 'Name'},
+            {'field' => 'date',  'title' => 'Date'},
             {'field' => 'url',   'title' => 'URL'}
         ],
         'data' => []
@@ -1119,7 +1121,9 @@ sub resource_list_recordings
     # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $recording (@{$response}) {
         push(@{$table->{'data'}}, {
-            'url' => $recording
+            'name' => $recording->{'name'},
+            'date' => $recording->{'beginDate'},
+            'url' => $recording->{'url'}
         });
     }
     console_print_table($table);

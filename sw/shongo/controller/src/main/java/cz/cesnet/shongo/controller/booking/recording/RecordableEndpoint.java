@@ -41,18 +41,19 @@ public interface RecordableEndpoint
     public String getRecordingFolderDescription();
 
     /**
-     * @return identifier of recording folder where all recording should be stored
+     * @param recordingCapability for which the identifier of the folder should be returned
+     * @return identifier of recording folder where all recordings should be stored
      */
-    public String getRecordingFolderId();
+    public String getRecordingFolderId(RecordingCapability recordingCapability);
 
     /**
-     * @param recordingFolderId sets the value returned by {@link #getRecordingFolderId()}
+     * @param recordingFolderId sets the value returned by {@link #getRecordingFolderId}
      */
-    public void setRecordingFolderId(String recordingFolderId);
+    public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId);
 
     /**
-     * {@link cz.cesnet.shongo.controller.util.IdentifierSynchronization} for {@link RecordableEndpoint}s.
+     * {@link IdentifierSynchronization} for {@link RecordableEndpoint#getRecordingFolderId} and
+     * {@link RecordableEndpoint#putRecordingFolderId}.
      */
     public static IdentifierSynchronization SYNCHRONIZATION = new IdentifierSynchronization();
-
 }

@@ -354,7 +354,7 @@
     </c:if>
 
     <%-- Runtime management - Recordings --%>
-    <c:if test="${!roomNotAvailable && room.started && room.recordable}">
+    <c:if test="${room.recordable}">
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA %>" var="roomRecordingsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>
@@ -362,10 +362,37 @@
              ng-init="init('room.recordings', '${roomRecordingsUrl}', {id: '${room.id}'})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
+            <h2><spring:message code="views.room.recordings"/></h2>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.room.recordings"/></h2>
+            <div>
+                <c:choose>
+                    <c:when test="${room.started}">
+                        <c:choose>
+                            <c:when test="${room.recordingService.active}">
+                                <a class="btn" href="">
+                                    <spring:message code="views.room.recording.stop"/>
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <a class="btn" href="">
+                                    <spring:message code="views.room.recording.start"/>
+                                </a>
+                            </c:otherwise>
+                        </c:choose>
+                        <a class="btn btn-primary" href="">
+                            <spring:message code="views.room.recording.start"/>
+                        </a>
+
+                    </c:when>
+                    <c:otherwise>
+                    <span class="btn disabled">
+                        <spring:message code="views.room.recording.start"/>
+                    </span>
+                    </c:otherwise>
+                </c:choose>
+            </div>
             <div class="spinner" ng-hide="ready || errorContent"></div>
             <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
             <table class="table table-striped table-hover" ng-show="ready">
@@ -428,6 +455,11 @@
     </c:if>
 
     <div class="table-actions" style="text-align: right;">
+        <c:if test="${!room.recordable && !room.deprecated}">
+            <span class="btn disabled">
+                <spring:message code="views.room.recording.book"/>
+            </span>
+        </c:if>
         <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
                 <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>

@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -395,6 +396,29 @@ public class ExecutableManager extends AbstractManager
             return topReservations.iterator().next();
         }
         return null;
+    }
+
+    /**
+     * @param executable
+     * @return map of recording folder identifiers by {@link RecordingCapability}s for given {@code executable}
+     */
+    public Map<RecordingCapability, String> listExecutableRecordingFolders(Executable executable)
+    {
+        Map<RecordingCapability, String> recordingFolders = new HashMap<RecordingCapability, String>();
+        List<Object[]> results = entityManager.createQuery(
+                "SELECT INDEX(recordingFolder), recordingFolder FROM RoomEndpoint roomEndpoint"
+                        + " LEFT JOIN roomEndpoint.recordingFolderIds AS recordingFolder"
+                        + " WHERE recordingFolder IS NOT NULL"
+                        + " AND roomEndpoint = :executable OR roomEndpoint IN("
+                        + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                        + "   WHERE usedRoomEndpoint.roomEndpoint = :executable"
+                        + ")", Object[].class)
+                .setParameter("executable", executable)
+                .getResultList();
+        for (Object[] result : results) {
+            recordingFolders.put((RecordingCapability) result[0], (String) result[1]);
+        }
+        return recordingFolders;
     }
 
     /**

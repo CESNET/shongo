@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
@@ -25,11 +26,10 @@ import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.report.Report;
+import org.hibernate.annotations.Columns;
 
 import javax.persistence.*;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an room {@link cz.cesnet.shongo.controller.booking.executable.Endpoint} in which multiple other {@link cz.cesnet.shongo.controller.booking.executable.Endpoint}s can be interconnected.
@@ -55,9 +55,9 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
-     * @see RecordableEndpoint#getRecordingFolderId()
+     * @see RecordableEndpoint#getRecordingFolderId
      */
-    private String recordingFolderId;
+    private Map<RecordingCapability, String> recordingFolderIds = new HashMap<RecordingCapability, String>();
 
     /**
      * @return {@link #roomConfiguration}
@@ -134,17 +134,27 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
         participants.add(participant);
     }
 
-    @Column
-    @Override
-    public String getRecordingFolderId()
+    @ElementCollection
+    @Column(name = "recording_folder_id")
+    @MapKeyJoinColumn(name = "recording_capability_id")
+    @Access(AccessType.FIELD)
+    public Map<RecordingCapability, String> getRecordingFolderIds()
     {
-        return recordingFolderId;
+        return recordingFolderIds;
     }
 
+    @Transient
     @Override
-    public void setRecordingFolderId(String recordingFolderId)
+    public String getRecordingFolderId(RecordingCapability recordingCapability)
     {
-        this.recordingFolderId = recordingFolderId;
+        return recordingFolderIds.get(recordingCapability);
+    }
+
+    @Transient
+    @Override
+    public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
+    {
+        this.recordingFolderIds.put(recordingCapability, recordingFolderId);
     }
 
     @Override

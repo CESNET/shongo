@@ -11,36 +11,36 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
  */
 public class ListRecordings extends ConnectorCommand
 {
-    private String roomId;
+    private String recordingFolderId;
 
     public ListRecordings()
     {
     }
 
-    public ListRecordings(String roomId)
+    public ListRecordings(String recordingFolderId)
     {
-        this.roomId = roomId;
+        this.recordingFolderId = recordingFolderId;
     }
 
-    public String getRoomId()
+    public String getRecordingFolderId()
     {
-        return roomId;
+        return recordingFolderId;
     }
 
-    public void setRoomId(String roomId)
+    public void setRecordingFolderId(String recordingFolderId)
     {
-        this.roomId = roomId;
+        this.recordingFolderId = recordingFolderId;
     }
 
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getRecording(connector).listRecordings(roomId);
+        return getRecording(connector).listRecordings(recordingFolderId);
     }
 
     @Override
     public String toString()
     {
-        return String.format(ListRecordings.class.getSimpleName() + " (roomId: %s)", roomId);
+        return String.format(ListRecordings.class.getSimpleName() + " (recordingFolderId: %s)", recordingFolderId);
     }
 }

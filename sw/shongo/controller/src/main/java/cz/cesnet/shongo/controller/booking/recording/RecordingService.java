@@ -133,14 +133,13 @@ public class RecordingService extends ExecutableService
             RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
             String recordingFolderId;
             synchronized (RecordableEndpoint.SYNCHRONIZATION.get(recordableEndpoint.getId())) {
-                recordingFolderId = recordableEndpoint.getRecordingFolderId();
+                recordingFolderId = recordableEndpoint.getRecordingFolderId(recordingCapability);
                 if (recordingFolderId == null) {
                     SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRecordingFolder(
                             recordableEndpoint.getRecordingFolderDescription()));
                     if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                         recordingFolderId = (String) sendLocalCommand.getResult();
-                        recordableEndpoint.setRecordingFolderId(recordingFolderId);
-
+                        recordableEndpoint.putRecordingFolderId(recordingCapability, recordingFolderId);
                     }
                     else {
                         executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(

@@ -16,12 +16,12 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
     /**
      * Index of the first item.
      */
-    private int start;
+    private int start = 0;
 
     /**
      * Total number of items available (but {@link #items} can contain only portion of them based on request).
      */
-    private int count;
+    private int count = 0;
 
     /**
      * List of fetched items.

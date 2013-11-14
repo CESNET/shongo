@@ -99,11 +99,11 @@ public class RoomModel
     /**
      * Constructor.
      *
-     * @param roomExecutable       to initialize the {@link RoomModel} from
-     * @param cacheProvider        which can be used for initializing
-     * @param messageProvider      sets the {@link #messageProvider}
-     * @param executableService    which can be used for initializing
-     * @param userSession          which can be used for initializing
+     * @param roomExecutable    to initialize the {@link RoomModel} from
+     * @param cacheProvider     which can be used for initializing
+     * @param messageProvider   sets the {@link #messageProvider}
+     * @param executableService which can be used for initializing
+     * @param userSession       which can be used for initializing
      */
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider,
             MessageProvider messageProvider, ExecutableService executableService, UserSession userSession)
@@ -163,15 +163,20 @@ public class RoomModel
                     for (AbstractParticipant participant : participants.getParticipants()) {
                         this.participants.add(new Participant(this.usageId, participant, cacheProvider));
                     }
+                    this.recordingService = usage.getService(RecordingService.class);
                     break;
                 }
             }
         }
-        else if (roomExecutable instanceof UsedRoomExecutable) {
-            this.type = RoomType.USED_ROOM;
-        }
         else {
-            this.type = RoomType.ADHOC_ROOM;
+            // Capacity or ad-hoc room
+            if (roomExecutable instanceof UsedRoomExecutable) {
+                this.type = RoomType.USED_ROOM;
+            }
+            else {
+                this.type = RoomType.ADHOC_ROOM;
+            }
+            this.recordingService = roomExecutable.getService(RecordingService.class);
         }
 
         // Room state
@@ -181,9 +186,6 @@ public class RoomModel
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
         }
-
-        // Recordable
-        this.recordingService = roomExecutable.getService(RecordingService.class);
     }
 
     /**
@@ -272,6 +274,15 @@ public class RoomModel
     public ExecutableState getUsageState()
     {
         return usageState;
+    }
+
+    /**
+     * @return true whether this room slot is whole in history,
+     *         false otherwise
+     */
+    public boolean isDeprecated()
+    {
+        return slot.getEnd().isBeforeNow();
     }
 
     /**

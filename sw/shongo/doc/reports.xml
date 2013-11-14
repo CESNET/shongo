@@ -877,6 +877,24 @@
             <visible>user</visible>
         </report>
 
+        <report>
+            <id>executable-not-recordable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Executable with identifier ${id} isn't recordable.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
     </scope>
 
     <scope name="scheduler">

@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -15,6 +18,8 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -25,6 +30,7 @@ import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -54,6 +60,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
      * @see ControllerAgent
      */
     private ControllerAgent controllerAgent;
+
+    /**
+     * Collection of {@link Recording}s by executableId.
+     */
+    private final ExpirationMap<Long, List<Recording>> executableRecordingsCache =
+            new ExpirationMap<Long, List<Recording>>();
+
+    /**
+     * Constructor.
+     */
+    public ExecutableServiceImpl()
+    {
+        executableRecordingsCache.setExpiration(Duration.standardMinutes(1));
+    }
 
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
@@ -250,7 +270,71 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request)
     {
-        throw new TodoImplementException("ExecutableService.listExecutableRecordings");
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(request.getExecutableId(), EntityType.EXECUTABLE);
+        try {
+            Long executableId = entityId.getPersistenceId();
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
+                    executableManager.get(executableId);
+
+            if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+            }
+
+            List<Recording> recordings = executableRecordingsCache.get(executableId);
+            if (recordings == null) {
+                // Get all recording folders
+                Map<RecordingCapability, String> recordingFolders =
+                        executableManager.listExecutableRecordingFolders(executable);
+
+                // Get all recordings from folders
+                recordings = new LinkedList<Recording>();
+                for (Map.Entry<RecordingCapability, String> entry : recordingFolders.entrySet()) {
+                    RecordingCapability recordingCapability = entry.getKey();
+                    DeviceResource recordingDeviceResource = recordingCapability.getDeviceResource();
+                    String recordingFolderId = entry.getValue();
+                    if (recordingFolderId == null) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
+                            recordingDeviceResource, new ListRecordings(recordingFolderId));
+                    recordings.addAll(serviceRecordings);
+                }
+                executableRecordingsCache.put(executableId, recordings);
+            }
+
+            Integer start = request.getStart();
+            Integer count = request.getCount();
+            Integer maxIndex = Math.max(0, recordings.size() - 1);
+            if (start == null) {
+                start = 0;
+            }
+            else if (start > maxIndex) {
+                start = maxIndex;
+            }
+            if (count == null) {
+                count = recordings.size();
+            }
+            int end = start + count;
+            if (end > recordings.size()) {
+                end = maxIndex;
+            }
+            ListResponse<Recording> response = new ListResponse<Recording>();
+            response.setStart(start);
+            response.setCount(recordings.size());
+            for (Recording recording : recordings.subList(start, end)) {
+                response.addItem(recording);
+            }
+            return response;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -409,17 +493,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!roomExecutable.getState().equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
                 throw new CommonReportSet.UnknownErrorException("Room executable must be NOT_STARTED.");
             }
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
 
             // Get and check device room
-            GetRoom deviceAction = new GetRoom(deviceRoomId);
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, deviceAction);
-            if (!sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
-                throw new ControllerReportSet.DeviceCommandFailedException(EntityIdentifier.formatId(deviceResource),
-                        deviceAction.toString(), sendLocalCommand.getJadeReport());
-            }
-            Room deviceRoom = (Room) sendLocalCommand.getResult();
+            Room deviceRoom = (Room) performDeviceCommand(deviceResource, new GetRoom(deviceRoomId));
             if (deviceRoom == null) {
                 throw new CommonReportSet.UnknownErrorException("Device room doesn't exist.");
             }
@@ -449,5 +525,21 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
             entityManager.close();
         }
+    }
+
+    public Object performDeviceCommand(DeviceResource deviceResource, Command command)
+    {
+        if (!deviceResource.isManaged()) {
+            throw new CommonReportSet.UnknownErrorException(
+                    "Device " + EntityIdentifier.formatId(deviceResource) + " is not managed.");
+        }
+        ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
+        String agentName = managedMode.getConnectorAgentName();
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, command);
+        if (!sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
+            throw new ControllerReportSet.DeviceCommandFailedException(EntityIdentifier.formatId(deviceResource),
+                    command.toString(), sendLocalCommand.getJadeReport());
+        }
+        return sendLocalCommand.getResult();
     }
 }

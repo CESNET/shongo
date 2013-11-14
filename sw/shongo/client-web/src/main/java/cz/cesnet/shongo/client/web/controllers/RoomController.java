@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -305,22 +306,22 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
+            @RequestParam(value = "sort", required = false, defaultValue = "START") ExecutableRecordingListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
                 DateTimeFormatter.Type.SHORT, locale, timeZone);
-        List<Recording> recordings = roomCache.getRoomRecordings(securityToken, roomId);
-        int maxIndex = Math.max(0, recordings.size() - 1);
-        if (start > maxIndex) {
-            start = maxIndex;
-        }
-        int end = start + count;
-        if (end > recordings.size()) {
-            end = maxIndex;
-        }
+
+        ExecutableRecordingListRequest request = new ExecutableRecordingListRequest();
+        request.setSecurityToken(securityToken);
+        request.setExecutableId(roomId);
+        request.setStart(start);
+        request.setCount(count);
+        request.setSort(sort);
+        request.setSortDescending(sortDescending);
+        ListResponse<Recording> response = executableService.listExecutableRecordings(request);
         List<Map> items = new LinkedList<Map>();
-        for (Recording recording : recordings.subList(start, end)) {
+        for (Recording recording : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
@@ -331,8 +332,8 @@ public class RoomController
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", start);
-        data.put("count", recordings.size());
+        data.put("start", response.getStart());
+        data.put("count", response.getCount());
         data.put("sort", sort);
         data.put("sort-desc", sortDescending);
         data.put("items", items);

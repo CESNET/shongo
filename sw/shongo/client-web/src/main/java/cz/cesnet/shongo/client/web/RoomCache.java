@@ -9,6 +9,8 @@ import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import org.joda.time.DateTime;
@@ -48,7 +50,7 @@ public class RoomCache
             new ExpirationMap<String, Room>();
 
     /**
-     * Collection of {@link RoomParticipant}s by roomExecutableId".
+     * Collection of {@link RoomParticipant}s by roomExecutableId.
      */
     private final ExpirationMap<String, List<RoomParticipant>> roomParticipantsCache =
             new ExpirationMap<String, List<RoomParticipant>>();
@@ -59,11 +61,7 @@ public class RoomCache
     private final ExpirationMap<String, RoomParticipant> roomParticipantCache =
             new ExpirationMap<String, RoomParticipant>();
 
-    /**
-     * Collection of {@link Recording}s by roomExecutableId".
-     */
-    private final ExpirationMap<String, List<Recording>> roomRecordingsCache =
-            new ExpirationMap<String, List<Recording>>();
+
 
     /**
      * Participant snapshots in {@link MediaData} by "roomExecutableId:participantId".
@@ -79,7 +77,6 @@ public class RoomCache
         // Set expiration durations
         roomCache.setExpiration(Duration.standardSeconds(20));
         roomParticipantsCache.setExpiration(Duration.standardSeconds(20));
-        roomRecordingsCache.setExpiration(Duration.standardSeconds(20));
         roomExecutableCache.setExpiration(Duration.standardSeconds(20));
         roomParticipantSnapshotCache.setExpiration(Duration.standardSeconds(20));
     }
@@ -147,28 +144,6 @@ public class RoomCache
                 roomParticipantsCache.put(roomExecutableId, roomParticipants);
             }
             return roomParticipants;
-        }
-    }
-
-    /**
-     * @param securityToken
-     * @param roomExecutableId
-     * @return collection of {@link Recording}s for given {@code roomExecutableId}
-     */
-    public List<Recording> getRoomRecordings(SecurityToken securityToken, String roomExecutableId)
-    {
-        synchronized (roomRecordingsCache) {
-            List<Recording> roomRecordings = roomRecordingsCache.get(roomExecutableId);
-            if (roomRecordings == null) {
-                RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
-                String resourceId = roomExecutable.getResourceId();
-                String resourceRoomId = roomExecutable.getRoomId();
-                roomRecordings = new LinkedList<Recording>();
-                roomRecordings.addAll(resourceControlService.listRoomRecordings(
-                        securityToken, resourceId, resourceRoomId));
-                roomRecordingsCache.put(roomExecutableId, roomRecordings);
-            }
-            return roomRecordings;
         }
     }
 
