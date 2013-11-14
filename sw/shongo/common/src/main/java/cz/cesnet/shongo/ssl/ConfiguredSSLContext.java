@@ -8,6 +8,9 @@ import org.apache.http.conn.ssl.AbstractVerifier;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +113,10 @@ public class ConfiguredSSLContext
                 configuredSSLContext.getContext(), configuredSSLContext.getHostnameVerifier());
         registry.register(new Scheme("https", 443, socketFactory));
         ClientConnectionManager connectionManager = new PoolingClientConnectionManager(registry);
-        return new DefaultHttpClient(connectionManager);
+        DefaultHttpClient httpClient = new DefaultHttpClient(connectionManager);
+        HttpParams httpClientParams = httpClient.getParams();
+        HttpConnectionParams.setConnectionTimeout(httpClientParams, 30000);
+        return httpClient;
     }
 
     /**

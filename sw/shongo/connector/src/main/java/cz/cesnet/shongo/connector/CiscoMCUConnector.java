@@ -21,6 +21,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -198,8 +199,9 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             xmlRpcClient.setConfig(config);
             xmlRpcClient.setTransportFactory(new KeepAliveTransportFactory(xmlRpcClient));
 
-            // Create XmlRpcClient for Http communication
+            // Create HttpClient for Http communication
             httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
+            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), 5000);
 
             initDeviceInfo();
         }
