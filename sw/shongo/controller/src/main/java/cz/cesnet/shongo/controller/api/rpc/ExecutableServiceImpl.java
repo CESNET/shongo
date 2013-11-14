@@ -343,11 +343,23 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             int maxAttemptCount = getConfiguration().getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
+            DateTime dateTimeNow = DateTime.now();
             for (cz.cesnet.shongo.controller.executor.Executable executableToUpdate : executablesToUpdate) {
-                if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
-                    executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                if (executableToUpdate.getSlot().contains(dateTimeNow)) {
+                    // Schedule next attempt
+                    if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
+                        executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                    }
+                    executableToUpdate.setNextAttempt(dateTimeNow);
                 }
-                executableToUpdate.setNextAttempt(DateTime.now());
+                else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
+                    // Set executable as stopped
+                    cz.cesnet.shongo.controller.executor.Executable.State state = executableToUpdate.getState();
+                    if (state.isStarted() ||
+                            state.equals(cz.cesnet.shongo.controller.executor.Executable.State.STARTING_FAILED)) {
+                        executableToUpdate.setState(cz.cesnet.shongo.controller.executor.Executable.State.STOPPED);
+                    }
+                }
             }
 
             entityManager.getTransaction().commit();
