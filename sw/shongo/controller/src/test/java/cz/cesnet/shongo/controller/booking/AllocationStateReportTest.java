@@ -11,8 +11,6 @@ import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Locale;
-
 /**
  * Tests for {@link AllocationStateReport}.
  *
@@ -277,12 +275,108 @@ public class AllocationStateReportTest extends AbstractControllerTest
     }
 
     /**
+     * Test {@link AllocationStateReport.ResourceNotFound.Type#RECORDING}
+     */
+    @Test
+    public void testRecordingNotFound() throws Exception
+    {
+        DeviceResource roomProvider = new DeviceResource();
+        roomProvider.setName("roomProvider");
+        roomProvider.setAllocatable(true);
+        roomProvider.addTechnology(Technology.H323);
+        roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        roomProvider.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
+        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        AllocationStateReport.ResourceNotFound resourceNotFound =
+                finish(reservationRequestId, AllocationStateReport.ResourceNotFound.class);
+        Assert.assertEquals(AllocationStateReport.ResourceNotFound.Type.RECORDING, resourceNotFound.getType());
+    }
+
+    /**
+     * Test {@link AllocationStateReport.RecordingCapacityExceeded}
+     */
+    @Test
+    public void testRecordingCapacityExceeded() throws Exception
+    {
+        DeviceResource roomProvider = new DeviceResource();
+        roomProvider.setName("roomProvider");
+        roomProvider.setAllocatable(true);
+        roomProvider.addTechnology(Technology.H323);
+        roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        roomProvider.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        roomProvider.addCapability(new RecordingCapability(1));
+        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+
+        ReservationRequest reservationRequestFirst = new ReservationRequest();
+        reservationRequestFirst.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecificationFirst = new RoomSpecification(5, Technology.H323);
+        roomSpecificationFirst.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        reservationRequestFirst.setSpecification(roomSpecificationFirst);
+        allocateAndCheck(reservationRequestFirst);
+
+        ReservationRequest reservationRequestSecond = new ReservationRequest();
+        reservationRequestSecond.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecificationSecond = new RoomSpecification(5, Technology.H323);
+        roomSpecificationSecond.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        reservationRequestSecond.setSpecification(roomSpecificationSecond);
+        String reservationRequestSecondId = allocate(reservationRequestSecond);
+        checkAllocationFailed(reservationRequestSecondId);
+
+        finish(reservationRequestSecondId, AllocationStateReport.RecordingCapacityExceeded.class);
+    }
+
+    /**
+     * Test {@link AllocationStateReport.RecordingRoomCapacityExceed}
+     */
+    @Test
+    public void testRecordingRoomCapacityExceeded() throws Exception
+    {
+        DeviceResource roomProvider = new DeviceResource();
+        roomProvider.setName("roomProvider");
+        roomProvider.setAllocatable(true);
+        roomProvider.addTechnology(Technology.H323);
+        roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        roomProvider.addCapability(new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME}));
+        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+
+        DeviceResource recorder = new DeviceResource();
+        recorder.setName("recorder");
+        recorder.setAllocatable(true);
+        recorder.addTechnology(Technology.H323);
+        recorder.addCapability(new RecordingCapability(1));
+        getResourceService().createResource(SECURITY_TOKEN, recorder);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
+        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestSecondId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestSecondId);
+
+        finish(reservationRequestSecondId, AllocationStateReport.RecordingRoomCapacityExceed.class);
+    }
+
+    /**
      * Perform check.
      *
      * @param reservationRequestId
      * @param requiredType
      */
-    private void finish(String reservationRequestId, Class<? extends AllocationStateReport.UserError> requiredType)
+    private <T extends AllocationStateReport.UserError> T finish(String reservationRequestId, Class<T> requiredType)
     {
         ReservationService reservationService = getReservationService();
         ReservationRequest reservationRequest = (ReservationRequest)
@@ -295,5 +389,6 @@ public class AllocationStateReportTest extends AbstractControllerTest
             System.err.println(allocationStateReport.toString(UserSettings.LOCALE_ENGLISH).trim());
         }
         Assert.assertEquals(requiredType, userError.getClass());
+        return requiredType.cast(userError);
     }
 }

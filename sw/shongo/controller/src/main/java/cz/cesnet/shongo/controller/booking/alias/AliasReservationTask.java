@@ -215,7 +215,7 @@ public class AliasReservationTask extends ReservationTask
             addReport(new SchedulerReportSet.ResourceReport(aliasProviderCapability.getResource()));
         }
         if (aliasProviders.size() == 0) {
-            throw new SchedulerException(getCurrentReport());
+            throw new SchedulerReportSet.ResourceNotFoundException();
         }
         endReport();
 

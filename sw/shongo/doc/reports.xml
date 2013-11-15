@@ -910,6 +910,18 @@
           -->
 
         <report>
+            <id>resource-not-found</id>
+            <classification severity="error"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                No resource was found.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
             <id>resource</id>
             <classification severity="info"/>
             <params>
@@ -1016,7 +1028,7 @@
         </report>
 
         <report>
-            <id>resource-not-found</id>
+            <id>endpoint-not-found</id>
             <classification severity="error"/>
             <params>
                 <param name="technologies" type="Set" type-element="Technology"/>
@@ -1025,7 +1037,7 @@
                 TODO:
             </description>
             <message>
-                No available resource was found for the following specification:
+                No available endpoint was found for the following specification:
                   Technologies: ${technologies}
             </message>
             <visible>user</visible>

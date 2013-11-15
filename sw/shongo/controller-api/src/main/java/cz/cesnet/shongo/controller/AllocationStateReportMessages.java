@@ -9,6 +9,7 @@ import cz.cesnet.shongo.report.*;
 */
 public class AllocationStateReportMessages
 {
+    public static final String RESOURCE_NOT_FOUND = "resource-not-found";
     public static final String RESOURCE = "resource";
     public static final String RESOURCE_NOT_ALLOCATABLE = "resource-not-allocatable";
     public static final String RESOURCE_ALREADY_ALLOCATED = "resource-already-allocated";
@@ -17,7 +18,7 @@ public class AllocationStateReportMessages
     public static final String RESOURCE_RECORDING_CAPACITY_EXCEEDED = "resource-recording-capacity-exceeded";
     public static final String RESOURCE_NOT_ENDPOINT = "resource-not-endpoint";
     public static final String RESOURCE_MULTIPLE_REQUESTED = "resource-multiple-requested";
-    public static final String RESOURCE_NOT_FOUND = "resource-not-found";
+    public static final String ENDPOINT_NOT_FOUND = "endpoint-not-found";
     public static final String EXECUTABLE_REUSING = "executable-reusing";
     public static final String COMPARTMENT_NOT_ENOUGH_ENDPOINT = "compartment-not-enough-endpoint";
     public static final String COMPARTMENT_ASSIGN_ALIAS_TO_EXTERNAL_ENDPOINT = "compartment-assign-alias-to-external-endpoint";
@@ -51,6 +52,7 @@ public class AllocationStateReportMessages
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
+        addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No resource was found.");
         addMessage(RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Resource ${resource.id}.");
         addMessage(RESOURCE_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is disabled for allocation.");
         addMessage(RESOURCE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is already allocated.");
@@ -59,7 +61,7 @@ public class AllocationStateReportMessages
         addMessage(RESOURCE_RECORDING_CAPACITY_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} doesn't have any available licenses for recording.");
         addMessage(RESOURCE_NOT_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is not endpoint.");
         addMessage(RESOURCE_MULTIPLE_REQUESTED, new Report.UserType[]{}, Report.Language.ENGLISH, "The resource ${resource.id} is requested multiple times.");
-        addMessage(RESOURCE_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No available resource was found for the following specification: Technologies: ${technologies}");
+        addMessage(ENDPOINT_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "No available endpoint was found for the following specification: Technologies: ${technologies}");
         addMessage(EXECUTABLE_REUSING, new Report.UserType[]{}, Report.Language.ENGLISH, "Reusing existing ${executable}.");
         addMessage(COMPARTMENT_NOT_ENOUGH_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "Not enough endpoints are requested for the compartment.");
         addMessage(COMPARTMENT_ASSIGN_ALIAS_TO_EXTERNAL_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot assign alias to allocated external endpoint.");

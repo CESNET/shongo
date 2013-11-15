@@ -197,7 +197,18 @@ public class AllocationStateReport extends AbstractEntityReport
         UserError userError = null;
         for (Map<String, Object> report : reports) {
             String identifier = (String) report.get(ID);
-            if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
+            if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_FOUND)) {
+                if (userError == null) {
+                    String parentId = (String) parentReports.lastElement().get(ID);
+                    if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
+                        return new ResourceNotFound(ResourceNotFound.Type.RECORDING);
+                    }
+                    else {
+                        return new ResourceNotFound();
+                    }
+                }
+            }
+            else if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
                 return new MaximumDurationExceeded(Converter.convertToPeriod(report.get("maxDuration")));
             }
             else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_AVAILABLE)) {
@@ -262,10 +273,19 @@ public class AllocationStateReport extends AbstractEntityReport
                     userError = new RoomCapacityExceeded(availableLicenseCount, maxLicenseCount);
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_RECORDING_CAPACITY_EXCEEDED)) {
+                if (!(userError instanceof RecordingCapacityExceeded)) {
+                    userError = new RecordingCapacityExceeded();
+                }
+            }
 
             parentReports.push(report);
             UserError childUserError = findAllocationError(getReportChildren(report), parentReports);
             if (childUserError != null) {
+                if (identifier.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE) && childUserError instanceof RoomCapacityExceeded) {
+                    RoomCapacityExceeded roomCapacityExceeded = (RoomCapacityExceeded) childUserError;
+                    return new RecordingRoomCapacityExceed(roomCapacityExceeded.getAvailableLicenseCount(), roomCapacityExceeded.getMaxLicenseCount());
+                }
                 return childUserError;
             }
             parentReports.pop();
@@ -460,9 +480,9 @@ public class AllocationStateReport extends AbstractEntityReport
      */
     public static class RoomCapacityExceeded extends UserError
     {
-        private Integer availableLicenseCount;
+        protected Integer availableLicenseCount;
 
-        private Integer maxLicenseCount;
+        protected Integer maxLicenseCount;
 
         public RoomCapacityExceeded(Integer availableLicenseCount, Integer maxLicenseCount)
         {
@@ -494,6 +514,82 @@ public class AllocationStateReport extends AbstractEntityReport
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             return MESSAGE_SOURCE.getMessage("roomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
+        }
+    }
+
+    /**
+     * Resource was not found.
+     */
+    public static class ResourceNotFound extends UserError
+    {
+        private Type type;
+
+        public ResourceNotFound()
+        {
+        }
+
+        public ResourceNotFound(Type type)
+        {
+            this.type = type;
+        }
+
+        public Type getType()
+        {
+            return type;
+        }
+
+        public void setType(Type type)
+        {
+            this.type = type;
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            if (type != null) {
+                return MESSAGE_SOURCE.getMessage("resourceNotFound." + type, locale);
+            }
+            else {
+                return MESSAGE_SOURCE.getMessage("resourceNotFound", locale);
+            }
+        }
+
+        public static enum Type
+        {
+            RECORDING
+        }
+    }
+
+    /**
+     * Recording capacity exceeded.
+     */
+    public static class RecordingCapacityExceeded extends UserError
+    {
+        public RecordingCapacityExceeded()
+        {
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            return MESSAGE_SOURCE.getMessage("recordingCapacityExceeded", locale);
+        }
+    }
+
+    /**
+     * Recording is unavailable because {@link RoomCapacityExceeded}.
+     */
+    public static class RecordingRoomCapacityExceed extends RoomCapacityExceeded
+    {
+        public RecordingRoomCapacityExceed(Integer availableLicenseCount, Integer maxLicenseCount)
+        {
+            super(availableLicenseCount, maxLicenseCount);
+        }
+
+        @Override
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            return MESSAGE_SOURCE.getMessage("recordingRoomCapacityExceeded", locale, availableLicenseCount, maxLicenseCount);
         }
     }
 }

@@ -154,7 +154,7 @@ public class RecordingServiceReservationTask extends ReservationTask
             addReport(new SchedulerReportSet.ResourceReport(deviceResource));
         }
         if (availableRecorders.size() == 0) {
-            throw new SchedulerException(getCurrentReport());
+            throw new SchedulerReportSet.ResourceNotFoundException();
         }
         endReport();
 

@@ -10,6 +10,90 @@ import cz.cesnet.shongo.report.*;
 public class SchedulerReportSet extends AbstractReportSet
 {
     /**
+     * No resource was found.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ResourceNotFoundReport")
+    public static class ResourceNotFoundReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        public ResourceNotFoundReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "resource-not-found";
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-found", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ResourceNotFoundReport}.
+     */
+    public static class ResourceNotFoundException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ResourceNotFoundException(ResourceNotFoundReport report)
+        {
+            this.report = report;
+        }
+
+        public ResourceNotFoundException(Throwable throwable, ResourceNotFoundReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ResourceNotFoundException()
+        {
+            ResourceNotFoundReport report = new ResourceNotFoundReport();
+            this.report = report;
+        }
+
+        public ResourceNotFoundException(Throwable throwable)
+        {
+            super(throwable);
+            ResourceNotFoundReport report = new ResourceNotFoundReport();
+            this.report = report;
+        }
+
+        @Override
+        public ResourceNotFoundReport getReport()
+        {
+            return (ResourceNotFoundReport) report;
+        }
+    }
+
+    /**
      * Resource {@link #resource}.
      */
     @javax.persistence.Entity
@@ -790,15 +874,15 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * No available resource was found for the following specification: Technologies: {@link #technologies}
+     * No available endpoint was found for the following specification: Technologies: {@link #technologies}
      */
     @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("ResourceNotFoundReport")
-    public static class ResourceNotFoundReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    @javax.persistence.DiscriminatorValue("EndpointNotFoundReport")
+    public static class EndpointNotFoundReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected java.util.Set<cz.cesnet.shongo.Technology> technologies;
 
-        public ResourceNotFoundReport()
+        public EndpointNotFoundReport()
         {
         }
 
@@ -806,10 +890,10 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "resource-not-found";
+            return "endpoint-not-found";
         }
 
-        public ResourceNotFoundReport(java.util.Set<cz.cesnet.shongo.Technology> technologies)
+        public EndpointNotFoundReport(java.util.Set<cz.cesnet.shongo.Technology> technologies)
         {
             setTechnologies(technologies);
         }
@@ -852,37 +936,37 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("resource-not-found", userType, language, timeZone, getParameters());
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("endpoint-not-found", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link ResourceNotFoundReport}.
+     * Exception for {@link EndpointNotFoundReport}.
      */
-    public static class ResourceNotFoundException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    public static class EndpointNotFoundException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
     {
-        public ResourceNotFoundException(ResourceNotFoundReport report)
+        public EndpointNotFoundException(EndpointNotFoundReport report)
         {
             this.report = report;
         }
 
-        public ResourceNotFoundException(Throwable throwable, ResourceNotFoundReport report)
+        public EndpointNotFoundException(Throwable throwable, EndpointNotFoundReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public ResourceNotFoundException(java.util.Set<cz.cesnet.shongo.Technology> technologies)
+        public EndpointNotFoundException(java.util.Set<cz.cesnet.shongo.Technology> technologies)
         {
-            ResourceNotFoundReport report = new ResourceNotFoundReport();
+            EndpointNotFoundReport report = new EndpointNotFoundReport();
             report.setTechnologies(technologies);
             this.report = report;
         }
 
-        public ResourceNotFoundException(Throwable throwable, java.util.Set<cz.cesnet.shongo.Technology> technologies)
+        public EndpointNotFoundException(Throwable throwable, java.util.Set<cz.cesnet.shongo.Technology> technologies)
         {
             super(throwable);
-            ResourceNotFoundReport report = new ResourceNotFoundReport();
+            EndpointNotFoundReport report = new EndpointNotFoundReport();
             report.setTechnologies(technologies);
             this.report = report;
         }
@@ -893,9 +977,9 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Override
-        public ResourceNotFoundReport getReport()
+        public EndpointNotFoundReport getReport()
         {
-            return (ResourceNotFoundReport) report;
+            return (EndpointNotFoundReport) report;
         }
     }
 
@@ -3454,6 +3538,7 @@ public class SchedulerReportSet extends AbstractReportSet
     @Override
     protected void fillReportClasses()
     {
+        addReportClass(ResourceNotFoundReport.class);
         addReportClass(ResourceReport.class);
         addReportClass(ResourceNotAllocatableReport.class);
         addReportClass(ResourceAlreadyAllocatedReport.class);
@@ -3462,7 +3547,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceRecordingCapacityExceededReport.class);
         addReportClass(ResourceNotEndpointReport.class);
         addReportClass(ResourceMultipleRequestedReport.class);
-        addReportClass(ResourceNotFoundReport.class);
+        addReportClass(EndpointNotFoundReport.class);
         addReportClass(ExecutableReusingReport.class);
         addReportClass(CompartmentNotEnoughEndpointReport.class);
         addReportClass(CompartmentAssignAliasToExternalEndpointReport.class);

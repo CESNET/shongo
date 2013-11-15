@@ -85,7 +85,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
                     return reservation;
                 }
                 else {
-                    throw new SchedulerReportSet.ResourceNotFoundException(technologies);
+                    throw new SchedulerReportSet.EndpointNotFoundException(technologies);
                 }
             }
         };

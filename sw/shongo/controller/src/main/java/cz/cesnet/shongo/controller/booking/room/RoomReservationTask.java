@@ -330,7 +330,7 @@ public class RoomReservationTask extends ReservationTask
             }
         }
         if (roomProviderVariants.size() == 0) {
-            throw new SchedulerException(getCurrentReport());
+            throw new SchedulerReportSet.ResourceNotFoundException();
         }
         endReport();
         return roomProviderVariants;
@@ -454,6 +454,10 @@ public class RoomReservationTask extends ReservationTask
 
             // Allocate room reservation
             RoomReservation roomReservation = new RoomReservation();
+            roomReservation.setSlot(interval);
+            roomReservation.setRoomProviderCapability(roomProviderCapability);
+            roomReservation.setLicenseCount(roomProviderVariant.getLicenseCount());
+
 
             // Allocated room endpoint
             RoomEndpoint roomEndpoint = null;
@@ -490,44 +494,49 @@ public class RoomReservationTask extends ReservationTask
                         roomEndpoint.addService(automaticRecordingService);
                     }
 
-                    // Allocate requested services
-                    for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-                        if (serviceSpecification instanceof RecordingServiceSpecification) {
-                            RecordingServiceSpecification recordingServiceSpecification =
-                                    (RecordingServiceSpecification) serviceSpecification;
-                            if (automaticRecordingService != null) {
-                                // Recording don't have to be allocated
-                                if (recordingServiceSpecification.isEnabled()) {
-                                    // Recording should be automatically started
-                                    automaticRecordingService.setState(ExecutableService.State.PREPARED);
+                    // For allocating services we must add the room reservation as allocated
+                    schedulerContext.addAllocatedReservation(roomReservation);
+                    try {
+                        // Allocate requested services
+                        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+                            if (serviceSpecification instanceof RecordingServiceSpecification) {
+                                RecordingServiceSpecification recordingServiceSpecification =
+                                        (RecordingServiceSpecification) serviceSpecification;
+                                if (automaticRecordingService != null) {
+                                    // Recording don't have to be allocated
+                                    if (recordingServiceSpecification.isEnabled()) {
+                                        // Recording should be automatically started
+                                        automaticRecordingService.setState(ExecutableService.State.PREPARED);
+                                    }
+                                }
+                                else {
+                                    // Recording must be allocated
+                                    RecordingServiceReservationTask recordingServiceReservationTask =
+                                            recordingServiceSpecification.createReservationTask(schedulerContext);
+                                    recordingServiceReservationTask.setExecutable(roomEndpoint);
+                                    addChildReservation(recordingServiceReservationTask);
                                 }
                             }
+                            else if (serviceSpecification instanceof ReservationTaskProvider) {
+                                ReservationTaskProvider reservationTaskProvider =
+                                        (ReservationTaskProvider) serviceSpecification;
+                                ReservationTask serviceReservationTask = reservationTaskProvider
+                                        .createReservationTask(schedulerContext);
+                                addChildReservation(serviceReservationTask);
+                            }
                             else {
-                                // Recording must be allocated
-                                RecordingServiceReservationTask recordingServiceReservationTask =
-                                        recordingServiceSpecification.createReservationTask(schedulerContext);
-                                recordingServiceReservationTask.setExecutable(roomEndpoint);
-                                addChildReservation(recordingServiceReservationTask);
+                                throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
                             }
                         }
-                        else if (serviceSpecification instanceof ReservationTaskProvider) {
-                            ReservationTaskProvider reservationTaskProvider =
-                                    (ReservationTaskProvider) serviceSpecification;
-                            ReservationTask serviceReservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
-                            addChildReservation(serviceReservationTask);
-                        }
-                        else {
-                            throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
-                        }
+                    }
+                    finally {
+                        // Remove the room reservation as allocated
+                        schedulerContext.removeAllocatedReservation(roomReservation);
                     }
                 }
             }
 
-
-            // Setup room reservation
-            roomReservation.setSlot(interval);
-            roomReservation.setRoomProviderCapability(roomProviderCapability);
-            roomReservation.setLicenseCount(roomProviderVariant.getLicenseCount());
+            // Set executable to room reservation
             roomReservation.setExecutable(roomEndpoint);
 
             endReport();

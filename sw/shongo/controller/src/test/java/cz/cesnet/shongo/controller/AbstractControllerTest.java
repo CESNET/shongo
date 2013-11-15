@@ -424,7 +424,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         Reservation reservation = null;
         for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
-            if (reservationRequest.getAllocationState() != AllocationState.ALLOCATED) {
+            if (!AllocationState.ALLOCATED.equals(reservationRequest.getAllocationState())) {
                 System.err.println(reservationRequest.getAllocationStateReport());
                 Thread.sleep(100);
             }
@@ -447,6 +447,10 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void checkAllocationFailed(String reservationRequestId) throws Exception
     {
         for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
+            if (!AllocationState.ALLOCATION_FAILED.equals(reservationRequest.getAllocationState())) {
+                System.err.println(reservationRequest.getAllocationStateReport());
+                Thread.sleep(100);
+            }
             Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
                     AllocationState.ALLOCATION_FAILED, reservationRequest.getAllocationState());
         }
