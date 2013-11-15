@@ -2,23 +2,21 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.controller.booking.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
@@ -136,7 +134,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link RoomConfiguration#licenseCount} or 0 if {@link #roomConfiguration} is null
+     * @return {@link RoomConfiguration#licenseCount}
      */
     @Transient
     public int getLicenseCount()
@@ -224,13 +222,25 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public void fillRoomApi(Room roomApi)
+    public Room getRoomApi(ExecutableManager executableManager)
     {
-        super.fillRoomApi(roomApi);
+        UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
+        if (usedRoomEndpoint != null) {
+            return usedRoomEndpoint.getRoomApi(executableManager);
+        }
+        else {
+            return super.getRoomApi(executableManager);
+        }
+    }
+
+    @Override
+    public void fillRoomApi(Room roomApi, ExecutableManager executableManager)
+    {
+        super.fillRoomApi(roomApi, executableManager);
 
         roomApi.setId(roomId);
         roomApi.setTechnologies(getTechnologies());
-        roomApi.setLicenseCount(getLicenseCount());
+        roomApi.setLicenseCount(getLicenseCount() + getEndpointServiceCount());
         for (RoomSetting roomSetting : getRoomSettings()) {
             roomApi.addRoomSetting(roomSetting.toApi());
         }
@@ -240,7 +250,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public void modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+    public void modifyRoom(Room roomApi, Executor executor)
             throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
     {
         if (roomApi.getId() == null) {
@@ -279,8 +289,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            Room roomApi = getRoomApi();
-
+            Room roomApi = getRoomApi(executableManager);
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 setRoomId((String) sendLocalCommand.getResult());
@@ -301,19 +310,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
         UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
-        Room roomApi;
-        if (usedRoomEndpoint != null) {
-            if (usedRoomEndpoint.getState().equals(State.MODIFIED)) {
-                // Used room will be automatically modified
-                return State.SKIPPED;
-            }
-            roomApi = usedRoomEndpoint.getRoomApi();
-        }
-        else {
-            roomApi = getRoomApi();
+        if (usedRoomEndpoint != null && State.MODIFIED.equals(usedRoomEndpoint.getState())) {
+            // Used room will be automatically modified
+            return State.SKIPPED;
         }
         try {
-            modifyRoom(roomApi, executor, executableManager);
+            modifyRoom(getRoomApi(executableManager), executor);
             return State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {

@@ -1,23 +1,20 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.compartment.Connection;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.ExecutionReport;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.ReportableSimple;
-import org.hibernate.annotations.Type;
+import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.DateTime;
-import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -49,7 +46,7 @@ public abstract class Executable extends ExecutionTarget
     /**
      * {@link ExecutableService}s for this {@link Endpoint}.
      */
-    private List<ExecutableService> services = new ArrayList<ExecutableService>();
+    protected List<ExecutableService> services = new ArrayList<ExecutableService>();
 
     @Override
     public void setSlotEnd(DateTime slotEnd)
@@ -200,7 +197,7 @@ public abstract class Executable extends ExecutionTarget
     protected ExecutableStateReport getExecutableStateReport(Report.UserType userType)
     {
         ExecutableStateReport executableStateReport = new ExecutableStateReport(userType);
-        for (cz.cesnet.shongo.controller.executor.ExecutionReport report : getCachedSortedReports()) {
+        for (ExecutionReport report : getCachedSortedReports()) {
             executableStateReport.addReport(new StateReportSerializer(report));
         }
         return executableStateReport;
@@ -371,6 +368,30 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
+     * @param service           which is being activated (it is in {@link ExecutableService.State#ACTIVE} state)
+     * @param executor          to be used for preparation
+     * @param executableManager to be used for preparation
+     * @throws ReportException with {@link ExecutionReport} in {@link ReportException#report}
+     *                         when this {@link ExecutionTarget} can't be prepared for the service activation
+     */
+    protected void onServiceActivation(ExecutableService service, Executor executor,
+            ExecutableManager executableManager) throws ReportException
+    {
+    }
+
+    /**
+     * @param service           which is being deactivated (it is in {@link ExecutableService.State#NOT_ACTIVE} state)
+     * @param executor          to be used for preparation
+     * @param executableManager to be used for preparation
+     * @throws ReportException with {@link ExecutionReport} in {@link ReportException#report}
+     *                         when this {@link ExecutionTarget} can't be prepared for the service deactivation
+     */
+    protected void onServiceDeactivation(ExecutableService service, Executor executor,
+            ExecutableManager executableManager) throws ReportException
+    {
+    }
+
+    /**
      * @return {@link State} by children or {@link State#SKIPPED}
      */
     @Transient
@@ -458,7 +479,7 @@ public abstract class Executable extends ExecutionTarget
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
-         * {@link cz.cesnet.shongo.controller.executor.ExecutionReport}) and the entity for which it has been stored has been deleted
+         * {@link ExecutionReport}) and the entity for which it has been stored has been deleted
          * and thus the {@link Executable} should be also deleted.
          */
         TO_DELETE(false, false),

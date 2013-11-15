@@ -162,6 +162,15 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         }
 
         /**
+         * @param index of the performed command
+         * @return performed {@link Command} at given {@code index}
+         */
+        public <T extends Command> T getPerformedCommand(int index, Class<T> commandType)
+        {
+            return commandType.cast(performedCommands.get(index));
+        }
+
+        /**
          * Clear the {@link #performedCommands}.
          */
         public void clearPerformedCommands()

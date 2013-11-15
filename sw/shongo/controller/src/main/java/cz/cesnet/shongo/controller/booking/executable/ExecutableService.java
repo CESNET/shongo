@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
+import cz.cesnet.shongo.report.ReportException;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -62,6 +65,15 @@ public abstract class ExecutableService extends ExecutionTarget
     public State getState()
     {
         return state;
+    }
+
+    /**
+     * @return {@link #state} equals {@link State#ACTIVE}
+     */
+    @Transient
+    public boolean isActive()
+    {
+        return State.ACTIVE.equals(state);
     }
 
     /**
@@ -150,6 +162,23 @@ public abstract class ExecutableService extends ExecutionTarget
      */
     protected State onActivate(Executor executor, ExecutableManager executableManager)
     {
+        // We set current state as ACTIVE for the executable to see this service as ACTIVE
+        State oldState = getState();
+        setState(State.ACTIVE);
+
+        // Inform executable about service activation
+        try {
+            executable.onServiceActivation(this, executor, executableManager);
+        }
+        catch (ReportException exception) {
+            ExecutionReport executionReport = (ExecutionReport) exception.getReport();
+            executableManager.createExecutionReport(this, executionReport);
+            return State.ACTIVATION_FAILED;
+        }
+
+        // Return the old state
+        setState(oldState);
+
         return State.ACTIVE;
     }
 
@@ -162,6 +191,23 @@ public abstract class ExecutableService extends ExecutionTarget
      */
     protected State onDeactivate(Executor executor, ExecutableManager executableManager)
     {
+        // We set current state as NOT_ACTIVE for the executable to see this service as NOT_ACTIVE
+        State oldState = getState();
+        setState(State.NOT_ACTIVE);
+
+        // Inform executable about service activation
+        try {
+            executable.onServiceDeactivation(this, executor, executableManager);
+        }
+        catch (ReportException exception) {
+            ExecutionReport executionReport = (ExecutionReport) exception.getReport();
+            executableManager.createExecutionReport(this, executionReport);
+            return State.DEACTIVATION_FAILED;
+        }
+
+        // Return the old state
+        setState(oldState);
+
         return State.NOT_ACTIVE;
     }
 

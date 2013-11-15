@@ -7,26 +7,28 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
-import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
-import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.executable.Endpoint;
+import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
-import cz.cesnet.shongo.controller.booking.executable.Endpoint;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.report.Report;
-import org.hibernate.annotations.Columns;
+import cz.cesnet.shongo.report.ReportException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -157,6 +159,24 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
         this.recordingFolderIds.put(recordingCapability, recordingFolderId);
     }
 
+    /**
+     * @return {@link RoomConfiguration#licenseCount}
+     */
+    @Transient
+    public int getEndpointServiceCount()
+    {
+        int endpointServiceCount = 0;
+        for (ExecutableService service : services) {
+            if (service instanceof EndpointExecutableService && service.isActive()) {
+                EndpointExecutableService endpointService = (EndpointExecutableService) service;
+                if (endpointService.isEndpoint()) {
+                    endpointServiceCount += 1;
+                }
+            }
+        }
+        return endpointServiceCount;
+    }
+
     @Override
     @Transient
     public int getCount()
@@ -195,7 +215,8 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     @Override
     public String getRecordingFolderDescription()
     {
-        return String.format("[%s:exe:%d][res:%d][room:%s]", Domain.getLocalDomainName(), getId(), getDeviceResource().getId(), getRoomId());
+        return String.format("[%s:exe:%d][res:%d][room:%s]",
+                Domain.getLocalDomainName(), getId(), getDeviceResource().getId(), getRoomId());
     }
 
     /**
@@ -205,13 +226,14 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     public abstract String getRoomId();
 
     /**
+     * @param executableManager {@link ExecutableManager} which can be used
      * @return {@link cz.cesnet.shongo.api.Room} representing the current room for the {@link RoomEndpoint}
      */
     @Transient
-    public final Room getRoomApi()
+    public Room getRoomApi(ExecutableManager executableManager)
     {
         Room roomApi = new Room();
-        fillRoomApi(roomApi);
+        fillRoomApi(roomApi, executableManager);
 
         // If roomApi doesn't contain any participant with ParticipantRole#ADMIN, fill the owners of this room
         Authorization authorization = Authorization.getInstance();
@@ -225,9 +247,10 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     }
 
     /**
-     * @param roomApi to be filled
+     * @param roomApi           to be filled
+     * @param executableManager {@link ExecutableManager} which can be used
      */
-    public void fillRoomApi(Room roomApi)
+    public void fillRoomApi(Room roomApi, ExecutableManager executableManager)
     {
         roomApi.setDescription(getRoomDescriptionApi());
         for (AbstractParticipant participant : getParticipants()) {
@@ -271,7 +294,8 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
                             AbstractParticipant.class)
                     {
                         @Override
-                        public AbstractParticipant createFromApi(cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
+                        public AbstractParticipant createFromApi(
+                                cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
                         {
                             return AbstractParticipant.createFromApi(objectApi, entityManager);
                         }
@@ -290,15 +314,41 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     }
 
     /**
-     *
-     * @param roomApi to be modified
+     * @param roomApi  to be modified
      * @param executor to be used
-     * @param executableManager
-     * @throws cz.cesnet.shongo.controller.executor.ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
+     * @throws cz.cesnet.shongo.controller.executor.ExecutorReportSet.RoomNotStartedException,
+     *          ExecutorReportSet.CommandFailedException
      */
-    public abstract void modifyRoom(Room roomApi, Executor executor,
-            ExecutableManager executableManager)
+    public abstract void modifyRoom(Room roomApi, Executor executor)
             throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException;
+
+    @Override
+    protected void onServiceActivation(ExecutableService service, Executor executor,
+            ExecutableManager executableManager) throws ReportException
+    {
+        super.onServiceActivation(service, executor, executableManager);
+
+        if (service instanceof EndpointExecutableService) {
+            EndpointExecutableService endpointService = (EndpointExecutableService) service;
+            if (endpointService.isEndpoint()) {
+                modifyRoom(getRoomApi(executableManager), executor);
+            }
+        }
+    }
+
+    @Override
+    protected void onServiceDeactivation(ExecutableService service, Executor executor,
+            ExecutableManager executableManager) throws ReportException
+    {
+        if (service instanceof EndpointExecutableService) {
+            EndpointExecutableService endpointService = (EndpointExecutableService) service;
+            if (endpointService.isEndpoint()) {
+                modifyRoom(getRoomApi(executableManager), executor);
+            }
+        }
+
+        super.onServiceDeactivation(service, executor, executableManager);
+    }
 
     @Override
     protected void onCreate()

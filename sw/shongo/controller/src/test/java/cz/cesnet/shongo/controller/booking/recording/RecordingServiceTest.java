@@ -204,6 +204,19 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
 
+        // Check performed actions on MCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedCommandClasses());
+        Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(5, mcuAgent.getPerformedCommand(2,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
@@ -308,6 +321,25 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 1, result.getStoppedExecutables().size());
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
+
+        // Check performed actions on MCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedCommandClasses());
+        Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(5, mcuAgent.getPerformedCommand(2,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(6, mcuAgent.getPerformedCommand(3,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(5, mcuAgent.getPerformedCommand(4,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()

@@ -39,6 +39,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     private RoomEndpoint roomEndpoint;
 
     /**
+     * Specifies whether {@link #onStop} is active.
+     */
+    private boolean isStopping;
+
+    /**
      * Constructor.
      */
     public UsedRoomEndpoint()
@@ -135,6 +140,13 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Transient
     @Override
+    public int getEndpointServiceCount()
+    {
+        return super.getEndpointServiceCount() + roomEndpoint.getEndpointServiceCount();
+    }
+
+    @Transient
+    @Override
     public DeviceResource getDeviceResource()
     {
         return roomEndpoint.getDeviceResource();
@@ -196,35 +208,39 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    public void fillRoomApi(Room roomApi)
+    public void fillRoomApi(Room roomApi, ExecutableManager executableManager)
     {
-        super.fillRoomApi(roomApi);
+        super.fillRoomApi(roomApi, executableManager);
 
-        RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+        // Use reused room configuration
+        roomEndpoint.fillRoomApi(roomApi, executableManager);
 
-        roomEndpoint.fillRoomApi(roomApi);
-        roomApi.setDescription(getRoomDescriptionApi());
-        roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
-        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-            roomApi.addRoomSetting(roomSetting.toApi());
-        }
-        for (Alias alias : getAssignedAliases()) {
-            roomApi.addAlias(alias.toApi());
+        // Modify the room configuration (only when we aren't stopping the reused room)
+        if (!isStopping) {
+            RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+            roomApi.setDescription(getRoomDescriptionApi());
+            roomApi.setLicenseCount(roomConfiguration.getLicenseCount() + getEndpointServiceCount());
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+                roomApi.addRoomSetting(roomSetting.toApi());
+            }
+            for (Alias alias : getAssignedAliases()) {
+                roomApi.addAlias(alias.toApi());
+            }
         }
     }
 
     @Override
-    public void modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+    public void modifyRoom(Room roomApi, Executor executor)
             throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
     {
-        roomEndpoint.modifyRoom(roomApi, executor, executableManager);
+        roomEndpoint.modifyRoom(roomApi, executor);
     }
 
     @Override
     protected Executable.State onStart(Executor executor, ExecutableManager executableManager)
     {
         try {
-            roomEndpoint.modifyRoom(getRoomApi(), executor, executableManager);
+            modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
@@ -240,7 +256,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     protected Executable.State onUpdate(Executor executor, ExecutableManager executableManager)
     {
         try {
-            modifyRoom(getRoomApi(), executor, executableManager);
+            modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STARTED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
@@ -255,8 +271,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     @Override
     protected Executable.State onStop(Executor executor, ExecutableManager executableManager)
     {
+        isStopping = true;
         try {
-            roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor, executableManager);
+            modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STOPPED;
         }
         catch (ExecutorReportSet.RoomNotStartedException exception) {
@@ -264,6 +281,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         }
         catch (ExecutorReportSet.CommandFailedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
+        }
+        finally {
+            isStopping = false;
         }
         return Executable.State.STOPPING_FAILED;
     }

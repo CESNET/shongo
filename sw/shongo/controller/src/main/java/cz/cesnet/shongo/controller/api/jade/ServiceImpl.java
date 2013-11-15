@@ -75,7 +75,7 @@ public class ServiceImpl implements Service
                 throw new CommandException(
                         String.format("No room '%s' was found for resource with agent '%s'.", roomId, agentName));
             }
-            return roomEndpoint.getRoomApi();
+            return roomEndpoint.getRoomApi(executableManager);
         }
         finally {
             entityManager.close();
