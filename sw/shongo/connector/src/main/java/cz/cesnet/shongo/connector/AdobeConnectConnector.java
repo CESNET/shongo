@@ -389,6 +389,30 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public String createRecordingFolder(String name) throws CommandException
     {
+        Integer i = 0;
+        String nameSuffix = "";
+
+        while (true) {
+            try {
+                RequestAttributeList attributes = new RequestAttributeList();
+                attributes.add("sco-id", getRecordingFolderID());
+                attributes.add("filter-name", URLEncoder.encode(name + " " + nameSuffix, "UTF8"));
+
+
+                Element recFolders = request("sco-contents", attributes);
+                if (recFolders.getChild("scos").getChildren().size() == 0) {
+                    name = URLEncoder.encode(name + " " + nameSuffix, "UTF8");
+                    break;
+                }
+
+                i = i + 1;
+                nameSuffix = i.toString();
+            }
+            catch (UnsupportedEncodingException e) {
+                throw new CommandException("Error while message encoding.", e);
+            }
+        }
+
         RequestAttributeList folderAttributes = new RequestAttributeList();
         folderAttributes.add("folder-id", getRecordingFolderID());
         folderAttributes.add("name", name);
@@ -462,7 +486,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         recording.setDescription(description == null ? "" : description);
 
         recording.setBeginDate(DateTime.parse(scoInfo.getChild("sco").getChildText("date-begin")));
-        //TODO: Duration
         recording.setDuration(new Interval(DateTime.parse(scoInfo.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
         String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + scoInfo
                 .getChild("sco").getChildText("url-path");
@@ -476,10 +499,62 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return recording;
     }
 
+    /**
+     * Returns active recording for room with alias, if any
+     * @param roomId
+     * @return Recording info, or null, if no active recording
+     * @throws CommandException
+     */
+    protected Recording getActiveRecording(String roomId) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", roomId);
+        attributes.add("filter-icon", "archive");
+
+        Element response = request("sco-contents", attributes);
+
+        for (Element resultRecording : response.getChild("scos").getChildren()) {
+            if (resultRecording.getChild("date-end") == null) {
+                Recording recording = new Recording();
+
+                recording.setId(resultRecording.getAttributeValue("sco-id"));
+                recording.setName(resultRecording.getChildText("name"));
+
+                String description = resultRecording.getChildText("description");
+                recording.setDescription(description == null ? "" : description);
+
+                String dateBegin = resultRecording.getChildText("date-begin");
+                recording.setBeginDate(DateTime.parse(dateBegin));
+
+                String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
+                        + resultRecording.getChildText("url-path");
+
+                recording.setUrl(baseUrl);
+
+                return recording;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public Recording getActiveRecording(Alias alias) throws CommandException
+    {
+        String path = getLastPathSegmentFromURI(alias.getValue());
+        String scoId = getScoByUrl(path);
+
+        return getActiveRecording(scoId);
+    }
+
     @Override
     public String startRecording(String folderId, Alias alias)
             throws CommandException
     {
+        if (getActiveRecording(alias) != null) {
+            throw new RecordingUnavailableException("Recording is not available now.");
+        }
+
         String recordingName;
         try {
             recordingName = URLEncoder.encode("[rec:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
@@ -514,8 +589,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("active", "false");
-
-        //TODO: ASK for state before
 
         request("meeting-recorder-activity-update", attributes);
 

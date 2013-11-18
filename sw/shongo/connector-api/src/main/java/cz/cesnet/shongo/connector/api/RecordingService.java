@@ -50,6 +50,16 @@ public interface RecordingService
     public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
+     * Returns active recording for room with alias, if any
+     *
+     * @param alias alias for room
+     * @return recording info or null, if room is not recorded
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException;
+
+    /**
      * Immediately starts recording a meeting specified by given {@code alias}.
      *
      * @param recordingFolderId identifier of folder, where the recording should be stored

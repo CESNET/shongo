@@ -123,6 +123,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
+    public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
+    {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
     public String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException
     {
         throw new TodoImplementException("CiscoTCSConnector.startRecording");
