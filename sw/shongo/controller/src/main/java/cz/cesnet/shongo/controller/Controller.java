@@ -820,7 +820,8 @@ public class Controller
         Scheduler scheduler = new Scheduler();
         scheduler.setCache(cache);
         controller.addComponent(scheduler);
-        controller.addComponent(new Executor());
+        Executor executor = new Executor();
+        controller.addComponent(executor);
 
         // Add mail notification executor
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender()));
@@ -831,7 +832,7 @@ public class Controller
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ResourceControlServiceImpl());
         controller.addRpcService(new ReservationServiceImpl(cache));
-        controller.addRpcService(new ExecutableServiceImpl());
+        controller.addRpcService(new ExecutableServiceImpl(executor));
 
         // Add JADE service
         controller.setJadeService(new ServiceImpl(entityManagerFactory, controller.getNotificationManager()));

@@ -371,20 +371,26 @@
                     <c:when test="${room.started}">
                         <c:choose>
                             <c:when test="${room.recordingService.active}">
-                                <a class="btn" href="">
+                                <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP %>" var="stopRecordingUrl">
+                                    <tag:param name="roomId" value="${room.id}"/>
+                                    <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+                                    <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
+                                </tag:url>
+                                <a class="btn" href="${stopRecordingUrl}">
                                     <spring:message code="views.room.recording.stop"/>
                                 </a>
                             </c:when>
                             <c:otherwise>
-                                <a class="btn" href="">
+                                <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START %>" var="startRecordingUrl">
+                                    <tag:param name="roomId" value="${room.id}"/>
+                                    <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+                                    <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
+                                </tag:url>
+                                <a class="btn" href="${startRecordingUrl}">
                                     <spring:message code="views.room.recording.start"/>
                                 </a>
                             </c:otherwise>
                         </c:choose>
-                        <a class="btn btn-primary" href="">
-                            <spring:message code="views.room.recording.start"/>
-                        </a>
-
                     </c:when>
                     <c:otherwise>
                     <span class="btn disabled">
@@ -455,11 +461,11 @@
     </c:if>
 
     <div class="table-actions" style="text-align: right;">
-        <c:if test="${!room.recordable && !room.deprecated}">
+        <%--<c:if test="${!room.recordable && !room.deprecated}">
             <span class="btn disabled">
                 <spring:message code="views.room.recording.book"/>
             </span>
-        </c:if>
+        </c:if>--%>
         <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
                 <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>

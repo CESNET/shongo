@@ -74,6 +74,18 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
+     * @param aliasType to be added to the {@link #aliasTypes}
+     * @param value     sets the {@link #value}
+     */
+    public AliasSpecification(AliasType aliasType, String value)
+    {
+        addAliasType(aliasType);
+        setValue(value);
+    }
+
+    /**
+     * Constructor.
+     *
      * @param aliasTypes sets the {@link #aliasTypes}
      */
     public AliasSpecification(AliasType[] aliasTypes)
@@ -191,7 +203,7 @@ public class AliasSpecification extends Specification
      */
     public String getValue()
     {
-        return  value;
+        return value;
     }
 
     /**

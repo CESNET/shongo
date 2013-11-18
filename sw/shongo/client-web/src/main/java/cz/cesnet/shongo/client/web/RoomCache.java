@@ -243,7 +243,7 @@ public class RoomCache
      * @param roomExecutableId
      * @return {@link RoomExecutable} for given {@code roomExecutableId}
      */
-    private RoomExecutable getRoomExecutable(SecurityToken securityToken, String roomExecutableId)
+    public RoomExecutable getRoomExecutable(SecurityToken securityToken, String roomExecutableId)
     {
         synchronized (roomExecutableCache) {
             RoomExecutable roomExecutable = roomExecutableCache.get(roomExecutableId);

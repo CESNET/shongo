@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -164,6 +165,22 @@ public abstract class Executable extends ExecutionTarget
     public List<ExecutableService> getServices()
     {
         return services;
+    }
+
+    /**
+     * @param serviceId
+     * @return {@link ExecutableService} for given {@code serviceId}
+     */
+    @Transient
+    public ExecutableService getServiceById(Long serviceId)
+    {
+        for (ExecutableService service : services) {
+            if (service.getId().equals(serviceId)) {
+                return service;
+            }
+        }
+        throw new CommonReportSet.EntityNotFoundException(
+                ExecutableService.class.getSimpleName(), serviceId.toString());
     }
 
     /**

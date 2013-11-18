@@ -815,6 +815,9 @@ public class SchedulerContext
         if (ResourceReservation.class.isAssignableFrom(reservationType)) {
             return ResourceReservation.class;
         }
+        else if (ValueReservation.class.isAssignableFrom(reservationType)) {
+            return ValueReservation.class;
+        }
         return reservationType;
     }
 

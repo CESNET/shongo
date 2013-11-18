@@ -165,9 +165,7 @@ public class Executor extends SwitchableComponent
                 Thread.currentThread().interrupt();
                 continue;
             }
-            synchronized (ThreadLock.class) {
-                execute(DateTime.now());
-            }
+            execute(DateTime.now());
         }
 
         logger.debug("Executor stopped!");
@@ -179,7 +177,7 @@ public class Executor extends SwitchableComponent
      * @param dateTime specifies date/time which should be used as "now" executing {@link Reservation}s
      * @return {@link cz.cesnet.shongo.controller.executor.ExecutionResult}
      */
-    public ExecutionResult execute(DateTime dateTime)
+    public synchronized ExecutionResult execute(DateTime dateTime)
     {
         if (!isEnabled()) {
             logger.warn("Skipping executor because it is disabled...");

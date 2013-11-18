@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
@@ -303,6 +305,39 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
+        allocateAndCheck(reservationRequest);
+    }
+
+    @Test
+    public void testRoomModificationSameName() throws Exception
+    {
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.setAllocatable(true);
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME}));
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(
+                new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, new ValueProvider.Pattern("{hash}")));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}@cesnet.cz"));
+        connect.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, connect);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2013-01-01T12:00", "PT1H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(3, Technology.ADOBE_CONNECT));
+        String reservationRequestId = allocate(reservationRequest);
+        RoomReservation roomReservation = (RoomReservation) checkAllocated(reservationRequestId);
+        RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        String roomName = roomExecutable.getAliasByType(AliasType.ROOM_NAME).getValue();
+
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
+        RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
+        roomSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME, roomName));
         allocateAndCheck(reservationRequest);
     }
 

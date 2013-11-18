@@ -297,6 +297,28 @@ public class RoomController
         return data;
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START, method = RequestMethod.GET)
+    public String handleRoomManagementRecordingStart(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "executableId") String executableId,
+            @RequestParam(value = "executableServiceId") String executableServiceId)
+    {
+        executableService.activateExecutableService(securityToken, executableId, executableServiceId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP, method = RequestMethod.GET)
+    public String handleRoomManagementRecordingStop(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "executableId") String executableId,
+            @RequestParam(value = "executableServiceId") String executableServiceId)
+    {
+        executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Map handleRoomManagementRecordings(

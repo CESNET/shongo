@@ -163,6 +163,7 @@ public class ValueReservationTask extends ReservationTask
         Long valueProviderId = valueProvider.getId();
         List<ValueReservation> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
+
         schedulerContext.applyReservations(valueProviderId, allocatedValues, ValueReservation.class);
         for (ValueReservation allocatedValue : allocatedValues) {
             usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());

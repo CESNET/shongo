@@ -37,16 +37,6 @@ public interface ExecutableService extends Service
     @API
     public Executable getExecutable(SecurityToken securityToken, String executableId);
 
-
-    /**
-     * Lists {@link Recording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.
-     *
-     * @param request {@link ExecutableRecordingListRequest}
-     * @return {@link ListResponse} of {@link Recording}s
-     */
-    @API
-    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request);
-
     /**
      * Updates executable configuration.
      *
@@ -87,4 +77,30 @@ public interface ExecutableService extends Service
     @API
     public void attachRoomExecutable(SecurityToken securityToken, String roomExecutableId, String deviceRoomId);
 
+    /**
+     * Activate service with given {@code executableServiceId} for executable with given {@code executableId}.
+     *
+     * @param executableId
+     * @param executableServiceId
+     */
+    @API
+    public void activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
+
+    /**
+     * Deactivate service with given {@code executableServiceId} for executable with given {@code executableId}.
+     *
+     * @param executableId
+     * @param executableServiceId
+     */
+    @API
+    public void deactivateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
+
+    /**
+     * Lists {@link Recording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.
+     *
+     * @param request {@link ExecutableRecordingListRequest}
+     * @return {@link ListResponse} of {@link Recording}s
+     */
+    @API
+    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request);
 }

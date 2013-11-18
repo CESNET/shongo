@@ -97,6 +97,11 @@ public class RoomModel
     private RecordingService recordingService;
 
     /**
+     * Identifier of executable which has the recording service.
+     */
+    private String recordingServiceExecutableId;
+
+    /**
      * Constructor.
      *
      * @param roomExecutable    to initialize the {@link RoomModel} from
@@ -164,6 +169,7 @@ public class RoomModel
                         this.participants.add(new Participant(this.usageId, participant, cacheProvider));
                     }
                     this.recordingService = usage.getService(RecordingService.class);
+                    this.recordingServiceExecutableId = usage.getId();
                     break;
                 }
             }
@@ -177,6 +183,7 @@ public class RoomModel
                 this.type = RoomType.ADHOC_ROOM;
             }
             this.recordingService = roomExecutable.getService(RecordingService.class);
+            this.recordingServiceExecutableId = roomExecutable.getId();
         }
 
         // Room state
@@ -343,6 +350,14 @@ public class RoomModel
     public RecordingService getRecordingService()
     {
         return recordingService;
+    }
+
+    /**
+     * @return {@link #recordingServiceExecutableId}
+     */
+    public String getRecordingServiceExecutableId()
+    {
+        return recordingServiceExecutableId;
     }
 
     /**
