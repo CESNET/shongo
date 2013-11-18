@@ -486,7 +486,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", folderId);
         attributes.add("active", "true");
-        attributes.add("name","[rec:" + folderId + "] " + alias.getValue());
+        try {
+            attributes.add("name",URLEncoder.encode("[rec:" + folderId + "] " + alias.getValue(),"UTF8"));
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new CommandException("Error while URL encoding.", ex);
+        }
 
         request("meeting-recorder-activity-update", attributes);
 
@@ -512,6 +517,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         String recName = recInfo.getChild("sco").getChildText("name");
         String recordingFolder = recName.substring(recName.indexOf("[")+1,recName.indexOf("]")).replaceAll("rec:","");
+
+        //TODO: ask for folder id in controller
 
         moveRecording(recordingId,recordingFolder);
     }
