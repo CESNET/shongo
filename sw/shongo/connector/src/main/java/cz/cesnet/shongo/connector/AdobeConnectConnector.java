@@ -484,13 +484,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", folderId);
+
+        attributes.add("sco-id", getScoByUrl(getLastPathSegmentFromURI(alias.getValue())));
         attributes.add("active", "true");
         try {
             attributes.add("name",URLEncoder.encode("[rec:" + folderId + "] " + alias.getValue(),"UTF8"));
         }
         catch (UnsupportedEncodingException e) {
-            throw new CommandException("Error while URL encoding.", ex);
+            throw new CommandException("Error while URL encoding.", e);
         }
 
         request("meeting-recorder-activity-update", attributes);
@@ -1239,6 +1240,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.add("sco-id", scoId);
 
         return request("sco-info", attributes);
+    }
+
+    protected String getScoByUrl(String url) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+
+        request("sco-by-url",attributes).getChild("sco").getAttributeValue("sco-id");
     }
 
     protected void deleteSCO(String scoId) throws CommandException
