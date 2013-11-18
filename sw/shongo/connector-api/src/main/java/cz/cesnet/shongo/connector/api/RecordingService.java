@@ -16,11 +16,11 @@ public interface RecordingService
     /**
      * Create a new folder where one or more recordings can be stored.
      *
-     * @param description of the folder by which the folder and it's recordings can be found in case of manual lookup
+     * @param name of the folder by which the folder and it's recordings can be found in case of manual lookup
      * @return identifier of newly created folder (unique among other folders on the device)
      * @throws CommandException
      */
-    public String createRecordingFolder(String description) throws CommandException;
+    public String createRecordingFolder(String name) throws CommandException;
 
     /**
      * Delete existing folder for storing recordings.

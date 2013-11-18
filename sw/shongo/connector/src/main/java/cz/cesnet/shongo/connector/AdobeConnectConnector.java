@@ -386,22 +386,27 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @Override
-    public String createRecordingFolder(String description) throws CommandException
+    public String createRecordingFolder(String name) throws CommandException
     {
-        throw new TodoImplementException("AdobeConnectConnector.createRecordingFolder");
+        RequestAttributeList folderAttributes = new RequestAttributeList();
+        folderAttributes.add("folder-id", getRecordingFolderID());
+        folderAttributes.add("name", name);
+        folderAttributes.add("type", "folder");
+
+        Element folder = request("sco-update", folderAttributes);
+
+        return folder.getChild("sco").getAttributeValue("sco-id");
     }
 
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        throw new TodoImplementException("AdobeConnectConnector.deleteRecordingFolder");
+        deleteSCO(recordingFolderId);
     }
 
     @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException
     {
-        //TODO: rozeznat folderId a roomId, zatim jen id mistnosti
-
         ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
         RequestAttributeList attributes = new RequestAttributeList();
@@ -450,22 +455,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", recordingId);
-
-        Element response = request("sco-info", attributes);
+        Element scoInfo = getScoInfo(recordingId);
 
         Recording recording = new Recording();
 
-        recording.setName(response.getChild("sco").getChildText("name"));
+        recording.setName(scoInfo.getChild("sco").getChildText("name"));
 
-        String description = response.getChild("sco").getChildText("description");
+        String description = scoInfo.getChild("sco").getChildText("description");
         recording.setDescription(description == null ? "" : description);
 
-        recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
+        recording.setBeginDate(DateTime.parse(scoInfo.getChild("sco").getChildText("date-begin")));
         //TODO: Duration
-        recording.setDuration(new Interval(DateTime.parse(response.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+        recording.setDuration(new Interval(DateTime.parse(scoInfo.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + scoInfo
                 .getChild("sco").getChildText("url-path");
 
         recording.setUrl(baseUrl);
@@ -484,6 +486,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", folderId);
         attributes.add("active", "true");
+        attributes.add("name","[rec:" + folderId + "] " + alias.getValue());
 
         request("meeting-recorder-activity-update", attributes);
 
@@ -492,7 +495,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("meeting-recorder-activity-info", recAttributes);
 
-        //TODO: return 0 for allready recording - maybe
+        //TODO: return 0 for allready recording - gues not, more recording at once
         return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
     }
 
@@ -504,6 +507,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.add("active", "false");
 
         request("meeting-recorder-activity-update", attributes);
+
+        Element recInfo = getScoInfo(recordingId);
+
+        String recName = recInfo.getChild("sco").getChildText("name");
+        String recordingFolder = recName.substring(recName.indexOf("[")+1,recName.indexOf("]")).replaceAll("rec:","");
+
+        moveRecording(recordingId,recordingFolder);
     }
 
     @Override
@@ -512,7 +522,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         deleteSCO(recordingId);
     }
 
-    private void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
+    private void moveRecording(String recordingId, String folderId) throws CommandException
     {
         RequestAttributeList folderAttributes = new RequestAttributeList();
         folderAttributes.add("folder-id",recordingsFolderID);
@@ -606,12 +616,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public Room getRoom(String roomId) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-
         Room room = new Room();
         try {
-            Element response = request("sco-info", attributes);
+            Element response = getScoInfo(roomId);
 
             Element sco = response.getChild("sco");
 
@@ -978,11 +985,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public String exportRoomSettings(String roomId) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-
-        Element response = request("sco-info", attributes);
-        Document document = response.getDocument();
+        Element scoInfo = getScoInfo(roomId);
+        Document document = scoInfo.getDocument();
 
         XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         String xmlString = outputter.outputString(document);
@@ -1222,10 +1226,18 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
     }
 
-    protected void deleteSCO(String scoID) throws CommandException
+    protected Element getScoInfo(String scoId) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", scoID);
+        attributes.add("sco-id", scoId);
+
+        return request("sco-info", attributes);
+    }
+
+    protected void deleteSCO(String scoId) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", scoId);
 
         request("sco-delete", attributes);
     }
@@ -1327,7 +1339,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if (sco.getAttributeValue("type").equals("content")) {
-                    // Find sco-id of /shongo folder
+                    // Find sco-id of /shongo-rec folder
                     RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
@@ -1340,9 +1352,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                         }
                     }
 
-                    // Creates /shongo folder if not exists
+                    // Creates /shongo-rec folder if not exists
                     if (recordingsFolderID == null) {
-                        logger.debug("Folder /shongo for shongo meetings does not exists, creating...");
+                        logger.debug("Folder /shongo-rec for shongo meetings does not exists, creating...");
 
                         RequestAttributeList folderAttributes = new RequestAttributeList();
                         folderAttributes.add("folder-id", sco.getAttributeValue("sco-id"));
@@ -1698,6 +1710,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             acc.connect(address, "admin", "cip9skovi3t2");
 
             /************************/
+
+            acc.stopRecording("57127");
 
             /************************/
 

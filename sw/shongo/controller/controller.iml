@@ -35,6 +35,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: joda-time:joda-time:2.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.tika:tika-core:1.4" level="project" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="common-api" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.3" level="project" />
@@ -69,9 +71,8 @@
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.2.1" level="project" />
     <orderEntry type="library" name="Maven: javax.mail:mail:1.4.5" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:activation:1.1" level="project" />
-    <orderEntry type="module" module-name="connector-api" />
-    <orderEntry type="module" module-name="controller-api" />
-    <orderEntry type="library" name="Maven: sun.jdk:tools:1.6.0" level="project" />
+    <orderEntry type="library" name="Maven: cz.cesnet.shongo:connector-api:0.6.0" level="project" />
+    <orderEntry type="library" name="Maven: cz.cesnet.shongo:controller-api:0.6.0" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-core:3.1.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-asm:3.1.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.hibernate:hibernate-entitymanager:4.1.12.Final" level="project" />
