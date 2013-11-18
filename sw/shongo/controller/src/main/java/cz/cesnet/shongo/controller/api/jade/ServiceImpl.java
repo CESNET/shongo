@@ -129,6 +129,12 @@ public class ServiceImpl implements Service
         notificationManager.executeNotification(simpleMessageNotification);
     }
 
+    @Override
+    public String getRecordingFolderId(String agentName, String roomId) throws CommandException
+    {
+        throw new TodoImplementException();
+    }
+
     /**
      * Gets device resource identifier based on agent name.
      *

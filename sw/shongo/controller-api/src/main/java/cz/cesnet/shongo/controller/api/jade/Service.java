@@ -46,6 +46,13 @@ public interface Service
             String title, String message) throws CommandException;
 
     /**
+     * @param agentName
+     * @param roomId
+     * @return recording folder id for room with given {@code roomId}
+     */
+    public String getRecordingFolderId(String agentName, String roomId) throws CommandException;
+
+    /**
      * Enumeration of all possible notification targets.
      */
     public static enum NotifyTargetType
