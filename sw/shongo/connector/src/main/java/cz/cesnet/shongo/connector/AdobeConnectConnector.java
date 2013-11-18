@@ -510,11 +510,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public void stopRecording(String recordingId) throws CommandException
     {
-
+        String roomId = getScoInfo(recordingId).getChild("sco").getAttributeValue("folder-id");
 
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", recordingId);
+        attributes.add("sco-id", roomId);
         attributes.add("active", "false");
+
+        //TODO: ASK for state before
 
         request("meeting-recorder-activity-update", attributes);
 
