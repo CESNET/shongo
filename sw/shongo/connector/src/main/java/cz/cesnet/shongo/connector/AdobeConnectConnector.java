@@ -26,6 +26,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.text.DateFormatter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -483,18 +484,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public String startRecording(String folderId, Alias alias)
             throws CommandException
     {
+        String recordingName;
+        try {
+            recordingName = URLEncoder.encode("[rec:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new CommandException("Error while URL encoding.", e);
+        }
+
         RequestAttributeList attributes = new RequestAttributeList();
 
         String path = getLastPathSegmentFromURI(alias.getValue());
         String scoId = getScoByUrl(path);
         attributes.add("sco-id", scoId);
         attributes.add("active", "true");
-        try {
-            attributes.add("name",URLEncoder.encode("[rec:" + folderId + "]","UTF8"));
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new CommandException("Error while URL encoding.", e);
-        }
+        attributes.add("name",recordingName);
 
         request("meeting-recorder-activity-update", attributes);
 
@@ -503,7 +507,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("meeting-recorder-activity-info", recAttributes);
 
-        //TODO: return 0 for allready recording - gues not, more recording at once
         return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
     }
 
@@ -1504,7 +1507,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id",getMeetingsFolderID());
-        attributes.add("type","meeting");
+        attributes.add("type", "meeting");
         Element shongoRoomsElement = request("sco-contents",attributes);
 
         List<String> shongoRooms = new ArrayList<String>();
@@ -1725,8 +1728,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             acc.connect(address, "admin", "cip9skovi3t2");
 
             /************************/
-
-            acc.stopRecording("57127");
 
             /************************/
 
