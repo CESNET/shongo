@@ -24,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
@@ -31,6 +32,7 @@ import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -489,6 +491,11 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             entityManager.getTransaction().commit();
+
+            // Reporting
+            for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
+                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+            }
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -508,8 +515,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
         try {
+            Long persistenceId = entityId.getPersistenceId();
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(persistenceId);
 
             if (!authorization.hasPermission(securityToken, executable, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", entityId);
@@ -524,7 +532,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableService.deactivate(executor, executableManager);
             }
 
+            executableRecordingsCache.remove(persistenceId);
+
             entityManager.getTransaction().commit();
+
+            // Reporting
+            for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
+                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+            }
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -589,7 +604,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
             int end = start + count;
             if (end > recordings.size()) {
-                end = maxIndex;
+                end = maxIndex + 1;
             }
             ListResponse<Recording> response = new ListResponse<Recording>();
             response.setStart(start);

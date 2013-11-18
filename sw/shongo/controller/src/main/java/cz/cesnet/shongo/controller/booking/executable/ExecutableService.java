@@ -116,7 +116,7 @@ public abstract class ExecutableService extends ExecutionTarget
     public void toApi(cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi)
     {
         executableServiceApi.setId(getId());
-        executableServiceApi.setActive(State.ACTIVE.equals(state));
+        executableServiceApi.setActive(state.isActive());
         executableServiceApi.setSlot(getSlot());
     }
 
@@ -222,7 +222,7 @@ public abstract class ExecutableService extends ExecutionTarget
     @Override
     public String getReportContextName()
     {
-        return "executable " + EntityIdentifier.formatId(this);
+        return getClass().getSimpleName() + " " + getId();
     }
 
     @Transient
@@ -240,26 +240,49 @@ public abstract class ExecutableService extends ExecutionTarget
         /**
          * {@link ExecutableService} isn't active (isn't started)
          */
-        NOT_ACTIVE,
+        NOT_ACTIVE(false),
 
         /**
          * {@link ExecutableService} should be started.
          */
-        PREPARED,
+        PREPARED(false),
 
         /**
          * {@link ExecutableService} is active (is started).
          */
-        ACTIVE,
+        ACTIVE(true),
 
         /**
          * {@link ExecutableService} activation failed.
          */
-        ACTIVATION_FAILED,
+        ACTIVATION_FAILED(false),
 
         /**
          * {@link ExecutableService} deactivation failed.
          */
-        DEACTIVATION_FAILED
+        DEACTIVATION_FAILED(true);
+
+        /**
+         * Specifies whether {@link ExecutableService} is active.
+         */
+        private boolean active;
+
+        /**
+         * Constructor.
+         *
+         * @param active sets the {@link #active}
+         */
+        private State(boolean active)
+        {
+            this.active = active;
+        }
+
+        /**
+         * @return {@link #active}
+         */
+        public boolean isActive()
+        {
+            return active;
+        }
     }
 }

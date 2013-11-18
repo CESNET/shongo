@@ -246,6 +246,9 @@ public class DateTimeFormatter
      */
     public String formatDuration(Period duration)
     {
+        if (duration == null) {
+            return "";
+        }
         return periodFormatter.print(roundDuration(duration));
     }
 
@@ -270,6 +273,7 @@ public class DateTimeFormatter
         int days = period.getDays();
         int hours = period.getHours();
         int minutes = period.getMinutes();
+        int seconds = period.getSeconds();
 
         // Specifies which field are non-zero
         int nonZeroFields = (years > 0 ? YEARS : 0) | (months > 0 ? MONTHS : 0) | (weeks > 0 ? WEEKS : 0)
@@ -280,6 +284,7 @@ public class DateTimeFormatter
             if (period.getSeconds() >= 30) {
                 minutes++;
             }
+            seconds = 0;
         }
 
         // Make hour from minutes
@@ -327,7 +332,7 @@ public class DateTimeFormatter
             weeks = 0;
         }
 
-        return new Period(years, months, weeks, days, hours, minutes, 0, 0);
+        return new Period(years, months, weeks, days, hours, minutes, seconds, 0);
     }
 
     /**

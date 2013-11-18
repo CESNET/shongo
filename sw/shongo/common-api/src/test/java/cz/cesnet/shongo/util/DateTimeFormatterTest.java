@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.util;
 
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.joda.time.format.PeriodFormat;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,5 +31,8 @@ public class DateTimeFormatterTest
 
         Assert.assertEquals(Period.years(2).withWeeks(1),
                 DateTimeFormatter.roundDuration(Period.years(2).withWeeks(1).withDays(3)));
+
+        Assert.assertEquals(Period.seconds(5),
+                DateTimeFormatter.roundDuration(Period.seconds(5)));
     }
 }

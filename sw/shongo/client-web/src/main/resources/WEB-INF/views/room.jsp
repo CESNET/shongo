@@ -354,7 +354,7 @@
     </c:if>
 
     <%-- Runtime management - Recordings --%>
-    <c:if test="${room.recordable}">
+    <c:if test="${!roomNotAvailable && room.recordable}">
         <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA %>" var="roomRecordingsUrl">
             <tag:param name="roomId" value=":id"/>
         </tag:url>
