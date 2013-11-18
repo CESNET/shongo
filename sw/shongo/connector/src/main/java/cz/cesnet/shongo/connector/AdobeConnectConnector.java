@@ -485,10 +485,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         RequestAttributeList attributes = new RequestAttributeList();
 
-        attributes.add("sco-id", getScoByUrl(getLastPathSegmentFromURI(alias.getValue())));
+        String path = getLastPathSegmentFromURI(alias.getValue());
+        String scoId = getScoByUrl(path);
+        attributes.add("sco-id", scoId);
         attributes.add("active", "true");
         try {
-            attributes.add("name",URLEncoder.encode("[rec:" + folderId + "] " + alias.getValue(),"UTF8"));
+            attributes.add("name",URLEncoder.encode("[rec:" + folderId + "]","UTF8"));
         }
         catch (UnsupportedEncodingException e) {
             throw new CommandException("Error while URL encoding.", e);
@@ -497,7 +499,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         request("meeting-recorder-activity-update", attributes);
 
         RequestAttributeList recAttributes = new RequestAttributeList();
-        recAttributes.add("sco-id", folderId);
+        recAttributes.add("sco-id", scoId);
 
         Element response = request("meeting-recorder-activity-info", recAttributes);
 
@@ -508,6 +510,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public void stopRecording(String recordingId) throws CommandException
     {
+
+
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", recordingId);
         attributes.add("active", "false");
@@ -530,18 +534,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         deleteSCO(recordingId);
     }
 
-    private void moveRecording(String recordingId, String folderId) throws CommandException
+    private void moveRecording(String recordingId, String recordingFolderId) throws CommandException
     {
-        RequestAttributeList folderAttributes = new RequestAttributeList();
-        folderAttributes.add("folder-id",recordingsFolderID);
-        folderAttributes.add("name", folderId);
-        folderAttributes.add("type", "folder");
-
-        String folderScoId = request("sco-update",folderAttributes).getChild("sco").getAttributeValue("sco-id");
-
         RequestAttributeList moveAttributes = new RequestAttributeList();
         moveAttributes.add("sco-id", recordingId);
-        moveAttributes.add("folder-id", folderScoId);
+        moveAttributes.add("folder-id", recordingFolderId);
 
         request("sco-move", moveAttributes);
         //TODO: vyresit opravneni
@@ -1245,8 +1242,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected String getScoByUrl(String url) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("url-path",url);
 
-        request("sco-by-url",attributes).getChild("sco").getAttributeValue("sco-id");
+        return request("sco-by-url",attributes).getChild("sco").getAttributeValue("sco-id");
     }
 
     protected void deleteSCO(String scoId) throws CommandException
