@@ -61,6 +61,18 @@ public class Cache
             new ExpirationMap<String, ReservationRequestSummary>();
 
     /**
+     * {@link Reservation} by identifier.
+     */
+    private ExpirationMap<String, Reservation> reservationById =
+            new ExpirationMap<String, Reservation>();
+
+    /**
+     * {@link Reservation} by identifier.
+     */
+    private ExpirationMap<String, Executable> executableById =
+            new ExpirationMap<String, Executable>();
+
+    /**
      * Cached information for single user.
      */
     private static class UserState
@@ -89,6 +101,8 @@ public class Cache
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
         reservationRequestById.setExpiration(Duration.standardMinutes(5));
+        reservationById.setExpiration(Duration.standardMinutes(5));
+        executableById.setExpiration(Duration.standardSeconds(10));
     }
 
     /**
@@ -308,9 +322,14 @@ public class Cache
      * @param reservationId
      * @return {@link Reservation} for given {@code reservationId}
      */
-    public Reservation getReservation(SecurityToken securityToken, String reservationId)
+    public synchronized Reservation getReservation(SecurityToken securityToken, String reservationId)
     {
-        return reservationService.getReservation(securityToken, reservationId);
+        Reservation reservation = reservationById.get(reservationId);
+        if (reservation == null) {
+            reservation = reservationService.getReservation(securityToken, reservationId);
+            reservationById.put(reservationId, reservation);
+        }
+        return reservation;
     }
 
     /**
@@ -318,7 +337,7 @@ public class Cache
      * @param executable
      * @return reservation request id for given {@code executable}
      */
-    public String getReservationRequestIdByExecutable(SecurityToken securityToken, Executable executable)
+    public synchronized String getReservationRequestIdByExecutable(SecurityToken securityToken, Executable executable)
     {
         Reservation reservation = getReservation(securityToken, executable.getReservationId());
         return reservation.getReservationRequestId();
@@ -329,11 +348,24 @@ public class Cache
      * @param executableId
      * @return reservation request id for given {@code executableId}
      */
-    public String getReservationRequestIdByExecutableId(SecurityToken securityToken, String executableId)
+    public synchronized String getReservationRequestIdByExecutableId(SecurityToken securityToken, String executableId)
     {
-        Executable executable = executableService.getExecutable(securityToken, executableId);
+        Executable executable = getExecutable(securityToken, executableId);
         return getReservationRequestIdByExecutable(securityToken, executable);
     }
 
-
+    /**
+     * @param securityToken
+     * @param executableId
+     * @return {@link Executable} for given {@code executableId}
+     */
+    public synchronized Executable getExecutable(SecurityToken securityToken, String executableId)
+    {
+        Executable executable = executableById.get(executableId);
+        if (executable == null) {
+            executable = executableService.getExecutable(securityToken, executableId);
+            executableById.put(executableId, executable);
+        }
+        return executable;
+    }
 }

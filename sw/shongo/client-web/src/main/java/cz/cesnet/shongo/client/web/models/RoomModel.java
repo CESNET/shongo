@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
@@ -130,8 +131,8 @@ public class RoomModel
         // Add room participants from used executable
         if (roomExecutable instanceof UsedRoomExecutable) {
             UsedRoomExecutable usageExecutable = (UsedRoomExecutable) roomExecutable;
-            AbstractRoomExecutable usedExecutable = (AbstractRoomExecutable) executableService.getExecutable(
-                    cacheProvider.getSecurityToken(), usageExecutable.getRoomExecutableId());
+            AbstractRoomExecutable usedExecutable = (AbstractRoomExecutable) cacheProvider.getExecutable(
+                    usageExecutable.getRoomExecutableId());
             RoomExecutableParticipantConfiguration participants = usedExecutable.getParticipantConfiguration();
             for (AbstractParticipant participant : participants.getParticipants()) {
                 this.participants.add(new Participant(usedExecutable.getId(), participant, cacheProvider));
@@ -153,13 +154,14 @@ public class RoomModel
             ExecutableListRequest request = new ExecutableListRequest();
             request.setSecurityToken(securityToken);
             request.setRoomId(roomExecutable.getId());
+            request.setSort(ExecutableListRequest.Sort.SLOT);
+            request.setSortDescending(true);
             ListResponse<ExecutableSummary> usageSummaries = executableService.listExecutables(request);
             DateTime dateTimeNow = DateTime.now();
             for (ExecutableSummary usageSummary : usageSummaries) {
                 Interval usageSlot = usageSummary.getSlot();
                 if (usageSlot.contains(dateTimeNow) && usageSummary.getState().isAvailable()) {
-                    UsedRoomExecutable usage = (UsedRoomExecutable) executableService.getExecutable(
-                            securityToken, usageSummary.getId());
+                    UsedRoomExecutable usage = (UsedRoomExecutable) cacheProvider.getExecutable(usageSummary.getId());
                     this.licenseCount = usage.getLicenseCount();
                     this.licenseCountUntil = usageSlot.getEnd();
                     this.usageId = usage.getId();
@@ -171,6 +173,16 @@ public class RoomModel
                     this.recordingService = usage.getService(RecordingService.class);
                     this.recordingServiceExecutableId = usage.getId();
                     break;
+                }
+            }
+            // Find if any recording service is available
+            if (recordingService == null) {
+                for (ExecutableSummary usageSummary : usageSummaries) {
+                    UsedRoomExecutable usage = (UsedRoomExecutable) cacheProvider.getExecutable(usageSummary.getId());
+                    this.recordingService = usage.getService(RecordingService.class);
+                    if (this.recordingService != null) {
+                        break;
+                    }
                 }
             }
         }

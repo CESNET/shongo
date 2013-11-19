@@ -63,7 +63,7 @@ public class CacheProvider
 
     /**
      * @param reservationId
-     * @return {@link Reservation} for given {@code executable}
+     * @return {@link Reservation} for given {@code reservationId}
      */
     public Reservation getReservation(String reservationId)
     {
@@ -77,5 +77,14 @@ public class CacheProvider
     public String getReservationRequestIdByExecutable(Executable executable)
     {
         return cache.getReservationRequestIdByExecutable(securityToken, executable);
+    }
+
+    /**
+     * @param executableId
+     * @return {@link Executable} for given {@code executableId}
+     */
+    public Executable getExecutable(String executableId)
+    {
+        return cache.getExecutable(securityToken, executableId);
     }
 }

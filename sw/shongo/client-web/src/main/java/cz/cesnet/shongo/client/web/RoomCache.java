@@ -37,6 +37,9 @@ public class RoomCache
     @Resource
     private ExecutableService executableService;
 
+    @Resource
+    private Cache cache;
+
     /**
      * {@link RoomExecutable} by roomExecutableId".
      */
@@ -60,8 +63,6 @@ public class RoomCache
      */
     private final ExpirationMap<String, RoomParticipant> roomParticipantCache =
             new ExpirationMap<String, RoomParticipant>();
-
-
 
     /**
      * Participant snapshots in {@link MediaData} by "roomExecutableId:participantId".
@@ -248,7 +249,7 @@ public class RoomCache
         synchronized (roomExecutableCache) {
             RoomExecutable roomExecutable = roomExecutableCache.get(roomExecutableId);
             if (roomExecutable == null) {
-                Executable executable = executableService.getExecutable(securityToken, roomExecutableId);
+                Executable executable = cache.getExecutable(securityToken, roomExecutableId);
                 if (executable instanceof RoomExecutable) {
                     roomExecutable = (RoomExecutable) executable;
                 }

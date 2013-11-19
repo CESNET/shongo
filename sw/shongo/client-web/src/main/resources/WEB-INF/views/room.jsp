@@ -368,7 +368,7 @@
             </pagination-page-size>
             <div>
                 <c:choose>
-                    <c:when test="${room.started}">
+                    <c:when test="${room.available}">
                         <c:choose>
                             <c:when test="${room.recordingService.active}">
                                 <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP %>" var="stopRecordingUrl">
