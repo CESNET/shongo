@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.ExecutionReport;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
@@ -82,18 +83,22 @@ public interface ExecutableService extends Service
      *
      * @param executableId
      * @param executableServiceId
+     * @return {@link Boolean#TRUE} when the activation succeeds
+     *         otherwise {@link ExecutionReport} describing the error
      */
     @API
-    public void activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
+    public Object activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
 
     /**
      * Deactivate service with given {@code executableServiceId} for executable with given {@code executableId}.
      *
      * @param executableId
      * @param executableServiceId
+     * @return {@link Boolean#TRUE} when the deactivation succeeds
+     *         otherwise {@link ExecutionReport} describing the error
      */
     @API
-    public void deactivateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
+    public Object deactivateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
 
     /**
      * Lists {@link Recording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.

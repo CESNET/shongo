@@ -16,7 +16,7 @@ import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
+import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
@@ -251,11 +251,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     public void modifyRoom(Room roomApi, Executor executor)
-            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
+            throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException
     {
         if (roomApi.getId() == null) {
             cz.cesnet.shongo.api.Alias alias = roomApi.getAlias(AliasType.ROOM_NAME);
-            throw new ExecutorReportSet.RoomNotStartedException(alias != null ? alias.getValue() : null);
+            throw new ExecutionReportSet.RoomNotStartedException(alias != null ? alias.getValue() : null);
         }
 
         DeviceResource deviceResource = getDeviceResource();
@@ -271,7 +271,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 setRoomId((String) sendLocalCommand.getResult());
             }
             else {
-                throw new ExecutorReportSet.CommandFailedException(
+                throw new ExecutionReportSet.CommandFailedException(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
             }
         }
@@ -296,7 +296,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
             else {
-                executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
@@ -318,10 +318,10 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             modifyRoom(getRoomApi(executableManager), executor);
             return State.STARTED;
         }
-        catch (ExecutorReportSet.RoomNotStartedException exception) {
+        catch (ExecutionReportSet.RoomNotStartedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
-        catch (ExecutorReportSet.CommandFailedException exception) {
+        catch (ExecutionReportSet.CommandFailedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
         return null;
@@ -344,7 +344,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPED;
             }
             else {
-                executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }

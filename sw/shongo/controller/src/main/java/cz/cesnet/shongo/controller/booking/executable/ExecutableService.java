@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.booking.executable;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.report.ReportException;
 
 import javax.persistence.*;
@@ -73,7 +72,7 @@ public abstract class ExecutableService extends ExecutionTarget
     @Transient
     public boolean isActive()
     {
-        return State.ACTIVE.equals(state);
+        return state.isActive();
     }
 
     /**
@@ -145,7 +144,7 @@ public abstract class ExecutableService extends ExecutionTarget
      */
     public final void deactivate(Executor executor, ExecutableManager executableManager)
     {
-        if (!getState().equals(State.ACTIVE)) {
+        if (!isActive()) {
             throw new IllegalStateException(
                     String.format("Executable service '%d' can be deactivated only if it is activated.", getId()));
         }

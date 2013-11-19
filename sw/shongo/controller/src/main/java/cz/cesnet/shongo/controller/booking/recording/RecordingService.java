@@ -12,8 +12,8 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
+import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
@@ -144,7 +144,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                     SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRecordingFolder(
                             recordableEndpoint.getRecordingFolderDescription()));
                     if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                        executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                        executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                                 sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                         return State.ACTIVATION_FAILED;
                     }
@@ -158,7 +158,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
                     new StartRecording(recordingFolderId, alias.toApi()));
             if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.ACTIVATION_FAILED;
             }
@@ -187,7 +187,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
             if (recordingId != null) {
                 SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
                 if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                    executableManager.createExecutionReport(this, new ExecutorReportSet.CommandFailedReport(
+                    executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                             sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                     return State.DEACTIVATION_FAILED;
                 }

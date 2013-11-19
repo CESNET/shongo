@@ -30,9 +30,9 @@ public class Executable extends IdentifiedComplexType
     private ExecutableState state;
 
     /**
-     * {@link ExecutableStateReport} for the {@link #state}.
+     * {@link ExecutionReport} for the {@link #state}.
      */
-    private ExecutableStateReport stateReport;
+    private ExecutionReport stateReport;
 
     /**
      * {@link Executable} is migrated to this {@link Executable}.
@@ -95,7 +95,7 @@ public class Executable extends IdentifiedComplexType
     /**
      * @return {@link #stateReport}
      */
-    public ExecutableStateReport getStateReport()
+    public ExecutionReport getStateReport()
     {
         return stateReport;
     }
@@ -103,7 +103,7 @@ public class Executable extends IdentifiedComplexType
     /**
      * @param stateReport sets the {@link #stateReport}
      */
-    public void setStateReport(ExecutableStateReport stateReport)
+    public void setStateReport(ExecutionReport stateReport)
     {
         this.stateReport = stateReport;
     }
@@ -189,7 +189,7 @@ public class Executable extends IdentifiedComplexType
         reservationId = dataMap.getString(RESERVATION_ID);
         slot = dataMap.getInterval(SLOT);
         state = dataMap.getEnum(STATE, ExecutableState.class);
-        stateReport = dataMap.getComplexType(STATE_REPORT, ExecutableStateReport.class);
+        stateReport = dataMap.getComplexType(STATE_REPORT, ExecutionReport.class);
         migratedExecutable = dataMap.getComplexType(MIGRATED_EXECUTABLE, Executable.class);
         services = dataMap.getList(SERVICES, ExecutableService.class);
     }

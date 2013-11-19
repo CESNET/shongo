@@ -121,6 +121,14 @@ public class Cache
     }
 
     /**
+     * @param executableId to be removed from the {@link #executableById}
+     */
+    public void clearExecutable(String executableId)
+    {
+        executableById.remove(executableId);
+    }
+
+    /**
      * @param securityToken to be used for fetching the {@link UserInformation}
      * @param userId        user-id of the requested user
      * @return {@link UserInformation} for given {@code userId}

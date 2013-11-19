@@ -231,7 +231,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Override
     public void modifyRoom(Room roomApi, Executor executor)
-            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
+            throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException
     {
         roomEndpoint.modifyRoom(roomApi, executor);
     }
@@ -243,10 +243,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STARTED;
         }
-        catch (ExecutorReportSet.RoomNotStartedException exception) {
+        catch (ExecutionReportSet.RoomNotStartedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
-        catch (ExecutorReportSet.CommandFailedException exception) {
+        catch (ExecutionReportSet.CommandFailedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
         return Executable.State.STARTING_FAILED;
@@ -259,10 +259,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STARTED;
         }
-        catch (ExecutorReportSet.RoomNotStartedException exception) {
+        catch (ExecutionReportSet.RoomNotStartedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
-        catch (ExecutorReportSet.CommandFailedException exception) {
+        catch (ExecutionReportSet.CommandFailedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
         return null;
@@ -276,10 +276,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STOPPED;
         }
-        catch (ExecutorReportSet.RoomNotStartedException exception) {
+        catch (ExecutionReportSet.RoomNotStartedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
-        catch (ExecutorReportSet.CommandFailedException exception) {
+        catch (ExecutionReportSet.CommandFailedException exception) {
             executableManager.createExecutionReport(this, exception.getReport());
         }
         finally {

@@ -87,6 +87,48 @@
             });
         };
     });
+<c:if test="${room.recordable}">
+    <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START %>" var="startRecordingUrl">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+        <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
+    </tag:url>
+    <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP %>" var="stopRecordingUrl">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+        <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
+    </tag:url>
+    module.controller('RoomRecordingController', function($scope, $timeout) {
+        $scope.isRecordingActive = ${room.recordingService.active};
+        $scope.recordingError = null;
+        $scope.startRecording = function() {
+            $.post("${startRecordingUrl}", function(result){
+                $timeout(function(){
+                    if (typeof(result) == "object" && result["error"] != null) {
+                        $scope.recordingError = result["error"];
+                    }
+                    else {
+                        $scope.isRecordingActive = true;
+                        $scope.recordingError = null;
+                    }
+                }, 0);
+            });
+        };
+        $scope.stopRecording = function() {
+            $.post("${stopRecordingUrl}", function(result){
+                $timeout(function(){
+                    if (typeof(result) == "object" && result["error"] != null) {
+                        $scope.recordingError = result["error"];
+                    }
+                    else {
+                        $scope.isRecordingActive = false;
+                        $scope.recordingError = null;
+                    }
+                }, 0);
+            });
+        };
+    });
+</c:if>
 </script>
 
 <h1>
@@ -241,14 +283,7 @@
 
     <%-- Runtime management - Not-Available --%>
     <c:if test="${roomNotAvailable}">
-        <tag:url value="<%= ClientWebUrl.REPORT %>" var="reportUrl">
-            <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-        </tag:url>
-
-        <div class="not-available">
-            <h2><spring:message code="views.room.notAvailable.heading"/></h2>
-            <p><spring:message code="views.room.notAvailable.text" arguments="${reportUrl}"/></p>
-        </div>
+        <jsp:include page="roomNotAvailable.jsp"/>
     </c:if>
 
     <%-- Runtime management - Current Participants --%>
@@ -362,43 +397,32 @@
              ng-init="init('room.recordings', '${roomRecordingsUrl}', {id: '${room.id}'})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
-            <h2><spring:message code="views.room.recordings"/></h2>
-            <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
-                <spring:message code="views.pagination.records"/>
-            </pagination-page-size>
-            <div>
-                <c:choose>
-                    <c:when test="${room.available}">
-                        <c:choose>
-                            <c:when test="${room.recordingService.active}">
-                                <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP %>" var="stopRecordingUrl">
-                                    <tag:param name="roomId" value="${room.id}"/>
-                                    <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
-                                    <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
-                                </tag:url>
-                                <a class="btn" href="${stopRecordingUrl}">
-                                    <spring:message code="views.room.recording.stop"/>
-                                </a>
-                            </c:when>
-                            <c:otherwise>
-                                <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START %>" var="startRecordingUrl">
-                                    <tag:param name="roomId" value="${room.id}"/>
-                                    <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
-                                    <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
-                                </tag:url>
-                                <a class="btn" href="${startRecordingUrl}">
-                                    <spring:message code="views.room.recording.start"/>
-                                </a>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:when>
-                    <c:otherwise>
-                    <span class="btn disabled">
-                        <spring:message code="views.room.recording.start"/>
-                    </span>
-                    </c:otherwise>
-                </c:choose>
-            </div>
+            <c:choose>
+                <c:when test="${room.available}">
+                    <h2><spring:message code="views.room.recordings"/></h2>
+                    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+                        <spring:message code="views.pagination.records"/>
+                    </pagination-page-size>
+                    <div ng-controller="RoomRecordingController">
+                        <spring:message code="views.room.recording.started" var="recordingStarted"/>
+                        <a class="btn" href="" ng-click="startRecording()" ng-hide="isRecordingActive">
+                            <i class="icon-recording-start"></i>
+                            <spring:message code="views.room.recording.start"/>
+                        </a>
+                        <a class="btn" href="" ng-click="stopRecording()" title="${recordingStarted}" ng-show="isRecordingActive">
+                            <i class="icon-recording-stop"></i>
+                            <spring:message code="views.room.recording.stop"/>
+                        </a>
+                        <span class="error" ng-show="recordingError != null">{{recordingError}}</span>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
+                        <spring:message code="views.pagination.records"/>
+                    </pagination-page-size>
+                    <h2><spring:message code="views.room.recordings"/></h2>
+                </c:otherwise>
+            </c:choose>
             <div class="spinner" ng-hide="ready || errorContent"></div>
             <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
             <table class="table table-striped table-hover" ng-show="ready">
@@ -407,16 +431,7 @@
                     <%--<th><spring:message code="views.room.recording.name"/></th>--%>
                     <th><spring:message code="views.room.recording.date"/></th>
                     <th><spring:message code="views.room.recording.duration"/></th>
-                    <th>
-                        <c:choose>
-                            <c:when test="${isWritable}">
-                                <spring:message code="views.room.recording.editableUrl"/>
-                            </c:when>
-                            <c:otherwise>
-                                <spring:message code="views.room.recording.url"/>
-                            </c:otherwise>
-                        </c:choose>
-                    </th>
+                    <th><spring:message code="views.room.recording.url"/></th>
                 </tr>
                 </thead>
                 <tbody>

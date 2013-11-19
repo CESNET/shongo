@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.AbstractEntityReport;
-import cz.cesnet.shongo.controller.ExecutableStateReportMessages;
+import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
@@ -15,14 +15,14 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutableStateReport extends AbstractEntityReport
+public class ExecutionReport extends AbstractEntityReport
 {
     public static final String DATE_TIME = "dateTime";
 
     /**
      * Constructor.
      */
-    public ExecutableStateReport()
+    public ExecutionReport()
     {
         super(null);
     }
@@ -32,7 +32,7 @@ public class ExecutableStateReport extends AbstractEntityReport
      *
      * @param userType sets the {@link #userType}
      */
-    public ExecutableStateReport(Report.UserType userType)
+    public ExecutionReport(Report.UserType userType)
     {
         super(userType);
     }
@@ -55,7 +55,7 @@ public class ExecutableStateReport extends AbstractEntityReport
                 break;
             }
             String reportId = (String) report.get(ID);
-            String message = ExecutableStateReportMessages.getMessage(
+            String message = ExecutionReportMessages.getMessage(
                     reportId, getUserType(), Report.Language.fromLocale(locale), timeZone, report);
             stringBuilder.append("[");
             stringBuilder.append(dateTimeFormatter.formatDateTime(new DateTime(report.get(DATE_TIME))));

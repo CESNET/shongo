@@ -222,6 +222,10 @@ form span.error {
     vertical-align: top;
     display: inline-block;
 }
+div span.error {
+    color: red;
+    font-weight: bold;
+}
 
 
 /**********************************************************************************************************************
@@ -716,6 +720,27 @@ div.not-available {
 }
 
 /* vies/room.jsp */
+.icon-recording-start {
+    padding-right: 16px;
+    padding-top: 2px;
+    padding-bottom: 4px;
+    margin-right: 5px;
+    line-height: 14px;
+    background-image:url("../img/button-recording.png");
+    background-position: 0px 1px;
+    background-repeat: no-repeat;
+}
+.icon-recording-stop {
+    padding-right: 16px;
+    padding-top: 2px;
+    padding-bottom: 4px;
+    margin-right: 5px;
+    line-height: 14px;
+    background-image:url("../img/button-recording.png");
+    background-position: -16px 1px;
+    background-repeat: no-repeat;
+}
+
 .room-layout .OTHER:before,
 .room-layout .SPEAKER:before,
 .room-layout .SPEAKER_CORNER:before,

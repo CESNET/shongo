@@ -35,10 +35,10 @@
         <scope>
             <name>executor</name>
             <module>controller</module>
-            <class-name>cz.cesnet.shongo.controller.executor.ExecutorReportSet</class-name>
+            <class-name>cz.cesnet.shongo.controller.executor.ExecutionReportSet</class-name>
             <messages>
                 <module>controller-api</module>
-                <class-name>cz.cesnet.shongo.controller.ExecutableStateReportMessages</class-name>
+                <class-name>cz.cesnet.shongo.controller.ExecutionReportMessages</class-name>
             </messages>
         </scope>
     </scopes>

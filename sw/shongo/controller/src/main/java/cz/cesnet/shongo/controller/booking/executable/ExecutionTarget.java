@@ -2,8 +2,10 @@ package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.api.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.ExecutionAction;
-import cz.cesnet.shongo.controller.executor.ExecutionReport;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -54,11 +56,11 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
     /**
      * List of report for this object.
      */
-    private List<ExecutionReport> reports = new LinkedList<ExecutionReport>();
+    private List<cz.cesnet.shongo.controller.executor.ExecutionReport> reports = new LinkedList<cz.cesnet.shongo.controller.executor.ExecutionReport>();
     /**
      * Cached sorted {@link #reports}.
      */
-    private List<ExecutionReport> cachedSortedReports;
+    private List<cz.cesnet.shongo.controller.executor.ExecutionReport> cachedSortedReports;
 
     /**
      * @return {@link #slotStart}
@@ -246,7 +248,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
         if (cachedSortedReports == null) {
             cachedSortedReports = new LinkedList<cz.cesnet.shongo.controller.executor.ExecutionReport>();
             cachedSortedReports.addAll(reports);
-            Collections.sort(cachedSortedReports, new Comparator<ExecutionReport>()
+            Collections.sort(cachedSortedReports, new Comparator<cz.cesnet.shongo.controller.executor.ExecutionReport>()
             {
                 @Override
                 public int compare(cz.cesnet.shongo.controller.executor.ExecutionReport o1, cz.cesnet.shongo.controller.executor.ExecutionReport o2)
@@ -256,6 +258,19 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
             });
         }
         return cachedSortedReports;
+    }
+
+    /**
+     * @return formatted {@link #reports} as string
+     */
+    @Transient
+    protected ExecutionReport getExecutionReport(Report.UserType userType)
+    {
+        ExecutionReport executionReport = new ExecutionReport(userType);
+        for (cz.cesnet.shongo.controller.executor.ExecutionReport report : getCachedSortedReports()) {
+            executionReport.addReport(new StateReportSerializer(report));
+        }
+        return executionReport;
     }
 
     /**

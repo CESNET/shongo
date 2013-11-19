@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.report.*;
 
 /**
-* Auto-generated messages for ExecutorReportSet.
+* Auto-generated messages for ExecutionReportSet.
 *
 * @author cz.cesnet.shongo.tool-report-generator
 */
-public class ExecutableStateReportMessages
+public class ExecutionReportMessages
 {
     public static final String COMMAND_FAILED = "command-failed";
     public static final String ROOM_NOT_STARTED = "room-not-started";

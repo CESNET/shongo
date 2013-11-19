@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.DateTime;
@@ -207,19 +206,6 @@ public abstract class Executable extends ExecutionTarget
         }
     }
 
-    /**
-     * @return formatted {@link #reports} as string
-     */
-    @Transient
-    protected ExecutableStateReport getExecutableStateReport(Report.UserType userType)
-    {
-        ExecutableStateReport executableStateReport = new ExecutableStateReport(userType);
-        for (ExecutionReport report : getCachedSortedReports()) {
-            executableStateReport.addReport(new StateReportSerializer(report));
-        }
-        return executableStateReport;
-    }
-
     @PrePersist
     protected void onCreate()
     {
@@ -287,7 +273,7 @@ public abstract class Executable extends ExecutionTarget
         executableApi.setId(EntityIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
-        executableApi.setStateReport(getExecutableStateReport(userType));
+        executableApi.setStateReport(getExecutionReport(userType));
         if (migration != null) {
             executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(userType));
         }

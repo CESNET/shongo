@@ -7,7 +7,7 @@ import cz.cesnet.shongo.report.*;
  *
  * @author cz.cesnet.shongo.tool-report-generator
  */
-public class ExecutorReportSet extends AbstractReportSet
+public class ExecutionReportSet extends AbstractReportSet
 {
     /**
      * Command {@link #command} failed: {@link #jadeReport}
@@ -96,7 +96,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("command-failed", userType, language, timeZone, getParameters());
+            return cz.cesnet.shongo.controller.ExecutionReportMessages.getMessage("command-failed", userType, language, timeZone, getParameters());
         }
     }
 
@@ -220,7 +220,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.ExecutableStateReportMessages.getMessage("room-not-started", userType, language, timeZone, getParameters());
+            return cz.cesnet.shongo.controller.ExecutionReportMessages.getMessage("room-not-started", userType, language, timeZone, getParameters());
         }
     }
 

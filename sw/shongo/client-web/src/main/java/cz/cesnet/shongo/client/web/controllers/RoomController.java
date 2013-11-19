@@ -32,13 +32,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -164,12 +167,13 @@ public class RoomController
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
-    public String handleRoomManagement(
+    public ModelAndView handleRoomManagement(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            Model model)
+            @PathVariable(value = "roomId") String roomId)
     {
+        ModelAndView modelAndView = new ModelAndView("room");
+
         // Get target room executable
         Executable executable = getExecutable(securityToken, roomId);
         RoomExecutable roomExecutable = getTargetRoomFromExecutable(securityToken, executable);
@@ -181,24 +185,24 @@ public class RoomController
                 messageSource, userSession.getLocale(), userSession.getTimeZone());
         RoomModel roomModel = new RoomModel(
                 roomExecutable, cacheProvider, messageProvider, executableService, userSession);
-        model.addAttribute("room", roomModel);
+        modelAndView.addObject("room", roomModel);
 
         // Runtime room
         if (roomModel.isStarted()) {
             try {
                 Room room = roomCache.getRoom(securityToken, roomId);
-                model.addAttribute("roomRuntime", room);
+                modelAndView.addObject("roomRuntime", room);
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
-                model.addAttribute("roomNotAvailable", true);
+                modelAndView.addObject("roomNotAvailable", true);
             }
         }
 
         // Reservation request for room
         String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
         Set<Permission> reservationRequestPermissions = cache.getPermissions(securityToken, reservationRequestId);
-        model.addAttribute("reservationRequestId", reservationRequestId);
-        model.addAttribute("reservationRequestProvidable",
+        modelAndView.addObject("reservationRequestId", reservationRequestId);
+        modelAndView.addObject("reservationRequestProvidable",
                 reservationRequestPermissions.contains(Permission.PROVIDE_RESERVATION_REQUEST));
 
         // Add use roles
@@ -210,9 +214,9 @@ public class RoomController
         for (AclRecord aclRecord : authorizationService.listAclRecords(userRoleRequest)) {
             userRoles.add(new UserRoleModel(aclRecord, cacheProvider));
         }
-        model.addAttribute("userRoles", userRoles);
+        modelAndView.addObject("userRoles", userRoles);
 
-        return "room";
+        return modelAndView;
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_MODIFY, method = RequestMethod.GET)
@@ -299,24 +303,85 @@ public class RoomController
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START, method = RequestMethod.GET)
     public String handleRoomManagementRecordingStart(
+            UserSession userSession,
+            SecurityToken securityToken,
+            Model model,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "executableId") String executableId,
+            @RequestParam(value = "executableServiceId") String executableServiceId)
+    {
+        Object result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
+        if (Boolean.TRUE.equals(result)) {
+            cache.clearExecutable(executableId);
+        }
+        else {
+            Locale locale = userSession.getLocale();
+            ExecutionReport executionReport = (ExecutionReport) result;
+            String error = executionReport.toString(locale, userSession.getTimeZone());
+            logger.warn("{}", error);
+            model.addAttribute("error", messageSource.getMessage(
+                    "views.room.recording.error.startingFailed", null, locale));
+        }
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START, method = RequestMethod.POST)
+    @ResponseBody
+    public Object handleRoomManagementRecordingStartPost(
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String roomId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
-        executableService.activateExecutableService(securityToken, executableId, executableServiceId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        Model model = new ExtendedModelMap();
+        handleRoomManagementRecordingStart(userSession, securityToken, model, roomId, executableId, executableServiceId);
+        if (model.containsAttribute("error")) {
+            return new HashMap<String, Object>(model.asMap());
+        }
+        return null;
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP, method = RequestMethod.GET)
     public String handleRoomManagementRecordingStop(
+            UserSession userSession,
+            SecurityToken securityToken,
+            Model model,
+            @PathVariable(value = "roomId") String roomId,
+            @RequestParam(value = "executableId") String executableId,
+            @RequestParam(value = "executableServiceId") String executableServiceId)
+    {
+        Object result = executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
+        if (Boolean.TRUE.equals(result)) {
+            cache.clearExecutable(executableId);
+        }
+        else {
+            Locale locale = userSession.getLocale();
+            ExecutionReport executionReport = (ExecutionReport) result;
+            String error = executionReport.toString(locale, userSession.getTimeZone());
+            logger.warn("{}", error);
+            model.addAttribute("error", messageSource.getMessage(
+                    "views.room.recording.error.stoppingFailed", null, locale));
+        }
+        cache.clearExecutable(executableId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP, method = RequestMethod.POST)
+    @ResponseBody
+    public Map handleRoomManagementRecordingStopPost(
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String roomId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
-        executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        Model model = new ExtendedModelMap();
+        handleRoomManagementRecordingStop(userSession, securityToken, model, roomId, executableId, executableServiceId);
+        if (model.containsAttribute("error")) {
+            return new HashMap<String, Object>(model.asMap());
+        }
+        return null;
     }
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA, method = RequestMethod.GET)
@@ -328,7 +393,8 @@ public class RoomController
             @PathVariable(value = "roomId") String roomId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false, defaultValue = "START") ExecutableRecordingListRequest.Sort sort,
+            @RequestParam(value = "sort", required = false,
+                    defaultValue = "START") ExecutableRecordingListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
@@ -589,6 +655,16 @@ public class RoomController
             throw new UnsupportedApiException(roomExecutable.getId());
         }
         return "redirect:" + adobeConnectUrl.getValue();
+    }
+
+    /**
+     * Handle missing session attributes.
+     */
+    @ExceptionHandler(ControllerReportSet.DeviceCommandFailedException.class)
+    public Object handleExceptions(Exception exception, HttpServletResponse response)
+    {
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        return "roomNotAvailable";
     }
 
     private Executable getExecutable(SecurityToken securityToken, String executableId)

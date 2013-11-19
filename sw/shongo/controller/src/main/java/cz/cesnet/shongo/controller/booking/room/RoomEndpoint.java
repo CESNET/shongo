@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -25,8 +24,8 @@ import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.executor.ExecutorReportSet;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 
@@ -316,11 +315,11 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     /**
      * @param roomApi  to be modified
      * @param executor to be used
-     * @throws cz.cesnet.shongo.controller.executor.ExecutorReportSet.RoomNotStartedException,
-     *          ExecutorReportSet.CommandFailedException
+     * @throws cz.cesnet.shongo.controller.executor.ExecutionReportSet.RoomNotStartedException,
+     *          ExecutionReportSet.CommandFailedException
      */
     public abstract void modifyRoom(Room roomApi, Executor executor)
-            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException;
+            throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException;
 
     @Override
     protected void onServiceActivation(ExecutableService service, Executor executor,

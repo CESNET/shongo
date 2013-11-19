@@ -30,7 +30,11 @@ import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.ReportException;
+import cz.cesnet.shongo.report.ReportRuntimeException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -468,7 +472,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId)
+    public Object activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId)
     {
         authorization.validate(securityToken);
 
@@ -498,6 +502,18 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
                 Reporter.report(executionReport.getExecutionTarget(), executionReport);
             }
+
+            // Check activation failed
+            if (!executableService.isActive()) {
+                ExecutionReport executionReport = executableService.getLastReport();
+                cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdmin(securityToken) ?
+                                Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                executionReportApi.addReport(new StateReportSerializer(executionReport));
+                return executionReportApi;
+            }
+
+            return Boolean.TRUE;
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -508,7 +524,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deactivateExecutableService(SecurityToken securityToken, String executableId,
+    public Object deactivateExecutableService(SecurityToken securityToken, String executableId,
             String executableServiceId)
     {
         authorization.validate(securityToken);
@@ -536,6 +552,21 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             entityManager.getTransaction().commit();
 
+            // Reporting
+            for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
+                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+            }
+
+            // Check deactivation failed
+            if (executableService.isActive()) {
+                ExecutionReport executionReport = executableService.getLastReport();
+                cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdmin(securityToken) ?
+                                Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                executionReportApi.addReport(new StateReportSerializer(executionReport));
+                return executionReportApi;
+            }
+
             // Clear recordings cache (new recording should be fetched)
             executableRecordingsCache.remove(executable.getId());
             if (executable instanceof UsedRoomEndpoint) {
@@ -543,10 +574,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableRecordingsCache.remove(usedRoomEndpoint.getRoomEndpoint().getId());
             }
 
-            // Reporting
-            for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
-                Reporter.report(executionReport.getExecutionTarget(), executionReport);
-            }
+            return Boolean.TRUE;
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
