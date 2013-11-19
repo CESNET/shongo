@@ -40,7 +40,7 @@ our $IdPattern                 = '(^\\d+|shongo:.+:\\d+$)';
 our $UserIdPattern             = '(^\\d+$)';
 our $DateTimePattern           = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?(Z|[\\+-]\\d\\d(:\\d\\d)?)?)?$)';
 our $DateTimeOrInfinitePattern = '(' . $DateTimePattern . '|(^\\*$))';
-our $PeriodPattern             = '(^P((\\d+)Y)?((\\d+)M)?((\\d+)W)?((\\d+)D)?(T((\\d+)+H)?((\\d+)M)?((\\d+)S)?)?$)';
+our $PeriodPattern             = '(^P((\\d+)Y)?((\\d+)M)?((\\d+)W)?((\\d+)D)?(T((\\d+)+H)?((\\d+)M)?((\\d+)(\\.\\d+)?S)?)?$)';
 our $DateTimePartialPattern    = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
 
 # Represents a "null" constant

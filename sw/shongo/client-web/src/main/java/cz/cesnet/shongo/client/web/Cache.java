@@ -1,11 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.MediaData;
-import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -15,7 +11,6 @@ import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -23,10 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Cache of {@link UserInformation}s, {@link Permission}s, {@link ReservationRequestSummary}s.
@@ -177,6 +169,32 @@ public class Cache
     {
         Set<Permission> permissions = getPermissions(securityToken, entityId);
         return permissions.contains(permission);
+    }
+
+    /**
+     * @param securityToken
+     * @param reservationRequests
+     * @return map of {@link Permission}s by reservation request identifier
+     */
+    public Map<String, Set<Permission>> getPermissionsForReservationRequests(SecurityToken securityToken,
+            Collection<ReservationRequestSummary> reservationRequests)
+    {
+        Map<String, Set<Permission>> permissionsByReservationRequestId = new HashMap<String, Set<Permission>>();
+        Set<String> reservationRequestIds = new HashSet<String>();
+        for (ReservationRequestSummary reservationRequest : reservationRequests) {
+            String reservationRequestId = reservationRequest.getId();
+            Set<Permission> permissions = getPermissionsWithoutFetching(securityToken, reservationRequestId);
+            if (permissions != null) {
+                permissionsByReservationRequestId.put(reservationRequestId, permissions);
+            }
+            else {
+                reservationRequestIds.add(reservationRequestId);
+            }
+        }
+        if (reservationRequestIds.size() > 0) {
+            permissionsByReservationRequestId.putAll(fetchPermissions(securityToken, reservationRequestIds));
+        }
+        return permissionsByReservationRequestId;
     }
 
     /**

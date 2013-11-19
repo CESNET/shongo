@@ -404,8 +404,8 @@
             <table class="table table-striped table-hover" ng-show="ready">
                 <thead>
                 <tr>
-                    <th><spring:message code="views.room.recording.name"/></th>
-                    <th><spring:message code="views.room.recording.uploaded"/></th>
+                    <%--<th><spring:message code="views.room.recording.name"/></th>--%>
+                    <th><spring:message code="views.room.recording.date"/></th>
                     <th><spring:message code="views.room.recording.duration"/></th>
                     <th>
                         <c:choose>
@@ -421,7 +421,7 @@
                 </thead>
                 <tbody>
                 <tr ng-repeat="roomRecording in items">
-                    <td>
+                    <%--<td>
                         <span ng-show="roomRecording.description">
                             <tag:help label="{{roomRecording.name}}">
                                 <strong><spring:message code="views.room.recording.description"/>:</strong>
@@ -431,7 +431,7 @@
                         <span ng-hide="roomRecording.description">
                             {{roomRecording.name}}
                         </span>
-                    </td>
+                    </td>--%>
                     <td>
                         {{roomRecording.beginDate}}
                     </td>

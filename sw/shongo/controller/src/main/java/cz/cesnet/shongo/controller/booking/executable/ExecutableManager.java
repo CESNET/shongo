@@ -402,21 +402,27 @@ public class ExecutableManager extends AbstractManager
      * @param executable
      * @return map of recording folder identifiers by {@link RecordingCapability}s for given {@code executable}
      */
-    public Map<RecordingCapability, String> listExecutableRecordingFolders(Executable executable)
+    public Map<RecordingCapability, List<String>> listExecutableRecordingFolders(Executable executable)
     {
-        Map<RecordingCapability, String> recordingFolders = new HashMap<RecordingCapability, String>();
+        Map<RecordingCapability, List<String>> recordingFolders = new HashMap<RecordingCapability, List<String>>();
         List<Object[]> results = entityManager.createQuery(
                 "SELECT INDEX(recordingFolder), recordingFolder FROM RoomEndpoint roomEndpoint"
                         + " LEFT JOIN roomEndpoint.recordingFolderIds AS recordingFolder"
                         + " WHERE recordingFolder IS NOT NULL"
-                        + " AND roomEndpoint = :executable OR roomEndpoint IN("
+                        + " AND (roomEndpoint = :executable OR roomEndpoint IN("
                         + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
                         + "   WHERE usedRoomEndpoint.roomEndpoint = :executable"
-                        + ")", Object[].class)
+                        + "))", Object[].class)
                 .setParameter("executable", executable)
                 .getResultList();
         for (Object[] result : results) {
-            recordingFolders.put((RecordingCapability) result[0], (String) result[1]);
+            RecordingCapability recordingCapability = (RecordingCapability) result[0];
+            List<String> recordingFolderIds = recordingFolders.get(recordingCapability);
+            if (recordingFolderIds == null) {
+                recordingFolderIds = new LinkedList<String>();
+                recordingFolders.put(recordingCapability, recordingFolderIds);
+            }
+            recordingFolderIds.add((String) result[1]);
         }
         return recordingFolders;
     }

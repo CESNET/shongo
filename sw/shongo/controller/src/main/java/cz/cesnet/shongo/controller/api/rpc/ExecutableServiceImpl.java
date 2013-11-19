@@ -24,8 +24,10 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -532,9 +534,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableService.deactivate(executor, executableManager);
             }
 
-            executableRecordingsCache.remove(persistenceId);
-
             entityManager.getTransaction().commit();
+
+            // Clear recordings cache (new recording should be fetched)
+            executableRecordingsCache.remove(executable.getId());
+            if (executable instanceof UsedRoomEndpoint) {
+                UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
+                executableRecordingsCache.remove(usedRoomEndpoint.getRoomEndpoint().getId());
+            }
 
             // Reporting
             for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
@@ -570,22 +577,23 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             List<Recording> recordings = executableRecordingsCache.get(executableId);
             if (recordings == null) {
                 // Get all recording folders
-                Map<RecordingCapability, String> recordingFolders =
+                Map<RecordingCapability, List<String>> recordingFolders =
                         executableManager.listExecutableRecordingFolders(executable);
 
                 // Get all recordings from folders
                 recordings = new LinkedList<Recording>();
-                for (Map.Entry<RecordingCapability, String> entry : recordingFolders.entrySet()) {
+                for (Map.Entry<RecordingCapability, List<String>> entry : recordingFolders.entrySet()) {
                     RecordingCapability recordingCapability = entry.getKey();
                     DeviceResource recordingDeviceResource = recordingCapability.getDeviceResource();
-                    String recordingFolderId = entry.getValue();
-                    if (recordingFolderId == null) {
-                        continue;
+                    for (String recordingFolderId : entry.getValue()) {
+                        if (recordingFolderId == null) {
+                            continue;
+                        }
+                        @SuppressWarnings("unchecked")
+                        Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
+                                recordingDeviceResource, new ListRecordings(recordingFolderId));
+                        recordings.addAll(serviceRecordings);
                     }
-                    @SuppressWarnings("unchecked")
-                    Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
-                            recordingDeviceResource, new ListRecordings(recordingFolderId));
-                    recordings.addAll(serviceRecordings);
                 }
                 executableRecordingsCache.put(executableId, recordings);
             }
@@ -604,7 +612,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
             int end = start + count;
             if (end > recordings.size()) {
-                end = maxIndex + 1;
+                end = recordings.size();
             }
             ListResponse<Recording> response = new ListResponse<Recording>();
             response.setStart(start);

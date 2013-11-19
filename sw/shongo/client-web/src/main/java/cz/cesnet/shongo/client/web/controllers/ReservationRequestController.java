@@ -113,23 +113,6 @@ public class ReservationRequestController
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
-        // Get permissions for reservation requests
-        Map<String, Set<Permission>> permissionsByReservationRequestId = new HashMap<String, Set<Permission>>();
-        Set<String> reservationRequestIds = new HashSet<String>();
-        for (ReservationRequestSummary responseItem : response.getItems()) {
-            String reservationRequestId = responseItem.getId();
-            Set<Permission> permissions = cache.getPermissionsWithoutFetching(securityToken, reservationRequestId);
-            if (permissions != null) {
-                permissionsByReservationRequestId.put(reservationRequestId, permissions);
-            }
-            else {
-                reservationRequestIds.add(reservationRequestId);
-            }
-        }
-        if (reservationRequestIds.size() > 0) {
-            permissionsByReservationRequestId.putAll(cache.fetchPermissions(securityToken, reservationRequestIds));
-        }
-
         Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
@@ -138,6 +121,10 @@ public class ReservationRequestController
             }
         }
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
+
+        // Get permissions for reservation requests
+        Map<String, Set<Permission>> permissionsByReservationRequestId =
+                cache.getPermissionsForReservationRequests(securityToken, response.getItems());
 
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);

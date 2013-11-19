@@ -15,7 +15,19 @@
     <tag:param name="reservationRequestId" value=":id"/>
 </tag:url>
 <tag:url var="usageDetailUrl" value="${detailUrl}">
-    <tag:param name="reservationRequestId" value="{{permanentRoomCapacity.id}}" escape="false"/>
+    <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
+</tag:url>
+<tag:url var="usageModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+    <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="usageDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+    <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
+<tag:url var="usageDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 
 <script type="text/javascript">
@@ -23,7 +35,7 @@
 </script>
 
 <div ng-controller="PaginationController"
-     ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}', {id: '${reservationRequest.id}'})">
+     ng-init="init('reservationRequestDetail.usages', '${usageListUrl}', {id: '${reservationRequest.id}'})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -51,26 +63,35 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="permanentRoomCapacity in items">
+        <tr ng-repeat="usage in items">
             <td>
-                {{permanentRoomCapacity.slot}}
-                <span ng-show="permanentRoomCapacity.futureSlotCount">
-                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{permanentRoomCapacity.futureSlotCount}}"/>
+                {{usage.slot}}
+                <span ng-show="usage.futureSlotCount">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{usage.futureSlotCount}}"/>
                     <tag:help label="(${slotMore})">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>
             </td>
-            <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
+            <td>{{usage.roomParticipantCount}}</td>
             <td class="reservation-request-state">
-                <tag:help label="{{permanentRoomCapacity.stateMessage}}"
-                          labelClass="{{permanentRoomCapacity.state}}"
+                <tag:help label="{{usage.stateMessage}}"
+                          labelClass="{{usage.state}}"
                           tooltipId="reservationState-tooltip-{{$index}}">
-                    <span>{{permanentRoomCapacity.stateHelp}}</span>
+                    <span>{{usage.stateHelp}}</span>
                 </tag:help>
             </td>
             <td>
                 <tag:listAction code="show" url="${usageDetailUrl}" tabindex="2"/>
+                <span ng-show="usage.isWritable">
+                    <span ng-hide="usage.state == 'ALLOCATED_FINISHED'">
+                        | <tag:listAction code="modify" url="${usageModifyUrl}" tabindex="4"/>
+                    </span>
+                    <span ng-show="usage.state == 'ALLOCATED_FINISHED'">
+                        | <tag:listAction code="duplicate" url="${usageDuplicateUrl}" tabindex="4"/>
+                    </span>
+                    | <tag:listAction code="delete" url="${usageDeleteUrl}" tabindex="4"/>
+                </span>
             </td>
         </tr>
         </tbody>

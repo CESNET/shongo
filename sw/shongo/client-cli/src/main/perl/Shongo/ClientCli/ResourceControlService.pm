@@ -1112,9 +1112,10 @@ sub resource_list_recordings
     }
     my $table = {
         'columns' => [
-            {'field' => 'name',  'title' => 'Name'},
-            {'field' => 'date',  'title' => 'Date'},
-            {'field' => 'url',   'title' => 'URL'}
+            {'field' => 'name',     'title' => 'Name'},
+            {'field' => 'date',     'title' => 'Date'},
+            {'field' => 'duration', 'title' => 'Duration'},
+            {'field' => 'url',      'title' => 'URL'}
         ],
         'data' => []
     };
@@ -1122,7 +1123,8 @@ sub resource_list_recordings
     foreach my $recording (@{$response}) {
         push(@{$table->{'data'}}, {
             'name' => $recording->{'name'},
-            'date' => $recording->{'beginDate'},
+            'date' => datetime_format($recording->{'beginDate'}),
+            'duration' => period_format($recording->{'duration'}),
             'url' => $recording->{'url'}
         });
     }

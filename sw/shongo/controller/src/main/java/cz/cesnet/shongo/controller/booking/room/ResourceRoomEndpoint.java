@@ -82,7 +82,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link #roomId} isProvidable
+     * @return {@link #roomId}
      */
     @Override
     @Column

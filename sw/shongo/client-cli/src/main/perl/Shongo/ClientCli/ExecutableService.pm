@@ -77,6 +77,14 @@ sub populate()
                 attach_room(@args);
             }
         },
+        'list-executable-recordings' => {
+            desc => 'List recordings for executable',
+            args => '[executable-id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_executable_recordings($args[0]);
+            }
+        },
     });
 }
 
@@ -192,6 +200,37 @@ sub attach_room()
     if ( defined($response) ) {
         console_print_info("Room '$device_room_id' has been attached to room executable '$room_executable_id'.");
     }
+}
+
+sub list_executable_recordings()
+{
+    my ($executableId) = @_;
+
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Executable.listExecutableRecordings', {
+        'executableId' => RPC::XML::string->new($executableId),
+    });
+    if ( !defined($response) ) {
+        return;
+    }
+    my $table = {
+        'columns' => [
+            {'field' => 'name',     'title' => 'Name'},
+            {'field' => 'date',     'title' => 'Date'},
+            {'field' => 'duration', 'title' => 'Duration'},
+            {'field' => 'url',      'title' => 'URL'}
+        ],
+        'data' => []
+    };
+    # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
+    foreach my $recording (@{$response->{'items'}}) {
+        push(@{$table->{'data'}}, {
+            'name' => $recording->{'name'},
+            'date' => datetime_format($recording->{'beginDate'}),
+            'duration' => period_format($recording->{'duration'}),
+            'url' => $recording->{'url'}
+        });
+    }
+    console_print_table($table);
 }
 
 1;

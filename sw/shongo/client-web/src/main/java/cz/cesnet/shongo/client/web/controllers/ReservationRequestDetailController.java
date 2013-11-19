@@ -8,6 +8,7 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
+import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -363,12 +364,17 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         request.setReusedReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
+        // Get permissions for reservation requests
+        Map<String, Set<Permission>> permissionsByReservationRequestId =
+                cache.getPermissionsForReservationRequests(securityToken, response.getItems());
+
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> usages = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", reservationRequest.getId());
+            String usageId = reservationRequest.getId();
+            item.put("id", usageId);
             item.put("description", reservationRequest.getDescription());
             usages.add(item);
 
@@ -381,6 +387,9 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 item.put("stateMessage", state.getMessage(messageSource, locale, specificationType));
                 item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
+
+            Set<Permission> permissions = permissionsByReservationRequestId.get(usageId);
+            item.put("isWritable", permissions.contains(Permission.WRITE));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());
