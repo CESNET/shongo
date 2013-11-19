@@ -1,12 +1,9 @@
 package cz.cesnet.shongo.util;
 
-import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.*;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.PeriodFormat;
+import org.joda.time.format.*;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 /**
  * Formatter of date/times to user.
@@ -98,7 +95,37 @@ public class DateTimeFormatter
         this.dateFormatter = dateTimeFormatter.dateFormatter.withLocale(locale);
         this.dateTimeFormatter = dateTimeFormatter.dateTimeFormatter.withLocale(locale);
         this.dateTimeZone = (dateTimeZone != null ? dateTimeZone : DateTimeZone.getDefault());
-        this.periodFormatter = PeriodFormat.wordBased(locale);
+        if (locale.getLanguage().equals("cs")) {
+            String[] variants = {" ", ",", ",a", ", a"};
+            this.periodFormatter = new PeriodCzechFormatterBuilder()
+                    .appendYears()
+                    .appendSuffix(" rok", " roky", " roků")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendMonths()
+                    .appendSuffix(" měsíc", " měsíce", " měsíců")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendWeeks()
+                    .appendSuffix(" týden", " týdny", " týdnů")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendDays()
+                    .appendSuffix(" den", " dny", " dnů")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendHours()
+                    .appendSuffix(" hodina", " hodiny", " hodin")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendMinutes()
+                    .appendSuffix(" minuta", " minuty", " minut")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendSeconds()
+                    .appendSuffix(" sekunda", " sekundy", " sekund")
+                    .appendSeparator(", ", " a ", variants)
+                    .appendMillis()
+                    .appendSuffix(" milisekunda", " milisekundy", " milisekund")
+                    .toFormatter();
+        }
+        else {
+            this.periodFormatter = PeriodFormat.wordBased(locale);
+        }
     }
 
     /**
@@ -244,12 +271,22 @@ public class DateTimeFormatter
      * @param duration
      * @return formatted given {@code duration}
      */
+    public String formatRoundedDuration(Period duration)
+    {
+        return formatDuration(roundDuration(duration));
+    }
+
+    /**
+     * @param duration
+     * @return formatted given {@code duration}
+     */
     public String formatDuration(Period duration)
     {
         if (duration == null) {
             return "";
         }
-        return periodFormatter.print(roundDuration(duration));
+        //PeriodFormatterBuilder
+        return periodFormatter.print(duration);
     }
 
     private static final int YEARS = 1;
@@ -265,6 +302,9 @@ public class DateTimeFormatter
      */
     public static Period roundDuration(Period period)
     {
+        if (period == null) {
+            return null;
+        }
         period = period.normalizedStandard();
 
         int years = period.getYears();

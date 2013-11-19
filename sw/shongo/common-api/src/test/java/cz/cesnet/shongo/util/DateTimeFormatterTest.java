@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.util;
 
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
-import org.joda.time.format.PeriodFormat;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Locale;
 
 /**
  * Tests for {@link DateTimeFormatter#roundDuration},
@@ -14,6 +14,22 @@ import org.junit.Test;
  */
 public class DateTimeFormatterTest
 {
+    @Test
+    public void testCzech() throws Exception
+    {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
+                DateTimeFormatter.SHORT, new Locale("cs"), DateTimeZone.getDefault());
+        for (int index = 0; index < 10; index++) {
+            System.out.println(dateTimeFormatter.formatDuration(createPeriod(index)));
+        }
+    }
+
+    private Period createPeriod(int count)
+    {
+        return Period.years(count).plusMonths(count).plusWeeks(count).plusDays(count)
+                .plusHours(count).plusMinutes(count).plusSeconds(count).plusMillis(count);
+    }
+
     /**
      * Test for {@link DateTimeFormatter#roundDuration},
      *

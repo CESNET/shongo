@@ -358,7 +358,7 @@ public class AllocationStateReport extends AbstractEntityReport
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
-            String maxDuration = dateTimeFormatter.formatDuration(this.maxDuration);
+            String maxDuration = dateTimeFormatter.formatRoundedDuration(this.maxDuration);
             return MESSAGE_SOURCE.getMessage("maximumDurationExceeded", locale, maxDuration);
         }
     }
