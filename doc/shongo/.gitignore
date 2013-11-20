@@ -1,6 +1,7 @@
 api/api.pdf
 architecture/architecture.gls
 architecture/architecture.pdf
+presentation/presentation.pdf
 shongo_api.pdf
 *.log
 *.out
@@ -12,4 +13,7 @@ shongo_api.pdf
 *.bbl
 *.blg
 *.pdf.crop
+*.dvi
+*.nav
+*.snm
 api/elsarticle-num.bst
