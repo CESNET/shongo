@@ -611,7 +611,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
-                if (roomRecorded) {
+                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
                 for (ParticipantModel participant : roomParticipants) {
@@ -667,7 +667,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     adobeConnectRoomSetting.setAccessMode(roomAccessMode);
                     roomSpecification.addRoomSetting(adobeConnectRoomSetting);
                 }
-                if (roomRecorded) {
+                if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
                 for (ParticipantModel participant : roomParticipants) {

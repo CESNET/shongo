@@ -358,7 +358,7 @@
                 </div>
             </div>
 
-            <div class="control-group">
+            <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
                 <form:label class="control-label" path="roomRecorded">
                     <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
                 </form:label>
