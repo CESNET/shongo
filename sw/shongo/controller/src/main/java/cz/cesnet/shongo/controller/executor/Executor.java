@@ -218,6 +218,11 @@ public class Executor extends SwitchableComponent
                 for (ExecutableService service : executableManager.listServicesForDeactivation(stop, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.DeactivateExecutableServiceAction(service));
                 }
+                for (ExecutableService service : executableManager.listServicesForCheck(dateTime)) {
+                    if (executionPlan.getActionByExecutionTarget(service) == null) {
+                        executionPlan.addExecutionAction(new ExecutionAction.CheckExecutableServiceAction(service));
+                    }
+                }
                 executionPlan.build();
 
                 // Perform execution plan

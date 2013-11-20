@@ -310,15 +310,22 @@ public class RoomController
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
-        Object result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
+        Object result = null;
+        try {
+            result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
+        }
+        catch (Exception exception) {
+            logger.warn("Stop recording failed", exception);
+        }
         if (Boolean.TRUE.equals(result)) {
             cache.clearExecutable(executableId);
         }
         else {
             Locale locale = userSession.getLocale();
-            ExecutionReport executionReport = (ExecutionReport) result;
-            String error = executionReport.toString(locale, userSession.getTimeZone());
-            logger.warn("{}", error);
+            if (result instanceof ExecutionReport) {
+                ExecutionReport executionReport = (ExecutionReport) result;
+                logger.warn("Stop recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
+            }
             model.addAttribute("error", messageSource.getMessage(
                     "views.room.recording.error.startingFailed", null, locale));
         }
@@ -351,15 +358,22 @@ public class RoomController
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
-        Object result = executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
+        Object result = null;
+        try {
+            result = executableService.deactivateExecutableService(securityToken, executableId, executableServiceId);
+        }
+        catch (Exception exception) {
+            logger.warn("Stop recording failed", exception);
+        }
         if (Boolean.TRUE.equals(result)) {
             cache.clearExecutable(executableId);
         }
         else {
             Locale locale = userSession.getLocale();
-            ExecutionReport executionReport = (ExecutionReport) result;
-            String error = executionReport.toString(locale, userSession.getTimeZone());
-            logger.warn("{}", error);
+            if (result instanceof ExecutionReport) {
+                ExecutionReport executionReport = (ExecutionReport) result;
+                logger.warn("Stop recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
+            }
             model.addAttribute("error", messageSource.getMessage(
                     "views.room.recording.error.stoppingFailed", null, locale));
         }

@@ -539,7 +539,7 @@ public abstract class ExecutionAction<T> extends Thread
     }
 
     /**
-     * {@link ExecutionAction} for starting {@link Executable}.
+     * {@link ExecutionAction} for activation of {@link ExecutableService}.
      */
     public static class ActivateExecutableServiceAction extends AbstractExecutionTargetAction<ExecutableService>
     {
@@ -568,7 +568,7 @@ public abstract class ExecutionAction<T> extends Thread
                 executableService.activate(executor, executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Activation failed", exception);
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Activation executable service failed", exception);
             }
         }
 
@@ -592,7 +592,7 @@ public abstract class ExecutionAction<T> extends Thread
     }
 
     /**
-     * {@link ExecutionAction} for starting {@link Executable}.
+     * {@link ExecutionAction} for deactivation of {@link ExecutableService}.
      */
     public static class DeactivateExecutableServiceAction extends AbstractExecutionTargetAction<ExecutableService>
     {
@@ -628,7 +628,7 @@ public abstract class ExecutionAction<T> extends Thread
                 executableService.deactivate(executor, executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Deactivation failed", exception);
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Deactivation executable service failed", exception);
             }
         }
 
@@ -648,6 +648,52 @@ public abstract class ExecutionAction<T> extends Thread
         public String toString()
         {
             return String.format("DeActivate [srv:%d] for [exe:%d]", target.getId(), target.getExecutable().getId());
+        }
+    }
+
+    /**
+     * {@link ExecutionAction} for checking {@link Executable}.
+     */
+    public static class CheckExecutableServiceAction extends ExecutionAction<ExecutableService>
+    {
+        /**
+         * Constructor.
+         *
+         * @param executableService sets the {@link #target}
+         */
+        public CheckExecutableServiceAction(ExecutableService executableService)
+        {
+            super(executableService);
+        }
+
+        @Override
+        public void buildDependencies()
+        {
+        }
+
+        @Override
+        protected void perform(ExecutableManager executableManager)
+        {
+            try {
+                Executor executor = getExecutor();
+                ExecutableService executableService = executableManager.getService(this.target.getId());
+                executableService.check(executor, executableManager);
+            }
+            catch (Exception exception) {
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Check executable service failed", exception);
+            }
+        }
+
+        @Override
+        public boolean finish(EntityManager entityManager, DateTime referenceDateTime, ExecutionResult executionResult)
+        {
+            return true;
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Check [srv:%d] for [exe:%d]", target.getId(), target.getExecutable().getId());
         }
     }
 

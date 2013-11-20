@@ -4,6 +4,8 @@ import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.report.ReportException;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -26,6 +28,11 @@ public abstract class ExecutableService extends ExecutionTarget
      * @see State
      */
     private State state;
+
+    /**
+     * {@link DateTime} for next {@link #check}. {@code null} means as early as possible.
+     */
+    private DateTime nextCheck;
 
     /**
      * @return {@link #executable}
@@ -81,6 +88,25 @@ public abstract class ExecutableService extends ExecutionTarget
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    /**
+     * @return {@link #nextCheck}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.FIELD)
+    public DateTime getNextCheck()
+    {
+        return nextCheck;
+    }
+
+    /**
+     * @param nextCheck sets the {@link #nextCheck}
+     */
+    public void setNextCheck(DateTime nextCheck)
+    {
+        this.nextCheck = nextCheck;
     }
 
     @Transient
@@ -153,6 +179,17 @@ public abstract class ExecutableService extends ExecutionTarget
     }
 
     /**
+     * Check this {@link ExecutableService}.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    public final void check(Executor executor, ExecutableManager executableManager)
+    {
+       onCheck(executor, executableManager);
+    }
+
+    /**
      * Activate this {@link Executable}.
      *
      * @param executor
@@ -208,6 +245,16 @@ public abstract class ExecutableService extends ExecutionTarget
         setState(oldState);
 
         return State.NOT_ACTIVE;
+    }
+
+    /**
+     * Check this {@link ExecutableService}.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    protected void onCheck(Executor executor, ExecutableManager executableManager)
+    {
     }
 
     @Transient

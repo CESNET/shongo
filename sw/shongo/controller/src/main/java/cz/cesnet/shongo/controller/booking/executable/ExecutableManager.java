@@ -255,6 +255,22 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
+     * @param referenceDateTime which represents now
+     * @return list of {@link ExecutableService}s which should be checked for given {@code referenceDateTime}
+     */
+    public List<ExecutableService> listServicesForCheck(DateTime referenceDateTime)
+    {
+        return entityManager.createQuery(
+                "SELECT service FROM ExecutableService service"
+                        + " WHERE service.state = :activeState"
+                        + " AND (service.nextCheck IS NULL OR service.nextCheck <= :dateTime)",
+                ExecutableService.class)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("activeState", ExecutableService.State.ACTIVE)
+                .getResultList();
+    }
+
+    /**
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
      * any {@link Reservation} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
