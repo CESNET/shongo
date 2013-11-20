@@ -5,15 +5,22 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -38,12 +45,19 @@ public class ServiceImpl implements Service
     private NotificationManager notificationManager;
 
     /**
+     * @see ControllerAgent
+     */
+    private ControllerAgent controllerAgent;
+
+    /**
      * Constructor.
      */
-    public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager)
+    public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager,
+            ControllerAgent controllerAgent)
     {
         this.entityManagerFactory = entityManagerFactory;
         this.notificationManager = notificationManager;
+        this.controllerAgent = controllerAgent;
     }
 
     @Override
@@ -132,7 +146,31 @@ public class ServiceImpl implements Service
     @Override
     public String getRecordingFolderId(String agentName, String roomId) throws CommandException
     {
-        throw new TodoImplementException();
+        Long deviceResourceId = getDeviceResourceByAgentName(agentName).getId();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            ExecutableManager executableManager = new ExecutableManager(entityManager);
+            RoomEndpoint roomEndpoint =
+                    executableManager.getRoomEndpoint(deviceResourceId, roomId);
+            DeviceResource deviceResource = roomEndpoint.getDeviceResource();
+            RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
+            String recordingFolderId;
+            synchronized (RecordableEndpoint.SYNCHRONIZATION.get(roomEndpoint.getId())) {
+                recordingFolderId = roomEndpoint.getRecordingFolderId(recordingCapability);
+                if (recordingFolderId == null) {
+                    SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                            new CreateRecordingFolder(roomEndpoint.getRecordingFolderDescription()));
+                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                        throw new CommandException(sendLocalCommand.getJadeReport().toString());
+                    }
+                    recordingFolderId = (String) sendLocalCommand.getResult();
+                }
+            }
+            return recordingFolderId;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
