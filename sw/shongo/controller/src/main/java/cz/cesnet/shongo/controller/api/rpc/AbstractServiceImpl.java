@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.util.QueryFilter;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -99,7 +100,14 @@ public abstract class AbstractServiceImpl extends Component
 
         // List requested results
         @SuppressWarnings("unchecked")
-        List<T> resultList = (List<T>) queryList.getResultList();
+        List<T> resultList;
+        if (queryList.getMaxResults() > 0) {
+            resultList = (List<T>) queryList.getResultList();
+        }
+        else {
+            resultList = Collections.emptyList();
+        }
+
         if (totalResultCount == null) {
             totalResultCount = resultList.size();
         }

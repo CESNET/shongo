@@ -84,14 +84,4 @@ public class CacheProvider
     {
         return cache.getExecutable(securityToken, executableId);
     }
-
-    /**
-     * @param permanentRoomId
-     * @return true whether permanent room with given {@code permanentRoomId} or its usages has {@link RecordingService},
-     *         false otherwise
-     */
-    public boolean isPermanentRoomRecordable(String permanentRoomId)
-    {
-       return cache.isPermanentRoomRecordable(securityToken, permanentRoomId);
-    }
 }

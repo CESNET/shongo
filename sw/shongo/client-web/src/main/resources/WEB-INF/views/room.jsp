@@ -428,10 +428,16 @@
             <table class="table table-striped table-hover" ng-show="ready">
                 <thead>
                 <tr>
-                    <%--<th><spring:message code="views.room.recording.name"/></th>--%>
-                    <th><spring:message code="views.room.recording.date"/></th>
-                    <th><spring:message code="views.room.recording.duration"/></th>
-                    <th><spring:message code="views.room.recording.url"/></th>
+                    <%--<th><pagination-sort column="NAME">
+                        <spring:message code="views.room.recording.name"/></th>--%>
+                    <th><pagination-sort column="START">
+                        <spring:message code="views.room.recording.date"/></pagination-sort></th>
+                    <th><pagination-sort column="DURATION">
+                        <spring:message code="views.room.recording.duration"/></pagination-sort></th>
+                    <th>
+                        <spring:message code="views.room.recording.url"/>
+                        <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>

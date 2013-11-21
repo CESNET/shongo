@@ -35,6 +35,7 @@ public class ExecutableRecordingListRequest extends SortableListRequest<Executab
 
     public static enum Sort
     {
+        NAME,
         START,
         DURATION
     }

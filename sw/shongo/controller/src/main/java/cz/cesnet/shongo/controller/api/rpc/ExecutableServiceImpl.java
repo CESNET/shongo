@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
@@ -27,18 +30,14 @@ import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.executor.ExecutionPlan;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.ReportException;
-import cz.cesnet.shongo.report.ReportRuntimeException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormatter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -72,7 +71,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
      * @see Executor
      */
     private final Executor executor;
-
 
 
     /**
@@ -334,8 +332,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             // Determine which services should be checked
             List<cz.cesnet.shongo.controller.booking.executable.ExecutableService> checkServices =
                     new LinkedList<cz.cesnet.shongo.controller.booking.executable.ExecutableService>();
+            DateTime referenceDateTime = DateTime.now();
             for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : services) {
-                if (executor.isExecutableServiceCheckable(service)) {
+                if (service.getSlot().contains(referenceDateTime) && executor.isExecutableServiceCheckable(service)) {
                     checkServices.add(service);
                 }
             }
@@ -576,7 +575,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Object activateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId)
+    public Object activateExecutableService(SecurityToken securityToken, String executableId,
+            String executableServiceId)
     {
         authorization.validate(securityToken);
 
@@ -730,6 +730,51 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableRecordingsCache.put(executableId, recordings);
             }
 
+            ExecutableRecordingListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                List<Recording> sortedRecordings = new ArrayList<Recording>(recordings);
+                Comparator<Recording> comparator;
+                switch (sort) {
+                    case NAME:
+                        comparator = new Comparator<Recording>()
+                        {
+                            @Override
+                            public int compare(Recording o1, Recording o2)
+                            {
+                                return o1.getName().compareTo(o2.getName());
+                            }
+                        };
+                        break;
+                    case START:
+                        comparator = new Comparator<Recording>()
+                        {
+                            @Override
+                            public int compare(Recording o1, Recording o2)
+                            {
+                                return o1.getBeginDate().compareTo(o2.getBeginDate());
+                            }
+                        };
+                        break;
+                    case DURATION:
+                        comparator = new Comparator<Recording>()
+                        {
+                            @Override
+                            public int compare(Recording o1, Recording o2)
+                            {
+                                return o1.getDuration().toStandardDuration().compareTo(o2.getDuration().toStandardDuration());
+                            }
+                        };
+                        break;
+                    default:
+                        throw new TodoImplementException(sort);
+                }
+                if (request.getSortDescending()) {
+                    comparator = Collections.reverseOrder(comparator);
+                }
+                Collections.sort(sortedRecordings, comparator);
+                recordings = sortedRecordings;
+            }
+
             Integer start = request.getStart();
             Integer count = request.getCount();
             Integer maxIndex = Math.max(0, recordings.size() - 1);
@@ -739,7 +784,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             else if (start > maxIndex) {
                 start = maxIndex;
             }
-            if (count == null) {
+            if (count == null || count == -1) {
                 count = recordings.size();
             }
             int end = start + count;

@@ -408,7 +408,7 @@ public class RoomModel
      */
     public boolean isRecordable()
     {
-        return recordingService != null;
+        return recordable;
     }
 
     /**
