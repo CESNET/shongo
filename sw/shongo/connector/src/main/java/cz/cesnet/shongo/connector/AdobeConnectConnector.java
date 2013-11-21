@@ -290,7 +290,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.add("acl-id",roomId);
         attributes.add("filter-principal-id","public-access");
 
-        String accessMode = request("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue("permissions-id");
+        String accessMode = request("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue(
+                "permissions-id");
 
         AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
 
@@ -595,7 +596,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         String recordingName;
         try {
-            recordingName = URLEncoder.encode("[rec:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
+            recordingName = URLEncoder.encode("[flr:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
         }
         catch (UnsupportedEncodingException e) {
             throw new CommandException("Error while URL encoding.", e);
@@ -640,18 +641,20 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         request("meeting-recorder-activity-update", attributes);
 
-        String recName = recInfo.getChildText("name");
-        String recordingFolderId = recName.substring(recName.indexOf("[")+1,recName.indexOf("]")).replaceAll("rec:","");
-
-        //TODO: ask for folder id in controller
-        if (!recordingFolderId.matches("\\d+") || recordingFolderId.isEmpty()) {
+        String recordingName = recInfo.getChildText("name");
+        Pattern pattern = Pattern.compile("\\[[^:]+:(\\d+)\\]");
+        Matcher matcher = pattern.matcher(recordingName);
+        String recordingFolderId;
+        if (matcher.find()) {
+            recordingFolderId = matcher.group(1);
+        }
+        else {
+            // Get recording folder id from controller
             recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
             if (recordingFolderId == null) {
                 throw new CommandException("FolderId from GetRecordingFolderId was null.");
             }
-
         }
-
         moveRecording(recordingId,recordingFolderId);
     }
 
