@@ -632,20 +632,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public void stopRecording(String recordingId) throws CommandException
     {
-        Element recInfo = getScoInfo(recordingId);
-        String roomId = recInfo.getAttributeValue("folder-id");
+        Element recordingInfo = getScoInfo(recordingId);
+        String roomId = recordingInfo.getAttributeValue("folder-id");
 
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-        attributes.add("active", "false");
-
-        request("meeting-recorder-activity-update", attributes);
-
-        String recordingName = recInfo.getChildText("name");
+        // Get identifier of recording folder
+        String recordingFolderId;
+        String recordingName = recordingInfo.getChildText("name");
         Pattern pattern = Pattern.compile("\\[[^:]+:(\\d+)\\]");
         Matcher matcher = pattern.matcher(recordingName);
-        String recordingFolderId;
         if (matcher.find()) {
+            // Get recording folder id from matcher
             recordingFolderId = matcher.group(1);
         }
         else {
@@ -655,6 +651,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 throw new CommandException("FolderId from GetRecordingFolderId was null.");
             }
         }
+
+        // Stop recording
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", roomId);
+        attributes.add("active", "false");
+        request("meeting-recorder-activity-update", attributes);
+
+        // Move recording
         moveRecording(recordingId,recordingFolderId);
     }
 

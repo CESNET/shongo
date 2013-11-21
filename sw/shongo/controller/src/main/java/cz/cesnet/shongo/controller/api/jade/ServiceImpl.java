@@ -1,28 +1,28 @@
 package cz.cesnet.shongo.controller.api.jade;
 
-import cz.cesnet.shongo.JadeException;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
-import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
-import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
-import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -154,6 +154,10 @@ public class ServiceImpl implements Service
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             RoomEndpoint roomEndpoint =
                     executableManager.getRoomEndpoint(deviceResourceId, roomId);
+            if (roomEndpoint == null) {
+                throw new CommandException("Room " + roomId + " doesn't exist in device " +
+                        EntityIdentifier.formatId(EntityType.RESOURCE, deviceResourceId) + ".");
+            }
             DeviceResource deviceResource = roomEndpoint.getDeviceResource();
             RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
             return executor.getRecordingFolderId(roomEndpoint, recordingCapability);
