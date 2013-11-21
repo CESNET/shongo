@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.DefaultJadeException;
-import cz.cesnet.shongo.JadeException;
+import cz.cesnet.shongo.ExpirationSet;
 import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Reservation;
@@ -79,6 +78,24 @@ public class Executor extends SwitchableComponent
      * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT
      */
     private int maxAttemptCount;
+
+    /**
+     * Map of (maps of recording folders by recording capabilities) by recordable endpoint ids.
+     */
+    private final Map<Long, Map<Long, String>> recordingFolders = new HashMap<Long, Map<Long, String>>();
+
+    /**
+     * Set of identifiers of {@link cz.cesnet.shongo.controller.api.ExecutableService}s which should not be checked again.
+     */
+    private ExpirationSet<Long> checkedExecutableServiceIds = new ExpirationSet<Long>();
+
+    /**
+     * Constructor.
+     */
+    public Executor()
+    {
+        this.checkedExecutableServiceIds.setExpiration(Duration.standardSeconds(10));
+    }
 
     /**
      * @return {@link #logger}
@@ -228,11 +245,6 @@ public class Executor extends SwitchableComponent
                 for (ExecutableService service : executableManager.listServicesForDeactivation(stop, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.DeactivateExecutableServiceAction(service));
                 }
-                for (ExecutableService service : executableManager.listServicesForCheck(dateTime)) {
-                    if (executionPlan.getActionByExecutionTarget(service) == null) {
-                        executionPlan.addExecutionAction(new ExecutionAction.CheckExecutableServiceAction(service));
-                    }
-                }
                 executionPlan.build();
 
                 // Perform execution plan
@@ -256,6 +268,14 @@ public class Executor extends SwitchableComponent
 
                 entityManager.getTransaction().commit();
 
+                // Set all activated and deactivated services as checked
+                for (ExecutableService executableService : executionResult.getActivatedExecutableServices()) {
+                    addCheckedExecutableService(executableService);
+                }
+                for (ExecutableService executableService : executionResult.getDeactivatedExecutableServices()) {
+                    addCheckedExecutableService(executableService);
+                }
+
                 return executionResult;
             }
             catch (Exception exception) {
@@ -276,15 +296,11 @@ public class Executor extends SwitchableComponent
     }
 
     /**
-     * Map of (maps of recording folders by recording capabilities) by recordable endpoint ids.
-     */
-    private final Map<Long, Map<Long, String>> recordingFolders = new HashMap<Long, Map<Long, String>>();
-
-    /**
      * @param recordableEndpoint
      * @param recordingCapability
      * @return identifier of recording folder for given {@code recordingCapability} which can be used for given {@code recordableEndpoint}
-     * @throws ExecutionReportSet.CommandFailedException when the retrieving of the recording folder fails
+     * @throws ExecutionReportSet.CommandFailedException
+     *          when the retrieving of the recording folder fails
      */
     public String getRecordingFolderId(RecordableEndpoint recordableEndpoint, RecordingCapability recordingCapability)
             throws ExecutionReportSet.CommandFailedException
@@ -322,5 +338,23 @@ public class Executor extends SwitchableComponent
             }
             return recordingFolderId;
         }
+    }
+
+    /**
+     * @param executableService which has been just {@link ExecutableService#check}ed
+     */
+    public void addCheckedExecutableService(ExecutableService executableService)
+    {
+        checkedExecutableServiceIds.add(executableService.getId());
+    }
+
+    /**
+     * @param executableService
+     * @return true whether given {@code executableService} can be {@link ExecutableService#check}ed,
+     *         false otherwise
+     */
+    public boolean isExecutableServiceCheckable(ExecutableService executableService)
+    {
+        return !checkedExecutableServiceIds.contains(executableService.getId());
     }
 }

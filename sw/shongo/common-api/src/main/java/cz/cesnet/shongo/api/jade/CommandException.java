@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.api.jade;
 
-import cz.cesnet.shongo.api.jade.Command;
-
 /**
  * An exception thrown by invalid {@link Command}s, i.e. {@link Command}s that fail when executed.
  *
@@ -31,5 +29,13 @@ public class CommandException extends Exception
     public CommandException(String message, Throwable cause)
     {
         super(message, cause);
+    }
+
+    /**
+     * @return code of the failure
+     */
+    public String getCode()
+    {
+        return null;
     }
 }

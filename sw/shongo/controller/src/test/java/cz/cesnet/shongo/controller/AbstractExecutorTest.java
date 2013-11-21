@@ -2,16 +2,20 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandDisabledException;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -108,6 +112,32 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     protected ExecutionResult runExecutor(DateTime referenceDateTime)
     {
         return executor.execute(referenceDateTime);
+    }
+
+    /**
+     * @param executableId
+     * @param serviceClass
+     * @return {@link cz.cesnet.shongo.controller.api.ExecutableService} for {@link Executable} with given {@code roomExecutableId}
+     */
+    public <T extends cz.cesnet.shongo.controller.api.ExecutableService> T getExecutableService(
+            String executableId, Class<T> serviceClass)
+    {
+        ExecutableServiceListRequest request = new ExecutableServiceListRequest(SECURITY_TOKEN_ROOT);
+        request.setExecutableId(executableId);
+        request.addServiceClass(serviceClass);
+        request.setCount(1);
+        ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
+                getExecutableService().listExecutableServices(request);
+        if (response.getCount() > 1) {
+            throw new RuntimeException(
+                    "Executable " + executableId + " has multiple " + serviceClass.getSimpleName() + ".");
+        }
+        if (response.getItemCount() > 0) {
+            return serviceClass.cast(response.getItem(0));
+        }
+        else {
+            return null;
+        }
     }
 
     /**

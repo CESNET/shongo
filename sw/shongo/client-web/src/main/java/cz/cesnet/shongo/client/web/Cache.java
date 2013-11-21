@@ -376,4 +376,14 @@ public class Cache
         }
         return executable;
     }
+
+    /**
+     * @param permanentRoomId
+     * @return true whether permanent room with given {@code permanentRoomId} or its usages has {@link RecordingService},
+     *         false otherwise
+     */
+    public boolean isPermanentRoomRecordable(SecurityToken securityToken, String permanentRoomId)
+    {
+        return false;  //To change body of created methods use File | Settings | File Templates.
+    }
 }

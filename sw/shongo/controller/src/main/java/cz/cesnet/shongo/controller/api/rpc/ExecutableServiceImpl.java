@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
@@ -13,6 +10,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -25,6 +23,8 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.ExecutionAction;
+import cz.cesnet.shongo.controller.executor.ExecutionPlan;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
@@ -72,6 +72,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
      * @see Executor
      */
     private final Executor executor;
+
+
 
     /**
      * Collection of {@link Recording}s by executableId.
@@ -274,6 +276,108 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableApi.setReservationId(EntityIdentifier.formatId(reservation));
             }
             return executableApi;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> listExecutableServices(
+            ExecutableServiceListRequest request)
+    {
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(request.getExecutableId(), EntityType.EXECUTABLE);
+        try {
+            cz.cesnet.shongo.controller.booking.executable.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
+
+            if (!authorization.hasPermission(securityToken, executable, Permission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+            }
+
+            QueryFilter queryFilter = new QueryFilter("executableService", true);
+            queryFilter.addFilterParameter("executable", executable);
+            if (request.getServiceClasses().size() > 0) {
+                Set<Class<? extends cz.cesnet.shongo.controller.booking.executable.ExecutableService>> serviceClasses =
+                        new HashSet<Class<? extends cz.cesnet.shongo.controller.booking.executable.ExecutableService>>();
+                for (Class<? extends cz.cesnet.shongo.controller.api.ExecutableService> serviceClass :
+                        request.getServiceClasses()) {
+                    if (serviceClass.equals(RecordingService.class)) {
+                        serviceClasses.add(cz.cesnet.shongo.controller.booking.recording.RecordingService.class);
+                    }
+                    else {
+                        throw new TodoImplementException(serviceClass);
+                    }
+                }
+                queryFilter.addFilter("TYPE(executableService) IN (:executableServiceClasses)");
+                queryFilter.addFilterParameter("executableServiceClasses", serviceClasses);
+            }
+
+            String query = "SELECT executableService FROM ExecutableService executableService"
+                    + " WHERE (executableService.executable = :executable OR executableService.executable IN("
+                    + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                    + "   WHERE usedRoomEndpoint.roomEndpoint = :executable"
+                    + " ))"
+                    + " AND " + queryFilter.toQueryWhere();
+
+            ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
+                    new ListResponse<cz.cesnet.shongo.controller.api.ExecutableService>();
+            List<cz.cesnet.shongo.controller.booking.executable.ExecutableService> services = performListRequest(
+                    query, queryFilter, cz.cesnet.shongo.controller.booking.executable.ExecutableService.class,
+                    request, response, entityManager);
+
+            // Determine which services should be checked
+            List<cz.cesnet.shongo.controller.booking.executable.ExecutableService> checkServices =
+                    new LinkedList<cz.cesnet.shongo.controller.booking.executable.ExecutableService>();
+            for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : services) {
+                if (executor.isExecutableServiceCheckable(service)) {
+                    checkServices.add(service);
+                }
+            }
+
+            // Check services
+            if (checkServices.size() > 0) {
+                entityManager.getTransaction().begin();
+                synchronized (executor) {
+                    // Build execution plan
+                    ExecutionPlan executionPlan = new ExecutionPlan(executor);
+                    for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : checkServices) {
+                        executionPlan.addExecutionAction(new ExecutionAction.CheckExecutableServiceAction(service));
+                    }
+                    executionPlan.build();
+
+                    // Perform execution plan
+                    while (!executionPlan.isEmpty()) {
+                        Collection<ExecutionAction> executionActions = executionPlan.popExecutionActions();
+                        for (ExecutionAction executionAction : executionActions) {
+                            executionAction.start();
+                        }
+                        try {
+                            Thread.sleep(100);
+                        }
+                        catch (InterruptedException exception) {
+                            executor.getLogger().error("Execution interrupted.", exception);
+                        }
+                    }
+
+                    // Set services as checked
+                    for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : checkServices) {
+                        executor.addCheckedExecutableService(service);
+                    }
+                }
+                entityManager.getTransaction().commit();
+            }
+
+            // Return services
+            for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : services) {
+                response.addItem(service.toApi());
+            }
+            return response;
         }
         finally {
             entityManager.close();

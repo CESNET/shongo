@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
-import cz.cesnet.shongo.JadeException;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
-import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
@@ -18,7 +16,6 @@ import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.SendLocalCommand;
-import org.joda.time.DateTime;
 
 import javax.persistence.*;
 
@@ -231,22 +228,24 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ControllerAgent controllerAgent = executor.getControllerAgent();
         RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
 
-        // Stop recording
-        if (State.ACTIVE.equals(getState())) {
-            Alias alias = recordableEndpoint.getRecordingAlias();
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new GetActiveRecording(alias.toApi()));
-            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                Recording recording = (Recording) sendLocalCommand.getResult();
-                if (recording == null) {
-                    executor.getLogger().warn("Deactivating, because recording {} is not started anymore.",
-                            recordingId);
-                    setState(State.NOT_ACTIVE);
-                    recordingId = null;
-                }
-            }
 
+        // Check active recording
+        Alias alias = recordableEndpoint.getRecordingAlias();
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                new GetActiveRecording(alias.toApi()));
+        if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+            Recording recording = (Recording) sendLocalCommand.getResult();
+            State state = getState();
+            if (recording == null && isActive()) {
+                executor.getLogger().warn("Deactivating, because recording {} is not started anymore.", recordingId);
+                setState(State.NOT_ACTIVE);
+                recordingId = null;
+            }
+            else if (recording != null && !isActive()) {
+                executor.getLogger().warn("Activating, because recording {} is started.", recordingId);
+                setState(State.ACTIVE);
+                recordingId = recording.getId();
+            }
         }
-        setNextCheck(DateTime.now().plusSeconds(20));
     }
 }

@@ -177,7 +177,7 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                     logger.error(String.format("Command requested by '%s' has failed.",
                             request.getSender().getName()), exception);
                     ContentElement response = new Result(action, new JadeReportSet.CommandFailedReport(
-                            command.getName(), agent.getAID().getName(), exception.getMessage()));
+                            command.getName(), agent.getAID().getName(), exception.getCode(), exception.getMessage()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (Throwable exception) {

@@ -208,6 +208,7 @@
             <classification severity="error"/>
             <params>
                 <param name="receiverAgent" type="String"/>
+                <param name="code" type="String"/>
                 <param name="reason" type="String"/>
             </params>
             <description>

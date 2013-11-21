@@ -32,4 +32,10 @@ public class RecordingUnavailableException extends CommandException
     {
         super(message, cause);
     }
+
+    @Override
+    public String getCode()
+    {
+        return "recording-unavailable";
+    }
 }

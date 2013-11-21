@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.ExecutionReport;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 
 import java.util.Collection;
@@ -37,6 +38,16 @@ public interface ExecutableService extends Service
      */
     @API
     public Executable getExecutable(SecurityToken securityToken, String executableId);
+
+    /**
+     * Lists {@link ExecutableService}s for {@link Executable} with given {@link ExecutableServiceListRequest#executableId}.
+     *
+     * @param request {@link ExecutableServiceListRequest}
+     * @return {@link ListResponse} of {@link ExecutableService}s
+     */
+    @API
+    public ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> listExecutableServices(
+            ExecutableServiceListRequest request);
 
     /**
      * Updates executable configuration.

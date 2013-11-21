@@ -12,6 +12,11 @@ import org.joda.time.Interval;
 public class ExecutableService extends IdentifiedComplexType
 {
     /**
+     * Identifier of {@link Executable} for which the service has been allocated.
+     */
+    private String executableId;
+
+    /**
      * Specifies whether service is currently active.
      */
     private boolean active;
@@ -20,6 +25,22 @@ public class ExecutableService extends IdentifiedComplexType
      * Booked time slot for the service.
      */
     private Interval slot;
+
+    /**
+     * @return {@link #executableId}
+     */
+    public String getExecutableId()
+    {
+        return executableId;
+    }
+
+    /**
+     * @param executableId sets the {@link #executableId}
+     */
+    public void setExecutableId(String executableId)
+    {
+        this.executableId = executableId;
+    }
 
     /**
      * @return {@link #active}
@@ -53,6 +74,7 @@ public class ExecutableService extends IdentifiedComplexType
         this.slot = slot;
     }
 
+    private static final String EXECUTABLE_ID = "executableId";
     private static final String ACTIVE = "active";
     private static final String SLOT = "slot";
 
@@ -60,6 +82,7 @@ public class ExecutableService extends IdentifiedComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(EXECUTABLE_ID, executableId);
         dataMap.set(ACTIVE, active);
         dataMap.set(SLOT, slot);
         return dataMap;
@@ -69,6 +92,7 @@ public class ExecutableService extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        executableId = dataMap.getStringRequired(EXECUTABLE_ID);
         active = dataMap.getBool(ACTIVE);
         slot = dataMap.getInterval(SLOT);
     }

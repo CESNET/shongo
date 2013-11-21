@@ -8,18 +8,17 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Represents a map of {@link V} by {@link K} with {@link #expiration}.
+ * Represents a set of {@link V} with {@link #expiration}.
  *
- * @param <K>
  * @param <V>
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExpirationMap<K, V> implements Iterable<V>
+public class ExpirationSet<V> implements Iterable<V>
 {
     /**
-     * Cache of {@link V} by {@link K}.
+     * Cache of {@link V}.
      */
-    private Map<K, Entry<V>> entries = new HashMap<K, Entry<V>>();
+    private Map<V, Entry> entries = new HashMap<V, Entry>();
 
     /**
      * Specifies expiration for the {@link #entries}.
@@ -29,7 +28,7 @@ public class ExpirationMap<K, V> implements Iterable<V>
     /**
      * Constructor.
      */
-    public ExpirationMap()
+    public ExpirationSet()
     {
     }
 
@@ -38,7 +37,7 @@ public class ExpirationMap<K, V> implements Iterable<V>
      *
      * @param expiration sets the {@link #expiration}
      */
-    public ExpirationMap(Duration expiration)
+    public ExpirationSet(Duration expiration)
     {
         setExpiration(expiration);
     }
@@ -52,53 +51,34 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
-     * @param key
+     * @param value
      * @return true if given {@code key} exists, false otherwise
      */
-    public synchronized boolean contains(K key)
+    public synchronized boolean contains(V value)
     {
-        Entry<V> entry = entries.get(key);
+        Entry entry = entries.get(value);
         if (entry != null) {
             if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
                 return true;
             }
             else {
-                entries.remove(key);
+                entries.remove(value);
             }
         }
         return false;
     }
 
     /**
-     * @param key
-     * @return {@link V} by given {@code key}
-     */
-    public synchronized V get(K key)
-    {
-        Entry<V> entry = entries.get(key);
-        if (entry != null) {
-            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
-                return entry.value;
-            }
-            else {
-                entries.remove(key);
-            }
-        }
-        return null;
-    }
-
-    /**
      * Put given {@code value} to the cache by the given {@code key}.
      *
-     * @param key
      * @param value
      */
-    public synchronized void put(K key, V value)
+    public synchronized void add(V value)
     {
-        Entry<V> entry = entries.get(key);
+        Entry entry = entries.get(value);
         if (entry == null) {
-            entry = new Entry<V>();
-            entries.put(key, entry);
+            entry = new Entry();
+            entries.put(value, entry);
         }
         if (expiration != null) {
             entry.expirationDateTime = DateTime.now().plus(expiration);
@@ -106,24 +86,17 @@ public class ExpirationMap<K, V> implements Iterable<V>
         else {
             entry.expirationDateTime = null;
         }
-        entry.value = value;
     }
 
     /**
      * Remove given {@code key}.
      *
-     * @param key
+     * @param value
      * @return removed value for the {@code key} or null
      */
-    public synchronized V remove(K key)
+    public synchronized void remove(V value)
     {
-        Entry<V> entry = entries.remove(key);
-        if (entry != null) {
-            return entry.value;
-        }
-        else {
-            return null;
-        }
+        entries.remove(value);
     }
 
     /**
@@ -149,10 +122,10 @@ public class ExpirationMap<K, V> implements Iterable<V>
      */
     public void clearExpired(DateTime dateTime)
     {
-        Iterator<Map.Entry<K, Entry<V>>> iterator = entries.entrySet().iterator();
+        Iterator<Map.Entry<V, Entry>> iterator = entries.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<K, Entry<V>> itemEntry = iterator.next();
-            Entry<V> entry = itemEntry.getValue();
+            Map.Entry<V, Entry> itemEntry = iterator.next();
+            Entry entry = itemEntry.getValue();
             if (entry.expirationDateTime != null && !entry.expirationDateTime.isAfter(dateTime)) {
                 iterator.remove();
             }
@@ -160,45 +133,20 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
-     * Entry for {@link ExpirationMap}.
+     * Entry for {@link cz.cesnet.shongo.ExpirationSet}.
      */
-    private static class Entry<V>
+    private static class Entry
     {
         /**
          * Expiration {@link org.joda.time.DateTime}.
          */
         private DateTime expirationDateTime;
-
-        /**
-         * Value.
-         */
-        private V value;
     }
 
     @Override
     public Iterator<V> iterator()
     {
         clearExpired(DateTime.now());
-        final Iterator<Entry<V>> iterator = entries.values().iterator();
-        return new Iterator<V>()
-        {
-            @Override
-            public boolean hasNext()
-            {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public V next()
-            {
-                return iterator.next().value;
-            }
-
-            @Override
-            public void remove()
-            {
-                iterator.remove();
-            }
-        };
+        return entries.keySet().iterator();
     }
 }

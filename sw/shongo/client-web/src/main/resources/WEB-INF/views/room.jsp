@@ -87,15 +87,15 @@
             });
         };
     });
-<c:if test="${room.recordable}">
+<c:if test="${room.recordingService != null}">
     <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START %>" var="startRecordingUrl">
         <tag:param name="roomId" value="${room.id}"/>
-        <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+        <tag:param name="executableId" value="${room.recordingService.executableId}"/>
         <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
     </tag:url>
     <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP %>" var="stopRecordingUrl">
         <tag:param name="roomId" value="${room.id}"/>
-        <tag:param name="executableId" value="${room.recordingServiceExecutableId}"/>
+        <tag:param name="executableId" value="${room.recordingService.executableId}"/>
         <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
     </tag:url>
     module.controller('RoomRecordingController', function($scope, $timeout) {
@@ -398,7 +398,7 @@
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
             <c:choose>
-                <c:when test="${room.available}">
+                <c:when test="${room.recordingService != null}">
                     <h2><spring:message code="views.room.recordings"/></h2>
                     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                         <spring:message code="views.pagination.records"/>

@@ -40,11 +40,6 @@ public class Executable extends IdentifiedComplexType
     private Executable migratedExecutable;
 
     /**
-     * List of {@link ExecutableService}s.
-     */
-    private List<ExecutableService> services = new LinkedList<ExecutableService>();
-
-    /**
      * @return {@link #reservationId}
      */
     public String getReservationId()
@@ -124,50 +119,11 @@ public class Executable extends IdentifiedComplexType
         this.migratedExecutable = migratedExecutable;
     }
 
-    /**
-     * @return {@link #services}
-     */
-    public List<ExecutableService> getServices()
-    {
-        return services;
-    }
-
-    /**
-     * @param serviceType
-     * @return {@link ExecutableService} of given {@code serviceType} or {@code null} if none exists
-     * @throws IllegalArgumentException when multiple services exist
-     */
-    public <T extends ExecutableService> T getService(Class<T> serviceType)
-    {
-        T service = null;
-        for (ExecutableService possibleService : services) {
-            if (serviceType.isInstance(possibleService)) {
-                if (service == null) {
-                    service = serviceType.cast(possibleService);
-                }
-                else {
-                    throw new IllegalArgumentException(
-                            "Multiple services of type " + serviceType.getCanonicalName() + " exist.");
-                }
-            }
-        }
-        return service;
-    }
-
-    /**
-     * @param executableService to be added to the {@link #services}
-     */
-    public void addService(ExecutableService executableService)
-    {
-        services.add(executableService);
-    }
-
     private static final String RESERVATION_ID = "reservationId";
     private static final String SLOT = "slot";
     private static final String STATE = "state";
     private static final String STATE_REPORT = "stateReport";
     private static final String MIGRATED_EXECUTABLE = "migratedExecutable";
-    private static final String SERVICES = "services";
 
     @Override
     public DataMap toData()
@@ -178,7 +134,6 @@ public class Executable extends IdentifiedComplexType
         dataMap.set(STATE, state);
         dataMap.set(STATE_REPORT, stateReport);
         dataMap.set(MIGRATED_EXECUTABLE, migratedExecutable);
-        dataMap.set(SERVICES, services);
         return dataMap;
     }
 
@@ -191,6 +146,5 @@ public class Executable extends IdentifiedComplexType
         state = dataMap.getEnum(STATE, ExecutableState.class);
         stateReport = dataMap.getComplexType(STATE_REPORT, ExecutionReport.class);
         migratedExecutable = dataMap.getComplexType(MIGRATED_EXECUTABLE, Executable.class);
-        services = dataMap.getList(SERVICES, ExecutableService.class);
     }
 }

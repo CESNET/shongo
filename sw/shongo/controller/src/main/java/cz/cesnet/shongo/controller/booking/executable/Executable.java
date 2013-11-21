@@ -277,9 +277,6 @@ public abstract class Executable extends ExecutionTarget
         if (migration != null) {
             executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(userType));
         }
-        for (ExecutableService service : getServices()) {
-            executableApi.addService(service.toApi());
-        }
     }
 
     /**

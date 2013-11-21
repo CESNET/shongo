@@ -30,11 +30,6 @@ public abstract class ExecutableService extends ExecutionTarget
     private State state;
 
     /**
-     * {@link DateTime} for next {@link #check}. {@code null} means as early as possible.
-     */
-    private DateTime nextCheck;
-
-    /**
      * @return {@link #executable}
      */
     @ManyToOne
@@ -90,25 +85,6 @@ public abstract class ExecutableService extends ExecutionTarget
         this.state = state;
     }
 
-    /**
-     * @return {@link #nextCheck}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getNextCheck()
-    {
-        return nextCheck;
-    }
-
-    /**
-     * @param nextCheck sets the {@link #nextCheck}
-     */
-    public void setNextCheck(DateTime nextCheck)
-    {
-        this.nextCheck = nextCheck;
-    }
-
     @Transient
     @Override
     public Collection<? extends ExecutionTarget> getExecutionDependencies()
@@ -141,6 +117,7 @@ public abstract class ExecutableService extends ExecutionTarget
     public void toApi(cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi)
     {
         executableServiceApi.setId(getId());
+        executableServiceApi.setExecutableId(EntityIdentifier.formatId(executable));
         executableServiceApi.setActive(state.isActive());
         executableServiceApi.setSlot(getSlot());
     }

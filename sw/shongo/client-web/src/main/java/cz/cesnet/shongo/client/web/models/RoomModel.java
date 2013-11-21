@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
@@ -93,14 +94,14 @@ public class RoomModel
     private List<Participant> participants = new LinkedList<Participant>();
 
     /**
-     * {@link RecordingService} for recording the room.
+     * Specifies whether this room can be recorded or whether it already has some recordings.
      */
-    private RecordingService recordingService;
+    private boolean recordable = false;
 
     /**
-     * Identifier of executable which has the recording service.
+     * {@link RecordingService} which can be currently used for recording.
      */
-    private String recordingServiceExecutableId;
+    private RecordingService recordingService;
 
     /**
      * Constructor.
@@ -114,9 +115,10 @@ public class RoomModel
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider,
             MessageProvider messageProvider, ExecutableService executableService, UserSession userSession)
     {
-        this.messageProvider = messageProvider;
+        SecurityToken securityToken = cacheProvider.getSecurityToken();
 
         // Setup room
+        this.messageProvider = messageProvider;
         this.id = roomExecutable.getId();
         this.slot = roomExecutable.getSlot();
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
@@ -150,13 +152,12 @@ public class RoomModel
             this.type = RoomType.PERMANENT_ROOM;
 
             // Get license count from active usage
-            SecurityToken securityToken = cacheProvider.getSecurityToken();
-            ExecutableListRequest request = new ExecutableListRequest();
-            request.setSecurityToken(securityToken);
-            request.setRoomId(roomExecutable.getId());
-            request.setSort(ExecutableListRequest.Sort.SLOT);
-            request.setSortDescending(true);
-            ListResponse<ExecutableSummary> usageSummaries = executableService.listExecutables(request);
+            ExecutableListRequest usageRequest = new ExecutableListRequest();
+            usageRequest.setSecurityToken(securityToken);
+            usageRequest.setRoomId(this.id);
+            usageRequest.setSort(ExecutableListRequest.Sort.SLOT);
+            usageRequest.setSortDescending(true);
+            ListResponse<ExecutableSummary> usageSummaries = executableService.listExecutables(usageRequest);
             DateTime dateTimeNow = DateTime.now();
             for (ExecutableSummary usageSummary : usageSummaries) {
                 Interval usageSlot = usageSummary.getSlot();
@@ -170,20 +171,14 @@ public class RoomModel
                     for (AbstractParticipant participant : participants.getParticipants()) {
                         this.participants.add(new Participant(this.usageId, participant, cacheProvider));
                     }
-                    this.recordingService = usage.getService(RecordingService.class);
-                    this.recordingServiceExecutableId = usage.getId();
+                    this.recordingService = getRecordingService(executableService, securityToken, this.id);
+                    this.recordable = this.recordingService != null;
                     break;
                 }
             }
-            // Find if any recording service is available
-            if (recordingService == null) {
-                for (ExecutableSummary usageSummary : usageSummaries) {
-                    UsedRoomExecutable usage = (UsedRoomExecutable) cacheProvider.getExecutable(usageSummary.getId());
-                    this.recordingService = usage.getService(RecordingService.class);
-                    if (this.recordingService != null) {
-                        break;
-                    }
-                }
+            if (!recordable) {
+                this.recordingService = null;
+                this.recordable = isPermanentRoomRecordable(executableService, securityToken, this.id);
             }
         }
         else {
@@ -194,8 +189,8 @@ public class RoomModel
             else {
                 this.type = RoomType.ADHOC_ROOM;
             }
-            this.recordingService = roomExecutable.getService(RecordingService.class);
-            this.recordingServiceExecutableId = roomExecutable.getId();
+            this.recordingService = getRecordingService(executableService, securityToken, this.id);
+            this.recordable = this.recordingService != null;
         }
 
         // Room state
@@ -205,6 +200,50 @@ public class RoomModel
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
         }
+    }
+
+    /**
+     * @param executableService
+     * @param securityToken
+     * @param roomExecutableId
+     * @return {@link RecordingService} for {@link AbstractRoomExecutable} with given {@code roomExecutableId}
+     */
+    private RecordingService getRecordingService(ExecutableService executableService, SecurityToken securityToken,
+            String roomExecutableId)
+    {
+        ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken);
+        request.setExecutableId(roomExecutableId);
+        request.addServiceClass(RecordingService.class);
+        request.setCount(1);
+        ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
+                executableService.listExecutableServices(request);
+        if (response.getCount() > 1) {
+            throw new UnsupportedApiException("Room " + roomExecutableId + " has multiple recording services.");
+        }
+        if (response.getItemCount() > 0) {
+            return (RecordingService) response.getItem(0);
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * @param executableService
+     * @param securityToken
+     * @param roomExecutableId
+     * @return {@link RecordingService} for {@link AbstractRoomExecutable} with given {@code roomExecutableId}
+     */
+    private boolean isPermanentRoomRecordable(ExecutableService executableService, SecurityToken securityToken,
+            String roomExecutableId)
+    {
+        ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken);
+        request.setExecutableId(roomExecutableId);
+        request.addServiceClass(RecordingService.class);
+        request.setCount(0);
+        ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
+                executableService.listExecutableServices(request);
+        return response.getCount() > 0;
     }
 
     /**
@@ -362,14 +401,6 @@ public class RoomModel
     public RecordingService getRecordingService()
     {
         return recordingService;
-    }
-
-    /**
-     * @return {@link #recordingServiceExecutableId}
-     */
-    public String getRecordingServiceExecutableId()
-    {
-        return recordingServiceExecutableId;
     }
 
     /**

@@ -449,7 +449,6 @@ public class RoomReservationTask extends ReservationTask
                 existingValueReservation.setSlot(interval);
                 existingValueReservation.setReservation(originalReservation);
                 return existingValueReservation;
-
             }
 
             // Allocate room reservation

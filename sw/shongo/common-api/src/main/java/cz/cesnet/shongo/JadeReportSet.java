@@ -1040,6 +1040,8 @@ public class JadeReportSet extends AbstractReportSet
     {
         protected String receiverAgent;
 
+        protected String code;
+
         protected String reason;
 
         public CommandFailedReport()
@@ -1052,10 +1054,11 @@ public class JadeReportSet extends AbstractReportSet
             return "command-failed";
         }
 
-        public CommandFailedReport(String command, String receiverAgent, String reason)
+        public CommandFailedReport(String command, String receiverAgent, String code, String reason)
         {
             setCommand(command);
             setReceiverAgent(receiverAgent);
+            setCode(code);
             setReason(reason);
         }
 
@@ -1067,6 +1070,16 @@ public class JadeReportSet extends AbstractReportSet
         public void setReceiverAgent(String receiverAgent)
         {
             this.receiverAgent = receiverAgent;
+        }
+
+        public String getCode()
+        {
+            return code;
+        }
+
+        public void setCode(String code)
+        {
+            this.code = code;
         }
 
         public String getReason()
@@ -1096,6 +1109,7 @@ public class JadeReportSet extends AbstractReportSet
         {
             command = (String) reportSerializer.getParameter("command", String.class);
             receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+            code = (String) reportSerializer.getParameter("code", String.class);
             reason = (String) reportSerializer.getParameter("reason", String.class);
         }
 
@@ -1104,6 +1118,7 @@ public class JadeReportSet extends AbstractReportSet
         {
             reportSerializer.setParameter("command", command);
             reportSerializer.setParameter("receiverAgent", receiverAgent);
+            reportSerializer.setParameter("code", code);
             reportSerializer.setParameter("reason", reason);
         }
 
@@ -1113,6 +1128,7 @@ public class JadeReportSet extends AbstractReportSet
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
             parameters.put("command", command);
             parameters.put("receiverAgent", receiverAgent);
+            parameters.put("code", code);
             parameters.put("reason", reason);
             return parameters;
         }
@@ -1140,21 +1156,23 @@ public class JadeReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public CommandFailedException(String command, String receiverAgent, String reason)
+        public CommandFailedException(String command, String receiverAgent, String code, String reason)
         {
             CommandFailedReport report = new CommandFailedReport();
             report.setCommand(command);
             report.setReceiverAgent(receiverAgent);
+            report.setCode(code);
             report.setReason(reason);
             this.report = report;
         }
 
-        public CommandFailedException(Throwable throwable, String command, String receiverAgent, String reason)
+        public CommandFailedException(Throwable throwable, String command, String receiverAgent, String code, String reason)
         {
             super(throwable);
             CommandFailedReport report = new CommandFailedReport();
             report.setCommand(command);
             report.setReceiverAgent(receiverAgent);
+            report.setCode(code);
             report.setReason(reason);
             this.report = report;
         }
@@ -1162,6 +1180,11 @@ public class JadeReportSet extends AbstractReportSet
         public String getReceiverAgent()
         {
             return getReport().getReceiverAgent();
+        }
+
+        public String getCode()
+        {
+            return getReport().getCode();
         }
 
         public String getReason()

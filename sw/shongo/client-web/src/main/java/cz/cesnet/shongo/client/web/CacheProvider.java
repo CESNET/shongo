@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 
 /**
  * {@link Cache} provided for specified {@link #securityToken}.
@@ -26,7 +23,7 @@ public class CacheProvider
     /**
      * Constructor.
      *
-     * @param cache sets the {@link #cache}
+     * @param cache         sets the {@link #cache}
      * @param securityToken sets the {@link #securityToken}
      */
     public CacheProvider(Cache cache, SecurityToken securityToken)
@@ -86,5 +83,15 @@ public class CacheProvider
     public Executable getExecutable(String executableId)
     {
         return cache.getExecutable(securityToken, executableId);
+    }
+
+    /**
+     * @param permanentRoomId
+     * @return true whether permanent room with given {@code permanentRoomId} or its usages has {@link RecordingService},
+     *         false otherwise
+     */
+    public boolean isPermanentRoomRecordable(String permanentRoomId)
+    {
+       return cache.isPermanentRoomRecordable(securityToken, permanentRoomId);
     }
 }
