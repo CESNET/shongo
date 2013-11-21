@@ -228,7 +228,6 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ControllerAgent controllerAgent = executor.getControllerAgent();
         RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
 
-
         // Check active recording
         Alias alias = recordableEndpoint.getRecordingAlias();
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
@@ -242,7 +241,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                 recordingId = null;
             }
             else if (recording != null && !isActive()) {
-                executor.getLogger().warn("Activating, because recording {} is started.", recordingId);
+                executor.getLogger().warn("Activating, because recording {} is started.", recording.getId());
                 setState(State.ACTIVE);
                 recordingId = recording.getId();
             }

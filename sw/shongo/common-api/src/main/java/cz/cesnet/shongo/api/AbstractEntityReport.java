@@ -55,6 +55,17 @@ public abstract class AbstractEntityReport extends AbstractComplexType
     }
 
     /**
+     * @return last report from {@link #reports}
+     */
+    public Map<String, Object> getLastReport()
+    {
+        if (reports.isEmpty()) {
+            return null;
+        }
+        return reports.get(reports.size() - 1);
+    }
+
+    /**
      * @param locale
      * @param timeZone
      * @return {@link AbstractEntityReport} as string for given {@code locale} and {@code timeZone}

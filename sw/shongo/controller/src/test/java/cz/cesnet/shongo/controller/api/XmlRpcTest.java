@@ -228,7 +228,7 @@ public class XmlRpcTest extends AbstractControllerTest
             Assert.fail("Exception that collection cannot contain null should be thrown.");
         }
         catch (XmlRpcException exception) {
-            Assert.assertEquals(CommonReportSet.COLLECTION_ITEM_NULL, exception.code);
+            Assert.assertEquals(CommonReportSet.COLLECTION_ITEM_NULL_CODE, exception.code);
         }
 
         reservationRequest = new HashMap<String, Object>();
@@ -252,7 +252,7 @@ public class XmlRpcTest extends AbstractControllerTest
             Assert.fail("Exception that attribute has wrong type should be thrown.");
         }
         catch (XmlRpcException exception) {
-            Assert.assertEquals(CommonReportSet.CLASS_ATTRIBUTE_TYPE_MISMATCH, exception.code);
+            Assert.assertEquals(CommonReportSet.CLASS_ATTRIBUTE_TYPE_MISMATCH_CODE, exception.code);
         }
     }
 }

@@ -368,6 +368,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     // Set services as checked
                     for (cz.cesnet.shongo.controller.booking.executable.ExecutableService service : checkServices) {
                         executor.addCheckedExecutableService(service);
+
+                        // Refresh service
+                        entityManager.refresh(service);
                     }
                 }
                 entityManager.getTransaction().commit();

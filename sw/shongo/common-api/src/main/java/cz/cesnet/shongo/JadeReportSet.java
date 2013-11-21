@@ -9,22 +9,32 @@ import cz.cesnet.shongo.report.*;
  */
 public class JadeReportSet extends AbstractReportSet
 {
+    public static final String UNKNOWN_ERROR = "unknown-error";
+    public static final String AGENT_NOT_FOUND = "agent-not-found";
+    public static final String AGENT_NOT_STARTED = "agent-not-started";
+    public static final String COMMAND_UNKNOWN_ERROR = "command-unknown-error";
+    public static final String COMMAND_TIMEOUT = "command-timeout";
+    public static final String COMMAND_NOT_SUPPORTED = "command-not-supported";
+    public static final String COMMAND_REFUSED = "command-refused";
+    public static final String COMMAND_NOT_UNDERSTOOD = "command-not-understood";
+    public static final String COMMAND_FAILED = "command-failed";
+    public static final String COMMAND_RESULT_DECODING_FAILED = "command-result-decoding-failed";
+
     /**
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
-        addMessage("agent-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} is not available now.");
-        addMessage("agent-not-started", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} is not started yet.");
-        addMessage("command-abstract-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Abstract command error.");
-        addMessage("command-unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error in command ${command}: ${description}");
-        addMessage("command-timeout", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} send to ${receiverAgent} has timeout.");
-        addMessage("command-not-supported", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} doesn't implement command ${command}.");
-        addMessage("command-refused", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} has refused command ${command}.");
-        addMessage("command-not-understood", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} didn't understand command ${command}.");
-        addMessage("command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}");
-        addMessage("command-failed", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Command ${command} ended with error.");
-        addMessage("command-result-decoding-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
+        addMessage(UNKNOWN_ERROR, new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage(AGENT_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} is not available now.");
+        addMessage(AGENT_NOT_STARTED, new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} is not started yet.");
+        addMessage(COMMAND_UNKNOWN_ERROR, new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error in command ${command}: ${description}");
+        addMessage(COMMAND_TIMEOUT, new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} send to ${receiverAgent} has timeout.");
+        addMessage(COMMAND_NOT_SUPPORTED, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} doesn't implement command ${command}.");
+        addMessage(COMMAND_REFUSED, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} has refused command ${command}.");
+        addMessage(COMMAND_NOT_UNDERSTOOD, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} didn't understand command ${command}.");
+        addMessage(COMMAND_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}");
+        addMessage(COMMAND_FAILED, new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Command ${command} ended with error.");
+        addMessage(COMMAND_RESULT_DECODING_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)

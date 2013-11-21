@@ -9,47 +9,66 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int USER_NOT_EXIST = 100;
-    public static final int ACL_INVALID_ROLE = 101;
-    public static final int SECURITY_MISSING_TOKEN = 102;
-    public static final int SECURITY_INVALID_TOKEN = 103;
-    public static final int SECURITY_NOT_AUTHORIZED = 104;
-    public static final int DEVICE_COMMAND_FAILED = 105;
-    public static final int IDENTIFIER_INVALID = 106;
-    public static final int IDENTIFIER_INVALID_DOMAIN = 107;
-    public static final int IDENTIFIER_INVALID_TYPE = 108;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 109;
-    public static final int RESERVATION_REQUEST_NOT_DELETABLE = 110;
-    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE = 111;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED = 112;
-    public static final int RESERVATION_REQUEST_DELETED = 113;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION = 114;
-    public static final int RESERVATION_REQUEST_NOT_REUSABLE = 115;
-    public static final int EXECUTABLE_INVALID_CONFIGURATION = 116;
-    public static final int EXECUTABLE_NOT_RECORDABLE = 117;
+    public static final int USER_NOT_EXIST_CODE = 100;
+    public static final int ACL_INVALID_ROLE_CODE = 101;
+    public static final int SECURITY_MISSING_TOKEN_CODE = 102;
+    public static final int SECURITY_INVALID_TOKEN_CODE = 103;
+    public static final int SECURITY_NOT_AUTHORIZED_CODE = 104;
+    public static final int DEVICE_COMMAND_FAILED_CODE = 105;
+    public static final int IDENTIFIER_INVALID_CODE = 106;
+    public static final int IDENTIFIER_INVALID_DOMAIN_CODE = 107;
+    public static final int IDENTIFIER_INVALID_TYPE_CODE = 108;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_CODE = 109;
+    public static final int RESERVATION_REQUEST_NOT_DELETABLE_CODE = 110;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_CODE = 111;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_CODE = 112;
+    public static final int RESERVATION_REQUEST_DELETED_CODE = 113;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_CODE = 114;
+    public static final int RESERVATION_REQUEST_NOT_REUSABLE_CODE = 115;
+    public static final int EXECUTABLE_INVALID_CONFIGURATION_CODE = 116;
+    public static final int EXECUTABLE_NOT_RECORDABLE_CODE = 117;
+
+    public static final String USER_NOT_EXIST = "user-not-exist";
+    public static final String ACL_INVALID_ROLE = "acl-invalid-role";
+    public static final String SECURITY_MISSING_TOKEN = "security-missing-token";
+    public static final String SECURITY_INVALID_TOKEN = "security-invalid-token";
+    public static final String SECURITY_NOT_AUTHORIZED = "security-not-authorized";
+    public static final String DEVICE_COMMAND_FAILED = "device-command-failed";
+    public static final String IDENTIFIER_INVALID = "identifier-invalid";
+    public static final String IDENTIFIER_INVALID_DOMAIN = "identifier-invalid-domain";
+    public static final String IDENTIFIER_INVALID_TYPE = "identifier-invalid-type";
+    public static final String RESERVATION_REQUEST_NOT_MODIFIABLE = "reservation-request-not-modifiable";
+    public static final String RESERVATION_REQUEST_NOT_DELETABLE = "reservation-request-not-deletable";
+    public static final String RESERVATION_REQUEST_NOT_REVERTIBLE = "reservation-request-not-revertible";
+    public static final String RESERVATION_REQUEST_ALREADY_MODIFIED = "reservation-request-already-modified";
+    public static final String RESERVATION_REQUEST_DELETED = "reservation-request-deleted";
+    public static final String RESERVATION_REQUEST_EMPTY_DURATION = "reservation-request-empty-duration";
+    public static final String RESERVATION_REQUEST_NOT_REUSABLE = "reservation-request-not-reusable";
+    public static final String EXECUTABLE_INVALID_CONFIGURATION = "executable-invalid-configuration";
+    public static final String EXECUTABLE_NOT_RECORDABLE = "executable-not-recordable";
 
     /**
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("user-not-exist", new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
-        addMessage("acl-invalid-role", new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
-        addMessage("security-missing-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
-        addMessage("security-invalid-token", new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
-        addMessage("security-not-authorized", new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
-        addMessage("device-command-failed", new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReportMessage(jadeReport)}");
-        addMessage("identifier-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} is invalid.");
-        addMessage("identifier-invalid-domain", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} doesn't belong to domain ${requiredDomain}.");
-        addMessage("identifier-invalid-type", new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} isn't of required type ${requiredType}.");
-        addMessage("reservation-request-not-modifiable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be modified.");
-        addMessage("reservation-request-not-deletable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be deleted.");
-        addMessage("reservation-request-not-revertible", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reverted.");
-        addMessage("reservation-request-already-modified", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} has already been modified.");
-        addMessage("reservation-request-deleted", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} is deleted.");
-        addMessage("reservation-request-empty-duration", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
-        addMessage("reservation-request-not-reusable", new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
-        addMessage("executable-invalid-configuration", new Report.UserType[]{}, Report.Language.ENGLISH, "Configuration ${configuration} is invalid for executable with identifier ${id}.");
-        addMessage("executable-not-recordable", new Report.UserType[]{}, Report.Language.ENGLISH, "Executable with identifier ${id} isn't recordable.");
+        addMessage(USER_NOT_EXIST, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
+        addMessage(ACL_INVALID_ROLE, new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
+        addMessage(SECURITY_MISSING_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
+        addMessage(SECURITY_INVALID_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
+        addMessage(SECURITY_NOT_AUTHORIZED, new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
+        addMessage(DEVICE_COMMAND_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} for device ${device} failed: ${jadeReportMessage(jadeReport)}");
+        addMessage(IDENTIFIER_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} is invalid.");
+        addMessage(IDENTIFIER_INVALID_DOMAIN, new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} doesn't belong to domain ${requiredDomain}.");
+        addMessage(IDENTIFIER_INVALID_TYPE, new Report.UserType[]{}, Report.Language.ENGLISH, "Identifier ${id} isn't of required type ${requiredType}.");
+        addMessage(RESERVATION_REQUEST_NOT_MODIFIABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be modified.");
+        addMessage(RESERVATION_REQUEST_NOT_DELETABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be deleted.");
+        addMessage(RESERVATION_REQUEST_NOT_REVERTIBLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reverted.");
+        addMessage(RESERVATION_REQUEST_ALREADY_MODIFIED, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} has already been modified.");
+        addMessage(RESERVATION_REQUEST_DELETED, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} is deleted.");
+        addMessage(RESERVATION_REQUEST_EMPTY_DURATION, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request time slot must not be empty.");
+        addMessage(RESERVATION_REQUEST_NOT_REUSABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Reservation request with identifier ${id} cannot be reused.");
+        addMessage(EXECUTABLE_INVALID_CONFIGURATION, new Report.UserType[]{}, Report.Language.ENGLISH, "Configuration ${configuration} is invalid for executable with identifier ${id}.");
+        addMessage(EXECUTABLE_NOT_RECORDABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Executable with identifier ${id} isn't recordable.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
@@ -98,7 +117,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return USER_NOT_EXIST;
+            return USER_NOT_EXIST_CODE;
         }
 
         @Override
@@ -248,7 +267,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ACL_INVALID_ROLE;
+            return ACL_INVALID_ROLE_CODE;
         }
 
         @Override
@@ -378,7 +397,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_MISSING_TOKEN;
+            return SECURITY_MISSING_TOKEN_CODE;
         }
 
         @Override
@@ -505,7 +524,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_INVALID_TOKEN;
+            return SECURITY_INVALID_TOKEN_CODE;
         }
 
         @Override
@@ -642,7 +661,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return SECURITY_NOT_AUTHORIZED;
+            return SECURITY_NOT_AUTHORIZED_CODE;
         }
 
         @Override
@@ -811,7 +830,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return DEVICE_COMMAND_FAILED;
+            return DEVICE_COMMAND_FAILED_CODE;
         }
 
         @Override
@@ -968,7 +987,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID;
+            return IDENTIFIER_INVALID_CODE;
         }
 
         @Override
@@ -1118,7 +1137,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_DOMAIN;
+            return IDENTIFIER_INVALID_DOMAIN_CODE;
         }
 
         @Override
@@ -1278,7 +1297,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return IDENTIFIER_INVALID_TYPE;
+            return IDENTIFIER_INVALID_TYPE_CODE;
         }
 
         @Override
@@ -1425,7 +1444,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_MODIFIABLE;
+            return RESERVATION_REQUEST_NOT_MODIFIABLE_CODE;
         }
 
         @Override
@@ -1562,7 +1581,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_DELETABLE;
+            return RESERVATION_REQUEST_NOT_DELETABLE_CODE;
         }
 
         @Override
@@ -1699,7 +1718,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_REVERTIBLE;
+            return RESERVATION_REQUEST_NOT_REVERTIBLE_CODE;
         }
 
         @Override
@@ -1836,7 +1855,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_ALREADY_MODIFIED;
+            return RESERVATION_REQUEST_ALREADY_MODIFIED_CODE;
         }
 
         @Override
@@ -1973,7 +1992,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_DELETED;
+            return RESERVATION_REQUEST_DELETED_CODE;
         }
 
         @Override
@@ -2093,7 +2112,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_EMPTY_DURATION;
+            return RESERVATION_REQUEST_EMPTY_DURATION_CODE;
         }
 
         @Override
@@ -2220,7 +2239,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return RESERVATION_REQUEST_NOT_REUSABLE;
+            return RESERVATION_REQUEST_NOT_REUSABLE_CODE;
         }
 
         @Override
@@ -2370,7 +2389,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return EXECUTABLE_INVALID_CONFIGURATION;
+            return EXECUTABLE_INVALID_CONFIGURATION_CODE;
         }
 
         @Override
@@ -2517,7 +2536,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return EXECUTABLE_NOT_RECORDABLE;
+            return EXECUTABLE_NOT_RECORDABLE_CODE;
         }
 
         @Override

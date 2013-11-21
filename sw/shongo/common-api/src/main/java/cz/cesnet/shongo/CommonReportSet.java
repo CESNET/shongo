@@ -9,44 +9,61 @@ import cz.cesnet.shongo.report.*;
  */
 public class CommonReportSet extends AbstractReportSet
 {
-    public static final int UNKNOWN_ERROR = 0;
-    public static final int TYPE_MISMATCH = 1;
-    public static final int TYPE_ILLEGAL_VALUE = 2;
-    public static final int CLASS_UNDEFINED = 3;
-    public static final int CLASS_INSTANTIATION_ERROR = 4;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED = 5;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH = 6;
-    public static final int CLASS_ATTRIBUTE_REQUIRED = 7;
-    public static final int CLASS_ATTRIBUTE_READONLY = 8;
-    public static final int CLASS_COLLECTION_REQUIRED = 9;
-    public static final int COLLECTION_ITEM_NULL = 10;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH = 11;
-    public static final int ENTITY_NOT_FOUND = 12;
-    public static final int ENTITY_INVALID = 13;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED = 14;
-    public static final int METHOD_NOT_DEFINED = 15;
+    public static final int UNKNOWN_ERROR_CODE = 0;
+    public static final int TYPE_MISMATCH_CODE = 1;
+    public static final int TYPE_ILLEGAL_VALUE_CODE = 2;
+    public static final int CLASS_UNDEFINED_CODE = 3;
+    public static final int CLASS_INSTANTIATION_ERROR_CODE = 4;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED_CODE = 5;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_CODE = 6;
+    public static final int CLASS_ATTRIBUTE_REQUIRED_CODE = 7;
+    public static final int CLASS_ATTRIBUTE_READONLY_CODE = 8;
+    public static final int CLASS_COLLECTION_REQUIRED_CODE = 9;
+    public static final int COLLECTION_ITEM_NULL_CODE = 10;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH_CODE = 11;
+    public static final int ENTITY_NOT_FOUND_CODE = 12;
+    public static final int ENTITY_INVALID_CODE = 13;
+    public static final int ENTITY_NOT_DELETABLE_REFERENCED_CODE = 14;
+    public static final int METHOD_NOT_DEFINED_CODE = 15;
+
+    public static final String UNKNOWN_ERROR = "unknown-error";
+    public static final String TYPE_MISMATCH = "type-mismatch";
+    public static final String TYPE_ILLEGAL_VALUE = "type-illegal-value";
+    public static final String CLASS_UNDEFINED = "class-undefined";
+    public static final String CLASS_INSTANTIATION_ERROR = "class-instantiation-error";
+    public static final String CLASS_ATTRIBUTE_UNDEFINED = "class-attribute-undefined";
+    public static final String CLASS_ATTRIBUTE_TYPE_MISMATCH = "class-attribute-type-mismatch";
+    public static final String CLASS_ATTRIBUTE_REQUIRED = "class-attribute-required";
+    public static final String CLASS_ATTRIBUTE_READONLY = "class-attribute-readonly";
+    public static final String CLASS_COLLECTION_REQUIRED = "class-collection-required";
+    public static final String COLLECTION_ITEM_NULL = "collection-item-null";
+    public static final String COLLECTION_ITEM_TYPE_MISMATCH = "collection-item-type-mismatch";
+    public static final String ENTITY_NOT_FOUND = "entity-not-found";
+    public static final String ENTITY_INVALID = "entity-invalid";
+    public static final String ENTITY_NOT_DELETABLE_REFERENCED = "entity-not-deletable-referenced";
+    public static final String METHOD_NOT_DEFINED = "method-not-defined";
 
     /**
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage("unknown-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
-        addMessage("unknown-error", new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Unknown error.");
-        addMessage("type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.");
-        addMessage("type-illegal-value", new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is illegal for type ${type}.");
-        addMessage("class-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} is not defined.");
-        addMessage("class-instantiation-error", new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} cannot be instanced.");
-        addMessage("class-attribute-undefined", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} is not defined in class ${class}.");
-        addMessage("class-attribute-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.");
-        addMessage("class-attribute-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} in class ${class} wasn't present but it is required.");
-        addMessage("class-attribute-readonly", new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.");
-        addMessage("class-collection-required", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
-        addMessage("collection-item-null", new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
-        addMessage("collection-item-type-mismatch", new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
-        addMessage("entity-not-found", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} was not found.");
-        addMessage("entity-invalid", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
-        addMessage("entity-not-deletable-referenced", new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
-        addMessage("method-not-defined", new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
+        addMessage(UNKNOWN_ERROR, new Report.UserType[]{}, Report.Language.ENGLISH, "Unknown error: ${description}");
+        addMessage(UNKNOWN_ERROR, new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Unknown error.");
+        addMessage(TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage(TYPE_ILLEGAL_VALUE, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is illegal for type ${type}.");
+        addMessage(CLASS_UNDEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} is not defined.");
+        addMessage(CLASS_INSTANTIATION_ERROR, new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} cannot be instanced.");
+        addMessage(CLASS_ATTRIBUTE_UNDEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} is not defined in class ${class}.");
+        addMessage(CLASS_ATTRIBUTE_TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.");
+        addMessage(CLASS_ATTRIBUTE_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} in class ${class} wasn't present but it is required.");
+        addMessage(CLASS_ATTRIBUTE_READONLY, new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.");
+        addMessage(CLASS_COLLECTION_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
+        addMessage(COLLECTION_ITEM_NULL, new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
+        addMessage(COLLECTION_ITEM_TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
+        addMessage(ENTITY_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} was not found.");
+        addMessage(ENTITY_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
+        addMessage(ENTITY_NOT_DELETABLE_REFERENCED, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
+        addMessage(METHOD_NOT_DEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
     }};
 
     public static String getMessage(String reportId, Report.UserType userType, Report.Language language, org.joda.time.DateTimeZone timeZone, java.util.Map<String, Object> parameters)
@@ -95,7 +112,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return UNKNOWN_ERROR;
+            return UNKNOWN_ERROR_CODE;
         }
 
         @Override
@@ -245,7 +262,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_MISMATCH;
+            return TYPE_MISMATCH_CODE;
         }
 
         @Override
@@ -405,7 +422,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return TYPE_ILLEGAL_VALUE;
+            return TYPE_ILLEGAL_VALUE_CODE;
         }
 
         @Override
@@ -552,7 +569,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_UNDEFINED;
+            return CLASS_UNDEFINED_CODE;
         }
 
         @Override
@@ -689,7 +706,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_INSTANTIATION_ERROR;
+            return CLASS_INSTANTIATION_ERROR_CODE;
         }
 
         @Override
@@ -839,7 +856,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_UNDEFINED;
+            return CLASS_ATTRIBUTE_UNDEFINED_CODE;
         }
 
         @Override
@@ -1025,7 +1042,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_TYPE_MISMATCH;
+            return CLASS_ATTRIBUTE_TYPE_MISMATCH_CODE;
         }
 
         @Override
@@ -1205,7 +1222,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_REQUIRED;
+            return CLASS_ATTRIBUTE_REQUIRED_CODE;
         }
 
         @Override
@@ -1365,7 +1382,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_ATTRIBUTE_READONLY;
+            return CLASS_ATTRIBUTE_READONLY_CODE;
         }
 
         @Override
@@ -1525,7 +1542,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return CLASS_COLLECTION_REQUIRED;
+            return CLASS_COLLECTION_REQUIRED_CODE;
         }
 
         @Override
@@ -1672,7 +1689,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_NULL;
+            return COLLECTION_ITEM_NULL_CODE;
         }
 
         @Override
@@ -1835,7 +1852,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return COLLECTION_ITEM_TYPE_MISMATCH;
+            return COLLECTION_ITEM_TYPE_MISMATCH_CODE;
         }
 
         @Override
@@ -2005,7 +2022,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_FOUND;
+            return ENTITY_NOT_FOUND_CODE;
         }
 
         @Override
@@ -2165,7 +2182,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_INVALID;
+            return ENTITY_INVALID_CODE;
         }
 
         @Override
@@ -2325,7 +2342,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_DELETABLE_REFERENCED;
+            return ENTITY_NOT_DELETABLE_REFERENCED_CODE;
         }
 
         @Override
@@ -2472,7 +2489,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return METHOD_NOT_DEFINED;
+            return METHOD_NOT_DEFINED_CODE;
         }
 
         @Override

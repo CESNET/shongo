@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
@@ -12,6 +13,7 @@ import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
@@ -322,12 +324,24 @@ public class RoomController
         }
         else {
             Locale locale = userSession.getLocale();
+            String errorCode = "views.room.recording.error.startingFailed";
             if (result instanceof ExecutionReport) {
                 ExecutionReport executionReport = (ExecutionReport) result;
                 logger.warn("Stop recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
+
+                // Detect further error
+                Map<String, Object> report = executionReport.getLastReport();
+                if (report != null && ExecutionReportMessages.COMMAND_FAILED.equals(report.get("id"))) {
+                    Map jadeReport = (Map) report.get("jadeReport");
+                    if (jadeReport != null && JadeReportSet.COMMAND_FAILED.equals(jadeReport.get("id"))) {
+                        String code = (String) jadeReport.get("code");
+                        if (code != null && code.equals("recording-unavailable")) {
+                            errorCode = "views.room.recording.error.unavailable";
+                        }
+                    }
+                }
             }
-            model.addAttribute("error", messageSource.getMessage(
-                    "views.room.recording.error.startingFailed", null, locale));
+            model.addAttribute("error", messageSource.getMessage(errorCode, null, locale));
         }
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
     }
