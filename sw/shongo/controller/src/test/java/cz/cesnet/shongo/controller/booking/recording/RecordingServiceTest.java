@@ -43,7 +43,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
     {
         ConnectTestAgent connectAgent = getController().addJadeAgent("connect", new ConnectTestAgent());
 
-        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
+        DateTime dateTime = DateTime.now().minusMinutes(30);
 
         DeviceResource connect = new DeviceResource();
         connect.setName("connect");
@@ -144,7 +144,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
         TcsTestAgent tcsAgent = getController().addJadeAgent("tcs", new TcsTestAgent());
 
-        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
+        DateTime dateTime = DateTime.now().minusMinutes(30);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -241,7 +241,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
         TcsTestAgent tcsAgent = getController().addJadeAgent("tcs", new TcsTestAgent());
 
-        DateTime dateTime = DateTime.parse("2012-06-22T14:00");
+        DateTime dateTime = DateTime.now().minusMinutes(30);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
