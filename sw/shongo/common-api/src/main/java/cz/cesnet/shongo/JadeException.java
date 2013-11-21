@@ -26,8 +26,6 @@ public abstract class JadeException extends ReportException
         super(throwable);
     }
 
-    /**
-     * @return {@link cz.cesnet.shongo.report.AbstractReport}
-     */
+    @Override
     public abstract JadeReport getReport();
 }

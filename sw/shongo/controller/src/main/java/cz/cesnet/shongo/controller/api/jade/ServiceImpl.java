@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.jade;
 
+import cz.cesnet.shongo.JadeException;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
@@ -16,6 +17,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -45,19 +47,19 @@ public class ServiceImpl implements Service
     private NotificationManager notificationManager;
 
     /**
-     * @see ControllerAgent
+     * @see Executor
      */
-    private ControllerAgent controllerAgent;
+    private Executor executor;
 
     /**
      * Constructor.
      */
     public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager,
-            ControllerAgent controllerAgent)
+            Executor executor)
     {
         this.entityManagerFactory = entityManagerFactory;
         this.notificationManager = notificationManager;
-        this.controllerAgent = controllerAgent;
+        this.executor = executor;
     }
 
     @Override
@@ -154,19 +156,10 @@ public class ServiceImpl implements Service
                     executableManager.getRoomEndpoint(deviceResourceId, roomId);
             DeviceResource deviceResource = roomEndpoint.getDeviceResource();
             RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
-            String recordingFolderId;
-            synchronized (RecordableEndpoint.SYNCHRONIZATION.get(roomEndpoint.getId())) {
-                recordingFolderId = roomEndpoint.getRecordingFolderId(recordingCapability);
-                if (recordingFolderId == null) {
-                    SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                            new CreateRecordingFolder(roomEndpoint.getRecordingFolderDescription()));
-                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                        throw new CommandException(sendLocalCommand.getJadeReport().toString());
-                    }
-                    recordingFolderId = (String) sendLocalCommand.getResult();
-                }
-            }
-            return recordingFolderId;
+            return executor.getRecordingFolderId(roomEndpoint, recordingCapability);
+        }
+        catch (ExecutionReportSet.CommandFailedException exception) {
+            throw new CommandException(exception.getMessage());
         }
         finally {
             entityManager.close();

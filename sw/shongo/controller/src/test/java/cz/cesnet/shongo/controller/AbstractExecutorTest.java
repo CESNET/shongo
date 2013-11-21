@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.jade.CommandDisabledException;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -9,8 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
-import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
-import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
+import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
@@ -23,10 +24,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * {@link cz.cesnet.shongo.controller.AbstractControllerTest} which provides a {@link cz.cesnet.shongo.controller.executor.Executor} instance to extending classes.
@@ -259,10 +257,82 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         }
     }
 
+    public class RecordableTestAgent extends TestAgent
+    {
+        Map<String, List<String>> recordingIdsByFolderId = new HashMap<String, List<String>>();
+
+        Map<String, String> folderIdByRecordingId = new HashMap<String, String>();
+
+        Map<Alias, String> activeRecordingIdByAlias = new HashMap<Alias, String>();
+
+        @Override
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        {
+            Object result = super.handleCommand(command, sender);
+            if (command instanceof CreateRecordingFolder) {
+                String folderId = "folder" + (recordingIdsByFolderId.size() + 1);
+                recordingIdsByFolderId.put(folderId, new LinkedList<String>());
+                return folderId;
+            }
+            else if (command instanceof ListRecordings) {
+                ListRecordings listRecordings = (ListRecordings) command;
+                String folderId = listRecordings.getRecordingFolderId();
+                List<String> folderRecordingIds = recordingIdsByFolderId.get(folderId);
+                if (folderRecordingIds == null) {
+                    throw new IllegalArgumentException("Folder '" + folderId + "' doesn't exist.");
+                }
+                List<Recording> recordings = new LinkedList<Recording>();
+                for (String recordingId : folderRecordingIds) {
+                    Recording recording = new Recording();
+                    recording.setId(recordingId);
+                    recordings.add(recording);
+                }
+                return recordings;
+            }
+            else if (command instanceof GetActiveRecording) {
+                GetActiveRecording getActiveRecording = (GetActiveRecording) command;
+                Alias alias = getActiveRecording.getAlias();
+                String recordingId = activeRecordingIdByAlias.get(alias);
+                if (recordingId == null) {
+                    return null;
+                }
+                Recording recording = new Recording();
+                recording.setId(recordingId);
+                return recording;
+            }
+            else if (command instanceof StartRecording) {
+                StartRecording startRecording = (StartRecording) command;
+                Alias alias = startRecording.getAlias();
+                String folderId = startRecording.getRecordingFolderId();
+                String recordingId = "recording" + (folderIdByRecordingId.size() + 1);
+                activeRecordingIdByAlias.put(alias, recordingId);
+                folderIdByRecordingId.put(recordingId, folderId);
+                return recordingId;
+            }
+            else if (command instanceof StopRecording) {
+                StopRecording stopRecording = (StopRecording) command;
+                String recordingId = stopRecording.getRecordingId();
+                for (Map.Entry<Alias, String> entry : activeRecordingIdByAlias.entrySet()) {
+                    if (recordingId.equals(entry.getValue())) {
+                        activeRecordingIdByAlias.remove(entry.getKey());
+                        break;
+                    }
+                }
+                String folderId = folderIdByRecordingId.get(recordingId);
+                List<String> folderRecordingIds = recordingIdsByFolderId.get(folderId);
+                if (folderRecordingIds == null) {
+                    throw new IllegalArgumentException("Folder '" + folderId + "' doesn't exist.");
+                }
+                folderRecordingIds.add(recordingId);
+            }
+            return result;
+        }
+    }
+
     /**
      * Testing Connect agent.
      */
-    public class ConnectTestAgent extends TestAgent
+    public class ConnectTestAgent extends RecordableTestAgent
     {
         /**
          * Rooms.
@@ -293,11 +363,6 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
                 GetRoom getRoom = (GetRoom) command;
                 String roomId = getRoom.getRoomId();
                 return rooms.get(roomId);
-            }
-            else if (command instanceof StartRecording) {
-                return "1";
-            }
-            else if (command instanceof StopRecording) {
             }
             return result;
         }

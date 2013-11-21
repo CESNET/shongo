@@ -50,10 +50,4 @@ public interface RecordableEndpoint
      * @param recordingFolderId sets the value returned by {@link #getRecordingFolderId}
      */
     public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId);
-
-    /**
-     * {@link IdentifierSynchronization} for {@link RecordableEndpoint#getRecordingFolderId} and
-     * {@link RecordableEndpoint#putRecordingFolderId}.
-     */
-    public static IdentifierSynchronization SYNCHRONIZATION = new IdentifierSynchronization();
 }

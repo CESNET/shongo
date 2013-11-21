@@ -12,8 +12,10 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Mute;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
@@ -28,7 +30,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class JadeServiceTest extends AbstractControllerTest
+public class JadeServiceTest extends AbstractExecutorTest
 {
     private final static Room ROOM_API;
 
@@ -51,8 +53,8 @@ public class JadeServiceTest extends AbstractControllerTest
 
         cz.cesnet.shongo.controller.Controller controller = getController();
         controller.addNotificationExecutor(notificationExecutor);
-        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(),
-                controller.getNotificationManager(), controller.getAgent())
+        controller.setJadeService(new ServiceImpl(
+                getEntityManagerFactory(), controller.getNotificationManager(), getExecutor())
         {
             @Override
             public Room getRoom(String agentName, String roomId) throws CommandException

@@ -15,8 +15,8 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
-import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
+import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
@@ -259,24 +259,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         }
 
         DeviceResource deviceResource = getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            // TODO: Retrieve current room state and only apply changes
+        // TODO: Retrieve current room state and only apply changes
 
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                setRoomId((String) sendLocalCommand.getResult());
-            }
-            else {
-                throw new ExecutionReportSet.CommandFailedException(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
-            }
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            setRoomId((String) sendLocalCommand.getResult());
         }
         else {
-            throw new IllegalStateException("Device resource is not managed.");
+            throw new ExecutionReportSet.CommandFailedException(
+                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
         }
     }
 
@@ -284,25 +279,20 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         DeviceResource deviceResource = getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            Room roomApi = getRoomApi(executableManager);
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                setRoomId((String) sendLocalCommand.getResult());
-                return State.STARTED;
-            }
-            else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                return State.STARTING_FAILED;
-            }
+        Room roomApi = getRoomApi(executableManager);
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            setRoomId((String) sendLocalCommand.getResult());
+            return State.STARTED;
         }
         else {
-            throw new IllegalStateException("Device resource is not managed.");
+            executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+            return State.STARTING_FAILED;
         }
     }
 
@@ -331,26 +321,21 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         DeviceResource deviceResource = getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-            String roomId = getRoomId();
-            if (roomId == null) {
-                throw new RuntimeException("Cannot delete virtual room because it's identifier is null.");
-            }
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new DeleteRoom(roomId));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                return State.STOPPED;
-            }
-            else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                return State.STOPPING_FAILED;
-            }
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
+        String roomId = getRoomId();
+        if (roomId == null) {
+            throw new RuntimeException("Cannot delete virtual room because it's identifier is null.");
+        }
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new DeleteRoom(roomId));
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            return State.STOPPED;
         }
         else {
-            throw new IllegalStateException("Device resource is not managed.");
+            executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+            return State.STOPPING_FAILED;
         }
     }
 

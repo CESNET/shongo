@@ -125,7 +125,9 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, connectAgent.getPerformedCommandClasses());
@@ -221,7 +223,9 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
     }
@@ -345,9 +349,13 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
 
@@ -369,54 +377,12 @@ public class RecordingServiceTest extends AbstractExecutorTest
     /**
      * Testing MCU agent.
      */
-    public class TcsTestAgent extends TestAgent
+    public class TcsTestAgent extends RecordableTestAgent
     {
-        Map<String, List<String>> recordingIdsByFolderId = new HashMap<String, List<String>>();
-
-        Map<String, String> folderIdByRecordingId = new HashMap<String, String>();
-
         @Override
         public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
-            Object result = super.handleCommand(command, sender);
-            if (command instanceof CreateRecordingFolder) {
-                String folderId = "folder" + (recordingIdsByFolderId.size() + 1);
-                recordingIdsByFolderId.put(folderId, new LinkedList<String>());
-                return folderId;
-            }
-            else if (command instanceof ListRecordings) {
-                ListRecordings listRecordings = (ListRecordings) command;
-                String folderId = listRecordings.getRecordingFolderId();
-                List<String> folderRecordingIds = recordingIdsByFolderId.get(folderId);
-                if (folderRecordingIds == null) {
-                    throw new IllegalArgumentException("Folder '" + folderId + "' doesn't exist.");
-                }
-                List<Recording> recordings = new LinkedList<Recording>();
-                for (String recordingId : folderRecordingIds) {
-                    Recording recording = new Recording();
-                    recording.setId(recordingId);
-                    recordings.add(recording);
-                }
-                return recordings;
-            }
-            else if (command instanceof StartRecording) {
-                StartRecording startRecording = (StartRecording) command;
-                String folderId = startRecording.getRecordingFolderId();
-                String recordingId = "recording" + (folderIdByRecordingId.size() + 1);
-                folderIdByRecordingId.put(recordingId, folderId);
-                return recordingId;
-            }
-            else if (command instanceof StopRecording) {
-                StopRecording stopRecording = (StopRecording) command;
-                String recordingId = stopRecording.getRecordingId();
-                String folderId = folderIdByRecordingId.get(recordingId);
-                List<String> folderRecordingIds = recordingIdsByFolderId.get(folderId);
-                if (folderRecordingIds == null) {
-                    throw new IllegalArgumentException("Folder '" + folderId + "' doesn't exist.");
-                }
-                folderRecordingIds.add(recordingId);
-            }
-            return result;
+            return super.handleCommand(command, sender);
         }
     }
 }

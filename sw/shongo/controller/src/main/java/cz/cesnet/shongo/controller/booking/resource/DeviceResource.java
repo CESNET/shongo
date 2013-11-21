@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 
@@ -98,6 +100,17 @@ public class DeviceResource extends Resource
     public boolean isManaged()
     {
         return this.mode instanceof ManagedMode;
+    }
+
+    /**
+     * @throws RuntimeException when this {@link DeviceResource} in't {@link #isManaged()}
+     */
+    public ManagedMode requireManaged() throws RuntimeException
+    {
+        if (!isManaged()) {
+            throw new RuntimeException("Device resource " + EntityIdentifier.formatId(this) + " must be managed.");
+        }
+        return (ManagedMode) this.mode;
     }
 
     /**

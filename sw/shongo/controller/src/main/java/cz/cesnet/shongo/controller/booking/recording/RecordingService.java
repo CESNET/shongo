@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.JadeException;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
@@ -127,147 +128,125 @@ public class RecordingService extends ExecutableService implements EndpointExecu
     protected State onActivate(Executor executor, ExecutableManager executableManager)
     {
         DeviceResource deviceResource = recordingCapability.getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-            RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
+        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
 
-            // Super activation
-            State state = super.onActivate(executor, executableManager);
-            if (!State.ACTIVE.equals(state)) {
-                return state;
-            }
-
-            // Prepare recording folder
-            String recordingFolderId;
-            synchronized (RecordableEndpoint.SYNCHRONIZATION.get(recordableEndpoint.getId())) {
-                recordingFolderId = recordableEndpoint.getRecordingFolderId(recordingCapability);
-                if (recordingFolderId == null) {
-                    SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                            new CreateRecordingFolder(recordableEndpoint.getRecordingFolderDescription()));
-                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                        executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                                sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                        return State.ACTIVATION_FAILED;
-                    }
-                    recordingFolderId = (String) sendLocalCommand.getResult();
-                    recordableEndpoint.putRecordingFolderId(recordingCapability, recordingFolderId);
-                }
-            }
-
-            // Prepare alias for starting of recording
-            Alias alias = recordableEndpoint.getRecordingAlias();
-
-            // Try to reuse active recording
-            String recordingId = null;
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new GetActiveRecording(alias.toApi()));
-            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                Recording recording = (Recording) sendLocalCommand.getResult();
-                if (recording != null) {
-                    recordingId = recording.getId();
-                    executor.getLogger().warn("Recording is already started, reusing recording {}.", recordingId);
-                }
-            }
-            // Start new recording
-            if (recordingId == null) {
-                sendLocalCommand = controllerAgent.sendCommand(agentName,
-                        new StartRecording(recordingFolderId, alias.toApi()));
-                if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                    executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                            sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                    return State.ACTIVATION_FAILED;
-                }
-                recordingId = (String) sendLocalCommand.getResult();
-            }
-            if (recordingId == null) {
-                throw new IllegalStateException("StartRecording should return identifier of the new recording.");
-            }
-            this.recordingId = recordingId;
-            return State.ACTIVE;
+        // Super activation
+        State state = super.onActivate(executor, executableManager);
+        if (!State.ACTIVE.equals(state)) {
+            return state;
         }
-        else {
-            throw new IllegalStateException("Device resource is not managed.");
+
+        // Prepare recording folder
+        String recordingFolderId;
+        try {
+            recordingFolderId = executor.getRecordingFolderId(recordableEndpoint, recordingCapability);
         }
+        catch (ExecutionReportSet.CommandFailedException exception) {
+            executableManager.createExecutionReport(this, exception.getReport());
+            return State.ACTIVATION_FAILED;
+        }
+
+        // Prepare alias for starting of recording
+        Alias alias = recordableEndpoint.getRecordingAlias();
+
+        // Try to reuse active recording
+        String recordingId = null;
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                new GetActiveRecording(alias.toApi()));
+        if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+            Recording recording = (Recording) sendLocalCommand.getResult();
+            if (recording != null) {
+                recordingId = recording.getId();
+                executor.getLogger().warn("Recording is already started, reusing recording {}.", recordingId);
+            }
+        }
+        // Start new recording
+        if (recordingId == null) {
+            sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new StartRecording(recordingFolderId, alias.toApi()));
+            if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                return State.ACTIVATION_FAILED;
+            }
+            recordingId = (String) sendLocalCommand.getResult();
+        }
+        if (recordingId == null) {
+            throw new RuntimeException("StartRecording should return identifier of the new recording.");
+        }
+        this.recordingId = recordingId;
+        return State.ACTIVE;
     }
 
     @Override
     protected State onDeactivate(Executor executor, ExecutableManager executableManager)
     {
         DeviceResource deviceResource = recordingCapability.getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-            RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
+        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
 
-            // Stop recording
-            if (recordingId != null) {
-                // Check if recording is started
-                Alias alias = recordableEndpoint.getRecordingAlias();
-                SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                        new GetActiveRecording(alias.toApi()));
-                if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                    Recording recording = (Recording) sendLocalCommand.getResult();
-                    if (recording != null) {
-                        if (!recordingId.equals(recording.getId())) {
-                            executor.getLogger().warn("Started recording is {} instead of {}.",
-                                    recording.getId(), recordingId);
-                            recordingId = recording.getId();
-                        }
-                        sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
-                        if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                            executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                            return State.DEACTIVATION_FAILED;
-                        }
+        // Stop recording
+        if (recordingId != null) {
+            // Check if recording is started
+            Alias alias = recordableEndpoint.getRecordingAlias();
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new GetActiveRecording(alias.toApi()));
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                Recording recording = (Recording) sendLocalCommand.getResult();
+                if (recording != null) {
+                    if (!recordingId.equals(recording.getId())) {
+                        executor.getLogger().warn("Started recording is {} instead of {}.",
+                                recording.getId(), recordingId);
+                        recordingId = recording.getId();
                     }
-                    else {
-                        executor.getLogger().warn("Recording {} is not started.", recordingId);
+                    sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
+                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                        executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                                sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                        return State.DEACTIVATION_FAILED;
                     }
                 }
-                recordingId = null;
+                else {
+                    executor.getLogger().warn("Recording {} is not started.", recordingId);
+                }
             }
+            recordingId = null;
+        }
 
-            // Super deactivation
-            return super.onDeactivate(executor, executableManager);
-        }
-        else {
-            throw new IllegalStateException("Device resource is not managed.");
-        }
+        // Super deactivation
+        return super.onDeactivate(executor, executableManager);
     }
 
     @Override
     protected void onCheck(Executor executor, ExecutableManager executableManager)
     {
         DeviceResource deviceResource = recordingCapability.getDeviceResource();
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-            RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        ManagedMode managedMode = deviceResource.requireManaged();
+        String agentName = managedMode.getConnectorAgentName();
+        ControllerAgent controllerAgent = executor.getControllerAgent();
+        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
 
-            // Stop recording
-            if (State.ACTIVE.equals(getState())) {
-                Alias alias = recordableEndpoint.getRecordingAlias();
-                SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                        new GetActiveRecording(alias.toApi()));
-                if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                    Recording recording = (Recording) sendLocalCommand.getResult();
-                    if (recording == null) {
-                        executor.getLogger().warn("Deactivating, because recording {} is not started anymore.",
-                                recordingId);
-                        setState(State.NOT_ACTIVE);
-                        recordingId = null;
-                    }
+        // Stop recording
+        if (State.ACTIVE.equals(getState())) {
+            Alias alias = recordableEndpoint.getRecordingAlias();
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new GetActiveRecording(alias.toApi()));
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                Recording recording = (Recording) sendLocalCommand.getResult();
+                if (recording == null) {
+                    executor.getLogger().warn("Deactivating, because recording {} is not started anymore.",
+                            recordingId);
+                    setState(State.NOT_ACTIVE);
+                    recordingId = null;
                 }
-
             }
-            setNextCheck(DateTime.now().plusSeconds(20));
+
         }
-        else {
-            throw new IllegalStateException("Device resource is not managed.");
-        }
+        setNextCheck(DateTime.now().plusSeconds(20));
     }
 }

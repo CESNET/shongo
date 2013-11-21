@@ -430,9 +430,6 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     !authorization.hasPermission(securityToken, deviceResource, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", entityId);
             }
-            if (!deviceResource.isManaged()) {
-                throw new CommonReportSet.UnknownErrorException("Device is not managed.");
-            }
             if (!roomExecutable.getState()
                     .equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
                 throw new CommonReportSet.UnknownErrorException("Room executable must be NOT_STARTED.");
@@ -657,11 +654,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
     private Object performDeviceCommand(DeviceResource deviceResource, Command command)
     {
-        if (!deviceResource.isManaged()) {
-            throw new CommonReportSet.UnknownErrorException(
-                    "Device " + EntityIdentifier.formatId(deviceResource) + " is not managed.");
-        }
-        ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
+        ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, command);
         if (!sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {

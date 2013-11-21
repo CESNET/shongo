@@ -1,11 +1,19 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.DefaultJadeException;
+import cz.cesnet.shongo.JadeException;
+import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -15,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -263,5 +273,54 @@ public class Executor extends SwitchableComponent
             //logger.info("Executor releasing lock...    )))))");
         }
         //logger.info("Executor lock released...");
+    }
+
+    /**
+     * Map of (maps of recording folders by recording capabilities) by recordable endpoint ids.
+     */
+    private final Map<Long, Map<Long, String>> recordingFolders = new HashMap<Long, Map<Long, String>>();
+
+    /**
+     * @param recordableEndpoint
+     * @param recordingCapability
+     * @return identifier of recording folder for given {@code recordingCapability} which can be used for given {@code recordableEndpoint}
+     * @throws ExecutionReportSet.CommandFailedException when the retrieving of the recording folder fails
+     */
+    public String getRecordingFolderId(RecordableEndpoint recordableEndpoint, RecordingCapability recordingCapability)
+            throws ExecutionReportSet.CommandFailedException
+    {
+        Map<Long, String> recordingFolders;
+        synchronized (this.recordingFolders) {
+            recordingFolders = this.recordingFolders.get(recordableEndpoint.getId());
+            if (recordingFolders == null) {
+                recordingFolders = new HashMap<Long, String>();
+                this.recordingFolders.put(recordableEndpoint.getId(), recordingFolders);
+            }
+        }
+        synchronized (recordingFolders) {
+            String recordingFolderId = recordingFolders.get(recordingCapability.getId());
+            if (recordingFolderId == null) {
+                recordingFolderId = recordableEndpoint.getRecordingFolderId(recordingCapability);
+                if (recordingFolderId == null) {
+                    DeviceResource deviceResource = recordingCapability.getDeviceResource();
+                    ManagedMode managedMode = deviceResource.requireManaged();
+                    String agentName = managedMode.getConnectorAgentName();
+                    SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                            new CreateRecordingFolder(recordableEndpoint.getRecordingFolderDescription()));
+                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                        throw new ExecutionReportSet.CommandFailedException(
+                                sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
+                    }
+                    recordingFolderId = (String) sendLocalCommand.getResult();
+                    if (recordingFolderId == null) {
+                        throw new RuntimeException(CreateRecordingFolder.class.getSimpleName() +
+                                " should return identifier of the recording folder.");
+                    }
+                    recordableEndpoint.putRecordingFolderId(recordingCapability, recordingFolderId);
+                }
+                recordingFolders.put(recordingCapability.getId(), recordingFolderId);
+            }
+            return recordingFolderId;
+        }
     }
 }
