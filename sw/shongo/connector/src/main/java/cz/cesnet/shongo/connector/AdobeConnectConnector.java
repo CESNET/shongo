@@ -293,14 +293,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         String accessMode = request("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue("permissions-id");
 
         AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
-        if (accessMode.equals(AdobeConnectAccessMode.PRIVATE.getPermissionsId())) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
-        } else
-        if (accessMode.equals(AdobeConnectAccessMode.PROTECTED.getPermissionsId())) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
-        } else
-        if (accessMode.equals(AdobeConnectAccessMode.PUBLIC.getPermissionsId())) {
-            adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
+
+        if (accessMode != null) {
+            if (accessMode.equals(AdobeConnectAccessMode.PRIVATE.getPermissionsId())) {
+                adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
+            }
+            else if (accessMode.equals(AdobeConnectAccessMode.PROTECTED.getPermissionsId())) {
+                adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
+            }
+            else if (accessMode.equals(AdobeConnectAccessMode.PUBLIC.getPermissionsId())) {
+                adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
+            }
         }
 
         return adobeConnectAccessMode;
@@ -590,10 +593,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public String startRecording(String folderId, Alias alias)
             throws CommandException
     {
-        if (getActiveRecording(alias) != null) {
-            throw new RecordingUnavailableException("Recording is not available now.");
-        }
-
         String recordingName;
         try {
             recordingName = URLEncoder.encode("[rec:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
@@ -610,7 +609,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.add("active", "true");
         attributes.add("name",recordingName);
 
-        request("meeting-recorder-activity-update", attributes);
+        // throw exception if recording is not ready = no participants in the room
+        try {
+            request("meeting-recorder-activity-update", attributes);
+        } catch (RequestFailedCommandException ex) {
+            if (ex.getCode() != null && ex.getMessage() != null && ex.getCode().equals("no-access") && ex.getSubCode().equals("not-available")) {
+                throw new RecordingUnavailableException("Recording is not available now.");
+            }
+
+            throw ex;
+        }
 
         RequestAttributeList recAttributes = new RequestAttributeList();
         recAttributes.add("sco-id", scoId);
@@ -638,6 +646,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         //TODO: ask for folder id in controller
         if (!recordingFolderId.matches("\\d+") || recordingFolderId.isEmpty()) {
             recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
+            if (recordingFolderId == null) {
+                throw new CommandException("FolderId from GetRecordingFolderId was null.");
+            }
+
         }
 
         moveRecording(recordingId,recordingFolderId);
@@ -1614,6 +1626,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             public void run()
             {
                 setCapacityChecking(true);
+                logger.info("Checking of rooms capacity is starting.");
 
                 while (isConnected()) {
                     try {
@@ -1641,6 +1654,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             public void run()
             {
                 setRecordingChecking(true);
+                logger.info("Checking of recordings is starting.");
 
                 while (isConnected()) {
                     try {
@@ -1666,6 +1680,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 capacityCheckThread.start();
             }
         }
+
+        synchronized (this) {
+            if (!this.recordingChecking) {
+                moveRecordingThread.start();
+            }
+        }
     }
 
     public synchronized void setCapacityChecking(boolean value)
@@ -1673,9 +1693,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.capacityChecking = value;
     }
 
-    public void setRecordingChecking(boolean recordingChecking)
+    public synchronized void setRecordingChecking(boolean value)
     {
-        this.recordingChecking = recordingChecking;
+        this.recordingChecking = value;
     }
 
     /**
@@ -1794,7 +1814,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String folderId = getScoInfo(recordingId).getAttributeValue("folder-id");
 
             // If recording is not for shongo room
-            //TODO: dodelat     logovat a vyhazovat exception pokud folderId null
             RequestAttributeList attributes = new RequestAttributeList();
             attributes.add("sco-id",getMeetingsFolderID());
             attributes.add("type", "meeting");
@@ -1805,8 +1824,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 shongoRooms.add(sco.getAttributeValue("sco-id"));
             }
 
-            if (shongoRooms.contains(folderId)) {
-                logger.debug("There is not shongo room recording");
+            // Skip all non-shongo rooms
+            if (!shongoRooms.contains(folderId)) {
+                logger.debug("There is recording in progress for non-shongo room");
                 continue;
             }
 
@@ -1823,6 +1843,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
                 if (folder.getAttributeValue("type").equals("meeting")) {
                     String destinationId = (String) performControllerAction(new GetRecordingFolderId(folderId));
+                    if (destinationId == null) {
+                        throw new CommandException("FolderId from GetRecordingFolderId was null.");
+                    }
                     logger.info("Moving recording with id: " + recordingId + " to folder ");
 
                     moveRecording(recordingId, destinationId);
@@ -1832,7 +1855,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     continue;
                 }
 
-                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording.getAttributeValue("sco-id") + ") was not stored or found in any meeting.");
+                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording.getAttributeValue("sco-id") + ") for shongo room was not stored or found in any meeting.");
             }
         }
 
