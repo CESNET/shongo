@@ -13,7 +13,6 @@
       <module fileurl="file://$PROJECT_DIR$/shongo.iml" filepath="$PROJECT_DIR$/shongo.iml" />
       <module fileurl="file://$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" filepath="$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" />
       <module fileurl="file://$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" filepath="$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" filepath="$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" />
     </modules>
   </component>
 </project>
