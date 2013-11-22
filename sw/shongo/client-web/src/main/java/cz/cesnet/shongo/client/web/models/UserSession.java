@@ -34,7 +34,7 @@ public class UserSession implements Serializable
     /**
      * @see UserSettingsModel#localeDefaultWarning
      */
-    private boolean localeDefaultWarning;
+    private boolean localeDefaultWarning = true;
 
     /**
      * Current session {@link DateTimeZone}.
@@ -44,7 +44,7 @@ public class UserSession implements Serializable
     /**
      * @see UserSettingsModel#timeZoneDefaultWarning
      */
-    private boolean timeZoneDefaultWarning;
+    private boolean timeZoneDefaultWarning = true;
 
     /**
      * @see UserSettingsModel#adminMode
@@ -55,6 +55,11 @@ public class UserSession implements Serializable
      * @see UserSettingsModel.UserInterface
      */
     private UserSettingsModel.UserInterface userInterface;
+
+    /**
+     * @see UserSettingsModel#userInterfaceSelected
+     */
+    private boolean userInterfaceSelected;
 
     /**
      * Constructor.
@@ -141,6 +146,14 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @return {@link #userInterfaceSelected}
+     */
+    public boolean isUserInterfaceSelected()
+    {
+        return userInterfaceSelected;
+    }
+
+    /**
      * @return true whether {@link #userInterface} is {@link UserSettingsModel.UserInterface#ADVANCED},
      *         false otherwise
      */
@@ -189,6 +202,7 @@ public class UserSession implements Serializable
         }
         adminMode = (userSettings.isAdminModeAvailable() ? userSettings.isAdminMode() : null);
         userInterface = userSettings.getUserInterface();
+        userInterfaceSelected = userSettings.isUserInterfaceSelected();
 
         update(request, securityToken.getUserInformation());
     }

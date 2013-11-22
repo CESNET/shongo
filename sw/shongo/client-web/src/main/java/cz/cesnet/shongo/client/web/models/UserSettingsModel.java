@@ -17,6 +17,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public final static UserInterface DEFAULT_USER_INTERFACE = UserInterface.BEGINNER;
 
     public final static String USER_INTERFACE_ATTRIBUTE = "client-web.userInterface";
+    public final static String USER_INTERFACE_SELECTED_ATTRIBUTE = "client-web.userInterfaceSelected";
     public final static String IGNORE_DEFAULT_LOCALE_ATTRIBUTE = "client-web.ignoreDefault.locale";
     public final static String IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE = "client-web.ignoreDefault.timeZone";
 
@@ -49,6 +50,11 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      * @see {@link #IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE}
      */
     private UserInterface userInterface;
+
+    /**
+     * Specifies whether {@link #userInterface} has been selected (and thus question should not be displayed).
+     */
+    private boolean userInterfaceSelected;
 
     /**
      * Constructor.
@@ -166,6 +172,22 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     }
 
     /**
+     * @return {@link #userInterfaceSelected}
+     */
+    public boolean isUserInterfaceSelected()
+    {
+        return userInterfaceSelected;
+    }
+
+    /**
+     * @param userInterfaceSelected sest the {@link #userInterfaceSelected}
+     */
+    public void setUserInterfaceSelected(boolean userInterfaceSelected)
+    {
+        this.userInterfaceSelected = userInterfaceSelected;
+    }
+
+    /**
      * @return true whether {@link #userInterface} is {@link UserInterface#ADVANCED},
      *         false otherwise
      */
@@ -200,6 +222,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         else {
             setUserInterface(DEFAULT_USER_INTERFACE);
         }
+        setUserInterfaceSelected(userSettings.getAttributeBool(USER_INTERFACE_SELECTED_ATTRIBUTE));
     }
 
     /**
@@ -216,6 +239,9 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         UserInterface userInterface = getUserInterface();
         if (userInterface != null) {
             userSettings.setAttribute(USER_INTERFACE_ATTRIBUTE, userInterface.toString());
+        }
+        if (userInterfaceSelected) {
+            userSettings.setAttribute(USER_INTERFACE_SELECTED_ATTRIBUTE, Boolean.TRUE.toString());
         }
         if (!isLocaleDefaultWarning()) {
             userSettings.setAttribute(IGNORE_DEFAULT_LOCALE_ATTRIBUTE, Boolean.TRUE.toString());

@@ -95,6 +95,15 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             logger.warn("FAKE authenticated.", userInformation);
             Authentication authentication = new OpenIDConnectAuthenticationToken(securityToken, userInformation);
             authentication.setAuthenticated(true);
+            UserSettingsModel userSettings;
+            try {
+                userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
+            }
+            catch (ControllerConnectException exception) {
+                throw new AuthenticationServiceException("Cannot load user settings.", exception);
+            }
+            UserSession userSession = UserSession.getInstance(request);
+            userSession.loadUserSettings(userSettings, request, securityToken);
             return authentication;
         }*/
         if (!Strings.isNullOrEmpty(request.getParameter("error"))) {

@@ -81,6 +81,7 @@ public class UserController
         UserSettingsModel userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
         if (name.equals("userInterface")) {
             userSettings.setUserInterface(UserSettingsModel.UserInterface.valueOf(value));
+            userSettings.setUserInterfaceSelected(true);
         }
         else if (name.equals("localeDefaultWarning")) {
             userSettings.setLocaleDefaultWarning(Boolean.parseBoolean(value));

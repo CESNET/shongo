@@ -97,7 +97,7 @@
             </tag:url>
             <span class="warning">
                 <spring:message code="views.index.localeDefaultWarning" arguments="${userSettingsUrl}"/>
-                <a class="pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+                <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
             </span>
         </c:if>
         <c:if test="${sessionScope.SHONGO_USER.timeZoneDefaultWarning}">
@@ -111,8 +111,31 @@
             </tag:url>
             <span class="warning">
                 <spring:message code="views.index.timeZoneDefaultWarning" arguments="${userSettingsUrl}"/>
-                <a class="pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+                <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
             </span>
+        </c:if>
+        <c:if test="${!sessionScope.SHONGO_USER.userInterfaceSelected}">
+            <div class="warning">
+                <tag:url var="beginnerUserInterfaceUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                    <tag:param name="name" value="userInterface"/>
+                    <tag:param name="value" value="BEGINNER"/>
+                    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                </tag:url>
+                <tag:url var="advanceUserInterfaceUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                    <tag:param name="name" value="userInterface"/>
+                    <tag:param name="value" value="ADVANCED"/>
+                    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                </tag:url>
+                <div class="pull-right">
+                    <a class="btn btn-success" href="${advanceUserInterfaceUrl}"><spring:message code="views.button.yes"/></a>
+                    <a class="btn btn-danger" href="${beginnerUserInterfaceUrl}"><spring:message code="views.button.no"/></a>
+                </div>
+                <div>
+                    <spring:message code="views.index.advancedUserInterface"/>
+                    <p><spring:message code="views.userSettings.advancedUserInterface.help"/></p>
+                    <p><spring:message code="views.index.advancedUserInterface.later"/></p>
+                </div>
+            </div>
         </c:if>
 
         <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
