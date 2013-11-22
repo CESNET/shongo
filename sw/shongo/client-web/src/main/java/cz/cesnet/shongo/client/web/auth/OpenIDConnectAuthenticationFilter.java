@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.controllers.UserController;
@@ -82,6 +83,20 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException
     {
+        // FAKE root authentication.
+        /*if (true) {
+            OpenIDConnectAuthenticationToken authenticationToken =
+                    new OpenIDConnectAuthenticationToken("<root-access-token>");
+            SecurityToken securityToken = authenticationToken.getSecurityToken();
+            UserInformation userInformation = new UserInformation();
+            userInformation.setUserId("0");
+            userInformation.setFirstName("root");
+            securityToken.setUserInformation(userInformation);
+            logger.warn("FAKE authenticated.", userInformation);
+            Authentication authentication = new OpenIDConnectAuthenticationToken(securityToken, userInformation);
+            authentication.setAuthenticated(true);
+            return authentication;
+        }*/
         if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
             handleError(request, response);
             return null;
@@ -182,6 +197,16 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         }
         String accessToken = tokenResponse.get("access_token").getTextValue();
 
+        return handleAccessToken(request, accessToken);
+    }
+
+    /**
+     * @param request
+     * @param accessToken
+     * @return {@link Authentication}
+     */
+    private Authentication handleAccessToken(HttpServletRequest request, String accessToken)
+    {
         logger.debug("Authenticating access token {}...", accessToken);
 
         OpenIDConnectAuthenticationToken authenticationToken = new OpenIDConnectAuthenticationToken(accessToken);

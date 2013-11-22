@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.ParticipantRole;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -29,6 +30,8 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Controller for creating a new room.
@@ -80,8 +83,11 @@ public class WizardRoomController extends WizardParticipantsController
                 "views.wizard.page.createRoom"));
         wizardView.addPage(new WizardPage(Page.ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
                 "views.wizard.page.createRoom.attributes"));
-        wizardView.addPage(new WizardPage(Page.ROOM_ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
-                "views.wizard.page.createRoom.roles"));
+        if (reservationRequest == null || reservationRequest.getSpecificationType() == null
+                || reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+            wizardView.addPage(new WizardPage(Page.ROOM_ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
+                    "views.wizard.page.createRoom.roles"));
+        }
         if (reservationRequest == null || reservationRequest.getTechnology() == null
                 || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
             wizardView.addPage(new WizardPage(Page.ROOM_PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
@@ -185,7 +191,15 @@ public class WizardRoomController extends WizardParticipantsController
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
+            if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+                return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
+            }
+            else if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
+                return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
+            }
+            else {
+                return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
+            }
         }
     }
 
@@ -194,7 +208,7 @@ public class WizardRoomController extends WizardParticipantsController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLES, method = RequestMethod.GET)
     public ModelAndView handleRoles(
-            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         return getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRoles.jsp");
     }
@@ -240,6 +254,22 @@ public class WizardRoomController extends WizardParticipantsController
         userRole.setDeletable(true);
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
         reservationRequest.addUserRole(userRole);
+
+        // Add admin participant for owner
+        if (userRole.getRole().equals(Role.OWNER)) {
+            boolean administratorExists = false;
+            for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
+                if (ParticipantModel.Type.USER.equals(participant.getType()) &&
+                        ParticipantRole.ADMIN.equals(participant.getRole()) &&
+                        userRole.getUserId().equals(participant.getUserId())) {
+                    administratorExists = true;
+                }
+            }
+            if (!administratorExists) {
+                reservationRequest.addRoomParticipant(userRole.getUser(), ParticipantRole.ADMIN);
+            }
+        }
+
         return handleRoles(reservationRequest);
     }
 
@@ -259,6 +289,19 @@ public class WizardRoomController extends WizardParticipantsController
             throw new IllegalArgumentException("User role " + userRoleId + " doesn't exist.");
         }
         reservationRequest.removeUserRole(userRole);
+
+        // Delete admin participant for owner
+        if (userRole.getRole().equals(Role.OWNER)) {
+            for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
+                if (ParticipantModel.Type.USER.equals(participant.getType()) &&
+                        ParticipantRole.ADMIN.equals(participant.getRole()) &&
+                        userRole.getUserId().equals(participant.getUserId())) {
+                    reservationRequest.deleteParticipant(participant.getId());
+                    break;
+                }
+            }
+        }
+
         return handleRoles(reservationRequest);
     }
 
