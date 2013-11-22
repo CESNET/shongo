@@ -44,91 +44,107 @@
 \section{Shongo}\subsection{}
 \begin{frame}
   \frametitle{Shongo}
-  \textbf{Shongo}
+  
   \begin{itemize}
-    \item Reservation system for video/web conferencing resources
-    \item Management of resources (e.g., multipoint devices)
-    \item Booking of resources (for time slot), e.g.
-    \begin{itemize}
-      \item virtual room
-      \item endpoint      
-      \item compartment -- endpoints interconnected by virtual room(s)   
-      \item lecture room  
+    \item Reservation system for video or web conferencing resources
+    \item Performs:
+    \begin{itemize}    
+      \item \textbf{Booking} -- ensure the availability of resources
+      \vspace*{1mm}\newline\textit{Examples:}\vspace*{-0.5mm}
+      \begin{itemize}
+        \item \textit{guarantee available ports to each virtual room in Cisco MCU}
+        \item \textit{reservation of hardware endpoints and/or meeting rooms}
+      \end{itemize}\vspace*{1mm}
+      \item \textbf{Execution} -- automation of repetitive tasks
+      \vspace*{1mm}\newline\textit{Examples:}\vspace*{-0.5mm}
+      \begin{itemize}    
+        \item \textit{create new virtual room in Adobe Connect }
+        \item \textit{dial-in of H.323 hardware endpoint}
+        \item \textit{start recording/streaming of virtual room in Cisco MCU}
+      \end{itemize}\vspace*{1mm}
+      \item \textbf{Management} -- runtime management of resources
+      \vspace*{1mm}\newline\textit{Examples:}\vspace*{-0.5mm}
+      \begin{itemize}    
+        \item \textit{watch device status}
+        \item \textit{watch virtual rooms in multipoint devices}
+        \item \textit{watch active participants in virtual room}
+        \item \textit{change attributes of virtual room and its participants}
+      \end{itemize}\vspace*{1mm}
     \end{itemize}
-    \item Execution of booked resources, e.g.
-    \begin{itemize}
-      \item create/delete a virtual room
-      \item dial an endpoint
-    \end{itemize}    
-  \end{itemize}
+  \end{itemize}          
 \end{frame}
 
 \begin{frame}
-  \frametitle{Shongo -- Components}
-  \includegraphics[width=\textwidth]{../architecture/diagrams/dd_architecture.pdf}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Shongo -- Implemented Components}
+  \frametitle{Architecture}
   \begin{itemize}
-    \item Auth Server (PHP)
-    \item Single Domain
+    \item Multi-domain (inter-domain booking protocol)
+    \item Each domain:
     \begin{itemize}
-      \item Domain Controller (Java)
-      \item Connector Agents for devices (Java)
-      \item Web Interface (Java)
-      \item Cmd-Line Client (Perl)
+      \item \textbf{Controller} -- main backend component with APIs
+      \newline\textit{resource database, booking, execution and management}
+      \item \textbf{Connectors} -- components acting as “drivers” for devices
+      \newline\textit{performs commands in individual devices}
+      \item \textbf{Clients} -- used by users and administrators to access controller
+      \newline\textit{enables users/administrators to book and manage resources}
     \end{itemize}
   \end{itemize}
-  \includegraphics[width=\textwidth]{../architecture/diagrams/dd_architecture_implemented.pdf}
+  \begin{center}
+  \includegraphics[width=0.9\textwidth]{../architecture/diagrams/dd_architecture.pdf}
+  \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Shongo}
-  \textbf{Currently}
+  \frametitle{Current State}
   \begin{itemize}
-    \item Booking, execution and management of virtual rooms in multipoint devices
-    \item H.323/SIP (Cisco MCU) and Adobe Connect
-    \item Single domain
+    \item Standalone domains (without inter-domain protocol)
+    \item Connectors:
+    \begin{itemize}
+      \item Cisco MCU (4200/4500/4500 Series, MSE 8420/8510)
+      \item Adobe Connect
+      \item Cisco Codec C90, Lifesize (endpoints)
+    \end{itemize}
+    \item\textbf{Command-Line Client} for administrators
+    \newline\textit{to manage Controller}
+    \item\textbf{Web Client} for users (and administrators)
+    \newline\textit{to book and manage virtual rooms in multipoint devices}
   \end{itemize}
-  \textbf{In development}
+  \begin{center}
+  \includegraphics[width=0.8\textwidth]{../architecture/diagrams/dd_architecture_implemented.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Future}
   \begin{itemize}
-    \item Recording of virtual rooms (Cisco TCS)
-    \item Merging multiple user identities
-  \end{itemize}
-  \textbf{Future}
-  \begin{itemize}
-    \item Booking of seminar rooms in Adobe Connect
+    \item Recording of virtual rooms (\textit{in development})
+    \item Multiple identities per user (\textit{in development})
     \item Streaming of virtual rooms
-    \item Multiple domains (inter-domain booking protocol)
+    \item Adobe Connect seminar rooms
+    \item Administrator control panel in web client
+    \item Inter-domain booking protocol
   \end{itemize}
 \end{frame}
 
-\section{Web Interface -- Demo}\subsection{}
+\section{Web Client Demo}\subsection{}
 
 \begin{frame}
-  \frametitle{Web Interface -- Demo}
+  \frametitle{Web Client Demo}
   \begin{itemize}
-    \item Show log-in
+    \item Log-in
       \begin{itemize}
         \item Hostel registration    
       \end{itemize}
-    \item Show dashboard
+    \item Dashboard
       \begin{itemize}
-        \item Ad-hoc room
-        \item Permanent room and capacities
+        \item Time zone and language settings
+        \item Create new Ad-hoc room (configuration of participants)
+        \item Create new Permanent room (configuration of user roles)
+        \item Create capacity for the permanent room (periodicity)
       \end{itemize}
-    \item User settings (time zone, language)      
-    \item Create ad-hoc/permanent room/capacity
-      \begin{itemize}
-        \item Configuration of user roles
-        \item Configuration of participants (for Adobe Connect)
-        \item Email notifications
-      \end{itemize}        
+    \item Email notifications      
     \item Room management
       \begin{itemize}
         \item Active participants
-        \item Room layout
       \end{itemize}    
     \item List of reservation requests
     \item Detail of reservation request
