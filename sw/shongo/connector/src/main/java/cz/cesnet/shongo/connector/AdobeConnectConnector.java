@@ -295,16 +295,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
 
-        if (accessMode != null) {
-            if (accessMode.equals(AdobeConnectAccessMode.PRIVATE.getPermissionsId())) {
-                adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
-            }
-            else if (accessMode.equals(AdobeConnectAccessMode.PROTECTED.getPermissionsId())) {
-                adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
-            }
-            else if (accessMode.equals(AdobeConnectAccessMode.PUBLIC.getPermissionsId())) {
-                adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
-            }
+        if (AdobeConnectAccessMode.PRIVATE.getPermissionsId().equals(accessMode)) {
+            adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
+        }
+        else if (AdobeConnectAccessMode.PROTECTED.getPermissionsId().equals(accessMode)) {
+            adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
+        }
+        else if (AdobeConnectAccessMode.PUBLIC.getPermissionsId().equals(accessMode)) {
+            adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
         }
 
         return adobeConnectAccessMode;
@@ -475,18 +473,18 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException
     {
+        logger.error("DOSTLO TO SEM?");
         ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", folderId);
         attributes.add("filter-icon", "archive");
+        attributes.add("filter-out-date-end","null");
+
 
         Element response = request("sco-contents", attributes);
 
         for (Element resultRecording : response.getChild("scos").getChildren()) {
-            if (resultRecording.getChild("date-end") == null) {
-                continue;
-            }
             Recording recording = new Recording();
 
             recording.setId(resultRecording.getAttributeValue("sco-id"));
@@ -614,7 +612,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         try {
             request("meeting-recorder-activity-update", attributes);
         } catch (RequestFailedCommandException ex) {
-            if (ex.getCode() != null && ex.getMessage() != null && ex.getCode().equals("no-access") && ex.getSubCode().equals("not-available")) {
+            if ("no-access".equals(ex.getCode()) && "not-available".equals(ex.getSubCode())) {
                 throw new RecordingUnavailableException("Recording is not available now.");
             }
 
@@ -712,7 +710,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
 
         Element folder = getScoInfo(folderId);
-        if (folder.getAttributeValue("type").equals("folder")) {
+        if ("folder".equals(folder.getAttributeValue("type"))) {
             logger.warn("Recording is stored in wrong folder (outside folder shongo-rec): " + folder.getChildText("name"));
             return true;
         } else {
@@ -830,7 +828,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         }
         catch (RequestFailedCommandException ex) {
-            if (ex.getCode().equals("no-data")) {
+            if ("no-data".equals(ex.getCode())) {
                 throw new CommandException("Room (sco-id: " + roomId + ") does not exist.", ex);
             }
         }
@@ -959,7 +957,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             for (Element principal : permissions.getChild("permissions").getChildren("principal")) {
                 String principalId = principal.getAttributeValue("principal-id");
                 userAttributes.add("principal-id", principalId);
-                if (principal.getAttributeValue("permission-id").equals("host")) {
+                if ("host".equals(principal.getAttributeValue("permission-id"))) {
                     userAttributes.add("permission-id", "manage");
                 }
                 else { //TODO: zatim se ale nepropaguji
@@ -1070,13 +1068,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         // Recreate room if new URL PATH is set
         String oldRoomURI = getRoom(roomId).getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
-        if (attributes.getValue("url-path") != null && !attributes.getValue("url-path").equalsIgnoreCase(getLastPathSegmentFromURI(oldRoomURI))) {
+        if (!getLastPathSegmentFromURI(oldRoomURI).equalsIgnoreCase(attributes.getValue("url-path"))) {
             return recreateRoom(room);
         }
 
         // Add/modify participants
         if (room.getLicenseCount() > 0) {
-            //TODO: propagovat prava do nahravek?
+            //TODO: set permisions for recordings
             resetPermissions(roomId);
             startMeeting(roomId);
             addRoomParticipants(roomId, room.getParticipantRoles());
@@ -1305,11 +1303,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
         catch (RequestFailedCommandException exception) {
             // Participant list is not available, so return empty list
-            if (exception.getCode().equals("no-access") && exception.getSubCode().equals("not-available")) {
+            if ("no-access".equals(exception.getCode()) && "not-available".equals(exception.getSubCode())) {
                 return participantList;
             }
             // Participant list cannot be retrieved because of internal error
-            else if (exception.getCode().equals("internal-error")) {
+            else if ("internal-error".equals(exception.getCode())) {
                 logger.debug("Adobe Connect issued internal error while getting meeting participants (UNSAFE API CALL)."
                         + " This should just mean, that there is no participants.", exception);
                 return participantList;
@@ -1324,13 +1322,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             roomParticipant.setDisplayName(userDetails.getChildText("username"));
 
             String role = userDetails.getChildText("role");
-            if (role.equals("participant")) {
+            if ("participant".equals(role)) {
                 roomParticipant.setRole(ParticipantRole.PARTICIPANT);
             }
-            else if (role.equals("presenter")) {
+            else if ("presenter".equals(role)) {
                 roomParticipant.setRole(ParticipantRole.PRESENTER);
             }
-            else if (role.equals("host")) {
+            else if ("host".equals(role)) {
                 roomParticipant.setRole(ParticipantRole.ADMIN);
             }
 
@@ -1476,7 +1474,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         if (meetingsFolderID == null) {
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
-                if (sco.getAttributeValue("type").equals("meetings")) {
+                if ("meetings".equals(sco.getAttributeValue("type"))) {
                     // Find sco-id of /shongo folder
                     RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
@@ -1485,7 +1483,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     Element shongoFolder = request("sco-contents", searchAttributes);
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
-                        if (folder.getChildText("name").equals("shongo")) {
+                        if ("shongo".equals(folder.getChildText("name"))) {
                             meetingsFolderID = folder.getAttributeValue("sco-id");
                         }
                     }
@@ -1526,7 +1524,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         if (recordingsFolderID == null) {
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
-                if (sco.getAttributeValue("type").equals("content")) {
+                if ("content".equals(sco.getAttributeValue("type"))) {
                     // Find sco-id of /shongo-rec folder
                     RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
@@ -1535,7 +1533,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     Element shongoFolder = request("sco-contents", searchAttributes);
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
-                        if (folder.getChildText("name").equals("shongo-rec")) {
+                        if ("shongo-rec".equals(folder.getChildText("name"))) {
                             recordingsFolderID = folder.getAttributeValue("sco-id");
                         }
                     }
@@ -1559,6 +1557,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     break;
                 }
             }
+        }
+
+        // Check if permission for this folder is manage, or sets it  - temporary function
+        //TODO: deal with permissions and delete
+        RequestAttributeList permissionsInfoAttributes = new RequestAttributeList();
+        permissionsInfoAttributes.add("acl-id",recordingsFolderID);
+        permissionsInfoAttributes.add("principal-id","public-access");
+
+        String permissions = request("permissions-info",permissionsInfoAttributes).getChild("permission").getAttributeValue("permission-id");
+
+        if (!"manage".equals(permissions)) {
+            RequestAttributeList permissionsUpdateAttributes = new RequestAttributeList();
+            permissionsUpdateAttributes.add("acl-id", recordingsFolderID);
+            permissionsUpdateAttributes.add("principal-id", "public-access");
+            permissionsUpdateAttributes.add("permission-id", "manage");
+
+            request("permissions-update", permissionsUpdateAttributes);
         }
 
         return recordingsFolderID;
@@ -1743,7 +1758,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         try {
             participants = countRoomParticipants(roomId);
         } catch (RequestFailedCommandException ex) {
-            if (ex.getCode().equals("no-access") && ex.getSubCode().equals("not-available")) {
+            if ("no-access".equals(ex.getCode()) && "not-available".equals(ex.getSubCode())) {
                 logger.warn("Can't get number of room participants! Skipping capacity check for room " + roomId + ". This may be normal behavior.");
                 return;
             } else {
@@ -1754,7 +1769,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         try {
             room = getRoom(roomId);
         } catch (RequestFailedCommandException ex) {
-            if (ex.getCode().equals("no-data")) {
+            if ("no-data".equals(ex.getCode())) {
                 logger.warn("Can't get room capacity! Skipping capacity check for room " + roomId + ". This may be normal behavior.");
                 return;
             } else {
@@ -1810,7 +1825,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected void checkRecordings() throws CommandException
     {
         RequestAttributeList recordingsAttributes = new RequestAttributeList();
+        // choose only recordings
         recordingsAttributes.add("filter-icon","archive");
+        // filter out all recordings in progress
+        recordingsAttributes.add("filter-out-date-end","null");
 
         List<Element> recordings = request("report-bulk-objects", recordingsAttributes).getChild("report-bulk-objects").getChildren();
 
@@ -1833,12 +1851,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             // Skip all non-shongo rooms
             if (!shongoRooms.contains(folderId)) {
-                logger.debug("There is recording in progress for non-shongo room");
-                continue;
-            }
-
-            // If recording is in progress
-            if (recording.getChild("date-end") == null) {
+                logger.debug("There is recording for non-shongo room");
                 continue;
             }
 
@@ -1848,12 +1861,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             } else {
                 Element folder = getScoInfo(folderId);
 
-                if (folder.getAttributeValue("type").equals("meeting")) {
+                if ("meeting".equals(folder.getAttributeValue("type"))) {
                     String destinationId = (String) performControllerAction(new GetRecordingFolderId(folderId));
                     if (destinationId == null) {
                         throw new CommandException("FolderId from GetRecordingFolderId was null.");
                     }
-                    logger.info("Moving recording with id: " + recordingId + " to folder ");
+                    logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + destinationId + ")");
 
                     moveRecording(recordingId, destinationId);
                     cachedMovedRecordings.add(recordingId);
@@ -1862,7 +1875,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     continue;
                 }
 
-                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording.getAttributeValue("sco-id") + ") for shongo room was not stored or found in any meeting.");
+                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording
+                        .getAttributeValue("sco-id") + ") for shongo room was not stored or found in any meeting.");
             }
         }
 
@@ -1965,7 +1979,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element status = response.getChild("status");
         if (status != null) {
             String code = status.getAttributeValue("code");
-            if (code != null && code.equals("ok")) {
+            if ("ok".equals(code)) {
                 return false;
             }
         }
@@ -1982,9 +1996,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element status = result.getRootElement().getChild("status");
         if (status != null) {
             String code = status.getAttributeValue("code");
-            if (code != null && code.equals("no-access")) {
+            if ("no-access".equals(code)) {
                 String subCode = status.getAttributeValue("subcode");
-                if (subCode != null && subCode.equals("no-login")) {
+                if ("no-login".equals(subCode)) {
                     return true;
                 }
             }
