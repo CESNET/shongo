@@ -317,7 +317,7 @@ public class RoomController
             result = executableService.activateExecutableService(securityToken, executableId, executableServiceId);
         }
         catch (Exception exception) {
-            logger.warn("Stop recording failed", exception);
+            logger.warn("Start recording failed", exception);
         }
         if (Boolean.TRUE.equals(result)) {
             cache.clearExecutable(executableId);
