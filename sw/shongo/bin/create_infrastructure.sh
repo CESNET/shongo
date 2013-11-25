@@ -159,6 +159,8 @@ $RUN_CLIENT_CLI <<EOF
             licenseCount: $CONNECT_CESNET_LICENSE_COUNT,
             requiredAliasTypes: ['ROOM_NAME'],
         },{
+            class: 'RecordingCapability'
+        },{
             class: 'AliasProviderCapability',
             valueProvider: {
                 class: 'ValueProvider.Filtered',

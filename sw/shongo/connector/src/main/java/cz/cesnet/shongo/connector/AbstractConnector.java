@@ -166,7 +166,16 @@ MethodsLoop:
             methods.put(m.getName(), m.getParameterTypes());
         }
         // promote those implementing an interface
-        for (Class intfc : getClass().getInterfaces()) {
+        List<Class> interfaces = new LinkedList<Class>();
+        Class clazz = getClass();
+        while (clazz != null) {
+            for (Class intfc : clazz.getInterfaces()) {
+                interfaces.add(intfc);
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        for (Class intfc : interfaces) {
             for (Method m : intfc.getMethods()) {
                 final String mName = m.getName();
                 if (methods.containsKey(mName) && Arrays.equals(m.getParameterTypes(), methods.get(mName))) {
