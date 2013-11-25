@@ -113,8 +113,7 @@ public class WizardRoomController extends WizardParticipantsController
      * Book new virtual room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
-    public ModelAndView handleRoomType(
-            SecurityToken securityToken)
+    public ModelAndView handleRoomType(SecurityToken securityToken)
     {
         WizardView wizardView = getWizardView(Page.ROOM_TYPE, "wizardCreateRoom.jsp");
         ReservationRequestModel reservationRequest =

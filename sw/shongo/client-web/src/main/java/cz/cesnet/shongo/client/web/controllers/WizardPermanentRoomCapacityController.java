@@ -154,15 +154,14 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();
         }
-        if (finish) {
+        if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), ParticipantRole.ADMIN)) {
             reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
+        }
+        if (finish) {
             return handleCreateConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
             reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
-            if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), ParticipantRole.ADMIN)) {
-                reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
-            }
             if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
                 return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
             }

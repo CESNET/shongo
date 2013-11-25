@@ -5,12 +5,9 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
-import net.tanesha.recaptcha.ReCaptchaResponse;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -84,8 +81,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         }
         personParticipant.setRole(role);
         switch (type) {
-            case USER:
-            {
+            case USER: {
                 UserPerson userPerson = new UserPerson();
                 if (user == null) {
                     throw new IllegalStateException("User must not be null.");
@@ -94,8 +90,7 @@ public class ParticipantModel implements ReportModel.ContextSerializable
                 personParticipant.setPerson(userPerson);
                 return personParticipant;
             }
-            case ANONYMOUS:
-            {
+            case ANONYMOUS: {
                 AnonymousPerson anonymousPerson = new AnonymousPerson();
                 anonymousPerson.setName(name);
                 anonymousPerson.setEmail(email);
@@ -238,6 +233,17 @@ public class ParticipantModel implements ReportModel.ContextSerializable
         attributes.put("Email", email);
         attributes.put("Role", role);
         return ReportModel.formatAttributes(attributes);
+    }
+
+    @Override
+    public String toString()
+    {
+        switch (type) {
+            case USER:
+                return String.format("UserParticipant(userId: %s, role: %s)", getUserId(), role);
+            default:
+                return String.format("Participant(type: %s, role: %s)", type, role);
+        }
     }
 
     public static enum Type

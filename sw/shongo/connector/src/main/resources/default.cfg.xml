@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<!-- Default Configuration of Domain Controller -->
+<!-- Default Configuration of Connector -->
 <configuration>
 
     <!-- Connection to controller -->

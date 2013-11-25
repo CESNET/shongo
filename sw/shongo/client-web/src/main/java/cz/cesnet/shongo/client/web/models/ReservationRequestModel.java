@@ -373,6 +373,25 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void addRoomParticipant(ParticipantModel participantModel)
     {
+        if (ParticipantModel.Type.USER.equals(participantModel.getType())) {
+            String userId = participantModel.getUserId();
+            for (ParticipantModel existingParticipant : roomParticipants) {
+                String existingUserId = existingParticipant.getUserId();
+                ParticipantModel.Type existingType = existingParticipant.getType();
+                if (existingType.equals(ParticipantModel.Type.USER) && existingUserId.equals(userId)) {
+                    ParticipantRole existingRole = existingParticipant.getRole();
+                    if (existingRole.compareTo(participantModel.getRole()) >= 0) {
+                        logger.warn("Skip adding {} because {} already exists.", participantModel, existingParticipant);
+                        return;
+                    }
+                    else {
+                        logger.warn("Removing {} because {} will be added.", existingParticipant, participantModel);
+                        roomParticipants.remove(existingParticipant);
+                    }
+                    break;
+                }
+            }
+        }
         roomParticipants.add(participantModel);
     }
 
@@ -381,7 +400,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         ParticipantModel participantModel = new ParticipantModel(userInformation, cacheProvider);
         participantModel.setNewId();
         participantModel.setRole(role);
-        roomParticipants.add(participantModel);
+        addRoomParticipant(participantModel);
         return participantModel;
     }
 
@@ -905,7 +924,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             return false;
         }
         participant.setNewId();
-        roomParticipants.add(participant);
+        addRoomParticipant(participant);
         return true;
     }
 
@@ -925,7 +944,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         ParticipantModel oldParticipant = getParticipant(participantId);
         roomParticipants.remove(oldParticipant);
-        roomParticipants.add(participant);
+        addRoomParticipant(participant);
         return true;
     }
 
