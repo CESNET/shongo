@@ -160,12 +160,18 @@ public class ServiceImpl implements Service
             }
             DeviceResource deviceResource = roomEndpoint.getDeviceResource();
             RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
-            return executor.getRecordingFolderId(roomEndpoint, recordingCapability);
+            entityManager.getTransaction().begin();
+            String recordingFolderId = executor.getRecordingFolderId(roomEndpoint, recordingCapability);
+            entityManager.getTransaction().commit();
+            return recordingFolderId;
         }
         catch (ExecutionReportSet.CommandFailedException exception) {
             throw new CommandException(exception.getMessage());
         }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }
