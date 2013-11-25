@@ -63,7 +63,7 @@ import java.util.regex.Pattern;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CiscoMCUConnector extends AbstractConnector implements MultipointService
+public class CiscoMCUConnector extends AbstractMultipointConnector
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
 
@@ -470,17 +470,32 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
     @Override
-    public String modifyRoom(Room room) throws CommandException
+    protected boolean isRecreateNeeded(Room oldRoom, Room newRoom) throws CommandException
     {
-        // build the command
-        Command cmd = new Command("conference.modify");
+        Alias oldRoomName = oldRoom.getAlias(AliasType.ROOM_NAME);
+        Alias newRoomName = newRoom.getAlias(AliasType.ROOM_NAME);
+        if (oldRoomName == null) {
+            throw new CommandException("Room " + oldRoom.getId() + " doesn't have room name.");
+        }
+        if (newRoomName == null) {
+            throw new CommandException("Room name must be present.");
+        }
+        return !newRoomName.equals(oldRoomName);
+    }
 
+    @Override
+    protected void onModifyRoom(Room room) throws CommandException
+    {
+        Command cmd = new Command("conference.modify");
         cmd.setParameter("conferenceName", truncateString(room.getId()));
         setConferenceParametersByRoom(cmd, room);
-
         execApi(cmd);
+    }
 
-        return room.getId();
+    @Override
+    protected void onRecreateRoomInitialize(Room oldRoom, Room newRoom) throws CommandException
+    {
+        // TODO: perform some initialization from the old room to the new room
     }
 
     @Override

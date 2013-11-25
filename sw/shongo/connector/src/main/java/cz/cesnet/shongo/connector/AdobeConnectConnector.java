@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  *
  * @author opicak <pavelka@cesnet.cz>
  */
-public class AdobeConnectConnector extends AbstractConnector implements MultipointService, RecordingService
+public class AdobeConnectConnector extends AbstractMultipointConnector implements RecordingService
 {
     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -1053,8 +1053,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
-    @java.lang.Override
-    public String modifyRoom(Room room) throws CommandException
+    @Override
+    protected boolean isRecreateNeeded(Room oldRoom, Room newRoom) throws CommandException
+    {
+        String roomId = oldRoom.getId();
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", roomId);
+        attributes.add("type", "meeting");
+        setRoomAttributes(attributes, newRoom);
+        String newRoomUrl = attributes.getValue("url-path");
+        String oldRoomUrl = oldRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
+        return !getLastPathSegmentFromURI(oldRoomUrl).equalsIgnoreCase(newRoomUrl);
+    }
+
+    @Override
+    public void onModifyRoom(Room room) throws CommandException
     {
         String roomId = room.getId();
 
@@ -1065,12 +1078,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         // Set room attributes
         setRoomAttributes(attributes, room);
-
-        // Recreate room if new URL PATH is set
-        String oldRoomURI = getRoom(roomId).getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
-        if (!getLastPathSegmentFromURI(oldRoomURI).equalsIgnoreCase(attributes.getValue("url-path"))) {
-            return recreateRoom(room);
-        }
 
         // Add/modify participants
         if (room.getLicenseCount() > 0) {
@@ -1106,8 +1113,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
         setRoomAccessMode(roomId,accessMode);
+    }
 
-        return roomId;
+    @Override
+    protected void onRecreateRoomInitialize(Room oldRoom, Room newRoom) throws CommandException
+    {
+        try {
+            //TODO: manage creating new Room with same name
+            //TODO: backup recordings ???
+
+            String msg = "Room has been modified, you have been redirected to the new one (" +
+                    newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue() + ").";
+            endMeeting(oldRoom.getId(), URLEncoder.encode(msg, "UTF8"), true,
+                    URLEncoder.encode(newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue(), "UTF8"));
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while encoding URL. ", ex);
+        }
     }
 
     /**
@@ -1121,35 +1143,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         String[] uriArray = uri.split("/");
 
         return (uriArray.length > 1 ? uriArray[uriArray.length - 1] : null);
-    }
-
-    /**
-     * Create new room and while deleting the old one redirect to the new one.
-     *
-     * Is necessary for changing room URL.
-     *
-     * @param room new room
-     * @return identifier of the new room
-     */
-    public String recreateRoom(Room room) throws CommandException
-    {
-        try {
-            String roomId = room.getId();
-
-            String newRoomId = createRoom(room);
-
-            //TODO: manage creating new Room with same name
-            //TODO: backup recordings ???
-
-            String msg = "Room has been modified, you have been redirected to the new one (" + room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue() + ").";
-            endMeeting(roomId, URLEncoder.encode(msg,"UTF8"), true, URLEncoder.encode(room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue(), "UTF8"));
-
-            deleteRoom(roomId);
-
-            return newRoomId;
-        } catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while encoding URL. ", ex);
-        }
     }
 
     @java.lang.Override
