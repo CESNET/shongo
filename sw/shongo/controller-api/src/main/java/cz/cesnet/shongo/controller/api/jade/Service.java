@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 
+import java.util.Map;
+
 /**
  * Defines a set of API methods which controller provides through JADE middle-ware.
  * For each method is defined one {@link ControllerCommand} which can be used
@@ -39,11 +41,11 @@ public interface Service
      *
      * @param targetType {@link NotifyTargetType} defining who should be notified
      * @param targetId   identifier defining the identity of {@link NotifyTargetType} who should be notified
-     * @param title      title of the message
-     * @param message    which should be used for notification
+     * @param titles      titles of the message by languages
+     * @param messages    which should be used for notification
      */
     public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
-            String title, String message) throws CommandException;
+            Map<String, String> titles, Map<String, String> messages) throws CommandException;
 
     /**
      * @param agentName

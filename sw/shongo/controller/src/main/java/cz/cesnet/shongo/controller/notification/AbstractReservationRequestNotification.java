@@ -7,6 +7,9 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 import org.joda.time.DateTime;
 
+import java.util.Collection;
+import java.util.Locale;
+
 /**
  * {@link ConfigurableNotification} with {@link AbstractReservationRequest}.
  *
@@ -68,5 +71,11 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     public String getReservationRequestUpdatedBy()
     {
         return reservationRequestUpdatedBy;
+    }
+
+    @Override
+    protected Collection<Locale> getAvailableLocals()
+    {
+        return NotificationMessage.AVAILABLE_LOCALES;
     }
 }

@@ -62,10 +62,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * @return list of available {@link Locale}s for this {@link ConfigurableNotification}
      */
-    protected List<Locale> getAvailableLocals()
-    {
-        return NotificationMessage.AVAILABLE_LOCALES;
-    }
+    protected abstract Collection<Locale> getAvailableLocals();
 
     /**
      * @param locale

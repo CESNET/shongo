@@ -5,8 +5,11 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
@@ -21,13 +24,15 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Implementation of {@link Service}.
@@ -42,6 +47,11 @@ public class ServiceImpl implements Service
     private EntityManagerFactory entityManagerFactory;
 
     /**
+     * @see ControllerConfiguration
+     */
+    private ControllerConfiguration configuration;
+
+    /**
      * @see NotificationManager
      */
     private NotificationManager notificationManager;
@@ -54,10 +64,11 @@ public class ServiceImpl implements Service
     /**
      * Constructor.
      */
-    public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager,
-            Executor executor)
+    public ServiceImpl(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration,
+            NotificationManager notificationManager, Executor executor)
     {
         this.entityManagerFactory = entityManagerFactory;
+        this.configuration = configuration;
         this.notificationManager = notificationManager;
         this.executor = executor;
     }
@@ -100,7 +111,7 @@ public class ServiceImpl implements Service
 
     @Override
     public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
-            String title, String message) throws CommandException
+            final Map<String, String> titles, final Map<String, String> messages) throws CommandException
     {
         List<PersonInformation> recipients = new LinkedList<PersonInformation>();
         switch (targetType) {
@@ -140,9 +151,61 @@ public class ServiceImpl implements Service
                 throw new TodoImplementException(targetType);
         }
 
-        SimpleMessageNotification simpleMessageNotification = new SimpleMessageNotification(title, message);
-        simpleMessageNotification.addRecipients(recipients);
-        notificationManager.executeNotification(simpleMessageNotification);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
+            AbstractNotification notification = new ConfigurableNotification(userSettingsProvider, configuration)
+            {
+                @Override
+                protected Collection<Locale> getAvailableLocals()
+                {
+                    Collection<Locale> locales = new LinkedList<Locale>();
+                    for (Locale locale : NotificationMessage.AVAILABLE_LOCALES) {
+                        if (titles.containsKey(locale.getLanguage())) {
+                            locales.add(locale);
+                        }
+                    }
+                    return locales;
+                }
+
+                @Override
+                protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+                {
+                    Locale locale = configuration.getLocale();
+                    String language = locale.getLanguage();
+                    String title = titles.get(language);
+                    if (title == null) {
+                        if (titles.containsKey(null)) {
+                            title = titles.get(null);
+                        }
+                        else if (titles.containsKey("en")) {
+                            title = titles.get("en");
+                        }
+                        else {
+                            throw new RuntimeException("No title in appropriate language was found.");
+                        }
+                    }
+                    String message = messages.get(language);
+                    if (message == null) {
+                        if (messages.containsKey(null)) {
+                            message = messages.get(null);
+                        }
+                        else if (messages.containsKey("en")) {
+                            message = messages.get("en");
+                        }
+                        else {
+                            throw new RuntimeException("No message in appropriate language was found.");
+                        }
+                    }
+                    return new NotificationMessage(language, title, message);
+                }
+            };
+            notification.addRecipients(recipients);
+            notificationManager.executeNotification(notification);
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override

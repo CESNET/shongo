@@ -10,6 +10,7 @@ import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Mute;
+import cz.cesnet.shongo.connector.api.jade.endpoint.SetMicrophoneLevel;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
@@ -53,8 +54,8 @@ public class JadeServiceTest extends AbstractExecutorTest
 
         cz.cesnet.shongo.controller.Controller controller = getController();
         controller.addNotificationExecutor(notificationExecutor);
-        controller.setJadeService(new ServiceImpl(
-                getEntityManagerFactory(), controller.getNotificationManager(), getExecutor())
+        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(),
+                controller.getConfiguration(), controller.getNotificationManager(), getExecutor())
         {
             @Override
             public Room getRoom(String agentName, String roomId) throws CommandException
@@ -92,10 +93,15 @@ public class JadeServiceTest extends AbstractExecutorTest
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Mute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
 
-        // Test notifyTarget
+        // Test notifyTarget single-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Unmute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
         Assert.assertEquals(1, notificationExecutor.getNotificationCount());
+
+        // Test notifyTarget multi-lingual
+        sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new SetMicrophoneLevel());
+        Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+        Assert.assertEquals(2, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -133,8 +139,17 @@ public class JadeServiceTest extends AbstractExecutorTest
                 return roomApi;
             }
             else if (command instanceof Unmute) {
-                SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(), new NotifyTarget(
-                        Service.NotifyTargetType.USER, Authorization.ROOT_USER_ID, "title", "message"));
+                NotifyTarget notifyTarget = new NotifyTarget(
+                        Service.NotifyTargetType.USER, Authorization.ROOT_USER_ID, "title", "message");
+                SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(), notifyTarget);
+                Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+                return null;
+            }
+            else if (command instanceof SetMicrophoneLevel) {
+                NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.USER, Authorization.ROOT_USER_ID);
+                notifyTarget.addMessage("en", "title", "message");
+                notifyTarget.addMessage("cs", "titulek", "zpráva");
+                SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(), notifyTarget);
                 Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
                 return null;
             }

@@ -96,6 +96,12 @@ public class ReservationRequestNotification extends ConfigurableNotification
     }
 
     @Override
+    protected Collection<Locale> getAvailableLocals()
+    {
+        return NotificationMessage.AVAILABLE_LOCALES;
+    }
+
+    @Override
     protected ConfigurableNotification.Configuration createConfiguration(Locale locale, DateTimeZone timeZone,
             boolean administrator)
     {

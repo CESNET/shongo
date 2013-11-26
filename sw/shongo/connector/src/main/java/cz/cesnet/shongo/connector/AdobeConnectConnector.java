@@ -1779,19 +1779,19 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         if (participants > room.getLicenseCount()) {
             logger.info("Capacity has been exceeded in room " + room.getName() + " (room ID: " + roomId + ").");
 
-            //TODO: will do controller in future
-
-            String notificationTitle = "Room capacity exceeded / Kapacita místnosti překročena : " + room.getName();
-            String notificationMessage = "Capacity has been exceeded in your room \"" + room.getName() + "\".\n\n"
+            NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId);
+            notifyTarget.addMessage("en",
+                    "Room capacity exceeded: " + room.getName(),
+                    "Capacity has been exceeded in your room \"" + room.getName() + "\".\n\n"
                     + "Licence count: " + room.getLicenseCount() + "\n"
-                    + "Number of participants: " + participants + "\n\n"
-                    + "===========================================================\n\n"
-                    + "Kapacita vaší místnosti \"" + room.getName() + "\" byla překročena.\n\n"
-                    + "Počet licencí: " + room.getLicenseCount() + "\n"
-                    + "Počet účastníků: " + participants + "\n\n";
+                    + "Number of participants: " + participants + "\n\n");
+            notifyTarget.addMessage("cs",
+                    "Kapacita místnosti překročena: " + room.getName(),
+                    "Kapacita vaší místnosti \"" + room.getName() + "\" byla překročena.\n\n"
+                            + "Počet licencí: " + room.getLicenseCount() + "\n"
+                            + "Počet účastníků: " + participants + "\n\n");
 
-            //TODO: list of participants
-            performControllerAction(new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId, notificationTitle, notificationMessage));
+            performControllerAction(notifyTarget);
         }
     }
 

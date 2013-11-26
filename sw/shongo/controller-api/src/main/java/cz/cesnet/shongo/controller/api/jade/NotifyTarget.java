@@ -2,30 +2,50 @@ package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link Service#notifyTarget}
  */
 public class NotifyTarget extends ControllerCommand
 {
+    /**
+     * @see Service.NotifyTargetType
+     */
     private Service.NotifyTargetType targetType;
 
+    /**
+     * Identifier of target which should be notified.
+     */
     private String targetId;
 
-    private String title;
+    /**
+     * Map of notification titles by languages.
+     */
+    private Map<String, String> titles = new HashMap<String, String>();
 
-    private String message;
+    /**
+     * Map of notification messages by languages.
+     */
+    private Map<String, String> messages = new HashMap<String, String>();
 
     public NotifyTarget()
     {
+    }
+
+    public NotifyTarget(Service.NotifyTargetType targetType, String targetId)
+    {
+        this.targetType = targetType;
+        this.targetId = targetId;
     }
 
     public NotifyTarget(Service.NotifyTargetType targetType, String targetId, String title, String message)
     {
         this.targetType = targetType;
         this.targetId = targetId;
-        this.title = title;
-        this.message = message;
+        addMessage("en", title, message);
     }
 
     public Service.NotifyTargetType getTargetType()
@@ -48,37 +68,46 @@ public class NotifyTarget extends ControllerCommand
         this.targetId = targetId;
     }
 
-    public String getTitle()
+    public Map<String, String> getTitles()
     {
-        return title;
+        return titles;
     }
 
-    public void setTitle(String title)
+    public void setTitles(Map<String, String> titles)
     {
-        this.title = title;
+        this.titles.clear();
+        this.titles.putAll(titles);
     }
 
-    public String getMessage()
+    public Map<String, String> getMessages()
     {
-        return message;
+        return messages;
     }
 
-    public void setMessage(String message)
+    public void setMessages(Map<String, String> messages)
     {
-        this.message = message;
+        this.messages.putAll(messages);
+    }
+
+    public void addMessage(String language, String title, String message)
+    {
+        if (language == null) {
+            throw new IllegalArgumentException("Langunage must not be null.");
+        }
+        this.titles.put(language, title);
+        this.messages.put(language, message);
     }
 
     @Override
     public Object execute(Service commonService, String senderAgentName) throws CommandException
     {
-        commonService.notifyTarget(senderAgentName, targetType, targetId, title, message);
+        commonService.notifyTarget(senderAgentName, targetType, targetId, titles, messages);
         return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(NotifyTarget.class.getSimpleName() + " (type: %s, id: %s, title: %s)",
-                targetType, targetId, title);
+        return String.format(NotifyTarget.class.getSimpleName() + " (type: %s, id: %s)", targetType, targetId);
     }
 }
