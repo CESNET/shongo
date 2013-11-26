@@ -398,7 +398,7 @@
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
             <c:choose>
-                <c:when test="${room.recordingService != null}">
+                <c:when test="${room.recordingService != null && room.available}">
                     <h2><spring:message code="views.room.recordings"/></h2>
                     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                         <spring:message code="views.pagination.records"/>

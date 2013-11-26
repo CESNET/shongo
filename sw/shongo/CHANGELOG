@@ -1,3 +1,7 @@
+0.6.1 (2013-11-26)
+
+    * Management of Adobe Connect recordings (start/stop).
+
 0.6.0 (2013-10-18)
 
     * Reservation system web interface rewritten to Java from scratch.
