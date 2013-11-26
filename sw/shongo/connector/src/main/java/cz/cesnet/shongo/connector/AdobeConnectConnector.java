@@ -1116,20 +1116,34 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
-    protected void onRecreateRoomInitialize(Room oldRoom, Room newRoom) throws CommandException
+    protected String recreateRoom(Room oldRoom, Room newRoom) throws CommandException
     {
+        // Create new room
+        String oldRoomId = oldRoom.getId();
+        String newRoomId = createRoom(newRoom);
+
+        // Redirect from old room to new room
         try {
             //TODO: manage creating new Room with same name
             //TODO: backup recordings ???
 
-            String msg = "Room has been modified, you have been redirected to the new one (" +
-                    newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue() + ").";
-            endMeeting(oldRoom.getId(), URLEncoder.encode(msg, "UTF8"), true,
-                    URLEncoder.encode(newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue(), "UTF8"));
+            String newRoomUrl = newRoom.getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
+            String msg = "Room has been modified, you have been redirected to the new one (" + newRoomUrl + ").";
+            endMeeting(oldRoomId, URLEncoder.encode(msg, "UTF8"), true, URLEncoder.encode(newRoomUrl, "UTF8"));
         }
         catch (UnsupportedEncodingException ex) {
+            deleteRoom(newRoomId);
             throw new CommandException("Error while encoding URL. ", ex);
         }
+        catch (CommandException exception) {
+            deleteRoom(newRoomId);
+            throw exception;
+        }
+
+        // Delete old room
+        deleteRoom(oldRoomId);
+
+        return newRoomId;
     }
 
     /**

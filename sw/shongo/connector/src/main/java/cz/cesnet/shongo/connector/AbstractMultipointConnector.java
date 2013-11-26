@@ -74,34 +74,11 @@ public abstract class AbstractMultipointConnector extends AbstractConnector impl
      */
     protected String recreateRoom(Room oldRoom, Room newRoom) throws CommandException
     {
-        // Create new room
-        String oldRoomId = oldRoom.getId();
-        String newRoomId = createRoom(newRoom);
-
-        // Setup new room by old room
-        try {
-            newRoom.setId(newRoomId);
-            onRecreateRoomInitialize(oldRoom, newRoom);
-        }
-        catch (CommandException exception) {
-            deleteRoom(newRoomId);
-            throw exception;
-        }
-
         // Delete old room
+        String oldRoomId = oldRoom.getId();
         deleteRoom(oldRoomId);
 
-        return newRoomId;
-    }
-
-    /**
-     * Perform initialization of newly created room when recreating a room.
-     *
-     * @param oldRoom old room
-     * @param newRoom newly created room
-     * @throws CommandException when the initialization fails
-     */
-    protected void onRecreateRoomInitialize(Room oldRoom, Room newRoom) throws CommandException
-    {
+        // Create new room
+        return createRoom(newRoom);
     }
 }

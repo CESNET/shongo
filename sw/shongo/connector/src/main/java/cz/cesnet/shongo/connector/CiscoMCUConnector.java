@@ -493,12 +493,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     }
 
     @Override
-    protected void onRecreateRoomInitialize(Room oldRoom, Room newRoom) throws CommandException
-    {
-        // TODO: perform some initialization from the old room to the new room
-    }
-
-    @Override
     public void deleteRoom(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.destroy");
