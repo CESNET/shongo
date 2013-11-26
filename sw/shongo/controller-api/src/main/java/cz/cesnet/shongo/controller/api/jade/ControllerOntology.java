@@ -38,6 +38,7 @@ public class ControllerOntology extends AbstractOntology
             add(GetUserInformation.class);
             add(GetRoom.class);
             add(NotifyTarget.class);
+            add(GetRecordingFolderId.class);
 
             // Add all API classes
             for (String item : ClassHelper.getPackages()) {

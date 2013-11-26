@@ -358,6 +358,7 @@
                 </div>
             </div>
 
+            <%--
             <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
                 <form:label class="control-label" path="roomRecorded">
                     <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
@@ -365,9 +366,10 @@
                 <div class="controls">
                     <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" value="xx"/>
                     <form:errors path="roomRecorded" cssClass="error"/>&nbsp;<%--
-                    --%><tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
+                    --%><%--<tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                 </div>
             </div>
+            --%>
         </c:if>
 
     </fieldset>
