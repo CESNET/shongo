@@ -40,7 +40,7 @@ public class DateTimeEditor extends PropertyEditorSupport
         if (value == null) {
             return "";
         }
-        return dateTimePrinter.print(value);
+        return dateTimePrinter.withZone(timeZone).print(value);
     }
 
     @Override
