@@ -13,9 +13,9 @@
     --%><c:set var="specificationType">${specificationType}.</c:set><%--
 --%></c:if>
 <%----%><%--
---%><tag:help position="bottom-left"><%--
+--%><tag:help position="bottom-left" selectable="true"><%--
     --%><div class="reservation-request-state">${specificationType}<%--
-        --%><table><%--
+        --%><table class="table table-striped"><%--
             --%><c:forEach items="ALLOCATED,ALLOCATED_STARTED,ALLOCATED_STARTED_NOT_AVAILABLE,ALLOCATED_STARTED_AVAILABLE,ALLOCATED_FINISHED,FAILED,MODIFICATION_FAILED" var="state"><%--
                 --%><tr><%--
                     --%><td class="${state}"><spring:message code="views.reservationRequest.state.${specificationType}${state}"/></td><%--

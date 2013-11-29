@@ -285,10 +285,12 @@ public class DateTimeFormatter
         if (duration == null) {
             return "";
         }
-        //PeriodFormatterBuilder
         return periodFormatter.print(duration);
     }
 
+    /**
+     * Flags for {@link #roundDuration(org.joda.time.Period)}
+     */
     private static final int YEARS = 1;
     private static final int MONTHS = 2;
     private static final int WEEKS = 4;
@@ -373,6 +375,43 @@ public class DateTimeFormatter
         }
 
         return new Period(years, months, weeks, days, hours, minutes, seconds, 0);
+    }
+
+    /**
+     * @param duration
+     * @return formatted given {@code duration}
+     */
+    public String formatDuration(Duration duration)
+    {
+        if (duration == null) {
+            return "";
+        }
+        return periodFormatter.print(duration.toPeriod());
+    }
+
+    /**
+     * @param duration
+     * @return formatted given {@code duration}
+     */
+    public String formatDurationTime(Duration duration)
+    {
+        if (duration == null) {
+            return "";
+        }
+        long durationMillis = duration.getMillis();
+        if (durationMillis < 0) {
+            duration = new Duration(Math.abs(durationMillis));
+        }
+
+        LocalTime time = LocalTime.MIDNIGHT.plus(duration.toPeriod());
+        String output = DateTimeFormat.forPattern("HH:mm").print(time);
+        if (durationMillis >= 0) {
+            output = "+" + output;
+        }
+        else {
+            output = "-" + output;
+        }
+        return output;
     }
 
     /**

@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.util.StringHelper;
 import jade.content.Concept;
+import org.apache.commons.lang.StringUtils;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
- * Represents information about a Shongo user.
+ * Represents {@link PersonInformation} for a Shongo user.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -19,9 +20,9 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     private String userId;
 
     /**
-     * Original user-id from identity provider.
+     * Set of user principal names.
      */
-    private String originalId;
+    private Set<String> principalNames = new HashSet<String>();
 
     /**
      * First name of the use (e.g., given name).
@@ -41,7 +42,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     /**
      * Email of the user.
      */
-    private List<String> emails = new LinkedList<String>();
+    private String email;
 
     /**
      * Constructor.
@@ -67,19 +68,37 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     }
 
     /**
-     * @return {@link #originalId}
+     * @return {@link #principalNames}
      */
-    public String getOriginalId()
+    public Set<String> getPrincipalNames()
     {
-        return originalId;
+        return Collections.unmodifiableSet(principalNames);
     }
 
     /**
-     * @param originalId sets the {@link #originalId}
+     * @param principalName
+     * @return true whether {@link #principalNames} contains given {@code principalName}, false otherwise
      */
-    public void setOriginalId(String originalId)
+    public boolean hasPrincipalName(String principalName)
     {
-        this.originalId = originalId;
+        return principalNames.contains(principalName);
+    }
+
+    /**
+     * @param principalNames sets the {@link #principalNames}
+     */
+    public void setPrincipalNames(Set<String> principalNames)
+    {
+        this.principalNames.clear();
+        this.principalNames.addAll(principalNames);
+    }
+
+    /**
+     * @param principalName to be added to the {@link #principalNames}
+     */
+    public void addPrincipalName(String principalName)
+    {
+        this.principalNames.add(principalName);
     }
 
     /**
@@ -122,28 +141,19 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     }
 
     /**
-     * @return {@link #emails}
+     * @return {@link #email}
      */
-    public List<String> getEmails()
+    public String getEmail()
     {
-        return emails;
+        return email;
     }
 
     /**
-     * @param emails sets the {@link #emails}
+     * @param email sets the {@link #email}
      */
-    public void setEmails(List<String> emails)
+    public void setEmail(String email)
     {
-        this.emails.clear();
-        this.emails.addAll(emails);
-    }
-
-    /**
-     * @param email to be added to the {@link #emails}
-     */
-    public void addEmail(String email)
-    {
-        this.emails.add(email);
+        this.email = email;
     }
 
     @Override
@@ -174,10 +184,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     @Override
     public String getPrimaryEmail()
     {
-        if (emails.size() > 0) {
-            return emails.get(0);
-        }
-        return null;
+        return email;
     }
 
     @Override
@@ -187,22 +194,22 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     }
 
     public static final String USER_ID = "userId";
-    public static final String ORIGINAL_ID = "originalId";
+    public static final String PRINCIPAL_NAMES = "principalNames";
     public static final String FIRST_NAME = "firstName";
     public static final String LAST_NAME = "lastName";
     public static final String ORGANIZATION = "organization";
-    public static final String EMAILS = "emails";
+    public static final String EMAIL = "email";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(USER_ID, userId);
-        dataMap.set(ORIGINAL_ID, originalId);
+        dataMap.set(PRINCIPAL_NAMES, principalNames);
         dataMap.set(FIRST_NAME, firstName);
         dataMap.set(LAST_NAME, lastName);
         dataMap.set(ORGANIZATION, organization);
-        dataMap.set(EMAILS, emails);
+        dataMap.set(EMAIL, email);
         return dataMap;
     }
 
@@ -211,10 +218,34 @@ public class UserInformation extends AbstractComplexType implements PersonInform
     {
         super.fromData(dataMap);
         userId = dataMap.getString(USER_ID);
-        originalId = dataMap.getString(ORIGINAL_ID);
+        principalNames = dataMap.getSet(PRINCIPAL_NAMES, String.class);
         firstName = dataMap.getString(FIRST_NAME);
         lastName = dataMap.getString(LAST_NAME);
         organization = dataMap.getString(ORGANIZATION);
-        emails = dataMap.getList(EMAILS, String.class);
+        email = dataMap.getString(EMAIL);
+    }
+
+    /**
+     * Remove {@link UserInformation}s from given {@code users} which doesn't match given {@code search} criteria.
+     *
+     * @param users
+     * @param search
+     */
+    public static void filter(List<UserInformation> users, String search)
+    {
+        for (Iterator<UserInformation> iterator = users.iterator(); iterator.hasNext(); ) {
+            UserInformation userInformation = iterator.next();
+
+            // Filter by data
+            StringBuilder filterData = new StringBuilder();
+            filterData.append(userInformation.getFirstName());
+            filterData.append(" ");
+            filterData.append(userInformation.getLastName());
+            filterData.append(userInformation.getEmail());
+            filterData.append(userInformation.getOrganization());
+            if (!StringUtils.containsIgnoreCase(StringHelper.removeAccents(filterData.toString()), search)) {
+                iterator.remove();
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.TodoImplementException;
 import org.slf4j.Logger;
@@ -21,61 +22,87 @@ public class DummyAuthorization extends Authorization
     /**
      * Testing user #1 information.
      */
-    protected static final UserInformation USER1_INFORMATION;
+    protected static final UserData USER1_DATA;
 
     /**
      * Testing user #2 information.
      */
-    protected static final UserInformation USER2_INFORMATION;
+    protected static final UserData USER2_DATA;
 
     /**
      * Testing user #3 information.
      */
-    protected static final UserInformation USER3_INFORMATION;
+    protected static final UserData USER3_DATA;
 
     /**
      * Known users.
      */
-    private static final Map<String, UserInformation> userInformationByAccessToken;
+    private static final Map<String, UserData> userDataByAccessToken;
 
     /**
      * Known users.
      */
-    private static final Map<String, UserInformation> userInformationById;
+    private static final Map<String, UserData> userDataById;
+
+    /**
+     * {@link Group}s.
+     */
+    private final Map<String, Group> groups = new HashMap<String, Group>();
+
+    /**
+     * User-ids in {@link Group}s.
+     */
+    private final Map<String, Set<String>> userIdsInGroup = new HashMap<String, Set<String>>();
 
     /**
      * Static initialization.
      */
     static {
-        USER1_INFORMATION = new UserInformation();
-        USER1_INFORMATION.setUserId("1");
-        USER1_INFORMATION.setFirstName("test1");
-        USER1_INFORMATION.addEmail("test1@cesnet.cz");
+        USER1_DATA = new UserData();
+        UserInformation user1Information = USER1_DATA.getUserInformation();
+        user1Information.setUserId("1");
+        user1Information.setFirstName("test1");
+        user1Information.setEmail("test1@cesnet.cz");
 
-        USER2_INFORMATION = new UserInformation();
-        USER2_INFORMATION.setUserId("2");
-        USER2_INFORMATION.setFirstName("test2");
-        USER2_INFORMATION.addEmail("test2@cesnet.cz");
+        USER2_DATA = new UserData();
+        UserInformation user2Information = USER2_DATA.getUserInformation();
+        user2Information.setUserId("2");
+        user2Information.setFirstName("test2");
+        user2Information.setEmail("test2@cesnet.cz");
 
-        USER3_INFORMATION = new UserInformation();
-        USER3_INFORMATION.setUserId("3");
-        USER3_INFORMATION.setFirstName("test3");
-        USER3_INFORMATION.addEmail("test3@cesnet.cz");
+        USER3_DATA = new UserData();
+        UserInformation user3Information = USER3_DATA.getUserInformation();
+        user3Information.setUserId("3");
+        user3Information.setFirstName("test3");
+        user3Information.setEmail("test3@cesnet.cz");
 
-        userInformationByAccessToken = new HashMap<String, UserInformation>();
-        userInformationByAccessToken.put(
-                AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken(), Authorization.ROOT_USER_INFORMATION);
-        userInformationByAccessToken.put(
-                AbstractControllerTest.SECURITY_TOKEN_USER1.getAccessToken(), USER1_INFORMATION);
-        userInformationByAccessToken.put(
-                AbstractControllerTest.SECURITY_TOKEN_USER2.getAccessToken(), USER2_INFORMATION);
-        userInformationByAccessToken.put(
-                AbstractControllerTest.SECURITY_TOKEN_USER3.getAccessToken(), USER3_INFORMATION);
+        userDataByAccessToken = new HashMap<String, UserData>();
+        userDataByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken(), Authorization.ROOT_USER_DATA);
+        userDataByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER1.getAccessToken(), USER1_DATA);
+        userDataByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER2.getAccessToken(), USER2_DATA);
+        userDataByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER3.getAccessToken(), USER3_DATA);
 
-        userInformationById = new HashMap<String, UserInformation>();
-        for (UserInformation userInformation : userInformationByAccessToken.values()) {
-            userInformationById.put(userInformation.getUserId(), userInformation);
+        userDataById = new HashMap<String, UserData>();
+        for (UserData userData : userDataByAccessToken.values()) {
+            userDataById.put(userData.getUserId(), userData);
         }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param configuration to be used
+     */
+    public DummyAuthorization(ControllerConfiguration configuration)
+    {
+        super(configuration);
+
+        this.adminAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
+        createGroup(new Group(adminGroupName));
     }
 
     /**
@@ -91,49 +118,126 @@ public class DummyAuthorization extends Authorization
     }
 
     /**
-     * Constructor.
-     *
-     * @param configuration to be used
+     * @param userId to be added to the group of administrators
      */
-    public DummyAuthorization(ControllerConfiguration configuration)
+    public void addAdminUserId(String userId)
     {
-        super(configuration);
-
-        this.adminAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
-    }
-
-    /**
-     * @param userId to be added to the {@link #adminModeEnabledUserIds}
-     */
-    public void addAdminModeEnabledUserId(String userId)
-    {
-        this.adminModeEnabledUserIds.add(userId);
+        addGroupUser(getGroupIdByName(adminGroupName), userId);
     }
 
     @Override
-    protected UserInformation onGetUserInformationByAccessToken(String accessToken)
+    protected UserData onGetUserDataByAccessToken(String accessToken)
     {
-        UserInformation userInformation = userInformationByAccessToken.get(accessToken);
-        if (userInformation != null) {
-            return userInformation;
+        UserData userData = userDataByAccessToken.get(accessToken);
+        if (userData != null) {
+            return userData;
         }
         throw new TodoImplementException();
     }
 
     @Override
-    protected UserInformation onGetUserInformationByUserId(String userId)
+    protected UserData onGetUserDataByUserId(String userId)
     {
-        UserInformation userInformation = userInformationById.get(userId);
-        if (userInformation != null) {
-            return userInformation;
+        UserData userData = userDataById.get(userId);
+        if (userData != null) {
+            return userData;
         }
         throw new TodoImplementException(userId);
     }
 
     @Override
-    protected Collection<UserInformation> onListUserInformation()
+    protected String onGetUserIdByPrincipalName(String principalName)
     {
-        throw new TodoImplementException();
+        for (UserData userData : userDataById.values()) {
+            UserInformation userInformation = userData.getUserInformation();
+            if (userInformation.hasPrincipalName(principalName)) {
+                return userData.getUserId();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected Collection<UserData> onListUserData(String search)
+    {
+        List<UserInformation> users = new LinkedList<UserInformation>();
+        for (UserData userData : userDataById.values()) {
+            users.add(userData.getUserInformation());
+        }
+        UserInformation.filter(users, search);
+        List<UserData> userData = new LinkedList<UserData>();
+        for (UserInformation user : users) {
+            userData.add(userDataById.get(user.getUserId()));
+        }
+        return userData;
+    }
+
+    @Override
+    public List<Group> onListGroups()
+    {
+        return new LinkedList<Group>(groups.values());
+    }
+
+    @Override
+    public Set<String> onListGroupUserIds(String groupId)
+    {
+        if (!groups.containsKey(groupId)) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        Set<String> userIds = userIdsInGroup.get(groupId);
+        if (userIds == null) {
+            userIds = Collections.emptySet();
+        }
+        return userIds;
+    }
+
+    @Override
+    public String onCreateGroup(Group group)
+    {
+        int groupId = groups.size();
+        while (groups.containsKey(String.valueOf(groupId))) {
+            groupId++;
+        }
+        group.setId(String.valueOf(groupId));
+        groups.put(group.getId(), group);
+        return group.getId();
+    }
+
+    @Override
+    public void onDeleteGroup(String groupId)
+    {
+        if (!groups.containsKey(groupId)) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        groups.remove(groupId);
+        userIdsInGroup.remove(groupId);
+    }
+
+    @Override
+    public void onAddGroupUser(String groupId, String userId)
+    {
+        if (!groups.containsKey(groupId)) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        Set<String> userIds = userIdsInGroup.get(groupId);
+        if (userIds == null) {
+            userIds = new HashSet<String>();
+            userIdsInGroup.put(groupId, userIds);
+        }
+        userIds.add(userId);
+    }
+
+    @Override
+    public void onRemoveGroupUser(String groupId, String userId)
+    {
+        if (!groups.containsKey(groupId)) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        Set<String> userIds = userIdsInGroup.get(groupId);
+        if (userIds == null || !userIds.contains(userId)) {
+            throw new ControllerReportSet.UserNotInGroupException(groupId, userId);
+        }
+        userIds.remove(userId);
     }
 
     /**

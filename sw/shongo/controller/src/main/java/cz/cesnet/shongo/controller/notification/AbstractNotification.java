@@ -469,7 +469,7 @@ public abstract class AbstractNotification implements Notification
                 UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
                 return PersonInformation.Formatter.format(userInformation);
             }
-            catch (ControllerReportSet.UserNotExistException exception) {
+            catch (ControllerReportSet.UserNotExistsException exception) {
                 AbstractNotification.logger.warn("User '{}' doesn't exist.", userId);
                 return "<not-exist> (" + userId + ")";
             }

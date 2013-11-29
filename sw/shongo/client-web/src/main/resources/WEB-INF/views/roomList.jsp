@@ -84,8 +84,7 @@
                 <td style="text-align: right; padding-right: 30px;">{{room.licenseCount}}</td>
                 <td><span ng-bind-html="room.slot"></span></td>
                 <td class="room-state">
-                    <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}"
-                              tooltipId="roomStateTooltip-{{$index}}">
+                    <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
                         <span>{{room.stateHelp}}</span>
                     </tag:help>
                 </td>
@@ -99,7 +98,7 @@
                             <li ng-repeat="usage in room.usages">
                                 <strong>{{usage.licenseCountMessage}}</strong>
                                 <spring:message code="views.roomList.room.usage.slot" arguments="{{usage.slot}}"/>
-                                    <span class="room-state">(<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)</span>
+                                    <span class="room-state">(<tag:help label="{{usage.stateMessage}}" cssClass="{{usage.state}}"><span>{{usage.stateHelp}}</span></tag:help>)</span>
                             </li>
                         </ul>
                         <span class="empty" ng-hide="room.usages.length">

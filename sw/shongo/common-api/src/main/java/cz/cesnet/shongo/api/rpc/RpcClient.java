@@ -112,9 +112,13 @@ public class RpcClient
      */
     public void connect(String host, int port) throws Exception
     {
+        if (!host.startsWith("http")) {
+            host = "http://" + host;
+        }
+
         // Start client
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-        config.setServerURL(new URL(String.format("http://%s:%d", host, port)));
+        config.setServerURL(new URL(host + ":" + port));
         client = new XmlRpcClient();
         client.setConfig(config);
         client.setTypeFactory(new TypeFactory(client));

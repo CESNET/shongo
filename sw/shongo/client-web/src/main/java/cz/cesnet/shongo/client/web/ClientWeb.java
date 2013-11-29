@@ -13,6 +13,9 @@ import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -63,8 +66,6 @@ public class ClientWeb
             }
         }
 
-        ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
-
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
         webAppContext.setDescriptor("WEB-INF/web.xml");
@@ -84,6 +85,12 @@ public class ClientWeb
 
         final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
         final Server server = new Server();
+
+        URL controllerUrl = new URL(clientWebConfiguration.getControllerUrl());
+        if (controllerUrl.getProtocol().equals("https")) {
+            ConfiguredSSLContext.getInstance().addAdditionalCertificates(controllerUrl.toString());
+        }
+        ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
 
         // Configure HTTP connector
         final SelectChannelConnector httpConnector = new SelectChannelConnector();

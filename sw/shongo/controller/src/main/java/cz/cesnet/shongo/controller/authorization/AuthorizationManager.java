@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -36,9 +36,9 @@ public class AuthorizationManager extends AbstractManager
     private final Authorization authorization;
 
     /**
-     * @see UserSettingsProvider
+     * @see UserSettingsManager
      */
-    private UserSettingsProvider userSettingsProvider = null;
+    private UserSettingsManager userSettingsManager = null;
 
     /**
      * Constructor.
@@ -61,14 +61,14 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
-     * @return {@link #userSettingsProvider}
+     * @return {@link #userSettingsManager}
      */
-    public UserSettingsProvider getUserSettingsProvider()
+    public UserSettingsManager getUserSettingsManager()
     {
-        if (userSettingsProvider == null) {
-            userSettingsProvider = new UserSettingsProvider(entityManager);
+        if (userSettingsManager == null) {
+            userSettingsManager = new UserSettingsManager(entityManager, authorization);
         }
-        return userSettingsProvider;
+        return userSettingsManager;
     }
 
     /**
@@ -126,14 +126,14 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @param aclRecordId
      * @return {@link AclRecord} with given {@code aclRecordId}
-     * @throws CommonReportSet.EntityNotFoundException
+     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
      *          when {@link AclRecord} doesn't exist
      */
-    public AclRecord getAclRecord(Long aclRecordId) throws CommonReportSet.EntityNotFoundException
+    public AclRecord getAclRecord(Long aclRecordId) throws CommonReportSet.EntityNotExistsException
     {
         AclRecord aclRecord = entityManager.find(AclRecord.class, aclRecordId);
         if (aclRecord == null) {
-            return ControllerReportSetHelper.throwEntityNotFoundFault(AclRecord.class, aclRecordId);
+            return ControllerReportSetHelper.throwEntityNotExistFault(AclRecord.class, aclRecordId);
         }
         return aclRecord;
     }

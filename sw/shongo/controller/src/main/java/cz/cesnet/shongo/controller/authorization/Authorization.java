@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
@@ -14,7 +15,7 @@ import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
- * Provides methods for performing authentication and authorization.
+ * Provides methods for performing authentication, authorization and fetching user data from web service.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -30,15 +31,16 @@ public abstract class Authorization
     /**
      * Root shongo-user.
      */
-    public static final UserInformation ROOT_USER_INFORMATION;
+    public static final UserData ROOT_USER_DATA;
 
     /**
      * Static initialization.
      */
     static {
-        ROOT_USER_INFORMATION = new UserInformation();
-        ROOT_USER_INFORMATION.setUserId(ROOT_USER_ID);
-        ROOT_USER_INFORMATION.setFirstName("root");
+        ROOT_USER_DATA = new UserData();
+        UserInformation rootUserInformation = ROOT_USER_DATA.getUserInformation();
+        rootUserInformation.setUserId(ROOT_USER_ID);
+        rootUserInformation.setFirstName("root");
     }
 
     /**
@@ -52,14 +54,14 @@ public abstract class Authorization
     private AuthorizationCache cache = new AuthorizationCache();
 
     /**
+     * @see ControllerConfiguration#SECURITY_ADMIN_GROUP
+     */
+    protected String adminGroupName;
+
+    /**
      * Set of access-tokens which has administrator access.
      */
     protected Set<String> adminAccessTokens = new HashSet<String>();
-
-    /**
-     * Set of user-ids who can use the {@link cz.cesnet.shongo.controller.settings.UserSessionSettings#adminMode}.
-     */
-    protected Set<String> adminModeEnabledUserIds = new HashSet<String>();
 
     /**
      * {@link cz.cesnet.shongo.controller.settings.UserSessionSettings}s.
@@ -69,13 +71,19 @@ public abstract class Authorization
     /**
      * Constructor.
      *
-     * @param config to load authorization configuration from
+     * @param configuration to load authorization configuration from
      */
-    protected Authorization(ControllerConfiguration config)
+    protected Authorization(ControllerConfiguration configuration)
     {
-        cache.setUserIdExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_USER_ID));
-        cache.setUserInformationExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_USER_INFORMATION));
-        cache.setAclExpiration(config.getDuration(ControllerConfiguration.SECURITY_EXPIRATION_ACL));
+        this.cache.setUserIdExpiration(configuration.getDuration(
+                ControllerConfiguration.SECURITY_EXPIRATION_USER_ID));
+        this.cache.setUserInformationExpiration(configuration.getDuration(
+                ControllerConfiguration.SECURITY_EXPIRATION_USER_INFORMATION));
+        this.cache.setAclExpiration(configuration.getDuration(
+                ControllerConfiguration.SECURITY_EXPIRATION_ACL));
+        this.cache.setGroupExpiration(configuration.getDuration(
+                ControllerConfiguration.SECURITY_EXPIRATION_GROUP));
+        this.adminGroupName = configuration.getString(ControllerConfiguration.SECURITY_ADMIN_GROUP);
     }
 
     /**
@@ -106,7 +114,7 @@ public abstract class Authorization
      * Validate given {@code securityToken}.
      *
      * @param securityToken to be validated
-     * @return user-id
+     * @return {@link UserInformation}
      */
     public final UserInformation validate(SecurityToken securityToken)
     {
@@ -118,7 +126,7 @@ public abstract class Authorization
     }
 
     /**
-     * Retrieve {@link UserInformation} for given {@code securityToken}.
+     * Retrieve {@link UserData} for given {@code securityToken}.
      *
      * @param securityToken of an user
      * @return {@link UserInformation} for the user with given {@code securityToken}
@@ -135,7 +143,7 @@ public abstract class Authorization
         String userId = cache.getUserIdByAccessToken(accessToken);
         if (userId != null) {
             logger.trace("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
-            userInformation = getUserInformation(userId);
+            userInformation = getUserData(userId).getUserInformation();
 
             // Store the user information inside the security token
             securityToken.setUserInformation(userInformation);
@@ -145,10 +153,11 @@ public abstract class Authorization
         else {
             logger.debug("Retrieving user information by access token '{}'...", accessToken);
 
-            userInformation = onGetUserInformationByAccessToken(accessToken);
+            UserData userData = onGetUserDataByAccessToken(accessToken);
+            userInformation = userData.getUserInformation();
             userId = userInformation.getUserId();
             cache.putUserIdByAccessToken(accessToken, userId);
-            cache.putUserInformationByUserId(userId, userInformation);
+            cache.putUserDataByUserId(userId, userData);
 
             // Store the user information inside the security token
             securityToken.setUserInformation(userInformation);
@@ -158,30 +167,61 @@ public abstract class Authorization
     }
 
     /**
-     * Retrieve {@link UserInformation} for given {@code userId}.
+     * Retrieve {@link UserData} for given {@code userId}.
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
      */
     public final UserInformation getUserInformation(String userId)
     {
+        UserData userData = getUserData(userId);
+        return userData.getUserInformation();
+    }
+
+    /**
+     * Retrieve {@link UserData} for given {@code principalName}.
+     *
+     * @param principalName of an user
+     * @return {@link UserInformation} for the user with given {@code principalName}
+     */
+    public UserInformation getUserInformationByPrincipalName(String principalName)
+    {
+        String userId = cache.getUserIdByPrincipalName(principalName);
+        if (userId == null) {
+            userId = onGetUserIdByPrincipalName(principalName);
+            cache.putUserIdByPrincipalName(principalName, userId);
+        }
+        if (userId == null) {
+            throw new ControllerReportSet.UserNotExistsException(principalName);
+        }
+        return getUserInformation(userId);
+    }
+
+    /**
+     * Retrieve {@link UserData} for given {@code userId}.
+     *
+     * @param userId of an user
+     * @return {@link UserData} for the user with given {@code userId}
+     */
+    public final UserData getUserData(String userId)
+    {
         // Root user
         if (userId.equals(ROOT_USER_ID)) {
-            return ROOT_USER_INFORMATION;
+            return ROOT_USER_DATA;
         }
 
         // Try to use the user information from the cache
-        UserInformation userInformation = cache.getUserInformationByUserId(userId);
-        if (userInformation != null) {
+        UserData userData = cache.getUserDataByUserId(userId);
+        if (userData != null) {
             logger.trace("Using cached user information for user-id '{}'...", userId);
-            return userInformation;
+            return userData;
         }
         else {
             logger.debug("Retrieving user information by user-id '{}'...", userId);
 
-            userInformation = onGetUserInformationByUserId(userId);
-            cache.putUserInformationByUserId(userId, userInformation);
-            return userInformation;
+            userData = onGetUserDataByUserId(userId);
+            cache.putUserDataByUserId(userId, userData);
+            return userData;
         }
     }
 
@@ -189,19 +229,19 @@ public abstract class Authorization
      * Checks whether user with given {@code userId} exists.
      *
      * @param userId of the user to be checked for existence
-     * @throws ControllerReportSet.UserNotExistException
+     * @throws cz.cesnet.shongo.controller.ControllerReportSet.UserNotExistsException
      *          when the user doesn't exist
      */
-    public void checkUserExistence(String userId) throws ControllerReportSet.UserNotExistException
+    public void checkUserExistence(String userId) throws ControllerReportSet.UserNotExistsException
     {
         try {
-            UserInformation userInformation = getUserInformation(userId);
-            if (userInformation == null) {
-                throw new ControllerReportSet.UserNotExistException(userId);
+            UserData userData = getUserData(userId);
+            if (userData == null) {
+                throw new ControllerReportSet.UserNotExistsException(userId);
             }
         }
         catch (Exception exception) {
-            throw new ControllerReportSet.UserNotExistException(exception, userId);
+            throw new ControllerReportSet.UserNotExistsException(exception, userId);
         }
     }
 
@@ -209,23 +249,27 @@ public abstract class Authorization
      * Retrieve a {@link UserPerson} by given {@code userId}.
      *
      * @param userId of an user
-     * @return {@link UserInformation} for the user with given {@code userId}
+     * @return {@link UserData} for the user with given {@code userId}
      */
     public final UserPerson getUserPerson(String userId)
     {
-        return new UserPerson(userId, getUserInformation(userId));
+        return new UserPerson(userId, getUserData(userId).getUserInformation());
     }
 
     /**
-     * Retrieve all {@link UserInformation}s.
+     * Retrieve all {@link UserInformation}s which match given {@code search} criteria.
      *
+     * @param search to filter users
      * @return collection of {@link UserInformation}s
      */
-    public final Collection<UserInformation> listUserInformation()
+    public final Collection<UserInformation> listUserInformation(String search)
     {
         logger.debug("Retrieving list of user information...");
-
-        return onListUserInformation();
+        List<UserInformation> userInformationList = new LinkedList<UserInformation>();
+        for (UserData userData : onListUserData(search)) {
+            userInformationList.add(userData.getUserInformation());
+        }
+        return userInformationList;
     }
 
     /**
@@ -327,7 +371,7 @@ public abstract class Authorization
     /**
      * @param persistentObject for which the users must have given {@code role}
      * @param role             which the users must have for given {@code persistentObject}
-     * @return collection of {@link UserInformation} of users which have given {@code role}
+     * @return collection of {@link UserData} of users which have given {@code role}
      *         for given {@code persistentObject}
      */
     public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, Role role)
@@ -360,7 +404,7 @@ public abstract class Authorization
             // Create new user session settings
             userSessionSettings = new UserSessionSettings(securityToken);
             String userId = securityToken.getUserId();
-            if (adminModeEnabledUserIds.contains(userId)) {
+            if (listGroupUserIds(getGroupIdByName(adminGroupName)).contains(userId)) {
                 userSessionSettings.setAdminMode(Boolean.FALSE);
             }
             // Store it
@@ -385,10 +429,105 @@ public abstract class Authorization
     }
 
     /**
+     * @param groupName
+     * @return group-id for given {@code groupName}
+     * @throws ControllerReportSet.GroupNotExistsException
+     *          when the group doesn't exist
+     */
+    public final String getGroupIdByName(String groupName)
+    {
+        String groupId = cache.getGroupIdByName(groupName);
+        if (groupId == null) {
+            for (Group group : listGroups()) {
+                if (group.getName().equals(groupName)) {
+                    groupId = group.getId();
+                    break;
+                }
+            }
+            if (groupId == null) {
+                throw new ControllerReportSet.GroupNotExistsException(groupName);
+            }
+            cache.putGroupIdByName(groupName, groupId);
+        }
+        return groupId;
+    }
+
+    /**
+     * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
+     */
+    public final List<Group> listGroups()
+    {
+        return onListGroups();
+    }
+
+    /**
+     * @return list of user-ids for users which are in group with given {@code groupId}
+     */
+    public final Set<String> listGroupUserIds(String groupId)
+    {
+        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        if (userIds == null) {
+            userIds = onListGroupUserIds(groupId);
+            cache.putUserIdsInGroup(groupId, userIds);
+        }
+        return userIds;
+    }
+
+    /**
+     * @param group
+     * @return identifier of the new group
+     */
+    public final String createGroup(Group group)
+    {
+        return onCreateGroup(group);
+    }
+
+    /**
+     * @param groupId of the group to be deleted
+     */
+    public final void deleteGroup(String groupId)
+    {
+        onDeleteGroup(groupId);
+
+        // Update cache
+        cache.removeGroup(groupId);
+    }
+
+    /**
+     * @param groupId of the group to which the user should be added
+     * @param userId  of the user to be added
+     */
+    public final void addGroupUser(String groupId, String userId)
+    {
+        onAddGroupUser(groupId, userId);
+
+        // Update cache
+        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        if (userIds != null) {
+            userIds.add(userId);
+        }
+    }
+
+    /**
+     * @param groupId of the group from which the user should be removed
+     * @param userId  of the user to be removed
+     */
+    public void removeGroupUser(String groupId, String userId)
+    {
+        onRemoveGroupUser(groupId, userId);
+
+        // Update cache
+        Set<String> userIds = cache.getUserIdsInGroup(groupId);
+        if (userIds != null) {
+            userIds.remove(userId);
+        }
+    }
+
+    /**
      * Validate given {@code securityToken}.
      *
      * @param securityToken to be validated
-     * @return user-id
+     * @return {@link UserInformation}
      * @throws ControllerReportSet.SecurityInvalidTokenException
      *          when the validation fails
      */
@@ -412,27 +551,69 @@ public abstract class Authorization
     }
 
     /**
-     * Retrieve {@link UserInformation} for given {@code accessToken}.
+     * Retrieve {@link UserData} for given {@code accessToken}.
      *
      * @param accessToken of an user
-     * @return {@link UserInformation} for the user with given {@code accessToken}
+     * @return {@link UserData} for the user with given {@code accessToken}
      */
-    protected abstract UserInformation onGetUserInformationByAccessToken(String accessToken);
+    protected abstract UserData onGetUserDataByAccessToken(String accessToken);
 
     /**
-     * Retrieve {@link UserInformation} for given {@code userId}.
+     * Retrieve {@link UserData} for given {@code userId}.
      *
      * @param userId of an user
-     * @return {@link UserInformation} for the user with given {@code userId}
+     * @return {@link UserData} for the user with given {@code userId}
      */
-    protected abstract UserInformation onGetUserInformationByUserId(String userId);
+    protected abstract UserData onGetUserDataByUserId(String userId);
 
     /**
-     * Retrieve all {@link UserInformation}s.
+     * Retrieve {@link UserData} for given {@code principalName}.
      *
-     * @return collection of {@link UserInformation}s
+     * @param principalName of an user
+     * @return {@link UserData} for the user with given {@code principalName}
      */
-    protected abstract Collection<UserInformation> onListUserInformation();
+    protected abstract String onGetUserIdByPrincipalName(String principalName);
+
+    /**
+     * Retrieve all {@link UserData}s which match given {@code search} criteria.
+     *
+     * @param search to filter {@link UserData}s
+     * @return collection of {@link UserData}s
+     */
+    protected abstract Collection<UserData> onListUserData(String search);
+
+    /**
+     * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
+     */
+    protected abstract List<Group> onListGroups();
+
+    /**
+     * @return list of user-ids for users which are in group with given {@code groupId}
+     */
+    protected abstract Set<String> onListGroupUserIds(String groupId);
+
+    /**
+     * @param group
+     * @return identifier of the new group
+     */
+    protected abstract String onCreateGroup(Group group);
+
+    /**
+     * @param groupId of the group to be deleted
+     */
+    protected abstract void onDeleteGroup(String groupId);
+
+    /**
+     * @param groupId of the group to which the user should be added
+     * @param userId  of the user to be added
+     */
+    protected abstract void onAddGroupUser(String groupId, String userId);
+
+    /**
+     * @param groupId of the group from which the user should be removed
+     * @param userId  of the user to be removed
+     */
+    protected abstract void onRemoveGroupUser(String groupId, String userId);
 
     /**
      * Fetch {@link AclUserState} for given {@code userId}.
@@ -569,5 +750,61 @@ public abstract class Authorization
                     + "has been created.");
         }
         return authorization;
+    }
+
+    /**
+     * Represents user data fetched from web service.
+     */
+    public static class UserData
+    {
+        /**
+         * @see UserInformation
+         */
+        private final UserInformation userInformation = new UserInformation();
+
+        /**
+         * Use preferred language.
+         */
+        private Locale locale;
+
+        /**
+         * @return {@link #userInformation}
+         */
+        public UserInformation getUserInformation()
+        {
+            return userInformation;
+        }
+
+        /**
+         * @return {@link #userInformation#getUserId()}
+         */
+        public String getUserId()
+        {
+            return userInformation.getUserId();
+        }
+
+        /**
+         * @return {@link #userInformation#getFullName()} ()}
+         */
+        public String getFullName()
+        {
+            return userInformation.getFullName();
+        }
+
+        /**
+         * @return {@link #locale}
+         */
+        public Locale getLocale()
+        {
+            return locale;
+        }
+
+        /**
+         * @param locale sets the {@link #locale}
+         */
+        public void setLocale(Locale locale)
+        {
+            this.locale = locale;
+        }
     }
 }

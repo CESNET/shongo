@@ -528,7 +528,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             ResourceRoomEndpoint roomExecutable =
                     entityManager.find(ResourceRoomEndpoint.class, entityId.getPersistenceId());
             if (roomExecutable == null) {
-                ControllerReportSetHelper.throwEntityNotFoundFault(RoomExecutable.class, entityId.getPersistenceId());
+                ControllerReportSetHelper.throwEntityNotExistFault(RoomExecutable.class, entityId.getPersistenceId());
                 return;
             }
             DeviceResource deviceResource = roomExecutable.getDeviceResource();

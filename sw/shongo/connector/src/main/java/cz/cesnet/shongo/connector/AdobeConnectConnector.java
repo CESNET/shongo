@@ -166,11 +166,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      *
      * @return user identification (principal-id)
      */
-    protected String createAdobeConnectUser(UserInformation userInformation) throws CommandException
+    protected String createAdobeConnectUser(String principalName, UserInformation userInformation) throws CommandException
     {
-        String principalName = userInformation.getOriginalId();
         if (principalName == null) {
-            throw new CommandException("EPPN is unset for user " + userInformation.getFullName() + ".");
+            throw new IllegalArgumentException("Principal mustn't be null.");
         }
 
         RequestAttributeList userSearchAttributes = new RequestAttributeList();
@@ -895,27 +894,31 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         for (RoomParticipantRole participant : participants) {
             UserInformation userInformation = getUserInformationById(participant.getUserId());
-            String principalId = createAdobeConnectUser(userInformation);
-            userAttributes.add("principal-id", principalId);
 
-            String role = "remove";
-            switch (participant.getRole()) {
-                case PARTICIPANT:
-                    role = "view";
-                    break;
-                case PRESENTER:
-                    role = "mini-host";
-                    break;
-                case ADMIN:
-                    role = "host";
-                    break;
+            // Configure all principal names for participant
+            Set<String> principalNames = userInformation.getPrincipalNames();
+            if (principalNames.size() == 0) {
+                throw new CommandException("User " + userInformation.getFullName() + " has no principal names.");
             }
-
-            userAttributes.add("permission-id", role);
-
-
-            logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.",
-                    userInformation.getFullName(), principalId);
+            for (String principalName : principalNames) {
+                String principalId = createAdobeConnectUser(principalName, userInformation);
+                String role = "remove";
+                switch (participant.getRole()) {
+                    case PARTICIPANT:
+                        role = "view";
+                        break;
+                    case PRESENTER:
+                        role = "mini-host";
+                        break;
+                    case ADMIN:
+                        role = "host";
+                        break;
+                }
+                userAttributes.add("principal-id", principalId);
+                userAttributes.add("permission-id", role);
+                logger.debug("Configuring participant '{}' in the room (principal-id: {}, role: {}).",
+                        new Object[]{userInformation.getFullName(), principalId, role});
+            }
         }
 
         request("permissions-update", userAttributes);
@@ -1270,7 +1273,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
         else {
             logger.debug("Fetching user information by user-original-id '{}'...", userOriginalId);
-            userInformation = (UserInformation) performControllerAction(GetUserInformation.byOriginalId(userOriginalId));
+            userInformation = (UserInformation) performControllerAction(GetUserInformation.byPrincipalName(
+                    userOriginalId));
             cachedUserInformationByOriginalId.put(userOriginalId, userInformation);
         }
         return userInformation;

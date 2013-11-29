@@ -41,8 +41,9 @@ public class ControllerClient extends RpcClient
         if (port == -1) {
             port = 8181;
         }
+        String protocol = url.getProtocol();
         String host = url.getHost();
-        connect(host, port);
+        connect(protocol + "://" + host, port);
     }
 
     /**

@@ -9,8 +9,8 @@ FROM (
     SELECT acl_record.user_id, COUNT(acl_record.id) || ' acl-records' AS description
     FROM acl_record GROUP BY acl_record.user_id
     UNION ALL
-    SELECT person.user_id, COUNT(person.id) || ' persons' AS description
-    FROM person WHERE person.user_id IS NOT NULL GROUP BY person.user_id
+    SELECT abstract_person.user_id, COUNT(abstract_person.id) || ' persons' AS description
+    FROM abstract_person WHERE abstract_person.user_id IS NOT NULL GROUP BY abstract_person.user_id
     UNION ALL
     SELECT resource.user_id, COUNT(resource.user_id) || ' resources' AS description
     FROM resource GROUP BY resource.user_id

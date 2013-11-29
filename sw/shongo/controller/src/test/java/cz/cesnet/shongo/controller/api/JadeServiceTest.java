@@ -55,7 +55,8 @@ public class JadeServiceTest extends AbstractExecutorTest
         cz.cesnet.shongo.controller.Controller controller = getController();
         controller.addNotificationExecutor(notificationExecutor);
         controller.setJadeService(new ServiceImpl(getEntityManagerFactory(),
-                controller.getConfiguration(), controller.getNotificationManager(), getExecutor())
+                controller.getConfiguration(), controller.getNotificationManager(), getExecutor(),
+                controller.getAuthorization())
         {
             @Override
             public Room getRoom(String agentName, String roomId) throws CommandException
@@ -125,7 +126,7 @@ public class JadeServiceTest extends AbstractExecutorTest
                         GetUserInformation.byUserId(Authorization.ROOT_USER_ID));
                 Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
                 UserInformation userInformation = (UserInformation) sendLocalCommand.getResult();
-                Assert.assertEquals(Authorization.ROOT_USER_INFORMATION.getFirstName(), userInformation.getFirstName());
+                Assert.assertEquals(Authorization.ROOT_USER_DATA.getFullName(), userInformation.getFullName());
                 return userInformation;
             }
             else if (command instanceof Mute) {

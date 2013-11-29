@@ -10,6 +10,7 @@
         <put-attribute name="heading" value="title"/>
         <put-attribute name="body" value=""/>
         <put-list-attribute name="css">
+            <add-attribute value="jquery-qtip.min.css"/>
             <add-attribute value="bootstrap.min.css"/>
             <add-attribute value="bootstrap-responsive.min.css"/>
             <add-attribute value="application.css"/>
@@ -17,6 +18,7 @@
         </put-list-attribute>
         <put-list-attribute name="js">
             <add-attribute value="jquery.min.js"/>
+            <add-attribute value="jquery-qtip.min.js"/>
             <add-attribute value="bootstrap.min.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n">
@@ -38,17 +40,17 @@
 
     <definition name="layoutAngularForm" extends="layoutAngular">
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="ui-datetimepicker.css"/>
-            <add-attribute value="ui-select2.css"/>
+            <add-attribute value="bootstrap-datetimepicker.css"/>
+            <add-attribute value="jquery-select2.css"/>
         </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
-            <add-attribute value="ui-datetimepicker.min.js"/>
+            <add-attribute value="bootstrap-datetimepicker.min.js"/>
             <add-attribute value="moment.min.js"/>
-            <add-attribute value="ui-select2.min.js"/>
+            <add-attribute value="jquery-select2.min.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="ui-datetimepicker"/>
-            <add-attribute value="select2"/>
+            <add-attribute value="bootstrap-datetimepicker"/>
+            <add-attribute value="jquery-select2"/>
         </put-list-attribute>
     </definition>
 
@@ -119,7 +121,7 @@
             <add-attribute expression="T(${wizardPageCurrent.titleDescription})"/>
         </put-list-attribute>
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="ui-wizard.css"/>
+            <add-attribute value="application-wizard.css"/>
         </put-list-attribute>
     </definition>
     <definition name="wizardBody" template="/WEB-INF/views/wizard.jsp">
@@ -193,14 +195,14 @@
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="ui-select2.css"/>
+            <add-attribute value="jquery-select2.css"/>
         </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="angular-ui-bootstrap.min.js"/>
-            <add-attribute value="ui-select2.min.js"/>
+            <add-attribute value="jquery-select2.min.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="select2"/>
+            <add-attribute value="jquery-select2"/>
         </put-list-attribute>
     </definition>
 

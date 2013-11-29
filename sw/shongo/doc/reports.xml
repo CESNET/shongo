@@ -491,7 +491,7 @@
         </report>
 
         <report>
-            <id>entity-not-found</id>
+            <id>entity-not-exists</id>
             <classification severity="error"/>
             <params>
                 <param name="entity" type="String"/>
@@ -501,7 +501,7 @@
                 TODO:
             </description>
             <message>
-                Entity ${entity} with identifier ${id} was not found.
+                Entity ${entity} with identifier ${id} doesn't exist.
             </message>
             <example>
                 TODO:
@@ -576,7 +576,7 @@
         </template>
 
         <report>
-            <id>user-not-exist</id>
+            <id>user-not-exists</id>
             <classification severity="error"/>
             <params>
                 <param name="user" type="String"/>
@@ -586,6 +586,80 @@
             </description>
             <message>
                 User ${user} doesn't exist.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>group-not-exists</id>
+            <classification severity="error"/>
+            <params>
+                <param name="group" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Group ${group} doesn't exist.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>group-already-exists</id>
+            <classification severity="error"/>
+            <params>
+                <param name="group" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Group ${group} already exists.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>user-already-in-group</id>
+            <classification severity="error"/>
+            <params>
+                <param name="group" type="String"/>
+                <param name="user" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                User ${user} is already in group ${group}.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>user-not-in-group</id>
+            <classification severity="error"/>
+            <params>
+                <param name="group" type="String"/>
+                <param name="user" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                User ${user} isn't in group ${group}.
             </message>
             <example>
                 TODO:

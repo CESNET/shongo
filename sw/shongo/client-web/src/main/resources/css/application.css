@@ -406,89 +406,36 @@ div.bordered table {
     margin-bottom: 0px;
 }
 
-/* Tooltip */
-.tooltip-label {
-    display: inline-block;
-    cursor: default;
-}
-img.tooltip-label {
-    padding-left: 3px;
-    padding-bottom: 3px;
-}
-.tooltip-label.dotted {
+/** Tooltips */
+span.dotted {
     border-bottom: 1px dotted;
 }
-.tooltip-container {
-    display: inline-block;
-    line-height: 20px;
-}
-.tooltip-container .tooltip-content {
-    position: absolute;
-    display: none;
-    padding: 5px 10px;
-    background-color: #FEFEFE;
-    border: 1px solid #0088cc;
-    border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
-    z-index: 1;
+.qtip-app {
+    border-color: #AAA;
+    background-color: #EEE;
     font-size: 13px;
     font-weight: normal;
     line-height: 20px;
     max-width: 500px;
 }
-.tooltip-container.bottom-left .tooltip-content {
-    margin-top: 10px;
-    margin-left: 3px;
-}
-.tooltip-container.bottom-right .tooltip-content {
-    margin-top: 10px;
-    margin-left: -3px;
-}
-.tooltip-container .tooltip-content:before {
-    content: '';
-    display: inline-block;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 7px solid #ccc;
-    border-bottom-color: #0088cc;
-    position: absolute;
-}
-.tooltip-container.bottom-left .tooltip-content:before {
-    top: -7px;
-    right: 6px;
-}
-.tooltip-container.bottom-right .tooltip-content:before {
-    top: -7px;
-    left: 6px;
-}
-.tooltip-container .tooltip-content:after {
-    content: '';
-    display: inline-block;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 7px solid #ffffff;
-    position: absolute;
-}
-.tooltip-container.bottom-left .tooltip-content:after {
-    top: -6px;
-    right: 7px;
-}
-.tooltip-container.bottom-right .tooltip-content:after {
-    top: -6px;
-    left: 7px;
-}
-.tooltip-container .tooltip-content pre {
+.qtip-app pre {
     border: none;
     background: none;
     margin: 0px;
     padding: 5px;
 }
-.tooltip-container .tooltip-content p {
+.qtip-app p {
     font-size: 13px;
 }
 
 /** Modals */
 .modal.center {
     top: 30%;
+}
+
+/** Other */
+push-top {
+    vertical-align: top;
 }
 
 
@@ -636,7 +583,7 @@ b[class^="icon-"]:before {
 span.aliases.not-available {
     color: #808080;
 }
-.tooltip-content span.aliases.not-available {
+.qtip-app span.aliases.not-available {
     color: red;
     font-weight: bold;
     text-align: center;

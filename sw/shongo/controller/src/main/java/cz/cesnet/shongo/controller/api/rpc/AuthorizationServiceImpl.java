@@ -5,10 +5,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.AclRecord;
-import cz.cesnet.shongo.controller.api.PermissionSet;
-import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
@@ -20,11 +17,10 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
-import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -75,21 +71,116 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         return "Authorization";
     }
 
-    /**
-     * @param entityId      of entity which should be checked for existence
-     * @param entityManager which can be used
-     * @return {@link cz.cesnet.shongo.PersistentObject} for given {@code entityId}
-     * @throws CommonReportSet.EntityNotFoundException
-     *
-     */
-    private PersistentObject checkEntityExistence(EntityIdentifier entityId, EntityManager entityManager)
-            throws CommonReportSet.EntityNotFoundException
+    @Override
+    public ListResponse<UserInformation> listUsers(UserListRequest request)
     {
-        PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
-        if (entity == null) {
-            ControllerReportSetHelper.throwEntityNotFoundFault(entityId);
+        authorization.validate(request.getSecurityToken());
+
+        String search = StringHelper.removeAccents(request.getSearch());
+
+        // Get user-ids
+        Set<String> userIds = request.getUserIds();
+        if (userIds.size() == 0) {
+            userIds = null;
         }
-        return entity;
+
+        // Update user-ids by groups
+        Set<String> groupIds = request.getGroupIds();
+        if (groupIds.size() > 0) {
+            Set<String> groupsUserIds = new HashSet<String>();
+            for (String groupId : groupIds) {
+                groupsUserIds.addAll(authorization.listGroupUserIds(groupId));
+            }
+            if (userIds != null) {
+                userIds.retainAll(groupsUserIds);
+            }
+            else {
+                userIds = groupsUserIds;
+            }
+        }
+
+        // Get users
+        List<UserInformation> users = new LinkedList<UserInformation>();
+        if (userIds != null && userIds.size() < 3) {
+            for (String userId : userIds) {
+                users.add(authorization.getUserInformation(userId));
+            }
+            // Filter them
+            if (search != null) {
+                UserInformation.filter(users, search);
+            }
+        }
+        else {
+            for (UserInformation userInformation : authorization.listUserInformation(search)) {
+                // Filter by user-id
+                if (userIds != null) {
+                    if (!userIds.contains(userInformation.getUserId())) {
+                        continue;
+                    }
+                }
+                users.add(userInformation);
+            }
+        }
+
+        int start = request.getStart(0);
+        int end = start + request.getCount(users.size() - start);
+        ListResponse<UserInformation> response = new ListResponse<UserInformation>();
+        response.setStart(start);
+        response.setCount(end - start);
+        for (UserInformation userInformation : users.subList(start, end)) {
+            response.addItem(userInformation);
+        }
+        return response;
+    }
+
+    @Override
+    public List<Group> listGroups(SecurityToken token)
+    {
+        authorization.validate(token);
+        if (!authorization.isAdmin(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list user groups");
+        }
+        return authorization.listGroups();
+    }
+
+    @Override
+    public String createGroup(SecurityToken token, Group group)
+    {
+        authorization.validate(token);
+        if (!authorization.isAdmin(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create group");
+        }
+        return authorization.createGroup(group);
+    }
+
+    @Override
+    public void deleteGroup(SecurityToken token, String groupId)
+    {
+        authorization.validate(token);
+        if (!authorization.isAdmin(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete group " + groupId);
+        }
+        authorization.deleteGroup(groupId);
+    }
+
+    @Override
+    public void addGroupUser(SecurityToken token, String groupId, String userId)
+    {
+        authorization.validate(token);
+        if (!authorization.isAdmin(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add user to group " + groupId);
+        }
+        authorization.addGroupUser(groupId, userId);
+    }
+
+    @Override
+    public void removeGroupUser(SecurityToken token, String groupId, String userId)
+    {
+        authorization.validate(token);
+        if (!authorization.isAdmin(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("remove user from group " + groupId);
+        }
+        authorization.removeGroupUser(groupId, userId);
     }
 
     @Override
@@ -285,66 +376,6 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ListResponse<UserInformation> listUsers(UserListRequest request)
-    {
-        authorization.validate(request.getSecurityToken());
-
-        // Get users
-        Set<String> userIds = request.getUserIds();
-        if (userIds.size() == 0) {
-            userIds = null;
-        }
-        List<UserInformation> users = new LinkedList<UserInformation>();
-        if (userIds != null && userIds.size() < 3) {
-            for (String userId : userIds) {
-                users.add(authorization.getUserInformation(userId));
-            }
-        }
-        else {
-            for (UserInformation userInformation : authorization.listUserInformation()) {
-                // Filter by user-id
-                if (userIds != null) {
-                    if (!userIds.contains(userInformation.getUserId())) {
-                        continue;
-                    }
-                }
-                users.add(userInformation);
-            }
-        }
-
-        // Filter them
-        String filter = StringHelper.removeAccents(request.getFilter());
-        if (filter != null) {
-            for (Iterator<UserInformation> iterator = users.iterator(); iterator.hasNext(); ) {
-                UserInformation userInformation = iterator.next();
-
-                // Filter by data
-                StringBuilder filterData = new StringBuilder();
-                filterData.append(userInformation.getFirstName());
-                filterData.append(" ");
-                filterData.append(userInformation.getLastName());
-                for (String email : userInformation.getEmails()) {
-                    filterData.append(email);
-                }
-                filterData.append(userInformation.getOrganization());
-                if (!StringUtils.containsIgnoreCase(StringHelper.removeAccents(filterData.toString()), filter)) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        int start = request.getStart(0);
-        int end = start + request.getCount(users.size() - start);
-        ListResponse<UserInformation> response = new ListResponse<UserInformation>();
-        response.setStart(start);
-        response.setCount(end - start);
-        for (UserInformation userInformation : users.subList(start, end)) {
-            response.addItem(userInformation);
-        }
-        return response;
-    }
-
-    @Override
     public void setEntityUser(SecurityToken securityToken, String entityId, String newUserId)
     {
         authorization.validate(securityToken);
@@ -356,7 +387,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
                     entityIdentifier.getPersistenceId());
             if (entity == null) {
-                ControllerReportSetHelper.throwEntityNotFoundFault(entityIdentifier);
+                ControllerReportSetHelper.throwEntityNotExistFault(entityIdentifier);
             }
             if (!authorization.isAdmin(securityToken)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user for %s", entityId);
@@ -419,20 +450,10 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
-        cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
-                authorization.getUserSessionSettings(securityToken);
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
-            UserSettings userSettingsApi = new UserSettings();
-            userSettingsApi.setAdminMode(userSessionSettings.getAdminMode());
-
-            cz.cesnet.shongo.controller.settings.UserSettings userSettings =
-                    UserSettingsProvider.getUserSettings(securityToken.getUserId(), entityManager);
-            if (userSettings != null) {
-                userSettings.toApi(userSettingsApi);
-            }
-            return userSettingsApi;
+            return userSettingsManager.getUserSettings(securityToken);
         }
         finally {
             entityManager.close();
@@ -444,26 +465,13 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
-        cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
-                authorization.getUserSessionSettings(securityToken);
-
-        // Update adminMode settings only when it is available (i.e., it is not null)
-        if (userSessionSettings.getAdminMode() != null) {
-            userSessionSettings.setAdminMode(userSettingsApi.getAdminMode());
-            authorization.updateUserSessionSettings(userSessionSettings);
-        }
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         try {
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.settings.UserSettings userSettings =
-                    UserSettingsProvider.getUserSettings(securityToken.getUserId(), entityManager);
-            if (userSettings == null) {
-                userSettings = new cz.cesnet.shongo.controller.settings.UserSettings();
-                userSettings.setUserId(securityToken.getUserId());
-            }
-            userSettings.fromApi(userSettingsApi);
-            entityManager.persist(userSettings);
+
+            userSettingsManager.updateUserSettings(securityToken, userSettingsApi);
+
             entityManager.getTransaction().commit();
         }
         finally {
@@ -569,5 +577,22 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
+    }
+
+    /**
+     * @param entityId      of entity which should be checked for existence
+     * @param entityManager which can be used
+     * @return {@link cz.cesnet.shongo.PersistentObject} for given {@code entityId}
+     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     *
+     */
+    private PersistentObject checkEntityExistence(EntityIdentifier entityId, EntityManager entityManager)
+            throws CommonReportSet.EntityNotExistsException
+    {
+        PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+        if (entity == null) {
+            ControllerReportSetHelper.throwEntityNotExistFault(entityId);
+        }
+        return entity;
     }
 }

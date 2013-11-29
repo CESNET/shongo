@@ -23,14 +23,24 @@ public class UserSettings extends SimplePersistentObject
     private String userId;
 
     /**
+     * Specifies whether main attributes ({@link #locale}) should be loaded from user web service.
+     */
+    private boolean useWebService;
+
+    /**
      * Preferred locale.
      */
     private Locale locale;
 
     /**
-     * {@link DateTimeZone} of the user.
+     * Home {@link DateTimeZone} of the user.
      */
-    private DateTimeZone timeZone;
+    private DateTimeZone homeTimeZone;
+
+    /**
+     * Current {@link DateTimeZone} of the user (e.g., when travelling).
+     */
+    private DateTimeZone currentTimeZone;
 
     /**
      * Other custom user settings attributes which should be globally stored.
@@ -55,6 +65,23 @@ public class UserSettings extends SimplePersistentObject
     }
 
     /**
+     * @return {@link #useWebService}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isUseWebService()
+    {
+        return useWebService;
+    }
+
+    /**
+     * @param useWebService sets the {@link #useWebService}
+     */
+    public void setUseWebService(boolean useWebService)
+    {
+        this.useWebService = useWebService;
+    }
+
+    /**
      * @return {@link #locale}
      */
     @Column
@@ -74,22 +101,41 @@ public class UserSettings extends SimplePersistentObject
     }
 
     /**
-     * @return {@link #timeZone}
+     * @return {@link #homeTimeZone}
      */
     @Column
     @Type(type = "DateTimeZone")
     @Access(AccessType.FIELD)
-    public DateTimeZone getTimeZone()
+    public DateTimeZone getHomeTimeZone()
     {
-        return timeZone;
+        return homeTimeZone;
     }
 
     /**
-     * @param timeZone sets the {@link #timeZone}
+     * @param homeTimeZone sets the {@link #homeTimeZone}
      */
-    public void setTimeZone(DateTimeZone timeZone)
+    public void setHomeTimeZone(DateTimeZone homeTimeZone)
     {
-        this.timeZone = timeZone;
+        this.homeTimeZone = homeTimeZone;
+    }
+
+    /**
+     * @return {@link #currentTimeZone}
+     */
+    @Column
+    @Type(type = "DateTimeZone")
+    @Access(AccessType.FIELD)
+    public DateTimeZone getCurrentTimeZone()
+    {
+        return currentTimeZone;
+    }
+
+    /**
+     * @param currentTimeZone sets the {@link #currentTimeZone}
+     */
+    public void setCurrentTimeZone(DateTimeZone currentTimeZone)
+    {
+        this.currentTimeZone = currentTimeZone;
     }
 
     /**
@@ -111,8 +157,10 @@ public class UserSettings extends SimplePersistentObject
      */
     public void fromApi(cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
     {
+        setUseWebService(userSettingsApi.isUseWebService());
         setLocale(userSettingsApi.getLocale());
-        setTimeZone(userSettingsApi.getTimeZone());
+        setHomeTimeZone(userSettingsApi.getHomeTimeZone());
+        setCurrentTimeZone(userSettingsApi.getCurrentTimeZone());
         attributes.clear();
         for (Map.Entry<String, String> attribute : userSettingsApi.getAttributes().entrySet()) {
             String attributeName = attribute.getKey();
@@ -130,8 +178,10 @@ public class UserSettings extends SimplePersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
     {
+        userSettingsApi.setUseWebService(isUseWebService());
         userSettingsApi.setLocale(getLocale());
-        userSettingsApi.setTimeZone(getTimeZone());
+        userSettingsApi.setHomeTimeZone(getHomeTimeZone());
+        userSettingsApi.setCurrentTimeZone(getCurrentTimeZone());
         for (Map.Entry<String, String> attribute : attributes.entrySet()) {
             userSettingsApi.setAttribute(attribute.getKey(), attribute.getValue());
         }

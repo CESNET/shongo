@@ -178,7 +178,7 @@ public abstract class Executable extends ExecutionTarget
                 return service;
             }
         }
-        throw new CommonReportSet.EntityNotFoundException(
+        throw new CommonReportSet.EntityNotExistsException(
                 ExecutableService.class.getSimpleName(), serviceId.toString());
     }
 

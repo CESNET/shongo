@@ -84,7 +84,7 @@ sub update_url()
         $url = $url . ":8181";
     }
     # Prepend http:// if not presented
-    if ( !($url =~ /^http:\/\// ) ) {
+    if ( !($url =~ /^http(s)?:\/\// ) ) {
         $url = 'http://' . $url;
     }
     return $url;
@@ -108,17 +108,14 @@ sub connect()
 {
     my ($self, $url) = @_;
 
-    # Append default port if not presented
-    if ( !($url =~ /.+:[0-9]+$/ ) ) {
-        $url = $url . ":8181";
-    }
-    # Prepend http:// if not presented
-    if ( !($url =~ /^http:\/\// ) ) {
-        $url = 'http://' . $url;
-    }
-
     $self->{'controller-url'} = $url;
-    $self->{'controller-client'} = RPC::XML::Client->new($url);
+    $self->{'controller-client'} = RPC::XML::Client->new($url,
+        useragent => [
+            ssl_opts => {
+                SSL_verify_mode => 'SSL_VERIFY_NONE',
+            },
+        ]
+    );
 }
 
 #

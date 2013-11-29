@@ -31,10 +31,50 @@ sub populate()
         },
         'list-users' => {
             desc => 'List users',
-            args => '<filter>',
+            options => 'group=s',
+            args => '[-group=<group-id>] [<filter>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                list_users(@args);
+                list_users($params->{'options'}, @args);
+            }
+        },
+        'list-groups' => {
+            desc => 'List user groups',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_groups();
+            }
+        },
+        'create-group' => {
+            desc => 'Create user group',
+            args => '<name> <description>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                create_group(@args);
+            }
+        },
+        'delete-group' => {
+            desc => 'Delete user group',
+            args => '<group-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                delete_group(@args);
+            }
+        },
+        'add-group-user' => {
+            desc => 'Add user to group',
+            args => '<group-id> <user-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                add_group_user(@args);
+            }
+        },
+        'remove-group-user' => {
+            desc => 'Remove user from group',
+            args => '<group-id> <user-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                remove_group_user(@args);
             }
         },
         'create-acl' => {
@@ -121,20 +161,24 @@ sub get_user()
         my $object = Shongo::ClientCli::API::Object->new();
         $object->set_object_name('User Information');
         $object->add_attribute('User ID', {}, $user->{'userId'});
-        $object->add_attribute('Original ID', {}, $user->{'originalId'});
+        $object->add_attribute('Principal Names', {'type' => 'collection'}, $user->{'principalNames'});
         $object->add_attribute('First Name', {}, $user->{'firstName'});
         $object->add_attribute('Last Name', {}, $user->{'lastName'});
         $object->add_attribute('Email', {}, $user->{'emails'});
+        $object->add_attribute('Organization', {}, $user->{'organization'});
         console_print_text($object);
     }
 }
 
 sub list_users()
 {
-    my (@args) = @_;
+    my ($options, @args) = @_;
     my $request = {};
     if ( scalar(@args) >= 1 ) {
         $request->{'filter'} = $args[0];
+    }
+    if ( defined($options->{'group'}) ) {
+        $request->{'groupIds'} = [$options->{'group'}];
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Authorization.listUsers', $request);
@@ -144,7 +188,6 @@ sub list_users()
     my $table = {
         'columns' => [
             {'field' => 'userId',   'title' => 'User ID'},
-            {'field' => 'originalId', 'title' => 'Original ID'},
             {'field' => 'name',   'title' => 'Name'},
             {'field' => 'email',   'title' => 'Email'},
         ],
@@ -152,21 +195,107 @@ sub list_users()
     };
     foreach my $record (@{$response->{'items'}}) {
         my $email = '';
-        if ( scalar(@{$record->{'emails'}}) > 0 ) {
-            $email = $record->{'emails'}->[0];
-        }
-        my $originalId = $record->{'originalId'};
-        if ( length($originalId) > 30 ) {
-            $originalId = substr($originalId, 0, 30) . '...';
+        if ( defined($record->{'email'}) ) {
+            $email = $record->{'email'};
         }
         push(@{$table->{'data'}}, {
             'userId' => $record->{'userId'},
-            'originalId' => $originalId,
             'name' => $record->{'firstName'} . ' ' . $record->{'lastName'},
             'email' => $email
         });
     }
     console_print_table($table);
+}
+
+sub list_groups()
+{
+    my (@args) = @_;
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Authorization.listGroups');
+    if ( !defined($response) ) {
+        return;
+    }
+    my $table = {
+        'columns' => [
+            {'field' => 'id',          'title' => 'ID'},
+            {'field' => 'parentId',    'title' => 'Parent ID'},
+            {'field' => 'name',        'title' => 'Name'},
+            {'field' => 'description', 'title' => 'Description'},
+        ],
+        'data' => []
+    };
+    foreach my $record (@{$response}) {
+        push(@{$table->{'data'}}, {
+            'id' => $record->{'id'},
+            'parentId' => $record->{'parentId'},
+            'name' => $record->{'name'},
+            'description' => $record->{'description'}
+        });
+    }
+    console_print_table($table);
+}
+
+sub create_group()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<name> <description>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.createGroup', {
+        'name' => RPC::XML::string->new($args[0]),
+        'description' => RPC::XML::string->new($args[1])
+    });
+    if ( defined($response) && !ref($response) ) {
+        console_print_info("Group '%s' has been created.", $response);
+    }
+}
+
+sub delete_group()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 1 ) {
+        console_print_error("Argument '<group-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.deleteGroup',
+        RPC::XML::string->new($args[0])
+    );
+    if ( defined($response) ) {
+        console_print_info("Group '%s' has been deleted.", $args[0]);
+    }
+}
+
+sub add_group_user()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<group-id> <user-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.addGroupUser',
+        RPC::XML::string->new($args[0]),
+        RPC::XML::string->new($args[1])
+    );
+    if ( defined($response) ) {
+        console_print_info("User '%s' has been added to group '%s'.", $args[1], $args[0]);
+    }
+}
+
+sub remove_group_user()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<group-id> <user-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.removeGroupUser',
+        RPC::XML::string->new($args[0]),
+        RPC::XML::string->new($args[1])
+    );
+    if ( defined($response) ) {
+        console_print_info("User '%s' has been removed from group '%s'.", $args[1], $args[0]);
+    }
 }
 
 sub create_acl()

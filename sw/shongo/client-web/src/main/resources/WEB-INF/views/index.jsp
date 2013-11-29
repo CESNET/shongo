@@ -168,8 +168,8 @@
                 <thead>
                 <tr>
                     <th>
-                        <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort><%--
-                        --%><tag:help>
+                        <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort>
+                        <tag:help selectable="true">
                             <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></strong>
                             <p><spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/></p>
                             <strong><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></strong>
@@ -188,7 +188,8 @@
                         <pagination-sort column="SLOT"><spring:message code="views.reservationRequestList.slot"/></pagination-sort>
                     </th>
                     <th width="200px">
-                        <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
+                        <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort>
+                        <tag:helpReservationRequestState/>
                     </th>
                     <th style="min-width: 85px; width: 85px;">
                         <spring:message code="views.list.action"/>
@@ -211,16 +212,13 @@
                         <span ng-bind-html="reservationRequest.earliestSlot"></span>
                         <span ng-show="reservationRequest.futureSlotCount">
                             <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
-                            <tag:help label="(${slotMore})"
-                                      style="vertical-align: top;"
-                                      tooltipId="reservationRequest-slot-tooltip-{{$index}}">
+                            <tag:help label="(${slotMore})" cssClass="push-top">
                                 <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                             </tag:help>
                         </span>
                     </td>
                     <td class="reservation-request-state">
-                        <tag:help label="{{reservationRequest.stateMessage}}" labelClass="{{reservationRequest.state}}"
-                                  tooltipId="reservationRequest-state-tooltip-{{$index}}">
+                        <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
                             <span>{{reservationRequest.stateHelp}}</span>
                         </tag:help>
                     </td>
@@ -259,7 +257,7 @@
                                     <span ng-show="capacity.futureSlotCount">
                                         (<spring:message code="views.reservationRequestList.slotMore" arguments="{{capacity.futureSlotCount}}"/>)
                                     </span>
-                                    <span class="reservation-request-state">(<tag:help label="{{capacity.stateMessage}}" labelClass="{{capacity.state}}" tooltipId="capacity-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{capacity.stateHelp}}</span></tag:help>)</span>
+                                    <span class="reservation-request-state">(<tag:help label="{{capacity.stateMessage}}" cssClass="{{capacity.state}}"><span>{{capacity.stateHelp}}</span></tag:help>)</span>
                                 </li>
                                 <li ng-show="count > items.length">
                                     <a href="${reservationRequestDetailUrl}" tabindex="2">

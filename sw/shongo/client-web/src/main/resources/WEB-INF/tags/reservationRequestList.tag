@@ -90,7 +90,8 @@
                 <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="STATE">
-                <spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
+                <spring:message code="views.reservationRequest.state"/></pagination-sort>
+                <tag:helpReservationRequestState/>
             </th>
             <c:if test="${detailed}">
                 <th style="min-width: 75px;">
@@ -123,17 +124,13 @@
                 <span ng-bind-html="html(reservationRequest.earliestSlotMultiLine)"></span>
                 <span ng-show="reservationRequest.futureSlotCount">
                     <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
-                    <tag:help label="(${slotMore})"
-                              style="vertical-align: top;"
-                              tooltipId="${listName}-slot-tooltip-{{$index}}">
+                    <tag:help label="(${slotMore})" cssClass="push-top">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>
             </td>
             <td class="reservation-request-state">
-                <tag:help label="{{reservationRequest.stateMessage}}"
-                          labelClass="{{reservationRequest.state}}"
-                          tooltipId="${listName}-state-tooltip-{{$index}}">
+                <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
                     <span>{{reservationRequest.stateHelp}}</span>
                 </tag:help>
             </td>

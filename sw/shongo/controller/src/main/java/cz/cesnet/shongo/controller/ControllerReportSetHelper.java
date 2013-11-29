@@ -11,21 +11,21 @@ import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 public class ControllerReportSetHelper
 {
     /**
-     * @throws {@link CommonReportSet.EntityNotFoundException}
+     * @throws {@link cz.cesnet.shongo.CommonReportSet.EntityNotExistsException}
      */
-    public static <T> T throwEntityNotFoundFault(EntityIdentifier entityId)
-            throws CommonReportSet.EntityNotFoundException
+    public static <T> T throwEntityNotExistFault(EntityIdentifier entityId)
+            throws CommonReportSet.EntityNotExistsException
     {
-        throw new CommonReportSet.EntityNotFoundException(entityId.getEntityClass().getSimpleName(), entityId.toId());
+        throw new CommonReportSet.EntityNotExistsException(entityId.getEntityClass().getSimpleName(), entityId.toId());
     }
 
     /**
-     * @throws {@link CommonReportSet.EntityNotFoundException}
+     * @throws {@link cz.cesnet.shongo.CommonReportSet.EntityNotExistsException}
      */
-    public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId)
-            throws CommonReportSet.EntityNotFoundException
+    public static <T> T throwEntityNotExistFault(Class entityType, Long entityId)
+            throws CommonReportSet.EntityNotExistsException
     {
-        throw new CommonReportSet.EntityNotFoundException(entityType.getSimpleName(),
+        throw new CommonReportSet.EntityNotExistsException(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }

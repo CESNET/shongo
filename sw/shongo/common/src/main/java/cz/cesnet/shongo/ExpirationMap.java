@@ -127,6 +127,23 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
+     * Removes all entries with given {@code value}.
+     *
+     * @param value
+     */
+    public void removeByValue(V value)
+    {
+        Iterator<Map.Entry<K, Entry<V>>> iterator = entries.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<K, Entry<V>> itemEntry = iterator.next();
+            Entry<V> entry = itemEntry.getValue();
+            if (entry.value.equals(value)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
      * @return number of added keys
      */
     public synchronized int size()

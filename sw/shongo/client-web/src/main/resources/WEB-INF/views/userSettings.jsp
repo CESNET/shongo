@@ -10,6 +10,8 @@
 <c:set var="tabIndex" value="1"/>
 <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 
+<c:url var="webServiceUrl" value="https://einfra.cesnet.cz/"/>
+
 <script type="text/javascript">
     angular.module('jsp:userSettings', ['ngTooltip']);
 </script>
@@ -19,8 +21,11 @@
            method="post"
            ng-app="jsp:userSettings"
            ng-init="
+                useWebService = ${userSettings.useWebService};
                 locale = '${userSettings.locale}';
-                timeZone = '${userSettings.timeZone}';
+                homeTimeZone = '${userSettings.homeTimeZone}';
+                currentTimeZone = '${userSettings.currentTimeZone}';
+                currentTimeZoneEnabled = ${userSettings.currentTimeZoneEnabled};
            ">
 
     <fieldset>
@@ -31,65 +36,105 @@
             </label>
             <div class="controls double-width">
                 <security:authentication property="principal" var="principal"/>
-                <input id="user" type="text" readonly="true" value="${principal.fullName} (${principal.originalId})"/>
+                <input id="user" type="text" readonly="true" value="${principal.fullName} (${principal.organization})"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="useWebService">
+                <spring:message code="views.userSettings.useWebService" var="useWebServiceLabel"/>
+                <tag:help label="${useWebServiceLabel}:">
+                    <spring:message code="views.userSettings.useWebService.help" arguments="${webServiceUrl}"/>
+                </tag:help>
+            </form:label>
+            <div class="controls">
+                <form:checkbox path="useWebService" tabindex="${tabIndex}" ng-model="useWebService"/>&nbsp
+                <a class="btn" href="${webServiceUrl}" target="_blank"><spring:message code="views.userSettings.useWebService.edit"/></a>
             </div>
         </div>
 
         <div class="control-group">
             <form:label class="control-label" path="locale">
-                <spring:message code="views.userSettings.locale"/>:
+                <spring:message code="views.userSettings.locale" var="localeLabel"/>
+                <tag:help label="${localeLabel}:">
+                    <spring:message code="views.userSettings.locale.help"/>
+                </tag:help>
             </form:label>
             <div class="controls">
-                <form:select path="locale" tabindex="${tabIndex}" ng-model="locale">
+                <form:select path="locale" tabindex="${tabIndex}" ng-model="locale" ng-disabled="useWebService">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <form:option value="en">English</form:option>
                     <form:option value="cs">Čeština</form:option>
                 </form:select>&nbsp;
-                <tag:help><spring:message code="views.userSettings.locale.help"/></tag:help>
                 <br/>
-                <div ng-show="locale == ''">
+                <div ng-show="!useWebService && locale == ''">
                     <form:checkbox path="localeDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.localeDefaultWarning"/>
                 </div>
             </div>
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="timeZone">
-                <spring:message code="views.userSettings.timeZone"/>:
+            <form:label class="control-label" path="homeTimeZone">
+                <spring:message code="views.userSettings.homeTimeZone" var="homeTimeZoneLabel"/>
+                <tag:help label="${homeTimeZoneLabel}:">
+                    <spring:message code="views.userSettings.homeTimeZone.help"/>
+                </tag:help>
             </form:label>
             <div class="controls">
-                <form:select path="timeZone" cssStyle="width: 500px;" tabindex="${tabIndex}" ng-model="timeZone">
+                <form:select path="homeTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}" ng-model="homeTimeZone">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                     </c:forEach>
                 </form:select>&nbsp;
-                <tag:help><spring:message code="views.userSettings.timeZone.help"/></tag:help>
                 <br/>
-                <div ng-show="timeZone == ''">
+                <div ng-show="homeTimeZone == '' && (!currentTimeZoneEnabled || currentTimeZone == '')">
                     <form:checkbox path="timeZoneDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.timeZoneDefaultWarning"/>
                 </div>
             </div>
         </div>
 
         <div class="control-group">
+            <form:label class="control-label" path="currentTimeZoneEnabled">
+                <form:checkbox id="currentTimeZoneEnabled" path="currentTimeZoneEnabled" tabindex="${tabIndex}" ng-model="currentTimeZoneEnabled"/>
+                <spring:message code="views.userSettings.currentTimeZone" var="currentTimeZoneLabel"/>
+                <tag:help label="${currentTimeZoneLabel}:">
+                    <spring:message code="views.userSettings.currentTimeZone.help"/>
+                </tag:help>
+
+            </form:label>
+            <div class="controls">
+                <form:select path="currentTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}" ng-disabled="!currentTimeZoneEnabled" ng-model="currentTimeZone">
+                    <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
+                    <c:forEach items="${timeZones}" var="timeZone">
+                        <form:option value="${timeZone.key}">${timeZone.value}</form:option>
+                    </c:forEach>
+                </form:select>
+            </div>
+        </div>
+
+        <div class="control-group">
             <form:label class="control-label" path="advancedUserInterface">
-                <spring:message code="views.userSettings.advancedUserInterface"/>:
+                <spring:message code="views.userSettings.advancedUserInterface" var="advancedUserInterfaceLabel"/>
+                <tag:help label="${advancedUserInterfaceLabel}:">
+                    <spring:message code="views.userSettings.advancedUserInterface.help"/>
+                </tag:help>
             </form:label>
             <div class="controls">
                 <form:checkbox path="advancedUserInterface" tabindex="${tabIndex}"/>&nbsp;
-                <tag:help><spring:message code="views.userSettings.advancedUserInterface.help"/></tag:help>
             </div>
         </div>
 
         <c:if test="${userSettings.adminModeAvailable}">
             <div class="control-group">
                 <form:label class="control-label" path="adminMode">
-                    <spring:message code="views.userSettings.adminMode"/>:
+                    <spring:message code="views.userSettings.adminMode" var="adminModeLabel"/>
+                    <tag:help label="${adminModeLabel}:">
+                        <spring:message code="views.userSettings.adminMode.help"/>
+                    </tag:help>
                 </form:label>
                 <div class="controls">
                     <form:checkbox path="adminMode" tabindex="${tabIndex}"/>&nbsp;
-                    <tag:help><spring:message code="views.userSettings.adminMode.help"/></tag:help>
                 </div>
             </div>
         </c:if>

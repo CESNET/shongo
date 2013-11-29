@@ -4,7 +4,9 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -40,6 +42,11 @@ public class UserSession implements Serializable
      * Current session {@link DateTimeZone}.
      */
     private DateTimeZone timeZone;
+
+    /**
+     * Home {@link DateTimeZone}.
+     */
+    private DateTimeZone homeTimeZone;
 
     /**
      * @see UserSettingsModel#timeZoneDefaultWarning
@@ -105,11 +112,33 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @return {@link Duration} between {@link #timeZone} and {@link #homeTimeZone}
+     */
+    public Duration getTimeZoneOffset()
+    {
+        if (homeTimeZone != null && timeZone != null) {
+            DateTime dateTime = DateTime.now();
+            return Duration.millis(timeZone.getOffset(dateTime) - homeTimeZone.getOffset(dateTime));
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * @param timeZone sets the {@link #timeZone}
      */
     public void setTimeZone(DateTimeZone timeZone)
     {
         this.timeZone = timeZone;
+    }
+
+    /**
+     * @return {@link #homeTimeZone}
+     */
+    public DateTimeZone getHomeTimeZone()
+    {
+        return homeTimeZone;
     }
 
     /**
@@ -186,20 +215,28 @@ public class UserSession implements Serializable
     public void loadUserSettings(UserSettingsModel userSettings, HttpServletRequest request,
             SecurityToken securityToken)
     {
-        if (userSettings.getLocale() != null) {
-            setLocale(userSettings.getLocale());
+        Locale locale = userSettings.getLocale();
+        if (locale != null) {
+            setLocale(locale);
             localeDefaultWarning = false;
         }
         else {
             localeDefaultWarning = userSettings.isLocaleDefaultWarning();
         }
-        if (userSettings.getTimeZone() != null) {
-            setTimeZone(userSettings.getTimeZone());
+
+        homeTimeZone = userSettings.getHomeTimeZone();
+        DateTimeZone timeZone = userSettings.getCurrentTimeZone();
+        if (timeZone == null) {
+            timeZone = homeTimeZone;
+        }
+        if (timeZone != null) {
+            setTimeZone(timeZone);
             timeZoneDefaultWarning = false;
         }
         else {
             timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
         }
+
         adminMode = (userSettings.isAdminModeAvailable() ? userSettings.isAdminMode() : null);
         userInterface = userSettings.getUserInterface();
         userInterfaceSelected = userSettings.isUserInterfaceSelected();

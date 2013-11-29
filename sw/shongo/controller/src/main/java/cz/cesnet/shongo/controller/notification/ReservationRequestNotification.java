@@ -46,7 +46,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
     public ReservationRequestNotification(AbstractReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
-        super(authorizationManager.getUserSettingsProvider(), configuration);
+        super(authorizationManager.getUserSettingsManager(), configuration);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 

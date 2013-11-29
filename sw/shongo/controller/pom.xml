@@ -16,6 +16,10 @@
     <description>Domain controller implementation for Shongo resource management system.</description>
     <packaging>jar</packaging>
 
+    <properties>
+        <jetty.version>8.1.11.v20130520</jetty.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
@@ -88,6 +92,17 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Jetty dependencies (for XML-RPC web server) -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
 
         <!-- Graph-theory objects and algorithms -->

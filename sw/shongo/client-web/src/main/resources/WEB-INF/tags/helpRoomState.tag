@@ -13,9 +13,9 @@
     --%><c:set var="roomType">${roomType}.</c:set><%--
 --%></c:if>
 <%----%><%--
---%><tag:help position="bottom-left"><%--
+--%><tag:help position="bottom-left" selectable="true"><%--
     --%><div class="room-state"><%--
-        --%><table><%--
+        --%><table class="table table-striped"><%--
             --%><c:forEach items="NOT_STARTED,STARTED,STARTED_NOT_AVAILABLE,STARTED_AVAILABLE,STOPPED,FAILED" var="state"><%--
                 --%><tr><%--
                     --%><td class="${state}"><spring:message code="views.executable.roomState.${roomType}${state}"/></td><%--

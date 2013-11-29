@@ -47,7 +47,15 @@
             value = dateTimeFormatter.formatInterval((Interval) value);
         }
     }
-    else {
+    else if (value instanceof Duration) {
+        if (style != null && style.equals("time")) {
+            value = dateTimeFormatter.formatDurationTime((Duration) value);
+        }
+        else {
+            value = dateTimeFormatter.formatDuration((Duration) value);
+        }
+    }
+    else if (value != null) {
         throw new TodoImplementException(value.getClass());
     }
     jspContext.setAttribute("value", value);

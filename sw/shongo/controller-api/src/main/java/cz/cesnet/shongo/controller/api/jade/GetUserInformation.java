@@ -10,7 +10,7 @@ public class GetUserInformation extends ControllerCommand
 {
     private String userId;
 
-    private String originalId;
+    private String principalName;
 
     public GetUserInformation()
     {
@@ -23,10 +23,10 @@ public class GetUserInformation extends ControllerCommand
         return getUserInformation;
     }
 
-    public static GetUserInformation byOriginalId(String originalId)
+    public static GetUserInformation byPrincipalName(String principalName)
     {
         GetUserInformation getUserInformation = new GetUserInformation();
-        getUserInformation.setOriginalId(originalId);
+        getUserInformation.setPrincipalName(principalName);
         return getUserInformation;
     }
 
@@ -40,14 +40,14 @@ public class GetUserInformation extends ControllerCommand
         this.userId = userId;
     }
 
-    public String getOriginalId()
+    public String getPrincipalName()
     {
-        return originalId;
+        return principalName;
     }
 
-    public void setOriginalId(String originalId)
+    public void setPrincipalName(String principalName)
     {
-        this.originalId = originalId;
+        this.principalName = principalName;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class GetUserInformation extends ControllerCommand
             return commonService.getUserInformation(userId);
         }
         else {
-            return commonService.getUserInformationByOriginalId(originalId);
+            return commonService.getUserInformationByPrincipalName(principalName);
         }
     }
 
@@ -68,7 +68,7 @@ public class GetUserInformation extends ControllerCommand
             return String.format(GetUserInformation.class.getSimpleName() + " (userId: %s)", userId);
         }
         else {
-            return String.format(GetUserInformation.class.getSimpleName() + " (originalId: %s)", originalId);
+            return String.format(GetUserInformation.class.getSimpleName() + " (principalName: %s)", principalName);
         }
     }
 }

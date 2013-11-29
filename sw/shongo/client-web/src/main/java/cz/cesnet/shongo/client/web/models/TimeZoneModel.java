@@ -135,4 +135,14 @@ public class TimeZoneModel
     {
         return TIME_ZONE_FORMATTER.withZone(timeZone).print(DateTime.now());
     }
+
+    /**
+     * @param timeZone
+     * @param locale
+     * @return name for given {@code timeZone} and {@code name}
+     */
+    public static String formatTimeZoneName(DateTimeZone timeZone, Locale locale)
+    {
+        return getTimeZones(locale).get(timeZone);
+    }
 }

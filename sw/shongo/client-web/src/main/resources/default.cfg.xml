@@ -29,7 +29,7 @@
     <!-- Authorization -->
     <security>
         <!-- AA server -->
-        <server>https://shongo-auth-dev.cesnet.cz/rc</server>
+        <server>https://shongo-auth-dev.cesnet.cz/testing</server>
         <!-- Client ID and secret and redirect URI for AA server  -->
         <client-id>shongo-client-web</client-id>
         <client-secret>testclientsecret</client-secret>

@@ -75,9 +75,7 @@
             </td>
             <td>{{usage.roomParticipantCount}}</td>
             <td class="reservation-request-state">
-                <tag:help label="{{usage.stateMessage}}"
-                          labelClass="{{usage.state}}"
-                          tooltipId="reservationState-tooltip-{{$index}}">
+                <tag:help label="{{usage.stateMessage}}" cssClass="{{usage.state}}">
                     <span>{{usage.stateHelp}}</span>
                 </tag:help>
             </td>

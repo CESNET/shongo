@@ -19,7 +19,12 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public final static String USER_INTERFACE_ATTRIBUTE = "client-web.userInterface";
     public final static String USER_INTERFACE_SELECTED_ATTRIBUTE = "client-web.userInterfaceSelected";
     public final static String IGNORE_DEFAULT_LOCALE_ATTRIBUTE = "client-web.ignoreDefault.locale";
-    public final static String IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE = "client-web.ignoreDefault.timeZone";
+    public final static String IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE = "client-web.ignoreDefault.homeTimeZone";
+
+    /**
+     * @see UserSettings#useWebService
+     */
+    private boolean useWebService;
 
     /**
      * @see {@link UserSession#locale}
@@ -32,22 +37,37 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     private boolean localeDefaultWarning;
 
     /**
-     * @see {@link UserSession#timeZone}
+     * @see UserSettings#homeTimeZone
      */
-    private DateTimeZone timeZone;
+    private DateTimeZone homeTimeZone;
 
     /**
-     * Specifies whether warning about default {@link #timeZone} should be displayed.
+     * @see UserSettings#currentTimeZone
+     */
+    private DateTimeZone currentTimeZone;
+
+    /**
+     * Specifies whether {@link #currentTimeZone} is not {@code null} and differs from {@link #homeTimeZone}.
+     */
+    private boolean currentTimeZoneEnabled;
+
+    /**
+     * Specifies whether warning about default time zone should be displayed.
      */
     private boolean timeZoneDefaultWarning;
 
     /**
-     * Specifies whether current session is in {@link UserSettings#adminMode}.
+     * @see UserSettings#adminMode
      */
-    private Boolean adminMode;
+    private boolean adminMode;
 
     /**
-     * @see {@link #IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE}
+     * Specifies whether {@link #adminMode} can be set for the user.
+     */
+    private boolean adminModeAvailable;
+
+    /**
+     * @see {@link #IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE}
      */
     private UserInterface userInterface;
 
@@ -59,11 +79,27 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     /**
      * Constructor.
      *
-     * @param userSettings to construct this {@link UserSettingsModel} from
+     * @param userSettings to load from
      */
     public UserSettingsModel(UserSettings userSettings)
     {
         fromApi(userSettings);
+    }
+
+    /**
+     * @return {@link #useWebService}
+     */
+    public boolean isUseWebService()
+    {
+        return useWebService;
+    }
+
+    /**
+     * @param useWebService sets the {@link #useWebService}
+     */
+    public void setUseWebService(boolean useWebService)
+    {
+        this.useWebService = useWebService;
     }
 
     /**
@@ -99,19 +135,51 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * @return {@link #timeZone}
+     * @return {@link #homeTimeZone}
      */
-    public DateTimeZone getTimeZone()
+    public DateTimeZone getHomeTimeZone()
     {
-        return timeZone;
+        return homeTimeZone;
     }
 
     /**
-     * @param timeZone sets the {@link #timeZone}
+     * @param homeTimeZone sets the {@link #homeTimeZone}
      */
-    public void setTimeZone(DateTimeZone timeZone)
+    public void setHomeTimeZone(DateTimeZone homeTimeZone)
     {
-        this.timeZone = timeZone;
+        this.homeTimeZone = homeTimeZone;
+    }
+
+    /**
+     * @return {@link #currentTimeZoneEnabled}
+     */
+    public boolean isCurrentTimeZoneEnabled()
+    {
+        return currentTimeZoneEnabled;
+    }
+
+    /**
+     * @param currentTimeZoneEnabled sets the {@link #currentTimeZoneEnabled}
+     */
+    public void setCurrentTimeZoneEnabled(boolean currentTimeZoneEnabled)
+    {
+        this.currentTimeZoneEnabled = currentTimeZoneEnabled;
+    }
+
+    /**
+     * @return {@link #currentTimeZone}
+     */
+    public DateTimeZone getCurrentTimeZone()
+    {
+        return currentTimeZone;
+    }
+
+    /**
+     * @param currentTimeZone sets the {@link #currentTimeZone}
+     */
+    public void setCurrentTimeZone(DateTimeZone currentTimeZone)
+    {
+        this.currentTimeZone = currentTimeZone;
     }
 
     /**
@@ -135,24 +203,23 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      */
     public boolean isAdminMode()
     {
-        return (adminMode != null ? adminMode : false);
-    }
-
-    /**
-     * @return true whether {@link #adminMode} is available,
-     *         false otherwise
-     */
-    public boolean isAdminModeAvailable()
-    {
-        return adminMode != null;
+        return adminMode;
     }
 
     /**
      * @param adminMode sets the {@link #adminMode}
      */
-    public void setAdminMode(Boolean adminMode)
+    public void setAdminMode(boolean adminMode)
     {
         this.adminMode = adminMode;
+    }
+
+    /**
+     * @return {@link #adminModeAvailable}
+     */
+    public boolean isAdminModeAvailable()
+    {
+        return adminModeAvailable;
     }
 
     /**
@@ -202,6 +269,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public void setAdvancedUserInterface(boolean advancedUserInterface)
     {
         this.userInterface = advancedUserInterface ? UserInterface.ADVANCED : UserInterface.BEGINNER;
+        this.userInterfaceSelected = true;
     }
 
     /**
@@ -209,20 +277,24 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      */
     public void fromApi(UserSettings userSettings)
     {
-        setLocale(userSettings.getLocale());
-        setLocaleDefaultWarning(!userSettings.getAttributeBool(IGNORE_DEFAULT_LOCALE_ATTRIBUTE));
-        setTimeZone(userSettings.getTimeZone());
-        setTimeZoneDefaultWarning(!userSettings.getAttributeBool(IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE));
-        setAdminMode(userSettings.getAdminMode());
+        this.useWebService = userSettings.isUseWebService();
+        this.locale = userSettings.getLocale();
+        this.localeDefaultWarning = !userSettings.getAttributeBool(IGNORE_DEFAULT_LOCALE_ATTRIBUTE);
+        this.homeTimeZone = userSettings.getHomeTimeZone();
+        this.timeZoneDefaultWarning = !userSettings.getAttributeBool(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE);
+        this.currentTimeZone = userSettings.getCurrentTimeZone();
+        this.currentTimeZoneEnabled = (this.currentTimeZone != null && !this.currentTimeZone.equals(this.homeTimeZone));
+        this.adminMode = (userSettings.getAdminMode() != null ? userSettings.getAdminMode() : false);
+        this.adminModeAvailable = userSettings.getAdminMode() != null;
 
         UserInterface userInterface = userSettings.getAttribute(USER_INTERFACE_ATTRIBUTE, UserInterface.class);
         if (userInterface != null) {
-            setUserInterface(userInterface);
+            this.userInterface = userInterface;
         }
         else {
-            setUserInterface(DEFAULT_USER_INTERFACE);
+            this.userInterface = DEFAULT_USER_INTERFACE;
         }
-        setUserInterfaceSelected(userSettings.getAttributeBool(USER_INTERFACE_SELECTED_ATTRIBUTE));
+        this.userInterfaceSelected = userSettings.getAttributeBool(USER_INTERFACE_SELECTED_ATTRIBUTE);
     }
 
     /**
@@ -230,11 +302,18 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      */
     public UserSettings toApi()
     {
+
         UserSettings userSettings = new UserSettings();
-        userSettings.setLocale(getLocale());
-        userSettings.setTimeZone(getTimeZone());
-        if (isAdminModeAvailable()) {
-            userSettings.setAdminMode(isAdminMode());
+        userSettings.setUseWebService(useWebService);
+        if (!useWebService) {
+            userSettings.setLocale(locale);
+        }
+        userSettings.setHomeTimeZone(homeTimeZone);
+        if (currentTimeZoneEnabled) {
+            userSettings.setCurrentTimeZone(currentTimeZone);
+        }
+        if (adminModeAvailable) {
+            userSettings.setAdminMode(adminMode);
         }
         UserInterface userInterface = getUserInterface();
         if (userInterface != null) {
@@ -247,7 +326,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
             userSettings.setAttribute(IGNORE_DEFAULT_LOCALE_ATTRIBUTE, Boolean.TRUE.toString());
         }
         if (!isTimeZoneDefaultWarning()) {
-            userSettings.setAttribute(IGNORE_DEFAULT_TIME_ZONE_ATTRIBUTE, Boolean.TRUE.toString());
+            userSettings.setAttribute(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE, Boolean.TRUE.toString());
         }
         return userSettings;
     }
@@ -256,10 +335,12 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public String toContextString()
     {
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
+        attributes.put("UseWebService", useWebService);
         attributes.put("Locale", locale);
         attributes.put("LocaleWarning", localeDefaultWarning);
-        attributes.put("TimeZone", timeZone);
-        attributes.put("TimeZoneWarning", timeZoneDefaultWarning);
+        attributes.put("HomeTimeZone", homeTimeZone);
+        attributes.put("HomeTimeZoneWarning", timeZoneDefaultWarning);
+        attributes.put("CurrentTimeZone", currentTimeZone);
         attributes.put("AdminMode", adminMode);
         attributes.put("UserInterface", userInterface);
         return ReportModel.formatAttributes(attributes);

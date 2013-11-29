@@ -22,11 +22,11 @@ public interface Service
     public UserInformation getUserInformation(String userId) throws CommandException;
 
     /**
-     * @param userOriginalId original id of the user from identity provider
-     * @return {@link UserInformation} for user with given {@code userOriginalId}
+     * @param userPrincipalName of the user from identity provider
+     * @return {@link UserInformation} for user with given {@code userPrincipalName}
      * @throws CommandException
      */
-    public UserInformation getUserInformationByOriginalId(String userOriginalId) throws CommandException;
+    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException;
 
     /**
      * Get room information.

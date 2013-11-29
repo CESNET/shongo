@@ -20,8 +20,6 @@ public class SecurityToken implements AtomicType
      */
     private UserInformation userInformation;
 
-    private boolean admin;
-
     /**
      * Constructor.
      */

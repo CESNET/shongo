@@ -43,7 +43,7 @@
                     <tag:param name="roleId" value="${userRole.id}"/>
                 </tag:url>
                 <tr>
-                    <td>${userRole.user.fullName} (${userRole.user.originalId})</td>
+                    <td>${userRole.user.fullName} (${userRole.user.organization})</td>
                     <td><spring:message code="views.userRole.role.${userRole.role}"/></td>
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
@@ -85,7 +85,7 @@
                     ${tableHead}
                 <tbody>
                 <tr ng-repeat="userRole in items">
-                    <td>{{userRole.user.fullName}} ({{userRole.user.originalId}})</td>
+                    <td>{{userRole.user.fullName}} ({{userRole.user.organization}})</td>
                     <td>{{userRole.role}}</td>
                     <td>{{userRole.user.primaryEmail}}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">

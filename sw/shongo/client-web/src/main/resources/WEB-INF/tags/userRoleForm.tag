@@ -33,8 +33,8 @@
         if ( user.lastName != null ) {
             text += " " + user.lastName;
         }
-        if ( user.originalId != null ) {
-            text += " (" + user.originalId + ")";
+        if ( user.organization != null ) {
+            text += " (" + user.organization + ")";
         }
         return text;
     };

@@ -365,8 +365,8 @@
                 </form:label>
                 <div class="controls">
                     <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" value="xx"/>
-                    <form:errors path="roomRecorded" cssClass="error"/>&nbsp;<%--
-                    --%><%--<tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
+                    <form:errors path="roomRecorded" cssClass="error"/>
+                    <tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                 </div>
             </div>
             --%>

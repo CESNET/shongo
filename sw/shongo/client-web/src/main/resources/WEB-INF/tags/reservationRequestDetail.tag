@@ -252,7 +252,7 @@
     <div ng-show="state">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
-            <tag:help label="{{state.label}}" labelClass="{{state.code}}">
+            <tag:help label="{{state.label}}" cssClass="{{state.code}}">
                 <span ng-bind-html="html(state.help)"></span>
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
@@ -271,10 +271,10 @@
     <div ng-show="roomAliases">
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <tag:help labelElement="roomAliases" type="text">
+            <c:set var="roomAliases"><span ng-bind-html="html(roomAliases)"></span></c:set>
+            <tag:help label="${roomAliases}" selectable="true">
                 <span ng-bind-html="html(roomAliasesDescription)"></span>
-            </tag:help><%--
-            --%><span id="roomAliases" ng-bind-html="html(roomAliases)" class="tooltip-label dotted"></span>
+            </tag:help>
         </dd>
     </div>
 
@@ -329,7 +329,7 @@
                 <div ng-show="allocationState.code">
                     <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
                     <dd class="allocation-state">
-                        <tag:help label="{{allocationState.label}}" labelClass="{{allocationState.code}}">
+                        <tag:help label="{{allocationState.label}}" cssClass="{{allocationState.code}}">
                             <span ng-bind-html="html(allocationState.help)"></span>
                         </tag:help>
                     </dd>
@@ -338,7 +338,7 @@
                 <div ng-show="roomState.code">
                     <dt><spring:message code="views.room.state"/>:</dt>
                     <dd class="room-state">
-                        <tag:help label="{{roomState.label}}" labelClass="{{roomState.code}}">
+                        <tag:help label="{{roomState.label}}" cssClass="{{roomState.code}}">
                             <span>{{roomState.help}}</span>
                             <pre ng-show="roomState.report">{{roomState.report}}</pre>
                         </tag:help>

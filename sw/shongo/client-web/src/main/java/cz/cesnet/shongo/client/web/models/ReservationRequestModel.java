@@ -35,6 +35,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestModel.class);
 
+
     public static final ReservationRequestPurpose PURPOSE = ReservationRequestPurpose.USER;
 
     private CacheProvider cacheProvider;

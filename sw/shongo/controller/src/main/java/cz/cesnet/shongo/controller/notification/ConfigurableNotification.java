@@ -2,11 +2,12 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
+
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
-import cz.cesnet.shongo.controller.settings.UserSettings;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.util.MessageSource;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,9 @@ public abstract class ConfigurableNotification extends AbstractNotification
     protected ControllerConfiguration configuration;
 
     /**
-     * @see cz.cesnet.shongo.controller.settings.UserSettingsProvider
+     * @see cz.cesnet.shongo.controller.settings.UserSettingsManager
      */
-    private UserSettingsProvider userSettingsProvider;
+    private UserSettingsManager userSettingsManager;
 
     /**
      * List of {@link ConfigurableNotification.Configuration}s for each recipient.
@@ -49,13 +50,11 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Constructor.
      *
-     * @param userSettingsProvider sets the {@link #userSettingsProvider}
+     * @param userSettingsManager sets the {@link #userSettingsManager}
      */
-    public ConfigurableNotification(UserSettingsProvider userSettingsProvider,
-            ControllerConfiguration configuration)
+    public ConfigurableNotification(UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
     {
-
-        this.userSettingsProvider = userSettingsProvider;
+        this.userSettingsManager = userSettingsManager;
         this.configuration = configuration;
     }
 
@@ -90,12 +89,15 @@ public abstract class ConfigurableNotification extends AbstractNotification
         // Determine recipient locale and timezone
         Locale locale = null;
         DateTimeZone timeZone = null;
-        if (recipient instanceof UserInformation && userSettingsProvider != null) {
+        if (recipient instanceof UserInformation && userSettingsManager != null) {
             UserInformation userInformation = (UserInformation) recipient;
-            UserSettings userSettings = userSettingsProvider.getUserSettings(userInformation.getUserId());
+            UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId());
             if (userSettings != null) {
                 locale = userSettings.getLocale();
-                timeZone = userSettings.getTimeZone();
+                timeZone = userSettings.getCurrentTimeZone();
+                if (timeZone == null) {
+                    timeZone = userSettings.getHomeTimeZone();
+                }
             }
         }
 

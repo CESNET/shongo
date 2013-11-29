@@ -1,3 +1,67 @@
+diff --git a/js/bootstrap-tooltip.js b/js/bootstrap-tooltip.js
+index a3bbd58..a4c582f 100644
+--- a/js/bootstrap-tooltip.js
++++ b/js/bootstrap-tooltip.js
+@@ -158,6 +158,18 @@
+           case 'right':
+             tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width}
+             break
++          case 'bottom-left':
++            tp = {top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth + actualWidth / 10}
++            break
++          case 'bottom-right':
++            tp = {top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 10}
++            break
++          case 'top-left':
++            tp = {top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth + actualWidth / 10}
++            break
++          case 'top-right':
++            tp = {top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 10}
++            break
+         }
+ 
+         this.applyPlacement(tp, placement)
+@@ -187,7 +199,9 @@
+         replace = true
+       }
+ 
+-      if (placement == 'bottom' || placement == 'top') {
++      if (placement == 'bottom' || placement == 'top' ||
++          placement == 'bottom-left' || placement == 'bottom-right' ||
++          placement == 'top-left' || placement == 'top-right') {
+         delta = 0
+ 
+         if (offset.left < 0){
+@@ -198,18 +212,25 @@
+           actualHeight = $tip[0].offsetHeight
+         }
+ 
+-        this.replaceArrow(delta - width + actualWidth, actualWidth, 'left')
++        var value = 50;
++        if (placement == 'bottom-left' || placement == 'top-left') {
++            value = 100;
++        }
++        else if (placement == 'bottom-right' || placement == 'top-right') {
++            value = 10;
++        }
++        this.replaceArrow(delta - width + actualWidth, actualWidth, 'left', value)
+       } else {
+-        this.replaceArrow(actualHeight - height, actualHeight, 'top')
++        this.replaceArrow(actualHeight - height, actualHeight, 'top', 50)
+       }
+ 
+       if (replace) $tip.offset(offset)
+     }
+ 
+-  , replaceArrow: function(delta, dimension, position){
++  , replaceArrow: function(delta, dimension, position, value){
+       this
+         .arrow()
+-        .css(position, delta ? (50 * (1 - delta / dimension) + "%") : '')
++        .css(position, delta ? (value * (1 - delta / dimension) + "%") : '')
+     }
+ 
+   , setContent: function () {
 diff --git a/less/bootstrap.less b/less/bootstrap.less
 index d4ebf37..0365472 100644
 --- a/less/bootstrap.less
@@ -38,6 +102,70 @@ index 9e5f9b1..ce0ee79 100644
  
  
  // RESPONSIVE NAVBAR
+diff --git a/less/tooltip.less b/less/tooltip.less
+index 83d5f2b..9a00f79 100644
+--- a/less/tooltip.less
++++ b/less/tooltip.less
+@@ -12,16 +12,20 @@
+   font-size: 11px;
+   line-height: 1.4;
+   .opacity(0);
+-  &.in     { .opacity(80); }
+-  &.top    { margin-top:  -3px; padding: 5px 0; }
+-  &.right  { margin-left:  3px; padding: 0 5px; }
+-  &.bottom { margin-top:   3px; padding: 5px 0; }
+-  &.left   { margin-left: -3px; padding: 0 5px; }
++  &.in           { .opacity(80); }
++  &.top          { margin-top:  -3px; padding: 5px 0; }
++  &.right        { margin-left:  3px; padding: 0 5px; }
++  &.bottom       { margin-top:   3px; padding: 5px 0; }
++  &.left         { margin-left: -3px; padding: 0 5px; }
++  &.top-left     { margin-top:  -3px; padding: 5px 0; }
++  &.top-right    { margin-top:  -3px; padding: 5px 0; }
++  &.bottom-left  { margin-top:   3px; padding: 5px 0; }
++  &.bottom-right { margin-top:   3px; padding: 5px 0; }
+ }
+ 
+ // Wrapper for the tooltip content
+ .tooltip-inner {
+-  max-width: 200px;
++  max-width: none;
+   padding: 8px;
+   color: @tooltipColor;
+   text-align: center;
+@@ -67,4 +71,32 @@
+     border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
+     border-bottom-color: @tooltipArrowColor;
+   }
++  &.top-left .tooltip-arrow {
++    bottom: 0;
++    left: 90%;
++    margin-left: -@tooltipArrowWidth;
++    border-width: @tooltipArrowWidth @tooltipArrowWidth 0;
++    border-top-color: @tooltipArrowColor;
++  }
++  &.top-right .tooltip-arrow {
++    bottom: 0;
++    left: 10%;
++    margin-left: -@tooltipArrowWidth;
++    border-width: @tooltipArrowWidth @tooltipArrowWidth 0;
++    border-top-color: @tooltipArrowColor;
++  }
++  &.bottom-left .tooltip-arrow {
++    top: 0px;
++    left: 90%;
++    margin-left: -@tooltipArrowWidth;
++    border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
++    border-bottom-color: @tooltipArrowColor;
++  }
++  &.bottom-right .tooltip-arrow {
++    top: 0px;
++    left: 10%;
++    margin-left: -@tooltipArrowWidth;
++    border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
++    border-bottom-color: @tooltipArrowColor;
++  }
+ }
 diff --git a/less/variables.less b/less/variables.less
 index 31c131b..21a2f39 100644
 --- a/less/variables.less

@@ -164,7 +164,7 @@
         <dd class="room-state">
             <spring:message code="views.executable.roomState.${room.type}.${room.state}" var="roomStateLabel"/>
             <spring:message code="views.executable.roomStateHelp.${room.type}.${room.state}" var="roomStateHelp"/>
-            <tag:help label="${roomStateLabel}" labelClass="${room.state}">
+            <tag:help label="${roomStateLabel}" cssClass="${room.state}">
                 <span>${roomStateHelp}</span>
                 <c:if test="${not empty room.stateReport}">
                     <pre>${room.stateReport}</pre>

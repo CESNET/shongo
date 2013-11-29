@@ -25,6 +25,8 @@
     <rpc>
         <host></host>
         <port>8181</port>
+        <ssl-key-store></ssl-key-store>
+        <ssl-key-store-password></ssl-key-store-password>
     </rpc>
 
     <!-- Configuration of Jade container -->
@@ -40,10 +42,10 @@
     <!-- Security settings -->
     <security>
         <!-- AA server -->
-        <server>https://shongo-auth-dev.cesnet.cz/rc</server>
+        <server>https://shongo-auth-dev.cesnet.cz/testing</server>
         <!-- Client ID and secret for AA server  -->
-        <client-id>testclient</client-id>
-        <client-secret>12345</client-secret>
+        <client-id>shongo-controller</client-id>
+        <client-secret>307e64dbdff788d7f85b814d609be38f</client-secret>
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
         <root-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</root-access-token>
         <!-- Specifies authorization cache expirations -->
@@ -54,8 +56,10 @@
             <user-information>PT5M</user-information>
             <!-- Expiration of user ACL by user-id -->
             <acl>PT5M</acl>
+            <!-- Expiration of user groups -->
+            <group>PT5M</group>
         </expiration>
-        <!--<administrator-user-id></administrator-user-id>-->
+        <admin-group>admins</admin-group>
     </security>
 
     <!-- SSL configuration -->

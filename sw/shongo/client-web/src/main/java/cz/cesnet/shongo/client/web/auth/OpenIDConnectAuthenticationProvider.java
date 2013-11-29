@@ -97,23 +97,16 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             // Build user info
             UserInformation userInformation = new UserInformation();
             userInformation.setUserId(userInfoResponse.get("id").asText());
-            userInformation.setFirstName(userInfoResponse.get("given_name").getTextValue());
-            userInformation.setLastName(userInfoResponse.get("family_name").getTextValue());
+            userInformation.setFirstName(userInfoResponse.get("first_name").getTextValue());
+            userInformation.setLastName(userInfoResponse.get("last_name").getTextValue());
             if (userInfoResponse.has("original_id")) {
-                userInformation.setOriginalId(userInfoResponse.get("original_id").asText());
+                // TODO: set current principal name
             }
             if (userInfoResponse.has("organization")) {
                 userInformation.setOrganization(userInfoResponse.get("organization").getTextValue());
             }
-            if (userInfoResponse.has("email")) {
-                String emails = userInfoResponse.get("email").getTextValue();
-                if (emails != null) {
-                    for (String email : emails.split(";")) {
-                        if (!email.isEmpty()) {
-                            userInformation.addEmail(email);
-                        }
-                    }
-                }
+            if (userInfoResponse.has("mail")) {
+                userInformation.setEmail(userInfoResponse.get("mail").getTextValue());
             }
             securityToken.setUserInformation(userInformation);
 

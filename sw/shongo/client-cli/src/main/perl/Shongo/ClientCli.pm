@@ -221,8 +221,7 @@ sub get_authenticated_user()
     my $object = Shongo::ClientCli::API::Object->new();
     $object->set_object_name('Authenticated User Information');
     $object->add_attribute('Access Token', {}, $self->{'access_token'});
-    $object->add_attribute('Id', {}, $user->{'id'});
-    $object->add_attribute('Identity', {}, $user->{'original_id'});
+    $object->add_attribute('User ID', {}, $user->{'id'});
     $object->add_attribute('Name', {}, $user->{'name'});
     $object->add_attribute('Email', {}, $user->{'email'});
     console_print_text($object);

@@ -60,16 +60,29 @@
     </title>
 
     <c:forEach items="${css}" var="file">
-        <link rel="stylesheet" href="${contextPath}/css/${file}" />
+        <link rel="stylesheet" href="${contextPath}/css/${file}"/>
     </c:forEach>
     <c:forEach items="${js}" var="file">
         <script src="${contextPath}/js/${file}"></script>
     </c:forEach>
     <c:if test="${requestContext.locale.language != 'en'}">
         <c:forEach items="${i18n}" var="file">
-            <script src="${contextPath}/js/i18n/${file}.${requestContext.locale.language}.js"></script>
+            <script src="${contextPath}/js/${file}.${requestContext.locale.language}.js"></script>
         </c:forEach>
     </c:if>
+    <script type="text/javascript">
+        $(function () {
+            $('.timezone').qtip({
+                position: {
+                    my: 'top right',
+                    at: 'bottom center'
+                },
+                style: {
+                    classes: 'qtip-app'
+                }
+            });
+        });
+    </script>
 </head>
 
 <div class="content">
@@ -181,9 +194,43 @@
 
                 <%-- Timezone --%>
                 <li>
-                    <spring:message code="views.layout.timezone" var="timeZoneTitle"/>
                     <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.SHONGO_USER.timeZone)" var="timeZone"/>
-                    <span class="navbar-text timezone" title="${timeZoneTitle}">${timeZone}</span>
+                    <%-- Timezone Help --%>
+                    <c:set var="timeZoneHelp">
+                        <table>
+                            <tr><td align='left' colspan='2'><b style='text-align: left;'><spring:message code="views.layout.timezone"/></b></td></tr>
+                            <%-- Current --%>
+                            <tr>
+                                <td style='text-align: right; vertical-align: top;'><spring:message code="views.layout.timezone.current"/>:</td>
+                                <td style='text-align: left;'>
+                                    <b>${timeZone}</b>
+                                    <spring:eval var="timeZoneName" expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(sessionScope.SHONGO_USER.timeZone, sessionScope.SHONGO_USER.locale)"/>
+                                    <c:if test="${not empty timeZoneName}">
+                                        (${timeZoneName})
+                                    </c:if>
+                                    <%-- Difference between Current and Home --%>
+                                    <c:if test="${sessionScope.SHONGO_USER.homeTimeZone != null && sessionScope.SHONGO_USER.homeTimeZone != sessionScope.SHONGO_USER.timeZone}">
+                                        , <spring:message code="views.layout.timezone.diff"/>:&nbsp;<tag:format value="${sessionScope.SHONGO_USER.timeZoneOffset}" style="time"/>
+                                    </c:if>
+                                </td>
+                            </tr>
+                            <%-- Home --%>
+                            <c:if test="${sessionScope.SHONGO_USER.homeTimeZone != null && sessionScope.SHONGO_USER.homeTimeZone != sessionScope.SHONGO_USER.timeZone}">
+                                <tr>
+                                    <td style='text-align: right; vertical-align: top;'><spring:message code="views.layout.timezone.home"/>:</td>
+                                    <td align='left'>
+                                        <b><spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.SHONGO_USER.homeTimeZone)"/></b>
+                                        <spring:eval var="homeTimeZoneName" expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(sessionScope.SHONGO_USER.homeTimeZone, sessionScope.SHONGO_USER.locale)"/>
+                                        <c:if test="${not empty homeTimeZoneName}">
+                                            (${homeTimeZoneName})
+                                        </c:if>
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </table>
+                    </c:set>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(sessionScope.SHONGO_USER.timeZone)" var="timeZone"/>
+                    <span class="navbar-text timezone" title="${timeZoneHelp}">${timeZone}</span>
                 </li>
 
                 <%-- Language selection --%>

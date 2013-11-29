@@ -54,9 +54,7 @@
         <tr ng-repeat="childReservationRequest in items">
             <td>{{childReservationRequest.slot}}</td>
             <td class="reservation-request-state">
-                <tag:help label="{{childReservationRequest.stateMessage}}"
-                          labelClass="{{childReservationRequest.state}}"
-                          tooltipId="child-reservation-request-state-tooltip-{{$index}}">
+                <tag:help label="{{childReservationRequest.stateMessage}}" cssClass="{{childReservationRequest.state}}">
                     <span>{{childReservationRequest.stateHelp}}</span>
                 </tag:help>
             </td>
@@ -66,8 +64,7 @@
                         <c:set var="executableAliases">
                             <span ng-bind-html="html(childReservationRequest.roomAliases)"></span>
                         </c:set>
-                        <tag:help label="${executableAliases}"
-                                  tooltipId="executableAliases-tooltip-{{$index}}">
+                        <tag:help label="${executableAliases}">
                             <span ng-bind-html="html(childReservationRequest.roomAliasesDescription)"></span>
                         </tag:help>
                     </div>

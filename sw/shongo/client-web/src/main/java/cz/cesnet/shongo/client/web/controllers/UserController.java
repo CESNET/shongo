@@ -26,7 +26,6 @@ import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -112,6 +111,10 @@ public class UserController
             @ModelAttribute("userSettings") UserSettingsModel userSettings)
     {
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
+        if (userSettings.isUseWebService()) {
+            // Reload user settings (some attributes may be loaded from web service)
+            userSettings.fromApi(authorizationService.getUserSettings(securityToken));
+        }
         sessionStatus.setComplete();
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
@@ -142,7 +145,7 @@ public class UserController
     {
         UserListRequest request = new UserListRequest();
         request.setSecurityToken(securityToken);
-        request.setFilter(filter);
+        request.setSearch(filter);
         ListResponse<UserInformation> response = authorizationService.listUsers(request);
         return response.getItems();
     }

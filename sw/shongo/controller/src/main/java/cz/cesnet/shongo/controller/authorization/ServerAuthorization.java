@@ -1,27 +1,35 @@
 package cz.cesnet.shongo.controller.authorization;
 
+
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -44,6 +52,16 @@ public class ServerAuthorization extends Authorization
     private static final String USER_SERVICE_PATH = "/perun/users";
 
     /**
+     * User principal web service path in auth-server.
+     */
+    private static final String PRINCIPAL_SERVICE_PATH = "/perun/principal";
+
+    /**
+     * Groups web service path in auth-server.
+     */
+    private static final String GROUP_SERVICE_PATH = "/perun/groups";
+
+    /**
      * Access token which won't be verified and can be used for testing purposes.
      */
     private String rootAccessToken;
@@ -54,9 +72,9 @@ public class ServerAuthorization extends Authorization
     private String authorizationServer;
 
     /**
-     * URL to authorization server.
+     * Authorization header for requests.
      */
-    private String authorizationServerHeader;
+    private String requestAuthorizationHeader;
 
     /**
      * {@link HttpClient} for performing auth-server requests.
@@ -91,21 +109,16 @@ public class ServerAuthorization extends Authorization
         logger.info("Using authorization server '{}'.", authorizationServer);
 
         // Authorization header
+
         String clientId = configuration.getString(ControllerConfiguration.SECURITY_CLIENT_ID);
         String clientSecret = configuration.getString(ControllerConfiguration.SECURITY_CLIENT_SECRET);
-        authorizationServerHeader = "id=" + clientId + ";secret=" + clientSecret;
+        String clientAuthorization = clientId + ":" + clientSecret;
+        byte[] bytes = clientAuthorization.getBytes();
+        requestAuthorizationHeader = "Basic " + Base64.encode(bytes, 0, bytes.length, 0, "");
 
         // Root access token
         rootAccessToken = configuration.getString(ControllerConfiguration.SECURITY_ROOT_ACCESS_TOKEN);
         adminAccessTokens.add(rootAccessToken);
-
-        // Users with enabled adminMode
-        String userIds = configuration.getString(ControllerConfiguration.SECURITY_ADMINISTRATOR_USER_ID);
-        if (userIds != null) {
-            for (String adminUserId : userIds.split(",")) {
-                adminModeEnabledUserIds.add(adminUserId.trim());
-            }
-        }
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
@@ -127,31 +140,23 @@ public class ServerAuthorization extends Authorization
         return authorizationServer + AUTHENTICATION_SERVICE_PATH;
     }
 
-    /**
-     * @return url to user service in auth-server
-     */
-    private String getUserServiceUrl()
-    {
-        return authorizationServer + USER_SERVICE_PATH;
-    }
-
     @Override
     protected UserInformation onValidate(SecurityToken securityToken)
     {
         // Always allow testing access token
         if (rootAccessToken != null && securityToken.getAccessToken().equals(rootAccessToken)) {
             logger.trace("Access token '{}' is valid for testing.", securityToken.getAccessToken());
-            return ROOT_USER_INFORMATION;
+            return ROOT_USER_DATA.getUserInformation();
         }
         return super.onValidate(securityToken);
     }
 
     @Override
-    protected UserInformation onGetUserInformationByAccessToken(String accessToken)
+    protected UserData onGetUserDataByAccessToken(String accessToken)
     {
         // Testing security token represents root user
         if (rootAccessToken != null && accessToken.equals(rootAccessToken)) {
-            return ROOT_USER_INFORMATION;
+            return ROOT_USER_DATA;
         }
 
         Exception errorException = null;
@@ -164,7 +169,7 @@ public class ServerAuthorization extends Authorization
             HttpResponse response = httpClient.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 JsonNode jsonNode = readJson(response.getEntity());
-                return createUserInformationFromData(jsonNode);
+                return createUserDataFromWebService(jsonNode);
             }
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
@@ -184,100 +189,336 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected UserInformation onGetUserInformationByUserId(String userId)
+    protected UserData onGetUserDataByUserId(final String userId)
+    {
+        return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId,
+                "Retrieving user information by user-id '" + userId + "' failed",
+                new RequestHandler<UserData>()
+                {
+                    @Override
+                    public UserData success(JsonNode data)
+                    {
+                        return createUserDataFromWebService(data);
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        int statusCode = statusLine.getStatusCode();
+                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                            throw new ControllerReportSet.UserNotExistsException(userId);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    protected String onGetUserIdByPrincipalName(final String principalName)
+    {
+        return performGetRequest(authorizationServer + PRINCIPAL_SERVICE_PATH + "/" + principalName,
+                "Retrieving user-id by principal name '" + principalName + "' failed",
+                new RequestHandler<String>()
+                {
+                    @Override
+                    public String success(JsonNode data)
+                    {
+                        if (!data.has("id")) {
+                            throw new IllegalStateException("Principal service must return identifier.");
+                        }
+                        String userId = data.get("id").asText();
+                        if (userId == null) {
+                            throw new IllegalStateException("Principal service must return not null identifier.");
+                        }
+                        return userId;
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        int statusCode = statusLine.getStatusCode();
+                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                            throw new ControllerReportSet.UserNotExistsException(principalName);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    protected Collection<UserData> onListUserData(String search)
+    {
+        String listUsersUrl = authorizationServer + USER_SERVICE_PATH;
+        if (search != null) {
+            try {
+                listUsersUrl = listUsersUrl + "?fresh=1&search=" + URLEncoder.encode(search, "UTF-8");
+            }
+            catch (UnsupportedEncodingException exception) {
+                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
+            }
+        }
+        return performGetRequest(listUsersUrl, "Retrieving user information failed",
+                new RequestHandler<Collection<UserData>>()
+                {
+                    @Override
+                    public Collection<UserData> success(JsonNode data)
+                    {
+                        List<UserData> userDataList = new LinkedList<UserData>();
+                        for (JsonNode childJsonNode : data.get("_embedded").get("users")) {
+                            UserData userData = createUserDataFromWebService(childJsonNode);
+                            userDataList.add(userData);
+                        }
+                        return userDataList;
+                    }
+                });
+    }
+
+    @Override
+    public List<Group> onListGroups()
+    {
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "?fresh=1", "Retrieving groups failed",
+                new RequestHandler<List<Group>>()
+                {
+                    @Override
+                    public List<Group> success(JsonNode data)
+                    {
+                        Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
+                        List<Group> groups = new LinkedList<Group>();
+                        while (groupIterator.hasNext()) {
+                            JsonNode groupNode = groupIterator.next();
+                            Group group = new Group();
+                            group.setId(groupNode.get("id").asText());
+                            if (groupNode.has("parentId")) {
+                                group.setParentId(groupNode.get("parentId").asText());
+                            }
+                            group.setName(groupNode.get("name").asText());
+                            if (groupNode.has("description")) {
+                                group.setDescription(groupNode.get("description").asText());
+                            }
+                            groups.add(group);
+                        }
+                        return groups;
+                    }
+                });
+    }
+
+    @Override
+    public Set<String> onListGroupUserIds(final String groupId)
+    {
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users?fresh=1",
+                "Retrieving user-ids in group " + groupId + " failed",
+                new RequestHandler<Set<String>>()
+                {
+                    @Override
+                    public Set<String> success(JsonNode data)
+                    {
+                        Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
+                        Set<String> userIds = new HashSet<String>();
+                        while (userIterator.hasNext()) {
+                            JsonNode userNode = userIterator.next();
+                            if (!userNode.has("id")) {
+                                throw new IllegalStateException("User must have identifier.");
+                            }
+                            userIds.add(userNode.get("id").asText());
+                        }
+                        return userIds;
+                    }
+                });
+    }
+
+    @Override
+    public String onCreateGroup(final Group group)
+    {
+        ObjectNode content = jsonMapper.createObjectNode();
+        content.put("name", group.getName());
+        content.put("description", group.getDescription());
+        if (group.getParentId() != null) {
+            content.put("parent_group_id", group.getName());
+        }
+        return performPostRequest(authorizationServer + GROUP_SERVICE_PATH, content, "Creating group failed",
+                new RequestHandler<String>()
+                {
+                    @Override
+                    public String success(JsonNode data)
+                    {
+                        return data.get("id").asText();
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        if (detail.contains("GroupExistsException")) {
+                            throw new ControllerReportSet.GroupAlreadyExistsException(group.getName());
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onDeleteGroup(final String groupId)
+    {
+        performDeleteRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId,
+                "Deleting group " + groupId + " failed",
+                new RequestHandler<Object>()
+                {
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        if (detail.contains("GroupNotExistsException")) {
+                            throw new ControllerReportSet.GroupNotExistsException(groupId);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onAddGroupUser(final String groupId, final String userId)
+    {
+        performPutRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users/" + userId,
+                "Adding user " + userId + " to group " + groupId + " failed",
+                new RequestHandler<Object>()
+                {
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        int statusCode = statusLine.getStatusCode();
+                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                            if (detail.contains("User")) {
+                                throw new ControllerReportSet.UserNotExistsException(userId);
+                            }
+                        }
+                        if (detail.contains("AlreadyMemberException")) {
+                            throw new ControllerReportSet.UserAlreadyInGroupException(groupId, userId);
+                        }
+                        else if (detail.contains("GroupNotExistsException")) {
+                            throw new ControllerReportSet.GroupNotExistsException(groupId);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onRemoveGroupUser(final String groupId, final String userId)
+    {
+        performDeleteRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users/" + userId,
+                "Removing user " + userId + " from group " + groupId + " failed",
+                new RequestHandler<Object>()
+                {
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        int statusCode = statusLine.getStatusCode();
+                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                            if (detail.contains("User")) {
+                                throw new ControllerReportSet.UserNotExistsException(userId);
+                            }
+                        }
+                        if (detail.contains("NotGroupMemberException")) {
+                            throw new ControllerReportSet.UserNotInGroupException(groupId, userId);
+                        }
+                        else if (detail.contains("GroupNotExistsException")) {
+                            throw new ControllerReportSet.GroupNotExistsException(groupId);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * @see #performRequest
+     */
+    private <T> T performGetRequest(String url, String description, RequestHandler<T> requestHandler)
+    {
+        HttpGet httpGet = new HttpGet(url);
+        return performRequest(httpGet, description, requestHandler);
+    }
+
+    /**
+     * @see #performRequest
+     */
+    private <T> T performPostRequest(String url, JsonNode content, String description, RequestHandler<T> requestHandler)
+    {
+        StringEntity entity;
+        try {
+            String json = content.toString();
+            entity = new StringEntity(json);
+        }
+        catch (UnsupportedEncodingException exception) {
+            throw new CommonReportSet.UnknownErrorException(exception, "Entity encoding failed");
+        }
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(entity);
+        httpPost.setHeader("Content-Type", "application/json");
+        return performRequest(httpPost, description, requestHandler);
+    }
+
+    /**
+     * @see #performRequest
+     */
+    private void performPutRequest(String url, String description, RequestHandler requestHandler)
+    {
+        HttpPut httpPut = new HttpPut(url);
+        performRequest(httpPut, description, requestHandler);
+    }
+
+    /**
+     * @see #performRequest
+     */
+    private void performDeleteRequest(String url, String description, RequestHandler requestHandler)
+    {
+        HttpDelete httpDelete = new HttpDelete(url);
+        performRequest(httpDelete, description, requestHandler);
+    }
+
+    /**
+     * Perform given {@code httpRequest}.
+     *
+     * @param httpRequest to be performed
+     * @param description for error reporting
+     * @param requestHandler to handle response or error
+     * @return result from given {@code requestHandler}
+     */
+    private <T> T performRequest(HttpRequestBase httpRequest, String description, RequestHandler<T> requestHandler)
     {
         try {
-            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/" + userId);
-            httpGet.addHeader("Authorization", authorizationServerHeader);
-            HttpResponse response = httpClient.execute(httpGet);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                JsonNode jsonNode = readJson(response.getEntity());
-                return createUserInformationFromData(jsonNode);
+            httpRequest.addHeader("Authorization", requestAuthorizationHeader);
+            httpRequest.setHeader("Accept", "application/hal+json");
+            HttpResponse response = httpClient.execute(httpRequest);
+            StatusLine statusLine = response.getStatusLine();
+            int statusCode = statusLine.getStatusCode();
+            if (statusCode == HttpStatus.SC_NO_CONTENT) {
+                return null;
+            }
+            else if (statusCode >= HttpStatus.SC_OK && statusCode <= HttpStatus.SC_ACCEPTED) {
+                JsonNode data = readJson(response.getEntity());
+                return requestHandler.success(data);
             }
             else {
-                readContent(response.getEntity());
-                if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                    throw new ControllerReportSet.UserNotExistException(userId);
+                String content = readContent(response.getEntity());
+                String detail = null;
+                if (statusCode != HttpStatus.SC_BAD_REQUEST) {
+                    try {
+                        JsonNode jsonNode = jsonMapper.readTree(content);
+                        if (jsonNode.has("detail")) {
+                            detail = jsonNode.get("detail").asText();
+                        }
+                    }
+                    catch (Exception exception) {
+                        logger.warn("Cannot parse json: {}", content);
+                        detail = content;
+                    }
                 }
-                else {
-                    throw new CommonReportSet.UnknownErrorException(
-                            "Retrieving user information by user-id '" + userId + "' failed: "
-                                    + response.getStatusLine().toString());
+                requestHandler.error(statusLine, detail);
+                String error = description + ": " + statusLine.toString();
+                if (detail != null) {
+                    error += ": " + detail;
                 }
+                throw new CommonReportSet.UnknownErrorException(error);
             }
         }
         catch (ReportRuntimeException exception) {
             throw exception;
         }
         catch (Exception exception) {
-            throw new CommonReportSet.UnknownErrorException(exception,
-                    "Retrieving user information by user-id '" + userId + "' failed.");
+            throw new CommonReportSet.UnknownErrorException(exception, description + ".");
         }
-    }
-
-    @Override
-    protected Collection<UserInformation> onListUserInformation()
-    {
-        Exception errorException = null;
-        try {
-            HttpGet httpGet = new HttpGet(getUserServiceUrl());
-            httpGet.addHeader("Authorization", authorizationServerHeader);
-            HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                JsonNode jsonNode = readJson(response.getEntity());
-                List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-                for (JsonNode childJsonNode : jsonNode) {
-                    UserInformation userInformation = createUserInformationFromData(childJsonNode);
-                    userInformationList.add(userInformation);
-                }
-                return userInformationList;
-            }
-            else {
-                readContent(response.getEntity());
-            }
-        }
-        catch (Exception exception) {
-            errorException = exception;
-        }
-        // Handle error
-        throw new RuntimeException("Retrieving user information failed.", errorException);
-    }
-
-    /**
-     * @param data from authorization server
-     * @return {@link UserInformation}
-     */
-    private static UserInformation createUserInformationFromData(JsonNode data)
-    {
-        if (!data.has("id")) {
-            throw new IllegalArgumentException("User information must contains identifier.");
-        }
-        if (!data.has("given_name") || !data.has("family_name")) {
-            throw new IllegalArgumentException("User information must contains given and family name.");
-        }
-        UserInformation userInformation = new UserInformation();
-        userInformation.setUserId(data.get("id").asText());
-        userInformation.setFirstName(data.get("given_name").getTextValue());
-        userInformation.setLastName(data.get("family_name").getTextValue());
-
-        if (data.has("original_id")) {
-            userInformation.setOriginalId(data.get("original_id").asText());
-        }
-        if (data.has("organization")) {
-            userInformation.setOrganization(data.get("organization").getTextValue());
-        }
-        if (data.has("email")) {
-            String emails = data.get("email").getTextValue();
-            if (emails != null) {
-                for (String email : emails.split(";")) {
-                    if (!email.isEmpty()) {
-                        userInformation.addEmail(email);
-                    }
-                }
-            }
-        }
-        return userInformation;
     }
 
     /**
@@ -352,6 +593,50 @@ public class ServerAuthorization extends Authorization
     }
 
     /**
+     * @param data from authorization server
+     * @return {@link UserData}
+     */
+    private static UserData createUserDataFromWebService(JsonNode data)
+    {
+        UserData userData = new UserData();
+
+        // Required fields
+        if (!data.has("id")) {
+            throw new IllegalArgumentException("User information must contain identifier.");
+        }
+        if (!data.has("first_name") || !data.has("last_name")) {
+            throw new IllegalArgumentException("User information must contain given and family name.");
+        }
+
+        // Common user data
+        UserInformation userInformation = userData.getUserInformation();
+        userInformation.setUserId(data.get("id").asText());
+        userInformation.setFirstName(data.get("first_name").getTextValue());
+        userInformation.setLastName(data.get("last_name").getTextValue());
+        if (data.has("organization")) {
+            userInformation.setOrganization(data.get("organization").getTextValue());
+        }
+        if (data.has("mail")) {
+            userInformation.setEmail(data.get("mail").getTextValue());
+        }
+        if (data.has("principal_names")) {
+            Iterator<JsonNode> principalNameIterator = data.get("principal_names").getElements();
+            while (principalNameIterator.hasNext()) {
+                JsonNode principalName = principalNameIterator.next();
+                userInformation.addPrincipalName(principalName.getTextValue());
+            }
+        }
+
+        // Additional user data
+        if (data.has("language")) {
+            Locale locale = new Locale(data.get("language").getTextValue());
+            userData.setLocale(locale);
+        }
+
+        return userData;
+    }
+
+    /**
      * @return new instance of {@link ServerAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists
      */
@@ -360,5 +645,32 @@ public class ServerAuthorization extends Authorization
         ServerAuthorization serverAuthorization = new ServerAuthorization(configuration);
         Authorization.setInstance(serverAuthorization);
         return serverAuthorization;
+    }
+
+    /**
+     * Http request handler for {@link #performRequest}
+     */
+    private static abstract class RequestHandler<T>
+    {
+        /**
+         * Handle HTTP json response.
+         *
+         * @param data
+         * @return parsed json response
+         */
+        public T success(JsonNode data)
+        {
+            return null;
+        }
+
+        /**
+         * Handle HTTP error.
+         *
+         * @param statusLine
+         * @param detail
+         */
+        public void error(StatusLine statusLine, String detail)
+        {
+        }
     }
 }

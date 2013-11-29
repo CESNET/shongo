@@ -28,7 +28,7 @@ import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
+import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -62,15 +62,21 @@ public class ServiceImpl implements Service
     private Executor executor;
 
     /**
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
      * Constructor.
      */
     public ServiceImpl(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration,
-            NotificationManager notificationManager, Executor executor)
+            NotificationManager notificationManager, Executor executor, Authorization authorization)
     {
         this.entityManagerFactory = entityManagerFactory;
         this.configuration = configuration;
         this.notificationManager = notificationManager;
         this.executor = executor;
+        this.authorization = authorization;
     }
 
     @Override
@@ -80,14 +86,9 @@ public class ServiceImpl implements Service
     }
 
     @Override
-    public UserInformation getUserInformationByOriginalId(String originalUserId) throws CommandException
+    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException
     {
-        for (UserInformation userInformation : Authorization.getInstance().listUserInformation()) {
-            if (originalUserId.equals(userInformation.getOriginalId())) {
-                return userInformation;
-            }
-        }
-        return null;
+        return authorization.getUserInformationByPrincipalName(userPrincipalName);
     }
 
     @Override
@@ -153,8 +154,8 @@ public class ServiceImpl implements Service
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
-            AbstractNotification notification = new ConfigurableNotification(userSettingsProvider, configuration)
+            UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+            AbstractNotification notification = new ConfigurableNotification(userSettingsManager, configuration)
             {
                 @Override
                 protected Collection<Locale> getAvailableLocals()

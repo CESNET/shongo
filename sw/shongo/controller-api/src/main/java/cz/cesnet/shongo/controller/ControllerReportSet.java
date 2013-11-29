@@ -9,26 +9,34 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int USER_NOT_EXIST_CODE = 100;
-    public static final int ACL_INVALID_ROLE_CODE = 101;
-    public static final int SECURITY_MISSING_TOKEN_CODE = 102;
-    public static final int SECURITY_INVALID_TOKEN_CODE = 103;
-    public static final int SECURITY_NOT_AUTHORIZED_CODE = 104;
-    public static final int DEVICE_COMMAND_FAILED_CODE = 105;
-    public static final int IDENTIFIER_INVALID_CODE = 106;
-    public static final int IDENTIFIER_INVALID_DOMAIN_CODE = 107;
-    public static final int IDENTIFIER_INVALID_TYPE_CODE = 108;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_CODE = 109;
-    public static final int RESERVATION_REQUEST_NOT_DELETABLE_CODE = 110;
-    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_CODE = 111;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_CODE = 112;
-    public static final int RESERVATION_REQUEST_DELETED_CODE = 113;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_CODE = 114;
-    public static final int RESERVATION_REQUEST_NOT_REUSABLE_CODE = 115;
-    public static final int EXECUTABLE_INVALID_CONFIGURATION_CODE = 116;
-    public static final int EXECUTABLE_NOT_RECORDABLE_CODE = 117;
+    public static final int USER_NOT_EXISTS_CODE = 100;
+    public static final int GROUP_NOT_EXISTS_CODE = 101;
+    public static final int GROUP_ALREADY_EXISTS_CODE = 102;
+    public static final int USER_ALREADY_IN_GROUP_CODE = 103;
+    public static final int USER_NOT_IN_GROUP_CODE = 104;
+    public static final int ACL_INVALID_ROLE_CODE = 105;
+    public static final int SECURITY_MISSING_TOKEN_CODE = 106;
+    public static final int SECURITY_INVALID_TOKEN_CODE = 107;
+    public static final int SECURITY_NOT_AUTHORIZED_CODE = 108;
+    public static final int DEVICE_COMMAND_FAILED_CODE = 109;
+    public static final int IDENTIFIER_INVALID_CODE = 110;
+    public static final int IDENTIFIER_INVALID_DOMAIN_CODE = 111;
+    public static final int IDENTIFIER_INVALID_TYPE_CODE = 112;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_CODE = 113;
+    public static final int RESERVATION_REQUEST_NOT_DELETABLE_CODE = 114;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_CODE = 115;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_CODE = 116;
+    public static final int RESERVATION_REQUEST_DELETED_CODE = 117;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_CODE = 118;
+    public static final int RESERVATION_REQUEST_NOT_REUSABLE_CODE = 119;
+    public static final int EXECUTABLE_INVALID_CONFIGURATION_CODE = 120;
+    public static final int EXECUTABLE_NOT_RECORDABLE_CODE = 121;
 
-    public static final String USER_NOT_EXIST = "user-not-exist";
+    public static final String USER_NOT_EXISTS = "user-not-exists";
+    public static final String GROUP_NOT_EXISTS = "group-not-exists";
+    public static final String GROUP_ALREADY_EXISTS = "group-already-exists";
+    public static final String USER_ALREADY_IN_GROUP = "user-already-in-group";
+    public static final String USER_NOT_IN_GROUP = "user-not-in-group";
     public static final String ACL_INVALID_ROLE = "acl-invalid-role";
     public static final String SECURITY_MISSING_TOKEN = "security-missing-token";
     public static final String SECURITY_INVALID_TOKEN = "security-invalid-token";
@@ -51,7 +59,11 @@ public class ControllerReportSet extends AbstractReportSet
      * Set of report messages.
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
-        addMessage(USER_NOT_EXIST, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
+        addMessage(USER_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} doesn't exist.");
+        addMessage(GROUP_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Group ${group} doesn't exist.");
+        addMessage(GROUP_ALREADY_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Group ${group} already exists.");
+        addMessage(USER_ALREADY_IN_GROUP, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} is already in group ${group}.");
+        addMessage(USER_NOT_IN_GROUP, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} isn't in group ${group}.");
         addMessage(ACL_INVALID_ROLE, new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
         addMessage(SECURITY_MISSING_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
         addMessage(SECURITY_INVALID_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
@@ -79,21 +91,21 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * User {@link #user} doesn't exist.
      */
-    public static class UserNotExistReport extends AbstractReport implements ApiFault
+    public static class UserNotExistsReport extends AbstractReport implements ApiFault
     {
         protected String user;
 
-        public UserNotExistReport()
+        public UserNotExistsReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "user-not-exist";
+            return "user-not-exists";
         }
 
-        public UserNotExistReport(String user)
+        public UserNotExistsReport(String user)
         {
             setUser(user);
         }
@@ -117,7 +129,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return USER_NOT_EXIST_CODE;
+            return USER_NOT_EXISTS_CODE;
         }
 
         @Override
@@ -129,7 +141,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new UserNotExistException(this);
+            return new UserNotExistsException(this);
         }
 
         @Override
@@ -161,37 +173,37 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("user-not-exist", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("user-not-exists", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link UserNotExistReport}.
+     * Exception for {@link UserNotExistsReport}.
      */
-    public static class UserNotExistException extends ReportRuntimeException implements ApiFaultException
+    public static class UserNotExistsException extends ReportRuntimeException implements ApiFaultException
     {
-        public UserNotExistException(UserNotExistReport report)
+        public UserNotExistsException(UserNotExistsReport report)
         {
             this.report = report;
         }
 
-        public UserNotExistException(Throwable throwable, UserNotExistReport report)
+        public UserNotExistsException(Throwable throwable, UserNotExistsReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public UserNotExistException(String user)
+        public UserNotExistsException(String user)
         {
-            UserNotExistReport report = new UserNotExistReport();
+            UserNotExistsReport report = new UserNotExistsReport();
             report.setUser(user);
             this.report = report;
         }
 
-        public UserNotExistException(Throwable throwable, String user)
+        public UserNotExistsException(Throwable throwable, String user)
         {
             super(throwable);
-            UserNotExistReport report = new UserNotExistReport();
+            UserNotExistsReport report = new UserNotExistsReport();
             report.setUser(user);
             this.report = report;
         }
@@ -202,14 +214,608 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public UserNotExistReport getReport()
+        public UserNotExistsReport getReport()
         {
-            return (UserNotExistReport) report;
+            return (UserNotExistsReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (UserNotExistReport) report;
+            return (UserNotExistsReport) report;
+        }
+    }
+
+    /**
+     * Group {@link #group} doesn't exist.
+     */
+    public static class GroupNotExistsReport extends AbstractReport implements ApiFault
+    {
+        protected String group;
+
+        public GroupNotExistsReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "group-not-exists";
+        }
+
+        public GroupNotExistsReport(String group)
+        {
+            setGroup(group);
+        }
+
+        public String getGroup()
+        {
+            return group;
+        }
+
+        public void setGroup(String group)
+        {
+            this.group = group;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return GROUP_NOT_EXISTS_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new GroupNotExistsException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            group = (String) reportSerializer.getParameter("group", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("group", group);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("group", group);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("group-not-exists", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link GroupNotExistsReport}.
+     */
+    public static class GroupNotExistsException extends ReportRuntimeException implements ApiFaultException
+    {
+        public GroupNotExistsException(GroupNotExistsReport report)
+        {
+            this.report = report;
+        }
+
+        public GroupNotExistsException(Throwable throwable, GroupNotExistsReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public GroupNotExistsException(String group)
+        {
+            GroupNotExistsReport report = new GroupNotExistsReport();
+            report.setGroup(group);
+            this.report = report;
+        }
+
+        public GroupNotExistsException(Throwable throwable, String group)
+        {
+            super(throwable);
+            GroupNotExistsReport report = new GroupNotExistsReport();
+            report.setGroup(group);
+            this.report = report;
+        }
+
+        public String getGroup()
+        {
+            return getReport().getGroup();
+        }
+
+        @Override
+        public GroupNotExistsReport getReport()
+        {
+            return (GroupNotExistsReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (GroupNotExistsReport) report;
+        }
+    }
+
+    /**
+     * Group {@link #group} already exists.
+     */
+    public static class GroupAlreadyExistsReport extends AbstractReport implements ApiFault
+    {
+        protected String group;
+
+        public GroupAlreadyExistsReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "group-already-exists";
+        }
+
+        public GroupAlreadyExistsReport(String group)
+        {
+            setGroup(group);
+        }
+
+        public String getGroup()
+        {
+            return group;
+        }
+
+        public void setGroup(String group)
+        {
+            this.group = group;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return GROUP_ALREADY_EXISTS_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new GroupAlreadyExistsException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            group = (String) reportSerializer.getParameter("group", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("group", group);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("group", group);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("group-already-exists", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link GroupAlreadyExistsReport}.
+     */
+    public static class GroupAlreadyExistsException extends ReportRuntimeException implements ApiFaultException
+    {
+        public GroupAlreadyExistsException(GroupAlreadyExistsReport report)
+        {
+            this.report = report;
+        }
+
+        public GroupAlreadyExistsException(Throwable throwable, GroupAlreadyExistsReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public GroupAlreadyExistsException(String group)
+        {
+            GroupAlreadyExistsReport report = new GroupAlreadyExistsReport();
+            report.setGroup(group);
+            this.report = report;
+        }
+
+        public GroupAlreadyExistsException(Throwable throwable, String group)
+        {
+            super(throwable);
+            GroupAlreadyExistsReport report = new GroupAlreadyExistsReport();
+            report.setGroup(group);
+            this.report = report;
+        }
+
+        public String getGroup()
+        {
+            return getReport().getGroup();
+        }
+
+        @Override
+        public GroupAlreadyExistsReport getReport()
+        {
+            return (GroupAlreadyExistsReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (GroupAlreadyExistsReport) report;
+        }
+    }
+
+    /**
+     * User {@link #user} is already in group {@link #group}.
+     */
+    public static class UserAlreadyInGroupReport extends AbstractReport implements ApiFault
+    {
+        protected String group;
+
+        protected String user;
+
+        public UserAlreadyInGroupReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "user-already-in-group";
+        }
+
+        public UserAlreadyInGroupReport(String group, String user)
+        {
+            setGroup(group);
+            setUser(user);
+        }
+
+        public String getGroup()
+        {
+            return group;
+        }
+
+        public void setGroup(String group)
+        {
+            this.group = group;
+        }
+
+        public String getUser()
+        {
+            return user;
+        }
+
+        public void setUser(String user)
+        {
+            this.user = user;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return USER_ALREADY_IN_GROUP_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new UserAlreadyInGroupException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            group = (String) reportSerializer.getParameter("group", String.class);
+            user = (String) reportSerializer.getParameter("user", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("group", group);
+            reportSerializer.setParameter("user", user);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("group", group);
+            parameters.put("user", user);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("user-already-in-group", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link UserAlreadyInGroupReport}.
+     */
+    public static class UserAlreadyInGroupException extends ReportRuntimeException implements ApiFaultException
+    {
+        public UserAlreadyInGroupException(UserAlreadyInGroupReport report)
+        {
+            this.report = report;
+        }
+
+        public UserAlreadyInGroupException(Throwable throwable, UserAlreadyInGroupReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public UserAlreadyInGroupException(String group, String user)
+        {
+            UserAlreadyInGroupReport report = new UserAlreadyInGroupReport();
+            report.setGroup(group);
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public UserAlreadyInGroupException(Throwable throwable, String group, String user)
+        {
+            super(throwable);
+            UserAlreadyInGroupReport report = new UserAlreadyInGroupReport();
+            report.setGroup(group);
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public String getGroup()
+        {
+            return getReport().getGroup();
+        }
+
+        public String getUser()
+        {
+            return getReport().getUser();
+        }
+
+        @Override
+        public UserAlreadyInGroupReport getReport()
+        {
+            return (UserAlreadyInGroupReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (UserAlreadyInGroupReport) report;
+        }
+    }
+
+    /**
+     * User {@link #user} isn't in group {@link #group}.
+     */
+    public static class UserNotInGroupReport extends AbstractReport implements ApiFault
+    {
+        protected String group;
+
+        protected String user;
+
+        public UserNotInGroupReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "user-not-in-group";
+        }
+
+        public UserNotInGroupReport(String group, String user)
+        {
+            setGroup(group);
+            setUser(user);
+        }
+
+        public String getGroup()
+        {
+            return group;
+        }
+
+        public void setGroup(String group)
+        {
+            this.group = group;
+        }
+
+        public String getUser()
+        {
+            return user;
+        }
+
+        public void setUser(String user)
+        {
+            this.user = user;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return USER_NOT_IN_GROUP_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new UserNotInGroupException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            group = (String) reportSerializer.getParameter("group", String.class);
+            user = (String) reportSerializer.getParameter("user", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("group", group);
+            reportSerializer.setParameter("user", user);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("group", group);
+            parameters.put("user", user);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("user-not-in-group", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link UserNotInGroupReport}.
+     */
+    public static class UserNotInGroupException extends ReportRuntimeException implements ApiFaultException
+    {
+        public UserNotInGroupException(UserNotInGroupReport report)
+        {
+            this.report = report;
+        }
+
+        public UserNotInGroupException(Throwable throwable, UserNotInGroupReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public UserNotInGroupException(String group, String user)
+        {
+            UserNotInGroupReport report = new UserNotInGroupReport();
+            report.setGroup(group);
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public UserNotInGroupException(Throwable throwable, String group, String user)
+        {
+            super(throwable);
+            UserNotInGroupReport report = new UserNotInGroupReport();
+            report.setGroup(group);
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public String getGroup()
+        {
+            return getReport().getGroup();
+        }
+
+        public String getUser()
+        {
+            return getReport().getUser();
+        }
+
+        @Override
+        public UserNotInGroupReport getReport()
+        {
+            return (UserNotInGroupReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (UserNotInGroupReport) report;
         }
     }
 
@@ -2635,7 +3241,11 @@ public class ControllerReportSet extends AbstractReportSet
     @Override
     protected void fillReportClasses()
     {
-        addReportClass(UserNotExistReport.class);
+        addReportClass(UserNotExistsReport.class);
+        addReportClass(GroupNotExistsReport.class);
+        addReportClass(GroupAlreadyExistsReport.class);
+        addReportClass(UserAlreadyInGroupReport.class);
+        addReportClass(UserNotInGroupReport.class);
         addReportClass(AclInvalidRoleReport.class);
         addReportClass(SecurityMissingTokenReport.class);
         addReportClass(SecurityInvalidTokenReport.class);

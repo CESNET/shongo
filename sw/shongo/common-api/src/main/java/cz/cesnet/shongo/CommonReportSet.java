@@ -21,7 +21,7 @@ public class CommonReportSet extends AbstractReportSet
     public static final int CLASS_COLLECTION_REQUIRED_CODE = 9;
     public static final int COLLECTION_ITEM_NULL_CODE = 10;
     public static final int COLLECTION_ITEM_TYPE_MISMATCH_CODE = 11;
-    public static final int ENTITY_NOT_FOUND_CODE = 12;
+    public static final int ENTITY_NOT_EXISTS_CODE = 12;
     public static final int ENTITY_INVALID_CODE = 13;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_CODE = 14;
     public static final int METHOD_NOT_DEFINED_CODE = 15;
@@ -38,7 +38,7 @@ public class CommonReportSet extends AbstractReportSet
     public static final String CLASS_COLLECTION_REQUIRED = "class-collection-required";
     public static final String COLLECTION_ITEM_NULL = "collection-item-null";
     public static final String COLLECTION_ITEM_TYPE_MISMATCH = "collection-item-type-mismatch";
-    public static final String ENTITY_NOT_FOUND = "entity-not-found";
+    public static final String ENTITY_NOT_EXISTS = "entity-not-exists";
     public static final String ENTITY_INVALID = "entity-invalid";
     public static final String ENTITY_NOT_DELETABLE_REFERENCED = "entity-not-deletable-referenced";
     public static final String METHOD_NOT_DEFINED = "method-not-defined";
@@ -60,7 +60,7 @@ public class CommonReportSet extends AbstractReportSet
         addMessage(CLASS_COLLECTION_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
         addMessage(COLLECTION_ITEM_NULL, new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
         addMessage(COLLECTION_ITEM_TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
-        addMessage(ENTITY_NOT_FOUND, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} was not found.");
+        addMessage(ENTITY_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} doesn't exist.");
         addMessage(ENTITY_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
         addMessage(ENTITY_NOT_DELETABLE_REFERENCED, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
         addMessage(METHOD_NOT_DEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
@@ -1969,25 +1969,25 @@ public class CommonReportSet extends AbstractReportSet
     }
 
     /**
-     * Entity {@link #entity} with identifier {@link #id} was not found.
+     * Entity {@link #entity} with identifier {@link #id} doesn't exist.
      */
-    public static class EntityNotFoundReport extends AbstractReport implements ApiFault
+    public static class EntityNotExistsReport extends AbstractReport implements ApiFault
     {
         protected String entity;
 
         protected String id;
 
-        public EntityNotFoundReport()
+        public EntityNotExistsReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "entity-not-found";
+            return "entity-not-exists";
         }
 
-        public EntityNotFoundReport(String entity, String id)
+        public EntityNotExistsReport(String entity, String id)
         {
             setEntity(entity);
             setId(id);
@@ -2022,7 +2022,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_FOUND_CODE;
+            return ENTITY_NOT_EXISTS_CODE;
         }
 
         @Override
@@ -2034,7 +2034,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new EntityNotFoundException(this);
+            return new EntityNotExistsException(this);
         }
 
         @Override
@@ -2069,38 +2069,38 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-not-found", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("entity-not-exists", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link EntityNotFoundReport}.
+     * Exception for {@link EntityNotExistsReport}.
      */
-    public static class EntityNotFoundException extends ReportRuntimeException implements ApiFaultException
+    public static class EntityNotExistsException extends ReportRuntimeException implements ApiFaultException
     {
-        public EntityNotFoundException(EntityNotFoundReport report)
+        public EntityNotExistsException(EntityNotExistsReport report)
         {
             this.report = report;
         }
 
-        public EntityNotFoundException(Throwable throwable, EntityNotFoundReport report)
+        public EntityNotExistsException(Throwable throwable, EntityNotExistsReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public EntityNotFoundException(String entity, String id)
+        public EntityNotExistsException(String entity, String id)
         {
-            EntityNotFoundReport report = new EntityNotFoundReport();
+            EntityNotExistsReport report = new EntityNotExistsReport();
             report.setEntity(entity);
             report.setId(id);
             this.report = report;
         }
 
-        public EntityNotFoundException(Throwable throwable, String entity, String id)
+        public EntityNotExistsException(Throwable throwable, String entity, String id)
         {
             super(throwable);
-            EntityNotFoundReport report = new EntityNotFoundReport();
+            EntityNotExistsReport report = new EntityNotExistsReport();
             report.setEntity(entity);
             report.setId(id);
             this.report = report;
@@ -2117,14 +2117,14 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public EntityNotFoundReport getReport()
+        public EntityNotExistsReport getReport()
         {
-            return (EntityNotFoundReport) report;
+            return (EntityNotExistsReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (EntityNotFoundReport) report;
+            return (EntityNotExistsReport) report;
         }
     }
 
@@ -2600,7 +2600,7 @@ public class CommonReportSet extends AbstractReportSet
         addReportClass(ClassCollectionRequiredReport.class);
         addReportClass(CollectionItemNullReport.class);
         addReportClass(CollectionItemTypeMismatchReport.class);
-        addReportClass(EntityNotFoundReport.class);
+        addReportClass(EntityNotExistsReport.class);
         addReportClass(EntityInvalidReport.class);
         addReportClass(EntityNotDeletableReferencedReport.class);
         addReportClass(MethodNotDefinedReport.class);

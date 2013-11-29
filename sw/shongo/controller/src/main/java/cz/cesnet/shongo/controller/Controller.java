@@ -23,6 +23,8 @@ import org.apache.commons.cli.*;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +90,7 @@ public class Controller
     /**
      * XML-RPC server.
      */
-    private RpcServer rpcServer;
+    private org.eclipse.jetty.server.Server rpcServer;
 
     /**
      * List of services of the domain controller.
@@ -253,6 +255,14 @@ public class Controller
     }
 
     /**
+     * @return {@link #authorization}
+     */
+    public Authorization getAuthorization()
+    {
+        return authorization;
+    }
+
+    /**
      * @return {@link #jadeAgent}
      */
     public ControllerAgent getAgent()
@@ -265,7 +275,7 @@ public class Controller
      */
     public String getRpcHost()
     {
-        return configuration.getString(ControllerConfiguration.RPC_HOST);
+        return configuration.getRpcHost();
     }
 
     /**
@@ -273,7 +283,7 @@ public class Controller
      */
     public int getRpcPort()
     {
-        return configuration.getInt(ControllerConfiguration.RPC_PORT);
+        return configuration.getRpcPort();
     }
 
     /**
@@ -477,17 +487,46 @@ public class Controller
      *
      * @throws IOException
      */
-    public void startRpc() throws IOException
+    public void startRpc() throws Exception
     {
-        String rpcHost = getRpcHost();
-        logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost.isEmpty() ? "*" : rpcHost),
-                getRpcPort());
+        logger.info("Starting Controller XML-RPC server on {}:{}...", getRpcHost(), getRpcPort());
 
-        rpcServer = new RpcServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
+        RpcServlet rpcServlet = new RpcServlet();
         for (Service rpcService : rpcServices) {
             logger.debug("Adding XML-RPC service '" + rpcService.getServiceName() + "'...");
-            rpcServer.addHandler(rpcService.getServiceName(), rpcService);
+            rpcServlet.addHandler(rpcService.getServiceName(), rpcService);
         }
+
+        rpcServer = new org.eclipse.jetty.server.Server();
+        final String sslKeyStore = configuration.getRpcSslKeyStore();
+        if (sslKeyStore != null) {
+            // Configure HTTPS connector
+            final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
+                    new org.eclipse.jetty.util.ssl.SslContextFactory(sslKeyStore);
+            sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
+            final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
+                    new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
+            httpsConnector.setHost(getRpcHost());
+            httpsConnector.setPort(getRpcPort());
+            rpcServer.addConnector(httpsConnector);
+        }
+        else {
+            // Configure HTTP connector
+            final org.eclipse.jetty.server.nio.SelectChannelConnector httpConnector =
+                    new org.eclipse.jetty.server.nio.SelectChannelConnector();
+            httpConnector.setHost(getRpcHost());
+            httpConnector.setPort(getRpcPort());
+            rpcServer.addConnector(httpConnector);
+        }
+
+        org.eclipse.jetty.servlet.ServletHandler servletHandler = new org.eclipse.jetty.servlet.ServletHandler();
+        ServletHolder servletHolder = new ServletHolder("XmlRpcServlet", rpcServlet);
+        servletHandler.addServlet(servletHolder);
+        ServletMapping servletMapping = new ServletMapping();
+        servletMapping.setPathSpec("/");
+        servletMapping.setServletName(servletHolder.getName());
+        servletHandler.addServletMapping(servletMapping);
+        rpcServer.setHandler(servletHandler);
         rpcServer.start();
     }
 
@@ -594,7 +633,12 @@ public class Controller
 
         if (rpcServer != null) {
             logger.info("Stopping Controller XML-RPC server...");
-            rpcServer.stop();
+            try {
+                rpcServer.stop();
+            }
+            catch (Exception exception) {
+                throw new RuntimeException(exception);
+            }
         }
 
         // Destroy components
@@ -808,7 +852,8 @@ public class Controller
         Controller.initializeDatabase(entityManagerFactory);
 
         // Setup controller
-        controller.setAuthorization(ServerAuthorization.createInstance(configuration));
+        Authorization authorization = ServerAuthorization.createInstance(configuration);
+        controller.setAuthorization(authorization);
         controller.setEntityManagerFactory(entityManagerFactory);
 
         // Add components
@@ -836,7 +881,8 @@ public class Controller
 
         // Add JADE service
         NotificationManager notificationManager = controller.getNotificationManager();
-        controller.setJadeService(new ServiceImpl(entityManagerFactory, configuration, notificationManager, executor));
+        controller.setJadeService(new ServiceImpl(
+                entityManagerFactory, configuration, notificationManager, executor, authorization));
 
         // Start, run and stop the controller
         controller.startAll();

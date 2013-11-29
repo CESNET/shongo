@@ -21,18 +21,29 @@ public class UserSettings extends AbstractComplexType
     public static final Locale LOCALE_CZECH = new Locale("cs");
 
     /**
+     * Specifies whether main attributes ({@link #locale}) should be loaded from user web service.
+     */
+    private boolean useWebService;
+
+    /**
      * User preferred language (e.g., "cs" or "en")
      */
     private Locale locale;
 
     /**
-     * User time zone (e.g., "-08:00")
+     * User home time zone (e.g., "-08:00")
      */
-    private DateTimeZone timeZone;
+    private DateTimeZone homeTimeZone;
+
+    /**
+     * User current time zone (e.g., "-05:00" when travelling)
+     */
+    private DateTimeZone currentTimeZone;
 
     /**
      * {@link Boolean#TRUE} or {@link Boolean#FALSE} specifies whether user should act in administrator role
-     * (for active session). {@code null} means that user isn't administrator and thus he cannot act as administrator.
+     * (for active session).
+     * Value {@code null} means that user isn't administrator and thus he cannot act as administrator.
      */
     private Boolean adminMode;
 
@@ -40,6 +51,22 @@ public class UserSettings extends AbstractComplexType
      * Other custom user settings attributes which should be globally stored.
      */
     private Map<String, String> attributes = new HashMap<String, String>();
+
+    /**
+     * @return {@link #useWebService}
+     */
+    public boolean isUseWebService()
+    {
+        return useWebService;
+    }
+
+    /**
+     * @param useWebService sets the {@link #useWebService}
+     */
+    public void setUseWebService(boolean useWebService)
+    {
+        this.useWebService = useWebService;
+    }
 
     /**
      * @return {@link #locale}
@@ -58,19 +85,35 @@ public class UserSettings extends AbstractComplexType
     }
 
     /**
-     * @return {@link #timeZone}
+     * @return {@link #homeTimeZone}
      */
-    public DateTimeZone getTimeZone()
+    public DateTimeZone getHomeTimeZone()
     {
-        return timeZone;
+        return homeTimeZone;
     }
 
     /**
-     * @param timeZone sets the {@link #timeZone}
+     * @param homeTimeZone sets the {@link #homeTimeZone}
      */
-    public void setTimeZone(DateTimeZone timeZone)
+    public void setHomeTimeZone(DateTimeZone homeTimeZone)
     {
-        this.timeZone = timeZone;
+        this.homeTimeZone = homeTimeZone;
+    }
+
+    /**
+     * @return {@link #currentTimeZone}
+     */
+    public DateTimeZone getCurrentTimeZone()
+    {
+        return currentTimeZone;
+    }
+
+    /**
+     * @param currentTimeZone sets the {@link #currentTimeZone}
+     */
+    public void setCurrentTimeZone(DateTimeZone currentTimeZone)
+    {
+        this.currentTimeZone = currentTimeZone;
     }
 
     /**
@@ -135,7 +178,7 @@ public class UserSettings extends AbstractComplexType
     /**
      * Add new attribute to {@link #attributes}.
      *
-     * @param name of the new attribute
+     * @param name  of the new attribute
      * @param value of the new attribute
      */
     public void setAttribute(String name, String value)
@@ -151,11 +194,13 @@ public class UserSettings extends AbstractComplexType
     @Override
     public String toString()
     {
-        return String.format("UserSettings (%s, %s, %s)", locale, timeZone, adminMode);
+        return String.format("UserSettings (%s, %s, %s)", locale, homeTimeZone, adminMode);
     }
 
+    private static final String USE_WEB_SERVICE = "useWebService";
     private static final String LOCALE = "locale";
-    private static final String TIME_ZONE = "timeZone";
+    private static final String HOME_TIME_ZONE = "homeTimeZone";
+    private static final String CURRENT_TIME_ZONE = "currentTimeZone";
     private static final String ADMIN_MODE = "adminMode";
     private static final String ATTRIBUTES = "attributes";
 
@@ -163,8 +208,10 @@ public class UserSettings extends AbstractComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(USE_WEB_SERVICE, useWebService);
         dataMap.set(LOCALE, locale);
-        dataMap.set(TIME_ZONE, timeZone);
+        dataMap.set(HOME_TIME_ZONE, homeTimeZone);
+        dataMap.set(CURRENT_TIME_ZONE, currentTimeZone);
         dataMap.set(ADMIN_MODE, adminMode);
         dataMap.set(ATTRIBUTES, attributes);
         return dataMap;
@@ -174,8 +221,10 @@ public class UserSettings extends AbstractComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        useWebService = dataMap.getBool(USE_WEB_SERVICE);
         locale = dataMap.getLocale(LOCALE);
-        timeZone = dataMap.getDateTimeZone(TIME_ZONE);
+        homeTimeZone = dataMap.getDateTimeZone(HOME_TIME_ZONE);
+        currentTimeZone = dataMap.getDateTimeZone(CURRENT_TIME_ZONE);
         adminMode = dataMap.getBoolean(ADMIN_MODE);
         attributes = dataMap.getMap(ATTRIBUTES, String.class, String.class);
     }

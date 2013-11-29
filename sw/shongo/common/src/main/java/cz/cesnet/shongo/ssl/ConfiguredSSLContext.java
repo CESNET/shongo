@@ -18,6 +18,8 @@ import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -244,12 +246,18 @@ public class ConfiguredSSLContext
         {
             if (alreadyAddedHosts.add(host)) {
                 try {
+                    URI hostUri = new URI(host);
+                    host = hostUri.getHost();
+                    if (host == null) {
+                        host = hostUri.getPath();
+                    }
                     javax.net.ssl.SSLContext tempConnectContext = javax.net.ssl.SSLContext.getInstance("TLS");
                     ExtractX509CertTrustManager x509CertTrustManager = new ExtractX509CertTrustManager();
                     tempConnectContext.init(null, new javax.net.ssl.TrustManager[]{x509CertTrustManager}, null);
                     javax.net.ssl.SSLSocketFactory socketFactory = tempConnectContext.getSocketFactory();
                     javax.net.ssl.SSLSocket socket =
-                            (javax.net.ssl.SSLSocket) socketFactory.createSocket(host, DEFAULT_HTTPS_PORT);
+                            (javax.net.ssl.SSLSocket) socketFactory.createSocket(host,
+                                    (hostUri.getPort() != -1 ? hostUri.getPort() : DEFAULT_HTTPS_PORT));
                     socket.setSoTimeout(10000);
                     socket.startHandshake();
                     for (X509Certificate cert : x509CertTrustManager.getCurrentChain()) {

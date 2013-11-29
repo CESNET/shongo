@@ -93,8 +93,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
-        //userSettings.setLocale(UserSettings.LOCALE_CZECH);
-        //userSettings.setTimeZone(DateTimeZone.forID("+05:00"));
+        userSettings.setLocale(UserSettings.LOCALE_CZECH);
+        userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();

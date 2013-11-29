@@ -38,7 +38,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String DATABASE_PASSWORD = "database.password";
 
     /**
-     * API XML-RPC configuration.
+     * XML-RPC configuration
      */
     public static final String RPC_HOST = "rpc.host";
     public static final String RPC_PORT = "rpc.port";
@@ -133,14 +133,19 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SECURITY_EXPIRATION_ACL = "security.expiration.acl";
 
     /**
+     * Specifies expiration of cache for user groups.
+     */
+    public static final String SECURITY_EXPIRATION_GROUP = "security.expiration.group";
+
+    /**
      * Specifies access token which won't be verified and can be used for testing purposes.
      */
     public static final String SECURITY_ROOT_ACCESS_TOKEN = "security.root-access-token";
 
     /**
-     * Specifies set of user-ids of administrators (they can use the {@link UserSessionSettings#adminMode}).
+     * Specifies the name of group which contains system administrators (they can use the {@link UserSessionSettings#adminMode}).
      */
-    public static final String SECURITY_ADMINISTRATOR_USER_ID = "security.administrator-user-id";
+    public static final String SECURITY_ADMIN_GROUP = "security.admin-group";
 
     /**
      * SSL host verification mappings.
@@ -198,12 +203,54 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
+
      * @return timeout to receive response when performing commands from agent
      */
     public Duration getJadeCommandTimeout()
     {
         return getDuration("jade.command-timeout");
     }
+
+    /**
+     * @return XML-RPC host
+     */
+    public String getRpcHost()
+    {
+        String rpcHost = getString(RPC_HOST);
+        if (rpcHost.isEmpty()) {
+            rpcHost = "localhost";
+        }
+        return rpcHost;
+    }
+
+    /**
+     * @return XML-RPC port
+     */
+    public int getRpcPort()
+    {
+        return getInt(RPC_PORT);
+    }
+
+    /**
+     * @return XML-RPC ssl key store
+     */
+    public String getRpcSslKeyStore()
+    {
+        String sslKeyStore = getString("rpc.ssl-key-store");
+        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
+            return null;
+        }
+        return sslKeyStore;
+    }
+
+    /**
+     * @return password for XML-RPC ssl key store
+     */
+    public String getRpcSslKeyStorePassword()
+    {
+        return getString("rpc.ssl-key-store-password");
+    }
+
 
     /**
      * @param reservationRequestId

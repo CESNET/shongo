@@ -87,7 +87,7 @@ public class Synchronization
                     Long objectId = identifiedObjectApi.notNullIdAsLong();
                     object = existingObjects.get(objectId);
                     if (object == null) {
-                        ControllerReportSetHelper.throwEntityNotFoundFault(handler.getObjectClass(), objectId);
+                        ControllerReportSetHelper.throwEntityNotExistFault(handler.getObjectClass(), objectId);
                         return false;
                     }
                     handler.updateFromApi(object, apiObject);

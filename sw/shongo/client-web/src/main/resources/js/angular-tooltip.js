@@ -9,73 +9,44 @@ tooltipModule.activeTooltipContext = null;
 /**
  * Date/Time picker
  */
-tooltipModule.directive('tooltip', function() {
+tooltipModule.directive('tooltip', function($compile) {
     return {
         restrict: 'A',
-        link: function(scope, element, attrs, controller) {
-            var tooltipContent;
-            var tooltipContentContext;
-            var bind = {
-                mouseover: function(){
-                    if (tooltipModule.activeTooltipContext != null && tooltipModule.activeTooltipContext != tooltipContentContext) {
-                        tooltipModule.activeTooltipContext.tooltipContent.stop()
-                        tooltipModule.activeTooltipContext.tooltipContent.hide();
-                    }
-                    tooltipModule.activeTooltipContext = tooltipContentContext;
-                    tooltipContent.stop();
-                    tooltipContent.init();
-                    tooltipContent.fadeIn();
-                    clearInterval(tooltipContentContext.timeout);
+        link: function(scope, element) {
+            var title = element.attr('title');
+            if (title == null) {
+                title = element.next().html();
+            }
+            if (title.indexOf("{{") != -1 || title.indexOf(" ng-") != -1) {
+                title = $compile(title)(scope);
+            }
+            var options = {
+                content: {
+                    text: title
                 },
-                mouseleave: function(){
-                    tooltipContentContext.timeout = setTimeout(function(){
-                        tooltipContent.stop();
-                        tooltipContent.fadeOut();
-                    }, 200);
+                position: {
+                    my: 'top left',
+                    at: 'bottom right'
+                },
+                style: {
+                    classes: 'qtip-app'
                 }
             };
-            setTimeout(function(){
-                // Get the tooltip content
-                tooltipContent = $("#" + attrs.tooltip);
-                tooltipContent.init = function() {
-                    if (tooltipContent.inited) {
-                        return;
-                    }
-                    tooltipContent.inited = true;
-                    if (attrs.position == "bottom-left") {
-                        var marginLeft = parseInt(tooltipContent.css('margin-left'));
-                        tooltipContent.css('margin-left', marginLeft - parseInt(tooltipContent.css('max-width')));
-                        tooltipContent.css('margin-left', marginLeft - parseInt(tooltipContent.css('width')));
-                    }
+            var position = element.attr('position');
+            if (position == "bottom-left") {
+                options["position"] = {
+                    my: 'top right',
+                    at: 'bottom left'
                 };
-
-                // Skip not existing and empty tooltip content
-                if (tooltipContent.length == 0 || tooltipContent.children().length == 0) {
-                    return;
-                }
-
-                // Bind the tooltip main label
-                element.bind(bind);
-
-                // Get the tooltip additional label
-                var tooltipLabel = $("#" + attrs.label);
-                if ( tooltipLabel.length > 0) {
-                    tooltipLabel.addClass('tooltip-label');
-                    tooltipLabel.bind(bind);
-                }
-
-                // Setup tooltip content
-                if ( tooltipContent[0].context == null ) {
-                    // Setup context
-                    tooltipContent[0].context = {
-                        tooltipContent: tooltipContent
-                    };
-
-                    // Bind the tooltip content also
-                    tooltipContent.bind(bind);
-                }
-                tooltipContentContext = tooltipContent[0].context;
-            }, 0);
+            }
+            var selectable = element.attr('selectable');
+            if (selectable == "true") {
+                options["hide"] = {
+                    fixed: true,
+                        delay: 300
+                };
+            }
+            element.qtip(options);
         }
     }
 });

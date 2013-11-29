@@ -35,16 +35,16 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws CommonReportSet.EntityNotFoundException when the alias doesn't exist
+     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException when the alias doesn't exist
      */
-    private Alias getAliasById(Long aliasId) throws CommonReportSet.EntityNotFoundException
+    private Alias getAliasById(Long aliasId) throws CommonReportSet.EntityNotExistsException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(aliasId)) {
                 return alias;
             }
         }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(Alias.class, aliasId);
+        return ControllerReportSetHelper.throwEntityNotExistFault(Alias.class, aliasId);
     }
 
     /**
