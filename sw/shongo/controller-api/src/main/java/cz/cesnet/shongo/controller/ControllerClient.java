@@ -29,17 +29,16 @@ public class ControllerClient extends RpcClient
      * @param controllerUrl
      * @throws Exception
      */
-    public ControllerClient(String controllerUrl) throws Exception
+    public ControllerClient(URL controllerUrl) throws Exception
     {
         this();
 
-        URL url = new URL(controllerUrl);
-        int port = url.getPort();
+        int port = controllerUrl.getPort();
         if (port == -1) {
             port = 8181;
         }
-        String protocol = url.getProtocol();
-        String host = url.getHost();
+        String protocol = controllerUrl.getProtocol();
+        String host = controllerUrl.getHost();
         connect(protocol + "://" + host, port);
     }
 

@@ -5,9 +5,10 @@ import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 
 /**
  * Web client configuration.
@@ -20,6 +21,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
      * Single instance of {@link ClientWebConfiguration}.
      */
     private static ClientWebConfiguration clientWebConfiguration;
+
+    /**
+     * Controller url.
+     */
+    private URL controllerUrl;
 
     /**
      * @return {@link #clientWebConfiguration}
@@ -100,13 +106,27 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @return controller url
+     * @return {@link #controllerUrl}
      */
-    public String getControllerUrl()
+    public URL getControllerUrl()
     {
-        String controllerUrl = getString("controller");
-        if (!controllerUrl.startsWith("http")) {
-            controllerUrl = "http://" + controllerUrl;
+        if (controllerUrl == null) {
+            String controllerUrl = getString("controller");
+            if (!controllerUrl.startsWith("http")) {
+                controllerUrl = "http://" + controllerUrl;
+            }
+            try {
+                this.controllerUrl = new URL(controllerUrl);
+                int port = this.controllerUrl.getPort();
+                if (port == -1) {
+                    port = 8181;
+                }
+                this.controllerUrl = new URL(
+                        this.controllerUrl.getProtocol(), this.controllerUrl.getHost(), port, "");
+            }
+            catch (MalformedURLException exception) {
+                throw new RuntimeException(exception);
+            }
         }
         return controllerUrl;
     }

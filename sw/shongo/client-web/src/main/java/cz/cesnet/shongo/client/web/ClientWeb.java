@@ -86,7 +86,7 @@ public class ClientWeb
         final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
         final Server server = new Server();
 
-        URL controllerUrl = new URL(clientWebConfiguration.getControllerUrl());
+        URL controllerUrl = clientWebConfiguration.getControllerUrl();
         if (controllerUrl.getProtocol().equals("https")) {
             ConfiguredSSLContext.getInstance().addAdditionalCertificates(controllerUrl.toString());
         }

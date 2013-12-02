@@ -269,7 +269,7 @@ public class ConfiguredSSLContext
                     logger.info("Certificates for the host '{}' has been added to the certificate store.", host);
                 }
                 catch (Exception exception) {
-                    logger.error(String.format("Certificates for the host '%s' failed to be added to the store.",
+                    logger.warn(String.format("Certificates for the host '%s' failed to be added to the store.",
                             host), exception);
                 }
             }
