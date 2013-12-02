@@ -35,6 +35,7 @@ public class NativeQuery
     public static final String EXECUTABLE_LIST = "executable_list.sql";
     public static final String ACL_RECORD_LIST = "acl_record_list.sql";
     public static final String REFERENCED_USER_LIST = "referenced_user_list.sql";
+    public static final String MODIFY_USER_ID = "modify_user_id.sql";
 
     /**
      * Cached native queries (not targeted for any specific {@link EntityManagerFactory}).

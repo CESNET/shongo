@@ -493,6 +493,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
 
+            String query = NativeQuery.getNativeQuery(entityManagerFactory, NativeQuery.MODIFY_USER_ID);
+            String queryParts[] = query.split("\\[perform\\]");
+            String queryInit = queryParts[0].trim();
+            String queryDestroy = queryParts[1].trim();
+
+            if (!queryInit.isEmpty()) {
+                entityManager.createNativeQuery(queryInit).executeUpdate();
+            }
+
             entityManager.createQuery("UPDATE AclRecord SET userId = :newUserId WHERE userId = :oldUserId")
                     .setParameter("oldUserId", oldUserId)
                     .setParameter("newUserId", newUserId)
@@ -541,6 +550,10 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     .setParameter("oldUserId", oldUserId)
                     .setParameter("newUserId", newUserId)
                     .executeUpdate();
+
+            if (!queryDestroy.isEmpty()) {
+                entityManager.createNativeQuery(queryDestroy).executeUpdate();
+            }
 
             entityManager.getTransaction().commit();
 
