@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
@@ -12,6 +13,8 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +24,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RoomModel
+public class RoomModel extends ParticipantConfigurationModel
 {
     /**
      * {@link MessageProvider} used for formatting of {@link #aliases}.
@@ -89,11 +92,6 @@ public class RoomModel
     private ExecutableState usageState;
 
     /**
-     * List of participants of {@link AbstractRoomExecutable} and of the active {@link UsedRoomExecutable} (if it exists).
-     */
-    private List<Participant> participants = new LinkedList<Participant>();
-
-    /**
      * Specifies whether this room can be recorded or whether it already has some recordings.
      */
     private boolean recordable = false;
@@ -137,13 +135,13 @@ public class RoomModel
                     usageExecutable.getRoomExecutableId());
             RoomExecutableParticipantConfiguration participants = usedExecutable.getParticipantConfiguration();
             for (AbstractParticipant participant : participants.getParticipants()) {
-                this.participants.add(new Participant(usedExecutable.getId(), participant, cacheProvider));
+                addParticipant(new Participant(usedExecutable.getId(), participant, cacheProvider));
             }
         }
 
         // Add room participants from executable
         for (AbstractParticipant participant : roomExecutable.getParticipantConfiguration().getParticipants()) {
-            participants.add(new Participant(this.id, participant, cacheProvider));
+            addParticipant(new Participant(this.id, participant, cacheProvider));
         }
 
         // Room type and license count and active usage
@@ -169,7 +167,7 @@ public class RoomModel
                     this.usageState = usage.getState();
                     RoomExecutableParticipantConfiguration participants = usage.getParticipantConfiguration();
                     for (AbstractParticipant participant : participants.getParticipants()) {
-                        this.participants.add(new Participant(this.usageId, participant, cacheProvider));
+                        addParticipant(new Participant(this.usageId, participant, cacheProvider));
                     }
                     this.recordingService = getRecordingService(executableService, securityToken, this.id);
                     this.recordable = this.recordingService != null;
@@ -376,19 +374,12 @@ public class RoomModel
     }
 
     /**
-     * @return {@link #participants}
-     */
-    public List<Participant> getParticipants()
-    {
-        return participants;
-    }
-
-    /**
      * Disable modifying/deleting of dependent participants.
      */
     public void disableDependentParticipants()
     {
-        for (Participant participant : participants) {
+        for (ParticipantModel participantModel : participants) {
+            Participant participant = (Participant) participantModel;
             if (!participant.roomId.equals(id)) {
                 participant.setNullId();
             }

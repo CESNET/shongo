@@ -457,7 +457,6 @@ public class RoomReservationTask extends ReservationTask
             roomReservation.setRoomProviderCapability(roomProviderCapability);
             roomReservation.setLicenseCount(roomProviderVariant.getLicenseCount());
 
-
             // Allocated room endpoint
             RoomEndpoint roomEndpoint = null;
             if (allocateRoomEndpoint) {

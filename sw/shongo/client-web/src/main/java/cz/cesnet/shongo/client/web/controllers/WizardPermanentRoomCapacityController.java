@@ -45,8 +45,6 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
 {
     private static Logger logger = LoggerFactory.getLogger(WizardPermanentRoomCapacityController.class);
 
-    private static final String FORCE_NEW = "new";
-
     @Resource
     private ReservationService reservationService;
 
@@ -106,7 +104,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             SecurityToken securityToken,
             HttpSession httpSession,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
-            @RequestParam(value = "force", required = false) String force)
+            @RequestParam(value = "force", required = false) boolean force)
     {
         WizardView wizardView = getCreatePermanentRoomCapacityView();
 
@@ -118,7 +116,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         // Add reservation request model
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) httpSession.getAttribute(RESERVATION_REQUEST_ATTRIBUTE);
-        if (reservationRequest == null || FORCE_NEW.equals(force)) {
+        if (reservationRequest == null || force) {
             reservationRequest = new ReservationRequestModel(new CacheProvider(cache, securityToken));
             wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
@@ -154,6 +152,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();
         }
+        reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
         if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), ParticipantRole.ADMIN)) {
             reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
         }
@@ -161,7 +160,6 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             return handleCreateConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
             if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
                 return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
             }

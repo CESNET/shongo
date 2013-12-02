@@ -315,6 +315,7 @@ public class RoomSpecification extends Specification
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
+        participants = dataMap.getList(PARTICIPANTS, AbstractParticipant.class);
         serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

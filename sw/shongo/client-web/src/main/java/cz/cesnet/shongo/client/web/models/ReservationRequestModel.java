@@ -35,7 +35,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestModel.class);
 
-
     public static final ReservationRequestPurpose PURPOSE = ReservationRequestPurpose.USER;
 
     private CacheProvider cacheProvider;
@@ -420,7 +419,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             if (aliasSpecifications.size() == 0) {
                 throw new UnsupportedApiException("At least one child alias specifications must be present.");
             }
-            AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
+            AliasSpecification roomNameSpecification = null;
+            for (AliasSpecification aliasSpecification : aliasSpecifications) {
+                if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
+                    roomNameSpecification = aliasSpecification;
+                    break;
+                }
+            }
+            if (roomNameSpecification == null) {
+                throw new UnsupportedApiException("Room name specification must be present.");
+            }
             fromSpecificationApi(roomNameSpecification, reusedReservationRequestId, cacheProvider);
         }
         else if (specification instanceof AliasSpecification) {
@@ -887,7 +895,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         ParticipantModel participant = null;
         for (ParticipantModel possibleParticipant : roomParticipants) {
-            if (possibleParticipant.getId().equals(participantId)) {
+            if (participantId.equals(possibleParticipant.getId())) {
                 participant = possibleParticipant;
             }
         }
@@ -905,7 +913,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public boolean hasUserParticipant(String userId, ParticipantRole role)
     {
         for (ParticipantModel participant : roomParticipants) {
-            if (participant.getType().equals(ParticipantModel.Type.USER) && participant.getUserId().equals(userId)) {
+            if (participant.getType().equals(ParticipantModel.Type.USER) && participant.getUserId().equals(userId)
+                    && role.equals(participant.getRole())) {
                 return true;
             }
         }

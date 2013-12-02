@@ -601,9 +601,23 @@ public class RoomController
         if (bindingResult.hasErrors()) {
             return "participant";
         }
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
-        participantConfiguration.addParticipant(participant.toApi());
+
+        // Initialize model from API
+        ParticipantConfigurationModel participantConfigurationModel = new ParticipantConfigurationModel();
+        for (AbstractParticipant existingParticipant : participantConfiguration.getParticipants()) {
+            participantConfigurationModel.addParticipant(new ParticipantModel(existingParticipant, cacheProvider));
+        }
+        // Modify model
+        participantConfigurationModel.addParticipant(participant);
+        // Initialize API from model
+        participantConfiguration.clearParticipants();
+        for (ParticipantModel participantModel : participantConfigurationModel.getParticipants()) {
+            participantConfiguration.addParticipant(participantModel.toApi());
+        }
+
         executableService.modifyExecutableConfiguration(securityToken, roomId, participantConfiguration);
         return "redirect:" + BackUrl.getInstance(request).getUrl(
                 ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId));
@@ -642,11 +656,26 @@ public class RoomController
         if (bindingResult.hasErrors()) {
             return "participant";
         }
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
+
+        // Initialize model from API
+        ParticipantConfigurationModel participantConfigurationModel = new ParticipantConfigurationModel();
+        for (AbstractParticipant existingParticipant : participantConfiguration.getParticipants()) {
+            participantConfigurationModel.addParticipant(new ParticipantModel(existingParticipant, cacheProvider));
+        }
+        // Modify model
         ParticipantModel oldParticipant = getParticipant(participantConfiguration, participantId, securityToken);
-        participantConfiguration.removeParticipantById(oldParticipant.getId());
-        participantConfiguration.addParticipant(participant.toApi());
+        participantConfigurationModel.removeParticipant(oldParticipant);
+        participantConfigurationModel.addParticipant(participant);
+        // Initialize API from model
+        participantConfiguration.clearParticipants();
+        for (ParticipantModel participantModel : participantConfigurationModel.getParticipants()) {
+            participantConfiguration.addParticipant(participantModel.toApi());
+        }
+
+
         executableService.modifyExecutableConfiguration(securityToken, roomId, participantConfiguration);
         return "redirect:" + BackUrl.getInstance(request).getUrl(
                 ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId));

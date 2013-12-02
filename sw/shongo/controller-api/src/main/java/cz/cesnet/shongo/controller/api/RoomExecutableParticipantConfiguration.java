@@ -49,6 +49,14 @@ public class RoomExecutableParticipantConfiguration extends ExecutableConfigurat
     }
 
     /**
+     * Clear {@link #participants}.
+     */
+    public void clearParticipants()
+    {
+        participants.clear();
+    }
+
+    /**
      * @param participantId to be removed from the {@link #participants}
      */
     public void removeParticipantById(String participantId)
