@@ -5,10 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -80,15 +77,25 @@ public class ServiceImpl implements Service
     }
 
     @Override
-    public UserInformation getUserInformation(String userId) throws CommandException
+    public UserInformation getUserInformation(String userId)
     {
-        return Authorization.getInstance().getUserInformation(userId);
+        try {
+            return Authorization.getInstance().getUserInformation(userId);
+        }
+        catch (ControllerReportSet.UserNotExistsException exception) {
+            return null;
+        }
     }
 
     @Override
-    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException
+    public UserInformation getUserInformationByPrincipalName(String userPrincipalName)
     {
-        return authorization.getUserInformationByPrincipalName(userPrincipalName);
+        try {
+            return authorization.getUserInformationByPrincipalName(userPrincipalName);
+        }
+        catch (ControllerReportSet.UserNotExistsException exception) {
+            return null;
+        }
     }
 
     @Override

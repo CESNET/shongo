@@ -127,26 +127,29 @@ public class DummyAuthorization extends Authorization
 
     @Override
     protected UserData onGetUserDataByAccessToken(String accessToken)
+            throws ControllerReportSet.UserNotExistsException
     {
         UserData userData = userDataByAccessToken.get(accessToken);
         if (userData != null) {
             return userData;
         }
-        throw new TodoImplementException();
+        throw new ControllerReportSet.UserNotExistsException(accessToken);
     }
 
     @Override
     protected UserData onGetUserDataByUserId(String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
         UserData userData = userDataById.get(userId);
         if (userData != null) {
             return userData;
         }
-        throw new TodoImplementException(userId);
+        throw new ControllerReportSet.UserNotExistsException(userId);
     }
 
     @Override
     protected String onGetUserIdByPrincipalName(String principalName)
+            throws ControllerReportSet.UserNotExistsException
     {
         for (UserData userData : userDataById.values()) {
             UserInformation userInformation = userData.getUserInformation();
@@ -154,7 +157,7 @@ public class DummyAuthorization extends Authorization
                 return userData.getUserId();
             }
         }
-        return null;
+        throw new ControllerReportSet.UserNotExistsException(principalName);
     }
 
     @Override

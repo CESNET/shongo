@@ -29,6 +29,11 @@ public class UserListRequest extends ListRequest
     private String search;
 
     /**
+     * Principal name for which a single user should be returned.
+     */
+    private String principalName;
+
+    /**
      * Constructor.
      */
     public UserListRequest()
@@ -99,9 +104,20 @@ public class UserListRequest extends ListRequest
         this.search = search;
     }
 
+    public String getPrincipalName()
+    {
+        return principalName;
+    }
+
+    public void setPrincipalName(String principalName)
+    {
+        this.principalName = principalName;
+    }
+
     private static final String USER_IDS = "userIds";
     private static final String GROUP_IDS = "groupIds";
     private static final String SEARCH = "search";
+    private static final String PRINCIPAL_NAME = "principalName";
 
     @Override
     public DataMap toData()
@@ -110,6 +126,7 @@ public class UserListRequest extends ListRequest
         dataMap.set(USER_IDS, userIds);
         dataMap.set(GROUP_IDS, groupIds);
         dataMap.set(SEARCH, search);
+        dataMap.set(PRINCIPAL_NAME, principalName);
         return dataMap;
     }
 
@@ -120,5 +137,6 @@ public class UserListRequest extends ListRequest
         userIds = dataMap.getSet(USER_IDS, String.class);
         groupIds = dataMap.getSet(GROUP_IDS, String.class);
         search = dataMap.getString(SEARCH);
+        principalName = dataMap.getString(PRINCIPAL_NAME);
     }
 }

@@ -153,6 +153,7 @@ public class ServerAuthorization extends Authorization
 
     @Override
     protected UserData onGetUserDataByAccessToken(String accessToken)
+            throws ControllerReportSet.UserNotExistsException
     {
         // Testing security token represents root user
         if (rootAccessToken != null && accessToken.equals(rootAccessToken)) {
@@ -169,13 +170,24 @@ public class ServerAuthorization extends Authorization
             HttpResponse response = httpClient.execute(httpGet);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 JsonNode jsonNode = readJson(response.getEntity());
+                if (jsonNode == null) {
+                    throw new ControllerReportSet.UserNotExistsException(accessToken);
+                }
                 return createUserDataFromWebService(jsonNode);
             }
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
-                errorReason = String.format("%s, %s",
-                        jsonNode.get("error").getTextValue(), jsonNode.get("error_description").getTextValue());
+                if (jsonNode != null) {
+                    errorReason = String.format("%s, %s",
+                            jsonNode.get("error").getTextValue(), jsonNode.get("error_description").getTextValue());
+                }
+                else {
+                    errorReason = "unknown";
+                }
             }
+        }
+        catch (ControllerReportSet.UserNotExistsException exception) {
+            throw exception;
         }
         catch (Exception exception) {
             errorException = exception;
@@ -190,6 +202,7 @@ public class ServerAuthorization extends Authorization
 
     @Override
     protected UserData onGetUserDataByUserId(final String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
         return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId,
                 "Retrieving user information by user-id '" + userId + "' failed",
@@ -198,6 +211,9 @@ public class ServerAuthorization extends Authorization
                     @Override
                     public UserData success(JsonNode data)
                     {
+                        if (data == null) {
+                            throw new ControllerReportSet.UserNotExistsException(userId);
+                        }
                         return createUserDataFromWebService(data);
                     }
 
@@ -205,7 +221,7 @@ public class ServerAuthorization extends Authorization
                     public void error(StatusLine statusLine, String detail)
                     {
                         int statusCode = statusLine.getStatusCode();
-                        if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("UserNotExistsException")) {
                             throw new ControllerReportSet.UserNotExistsException(userId);
                         }
                     }
@@ -214,6 +230,7 @@ public class ServerAuthorization extends Authorization
 
     @Override
     protected String onGetUserIdByPrincipalName(final String principalName)
+            throws ControllerReportSet.UserNotExistsException
     {
         return performGetRequest(authorizationServer + PRINCIPAL_SERVICE_PATH + "/" + principalName,
                 "Retrieving user-id by principal name '" + principalName + "' failed",
@@ -222,6 +239,9 @@ public class ServerAuthorization extends Authorization
                     @Override
                     public String success(JsonNode data)
                     {
+                        if (data == null) {
+                            throw new ControllerReportSet.UserNotExistsException(principalName);
+                        }
                         if (!data.has("id")) {
                             throw new IllegalStateException("Principal service must return identifier.");
                         }
@@ -262,9 +282,11 @@ public class ServerAuthorization extends Authorization
                     public Collection<UserData> success(JsonNode data)
                     {
                         List<UserData> userDataList = new LinkedList<UserData>();
-                        for (JsonNode childJsonNode : data.get("_embedded").get("users")) {
-                            UserData userData = createUserDataFromWebService(childJsonNode);
-                            userDataList.add(userData);
+                        if (data != null) {
+                            for (JsonNode childJsonNode : data.get("_embedded").get("users")) {
+                                UserData userData = createUserDataFromWebService(childJsonNode);
+                                userDataList.add(userData);
+                            }
                         }
                         return userDataList;
                     }
@@ -280,20 +302,22 @@ public class ServerAuthorization extends Authorization
                     @Override
                     public List<Group> success(JsonNode data)
                     {
-                        Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
                         List<Group> groups = new LinkedList<Group>();
-                        while (groupIterator.hasNext()) {
-                            JsonNode groupNode = groupIterator.next();
-                            Group group = new Group();
-                            group.setId(groupNode.get("id").asText());
-                            if (groupNode.has("parentId")) {
-                                group.setParentId(groupNode.get("parentId").asText());
+                        if (data != null) {
+                            Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
+                            while (groupIterator.hasNext()) {
+                                JsonNode groupNode = groupIterator.next();
+                                Group group = new Group();
+                                group.setId(groupNode.get("id").asText());
+                                if (groupNode.has("parentId")) {
+                                    group.setParentId(groupNode.get("parentId").asText());
+                                }
+                                group.setName(groupNode.get("name").asText());
+                                if (groupNode.has("description")) {
+                                    group.setDescription(groupNode.get("description").asText());
+                                }
+                                groups.add(group);
                             }
-                            group.setName(groupNode.get("name").asText());
-                            if (groupNode.has("description")) {
-                                group.setDescription(groupNode.get("description").asText());
-                            }
-                            groups.add(group);
                         }
                         return groups;
                     }
@@ -310,14 +334,16 @@ public class ServerAuthorization extends Authorization
                     @Override
                     public Set<String> success(JsonNode data)
                     {
-                        Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
                         Set<String> userIds = new HashSet<String>();
-                        while (userIterator.hasNext()) {
-                            JsonNode userNode = userIterator.next();
-                            if (!userNode.has("id")) {
-                                throw new IllegalStateException("User must have identifier.");
+                        if (data != null) {
+                            Iterator<JsonNode> userIterator = data.get("_embedded").get("users").getElements();
+                            while (userIterator.hasNext()) {
+                                JsonNode userNode = userIterator.next();
+                                if (!userNode.has("id")) {
+                                    throw new IllegalStateException("User must have identifier.");
+                                }
+                                userIds.add(userNode.get("id").asText());
                             }
-                            userIds.add(userNode.get("id").asText());
                         }
                         return userIds;
                     }
@@ -492,7 +518,7 @@ public class ServerAuthorization extends Authorization
             }
             else {
                 String content = readContent(response.getEntity());
-                String detail = null;
+                String detail = "";
                 if (statusCode != HttpStatus.SC_BAD_REQUEST) {
                     try {
                         JsonNode jsonNode = jsonMapper.readTree(content);
@@ -527,9 +553,13 @@ public class ServerAuthorization extends Authorization
      */
     private JsonNode readJson(HttpEntity httpEntity)
     {
+        if (httpEntity.getContentLength() == 0) {
+            return null;
+        }
         try {
             InputStream inputStream = httpEntity.getContent();
             try {
+                int ava = inputStream.available();
                 return jsonMapper.readTree(inputStream);
             }
             finally {
@@ -578,9 +608,13 @@ public class ServerAuthorization extends Authorization
      */
     private <T> T handleAuthorizationRequestError(JsonNode jsonNode)
     {
-        throw new RuntimeException(String.format("Authorization request failed: %s, %s",
-                jsonNode.get("title").getTextValue(),
-                jsonNode.get("detail").getTextValue()));
+        String title = "unknown";
+        String detail = "none";
+        if (jsonNode != null) {
+            title = jsonNode.get("title").getTextValue();
+            detail = jsonNode.get("detail").getTextValue();
+        }
+        throw new RuntimeException(String.format("Authorization request failed: %s, %s", title, detail));
     }
 
     /**

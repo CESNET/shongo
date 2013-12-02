@@ -23,10 +23,11 @@ sub populate()
     $shell->add_commands({
         'get-user' => {
             desc => 'Get user',
-            args => '<user-id>',
+            options => 'principal-name',
+            args => '[--principal-name] <user-id>',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                get_user(@args);
+                get_user($params->{'options'}, @args);
             }
         },
         'list-users' => {
@@ -147,15 +148,20 @@ sub populate()
 
 sub get_user()
 {
-    my (@args) = @_;
+    my ($options, @args) = @_;
     if ( scalar(@args) < 1 ) {
         console_print_error("Argument '<user-id>' must be specified.");
         return;
     }
+    my $request = {};
+    if (defined($options->{'principal-name'})) {
+        $request->{'principalName'} = RPC::XML::string->new($args[0]);
+    }
+    else {
+        $request->{'userIds'} = [RPC::XML::string->new($args[0])];
+    }
 
-    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listUsers', {
-        'userIds' => [RPC::XML::string->new($args[0])]
-    });
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listUsers', $request);
     if ( defined($response) ) {
         my $user = $response->{'items'}->[0];
         my $object = Shongo::ClientCli::API::Object->new();

@@ -894,6 +894,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         for (RoomParticipantRole participant : participants) {
             UserInformation userInformation = getUserInformationById(participant.getUserId());
+            if (userInformation == null) {
+                throw new CommandException("User " + participant.getUserId() + " doesn't exist.");
+            }
 
             // Configure all principal names for participant
             Set<String> principalNames = userInformation.getPrincipalNames();
@@ -1213,15 +1216,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Cache of user-original-id (EPPN) by user principal-id.
+     * Cache of user-principal-name (EPPN) by user principal-id.
      */
-    private ExpirationMap<String, String> cachedOriginalIdByPrincipalId =
+    private ExpirationMap<String, String> cachedPrincipalNameByPrincipalId =
             new ExpirationMap<String, String>(Duration.standardHours(1));
 
     /**
-     * Cache of {@link UserInformation} by user-original-id (EPPN).
+     * Cache of {@link UserInformation} by user-principal-name (EPPN).
      */
-    private ExpirationMap<String, UserInformation> cachedUserInformationByOriginalId =
+    private ExpirationMap<String, UserInformation> cachedUserInformationByPrincipalName =
             new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
 
     /**
@@ -1235,12 +1238,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @return user-original-id (EPPN) for given {@code userPrincipalId} or null when user was not found
      * @throws CommandException
      */
-    public String getUserOriginalIdByPrincipalId(String userPrincipalId) throws CommandException
+    public String getUserPrincipalNameByPrincipalId(String userPrincipalId) throws CommandException
     {
-        String userOriginalId;
-        if (cachedOriginalIdByPrincipalId.contains(userPrincipalId)) {
+        String userPrincipalName;
+        if (cachedPrincipalNameByPrincipalId.contains(userPrincipalId)) {
             logger.debug("Using cached user-original-id by principal-id '{}'...", userPrincipalId);
-            userOriginalId = cachedOriginalIdByPrincipalId.get(userPrincipalId);
+            userPrincipalName = cachedPrincipalNameByPrincipalId.get(userPrincipalId);
 
         }
         else {
@@ -1253,47 +1256,42 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 return null;
             }
 
-            userOriginalId = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
-            cachedOriginalIdByPrincipalId.put(userPrincipalId, userOriginalId);
+            userPrincipalName = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
+            cachedPrincipalNameByPrincipalId.put(userPrincipalId, userPrincipalName);
         }
-        return userOriginalId;
+        return userPrincipalName;
     }
 
     /**
-     * @param userOriginalId original-id of an user (EPPN)
-     * @return {@link UserInformation} for given {@code userOriginalId}
+     * @param userPrincipalName principal-name of an user (EPPN)
+     * @return {@link UserInformation} for given {@code userPrincipalName}
      * @throws CommandException
      */
-    public UserInformation getUserInformationByOriginalId(String userOriginalId) throws CommandException
+    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException
     {
         UserInformation userInformation;
-        if (cachedUserInformationByOriginalId.contains(userOriginalId)) {
-            logger.debug("Using cached user information by user-original-id '{}'...", userOriginalId);
-            userInformation = cachedUserInformationByOriginalId.get(userOriginalId);
+        if (cachedUserInformationByPrincipalName.contains(userPrincipalName)) {
+            userInformation = cachedUserInformationByPrincipalName.get(userPrincipalName);
         }
         else {
-            logger.debug("Fetching user information by user-original-id '{}'...", userOriginalId);
-            userInformation = (UserInformation) performControllerAction(GetUserInformation.byPrincipalName(
-                    userOriginalId));
-            cachedUserInformationByOriginalId.put(userOriginalId, userInformation);
+            userInformation = (UserInformation) performControllerAction(
+                    GetUserInformation.byPrincipalName(userPrincipalName));
+            cachedUserInformationByPrincipalName.put(userPrincipalName, userInformation);
         }
         return userInformation;
     }
 
     /**
      * @param userId shongo-user-id
-     * @return {@link UserInformation} for given {@code userId}
-     * @throws CommandException
+     * @return {@link UserInformation} for given {@code userId} or null when user doesn't exist
      */
     public UserInformation getUserInformationById(String userId) throws CommandException
     {
         UserInformation userInformation;
         if (cachedUserInformationById.contains(userId)) {
-            logger.debug("Using cached user information by user-id '{}'...", userId);
             userInformation = cachedUserInformationById.get(userId);
         }
         else {
-            logger.debug("Fetching user information by user-id '{}'...", userId);
             userInformation = (UserInformation) performControllerAction(GetUserInformation.byUserId(userId));
             cachedUserInformationById.put(userId, userInformation);
         }
@@ -1343,11 +1341,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 roomParticipant.setRole(ParticipantRole.ADMIN);
             }
 
-            String userOriginalId = getUserOriginalIdByPrincipalId(userDetails.getChildText("principal-id"));
+            String userPrincipalName = getUserPrincipalNameByPrincipalId(userDetails.getChildText("principal-id"));
 
             // If participant is registered (is not guest)
-            if (userOriginalId != null) {
-                UserInformation userInformation = getUserInformationByOriginalId(userOriginalId);
+            if (userPrincipalName != null) {
+                UserInformation userInformation = getUserInformationByPrincipalName(userPrincipalName);
                 if (userInformation != null) {
                     roomParticipant.setUserId(userInformation.getUserId());
                 }

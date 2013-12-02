@@ -6,6 +6,8 @@ import org.joda.time.Duration;
 
 import java.util.Set;
 
+import static cz.cesnet.shongo.controller.authorization.Authorization.UserData;
+
 /**
  * Represents a cache of {@link AclRecord}s
  *
@@ -26,8 +28,8 @@ public class AuthorizationCache
     /**
      * Cache of {@link cz.cesnet.shongo.api.UserInformation} by user-id.
      */
-    private ExpirationMap<String, Authorization.UserData> userInformationCache =
-            new ExpirationMap<String, Authorization.UserData>();
+    private ExpirationMap<String, UserData> userInformationCache =
+            new ExpirationMap<String, UserData>();
 
     /**
      * Cache of {@link AclRecord} by {@link AclRecord#id}.
@@ -133,6 +135,15 @@ public class AuthorizationCache
     }
 
     /**
+     * @param principalName
+     * @return whether user with given {@code principalName} exists in cache
+     */
+    public synchronized boolean hasUserIdByPrincipalName(String principalName)
+    {
+        return userIdByPrincipalNameCache.contains(principalName);
+    }
+
+    /**
      * Put given {@code userId} to the cache by the given {@code principalName}.
      *
      * @param principalName
@@ -145,20 +156,29 @@ public class AuthorizationCache
 
     /**
      * @param userId
-     * @return {@link UserInformation} by given {@code userId}
+     * @return {@link UserData} by given {@code userId}
      */
-    public synchronized Authorization.UserData getUserDataByUserId(String userId)
+    public synchronized UserData getUserDataByUserId(String userId)
     {
         return userInformationCache.get(userId);
     }
 
     /**
-     * Put given {@code userInformation} to the cache by the given {@code userId}.
+     * @param userId
+     * @return true whether user with given {@code userId} has cached {@link UserData}
+     */
+    public synchronized boolean hasUserDataByUserId(String userId)
+    {
+        return userInformationCache.contains(userId);
+    }
+
+    /**
+     * Put given {@code UserData} to the cache by the given {@code userId}.
      *
      * @param userId
      * @param userData
      */
-    public synchronized void putUserDataByUserId(String userId, Authorization.UserData userData)
+    public synchronized void putUserDataByUserId(String userId, UserData userData)
     {
         userInformationCache.put(userId, userData);
     }

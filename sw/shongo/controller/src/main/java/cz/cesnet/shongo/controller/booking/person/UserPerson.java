@@ -67,6 +67,7 @@ public class UserPerson extends AbstractPerson
      */
     public void setUserId(String userId)
     {
+        Authorization.getInstance().checkUserExistence(userId);
         this.userId = userId;
     }
 

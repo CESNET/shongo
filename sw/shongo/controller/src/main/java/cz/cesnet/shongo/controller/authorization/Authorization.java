@@ -115,8 +115,11 @@ public abstract class Authorization
      *
      * @param securityToken to be validated
      * @return {@link UserInformation}
+     * @throws ControllerReportSet.SecurityInvalidTokenException
+     *          when the validation fails
      */
     public final UserInformation validate(SecurityToken securityToken)
+            throws ControllerReportSet.SecurityInvalidTokenException
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
@@ -130,8 +133,10 @@ public abstract class Authorization
      *
      * @param securityToken of an user
      * @return {@link UserInformation} for the user with given {@code securityToken}
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserInformation getUserInformation(SecurityToken securityToken)
+        throws ControllerReportSet.UserNotExistsException
     {
         UserInformation userInformation = securityToken.getUserInformation();
         if (userInformation != null) {
@@ -171,8 +176,10 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserInformation getUserInformation(String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
         UserData userData = getUserData(userId);
         return userData.getUserInformation();
@@ -183,12 +190,22 @@ public abstract class Authorization
      *
      * @param principalName of an user
      * @return {@link UserInformation} for the user with given {@code principalName}
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public UserInformation getUserInformationByPrincipalName(String principalName)
+        throws ControllerReportSet.UserNotExistsException
     {
-        String userId = cache.getUserIdByPrincipalName(principalName);
-        if (userId == null) {
-            userId = onGetUserIdByPrincipalName(principalName);
+        String userId;
+        if (cache.hasUserIdByPrincipalName(principalName)) {
+            userId = cache.getUserIdByPrincipalName(principalName);
+        }
+        else {
+            try {
+                userId = onGetUserIdByPrincipalName(principalName);
+            }
+            catch (ControllerReportSet.UserNotExistsException exception) {
+                userId = null;
+            }
             cache.putUserIdByPrincipalName(principalName, userId);
         }
         if (userId == null) {
@@ -202,27 +219,32 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserData getUserData(String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
         // Root user
         if (userId.equals(ROOT_USER_ID)) {
             return ROOT_USER_DATA;
         }
-
-        // Try to use the user information from the cache
-        UserData userData = cache.getUserDataByUserId(userId);
-        if (userData != null) {
-            logger.trace("Using cached user information for user-id '{}'...", userId);
-            return userData;
+        UserData userData;
+        if (cache.hasUserDataByUserId(userId)) {
+            userData = cache.getUserDataByUserId(userId);
         }
         else {
-            logger.debug("Retrieving user information by user-id '{}'...", userId);
-
-            userData = onGetUserDataByUserId(userId);
+            try {
+                userData = onGetUserDataByUserId(userId);
+            }
+            catch (ControllerReportSet.UserNotExistsException exception) {
+                userData = null;
+            }
             cache.putUserDataByUserId(userId, userData);
-            return userData;
         }
+        if (userData == null) {
+            throw new ControllerReportSet.UserNotExistsException(userId);
+        }
+        return userData;
     }
 
     /**
@@ -232,17 +254,10 @@ public abstract class Authorization
      * @throws cz.cesnet.shongo.controller.ControllerReportSet.UserNotExistsException
      *          when the user doesn't exist
      */
-    public void checkUserExistence(String userId) throws ControllerReportSet.UserNotExistsException
+    public void checkUserExistence(String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
-        try {
-            UserData userData = getUserData(userId);
-            if (userData == null) {
-                throw new ControllerReportSet.UserNotExistsException(userId);
-            }
-        }
-        catch (Exception exception) {
-            throw new ControllerReportSet.UserNotExistsException(exception, userId);
-        }
+        getUserData(userId);
     }
 
     /**
@@ -250,8 +265,10 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserPerson getUserPerson(String userId)
+            throws ControllerReportSet.UserNotExistsException
     {
         return new UserPerson(userId, getUserData(userId).getUserInformation());
     }
@@ -556,7 +573,8 @@ public abstract class Authorization
      * @param accessToken of an user
      * @return {@link UserData} for the user with given {@code accessToken}
      */
-    protected abstract UserData onGetUserDataByAccessToken(String accessToken);
+    protected abstract UserData onGetUserDataByAccessToken(String accessToken)
+            throws ControllerReportSet.UserNotExistsException;
 
     /**
      * Retrieve {@link UserData} for given {@code userId}.
@@ -564,7 +582,8 @@ public abstract class Authorization
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
      */
-    protected abstract UserData onGetUserDataByUserId(String userId);
+    protected abstract UserData onGetUserDataByUserId(String userId)
+            throws ControllerReportSet.UserNotExistsException;
 
     /**
      * Retrieve {@link UserData} for given {@code principalName}.
@@ -572,7 +591,8 @@ public abstract class Authorization
      * @param principalName of an user
      * @return {@link UserData} for the user with given {@code principalName}
      */
-    protected abstract String onGetUserIdByPrincipalName(String principalName);
+    protected abstract String onGetUserIdByPrincipalName(String principalName)
+            throws ControllerReportSet.UserNotExistsException;
 
     /**
      * Retrieve all {@link UserData}s which match given {@code search} criteria.

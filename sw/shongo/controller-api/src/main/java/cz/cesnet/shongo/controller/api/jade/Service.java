@@ -17,16 +17,15 @@ public interface Service
 {
     /**
      * @param userId for which the {@link UserInformation} should be returned
-     * @return {@link UserInformation} for given {@code userId}
+     * @return {@link UserInformation} for given {@code userId} or null when the user doesn't exist
      */
-    public UserInformation getUserInformation(String userId) throws CommandException;
+    public UserInformation getUserInformation(String userId);
 
     /**
      * @param userPrincipalName of the user from identity provider
-     * @return {@link UserInformation} for user with given {@code userPrincipalName}
-     * @throws CommandException
+     * @return {@link UserInformation} for user with given {@code userPrincipalName} or null when the user doesn't exist
      */
-    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException;
+    public UserInformation getUserInformationByPrincipalName(String userPrincipalName);
 
     /**
      * Get room information.

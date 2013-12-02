@@ -4,7 +4,8 @@ import cz.cesnet.shongo.api.jade.CommandException;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link cz.cesnet.shongo.controller.api.jade.Service#getUserInformation}
+ * @see cz.cesnet.shongo.controller.api.jade.Service#getUserInformation
+ * @see cz.cesnet.shongo.controller.api.jade.Service#getUserInformationByPrincipalName
  */
 public class GetUserInformation extends ControllerCommand
 {

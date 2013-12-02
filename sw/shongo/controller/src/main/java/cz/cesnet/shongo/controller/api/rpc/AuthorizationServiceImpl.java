@@ -78,47 +78,54 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
         String search = StringHelper.removeAccents(request.getSearch());
 
-        // Get user-ids
-        Set<String> userIds = request.getUserIds();
-        if (userIds.size() == 0) {
-            userIds = null;
-        }
-
-        // Update user-ids by groups
-        Set<String> groupIds = request.getGroupIds();
-        if (groupIds.size() > 0) {
-            Set<String> groupsUserIds = new HashSet<String>();
-            for (String groupId : groupIds) {
-                groupsUserIds.addAll(authorization.listGroupUserIds(groupId));
-            }
-            if (userIds != null) {
-                userIds.retainAll(groupsUserIds);
-            }
-            else {
-                userIds = groupsUserIds;
-            }
-        }
-
-        // Get users
         List<UserInformation> users = new LinkedList<UserInformation>();
-        if (userIds != null && userIds.size() < 3) {
-            for (String userId : userIds) {
-                users.add(authorization.getUserInformation(userId));
-            }
-            // Filter them
-            if (search != null) {
-                UserInformation.filter(users, search);
-            }
+
+        String principalName = request.getPrincipalName();
+        if (principalName != null) {
+            users.add(authorization.getUserInformationByPrincipalName(principalName));
         }
         else {
-            for (UserInformation userInformation : authorization.listUserInformation(search)) {
-                // Filter by user-id
-                if (userIds != null) {
-                    if (!userIds.contains(userInformation.getUserId())) {
-                        continue;
-                    }
+            // Get user-ids
+            Set<String> userIds = request.getUserIds();
+            if (userIds.size() == 0) {
+                userIds = null;
+            }
+
+            // Update user-ids by groups
+            Set<String> groupIds = request.getGroupIds();
+            if (groupIds.size() > 0) {
+                Set<String> groupsUserIds = new HashSet<String>();
+                for (String groupId : groupIds) {
+                    groupsUserIds.addAll(authorization.listGroupUserIds(groupId));
                 }
-                users.add(userInformation);
+                if (userIds != null) {
+                    userIds.retainAll(groupsUserIds);
+                }
+                else {
+                    userIds = groupsUserIds;
+                }
+            }
+
+            // Get users
+            if (userIds != null && userIds.size() < 3) {
+                for (String userId : userIds) {
+                    users.add(authorization.getUserInformation(userId));
+                }
+                // Filter them
+                if (search != null) {
+                    UserInformation.filter(users, search);
+                }
+            }
+            else {
+                for (UserInformation userInformation : authorization.listUserInformation(search)) {
+                    // Filter by user-id
+                    if (userIds != null) {
+                        if (!userIds.contains(userInformation.getUserId())) {
+                            continue;
+                        }
+                    }
+                    users.add(userInformation);
+                }
             }
         }
 
@@ -497,6 +504,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             String queryParts[] = query.split("\\[perform\\]");
             String queryInit = queryParts[0].trim();
             String queryDestroy = queryParts[1].trim();
+
+            authorization.checkUserExistence(newUserId);
 
             if (!queryInit.isEmpty()) {
                 entityManager.createNativeQuery(queryInit).executeUpdate();
