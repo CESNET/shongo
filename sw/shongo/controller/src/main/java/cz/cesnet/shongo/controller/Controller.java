@@ -275,7 +275,7 @@ public class Controller
      */
     public String getRpcHost()
     {
-        return configuration.getRpcHost();
+        return configuration.getRpcHost(false);
     }
 
     /**
@@ -499,6 +499,7 @@ public class Controller
 
         rpcServer = new org.eclipse.jetty.server.Server();
         final String sslKeyStore = configuration.getRpcSslKeyStore();
+        final String rpcHost = configuration.getRpcHost(true);
         if (sslKeyStore != null) {
             // Configure HTTPS connector
             final org.eclipse.jetty.util.ssl.SslContextFactory sslContextFactory =
@@ -506,7 +507,9 @@ public class Controller
             sslContextFactory.setKeyStorePassword(configuration.getRpcSslKeyStorePassword());
             final org.eclipse.jetty.server.ssl.SslSocketConnector httpsConnector =
                     new org.eclipse.jetty.server.ssl.SslSocketConnector(sslContextFactory);
-            httpsConnector.setHost(getRpcHost());
+            if (rpcHost != null) {
+                httpsConnector.setHost(rpcHost);
+            }
             httpsConnector.setPort(getRpcPort());
             rpcServer.addConnector(httpsConnector);
         }
@@ -514,7 +517,9 @@ public class Controller
             // Configure HTTP connector
             final org.eclipse.jetty.server.nio.SelectChannelConnector httpConnector =
                     new org.eclipse.jetty.server.nio.SelectChannelConnector();
-            httpConnector.setHost(getRpcHost());
+            if (rpcHost != null) {
+                httpConnector   .setHost(rpcHost);
+            }
             httpConnector.setPort(getRpcPort());
             rpcServer.addConnector(httpConnector);
         }

@@ -214,11 +214,16 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return XML-RPC host
      */
-    public String getRpcHost()
+    public String getRpcHost(boolean nullAsDefault)
     {
         String rpcHost = getString(RPC_HOST);
         if (rpcHost.isEmpty()) {
-            rpcHost = "localhost";
+            if (nullAsDefault) {
+                rpcHost = null;
+            }
+            else {
+                rpcHost = "localhost";
+            }
         }
         return rpcHost;
     }

@@ -33,9 +33,6 @@ public class ControllerClient extends RpcClient
     {
         this();
 
-        if (!controllerUrl.startsWith("http")) {
-            controllerUrl = "http://" + controllerUrl;
-        }
         URL url = new URL(controllerUrl);
         int port = url.getPort();
         if (port == -1) {

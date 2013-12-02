@@ -104,7 +104,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
      */
     public String getControllerUrl()
     {
-        return getString("controller");
+        String controllerUrl = getString("controller");
+        if (!controllerUrl.startsWith("http")) {
+            controllerUrl = "http://" + controllerUrl;
+        }
+        return controllerUrl;
     }
 
     /**
