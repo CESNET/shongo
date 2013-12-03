@@ -58,9 +58,7 @@
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.permanentRooms"/>
-                <tag:help>
-                    <spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/>
-                </tag:help>
+                <tag:help selectable="true"><tag:helpRoomType roomType="PERMANENT_ROOM"/></tag:help>
             </h2>
         </tag:reservationRequestList>
 
@@ -71,9 +69,7 @@
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.adhocRooms"/>
-                <tag:help>
-                    <spring:message code="views.reservationRequest.specificationHelp.ADHOC_ROOM"/>
-                </tag:help>
+                <tag:help selectable="true"><tag:helpRoomType roomType="ADHOC_ROOM"/></tag:help>
             </h2>
         </tag:reservationRequestList>
 

@@ -416,13 +416,22 @@ span.dotted {
     font-size: 13px;
     font-weight: normal;
     line-height: 20px;
-    max-width: 500px;
+    max-width: 600px;
+}
+.qtip-app-width {
+    max-width: none;
 }
 .qtip-app pre {
     border: none;
     background: none;
     margin: 0px;
     padding: 5px;
+}
+.qtip-app h1 {
+    font-size: 16px;
+    line-height: 20px;
+    margin-top: 2px;
+    margin-bottom: 3px;
 }
 .qtip-app p {
     font-size: 13px;
@@ -632,6 +641,31 @@ div.not-available {
 /* vies/error.jsp */
 .jspError pre {
     margin: 10px;
+}
+
+/* tags/helpRoomType.tag */
+.tagHelpRoomType .room-examples {
+    font-style: italic;
+}
+.tagHelpRoomType .room-example {
+    display: inline-block;
+    text-align: center;
+    margin: 0px 30px;
+}
+.tagHelpRoomType .room-example .room-image {
+    display: inline-block;
+    position: relative;
+}
+.tagHelpRoomType .room-example .room-image .room-name {
+    position: absolute;
+    margin-left:auto;
+    margin-right:auto;
+    left:0;
+    right:0;
+    top: 58px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 /* tags/reportForm.tag */

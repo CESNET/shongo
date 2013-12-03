@@ -169,11 +169,11 @@
                 <tr>
                     <th>
                         <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort>
-                        <tag:help selectable="true">
-                            <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></strong>
-                            <p><spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/></p>
-                            <strong><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></strong>
-                            <p><spring:message code="views.reservationRequest.specificationHelp.ADHOC_ROOM"/></p>
+                        <tag:help selectable="true" width="800px">
+                            <h1><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></h1>
+                            <tag:helpRoomType roomType="ADHOC_ROOM"/>
+                            <h1><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></h1>
+                            <tag:helpRoomType roomType="PERMANENT_ROOM"/>
                         </tag:help>
                     </th>
                     <th style="min-width: 150px;">
