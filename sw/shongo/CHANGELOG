@@ -1,6 +1,8 @@
-0.6.1 (2013-11-26)
+0.6.1 (2013-12-03)
 
     * Management of Adobe Connect recordings (start/stop).
+
+    * Merge user identities by using Perun as provider of user information.
 
 0.6.0 (2013-10-18)
 
