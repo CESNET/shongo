@@ -35,16 +35,6 @@ public class AliasSpecification extends Specification
     private String resourceId;
 
     /**
-     * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link RoomExecutable}).
-     */
-    private boolean permanentRoom = false;
-
-    /**
-     * Collection of {@link AbstractParticipant}s for the permanent room.
-     */
-    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
-
-    /**
      * Constructor.
      */
     public AliasSpecification()
@@ -112,15 +102,6 @@ public class AliasSpecification extends Specification
     public AliasSpecification withValue(String value)
     {
         setValue(value);
-        return this;
-    }
-
-    /**
-     * @return this {@link AliasSpecification} with {@link #permanentRoom} set to {@code true}
-     */
-    public AliasSpecification withPermanentRoom()
-    {
-        setPermanentRoom(true);
         return this;
     }
 
@@ -230,44 +211,10 @@ public class AliasSpecification extends Specification
         this.resourceId = resourceId;
     }
 
-    /**
-     * @return {@link #permanentRoom}
-     */
-    public boolean isPermanentRoom()
-    {
-        return permanentRoom;
-    }
-
-    /**
-     * @param permanentRoom sets the {@link #permanentRoom}
-     */
-    public void setPermanentRoom(boolean permanentRoom)
-    {
-        this.permanentRoom = permanentRoom;
-    }
-
-    /**
-     * @return {@link #permanentRoomParticipants}
-     */
-    public List<AbstractParticipant> getPermanentRoomParticipants()
-    {
-        return permanentRoomParticipants;
-    }
-
-    /**
-     * @param permanentRoomParticipant to be added to the {@link #permanentRoomParticipants}
-     */
-    public void addPermanentRoomParticipant(AbstractParticipant permanentRoomParticipant)
-    {
-        permanentRoomParticipants.add(permanentRoomParticipant);
-    }
-
     public static final String ALIAS_TYPES = "aliasTypes";
     public static final String TECHNOLOGIES = "technologies";
     public static final String VALUE = "value";
     public static final String RESOURCE_ID = "resourceId";
-    public static final String PERMANENT_ROOM = "permanentRoom";
-    public static final String PERMANENT_ROOM_PARTICIPANTS = "permanentRoomParticipants";
 
     @Override
     public DataMap toData()
@@ -277,8 +224,6 @@ public class AliasSpecification extends Specification
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(VALUE, value);
         dataMap.set(RESOURCE_ID, resourceId);
-        dataMap.set(PERMANENT_ROOM, permanentRoom);
-        dataMap.set(PERMANENT_ROOM_PARTICIPANTS, permanentRoomParticipants);
         return dataMap;
     }
 
@@ -290,7 +235,5 @@ public class AliasSpecification extends Specification
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         value = dataMap.getString(VALUE);
         resourceId = dataMap.getString(RESOURCE_ID);
-        permanentRoom = dataMap.getBool(PERMANENT_ROOM);
-        permanentRoomParticipants = dataMap.getList(PERMANENT_ROOM_PARTICIPANTS, AbstractParticipant.class);
     }
 }

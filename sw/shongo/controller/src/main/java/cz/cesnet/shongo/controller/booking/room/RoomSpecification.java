@@ -299,7 +299,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             roomSpecificationApi.addRoomSetting(roomSetting.toApi());
         }
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
-            roomSpecificationApi.addAlias(aliasSpecification.toApi());
+            roomSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
         }
         for (AbstractParticipant participant : getParticipants()) {
             roomSpecificationApi.addParticipant(participant.toApi());

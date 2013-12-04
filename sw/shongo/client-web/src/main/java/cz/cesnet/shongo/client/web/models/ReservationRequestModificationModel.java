@@ -62,7 +62,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
             RoomSpecification roomSpecification = (RoomSpecification) specification;
             if (adhocRoomRetainRoomName && !Strings.isNullOrEmpty(roomName)) {
                 // Room name should be retained
-                roomSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue(roomName));
+                roomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue(roomName));
             }
         }
         return abstractReservationRequest;

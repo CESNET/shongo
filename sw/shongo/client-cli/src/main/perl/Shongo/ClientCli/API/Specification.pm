@@ -177,21 +177,11 @@ sub on_init()
                 'title' => 'Alias Provider Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
             });
-            $self->add_attribute('permanentRoom', {
-                'title' => 'Permanent Room',
-                'type' => 'bool',
-                'required' => 1
-            });
             $self->add_attribute('value', {
                 'title' => 'Requested Value'
             });
         }
         case 'AliasSetSpecification' {
-            $self->add_attribute('sharedExecutable', {
-                'title' => 'Shared Executable',
-                'type' => 'bool',
-                'required' => 1
-            });
             $self->add_attribute('aliasSpecifications', {
                 'title' => 'Aliases',
                 'type' => 'collection',

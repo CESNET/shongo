@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
@@ -637,6 +638,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Assert.assertEquals(
                 "For ReservationRequestReusement.OWNED the deletion should be also propagated for modified request",
                 NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+
+        throw new TodoImplementException("Check for reusing of room executables by UsedRoomSpecification");
     }
 
     private Set<Permission> listPermissions(SecurityToken securityToken, String entityId)

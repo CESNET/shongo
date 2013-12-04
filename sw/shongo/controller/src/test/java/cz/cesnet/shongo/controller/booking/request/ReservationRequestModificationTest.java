@@ -34,7 +34,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2012
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -46,7 +46,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-01-01/2013-01-01"), resourceReservation.getSlot());
 
         // Extend reservation for 2013
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -56,7 +56,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-07-01/2014-01-01"), resourceReservation.getSlot());
 
         // Extend reservation for 2014
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2015-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -66,7 +66,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2013-07-01/2015-01-01"), resourceReservation.getSlot());
 
         // Check all reservations
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(3, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -88,7 +88,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation from 2012 to 2013
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -100,7 +100,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-01-01/2014-01-01"), resourceReservation.getSlot());
 
         // Shorten the reservation to only 2012
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -110,7 +110,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
 
         // Check all reservations
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(2, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -135,7 +135,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-02-01T00:00", "2012-03-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -148,7 +148,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -160,7 +160,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
 
         // Check all reservations
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(1, reservationIds.size());
         Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -183,7 +183,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -196,7 +196,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -208,7 +208,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
 
         // Check all reservations
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(2, reservationIds.size());
         Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -233,7 +233,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationService service = getReservationService();
 
         // Allocate reservation for 2013
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
@@ -246,7 +246,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
 
         // Modify the reservation
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -255,7 +255,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         checkNotAllocated(requestId);
 
         // Check all reservations
-        reservationRequest = (cz.cesnet.shongo.controller.api.ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         List<String> reservationIds = reservationRequest.getReservationIds();
         Assert.assertEquals(1, reservationIds.size());
         Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
@@ -263,48 +263,47 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testModificationWithReusedReservation() throws Exception
+    public void testPermanentRoomWithCapacityModification() throws Exception
     {
         DeviceResource connectServer = new DeviceResource();
         connectServer.setName("connectServer");
         connectServer.setAllocatable(true);
         connectServer.setAddress("127.0.0.1");
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
-        connectServer.addCapability(new RoomProviderCapability(10,
-                new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
-        connectServer.addCapability(new AliasProviderCapability(
-                "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withPermanentRoom());
-        connectServer.addCapability(new AliasProviderCapability(
-                "test", AliasType.ROOM_NAME).withPermanentRoom());
+        connectServer.addCapability(
+                new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
+        connectServer.addCapability(
+                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}"));
+        connectServer.addCapability(
+                new AliasProviderCapability("test", AliasType.ROOM_NAME));
         getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
-        // Allocate a new alias reservation
-        cz.cesnet.shongo.controller.api.ReservationRequest aliasReservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
-        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
-        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
-        aliasSetSpecification.setSharedExecutable(true);
-        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
-        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
-        aliasReservationRequest.setSpecification(aliasSetSpecification);
-        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
-        String aliasReservationRequestId = allocate(aliasReservationRequest);
-        checkAllocated(aliasReservationRequestId);
+        // Allocate a new permanent room reservation
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification permanentRoomSpecification = new RoomSpecification();
+        permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomExecutableId = permanentRoomExecutable.getId();
 
-        // Allocate a room capacity
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.api.ReservationRequest();
+        // Allocate a permanent room capacity
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new RoomSpecification(5, Technology.ADOBE_CONNECT));
-        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         // Increase room capacity
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
+        ((UsedRoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
         allocateAndCheck(reservationRequest);
     }
 
@@ -337,7 +336,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
                 SECURITY_TOKEN, reservationRequestId);
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
-        roomSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME, roomName));
+        roomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME, roomName));
         allocateAndCheck(reservationRequest);
     }
 

@@ -51,12 +51,6 @@ public class AliasProviderCapability extends Capability
     private boolean restrictedToResource;
 
     /**
-     * Specifies whether the {@link Alias}es allocated for the {@link AliasProviderCapability}
-     * should represent permanent rooms (should get allocated {@link RoomEndpoint}).
-     */
-    private boolean permanentRoom;
-
-    /**
      * Cache for provided {@link Technology}s.
      */
     private Set<Technology> cachedProvidedTechnologies;
@@ -203,23 +197,6 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #permanentRoom}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isPermanentRoom()
-    {
-        return permanentRoom;
-    }
-
-    /**
-     * @param permanentRoom sets the {@link #permanentRoom}
-     */
-    public void setPermanentRoom(boolean permanentRoom)
-    {
-        this.permanentRoom = permanentRoom;
-    }
-
-    /**
      * @param technologies to be checked
      * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
      *         for any of given {@code technologies},
@@ -272,23 +249,8 @@ public class AliasProviderCapability extends Capability
     @PrePersist
     protected void onUpdate()
     {
-        // When for alias should be allocated permanent room, it should be also restricted to the owner resource
-        // (room must be allocated on a concrete resource)
-        if (isPermanentRoom() && !isRestrictedToResource()) {
-            setRestrictedToResource(true);
-        }
         if (isRestrictedToResource() && !(getResource() instanceof DeviceResource)) {
             throw new RuntimeException("Restricted to resource option can be enabled only in a device resource.");
-        }
-        if (isPermanentRoom()) {
-            Resource resource = getResource();
-            if (!(resource instanceof DeviceResource)) {
-                throw new RuntimeException("Permanent room option can be enabled only in a device resource.");
-            }
-            if (!resource.hasCapability(RoomProviderCapability.class)) {
-                throw new RuntimeException("Permanent room option can be enabled only in a device resource"
-                        + " with alias provider capability.");
-            }
         }
     }
 
@@ -331,7 +293,6 @@ public class AliasProviderCapability extends Capability
         }
 
         aliasProviderApi.setRestrictedToResource(isRestrictedToResource());
-        aliasProviderApi.setPermanentRoom(isPermanentRoom());
         super.toApi(api);
     }
 
@@ -355,7 +316,6 @@ public class AliasProviderCapability extends Capability
         }
 
         setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
-        setPermanentRoom(aliasProviderApi.getPermanentRoom());
 
         Synchronization.synchronizeCollection(aliases, aliasProviderApi.getAliases(),
                 new Synchronization.Handler<Alias, cz.cesnet.shongo.api.Alias>(Alias.class)

@@ -155,10 +155,6 @@ sub on_init()
                 'title' => 'Restricted to Owner',
                 'type' => 'bool'
             });
-            $self->add_attribute('permanentRoom', {
-                'title' => 'Permanent Room',
-                'type' => 'bool'
-            });
         }
         case 'RecordingCapability' {
             $self->add_attribute('licenseCount', {

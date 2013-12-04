@@ -2,8 +2,8 @@
   -- Template for rendering {@link Target}
   -->
 <#assign aliasValueAny = context.message('alias.value.any')>
-<#-- Value -->
 ${context.message(indent, "target.type")}: ${context.message("target.type." + target.type)}
+<#-- Value -->
 <#if target.class.simpleName == "Value">
 <#---->
 <#-- Alias -->

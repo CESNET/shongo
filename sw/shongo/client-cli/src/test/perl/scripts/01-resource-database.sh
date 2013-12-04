@@ -115,7 +115,6 @@ bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
                 { type: 'ADOBE_CONNECT_URI', value: '{device.address}/$DEVICE_NAME_PREFIX{value}' }
             ],
             maximumFuture: 'P1Y',
-            permanentRoom: 1,
         }],
         administrators: [
             { class: 'AnonymousPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},

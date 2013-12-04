@@ -46,16 +46,6 @@ public class AliasSpecification extends Specification
     private AliasProviderCapability aliasProviderCapability;
 
     /**
-     * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link ResourceRoomEndpoint}).
-     */
-    private boolean permanentRoom;
-
-    /**
-     * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the permanent room.
-     */
-    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
-
-    /**
      * Constructor.
      */
     public AliasSpecification()
@@ -222,44 +212,6 @@ public class AliasSpecification extends Specification
         this.aliasProviderCapability = aliasProviderCapability;
     }
 
-    /**
-     * @return {@link #permanentRoom}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isPermanentRoom()
-    {
-        return permanentRoom;
-    }
-
-    /**
-     * @param permanentRoom sets the {@link #permanentRoom}
-     */
-    public void setPermanentRoom(boolean permanentRoom)
-    {
-        this.permanentRoom = permanentRoom;
-    }
-
-    /**
-     * @return {@link #permanentRoomParticipants}
-     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public List<AbstractParticipant> getPermanentRoomParticipants()
-    {
-        return Collections.unmodifiableList(permanentRoomParticipants);
-    }
-
-    /**
-     * @param participants sets the {@link #permanentRoomParticipants}
-     */
-    public void setPermanentRoomParticipants(List<AbstractParticipant> participants)
-    {
-        this.permanentRoomParticipants.clear();
-        for (AbstractParticipant participant : participants) {
-            this.permanentRoomParticipants.add(participant.clone());
-        }
-    }
-
     @Override
     public void updateTechnologies()
     {
@@ -289,19 +241,12 @@ public class AliasSpecification extends Specification
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
-                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability())
-                || !ObjectHelper.isSame(isPermanentRoom(), aliasSpecification.isPermanentRoom());
+                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
         setAliasTechnologies(aliasSpecification.getAliasTechnologies());
         setAliasTypes(aliasSpecification.getAliasTypes());
         setValue(aliasSpecification.getValue());
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
-        setPermanentRoom(aliasSpecification.isPermanentRoom());
-
-        if (!permanentRoomParticipants.equals(aliasSpecification.getPermanentRoomParticipants())) {
-            setPermanentRoomParticipants(aliasSpecification.getPermanentRoomParticipants());
-            modified = true;
-        }
 
         return modified;
     }
@@ -320,8 +265,6 @@ public class AliasSpecification extends Specification
         if (aliasProviderCapability != null) {
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
         }
-        aliasReservationTask.setPermanentRoomParticipants(getPermanentRoomParticipants());
-        aliasReservationTask.setPermanentRoom(isPermanentRoom());
         return aliasReservationTask;
     }
 
@@ -353,10 +296,6 @@ public class AliasSpecification extends Specification
             aliasSpecificationApi.setResourceId(
                     EntityIdentifier.formatId(getAliasProviderCapability().getResource()));
         }
-        for (AbstractParticipant participant : getPermanentRoomParticipants()) {
-            aliasSpecificationApi.addPermanentRoomParticipant(participant.toApi());
-        }
-        aliasSpecificationApi.setPermanentRoom(isPermanentRoom());
         super.toApi(specificationApi);
     }
 
@@ -379,29 +318,9 @@ public class AliasSpecification extends Specification
             AliasProviderCapability aliasProviderCapability = resource.getCapabilityRequired(AliasProviderCapability.class);
             setAliasProviderCapability(aliasProviderCapability);
         }
-        setPermanentRoom(aliasSpecificationApi.isPermanentRoom());
 
         Synchronization.synchronizeCollection(aliasTechnologies, aliasSpecificationApi.getTechnologies());
         Synchronization.synchronizeCollection(aliasTypes, aliasSpecificationApi.getAliasTypes());
-        Synchronization.synchronizeCollection(
-                permanentRoomParticipants, aliasSpecificationApi.getPermanentRoomParticipants(),
-                new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
-                        AbstractParticipant.class)
-                {
-                    @Override
-                    public AbstractParticipant createFromApi(
-                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
-                    {
-                        return AbstractParticipant.createFromApi(objectApi, entityManager);
-                    }
-
-                    @Override
-                    public void updateFromApi(AbstractParticipant object,
-                            cz.cesnet.shongo.controller.api.AbstractParticipant objectApi)
-                    {
-                        object.fromApi(objectApi, entityManager);
-                    }
-                });
 
         super.fromApi(specificationApi, entityManager);
     }

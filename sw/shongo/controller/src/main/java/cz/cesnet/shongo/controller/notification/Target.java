@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -177,9 +178,10 @@ public abstract class Target
                     }
                 }
             }
-            if (aliasSpecification.isPermanentRoom()) {
+            throw new TodoImplementException("check permanent room");
+            /*if (aliasSpecification.isPermanentRoom()) {
                 permanentRoom = true;
-            }
+            }*/
         }
 
         private void initFrom(AliasReservation aliasReservation)

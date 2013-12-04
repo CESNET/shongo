@@ -413,7 +413,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void fromSpecificationApi(Specification specification, String reusedReservationRequestId,
             CacheProvider cacheProvider)
     {
-        if (specification instanceof AliasSetSpecification) {
+        throw new TodoImplementException("permanentRoom");
+        /*if (specification instanceof AliasSetSpecification) {
             AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
             List<AliasSpecification> aliasSpecifications = aliasSetSpecification.getAliases();
             if (aliasSpecifications.size() == 0) {
@@ -499,7 +500,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         else {
             throw new UnsupportedApiException(specification);
-        }
+        }*/
     }
 
     /**
@@ -621,7 +622,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public Specification toSpecificationApi()
     {
-        switch (specificationType) {
+        throw new TodoImplementException("permanentRoom");
+        /*switch (specificationType) {
             case ADHOC_ROOM: {
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
@@ -708,7 +710,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
             default:
                 throw new TodoImplementException(specificationType);
-        }
+        }*/
     }
 
     /**

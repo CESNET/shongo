@@ -103,7 +103,6 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{value}' }
             ],
             maximumFuture: 'P4Y',
-            permanentRoom: 1,
         },{
             class: 'AliasProviderCapability',
             valueProvider: {
@@ -118,7 +117,6 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'SIP_IP', value: '195.113.222.60 {value}#' }
             ],
             maximumFuture: 'P4Y',
-            permanentRoom: 1,
         }],
         administrators: [
             { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
@@ -172,7 +170,6 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'ADOBE_CONNECT_URI', value: '{device.address}/$DEVICE_NAME_PREFIX{value}' }
             ],
             maximumFuture: 'P4Y',
-            permanentRoom: 1,
         }],
         administrators: [
             { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}

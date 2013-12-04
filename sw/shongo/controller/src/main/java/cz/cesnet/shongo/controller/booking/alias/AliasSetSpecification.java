@@ -23,11 +23,6 @@ public class AliasSetSpecification extends Specification
     private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
     /**
-     * Share created executable.
-     */
-    private boolean sharedExecutable;
-
-    /**
      * Constructor.
      */
     public AliasSetSpecification()
@@ -71,23 +66,6 @@ public class AliasSetSpecification extends Specification
         aliasSpecifications.remove(aliasSpecification);
     }
 
-    /**
-     * @return {@link #sharedExecutable}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isSharedExecutable()
-    {
-        return sharedExecutable;
-    }
-
-    /**
-     * @param sharedExecutable sets the {@link #sharedExecutable}
-     */
-    public void setSharedExecutable(boolean sharedExecutable)
-    {
-        this.sharedExecutable = sharedExecutable;
-    }
-
     @Override
     public void updateTechnologies()
     {
@@ -103,9 +81,6 @@ public class AliasSetSpecification extends Specification
         AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectHelper.isSame(isSharedExecutable(), aliasSetSpecification.isSharedExecutable());
-
-        setSharedExecutable(aliasSetSpecification.isSharedExecutable());
 
         if (!aliasSpecifications.equals(aliasSetSpecification.getAliasSpecifications())) {
             setAliasSpecifications(aliasSetSpecification.getAliasSpecifications());
@@ -122,7 +97,6 @@ public class AliasSetSpecification extends Specification
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             aliasSetReservationTask.addAliasSpecification(aliasSpecification);
         }
-        aliasSetReservationTask.setSharedExecutable(isSharedExecutable());
         return aliasSetReservationTask;
     }
 
@@ -140,7 +114,6 @@ public class AliasSetSpecification extends Specification
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
             aliasSetSpecificationApi.addAlias(aliasSpecification.toApi());
         }
-        aliasSetSpecificationApi.setSharedExecutable(isSharedExecutable());
         super.toApi(specificationApi);
     }
 
@@ -150,8 +123,6 @@ public class AliasSetSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
-
-        setSharedExecutable(aliasSetSpecificationApi.getSharedExecutable());
 
         Synchronization.synchronizeCollection(aliasSpecifications, aliasSetSpecificationApi.getAliases(),
                 new Synchronization.Handler<AliasSpecification, cz.cesnet.shongo.controller.api.AliasSpecification>(

@@ -70,52 +70,20 @@ public class AliasSetReservationTask extends ReservationTask
             return reservation;
         }
         else {
-            ResourceRoomEndpoint allocatedRoomEndpoint = null;
-
-            List<Reservation> createdReservations = new ArrayList<Reservation>();
 
             // Process all alias specifications
+            List<Reservation> createdReservations = new ArrayList<Reservation>();
             for (AliasSpecification aliasSpecification : aliasSpecifications) {
-                // Create new reservation task
+                // Allocate alias
                 AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
-                if (allocatedRoomEndpoint != null) {
-                    aliasReservationTask.setTargetResource(allocatedRoomEndpoint.getDeviceResource());
-                }
-
-                // Allocate missing alias
                 Reservation reservation = aliasReservationTask.perform();
                 addReports(aliasReservationTask);
                 createdReservations.add(reservation);
-                AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
-                AliasProviderCapability aliasProviderCapability = aliasReservation.getAliasProviderCapability();
-
-                // If room endpoint is allocated by previous alias reservation
-                if (allocatedRoomEndpoint != null) {
-                    // Assign all new aliases to the endpoint
-                    Set<Technology> technologies = allocatedRoomEndpoint.getTechnologies();
-                    for (Alias alias : aliasReservation.getAliases()) {
-                        if (alias.getTechnology().isCompatibleWith(technologies)) {
-                            allocatedRoomEndpoint.addAssignedAlias(alias);
-                        }
-                    }
-
-                    // Set the room endpoint to the reservation
-                    aliasReservation.setExecutable(allocatedRoomEndpoint);
-                }
-                // If room endpoint is allocated by current alias reservation
-                else if (aliasProviderCapability.isPermanentRoom()
-                        && schedulerContext.isExecutableAllowed() && sharedExecutable) {
-                    // Use it for next alias reservations
-                    allocatedRoomEndpoint = (ResourceRoomEndpoint) aliasReservation.getExecutable();
-                }
             }
 
             // Allocate compound reservation
             Reservation reservation = new Reservation();
             reservation.setSlot(getInterval());
-            if (sharedExecutable) {
-                reservation.setExecutable(allocatedRoomEndpoint);
-            }
             for (Reservation createdReservation : createdReservations) {
                 addChildReservation(createdReservation);
             }

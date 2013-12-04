@@ -40,12 +40,6 @@ public class AliasProviderCapability extends Capability
     private Boolean restrictedToResource;
 
     /**
-     * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
-     * permanent rooms (should get allocated {@link RoomExecutable}).
-     */
-    private Boolean permanentRoom;
-
-    /**
      * Constructor.
      */
     public AliasProviderCapability()
@@ -104,15 +98,6 @@ public class AliasProviderCapability extends Capability
     public AliasProviderCapability withRestrictedToResource()
     {
         setRestrictedToResource(true);
-        return this;
-    }
-
-    /**
-     * @return this {@link AliasProviderCapability} with {@link #permanentRoom} set to {@code true}
-     */
-    public AliasProviderCapability withPermanentRoom()
-    {
-        setPermanentRoom(true);
         return this;
     }
 
@@ -198,27 +183,10 @@ public class AliasProviderCapability extends Capability
         this.restrictedToResource = restrictedToResource;
     }
 
-    /**
-     * @return {@link #permanentRoom}
-     */
-    public Boolean getPermanentRoom()
-    {
-        return permanentRoom;
-    }
-
-    /**
-     * @param permanentRoom sets the {@link #permanentRoom}
-     */
-    public void setPermanentRoom(Boolean permanentRoom)
-    {
-        this.permanentRoom = permanentRoom;
-    }
-
     public static final String VALUE_PROVIDER = "valueProvider";
     public static final String ALIASES = "aliases";
     public static final String MAXIMUM_FUTURE = "maximumFuture";
     public static final String RESTRICTED_TO_RESOURCE = "restrictedToResource";
-    public static final String PERMANENT_ROOM = "permanentRoom";
 
     @Override
     public DataMap toData()
@@ -227,7 +195,6 @@ public class AliasProviderCapability extends Capability
 
         dataMap.set(ALIASES, aliases);
         dataMap.set(RESTRICTED_TO_RESOURCE, restrictedToResource);
-        dataMap.set(PERMANENT_ROOM, permanentRoom);
 
         if (valueProvider instanceof String) {
             dataMap.set(VALUE_PROVIDER, (String) valueProvider);
@@ -257,6 +224,5 @@ public class AliasProviderCapability extends Capability
         aliases = dataMap.getListRequired(ALIASES, Alias.class);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
         restrictedToResource = dataMap.getBool(RESTRICTED_TO_RESOURCE);
-        permanentRoom = dataMap.getBool(PERMANENT_ROOM);
     }
 }

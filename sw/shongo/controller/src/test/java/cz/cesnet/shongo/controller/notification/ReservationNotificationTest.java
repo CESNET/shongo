@@ -145,42 +145,43 @@ public class ReservationNotificationTest extends AbstractControllerTest
         aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{hash}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
-        aliasProviderCapability.setPermanentRoom(true);
         aliasProvider.addCapability(aliasProviderCapability);
         aliasProvider.setAllocatable(true);
         aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("Alias Reservation Request");
-        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withPermanentRoom());
-        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
-        String reservationRequestId = allocate(reservationRequest);
-        checkAllocationFailed(reservationRequestId);
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setDescription("Alias Reservation Request");
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.ADOBE_CONNECT_URI));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        checkAllocationFailed(permanentRoomReservationRequestId);
 
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        ((AliasSpecification) reservationRequest.getSpecification()).setAliasTypes(new HashSet<AliasType>()
+        permanentRoomReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, permanentRoomReservationRequestId);
+        RoomSpecification permanentRoomSpecification =
+                (RoomSpecification) permanentRoomReservationRequest.getSpecification();
+        permanentRoomSpecification.getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
         {{
                 add(AliasType.SIP_URI);
             }});
-        reservationRequestId = allocate(reservationRequest);
-        checkAllocated(reservationRequestId);
+        permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomExecutableId = permanentRoomExecutable.getId();
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setDescription("Capacity Reservation Request");
         capacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new RoomSpecification(5, Technology.SIP));
-        capacityReservationRequest.setReusement(ReservationRequestReusement.OWNED);
-        capacityReservationRequest.setReusedReservationRequestId(reservationRequestId);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, capacityReservationRequestId);
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
         runScheduler();
 
         // 1x system-admin: allocation-failed

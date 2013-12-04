@@ -55,17 +55,6 @@ public class AliasReservationTask extends ReservationTask
     private List<AliasProviderCapability> aliasProviderCapabilities = new ArrayList<AliasProviderCapability>();
 
     /**
-     * Specifies whether the {@link AliasReservation} should represent a permanent room
-     * (should get allocated {@link ResourceRoomEndpoint}).
-     */
-    private boolean permanentRoom = false;
-
-    /**
-     * List of {@link AbstractParticipant}s for the permanent room.
-     */
-    private List<AbstractParticipant> permanentRoomParticipants = new LinkedList<AbstractParticipant>();
-
-    /**
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
@@ -133,22 +122,6 @@ public class AliasReservationTask extends ReservationTask
         this.aliasProviderCapabilities.add(aliasProviderCapability);
     }
 
-    /**
-     * @param permanentRoom sets the {@link #permanentRoom}
-     */
-    public void setPermanentRoom(boolean permanentRoom)
-    {
-        this.permanentRoom = permanentRoom;
-    }
-
-    /**
-     * @param permanentRoomParticipants sets the {@link #permanentRoomParticipants}
-     */
-    public void setPermanentRoomParticipants(List<AbstractParticipant> permanentRoomParticipants)
-    {
-        this.permanentRoomParticipants = permanentRoomParticipants;
-    }
-
     @Override
     protected SchedulerReport createMainReport()
     {
@@ -188,9 +161,6 @@ public class AliasReservationTask extends ReservationTask
                 continue;
             }
             if (aliasTypes.size() > 0 && !aliasProviderCapability.providesAliasType(aliasTypes)) {
-                continue;
-            }
-            if (permanentRoom && !aliasProviderCapability.isPermanentRoom()) {
                 continue;
             }
 
@@ -302,41 +272,6 @@ public class AliasReservationTask extends ReservationTask
                 aliasReservation.setSlot(interval);
                 aliasReservation.setAliasProviderCapability(aliasProviderCapability);
                 aliasReservation.setValueReservation(valueReservation);
-
-                // If alias should be allocated as permanent room, create room endpoint with zero licenses
-                // (so we don't need reservation for the room).
-                // The permanent room should not be created if the alias will be used for any specified target resource.
-                if (aliasProviderCapability.isPermanentRoom() && schedulerContext.isExecutableAllowed()
-                        && targetResource == null) {
-                    Resource resource = aliasProviderCapability.getResource();
-                    RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
-                    if (roomProvider == null) {
-                        throw new RuntimeException("Permanent room should be enabled only for device resource"
-                                + " with room provider capability.");
-                    }
-                    DeviceResource deviceResource = roomProvider.getDeviceResource();                    ;
-
-                    // Create new room
-                    ResourceRoomEndpoint room = new ResourceRoomEndpoint();
-                    room.setSlot(interval);
-                    room.setRoomProviderCapability(roomProvider);
-                    room.setRoomDescription(schedulerContext.getDescription());
-                    room.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-                    room.setParticipants(permanentRoomParticipants);
-
-                    // Create room configuration
-                    RoomConfiguration roomConfiguration = new RoomConfiguration();
-                    roomConfiguration.setTechnologies(deviceResource.getTechnologies());
-                    room.setRoomConfiguration(roomConfiguration);
-
-                    Set<Technology> roomTechnologies = room.getTechnologies();
-                    for (Alias alias : aliasReservation.getAliases()) {
-                        if (alias.getTechnology().isCompatibleWith(roomTechnologies)) {
-                            room.addAssignedAlias(alias);
-                        }
-                    }
-                    aliasReservation.setExecutable(room);
-                }
 
                 endReport();
                 return aliasReservation;
