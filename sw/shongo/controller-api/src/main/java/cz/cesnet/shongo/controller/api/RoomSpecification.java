@@ -26,38 +26,6 @@ public class RoomSpecification extends StandaloneRoomSpecification
     /**
      * Constructor.
      *
-     * @param technology to be added to the {@link #technologies}
-     */
-    public RoomSpecification(Technology technology)
-    {
-        addTechnology(technology);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param aliasType to create {@link #aliasSpecifications}
-     */
-    public RoomSpecification(AliasType aliasType)
-    {
-        addAliasSpecification(new AliasSpecification(aliasType));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param aliasTypes to create {@link #aliasSpecifications}
-     */
-    public RoomSpecification(AliasType[] aliasTypes)
-    {
-        for (AliasType aliasType : aliasTypes) {
-            addAliasSpecification(new AliasSpecification(aliasType));
-        }
-    }
-
-    /**
-     * Constructor.
-     *
      * @param participantCount sets the {@link #participantCount}
      * @param technology       to be added to the {@link #technologies}
      */
@@ -147,5 +115,6 @@ public class RoomSpecification extends StandaloneRoomSpecification
     {
         super.fromData(dataMap);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
+        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
     }
 }

@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
@@ -13,10 +11,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -132,7 +127,7 @@ public class RoomModel extends ParticipantConfigurationModel
         if (roomExecutable instanceof UsedRoomExecutable) {
             UsedRoomExecutable usageExecutable = (UsedRoomExecutable) roomExecutable;
             AbstractRoomExecutable usedExecutable = (AbstractRoomExecutable) cacheProvider.getExecutable(
-                    usageExecutable.getRoomExecutableId());
+                    usageExecutable.getReusedRoomExecutableId());
             RoomExecutableParticipantConfiguration participants = usedExecutable.getParticipantConfiguration();
             for (AbstractParticipant participant : participants.getParticipants()) {
                 addParticipant(new Participant(usedExecutable.getId(), participant, cacheProvider));

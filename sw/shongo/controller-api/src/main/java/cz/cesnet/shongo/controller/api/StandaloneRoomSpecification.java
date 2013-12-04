@@ -25,7 +25,7 @@ public abstract class StandaloneRoomSpecification extends AbstractRoomSpecificat
     /**
      * Set of technologies which the virtual rooms must support.
      */
-    private Set<Technology> technologies = new HashSet<Technology>();
+    protected Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification}s for the virtual room.
@@ -149,7 +149,7 @@ public abstract class StandaloneRoomSpecification extends AbstractRoomSpecificat
     {
         super.fromData(dataMap);
         resourceId = dataMap.getString(RESOURCE_ID);
-        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
     }
 }

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-    /**
+/**
  * Represents a re-used {@link RoomEndpoint} for different
  * {@link RoomConfiguration}.
  *
@@ -36,7 +36,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     /**
      * {@link RoomEndpoint} which is re-used.
      */
-    private RoomEndpoint roomEndpoint;
+    private RoomEndpoint reusedRoomEndpoint;
 
     /**
      * Specifies whether {@link #onStop} is active.
@@ -51,31 +51,31 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     /**
-     * @return {@link #roomEndpoint}
+     * @return {@link #reusedRoomEndpoint}
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public RoomEndpoint getRoomEndpoint()
+    public RoomEndpoint getReusedRoomEndpoint()
     {
-        return roomEndpoint;
+        return reusedRoomEndpoint;
     }
 
     /**
-     * @param roomEndpoint sets the {@link #roomEndpoint}
+     * @param roomEndpoint sets the {@link #reusedRoomEndpoint}
      */
-    public void setRoomEndpoint(RoomEndpoint roomEndpoint)
+    public void setReusedRoomEndpoint(RoomEndpoint roomEndpoint)
     {
-        this.roomEndpoint = roomEndpoint;
+        this.reusedRoomEndpoint = roomEndpoint;
     }
 
     /**
-     * @return merged {@link RoomConfiguration} of {@link #roomConfiguration} and {@link #roomEndpoint#roomConfiguration}
+     * @return merged {@link RoomConfiguration} of {@link #roomConfiguration} and {@link #reusedRoomEndpoint#roomConfiguration}
      */
     @Transient
     private RoomConfiguration getMergedRoomConfiguration()
     {
         RoomConfiguration roomConfiguration = getRoomConfiguration();
-        RoomConfiguration roomEndpointConfiguration = roomEndpoint.getRoomConfiguration();
+        RoomConfiguration roomEndpointConfiguration = reusedRoomEndpoint.getRoomConfiguration();
         RoomConfiguration mergedRoomConfiguration = new RoomConfiguration();
         mergedRoomConfiguration.setLicenseCount(
                 roomConfiguration.getLicenseCount() + roomEndpointConfiguration.getLicenseCount());
@@ -92,7 +92,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     public Collection<Executable> getExecutionDependencies()
     {
         List<Executable> dependencies = new ArrayList<Executable>();
-        dependencies.add(roomEndpoint);
+        dependencies.add(reusedRoomEndpoint);
         return dependencies;
     }
 
@@ -100,12 +100,12 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     @Transient
     public Resource getResource()
     {
-        if (roomEndpoint instanceof ResourceRoomEndpoint) {
-            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+        if (reusedRoomEndpoint instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) reusedRoomEndpoint;
             return resourceRoomEndpoint.getResource();
         }
         else {
-            throw new TodoImplementException(roomEndpoint.getClass());
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
         }
     }
 
@@ -123,7 +123,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         UsedRoomExecutable usedRoomExecutableEndpointApi =
                 (UsedRoomExecutable) executableApi;
 
-        usedRoomExecutableEndpointApi.setRoomExecutableId(EntityIdentifier.formatId(roomEndpoint));
+        usedRoomExecutableEndpointApi.setReusedRoomExecutableId(EntityIdentifier.formatId(reusedRoomEndpoint));
 
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
         usedRoomExecutableEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());
@@ -142,28 +142,28 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     @Override
     public int getEndpointServiceCount()
     {
-        return super.getEndpointServiceCount() + roomEndpoint.getEndpointServiceCount();
+        return super.getEndpointServiceCount() + reusedRoomEndpoint.getEndpointServiceCount();
     }
 
     @Transient
     @Override
     public DeviceResource getDeviceResource()
     {
-        return roomEndpoint.getDeviceResource();
+        return reusedRoomEndpoint.getDeviceResource();
     }
 
     @Override
     @Transient
     public String getRoomId()
     {
-        return roomEndpoint.getRoomId();
+        return reusedRoomEndpoint.getRoomId();
     }
 
     @Override
     @Transient
     public boolean isStandalone()
     {
-        return roomEndpoint.isStandalone();
+        return reusedRoomEndpoint.isStandalone();
     }
 
     @Override
@@ -171,7 +171,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     public List<Alias> getAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
-        aliases.addAll(roomEndpoint.getAliases());
+        aliases.addAll(reusedRoomEndpoint.getAliases());
         aliases.addAll(super.getAssignedAliases());
         return aliases;
     }
@@ -186,22 +186,22 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     @Transient
     public Address getAddress()
     {
-        return roomEndpoint.getAddress();
+        return reusedRoomEndpoint.getAddress();
     }
 
     @Override
     @Transient
     public String getReportDescription()
     {
-        return roomEndpoint.getReportDescription();
+        return reusedRoomEndpoint.getReportDescription();
     }
 
     @Override
     @Transient
     public String getConnectorAgentName()
     {
-        if (roomEndpoint instanceof ManagedEndpoint) {
-            ManagedEndpoint managedEndpoint = (ManagedEndpoint) roomEndpoint;
+        if (reusedRoomEndpoint instanceof ManagedEndpoint) {
+            ManagedEndpoint managedEndpoint = (ManagedEndpoint) reusedRoomEndpoint;
             return managedEndpoint.getConnectorAgentName();
         }
         return null;
@@ -213,7 +213,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         super.fillRoomApi(roomApi, executableManager);
 
         // Use reused room configuration
-        roomEndpoint.fillRoomApi(roomApi, executableManager);
+        reusedRoomEndpoint.fillRoomApi(roomApi, executableManager);
 
         // Modify the room configuration (only when we aren't stopping the reused room)
         if (!isStopping) {
@@ -233,7 +233,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     public void modifyRoom(Room roomApi, Executor executor)
             throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException
     {
-        roomEndpoint.modifyRoom(roomApi, executor);
+        reusedRoomEndpoint.modifyRoom(roomApi, executor);
     }
 
     @Override

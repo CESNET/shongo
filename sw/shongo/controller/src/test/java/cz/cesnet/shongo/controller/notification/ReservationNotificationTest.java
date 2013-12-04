@@ -154,15 +154,15 @@ public class ReservationNotificationTest extends AbstractControllerTest
         permanentRoomReservationRequest.setDescription("Alias Reservation Request");
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.ADOBE_CONNECT_URI));
+        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(AliasType.ADOBE_CONNECT_URI));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocationFailed(permanentRoomReservationRequestId);
 
         permanentRoomReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, permanentRoomReservationRequestId);
-        RoomSpecification permanentRoomSpecification =
-                (RoomSpecification) permanentRoomReservationRequest.getSpecification();
+        PermanentRoomSpecification permanentRoomSpecification =
+                (PermanentRoomSpecification) permanentRoomReservationRequest.getSpecification();
         permanentRoomSpecification.getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
         {{
                 add(AliasType.SIP_URI);

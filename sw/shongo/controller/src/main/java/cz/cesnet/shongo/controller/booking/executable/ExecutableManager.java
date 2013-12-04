@@ -273,8 +273,9 @@ public class ExecutableManager extends AbstractManager
                         + "       executable.state = :toDelete "
                         + "   OR ("
                         + "       executable.state = :notStarted "
-                        + "       AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation))"
-                        + " )",
+                        + "       AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
+                        + "       AND executable NOT IN (SELECT roomSpecification.reusedRoomEndpoint FROM RoomSpecification roomSpecification)"
+                        + " ))",
                         Executable.class)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
                 .setParameter("toDelete", Executable.State.TO_DELETE)
@@ -324,7 +325,7 @@ public class ExecutableManager extends AbstractManager
         }
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
-                        + " WHERE room.roomEndpoint = :room"
+                        + " WHERE room.reusedRoomEndpoint = :room"
                         + " AND room.state IN(:startedStates)", UsedRoomEndpoint.class)
                 .setParameter("room", resourceRoomEndpoint)
                 .setParameter("startedStates", Executable.STARTED_STATES)
@@ -346,7 +347,7 @@ public class ExecutableManager extends AbstractManager
     {
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
-                        + " WHERE room.roomEndpoint = :roomEndpoint"
+                        + " WHERE room.reusedRoomEndpoint = :roomEndpoint"
                         + " AND room.state IN(:stateStarted)",
                 UsedRoomEndpoint.class)
                 .setParameter("roomEndpoint", resourceRoomEndpoint)
@@ -411,7 +412,7 @@ public class ExecutableManager extends AbstractManager
                         + " WHERE recordingFolder IS NOT NULL"
                         + " AND (roomEndpoint = :executable OR roomEndpoint IN("
                         + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
-                        + "   WHERE usedRoomEndpoint.roomEndpoint = :executable"
+                        + "   WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"
                         + "))", Object[].class)
                 .setParameter("executable", executable)
                 .getResultList();
@@ -459,7 +460,7 @@ public class ExecutableManager extends AbstractManager
     {
         if (executable instanceof UsedRoomEndpoint) {
             UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
-            Executable referencedExecutable = usedRoomEndpoint.getRoomEndpoint();
+            Executable referencedExecutable = usedRoomEndpoint.getReusedRoomEndpoint();
             referencedExecutables.add(referencedExecutable);
         }
         for (Executable childExecutable : executable.getChildExecutables()) {

@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
@@ -12,9 +10,9 @@ import cz.cesnet.shongo.api.DataMap;
 public class UsedRoomSpecification extends AbstractRoomSpecification
 {
     /**
-     * Shongo-id for {@link RoomExecutable}.
+     * Shongo-id for reused {@link RoomExecutable}.
      */
-    private String roomExecutableId;
+    private String reusedRoomExecutableId;
 
     /**
      * Number of ports which must be allocated for the virtual room.
@@ -31,29 +29,29 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
     /**
      * Constructor.
      *
-     * @param roomExecutableId sets the {@link #roomExecutableId}
+     * @param reusedRoomExecutableId sets the {@link #reusedRoomExecutableId}
      * @param participantCount sets the {@link #participantCount}
      */
-    public UsedRoomSpecification(String roomExecutableId, int participantCount)
+    public UsedRoomSpecification(String reusedRoomExecutableId, int participantCount)
     {
-        setRoomExecutableId(roomExecutableId);
+        setReusedRoomExecutableId(reusedRoomExecutableId);
         setParticipantCount(participantCount);
     }
 
     /**
-     * @return {@link #roomExecutableId}
+     * @return {@link #reusedRoomExecutableId}
      */
-    public String getRoomExecutableId()
+    public String getReusedRoomExecutableId()
     {
-        return roomExecutableId;
+        return reusedRoomExecutableId;
     }
 
     /**
-     * @param roomExecutableId sets the {@link #roomExecutableId}
+     * @param reusedRoomExecutableId sets the {@link #reusedRoomExecutableId}
      */
-    public void setRoomExecutableId(String roomExecutableId)
+    public void setReusedRoomExecutableId(String reusedRoomExecutableId)
     {
-        this.roomExecutableId = roomExecutableId;
+        this.reusedRoomExecutableId = reusedRoomExecutableId;
     }
 
     /**
@@ -72,14 +70,14 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
         this.participantCount = participantCount;
     }
 
-    public static final String ROOM_EXECUTABLE_ID = "roomExecutableId";
+    public static final String REUSED_ROOM_EXECUTABLE_ID = "reusedRoomExecutableId";
     public static final String PARTICIPANT_COUNT = "participantCount";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(ROOM_EXECUTABLE_ID, roomExecutableId);
+        dataMap.set(REUSED_ROOM_EXECUTABLE_ID, reusedRoomExecutableId);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
         return dataMap;
     }
@@ -88,7 +86,7 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        roomExecutableId = dataMap.getString(ROOM_EXECUTABLE_ID);
+        reusedRoomExecutableId = dataMap.getStringRequired(REUSED_ROOM_EXECUTABLE_ID);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
     }
 }

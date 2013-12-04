@@ -1,15 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.api.RoomSetting;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a reused room in a device.
@@ -19,33 +10,33 @@ import java.util.Set;
 public class UsedRoomExecutable extends AbstractRoomExecutable
 {
     /**
-     * Used {@link RoomExecutable} identifier.
+     * Re-used {@link RoomExecutable} identifier.
      */
-    private String roomExecutableId;
+    private String reusedRoomExecutableId;
 
     /**
-     * @return {@link #roomExecutableId}
+     * @return {@link #reusedRoomExecutableId}
      */
-    public String getRoomExecutableId()
+    public String getReusedRoomExecutableId()
     {
-        return roomExecutableId;
+        return reusedRoomExecutableId;
     }
 
     /**
-     * @param roomExecutableId sets the {@link #roomExecutableId}
+     * @param reusedRoomExecutableId sets the {@link #reusedRoomExecutableId}
      */
-    public void setRoomExecutableId(String roomExecutableId)
+    public void setReusedRoomExecutableId(String reusedRoomExecutableId)
     {
-        this.roomExecutableId = roomExecutableId;
+        this.reusedRoomExecutableId = reusedRoomExecutableId;
     }
 
-    private static final String ROOM_EXECUTABLE_ID = "roomExecutableId";
+    private static final String REUSED_ROOM_EXECUTABLE_ID = "reusedRoomExecutableId";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(ROOM_EXECUTABLE_ID, roomExecutableId);
+        dataMap.set(REUSED_ROOM_EXECUTABLE_ID, reusedRoomExecutableId);
         return dataMap;
     }
 
@@ -53,6 +44,6 @@ public class UsedRoomExecutable extends AbstractRoomExecutable
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        roomExecutableId = dataMap.getString(ROOM_EXECUTABLE_ID);
+        reusedRoomExecutableId = dataMap.getString(REUSED_ROOM_EXECUTABLE_ID);
     }
 }

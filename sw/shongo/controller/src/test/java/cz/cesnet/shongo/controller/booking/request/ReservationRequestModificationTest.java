@@ -282,7 +282,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification permanentRoomSpecification = new RoomSpecification();
+        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification();
         permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);

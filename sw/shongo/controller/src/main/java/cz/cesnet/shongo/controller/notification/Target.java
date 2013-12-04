@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -20,7 +19,6 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
@@ -115,24 +113,10 @@ public abstract class Target
 
     public static class Alias extends Target
     {
-        private boolean permanentRoom;
-
         private Set<Technology> technologies = new HashSet<Technology>();
 
         private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
-
-        public Alias(RoomEndpoint roomEndpoint)
-        {
-            permanentRoom = true;
-            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
-                aliases.add(alias);
-                Technology technology = alias.getTechnology();
-                if (!technology.equals(Technology.ALL)) {
-                    technologies.add(technology);
-                }
-            }
-        }
 
         public Alias(AliasSpecification aliasSpecification)
         {
@@ -178,23 +162,10 @@ public abstract class Target
                     }
                 }
             }
-            throw new TodoImplementException("check permanent room");
-            /*if (aliasSpecification.isPermanentRoom()) {
-                permanentRoom = true;
-            }*/
         }
 
         private void initFrom(AliasReservation aliasReservation)
         {
-            Executable executable = aliasReservation.getExecutable();
-            if (executable instanceof RoomEndpoint) {
-                if (executable instanceof ResourceRoomEndpoint) {
-                    ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) executable;
-                    setResource(resourceRoomEndpoint.getResource());
-                }
-                permanentRoom = true;
-            }
-
             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : aliasReservation.getAliases()) {
                 aliases.add(alias);
                 Technology technology = alias.getTechnology();
@@ -202,11 +173,6 @@ public abstract class Target
                     technologies.add(technology);
                 }
             }
-        }
-
-        public boolean isPermanentRoom()
-        {
-            return permanentRoom;
         }
 
         public Set<Technology> getTechnologies()
@@ -232,22 +198,19 @@ public abstract class Target
         @Override
         protected String getTypeName()
         {
-            if (isPermanentRoom()) {
-                return "roomPermanent";
-            }
             return super.getTypeName();
         }
     }
 
     public static class Room extends Target
     {
-        private Alias alias;
+        private Room reusedRoom;
 
         private Set<Technology> technologies = new HashSet<Technology>();
 
         private String name;
 
-        private int licenseCount;
+        private int licenseCount = 0;
 
         private int availableLicenseCount;
 
@@ -259,7 +222,10 @@ public abstract class Target
         public Room(RoomSpecification roomSpecification, Target reusedTarget)
         {
             technologies.addAll(roomSpecification.getTechnologies());
-            licenseCount = roomSpecification.getParticipantCount();
+            Integer participantCount = roomSpecification.getParticipantCount();
+            if (participantCount != null) {
+                licenseCount = participantCount;
+            }
             for (AliasSpecification aliasSpecification : roomSpecification.getAliasSpecifications()) {
                 if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
                     name = aliasSpecification.getValue();
@@ -273,9 +239,9 @@ public abstract class Target
                     }
                 }
             }
-            if (reusedTarget instanceof Alias) {
-                alias = (Alias) reusedTarget;
-                name = alias.getRoomName();
+            if (reusedTarget instanceof Room) {
+                reusedRoom = (Room) reusedTarget;
+                name = reusedRoom.getName();
             }
         }
 
@@ -296,28 +262,49 @@ public abstract class Target
 
             RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
             if (roomEndpoint != null) {
-                technologies.addAll(roomEndpoint.getTechnologies());
-                for (RoomSetting roomSetting : roomEndpoint.getRoomConfiguration().getRoomSettings()) {
-                    if (roomSetting instanceof H323RoomSetting) {
-                        H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
-                        if (h323RoomSetting.getPin() != null) {
-                            pin = h323RoomSetting.getPin();
-                        }
+                initFrom(roomEndpoint);
+            }
+        }
+
+        public Room(RoomEndpoint roomEndpoint)
+        {
+            licenseCount = roomEndpoint.getRoomConfiguration().getLicenseCount();
+            initFrom(roomEndpoint);
+        }
+
+        private void initFrom(RoomEndpoint roomEndpoint)
+        {
+            technologies.addAll(roomEndpoint.getTechnologies());
+            for (RoomSetting roomSetting : roomEndpoint.getRoomConfiguration().getRoomSettings()) {
+                if (roomSetting instanceof H323RoomSetting) {
+                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                    if (h323RoomSetting.getPin() != null) {
+                        pin = h323RoomSetting.getPin();
                     }
-                }
-                for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
-                    if (alias.getType().equals(AliasType.ROOM_NAME)) {
-                        name = alias.getValue();
-                    }
-                    else {
-                        aliases.add(alias);
-                    }
-                }
-                if (roomEndpoint instanceof UsedRoomEndpoint) {
-                    UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
-                    alias = new Alias(usedRoomEndpoint.getRoomEndpoint());
                 }
             }
+            for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
+                if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                    name = alias.getValue();
+                }
+                else {
+                    aliases.add(alias);
+                }
+            }
+            if (roomEndpoint instanceof UsedRoomEndpoint) {
+                UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
+                reusedRoom = new Room(usedRoomEndpoint.getReusedRoomEndpoint());
+            }
+        }
+
+        public boolean isPermanent()
+        {
+            return licenseCount == 0 && reusedRoom == null;
+        }
+
+        public boolean isCapacity()
+        {
+            return licenseCount > 0 && reusedRoom != null;
         }
 
         public String getName()
@@ -353,10 +340,15 @@ public abstract class Target
         @Override
         protected String getTypeName()
         {
-            if (alias != null) {
+            if (isPermanent()) {
+                return "roomPermanent";
+            }
+            else if (isCapacity()) {
                 return "roomCapacity";
             }
-            return super.getTypeName();
+            else {
+                return super.getTypeName();
+            }
         }
     }
 

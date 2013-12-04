@@ -104,7 +104,7 @@ public class Migration extends SimplePersistentObject
         if (sourceRoom instanceof UsedRoomEndpoint && targetRoom instanceof UsedRoomEndpoint) {
             UsedRoomEndpoint sourceUsedRoom = (UsedRoomEndpoint) sourceRoom;
             UsedRoomEndpoint targetUsedRoom = (UsedRoomEndpoint) targetRoom;
-            if (sourceUsedRoom.getRoomEndpoint().equals(targetUsedRoom.getRoomEndpoint())) {
+            if (sourceUsedRoom.getReusedRoomEndpoint().equals(targetUsedRoom.getReusedRoomEndpoint())) {
                 return true;
             }
         }
@@ -148,7 +148,7 @@ public class Migration extends SimplePersistentObject
             UsedRoomEndpoint targetUsedRoom = (UsedRoomEndpoint) targetRoom;
 
             // If the same room is reused, only update the room
-            if (sourceUsedRoom.getRoomEndpoint().equals(targetUsedRoom.getRoomEndpoint())) {
+            if (sourceUsedRoom.getReusedRoomEndpoint().equals(targetUsedRoom.getReusedRoomEndpoint())) {
                 targetUsedRoom.setState(Executable.State.STARTED);
                 Executable.State state = targetUsedRoom.update(executor, executableManager);
                 if (state != null) {

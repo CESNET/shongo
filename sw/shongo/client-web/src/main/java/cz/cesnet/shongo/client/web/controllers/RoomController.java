@@ -37,7 +37,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -750,7 +749,7 @@ public class RoomController
         else if (executable instanceof UsedRoomExecutable) {
             UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) executable;
             Executable usedExecutable = executableService.getExecutable(
-                    securityToken, usedRoomExecutable.getRoomExecutableId());
+                    securityToken, usedRoomExecutable.getReusedRoomExecutableId());
             if (usedExecutable instanceof RoomExecutable) {
                 roomExecutable = (RoomExecutable) usedExecutable;
             }

@@ -189,7 +189,7 @@ sub on_init()
         }
         case 'UsedRoomExecutable' {
             $self->add_attribute(
-                'roomExecutableId', {
+                'reusedRoomExecutableId', {
                     'title' => 'Used Room'
                 }
             );
