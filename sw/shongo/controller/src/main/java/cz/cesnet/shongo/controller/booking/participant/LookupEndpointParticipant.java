@@ -44,7 +44,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         return new ReservationTask(schedulerContext)
         {

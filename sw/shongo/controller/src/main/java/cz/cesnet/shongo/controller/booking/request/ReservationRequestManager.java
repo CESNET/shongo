@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -17,9 +18,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -317,15 +316,6 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param allocationIds
-     * @return list of reservation request identifier for given {@code allocationIds}
-     */
-    public Set<Long> listReservationRequestIdsByAllocations(Set<Long> allocationIds)
-    {
-        return null;  //To change body of created methods use File | Settings | File Templates.
-    }
-
-    /**
      * @return list all {@link ReservationRequestSet} which aren't preprocessed in given interval.
      */
     public List<ReservationRequestSet> listNotPreprocessedReservationRequestSets(Interval interval)
@@ -372,13 +362,18 @@ public class ReservationRequestManager extends AbstractManager
     public List<AbstractReservationRequest> listReservationRequestActiveUsages(
             AbstractReservationRequest reservationRequest)
     {
+        Allocation allocation = reservationRequest.getAllocation();
+
         List<AbstractReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reusedAllocation = :allocation"
-                        + " AND reservationRequest.state = :stateActive",
+                        + " WHERE reservationRequest.state = :stateActive"
+                        + " AND (reservationRequest.reusedAllocation = :allocation"
+                        + "   OR reservationRequest.specification IN("
+                        + "     SELECT roomSpecification FROM RoomSpecification roomSpecification"
+                        + "     WHERE roomSpecification.reusedAllocation = :allocation))",
                 AbstractReservationRequest.class)
-                .setParameter("allocation", reservationRequest.getAllocation())
                 .setParameter("stateActive", AbstractReservationRequest.State.ACTIVE)
+                .setParameter("allocation", allocation)
                 .getResultList();
         return reservationRequests;
     }
@@ -388,21 +383,24 @@ public class ReservationRequestManager extends AbstractManager
      * @return list of {@link ReservationRequest}s which reuse given {@code allocation}, which are in
      *         {@link ReservationRequest.AllocationState#ALLOCATED} state and starting in given {@code interval}
      */
-    public List<ReservationRequest> listAllocationUsages(Allocation allocation, Interval interval)
+    public List<ReservationRequest> listAllocationActiveUsages(Allocation allocation, Interval interval)
     {
         List<ReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reusedAllocation = :reusableAllocation"
-                        + " AND reservationRequest.state = :activeState"
+                        + " WHERE reservationRequest.state = :activeState"
                         + " AND reservationRequest.allocationState = :allocationState"
                         + " AND reservationRequest.slotStart < :end"
-                        + " AND reservationRequest.slotEnd > :start",
+                        + " AND reservationRequest.slotEnd > :start"
+                        + " AND (reservationRequest.reusedAllocation = :allocation"
+                        + "   OR reservationRequest.specification IN("
+                        + "     SELECT roomSpecification FROM RoomSpecification roomSpecification"
+                        + "     WHERE roomSpecification.reusedAllocation = :allocation))",
                 ReservationRequest.class)
-                .setParameter("reusableAllocation", allocation)
                 .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
                 .setParameter("allocationState", ReservationRequest.AllocationState.ALLOCATED)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
+                .setParameter("allocation", allocation)
                 .getResultList();
         return reservationRequests;
     }

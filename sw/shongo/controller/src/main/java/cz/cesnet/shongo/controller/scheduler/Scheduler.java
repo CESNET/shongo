@@ -316,7 +316,7 @@ public class Scheduler extends SwitchableComponent
 
         // Find reservation requests which should be reallocated
         DateTime requestedSlotStart = schedulerContext.getRequestedSlotStart();
-        List<ReservationRequest> reservationRequestUsages = reservationRequestManager.listAllocationUsages(
+        List<ReservationRequest> reservationRequestUsages = reservationRequestManager.listAllocationActiveUsages(
                 reservationRequest.getAllocation(), schedulerContext.getRequestedSlot());
         for (ReservationRequest reservationRequestUsage : reservationRequestUsages) {
             Interval usageSlot = reservationRequestUsage.getSlot();

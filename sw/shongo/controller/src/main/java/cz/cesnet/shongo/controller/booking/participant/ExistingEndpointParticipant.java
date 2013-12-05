@@ -83,7 +83,7 @@ public class ExistingEndpointParticipant extends EndpointParticipant implements 
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         return new ReservationTask(schedulerContext)
         {

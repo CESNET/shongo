@@ -1053,6 +1053,225 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Room executable doesn't exist.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("RoomExecutableNotExistsReport")
+    public static class RoomExecutableNotExistsReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        public RoomExecutableNotExistsReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "room-executable-not-exists";
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("room-executable-not-exists", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link RoomExecutableNotExistsReport}.
+     */
+    public static class RoomExecutableNotExistsException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public RoomExecutableNotExistsException(RoomExecutableNotExistsReport report)
+        {
+            this.report = report;
+        }
+
+        public RoomExecutableNotExistsException(Throwable throwable, RoomExecutableNotExistsReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public RoomExecutableNotExistsException()
+        {
+            RoomExecutableNotExistsReport report = new RoomExecutableNotExistsReport();
+            this.report = report;
+        }
+
+        public RoomExecutableNotExistsException(Throwable throwable)
+        {
+            super(throwable);
+            RoomExecutableNotExistsReport report = new RoomExecutableNotExistsReport();
+            this.report = report;
+        }
+
+        @Override
+        public RoomExecutableNotExistsReport getReport()
+        {
+            return (RoomExecutableNotExistsReport) report;
+        }
+    }
+
+    /**
+     * Requested time slot doesn't correspond to {@link #interval} from reused executable {@link #executable}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ExecutableInvalidSlotReport")
+    public static class ExecutableInvalidSlotReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected cz.cesnet.shongo.controller.booking.executable.Executable executable;
+
+        protected org.joda.time.Interval interval;
+
+        public ExecutableInvalidSlotReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-invalid-slot";
+        }
+
+        public ExecutableInvalidSlotReport(cz.cesnet.shongo.controller.booking.executable.Executable executable, org.joda.time.Interval interval)
+        {
+            setExecutable(executable);
+            setInterval(interval);
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "executable_id")
+        public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(executable);
+        }
+
+        public void setExecutable(cz.cesnet.shongo.controller.booking.executable.Executable executable)
+        {
+            this.executable = executable;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getInterval()
+        {
+            return interval;
+        }
+
+        public void setInterval(org.joda.time.Interval interval)
+        {
+            this.interval = interval;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("executable", executable);
+            parameters.put("interval", interval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("executable-invalid-slot", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ExecutableInvalidSlotReport}.
+     */
+    public static class ExecutableInvalidSlotException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ExecutableInvalidSlotException(ExecutableInvalidSlotReport report)
+        {
+            this.report = report;
+        }
+
+        public ExecutableInvalidSlotException(Throwable throwable, ExecutableInvalidSlotReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ExecutableInvalidSlotException(cz.cesnet.shongo.controller.booking.executable.Executable executable, org.joda.time.Interval interval)
+        {
+            ExecutableInvalidSlotReport report = new ExecutableInvalidSlotReport();
+            report.setExecutable(executable);
+            report.setInterval(interval);
+            this.report = report;
+        }
+
+        public ExecutableInvalidSlotException(Throwable throwable, cz.cesnet.shongo.controller.booking.executable.Executable executable, org.joda.time.Interval interval)
+        {
+            super(throwable);
+            ExecutableInvalidSlotReport report = new ExecutableInvalidSlotReport();
+            report.setExecutable(executable);
+            report.setInterval(interval);
+            this.report = report;
+        }
+
+        public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
+        {
+            return getReport().getExecutable();
+        }
+
+        public org.joda.time.Interval getInterval()
+        {
+            return getReport().getInterval();
+        }
+
+        @Override
+        public ExecutableInvalidSlotReport getReport()
+        {
+            return (ExecutableInvalidSlotReport) report;
+        }
+    }
+
+    /**
      * Not enough endpoints are requested for the compartment.
      */
     @javax.persistence.Entity
@@ -1511,14 +1730,14 @@ public class SchedulerReportSet extends AbstractReportSet
      * Requested time slot doesn't correspond to {@link #interval} from reused reservation request {@link #reservationRequest}.
      */
     @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
-    public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    @javax.persistence.DiscriminatorValue("ReservationRequestInvalidSlotReport")
+    public static class ReservationRequestInvalidSlotReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
         protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest;
 
         protected org.joda.time.Interval interval;
 
-        public ReservationRequestNotUsableReport()
+        public ReservationRequestInvalidSlotReport()
         {
         }
 
@@ -1526,10 +1745,10 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getUniqueId()
         {
-            return "reservation-request-not-usable";
+            return "reservation-request-invalid-slot";
         }
 
-        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestInvalidSlotReport(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             setReservationRequest(reservationRequest);
             setInterval(interval);
@@ -1588,38 +1807,38 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-not-usable", userType, language, timeZone, getParameters());
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-request-invalid-slot", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link ReservationRequestNotUsableReport}.
+     * Exception for {@link ReservationRequestInvalidSlotReport}.
      */
-    public static class ReservationRequestNotUsableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    public static class ReservationRequestInvalidSlotException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
     {
-        public ReservationRequestNotUsableException(ReservationRequestNotUsableReport report)
+        public ReservationRequestInvalidSlotException(ReservationRequestInvalidSlotReport report)
         {
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, ReservationRequestNotUsableReport report)
+        public ReservationRequestInvalidSlotException(Throwable throwable, ReservationRequestInvalidSlotReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestInvalidSlotException(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
-            ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
+            ReservationRequestInvalidSlotReport report = new ReservationRequestInvalidSlotReport();
             report.setReservationRequest(reservationRequest);
             report.setInterval(interval);
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
+        public ReservationRequestInvalidSlotException(Throwable throwable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest, org.joda.time.Interval interval)
         {
             super(throwable);
-            ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
+            ReservationRequestInvalidSlotReport report = new ReservationRequestInvalidSlotReport();
             report.setReservationRequest(reservationRequest);
             report.setInterval(interval);
             this.report = report;
@@ -1636,9 +1855,9 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @Override
-        public ReservationRequestNotUsableReport getReport()
+        public ReservationRequestInvalidSlotReport getReport()
         {
-            return (ReservationRequestNotUsableReport) report;
+            return (ReservationRequestInvalidSlotReport) report;
         }
     }
 
@@ -3549,13 +3768,15 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ResourceMultipleRequestedReport.class);
         addReportClass(EndpointNotFoundReport.class);
         addReportClass(ExecutableReusingReport.class);
+        addReportClass(RoomExecutableNotExistsReport.class);
+        addReportClass(ExecutableInvalidSlotReport.class);
         addReportClass(CompartmentNotEnoughEndpointReport.class);
         addReportClass(CompartmentAssignAliasToExternalEndpointReport.class);
         addReportClass(ConnectionReport.class);
         addReportClass(ConnectionBetweenReport.class);
         addReportClass(ConnectionFromToReport.class);
         addReportClass(ConnectionToMultipleReport.class);
-        addReportClass(ReservationRequestNotUsableReport.class);
+        addReportClass(ReservationRequestInvalidSlotReport.class);
         addReportClass(ReservationReport.class);
         addReportClass(ReservationAlreadyUsedReport.class);
         addReportClass(ReservationReusingReport.class);

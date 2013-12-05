@@ -103,7 +103,7 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         return new ReservationTask(schedulerContext)
         {

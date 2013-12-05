@@ -71,7 +71,7 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         return new ReservationTask(schedulerContext)
         {

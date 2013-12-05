@@ -970,6 +970,21 @@
             <visible>user</visible>
         </report>
 
+        <report>
+            <id>executable-not-reusable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Executable with identifier ${id} cannot be reused.
+            </message>
+            <visible>user</visible>
+        </report>
+
     </scope>
 
     <scope name="scheduler">
@@ -1137,6 +1152,34 @@
             </message>
         </report>
 
+        <report>
+            <id>room-executable-not-exists</id>
+            <classification severity="error"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Room executable doesn't exist.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>executable-invalid-slot</id>
+            <classification severity="error"/>
+            <params>
+                <param name="executable" type="Executable"/>
+                <param name="interval" type="Interval"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Requested time slot doesn't correspond to ${interval} from reused executable ${executable}.
+            </message>
+            <visible>user</visible>
+        </report>
+
 
         <!--
           - COMPARTMENT
@@ -1222,7 +1265,7 @@
           -->
 
         <report>
-            <id>reservation-request-not-usable</id>
+            <id>reservation-request-invalid-slot</id>
             <classification severity="error"/>
             <params>
                 <param name="reservationRequest" type="AbstractReservationRequest"/>

@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import javax.persistence.Entity;
 
@@ -23,6 +23,7 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
 
     @Override
     public RecordingServiceReservationTask createReservationTask(SchedulerContext schedulerContext)
+            throws SchedulerException
     {
         RecordingServiceReservationTask recordingServiceReservationTask =
                 new RecordingServiceReservationTask(schedulerContext);

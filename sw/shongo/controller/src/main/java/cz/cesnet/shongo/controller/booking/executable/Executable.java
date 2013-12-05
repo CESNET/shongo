@@ -27,7 +27,6 @@ import java.util.*;
 @Entity
 public abstract class Executable extends ExecutionTarget
 {
-
     /**
      * Current state of the {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
      */

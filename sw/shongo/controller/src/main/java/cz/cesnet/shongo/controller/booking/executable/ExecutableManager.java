@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -274,7 +275,6 @@ public class ExecutableManager extends AbstractManager
                         + "   OR ("
                         + "       executable.state = :notStarted "
                         + "       AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
-                        + "       AND executable NOT IN (SELECT roomSpecification.reusedRoomEndpoint FROM RoomSpecification roomSpecification)"
                         + " ))",
                         Executable.class)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)

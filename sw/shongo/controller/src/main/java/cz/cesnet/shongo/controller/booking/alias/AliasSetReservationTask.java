@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.booking.alias;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.Migration;
-import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -12,7 +10,6 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for one or multiple {@link AliasReservation}(s).

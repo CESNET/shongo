@@ -383,6 +383,7 @@ public class ReusementTest extends AbstractControllerTest
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
         RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
         String permanentRoomExecutableId = permanentRoomExecutable.getId();
+        Assert.assertEquals("001", permanentRoomExecutable.getAliasByType(AliasType.H323_E164).getValue());
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2013-07-01T12:00", "PT2H");
@@ -416,7 +417,9 @@ public class ReusementTest extends AbstractControllerTest
 
         // Check allocated permanent room alias value
         permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
         Assert.assertEquals(new DateTime("2013-07-01T14:00"), permanentRoomReservation.getSlot().getStart());
+        Assert.assertEquals("555", permanentRoomExecutable.getAliasByType(AliasType.H323_E164).getValue());
 
         // Check allocated usages of alias to be updated by the reused reservation request modification
         reservation1 = checkAllocated(reservationRequest1Id);

@@ -224,7 +224,7 @@ public class AllocationStateReport extends AbstractEntityReport
                 }
             }
             else if (parentReports.size() == 0) {
-                if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_NOT_USABLE)) {
+                if (identifier.equals(AllocationStateReportMessages.RESERVATION_REQUEST_INVALID_SLOT)) {
                     return new ReusementInvalidSlot(
                             Converter.convertToString(report.get("reservationRequest")),
                             Converter.convertToInterval(report.get("interval")));

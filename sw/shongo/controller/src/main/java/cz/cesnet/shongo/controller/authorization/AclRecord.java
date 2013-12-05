@@ -225,7 +225,10 @@ public class AclRecord extends SimplePersistentObject
             }
             else {
                 this.persistenceId = persistentObject.getId();
-                if (persistentObject instanceof Resource) {
+                if (persistentObject instanceof Allocation) {
+                    this.entityType = EntityType.ALLOCATION;
+                }
+                else if (persistentObject instanceof Resource) {
                     this.entityType = EntityType.RESOURCE;
                 }
                 else if (persistentObject instanceof Reservation) {

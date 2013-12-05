@@ -7,11 +7,9 @@ import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
-import cz.cesnet.shongo.controller.booking.compartment.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.booking.resource.StandaloneTerminalCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
-import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.participant.ExistingEndpointParticipant;
@@ -329,7 +327,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
 
 
         @Override
-        public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+        public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
         {
             return new ReservationTask(schedulerContext)
             {

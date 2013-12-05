@@ -15,5 +15,5 @@ public interface ReservationTaskProvider
     /**
      * @return new instance of {@link ReservationTask}.
      */
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext);
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException;
 }

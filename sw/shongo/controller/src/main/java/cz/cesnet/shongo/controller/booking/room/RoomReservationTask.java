@@ -590,6 +590,7 @@ public class RoomReservationTask extends ReservationTask
      * @return (re)allocated {@link RoomEndpoint} or null if no executable should be allocated
      */
     private RoomEndpoint allocateRoomEndpoint(RoomProviderVariant roomProviderVariant, RoomEndpoint oldRoomEndpoint)
+            throws SchedulerException
     {
         RoomProviderCapability roomProviderCapability = roomProviderVariant.getRoomProviderCapability();
         Long deviceResourceId = roomProviderCapability.getDeviceResource().getId();
@@ -649,6 +650,10 @@ public class RoomReservationTask extends ReservationTask
         }
         // Allocate UsedRoomEndpoint
         else if (reusedRoomEndpoint != null) {
+            Interval reusedRoomEndpointSlot = reusedRoomEndpoint.getSlot();
+            if (!reusedRoomEndpointSlot.contains(getInterval())) {
+                throw new SchedulerReportSet.ExecutableInvalidSlotException(reusedRoomEndpoint, reusedRoomEndpointSlot);
+            }
             addReport(new SchedulerReportSet.ExecutableReusingReport(reusedRoomEndpoint));
 
             // Allocate new UsedRoomEndpoint

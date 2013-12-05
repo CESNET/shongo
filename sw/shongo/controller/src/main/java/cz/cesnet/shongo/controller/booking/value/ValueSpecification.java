@@ -111,7 +111,7 @@ public class ValueSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         int valuesCount = values.size();
         if (valuesCount == 0) {

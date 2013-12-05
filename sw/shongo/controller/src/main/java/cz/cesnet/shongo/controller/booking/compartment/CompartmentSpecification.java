@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
@@ -199,7 +200,7 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public CompartmentReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public CompartmentReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         return new CompartmentReservationTask(this, schedulerContext);
     }

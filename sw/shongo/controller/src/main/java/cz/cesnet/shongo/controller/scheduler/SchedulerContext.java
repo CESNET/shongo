@@ -961,7 +961,7 @@ public class SchedulerContext
             }
         }
         if (reusableReservation == null) {
-            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest, reservationInterval);
+            throw new SchedulerReportSet.ReservationRequestInvalidSlotException(reservationRequest, reservationInterval);
         }
 
         // Check the reusable reservation

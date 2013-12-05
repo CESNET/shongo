@@ -290,7 +290,10 @@ public class ReservationManager extends AbstractManager
         // Add top reservation requests by reused allocation
         List<AbstractReservationRequest> reservationRequestsWithReusedAllocation = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reusedAllocation = :allocation",
+                        + " WHERE reservationRequest.reusedAllocation = :allocation"
+                        + "    OR reservationRequest.specification IN("
+                        + "      SELECT roomSpecification FROM RoomSpecification roomSpecification"
+                        + "      WHERE roomSpecification.reusedAllocation = :allocation)",
                 AbstractReservationRequest.class)
                 .setParameter("allocation", allocation)
                 .getResultList();

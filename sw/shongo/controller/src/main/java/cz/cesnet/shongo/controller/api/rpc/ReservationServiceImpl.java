@@ -219,12 +219,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
 
-            if (reusedReservationRequestId != null) {
-                cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reusedReservationRequest = reservationRequestManager
-                        .get(
-                                EntityIdentifier.parseId(
-                                        cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
-                                        reusedReservationRequestId));
+            Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+            if (reusedAllocation != null) {
+                ReservationRequest reusedReservationRequest = (ReservationRequest) reusedAllocation.getReservationRequest();
                 if (reusedReservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
                     authorizationManager.createAclRecordsForChildEntity(reusedReservationRequest, reservationRequest);
                 }
@@ -307,7 +304,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             newReservationRequest.setCreatedBy(userId);
             newReservationRequest.setUpdatedBy(userId);
-            oldReservationRequest.setUpdatedBy(userId);
 
             // Revert changes to old reservation request
             entityManager.clear();
@@ -316,9 +312,37 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             oldReservationRequest = reservationRequestManager.get(entityId.getPersistenceId());
+            oldReservationRequest.setUpdatedBy(userId);
 
             // Create new reservation request and update old reservation request
             reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
+            entityManager.flush();
+            entityManager.refresh(newReservationRequest);
+
+            // Update ACL records by reused reservation requests
+            Allocation oldReusedAllocation = oldReservationRequest.getReusedAllocation();
+            Allocation newReusedAllocation = newReservationRequest.getReusedAllocation();
+            if (oldReusedAllocation != newReusedAllocation) {
+                // Remove ACL records from old reused reservation request
+                if (oldReusedAllocation != null) {
+                    ReservationRequest oldReusedReservationRequest =
+                            (ReservationRequest) oldReusedAllocation.getReservationRequest();
+                    if (oldReusedReservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
+                        // TODO: consider removing ACL records from parent entity
+                        // But some ACL records (at least for the user who performs modification) must be
+                        // preserved
+                    }
+                }
+                // Create ACL records from new reused reservation request
+                if (newReusedAllocation != null) {
+                    ReservationRequest newReusedReservationRequest =
+                            (ReservationRequest) newReusedAllocation.getReservationRequest();
+                    if (newReusedReservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
+                        authorizationManager.createAclRecordsForChildEntity(
+                                newReusedReservationRequest, newReservationRequest);
+                    }
+                }
+            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

@@ -4,9 +4,7 @@ package cz.cesnet.shongo.controller.booking.alias;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
@@ -252,7 +250,7 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public AliasReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public AliasReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
     {
         AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
         for (Technology technology : getAliasTechnologies()) {

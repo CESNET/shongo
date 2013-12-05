@@ -557,7 +557,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
     }
 
     @Test
-    public void testReusementAclRecordPropagation() throws Exception
+    public void testReservationRequestReusementAclRecordPropagation() throws Exception
     {
         ReservationService service = getReservationService();
 
@@ -638,8 +638,72 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Assert.assertEquals(
                 "For ReservationRequestReusement.OWNED the deletion should be also propagated for modified request",
                 NONE, listPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+    }
 
-        throw new TodoImplementException("Check for reusing of room executables by UsedRoomSpecification");
+    @Test
+    public void testExecutableReusementAclRecordPropagation() throws Exception
+    {
+        ReservationService service = getReservationService();
+
+        String user2Id = getUserId(SECURITY_TOKEN_USER2);
+
+        Set<Permission> NONE = new HashSet<Permission>();
+        Set<Permission> READ = new HashSet<Permission>()
+        {{
+                add(Permission.READ);
+            }};
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Check ReservationRequestReusement.ARBITRARY
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        RoomExecutable permanentRoom = (RoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomId = permanentRoom.getId();
+
+        ReservationRequest capacityReservationRequest = new ReservationRequest();
+        capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomId, 5));
+        String capacityReservationRequestId = service.createReservationRequest(
+                SECURITY_TOKEN_USER1, capacityReservationRequest);
+
+        getAuthorizationService().createAclRecord(
+                SECURITY_TOKEN_USER1, user2Id, permanentRoomReservationRequestId, Role.READER);
+        Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclRecords should not be propagated",
+                NONE, listPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
+
+        // Check ReservationRequestReusement.OWNED
+        permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(1, Technology.H323));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
+        permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        permanentRoom = (RoomExecutable) permanentRoomReservation.getExecutable();
+        permanentRoomId = permanentRoom.getId();
+
+        capacityReservationRequest = new ReservationRequest();
+        capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomId, 5));
+        capacityReservationRequestId = service.createReservationRequest(SECURITY_TOKEN_USER1, capacityReservationRequest);
+
+        getAuthorizationService().createAclRecord(
+                SECURITY_TOKEN_USER1, user2Id, permanentRoomReservationRequestId, Role.READER);
+        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated",
+                READ, listPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
     }
 
     private Set<Permission> listPermissions(SecurityToken securityToken, String entityId)
