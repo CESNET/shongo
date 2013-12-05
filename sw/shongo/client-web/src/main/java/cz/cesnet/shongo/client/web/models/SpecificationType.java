@@ -56,14 +56,12 @@ public enum SpecificationType
     {
         switch (reservationRequestSummary.getSpecificationType()) {
             case ROOM:
-                if (reservationRequestSummary.getReusedReservationRequestId() != null) {
-                    return PERMANENT_ROOM_CAPACITY;
-                }
-                else {
-                    return ADHOC_ROOM;
-                }
-            case ALIAS:
-                return PERMANENT_ROOM;
+                return ADHOC_ROOM;
+
+            case PERMANENT_ROOM:
+                    return PERMANENT_ROOM;
+            case USED_ROOM:
+                return PERMANENT_ROOM_CAPACITY;
             default:
                 throw new TodoImplementException(reservationRequestSummary.getSpecificationType());
         }

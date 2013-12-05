@@ -20,10 +20,11 @@ SELECT
     specification.id,
     alias_specification.value as room_name
 FROM specification
+LEFT JOIN room_specification_alias_specifications AS room_alias_specification ON room_alias_specification.room_specification_id = specification.id
 LEFT JOIN alias_set_specification_alias_specifications AS child_alias_specification ON child_alias_specification.alias_set_specification_id = specification.id
-LEFT JOIN alias_specification ON alias_specification.id = specification.id OR alias_specification.id = child_alias_specification.alias_specification_id
+LEFT JOIN alias_specification ON alias_specification.id = specification.id OR alias_specification.id = child_alias_specification.alias_specification_id OR alias_specification.id = room_alias_specification.alias_specification_id
 LEFT JOIN alias_specification_alias_types AS types ON types.alias_specification_id = alias_specification.id
-WHERE types.alias_types = 'ROOM_NAME'
+WHERE alias_specification.id IS NOT NULL AND types.alias_types = 'ROOM_NAME'
 ORDER BY specification.id;
 
 /**
@@ -36,6 +37,8 @@ SELECT
     specification.id AS id,
     string_agg(specification_technologies.technologies, ',') AS technologies,
     CASE 
+        WHEN room_specification.id IS NOT NULL AND room_specification.participant_count IS NULL THEN 'PERMANENT_ROOM'
+        WHEN room_specification.id IS NOT NULL AND allocation.abstract_reservation_request_id IS NOT NULL THEN 'USED_ROOM'
         WHEN room_specification.id IS NOT NULL THEN 'ROOM'
         WHEN alias_specification_summary.id IS NOT NULL THEN 'ALIAS'
         WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
@@ -43,10 +46,12 @@ SELECT
     END AS type,
     alias_specification_summary.room_name AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
+    allocation.abstract_reservation_request_id AS room_reused_reservation_request_id,
     resource_specification.resource_id AS resource_id
 FROM specification
 LEFT JOIN specification_technologies ON specification_technologies.specification_id = specification.id
 LEFT JOIN room_specification ON room_specification.id = specification.id
+LEFT JOIN allocation ON allocation.id = room_specification.allocation_id
 LEFT JOIN resource_specification ON resource_specification.id = specification.id
 LEFT JOIN alias_specification_summary ON alias_specification_summary.id = specification.id
 GROUP BY 
@@ -55,6 +60,7 @@ GROUP BY
     alias_specification_summary.room_name,
     room_specification.id,
     room_specification.participant_count,
+    allocation.abstract_reservation_request_id,
     resource_specification.id;
 
 /**

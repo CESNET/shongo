@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -98,6 +96,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * Specification participant count for the room.
      */
     private Integer roomParticipantCount;
+
+    /**
+     * Specification reused {@link AbstractRoomExecutable} identifier of the room.
+     */
+    private String roomReusedReservationRequestId;
 
     /**
      * Specification name of the room.
@@ -369,6 +372,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #roomReusedReservationRequestId}
+     */
+    public String getRoomReusedReservationRequestId()
+    {
+        return roomReusedReservationRequestId;
+    }
+
+    /**
+     * @param roomReusedReservationRequestId sets the {@link #roomReusedReservationRequestId}
+     */
+    public void setRoomReusedReservationRequestId(String roomReusedReservationRequestId)
+    {
+        this.roomReusedReservationRequestId = roomReusedReservationRequestId;
+    }
+
+    /**
      * @return {@link #roomName}
      */
     public String getRoomName()
@@ -400,6 +419,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
     private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_PARTICIPANT_COUNT = "roomParticipantCount";
+    private static final String ROOM_REUSED_RESERVATION_REQUEST_ID = "roomReusedReservationRequestId";
     private static final String ROOM_NAME = "roomName";
 
     @Override
@@ -422,6 +442,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_PARTICIPANT_COUNT, roomParticipantCount);
+        dataMap.set(ROOM_REUSED_RESERVATION_REQUEST_ID, roomReusedReservationRequestId);
         dataMap.set(ROOM_NAME, roomName);
         return dataMap;
     }
@@ -446,6 +467,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
         resourceId = dataMap.getString(RESOURCE_ID);
         roomParticipantCount = dataMap.getInteger(ROOM_PARTICIPANT_COUNT);
+        roomReusedReservationRequestId = dataMap.getString(ROOM_REUSED_RESERVATION_REQUEST_ID);
         roomName = dataMap.getString(ROOM_NAME);
     }
 
@@ -456,6 +478,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     {
         RESOURCE,
         ROOM,
+        PERMANENT_ROOM,
+        USED_ROOM,
         ALIAS,
         OTHER
     }

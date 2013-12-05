@@ -592,40 +592,17 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // List only reservation requests which has specification of given classes
-            if (request.getSpecificationClasses().size() > 0) {
-                StringBuilder leftJoinBuilder = new StringBuilder();
-                StringBuilder whereBuilder = new StringBuilder();
-                for (Class<? extends Specification> type : request.getSpecificationClasses()) {
-                    leftJoinBuilder.append(" LEFT JOIN ");
-                    if (whereBuilder.length() > 0) {
-                        whereBuilder.append(" OR ");
+            if (request.getSpecificationTypes().size() > 0) {
+                StringBuilder specificationTypes = new StringBuilder();
+                for (ReservationRequestSummary.SpecificationType type : request.getSpecificationTypes()) {
+                    if (specificationTypes.length() > 0) {
+                        specificationTypes.append(",");
                     }
-                    if (type.equals(RoomSpecification.class)) {
-                        leftJoinBuilder.append("room_specification ON room_specification.id");
-                        whereBuilder.append("room_specification.id");
-                    }
-                    else if (type.equals(AliasSpecification.class)) {
-                        leftJoinBuilder.append("alias_specification ON alias_specification.id");
-                        whereBuilder.append("alias_specification.id");
-                    }
-                    else if (type.equals(AliasSetSpecification.class)) {
-                        leftJoinBuilder.append("alias_set_specification ON alias_set_specification.id");
-                        whereBuilder.append("alias_set_specification.id");
-                    }
-                    else {
-                        throw new TodoImplementException(type);
-                    }
-                    leftJoinBuilder.append(" = abstract_reservation_request.specification_id");
-                    whereBuilder.append(" IS NOT NULL");
+                    specificationTypes.append("'");
+                    specificationTypes.append(type);
+                    specificationTypes.append("'");
                 }
-                StringBuilder filterBuilder = new StringBuilder();
-                filterBuilder.append("reservation_request_summary.id IN (");
-                filterBuilder.append(" SELECT abstract_reservation_request.id FROM abstract_reservation_request");
-                filterBuilder.append(leftJoinBuilder);
-                filterBuilder.append(" WHERE ");
-                filterBuilder.append(whereBuilder);
-                filterBuilder.append(")");
-                queryFilter.addFilter(filterBuilder.toString());
+                queryFilter.addFilter("specification_summary.type IN(" + specificationTypes.toString() + ")");
             }
 
             String reusedReservationRequestId = request.getReusedReservationRequestId();
@@ -1095,17 +1072,30 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         String type = record[12].toString().trim();
         if (type.equals("ALIAS")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ALIAS);
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
         }
         else if (type.equals("ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
-            reservationRequestSummary.setRoomParticipantCount(((Number) record[14]).intValue());
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+            reservationRequestSummary.setRoomParticipantCount(
+                    record[14] != null ? ((Number) record[14]).intValue() : null);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+        }
+        else if (type.equals("PERMANENT_ROOM")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+        }
+        else if (type.equals("USED_ROOM")) {
+            reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
+            reservationRequestSummary.setRoomParticipantCount(
+                    record[14] != null ? ((Number) record[14]).intValue() : null);
+            reservationRequestSummary.setRoomReusedReservationRequestId(record[15] != null ?
+                    EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, record[15].toString()) : null);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
             reservationRequestSummary.setResourceId(EntityIdentifier.formatId(
-                    EntityType.RESOURCE, ((Number) record[16]).longValue()));
+                    EntityType.RESOURCE, ((Number) record[17]).longValue()));
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
@@ -1118,13 +1108,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
         }
-        if (record[17] != null) {
+        if (record[18] != null) {
             reservationRequestSummary.setUsageExecutableState(
                     cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                            record[17].toString().trim()).toApi());
+                            record[18].toString().trim()).toApi());
         }
-        if (record[18] != null) {
-            reservationRequestSummary.setFutureSlotCount(((Number) record[18]).intValue());
+        if (record[19] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number) record[19]).intValue());
         }
         return reservationRequestSummary;
     }

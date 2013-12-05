@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.api.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.Specification;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,7 +22,8 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     private Set<Technology> technologies = new HashSet<Technology>();
 
-    private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
+    private Set<ReservationRequestSummary.SpecificationType> specificationTypes =
+            new HashSet<ReservationRequestSummary.SpecificationType>();
 
     private String reusedReservationRequestId;
 
@@ -86,19 +87,19 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         technologies.add(technology);
     }
 
-    public Set<Class<? extends Specification>> getSpecificationClasses()
+    public Set<ReservationRequestSummary.SpecificationType> getSpecificationTypes()
     {
-        return specificationClasses;
+        return specificationTypes;
     }
 
-    public void setSpecificationClasses(Set<Class<? extends Specification>> specificationClasses)
+    public void setSpecificationTypes(Set<ReservationRequestSummary.SpecificationType> specificationTypes)
     {
-        this.specificationClasses = specificationClasses;
+        this.specificationTypes = specificationTypes;
     }
 
-    public void addSpecificationClass(Class<? extends Specification> specificationClass)
+    public void addSpecificationType(ReservationRequestSummary.SpecificationType specificationType)
     {
-        specificationClasses.add(specificationClass);
+        specificationTypes.add(specificationType);
     }
 
     public String getReusedReservationRequestId()
@@ -138,7 +139,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TECHNOLOGIES = "technologies";
-    private static final String SPECIFICATION_CLASSES = "specificationClasses";
+    private static final String SPECIFICATION_TYPES = "specificationTypes";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String ALLOCATION_STATE = "allocationState";
 
@@ -149,7 +150,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(RESERVATION_REQUEST_IDS, reservationRequestIds);
         dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(TECHNOLOGIES, technologies);
-        dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
+        dataMap.set(SPECIFICATION_TYPES, specificationTypes);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(ALLOCATION_STATE, allocationState);
         return dataMap;
@@ -162,7 +163,8 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         reservationRequestIds = dataMap.getSet(RESERVATION_REQUEST_IDS, String.class);
         parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
-        specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
+        specificationTypes = (Set) dataMap.getSet(
+                SPECIFICATION_TYPES, ReservationRequestSummary.SpecificationType.class);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
     }

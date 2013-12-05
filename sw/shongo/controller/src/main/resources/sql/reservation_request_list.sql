@@ -22,6 +22,7 @@ SELECT
     specification_summary.type AS specification_type,
     specification_summary.technologies AS specification_technologies,
     specification_summary.room_participant_count AS room_participant_count,
+    specification_summary.room_reused_reservation_request_id AS room_reused_reservation_request_id,
     CASE
         WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
         ELSE reused_specification_summary.alias_room_name

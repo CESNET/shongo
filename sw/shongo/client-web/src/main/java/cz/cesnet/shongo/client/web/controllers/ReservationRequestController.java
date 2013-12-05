@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
@@ -90,32 +89,20 @@ public class ReservationRequestController
         }
         if (specificationTypes != null && specificationTypes.size() > 0) {
             if (specificationTypes.contains(SpecificationType.ADHOC_ROOM)) {
-                request.addSpecificationClass(RoomSpecification.class);
+                request.addSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
             }
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM)) {
-                request.addSpecificationClass(AliasSpecification.class);
-                request.addSpecificationClass(AliasSetSpecification.class);
+                request.addSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
             }
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-                request.addSpecificationClass(RoomSpecification.class);
-                if (permanentRoomId != null) {
-                    request.setReusedReservationRequestId(permanentRoomId);
-                }
-                else if (specificationTypes.size() == 1) {
-                    // We want only room capacities and thus the reused reservation request must be set
-                    request.setReusedReservationRequestId(ReservationRequestListRequest.FILTER_NOT_EMPTY);
-                }
-            }
-            else {
-                // We don't want room capacities and thus the reused reservation request must be not set
-                request.setReusedReservationRequestId(ReservationRequestListRequest.FILTER_EMPTY);
+                request.addSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
             }
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
-            String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
+            String reusedReservationRequestId = reservationRequest.getRoomReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
@@ -187,7 +174,7 @@ public class ReservationRequestController
                 }
                 case PERMANENT_ROOM_CAPACITY:
                 {
-                    String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
+                    String reusedReservationRequestId = reservationRequest.getRoomReusedReservationRequestId();
                     item.put("roomReservationRequestId", reusedReservationRequestId);
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
