@@ -236,6 +236,17 @@ public class AllocationStateReport extends AbstractEntityReport
                             Converter.convertToInterval(report.get("usageInterval")));
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.EXECUTABLE_INVALID_SLOT)) {
+                return new ReusementInvalidSlot(
+                        Converter.convertToString(report.get("executable")),
+                        Converter.convertToInterval(report.get("interval")));
+            }
+            else if (identifier.equals(AllocationStateReportMessages.EXECUTABLE_ALREADY_USED)) {
+                return new ReusementAlreadyUsed(
+                        Converter.convertToString(report.get("executable")),
+                        Converter.convertToString(report.get("usageReservationRequest")),
+                        Converter.convertToInterval(report.get("usageInterval")));
+            }
             else if (identifier.equals(AllocationStateReportMessages.VALUE_ALREADY_ALLOCATED)) {
                 Map<String, Object> parentReport = findParentReport(
                         parentReports, AllocationStateReportMessages.ALLOCATING_ALIAS);
@@ -369,13 +380,13 @@ public class AllocationStateReport extends AbstractEntityReport
      */
     public static class ReusementInvalidSlot extends UserError
     {
-        private String reusedReservationRequestId;
+        private String reusedEntityId;
 
         private Interval reusedReservationRequestSlot;
 
-        public ReusementInvalidSlot(String reusedReservationRequestId, Interval reusedReservationRequestSlot)
+        public ReusementInvalidSlot(String reusedEntityId, Interval reusedReservationRequestSlot)
         {
-            this.reusedReservationRequestId = reusedReservationRequestId;
+            this.reusedEntityId = reusedEntityId;
             this.reusedReservationRequestSlot = reusedReservationRequestSlot;
         }
 
@@ -383,11 +394,17 @@ public class AllocationStateReport extends AbstractEntityReport
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
-            String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
-                    "reusementInvalidSlot.reusedReservationRequest", locale, reusedReservationRequestId);
+            String reusedEntity;
+            if (reusedEntityId.contains(":exe:")) {
+                reusedEntity = MESSAGE_SOURCE.getMessage("reusementInvalidSlot.reusedRoom", locale, reusedEntityId);
+            }
+            else {
+                reusedEntity = MESSAGE_SOURCE.getMessage(
+                        "reusementInvalidSlot.reusedReservationRequest", locale, reusedEntityId);
+            }
             String reusedReservationRequestSlot = dateTimeFormatter.formatInterval(this.reusedReservationRequestSlot);
             return MESSAGE_SOURCE.getMessage("reusementInvalidSlot", locale,
-                    reusedReservationRequest, reusedReservationRequestSlot);
+                    reusedEntity, reusedReservationRequestSlot);
         }
     }
 
@@ -396,16 +413,16 @@ public class AllocationStateReport extends AbstractEntityReport
      */
     public static class ReusementAlreadyUsed extends UserError
     {
-        private String reusedReservationRequestId;
+        private String reusedEntityId;
 
         private String usageReservationRequestId;
 
         private Interval usageReservationRequestSlot;
 
-        public ReusementAlreadyUsed(String reusedReservationRequestId, String usageReservationRequestId,
+        public ReusementAlreadyUsed(String reusedEntityId, String usageReservationRequestId,
                 Interval usageReservationRequestSlot)
         {
-            this.reusedReservationRequestId = reusedReservationRequestId;
+            this.reusedEntityId = reusedEntityId;
             this.usageReservationRequestId = usageReservationRequestId;
             this.usageReservationRequestSlot = usageReservationRequestSlot;
         }
@@ -414,13 +431,19 @@ public class AllocationStateReport extends AbstractEntityReport
         public String getMessage(Locale locale, DateTimeZone timeZone)
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
-            String reusedReservationRequest = MESSAGE_SOURCE.getMessage(
-                    "reusementAlreadyUsed.reusedReservationRequest", locale, reusedReservationRequestId);
+            String reusedEntity;
+            if (reusedEntityId.contains(":exe:")) {
+                reusedEntity = MESSAGE_SOURCE.getMessage("reusementAlreadyUsed.reusedRoom", locale, reusedEntityId);
+            }
+            else {
+                reusedEntity = MESSAGE_SOURCE.getMessage(
+                        "reusementAlreadyUsed.reusedReservationRequest", locale, reusedEntityId);
+            }
             String usageReservationRequest = MESSAGE_SOURCE.getMessage(
                     "reusementAlreadyUsed.usageReservationRequest", locale, usageReservationRequestId);
             String usageReservationRequestSlot = dateTimeFormatter.formatInterval(this.usageReservationRequestSlot);
             return MESSAGE_SOURCE.getMessage("reusementAlreadyUsed", locale,
-                    reusedReservationRequest, usageReservationRequest, usageReservationRequestSlot);
+                    reusedEntity, usageReservationRequest, usageReservationRequestSlot);
         }
     }
 

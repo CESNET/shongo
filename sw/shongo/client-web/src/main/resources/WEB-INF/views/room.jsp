@@ -192,6 +192,11 @@
             </tag:help>
         </dd>
 
+        <c:if test="${not empty room.pin}">
+            <dt><spring:message code="views.room.pin"/>:</dt>
+            <dd>${room.pin}</dd>
+        </c:if>
+
         <c:if test="${not empty userRoles}">
             <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
             <dd>

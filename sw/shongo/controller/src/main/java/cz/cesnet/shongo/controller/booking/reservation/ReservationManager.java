@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -205,6 +206,22 @@ public class ReservationManager extends AbstractManager
                         + " AND reservation.slotEnd > :start",
                 RoomReservation.class)
                 .setParameter("roomProviderCapability", roomProviderCapability)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+    }
+
+    public List<RoomReservation> getRoomReservationsByReusedRoomEndpoint(RoomEndpoint roomEndpoint, Interval interval)
+    {
+        return entityManager.createQuery(
+                "SELECT reservation FROM RoomReservation reservation"
+                        + " WHERE reservation.executable IN("
+                        + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                        + "   WHERE usedRoomEndpoint.reusedRoomEndpoint = :roomEndpoint"
+                        + " ) AND reservation.slotStart < :end"
+                        + " AND reservation.slotEnd > :start",
+                RoomReservation.class)
+                .setParameter("roomEndpoint", roomEndpoint)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();

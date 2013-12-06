@@ -145,11 +145,12 @@ SELECT
     usage_reservation_request.allocation_state AS allocation_state,
     usage_executable.state AS executable_state
 FROM abstract_reservation_request
-    LEFT JOIN abstract_reservation_request AS usage ON usage.reused_allocation_id = abstract_reservation_request.allocation_id AND usage.state = 'ACTIVE'
-    INNER JOIN reservation_request AS usage_reservation_request ON usage_reservation_request.id = usage.id
-           AND (now() at time zone 'UTC') BETWEEN usage_reservation_request.slot_start AND usage_reservation_request.slot_end
-    LEFT JOIN reservation ON reservation.allocation_id = usage.allocation_id
-    LEFT JOIN executable AS usage_executable ON usage_executable.id = reservation.executable_id
+  LEFT JOIN abstract_reservation_request AS usage ON usage.state = 'ACTIVE' AND (usage.reused_allocation_id = abstract_reservation_request.allocation_id OR usage.specification_id IN(
+    SELECT room_specification.id FROM room_specification WHERE room_specification.allocation_id = abstract_reservation_request.allocation_id
+  ))
+  INNER JOIN reservation_request AS usage_reservation_request ON usage_reservation_request.id = usage.id
+  LEFT JOIN reservation ON reservation.allocation_id = usage.allocation_id
+  LEFT JOIN executable AS usage_executable ON usage_executable.id = reservation.executable_id
 ORDER BY abstract_reservation_request.id, usage_reservation_request.slot_end DESC, reservation.slot_end DESC;
 
 /**
@@ -165,17 +166,20 @@ SELECT
     reservation_request.slot_start AS slot_start,
     reservation_request.slot_end AS slot_end
 FROM (
-    SELECT /* reused allocations with "future minimum" slot ending for usages */
-        abstract_reservation_request.reused_allocation_id AS allocation_id,
-        MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min
-    FROM reservation_request
-    LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
-    WHERE reservation_request.allocation_state = 'ALLOCATED' AND abstract_reservation_request.reused_allocation_id IS NOT NULL
-    GROUP BY abstract_reservation_request.reused_allocation_id
+  SELECT /* reused allocations with "future minimum" slot ending for usages */
+    COALESCE(room_specification.allocation_id, abstract_reservation_request.reused_allocation_id) AS allocation_id,
+    MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min
+  FROM reservation_request
+  LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
+  LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
+  WHERE reservation_request.allocation_state = 'ALLOCATED' AND (abstract_reservation_request.reused_allocation_id IS NOT NULL OR room_specification.allocation_id IS NOT NULL)
+  GROUP BY COALESCE(room_specification.allocation_id, abstract_reservation_request.reused_allocation_id)
 ) AS reservation_request_usage_slots
 /* join usages which matches the "future minimum" or the "whole maximum" slot ending */
 INNER JOIN allocation ON allocation.id = reservation_request_usage_slots.allocation_id
-INNER JOIN abstract_reservation_request ON abstract_reservation_request.reused_allocation_id = reservation_request_usage_slots.allocation_id
+INNER JOIN abstract_reservation_request ON abstract_reservation_request.reused_allocation_id = reservation_request_usage_slots.allocation_id OR abstract_reservation_request.specification_id IN(
+  SELECT room_specification.id FROM room_specification WHERE room_specification.allocation_id = reservation_request_usage_slots.allocation_id
+)
 INNER JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
        AND reservation_request.slot_end = reservation_request_usage_slots.slot_end_future_min
 /* we want one usage which has the earliest slot ending */
@@ -199,7 +203,7 @@ SELECT
   END AS slot_nearness_priority,
   CASE
       /* For requests whose timeslot are currently taking place the difference is computed as "slot_end - now()" */
-      WHEN (NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end THEN
+      WHEN reservation_request_summary.executable_state = 'STARTED' OR ((NOW() AT TIME ZONE 'UTC') BETWEEN reservation_request_summary.slot_nearness_start AND reservation_request_summary.slot_nearness_end) THEN
           EXTRACT(EPOCH FROM (reservation_request_summary.slot_nearness_end - (NOW() AT TIME ZONE 'UTC')))
       /* For requests whose timeslot is in future the difference is computed as "slot_start - now()" */
       WHEN (NOW() AT TIME ZONE 'UTC') < reservation_request_summary.slot_nearness_start THEN

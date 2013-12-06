@@ -23,6 +23,10 @@ INSERT INTO room_specification(id, alias_specification_id)
     LEFT JOIN alias_specification ON alias_specification.id = abstract_reservation_request.specification_id
     WHERE alias_specification.id IS NOT NULL;
 /* Create duplicates of alias_specifications */
+INSERT INTO specification (id)
+    SELECT room_specification.alias_specification_id FROM alias_specification
+    LEFT JOIN room_specification ON room_specification.id = alias_specification.id
+    WHERE room_specification.alias_specification_id IS NOT NULL;
 INSERT INTO alias_specification (id, alias_provider_capability_id, value)
     SELECT room_specification.alias_specification_id, alias_provider_capability_id, value FROM alias_specification
     LEFT JOIN room_specification ON room_specification.id = alias_specification.id
@@ -45,7 +49,7 @@ WHERE alias_specification_alias_technologies.alias_specification_id IN (
     WHERE room_specification.alias_specification_id IS NOT NULL
 );
 /* Delete old alias specifications */
-DELETE FROM alias_specification WHERE alias_specification.id IN (SELECT room_specification.id FROM room_specification)
+DELETE FROM alias_specification WHERE alias_specification.id IN (SELECT room_specification.id FROM room_specification);
 /* Move standalone alias_specifications into room_specifications */
 INSERT INTO room_specification_alias_specifications(room_specification_id, alias_specification_id)
     SELECT room_specification.id, room_specification.alias_specification_id FROM room_specification

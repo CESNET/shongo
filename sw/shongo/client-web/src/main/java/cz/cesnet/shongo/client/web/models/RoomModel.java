@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.H323RoomSetting;
+import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
@@ -67,6 +70,11 @@ public class RoomModel extends ParticipantConfigurationModel
     private List<Alias> aliases;
 
     /**
+     * PIN.
+     */
+    private String pin;
+
+    /**
      * @see RoomState
      */
     private RoomState state;
@@ -122,6 +130,7 @@ public class RoomModel extends ParticipantConfigurationModel
                 break;
             }
         }
+        loadRoomSettings(roomExecutable);
 
         // Add room participants from used executable
         if (roomExecutable instanceof UsedRoomExecutable) {
@@ -154,7 +163,7 @@ public class RoomModel extends ParticipantConfigurationModel
             DateTime dateTimeNow = DateTime.now();
             for (ExecutableSummary usageSummary : usageSummaries) {
                 Interval usageSlot = usageSummary.getSlot();
-                if (usageSlot.contains(dateTimeNow) && usageSummary.getState().isAvailable()) {
+                if (usageSummary.getState().isAvailable()) {
                     UsedRoomExecutable usage = (UsedRoomExecutable) cacheProvider.getExecutable(usageSummary.getId());
                     this.licenseCount = usage.getLicenseCount();
                     this.licenseCountUntil = usageSlot.getEnd();
@@ -166,6 +175,7 @@ public class RoomModel extends ParticipantConfigurationModel
                     }
                     this.recordingService = getRecordingService(executableService, securityToken, this.usageId);
                     this.recordable = this.recordingService != null;
+                    loadRoomSettings(usage);
                     break;
                 }
             }
@@ -192,6 +202,23 @@ public class RoomModel extends ParticipantConfigurationModel
         if (!this.state.isAvailable() && userSession.isAdminMode()) {
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
+        }
+    }
+
+    /**
+     * @param roomExecutable to load {@link RoomSetting}s from
+     */
+    private void loadRoomSettings(AbstractRoomExecutable roomExecutable)
+    {
+        for (RoomSetting roomSetting : roomExecutable.getRoomSettings()) {
+            if (roomSetting instanceof H323RoomSetting) {
+                H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                pin = h323RoomSetting.getPin();
+            }
+            if (roomSetting instanceof AdobeConnectRoomSetting) {
+                AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
+                pin = adobeConnectRoomSetting.getPin();
+            }
         }
     }
 
@@ -366,6 +393,14 @@ public class RoomModel extends ParticipantConfigurationModel
     public String getAliasesDescription()
     {
         return formatAliasesDescription(aliases, isAvailable(), messageProvider);
+    }
+
+    /**
+     * @return {@link #pin}
+     */
+    public String getPin()
+    {
+        return pin;
     }
 
     /**

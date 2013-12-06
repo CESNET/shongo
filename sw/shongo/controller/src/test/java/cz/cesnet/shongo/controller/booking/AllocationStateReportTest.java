@@ -49,6 +49,37 @@ public class AllocationStateReportTest extends AbstractControllerTest
     }
 
     /**
+     * Test {@link AllocationStateReport.ReusementInvalidSlot}
+     */
+    @Test
+    public void testPermanentRoomCapacityInvalidSlot() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        checkAllocated(permanentRoomReservationRequestId);
+
+        ReservationRequest capacityReservationRequest = new ReservationRequest();
+        capacityReservationRequest.setSlot("2013-01-01T00:00", "PT2H");
+        capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        String capacityReservationRequestId = allocate(capacityReservationRequest);
+        checkAllocationFailed(capacityReservationRequestId);
+
+        finish(capacityReservationRequestId, AllocationStateReport.ReusementInvalidSlot.class);
+    }
+
+    /**
      * Test {@link AllocationStateReport.ReusementAlreadyUsed}
      */
     @Test
@@ -83,6 +114,44 @@ public class AllocationStateReportTest extends AbstractControllerTest
         checkAllocationFailed(reservationRequestThirdId);
 
         finish(reservationRequestThirdId, AllocationStateReport.ReusementAlreadyUsed.class);
+    }
+
+    /**
+     * Test {@link AllocationStateReport.ReusementAlreadyUsed}
+     */
+    @Test
+    public void testPermanentRoomAlreadyUsed() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        checkAllocated(permanentRoomReservationRequestId);
+
+        ReservationRequest capacityReservationRequest1 = new ReservationRequest();
+        capacityReservationRequest1.setSlot("2012-03-01T14:00", "PT2H");
+        capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
+        checkAllocated(capacityReservationRequestId1);
+
+        ReservationRequest capacityReservationRequest2 = new ReservationRequest();
+        capacityReservationRequest2.setSlot("2012-03-01T14:00", "PT2H");
+        capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
+        checkAllocationFailed(capacityReservationRequestId2);
+
+        finish(capacityReservationRequestId2, AllocationStateReport.ReusementAlreadyUsed.class);
     }
 
     @Test

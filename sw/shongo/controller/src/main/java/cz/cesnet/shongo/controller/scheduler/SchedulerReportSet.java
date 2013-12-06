@@ -1272,6 +1272,165 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Reused executable {@link #executable} is not available because it's already used in reservation request {@link #usageReservationRequest} for {@link #usageInterval}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ExecutableAlreadyUsedReport")
+    public static class ExecutableAlreadyUsedReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected cz.cesnet.shongo.controller.booking.executable.Executable executable;
+
+        protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest;
+
+        protected org.joda.time.Interval usageInterval;
+
+        public ExecutableAlreadyUsedReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "executable-already-used";
+        }
+
+        public ExecutableAlreadyUsedReport(cz.cesnet.shongo.controller.booking.executable.Executable executable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        {
+            setExecutable(executable);
+            setUsageReservationRequest(usageReservationRequest);
+            setUsageInterval(usageInterval);
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "executable_id")
+        public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(executable);
+        }
+
+        public void setExecutable(cz.cesnet.shongo.controller.booking.executable.Executable executable)
+        {
+            this.executable = executable;
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
+        }
+
+        public void setUsageReservationRequest(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest)
+        {
+            this.usageReservationRequest = usageReservationRequest;
+        }
+
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usageinterval_start"),@javax.persistence.Column(name="usageinterval_end")})
+        @org.hibernate.annotations.Type(type = "Interval")
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return usageInterval;
+        }
+
+        public void setUsageInterval(org.joda.time.Interval usageInterval)
+        {
+            this.usageInterval = usageInterval;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("executable", executable);
+            parameters.put("usageReservationRequest", usageReservationRequest);
+            parameters.put("usageInterval", usageInterval);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("executable-already-used", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ExecutableAlreadyUsedReport}.
+     */
+    public static class ExecutableAlreadyUsedException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ExecutableAlreadyUsedException(ExecutableAlreadyUsedReport report)
+        {
+            this.report = report;
+        }
+
+        public ExecutableAlreadyUsedException(Throwable throwable, ExecutableAlreadyUsedReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ExecutableAlreadyUsedException(cz.cesnet.shongo.controller.booking.executable.Executable executable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        {
+            ExecutableAlreadyUsedReport report = new ExecutableAlreadyUsedReport();
+            report.setExecutable(executable);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
+            this.report = report;
+        }
+
+        public ExecutableAlreadyUsedException(Throwable throwable, cz.cesnet.shongo.controller.booking.executable.Executable executable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest usageReservationRequest, org.joda.time.Interval usageInterval)
+        {
+            super(throwable);
+            ExecutableAlreadyUsedReport report = new ExecutableAlreadyUsedReport();
+            report.setExecutable(executable);
+            report.setUsageReservationRequest(usageReservationRequest);
+            report.setUsageInterval(usageInterval);
+            this.report = report;
+        }
+
+        public cz.cesnet.shongo.controller.booking.executable.Executable getExecutable()
+        {
+            return getReport().getExecutable();
+        }
+
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
+        {
+            return getReport().getUsageReservationRequest();
+        }
+
+        public org.joda.time.Interval getUsageInterval()
+        {
+            return getReport().getUsageInterval();
+        }
+
+        @Override
+        public ExecutableAlreadyUsedReport getReport()
+        {
+            return (ExecutableAlreadyUsedReport) report;
+        }
+    }
+
+    /**
      * Not enough endpoints are requested for the compartment.
      */
     @javax.persistence.Entity
@@ -3770,6 +3929,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ExecutableReusingReport.class);
         addReportClass(RoomExecutableNotExistsReport.class);
         addReportClass(ExecutableInvalidSlotReport.class);
+        addReportClass(ExecutableAlreadyUsedReport.class);
         addReportClass(CompartmentNotEnoughEndpointReport.class);
         addReportClass(CompartmentAssignAliasToExternalEndpointReport.class);
         addReportClass(ConnectionReport.class);

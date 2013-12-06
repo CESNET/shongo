@@ -360,12 +360,12 @@ public class SchedulerContext
      *
      * @param reservations
      */
-    public void applyAvailableReservations(Collection<ExistingReservation> reservations)
+    public <T extends Reservation> void applyAvailableReservations(Collection<T> reservations, Class<T> reservationType)
     {
         for (AvailableReservation<? extends Reservation> availableReservation : availableReservations) {
             Reservation reservation = availableReservation.getOriginalReservation();
-            if (reservation instanceof ExistingReservation) {
-                reservations.remove(reservation);
+            if (reservationType.isInstance(reservation)) {
+                reservations.remove(reservationType.cast(reservation));
             }
         }
     }
@@ -962,7 +962,7 @@ public class SchedulerContext
         ReservationManager reservationManager = new ReservationManager(entityManager);
         List<ExistingReservation> existingReservations =
                 reservationManager.getExistingReservations(reusableReservation, requestedSlot);
-        applyAvailableReservations(existingReservations);
+        applyAvailableReservations(existingReservations, ExistingReservation.class);
         if (existingReservations.size() > 0) {
             ExistingReservation existingReservation = existingReservations.get(0);
             Interval usageSlot = existingReservation.getSlot();

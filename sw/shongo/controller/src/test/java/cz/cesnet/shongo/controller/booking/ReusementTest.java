@@ -482,11 +482,11 @@ public class ReusementTest extends AbstractControllerTest
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 10));
-        String reservationRequestId = allocate(capacityReservationRequest);
-        checkAllocated(reservationRequestId);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        String capacityReservationRequestId = allocate(capacityReservationRequest);
+        checkAllocated(capacityReservationRequestId);
 
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, capacityReservationRequestId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
         runScheduler();
     }

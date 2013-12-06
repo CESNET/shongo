@@ -1180,6 +1180,24 @@
             <visible>user</visible>
         </report>
 
+        <report>
+            <id>executable-already-used</id>
+            <classification severity="error"/>
+            <params>
+                <param name="executable" type="Executable"/>
+                <param name="usageReservationRequest" type="AbstractReservationRequest"/>
+                <param name="usageInterval" type="Interval"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reused executable ${executable} is not available because
+                it's already used in reservation request ${usageReservationRequest}
+                for ${usageInterval}.
+            </message>
+            <visible>user</visible>
+        </report>
 
         <!--
           - COMPARTMENT

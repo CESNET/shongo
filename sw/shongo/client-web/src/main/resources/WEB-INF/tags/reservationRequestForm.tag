@@ -347,18 +347,18 @@
             </div>
         </c:if>
 
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-            <div class="control-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
-                <form:label class="control-label" path="roomPin">
-                    <spring:message code="views.reservationRequest.specification.roomPin"/>:
-                </form:label>
-                <div class="controls">
-                    <form:input path="roomPin" cssErrorClass="error" tabindex="${tabIndex}"/>
-                    <form:errors path="roomPin" cssClass="error"/>
-                </div>
+        <div class="control-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
+            <form:label class="control-label" path="roomPin">
+                <spring:message code="views.reservationRequest.specification.roomPin"/>:
+            </form:label>
+            <div class="controls">
+                <form:input path="roomPin" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <form:errors path="roomPin" cssClass="error"/>
             </div>
+        </div>
 
-            <%--
+        <%--
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
                 <form:label class="control-label" path="roomRecorded">
                     <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
@@ -369,8 +369,8 @@
                     <tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                 </div>
             </div>
-            --%>
         </c:if>
+        --%>
 
     </fieldset>
 

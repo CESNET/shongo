@@ -22,6 +22,7 @@ public class AllocationStateReportMessages
     public static final String EXECUTABLE_REUSING = "executable-reusing";
     public static final String ROOM_EXECUTABLE_NOT_EXISTS = "room-executable-not-exists";
     public static final String EXECUTABLE_INVALID_SLOT = "executable-invalid-slot";
+    public static final String EXECUTABLE_ALREADY_USED = "executable-already-used";
     public static final String COMPARTMENT_NOT_ENOUGH_ENDPOINT = "compartment-not-enough-endpoint";
     public static final String COMPARTMENT_ASSIGN_ALIAS_TO_EXTERNAL_ENDPOINT = "compartment-assign-alias-to-external-endpoint";
     public static final String CONNECTION_BETWEEN = "connection-between";
@@ -67,6 +68,7 @@ public class AllocationStateReportMessages
         addMessage(EXECUTABLE_REUSING, new Report.UserType[]{}, Report.Language.ENGLISH, "Reusing existing ${executable}.");
         addMessage(ROOM_EXECUTABLE_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Room executable doesn't exist.");
         addMessage(EXECUTABLE_INVALID_SLOT, new Report.UserType[]{}, Report.Language.ENGLISH, "Requested time slot doesn't correspond to ${interval} from reused executable ${executable}.");
+        addMessage(EXECUTABLE_ALREADY_USED, new Report.UserType[]{}, Report.Language.ENGLISH, "Reused executable ${executable} is not available because it's already used in reservation request ${usageReservationRequest} for ${usageInterval}.");
         addMessage(COMPARTMENT_NOT_ENOUGH_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "Not enough endpoints are requested for the compartment.");
         addMessage(COMPARTMENT_ASSIGN_ALIAS_TO_EXTERNAL_ENDPOINT, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot assign alias to allocated external endpoint.");
         addMessage(CONNECTION_BETWEEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.");

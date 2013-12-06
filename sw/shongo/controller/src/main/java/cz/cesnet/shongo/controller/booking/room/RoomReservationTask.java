@@ -16,8 +16,10 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservationTask;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceSpecification;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
@@ -25,6 +27,7 @@ import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -652,9 +655,28 @@ public class RoomReservationTask extends ReservationTask
         // Allocate UsedRoomEndpoint
         else if (reusedRoomEndpoint != null) {
             Interval reusedRoomEndpointSlot = reusedRoomEndpoint.getSlot();
-            if (!reusedRoomEndpointSlot.contains(getInterval())) {
+
+            // Check slot
+            Interval requestedSlot = getInterval();
+            if (!reusedRoomEndpointSlot.contains(requestedSlot)) {
                 throw new SchedulerReportSet.ExecutableInvalidSlotException(reusedRoomEndpoint, reusedRoomEndpointSlot);
             }
+
+            // Check availability
+            EntityManager entityManager = schedulerContext.getEntityManager();
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            List<RoomReservation> reusedRoomEndpointReservations =
+                    reservationManager.getRoomReservationsByReusedRoomEndpoint(reusedRoomEndpoint, requestedSlot);
+            schedulerContext.applyAvailableReservations(reusedRoomEndpointReservations, RoomReservation.class);
+            if (reusedRoomEndpointReservations.size() > 0) {
+                RoomReservation roomReservation = reusedRoomEndpointReservations.get(0);
+                Interval usageSlot = roomReservation.getSlot();
+                Reservation usageReservation = roomReservation.getTopReservation();
+                AbstractReservationRequest usageReservationRequest = usageReservation.getReservationRequest();
+                throw new SchedulerReportSet.ExecutableAlreadyUsedException(
+                        reusedRoomEndpoint, usageReservationRequest, usageSlot);
+            }
+
             addReport(new SchedulerReportSet.ExecutableReusingReport(reusedRoomEndpoint));
 
             // Allocate new UsedRoomEndpoint

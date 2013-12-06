@@ -199,7 +199,7 @@ public class ExecutableManager extends AbstractManager
                 "SELECT executable FROM Executable executable"
                         + " WHERE (executable.state IN(:startedStates)"
                         + "        OR (executable.nextAttempt != NULL AND executable.state = :stoppingFailedState))"
-                        + " AND (executable.slotStart > :dateTime OR executable.slotEnd <= :dateTime)"
+                        + " AND (executable.slotEnd <= :dateTime)"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
