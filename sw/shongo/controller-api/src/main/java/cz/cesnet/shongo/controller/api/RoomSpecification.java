@@ -4,6 +4,9 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * {@link Specification} for a room.
  *
@@ -15,6 +18,11 @@ public class RoomSpecification extends StandaloneRoomSpecification
      * Number of ports which must be allocated for the virtual room.
      */
     private Integer participantCount;
+
+    /**
+     * {@link ExecutableServiceSpecification}s for the virtual room.
+     */
+    private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
 
     /**
      * Constructor.
@@ -100,13 +108,31 @@ public class RoomSpecification extends StandaloneRoomSpecification
         this.participantCount = participantCount;
     }
 
+    /**
+     * @return {@link #serviceSpecifications}
+     */
+    public List<ExecutableServiceSpecification> getServiceSpecifications()
+    {
+        return serviceSpecifications;
+    }
+
+    /**
+     * @param serviceSpecification to be added to the {@link #serviceSpecifications}
+     */
+    public void addServiceSpecification(ExecutableServiceSpecification serviceSpecification)
+    {
+        serviceSpecifications.add(serviceSpecification);
+    }
+
     public static final String PARTICIPANT_COUNT = "participantCount";
+    public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(PARTICIPANT_COUNT, participantCount);
+        dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
 
@@ -116,5 +142,6 @@ public class RoomSpecification extends StandaloneRoomSpecification
         super.fromData(dataMap);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
+        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

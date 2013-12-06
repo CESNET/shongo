@@ -164,7 +164,7 @@ public class RoomModel extends ParticipantConfigurationModel
                     for (AbstractParticipant participant : participants.getParticipants()) {
                         addParticipant(new Participant(this.usageId, participant, cacheProvider));
                     }
-                    this.recordingService = getRecordingService(executableService, securityToken, this.id);
+                    this.recordingService = getRecordingService(executableService, securityToken, this.usageId);
                     this.recordable = this.recordingService != null;
                     break;
                 }

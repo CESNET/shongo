@@ -2,6 +2,9 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * {@link cz.cesnet.shongo.controller.api.Specification} for a one-time room.
  *
@@ -10,7 +13,7 @@ import cz.cesnet.shongo.api.DataMap;
 public class UsedRoomSpecification extends AbstractRoomSpecification
 {
     /**
-     * Shongo-id for reused {@link RoomExecutable}.
+     * Shongo-id for reused {@link RoomExecutable} or {@link ReservationRequest} that allocates the {@link RoomExecutable}.
      */
     private String reusedRoomExecutableId;
 
@@ -18,6 +21,11 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
      * Number of ports which must be allocated for the virtual room.
      */
     private Integer participantCount;
+
+    /**
+     * {@link ExecutableServiceSpecification}s for the virtual room.
+     */
+    private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
 
     /**
      * Constructor.
@@ -70,8 +78,25 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
         this.participantCount = participantCount;
     }
 
+    /**
+     * @return {@link #serviceSpecifications}
+     */
+    public List<ExecutableServiceSpecification> getServiceSpecifications()
+    {
+        return serviceSpecifications;
+    }
+
+    /**
+     * @param serviceSpecification to be added to the {@link #serviceSpecifications}
+     */
+    public void addServiceSpecification(ExecutableServiceSpecification serviceSpecification)
+    {
+        serviceSpecifications.add(serviceSpecification);
+    }
+
     public static final String REUSED_ROOM_EXECUTABLE_ID = "reusedRoomExecutableId";
     public static final String PARTICIPANT_COUNT = "participantCount";
+    public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 
     @Override
     public DataMap toData()
@@ -79,6 +104,7 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
         DataMap dataMap = super.toData();
         dataMap.set(REUSED_ROOM_EXECUTABLE_ID, reusedRoomExecutableId);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
+        dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
 
@@ -88,5 +114,6 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
         super.fromData(dataMap);
         reusedRoomExecutableId = dataMap.getStringRequired(REUSED_ROOM_EXECUTABLE_ID);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
+        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

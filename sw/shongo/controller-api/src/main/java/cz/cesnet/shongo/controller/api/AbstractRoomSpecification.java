@@ -24,11 +24,6 @@ public abstract class AbstractRoomSpecification extends Specification
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
-     * {@link ExecutableServiceSpecification}s for the virtual room.
-     */
-    private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
-
-    /**
      * @return {@link #roomSettings}
      */
     public List<RoomSetting> getRoomSettings()
@@ -76,25 +71,11 @@ public abstract class AbstractRoomSpecification extends Specification
         participants.add(participant);
     }
 
-    /**
-     * @return {@link #serviceSpecifications}
-     */
-    public List<ExecutableServiceSpecification> getServiceSpecifications()
-    {
-        return serviceSpecifications;
-    }
 
-    /**
-     * @param serviceSpecification to be added to the {@link #serviceSpecifications}
-     */
-    public void addServiceSpecification(ExecutableServiceSpecification serviceSpecification)
-    {
-        serviceSpecifications.add(serviceSpecification);
-    }
 
     public static final String ROOM_SETTINGS = "roomSettings";
     public static final String PARTICIPANTS = "participants";
-    public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
+
 
     @Override
     public DataMap toData()
@@ -102,7 +83,6 @@ public abstract class AbstractRoomSpecification extends Specification
         DataMap dataMap = super.toData();
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(PARTICIPANTS, participants);
-        dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
 
@@ -112,6 +92,5 @@ public abstract class AbstractRoomSpecification extends Specification
         super.fromData(dataMap);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         participants = dataMap.getList(PARTICIPANTS, AbstractParticipant.class);
-        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -9,6 +10,7 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
@@ -217,10 +219,7 @@ public abstract class Target
         private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
-
-
-
-        public Room(RoomSpecification roomSpecification, Target reusedTarget)
+        public Room(RoomSpecification roomSpecification, EntityManager entityManager)
         {
             Integer participantCount = roomSpecification.getParticipantCount();
             if (participantCount != null) {
@@ -256,9 +255,21 @@ public abstract class Target
                     }
                 }
             }
-            if (reusedTarget instanceof Room) {
-                reusedRoom = (Room) reusedTarget;
-                name = reusedRoom.getName();
+            Allocation reusedAllocation = roomSpecification.getReusedAllocation();
+            if (reusedAllocation != null) {
+                Reservation reusedReservation = reusedAllocation.getCurrentReservation();
+                Target reusedTarget;
+                if (reusedReservation != null) {
+                    reusedTarget = createInstance(reusedReservation, entityManager);
+
+                }
+                else {
+                    reusedTarget = createInstance(reusedAllocation.getReservationRequest(), entityManager);
+                }
+                if (reusedTarget instanceof Room) {
+                    reusedRoom = (Room) reusedTarget;
+                    name = reusedRoom.getName();
+                }
             }
         }
 
@@ -275,13 +286,12 @@ public abstract class Target
                 technologies.addAll(reservation.getDeviceResource().getTechnologies());
                 initFrom(reservation.getSlot(), reservation.getRoomProviderCapability(), entityManager);
             }
-
-
         }
 
         public Room(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
-            initFrom(roomEndpoint, entityManager);
+            DeviceResource deviceResource = initFrom(roomEndpoint, entityManager);
+            setResource(deviceResource);
         }
 
         private void initFrom(final Interval slot, final RoomProviderCapability roomProviderCapability,
@@ -307,7 +317,7 @@ public abstract class Target
             }
         }
 
-        private void initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
+        private DeviceResource initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
             RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
             licenseCount = roomConfiguration.getLicenseCount();
@@ -333,6 +343,7 @@ public abstract class Target
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
                 RoomProviderCapability roomProviderCapability = resourceRoomEndpoint.getRoomProviderCapability();
                 initFrom(roomEndpoint.getSlot(), roomProviderCapability, entityManager);
+                return roomProviderCapability.getDeviceResource();
             }
             else if (roomEndpoint instanceof UsedRoomEndpoint) {
                 UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
@@ -340,6 +351,10 @@ public abstract class Target
                 RoomProviderCapability roomProviderCapability =
                         usedRoomEndpoint.getResource().getCapabilityRequired(RoomProviderCapability.class);
                 initFrom(roomEndpoint.getSlot(), roomProviderCapability, entityManager);
+                return roomProviderCapability.getDeviceResource();
+            }
+            else {
+                throw new TodoImplementException(roomEndpoint.getClass());
             }
         }
 
@@ -440,15 +455,7 @@ public abstract class Target
             return new Alias((AliasSetSpecification) specification);
         }
         else if (specification instanceof RoomSpecification) {
-            Target reusedTarget = null;
-            Allocation reusedAllocation = reservationRequest.getReusedAllocation();
-            if (reusedAllocation != null) {
-                Reservation reusedReservation = reusedAllocation.getCurrentReservation();
-                if (reusedReservation != null) {
-                    reusedTarget = createInstance(reusedReservation, entityManager);
-                }
-            }
-            return new Room((RoomSpecification) specification, reusedTarget);
+            return new Room((RoomSpecification) specification, entityManager);
         }
         else {
             return new Other(specification);

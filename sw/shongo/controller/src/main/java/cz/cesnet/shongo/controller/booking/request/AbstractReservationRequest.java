@@ -53,8 +53,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private String updatedBy;
 
     /**
-     * {@link cz.cesnet.shongo.controller.booking.Allocation} for this {@link AbstractReservationRequest}.
-     * Modified reservation requests share same {@link cz.cesnet.shongo.controller.booking.Allocation} instance.
+     * {@link Allocation} for this {@link AbstractReservationRequest}.
+     * Modified reservation requests share same {@link Allocation} instance.
      */
     private Allocation allocation;
 

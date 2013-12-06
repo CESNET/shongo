@@ -48,6 +48,9 @@ public class Synchronization
     public static <T extends SimplePersistentObject, A extends IdentifiedComplexType>
     boolean synchronizeCollection(Collection<T> objects, Collection<A> apiObjects, Handler<T, A> handler)
     {
+        if (apiObjects == null) {
+            return false;
+        }
         Map<Long, T> existingObjects = new HashMap<Long, T>();
         for (T existingObject : objects) {
             existingObjects.put(existingObject.getId(), existingObject);

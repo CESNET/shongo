@@ -4,12 +4,15 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -389,9 +392,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         for (AbstractParticipant participant : getParticipants()) {
             abstractRoomSpecificationApi.addParticipant(participant.toApi());
         }
-        for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
-            abstractRoomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
-        }
 
         // Fill StandaloneRoomSpecification
         if (abstractRoomSpecificationApi instanceof cz.cesnet.shongo.controller.api.StandaloneRoomSpecification) {
@@ -415,6 +415,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
 
             roomSpecificationApi.setParticipantCount(getParticipantCount());
+            for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
+                roomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
+            }
         }
 
         // Fill UsedRoomSpecification
@@ -426,6 +429,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 usedRoomSpecificationApi.setReusedRoomExecutableId(EntityIdentifier.formatId(getReusedRoomEndpoint()));
             }
             usedRoomSpecificationApi.setParticipantCount(getParticipantCount());
+            for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
+                usedRoomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
+            }
         }
 
         super.toApi(specificationApi);
@@ -476,28 +482,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                         object.fromApi(objectApi, entityManager);
                     }
                 });
-        Synchronization.synchronizeCollection(serviceSpecifications, abstractRoomSpecificationApi.getServiceSpecifications(),
-                new Synchronization.Handler<ExecutableServiceSpecification, cz.cesnet.shongo.controller.api.ExecutableServiceSpecification>(
-                        ExecutableServiceSpecification.class)
-                {
-                    @Override
-                    public ExecutableServiceSpecification createFromApi(
-                            cz.cesnet.shongo.controller.api.ExecutableServiceSpecification objectApi)
-                    {
-                        ExecutableServiceSpecification serviceSpecification =
-                                (ExecutableServiceSpecification) ExecutableServiceSpecification.createFromApi(
-                                        objectApi, entityManager);
-                        serviceSpecification.fromApi(objectApi, entityManager);
-                        return serviceSpecification;
-                    }
-
-                    @Override
-                    public void updateFromApi(ExecutableServiceSpecification object,
-                            cz.cesnet.shongo.controller.api.ExecutableServiceSpecification objectApi)
-                    {
-                        object.fromApi(objectApi, entityManager);
-                    }
-                });
 
         // Load StandaloneRoomSpecification
         if (abstractRoomSpecificationApi instanceof cz.cesnet.shongo.controller.api.StandaloneRoomSpecification) {
@@ -543,9 +527,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
 
         // Load RoomSpecification
+        List<cz.cesnet.shongo.controller.api.ExecutableServiceSpecification> serviceSpecifications = null;
         if (abstractRoomSpecificationApi instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
             cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                     (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
+            serviceSpecifications = roomSpecificationApi.getServiceSpecifications();
 
             setParticipantCount(roomSpecificationApi.getParticipantCount());
         }
@@ -553,26 +539,62 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         else if (abstractRoomSpecificationApi instanceof cz.cesnet.shongo.controller.api.UsedRoomSpecification) {
             cz.cesnet.shongo.controller.api.UsedRoomSpecification usedRoomSpecificationApi =
                     (cz.cesnet.shongo.controller.api.UsedRoomSpecification) specificationApi;
+            serviceSpecifications = usedRoomSpecificationApi.getServiceSpecifications();
 
-            Long reusedRoomEndpointId = EntityIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.room.RoomEndpoint.class,
-                    usedRoomSpecificationApi.getReusedRoomExecutableId());
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
-            Executable executable = executableManager.get(reusedRoomEndpointId);
-            if (!(executable instanceof RoomEndpoint)) {
+            EntityIdentifier entityIdentifier =
+                    EntityIdentifier.parse(usedRoomSpecificationApi.getReusedRoomExecutableId());
+            if (entityIdentifier.getEntityType().equals(EntityType.RESERVATION_REQUEST)) {
+                ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+                ReservationRequest reservationRequest =
+                        reservationRequestManager.getReservationRequest(entityIdentifier.getPersistenceId());
+                setReusedAllocation(reservationRequest.getAllocation());
+            }
+            else if (entityIdentifier.getEntityType().equals(EntityType.EXECUTABLE)) {
+                Long reusedRoomEndpointId = entityIdentifier.getPersistenceId();
+                ExecutableManager executableManager = new ExecutableManager(entityManager);
+                Executable executable = executableManager.get(reusedRoomEndpointId);
+                if (!(executable instanceof RoomEndpoint)) {
+                    throw new CommonReportSet.EntityNotExistsException(
+                            RoomEndpoint.class.getSimpleName(), reusedRoomEndpointId.toString());
+                }
+                Reservation reservation = executableManager.getReservation(executable);
+                if (reservation == null || reservation.getAllocation() == null) {
+                    throw new ControllerReportSet.ExecutableNotReusableException(reusedRoomEndpointId.toString());
+                }
+                setReusedAllocation(reservation.getAllocation());
+            }
+            else {
                 throw new CommonReportSet.EntityNotExistsException(
-                        RoomEndpoint.class.getSimpleName(), reusedRoomEndpointId.toString());
+                        RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
             }
-            Reservation reservation = executableManager.getReservation(executable);
-            if (reservation == null || reservation.getAllocation() == null) {
-                throw new ControllerReportSet.ExecutableNotReusableException(reusedRoomEndpointId.toString());
-            }
-            setReusedAllocation(reservation.getAllocation());
             setParticipantCount(usedRoomSpecificationApi.getParticipantCount());
         }
         else {
             setParticipantCount(null);
         }
+
+        Synchronization.synchronizeCollection(this.serviceSpecifications, serviceSpecifications,
+                new Synchronization.Handler<ExecutableServiceSpecification, cz.cesnet.shongo.controller.api.ExecutableServiceSpecification>(
+                        ExecutableServiceSpecification.class)
+                {
+                    @Override
+                    public ExecutableServiceSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.ExecutableServiceSpecification objectApi)
+                    {
+                        ExecutableServiceSpecification serviceSpecification =
+                                (ExecutableServiceSpecification) ExecutableServiceSpecification.createFromApi(
+                                        objectApi, entityManager);
+                        serviceSpecification.fromApi(objectApi, entityManager);
+                        return serviceSpecification;
+                    }
+
+                    @Override
+                    public void updateFromApi(ExecutableServiceSpecification object,
+                            cz.cesnet.shongo.controller.api.ExecutableServiceSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
 
         // Check alias specifications
         for (Technology requestedTechnology : getAliasTechnologies()) {

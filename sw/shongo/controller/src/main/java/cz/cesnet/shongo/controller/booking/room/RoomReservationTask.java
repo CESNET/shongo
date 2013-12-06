@@ -510,58 +510,60 @@ public class RoomReservationTask extends ReservationTask
                     roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
                 }
 
-                // Allocate automatic services
-                RecordingService automaticRecordingService = null;
-                if (roomProviderCapability.isRoomRecordable()) {
-                    automaticRecordingService = new RecordingService();
-                    RecordingCapability recordingCapability =
-                            deviceResource.getCapabilityRequired(RecordingCapability.class);
-                    automaticRecordingService.setRecordingCapability(recordingCapability);
-                    automaticRecordingService.setSlot(interval);
-                    automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);
-                    roomEndpoint.addService(automaticRecordingService);
-                }
+                // Allocate services (only for rooms which are accessible)
+                if (licenseCount > 0) {
+                    // Allocate automatic services
+                    RecordingService automaticRecordingService = null;
+                    if (roomProviderCapability.isRoomRecordable()) {
+                        automaticRecordingService = new RecordingService();
+                        RecordingCapability recordingCapability =
+                                deviceResource.getCapabilityRequired(RecordingCapability.class);
+                        automaticRecordingService.setRecordingCapability(recordingCapability);
+                        automaticRecordingService.setSlot(interval);
+                        automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);
+                        roomEndpoint.addService(automaticRecordingService);
+                    }
 
-                // For allocating services we must add the room reservation as allocated
-                schedulerContext.addAllocatedReservation(reservation);
-                try {
-                    // Allocate requested services
-                    for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-                        if (serviceSpecification instanceof RecordingServiceSpecification) {
-                            RecordingServiceSpecification recordingServiceSpecification =
-                                    (RecordingServiceSpecification) serviceSpecification;
-                            if (automaticRecordingService != null) {
-                                // Recording don't have to be allocated
-                                if (recordingServiceSpecification.isEnabled()) {
-                                    // Recording should be automatically started
-                                    automaticRecordingService.setState(ExecutableService.State.PREPARED);
+                    // For allocating services we must add the room reservation as allocated
+                    schedulerContext.addAllocatedReservation(reservation);
+                    try {
+                        // Allocate requested services
+                        for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
+                            if (serviceSpecification instanceof RecordingServiceSpecification) {
+                                RecordingServiceSpecification recordingServiceSpecification =
+                                        (RecordingServiceSpecification) serviceSpecification;
+                                if (automaticRecordingService != null) {
+                                    // Recording don't have to be allocated
+                                    if (recordingServiceSpecification.isEnabled()) {
+                                        // Recording should be automatically started
+                                        automaticRecordingService.setState(ExecutableService.State.PREPARED);
+                                    }
+                                }
+                                else {
+                                    // Recording must be allocated
+                                    RecordingServiceReservationTask recordingServiceReservationTask =
+                                            recordingServiceSpecification.createReservationTask(schedulerContext);
+                                    recordingServiceReservationTask.setExecutable(roomEndpoint);
+                                    addChildReservation(recordingServiceReservationTask);
                                 }
                             }
+                            else if (serviceSpecification instanceof ReservationTaskProvider) {
+                                ReservationTaskProvider reservationTaskProvider =
+                                        (ReservationTaskProvider) serviceSpecification;
+                                ReservationTask serviceReservationTask = reservationTaskProvider
+                                        .createReservationTask(schedulerContext);
+                                addChildReservation(serviceReservationTask);
+                            }
                             else {
-                                // Recording must be allocated
-                                RecordingServiceReservationTask recordingServiceReservationTask =
-                                        recordingServiceSpecification.createReservationTask(schedulerContext);
-                                recordingServiceReservationTask.setExecutable(roomEndpoint);
-                                addChildReservation(recordingServiceReservationTask);
+                                throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
                             }
                         }
-                        else if (serviceSpecification instanceof ReservationTaskProvider) {
-                            ReservationTaskProvider reservationTaskProvider =
-                                    (ReservationTaskProvider) serviceSpecification;
-                            ReservationTask serviceReservationTask = reservationTaskProvider
-                                    .createReservationTask(schedulerContext);
-                            addChildReservation(serviceReservationTask);
-                        }
-                        else {
-                            throw new SchedulerReportSet.SpecificationNotAllocatableException(serviceSpecification);
-                        }
+                    }
+                    finally {
+                        // Remove the room reservation as allocated
+                        schedulerContext.removeAllocatedReservation(reservation);
                     }
                 }
-                finally {
-                    // Remove the room reservation as allocated
-                    schedulerContext.removeAllocatedReservation(reservation);
-                }
-
             }
             // Stop old room endpoint
             if (oldRoomEndpoint != null && oldRoomEndpoint.getState().isStarted()) {

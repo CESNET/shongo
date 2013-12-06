@@ -625,6 +625,26 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
 
+            String roomReusedReservationRequestId = request.getRoomReusedReservationRequestId();
+            if (roomReusedReservationRequestId != null) {
+                if (roomReusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
+                    // List only reservation requests which hasn't reused any reservation request
+                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id IS NULL");
+                }
+                else if (roomReusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
+                    // List only reservation requests which reuse any reservation request
+                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id IS NOT NULL");
+                }
+                else {
+                    // List only reservation requests which reuse given reservation request
+                    Long persistenceId = EntityIdentifier.parseId(
+                            ReservationRequest.class, roomReusedReservationRequestId);
+                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id = "
+                            + ":roomReusedReservationRequestId");
+                    queryFilter.addFilterParameter("roomReusedReservationRequestId", persistenceId);
+                }
+            }
+
             AllocationState allocationState = request.getAllocationState();
             if (allocationState != null) {
                 queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");

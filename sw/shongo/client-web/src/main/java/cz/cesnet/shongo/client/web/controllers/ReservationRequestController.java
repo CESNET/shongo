@@ -85,6 +85,7 @@ public class ReservationRequestController
         request.setSortDescending(sortDescending);
         request.setAllocationState(allocationState);
         if (permanentRoomId != null) {
+            request.setRoomReusedReservationRequestId(permanentRoomId);
             specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
         }
         if (specificationTypes != null && specificationTypes.size() > 0) {

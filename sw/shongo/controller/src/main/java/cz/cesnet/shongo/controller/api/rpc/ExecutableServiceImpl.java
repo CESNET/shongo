@@ -317,9 +317,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             String query = "SELECT executableService FROM ExecutableService executableService"
-                    + " WHERE (executableService.executable = :executable OR executableService.executable IN("
-                    + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
-                    + "   WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"
+                    + " WHERE (executableService.executable = :executable "
+                    +"    OR executableService.executable IN("
+                    + "     SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                    + "     WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"
+                    +"    ) OR executableService.executable IN("
+                    + "     SELECT usedRoomEndpoint.reusedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                    + "     WHERE usedRoomEndpoint = :executable"
                     + " ))"
                     + " AND " + queryFilter.toQueryWhere();
 
