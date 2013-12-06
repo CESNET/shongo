@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.api;
 
-import jade.content.Concept;
-
 /**
  * Represents a setting for a virtual room.
  *
@@ -9,4 +7,8 @@ import jade.content.Concept;
  */
 public abstract class RoomSetting extends IdentifiedComplexType
 {
+    /**
+     * @param roomSetting to be merged into this {@link RoomSetting}
+     */
+    public abstract void merge(RoomSetting roomSetting);
 }

@@ -20,11 +20,9 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
-/**
+    /**
  * Represents a re-used {@link RoomEndpoint} for different
  * {@link RoomConfiguration}.
  *
@@ -80,9 +78,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         mergedRoomConfiguration.setLicenseCount(
                 roomConfiguration.getLicenseCount() + roomEndpointConfiguration.getLicenseCount());
         mergedRoomConfiguration.setTechnologies(roomConfiguration.getTechnologies());
-        mergedRoomConfiguration.setRoomSettings(roomConfiguration.getRoomSettings());
-        if (roomEndpointConfiguration.getRoomSettings().size() > 0) {
-            throw new TodoImplementException("Merging room settings.");
+        for (RoomSetting roomSetting : roomEndpointConfiguration.getRoomSettings()) {
+            mergedRoomConfiguration.addRoomSetting(roomSetting);
+        }
+        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+            mergedRoomConfiguration.addRoomSetting(roomSetting);
         }
         return mergedRoomConfiguration;
     }

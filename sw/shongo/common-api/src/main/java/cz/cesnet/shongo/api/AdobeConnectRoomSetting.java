@@ -63,4 +63,19 @@ public class AdobeConnectRoomSetting extends RoomSetting
         accessMode = dataMap.getEnum(ACCESS_MODE,AdobeConnectAccessMode.class);
     }
 
+    @Override
+    public void merge(RoomSetting roomSetting)
+    {
+        if (!(roomSetting instanceof AdobeConnectRoomSetting)) {
+            throw new IllegalArgumentException(AdobeConnectRoomSetting.class.getSimpleName() +
+                    " is not compatible with " + roomSetting.getClass().getSimpleName());
+        }
+        AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
+        if (adobeConnectRoomSetting.getPin() != null) {
+            setPin(adobeConnectRoomSetting.getPin());
+        }
+        if (adobeConnectRoomSetting.getAccessMode() != null) {
+            setAccessMode(adobeConnectRoomSetting.getAccessMode());
+        }
+    }
 }

@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;

@@ -88,12 +88,6 @@ public class SchedulerContext
             new HashMap<Reservation, AvailableReservation<? extends Reservation>>();
 
     /**
-     * Map of {@link AvailableReservation}s ({@link cz.cesnet.shongo.controller.booking.alias.AliasReservation}s) by {@link AliasProviderCapability} identifiers.
-     */
-    private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
-            new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
-
-    /**
      * Map of {@link AvailableExecutable}s by {@link Executable}s.
      */
     private Map<Executable, AvailableExecutable> availableExecutables = new HashMap<Executable, AvailableExecutable>();

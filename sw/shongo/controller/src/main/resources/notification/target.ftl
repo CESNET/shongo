@@ -21,7 +21,9 @@ ${context.message(indent, "target.technologies")}: <#list target.technologies as
 <#if target.name??>
 ${context.message(indent, "target.room.name")}: ${target.name}
 </#if>
+<#if (target.licenseCount > 0)>
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
+</#if>
 <#if target.pin??>
 ${context.message(indent, "target.room.pin")}: ${target.pin}
 </#if>

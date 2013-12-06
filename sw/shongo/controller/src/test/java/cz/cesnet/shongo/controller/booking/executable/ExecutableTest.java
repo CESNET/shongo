@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AdobeConnectAccessMode;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
@@ -395,7 +397,7 @@ public class ExecutableTest extends AbstractExecutorTest
     }
 
     /**
-     * TODO:
+     * Test for updating virtual room when new ACL record is created when room is active.
      *
      * @throws Exception
      */
@@ -467,7 +469,7 @@ public class ExecutableTest extends AbstractExecutorTest
     @Test
     public void testPermanentRoomWithCapacity() throws Exception
     {
-        McuTestAgent connectAgent = getController().addJadeAgent("connect", new McuTestAgent());
+        ConnectTestAgent connectAgent = getController().addJadeAgent("connect", new ConnectTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period capacityDuration = Period.parse("PT1H");
@@ -476,8 +478,7 @@ public class ExecutableTest extends AbstractExecutorTest
         connectServer.setName("connect");
         connectServer.setAddress("127.0.0.1");
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
-        connectServer.addCapability(
-                new RoomProviderCapability(10));
+        connectServer.addCapability(new RoomProviderCapability(10));
         connectServer.addCapability(
                 new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}"));
         connectServer.setAllocatable(true);
@@ -487,7 +488,13 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot(dateTime.minusDays(1), dateTime.plusDays(1));
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.ADOBE_CONNECT));
+        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification();
+        permanentRoomSpecification.addTechnology(Technology.ADOBE_CONNECT);
+        AdobeConnectRoomSetting permanentRoomSetting = new AdobeConnectRoomSetting();
+        permanentRoomSetting.setPin("1234");
+        permanentRoomSetting.setAccessMode(AdobeConnectAccessMode.PRIVATE);
+        permanentRoomSpecification.addRoomSetting(permanentRoomSetting);
+        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
@@ -497,7 +504,12 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot(dateTime, capacityDuration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 10));
+        UsedRoomSpecification capacitySpecification = new UsedRoomSpecification(permanentRoomExecutableId, 10);
+        AdobeConnectRoomSetting capacitySetting = new AdobeConnectRoomSetting();
+        capacitySetting.setPin("abcd");
+        capacitySetting.setAccessMode(AdobeConnectAccessMode.PUBLIC);
+        capacitySpecification.addRoomSetting(capacitySetting);
+        capacityReservationRequest.setSpecification(capacitySpecification);
         String capacityRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityRequestId);
 
@@ -506,6 +518,10 @@ public class ExecutableTest extends AbstractExecutorTest
         Assert.assertEquals("Two executable should be started.", 1, result.getStartedExecutables().size());
         Assert.assertEquals("The started executable should be permanent room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        Room permanentRoom = getRoom(permanentRoomExecutableId);
+        AdobeConnectRoomSetting roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
+        Assert.assertEquals("1234", roomSetting.getPin());
+        Assert.assertEquals(AdobeConnectAccessMode.PRIVATE, roomSetting.getAccessMode());
 
         // Start capacity
         connectAgent.setDisabled(true);
@@ -516,12 +532,20 @@ public class ExecutableTest extends AbstractExecutorTest
         Assert.assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         Assert.assertEquals("The started executable should be capacity.",
                 UsedRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        permanentRoom = getRoom(permanentRoomExecutableId);
+        roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
+        Assert.assertEquals("abcd", roomSetting.getPin());
+        Assert.assertEquals(AdobeConnectAccessMode.PUBLIC, roomSetting.getAccessMode());
 
         // Stop capacity
         result = runExecutor(dateTime.plus(capacityDuration));
         Assert.assertEquals("One executables should be stopped.", 1, result.getStoppedExecutables().size());
         Assert.assertEquals("The stopped executable should be capacity.",
                 UsedRoomEndpoint.class, result.getStoppedExecutables().get(0).getClass());
+        permanentRoom = getRoom(permanentRoomExecutableId);
+        roomSetting = permanentRoom.getRoomSetting(AdobeConnectRoomSetting.class);
+        Assert.assertEquals("1234", roomSetting.getPin());
+        Assert.assertEquals(AdobeConnectAccessMode.PRIVATE, roomSetting.getAccessMode());
 
         // Stop permanent room
         result = runExecutor(dateTime.plusDays(1));
@@ -534,8 +558,11 @@ public class ExecutableTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, performedCommandClasses);
     }

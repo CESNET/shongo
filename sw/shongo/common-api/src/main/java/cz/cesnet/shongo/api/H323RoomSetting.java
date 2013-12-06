@@ -271,4 +271,44 @@ public class H323RoomSetting extends RoomSetting
         startLocked = dataMap.getBoolean(START_LOCKED);
         conferenceMeEnabled = dataMap.getBoolean(CONFERENCE_ME_ENABLED);
     }
+
+    @Override
+    public void merge(RoomSetting roomSetting)
+    {
+        if (!(roomSetting instanceof H323RoomSetting)) {
+            throw new IllegalArgumentException(H323RoomSetting.class.getSimpleName() +
+                    " is not compatible with " + roomSetting.getClass().getSimpleName());
+        }
+        H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+        if (h323RoomSetting.getPin() != null) {
+            setPin(h323RoomSetting.getPin());
+        }
+        if (h323RoomSetting.getListedPublicly() != null) {
+            setListedPublicly(h323RoomSetting.getListedPublicly());
+        }
+        if (h323RoomSetting.getAllowContent() != null) {
+            setAllowContent(h323RoomSetting.getAllowContent());
+        }
+        if (h323RoomSetting.getAllowGuests() != null) {
+            setAllowGuests(h323RoomSetting.getAllowGuests());
+        }
+        if (h323RoomSetting.getJoinAudioMuted() != null) {
+            setJoinAudioMuted(h323RoomSetting.getJoinAudioMuted());
+        }
+        if (h323RoomSetting.getJoinVideoMuted() != null) {
+            setJoinVideoMuted(h323RoomSetting.getJoinVideoMuted());
+        }
+        if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
+            setRegisterWithGatekeeper(h323RoomSetting.getRegisterWithGatekeeper());
+        }
+        if (h323RoomSetting.getRegisterWithRegistrar() != null) {
+            setRegisterWithRegistrar(h323RoomSetting.getRegisterWithRegistrar());
+        }
+        if (h323RoomSetting.getStartLocked() != null) {
+            setStartLocked(h323RoomSetting.getStartLocked());
+        }
+        if (h323RoomSetting.getConferenceMeEnabled() != null) {
+            setConferenceMeEnabled(h323RoomSetting.getConferenceMeEnabled());
+        }
+    }
 }

@@ -91,6 +91,5 @@ public class AdobeConnectRoomSetting extends RoomSetting
 
         setPin(roomSettingAdobeConnectApi.getPin());
         setAccessMode(roomSettingAdobeConnectApi.getAccessMode());
-
     }
 }

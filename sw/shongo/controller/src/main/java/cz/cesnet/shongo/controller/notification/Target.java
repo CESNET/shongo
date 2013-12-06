@@ -10,8 +10,7 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.booking.room.RoomSpecification;
+import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
@@ -19,9 +18,8 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
@@ -212,16 +210,18 @@ public abstract class Target
 
         private int licenseCount = 0;
 
-        private int availableLicenseCount;
+        private AvailableLicenseCountHandler availableLicenseCountHandler;
 
         private String pin;
 
         private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
+
+
+
         public Room(RoomSpecification roomSpecification, Target reusedTarget)
         {
-            technologies.addAll(roomSpecification.getTechnologies());
             Integer participantCount = roomSpecification.getParticipantCount();
             if (participantCount != null) {
                 licenseCount = participantCount;
@@ -230,6 +230,23 @@ public abstract class Target
                 if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
                     name = aliasSpecification.getValue();
                 }
+                Set<Technology> aliasSpecificationTechnologies = aliasSpecification.getAliasTechnologies();
+                if (aliasSpecificationTechnologies.size() > 0) {
+                    technologies.addAll(aliasSpecificationTechnologies);
+                }
+                else {
+                    for (AliasType aliasType : aliasSpecification.getAliasTypes()) {
+                        Technology technology = aliasType.getTechnology();
+                        if (!technology.equals(Technology.ALL)) {
+                            technologies.add(technology);
+                        }
+                    }
+                }
+            }
+            Set<Technology> roomSpecificationTechnologies = roomSpecification.getTechnologies();
+            if (roomSpecificationTechnologies.size() > 0) {
+                technologies.clear();
+                technologies.addAll(roomSpecificationTechnologies);
             }
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
@@ -249,33 +266,53 @@ public abstract class Target
         {
             super(reservation.getDeviceResource());
 
-            RoomProviderCapability roomProviderCapability = reservation.getRoomProviderCapability();
-            licenseCount = reservation.getLicenseCount();
-            availableLicenseCount = roomProviderCapability.getLicenseCount();
-
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            List<RoomReservation> roomReservations =
-                    reservationManager.getRoomReservations(roomProviderCapability, reservation.getSlot());
-            for (RoomReservation roomReservation : roomReservations) {
-                availableLicenseCount -= roomReservation.getLicenseCount();
-            }
-
             RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
             if (roomEndpoint != null) {
-                initFrom(roomEndpoint);
+                initFrom(roomEndpoint, entityManager);
+            }
+            else {
+                licenseCount = reservation.getLicenseCount();
+                technologies.addAll(reservation.getDeviceResource().getTechnologies());
+                initFrom(reservation.getSlot(), reservation.getRoomProviderCapability(), entityManager);
+            }
+
+
+        }
+
+        public Room(RoomEndpoint roomEndpoint, EntityManager entityManager)
+        {
+            initFrom(roomEndpoint, entityManager);
+        }
+
+        private void initFrom(final Interval slot, final RoomProviderCapability roomProviderCapability,
+                final EntityManager entityManager)
+        {
+            if (licenseCount > 0) {
+                availableLicenseCountHandler = new AvailableLicenseCountHandler()
+                {
+                    @Override
+                    public int getAvailableLicenseCount()
+                    {
+                        int availableLicenseCount = roomProviderCapability.getLicenseCount();
+
+                        ReservationManager reservationManager = new ReservationManager(entityManager);
+                        List<RoomReservation> roomReservations =
+                                reservationManager.getRoomReservations(roomProviderCapability, slot);
+                        for (RoomReservation roomReservation : roomReservations) {
+                            availableLicenseCount -= roomReservation.getLicenseCount();
+                        }
+                        return availableLicenseCount;
+                    }
+                };
             }
         }
 
-        public Room(RoomEndpoint roomEndpoint)
+        private void initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
-            licenseCount = roomEndpoint.getRoomConfiguration().getLicenseCount();
-            initFrom(roomEndpoint);
-        }
-
-        private void initFrom(RoomEndpoint roomEndpoint)
-        {
-            technologies.addAll(roomEndpoint.getTechnologies());
-            for (RoomSetting roomSetting : roomEndpoint.getRoomConfiguration().getRoomSettings()) {
+            RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+            licenseCount = roomConfiguration.getLicenseCount();
+            technologies.addAll(roomConfiguration.getTechnologies());
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     if (h323RoomSetting.getPin() != null) {
@@ -283,6 +320,7 @@ public abstract class Target
                     }
                 }
             }
+
             for (cz.cesnet.shongo.controller.booking.alias.Alias alias : roomEndpoint.getAliases()) {
                 if (alias.getType().equals(AliasType.ROOM_NAME)) {
                     name = alias.getValue();
@@ -291,9 +329,17 @@ public abstract class Target
                     aliases.add(alias);
                 }
             }
-            if (roomEndpoint instanceof UsedRoomEndpoint) {
+            if (roomEndpoint instanceof ResourceRoomEndpoint) {
+                ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+                RoomProviderCapability roomProviderCapability = resourceRoomEndpoint.getRoomProviderCapability();
+                initFrom(roomEndpoint.getSlot(), roomProviderCapability, entityManager);
+            }
+            else if (roomEndpoint instanceof UsedRoomEndpoint) {
                 UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
-                reusedRoom = new Room(usedRoomEndpoint.getReusedRoomEndpoint());
+                reusedRoom = new Room(usedRoomEndpoint.getReusedRoomEndpoint(), entityManager);
+                RoomProviderCapability roomProviderCapability =
+                        usedRoomEndpoint.getResource().getCapabilityRequired(RoomProviderCapability.class);
+                initFrom(roomEndpoint.getSlot(), roomProviderCapability, entityManager);
             }
         }
 
@@ -319,7 +365,7 @@ public abstract class Target
 
         public int getAvailableLicenseCount()
         {
-            return availableLicenseCount;
+            return availableLicenseCountHandler != null ? availableLicenseCountHandler.getAvailableLicenseCount() : 0;
         }
 
         public Set<Technology> getTechnologies()
@@ -349,6 +395,11 @@ public abstract class Target
             else {
                 return super.getTypeName();
             }
+        }
+
+        private static interface AvailableLicenseCountHandler
+        {
+            public int getAvailableLicenseCount();
         }
     }
 
@@ -419,9 +470,12 @@ public abstract class Target
             return new Resource((ResourceReservation) reservation);
         }
         else {
-            List<Reservation> childReservations = reservation.getChildReservations();
-
+            Executable executable = reservation.getExecutable();
+            if (executable instanceof RoomEndpoint) {
+                return new Room((RoomEndpoint) executable, entityManager);
+            }
             // Check if all child reservations have same class
+            List<Reservation> childReservations = reservation.getChildReservations();
             Class<? extends Reservation> sameChildReservationClass = null;
             for (Reservation childReservation : childReservations) {
                 if (sameChildReservationClass != null) {

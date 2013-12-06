@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
- * {@link cz.cesnet.shongo.controller.api.Specification} for a one time room.
+ * {@link cz.cesnet.shongo.controller.api.Specification} for a one-time room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

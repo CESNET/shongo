@@ -154,11 +154,17 @@ public abstract class AbstractRoomExecutable extends Executable
     }
 
     /**
-     * Clear {@link #roomSettings}.
+     * @param roomSettingType
+     * @return {@link RoomSetting} of given {@code roomSettingType} or null if doesn't exist
      */
-    public void clearRoomSettings()
+    public <T extends RoomSetting> T getRoomSetting(Class<T> roomSettingType)
     {
-        roomSettings.clear();
+        for (RoomSetting roomSetting : getRoomSettings()) {
+            if (roomSettingType.isInstance(roomSetting)) {
+                return roomSettingType.cast(roomSetting);
+            }
+        }
+        return null;
     }
 
     /**
@@ -166,7 +172,13 @@ public abstract class AbstractRoomExecutable extends Executable
      */
     public void addRoomSetting(RoomSetting roomSetting)
     {
-        roomSettings.add(roomSetting);
+        RoomSetting existingRoomSetting = getRoomSetting(roomSetting.getClass());
+        if (existingRoomSetting != null) {
+            existingRoomSetting.merge(roomSetting);
+        }
+        else {
+            roomSettings.add(roomSetting);
+        }
     }
 
     /**

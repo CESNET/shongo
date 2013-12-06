@@ -250,7 +250,7 @@ public class Room extends IdentifiedComplexType
     {
         RoomSetting existingRoomSetting = getRoomSetting(roomSetting.getClass());
         if (existingRoomSetting != null) {
-            throw new TodoImplementException("Merge same room setting");
+            existingRoomSetting.merge(roomSetting);
         }
         else {
             roomSettings.add(roomSetting);

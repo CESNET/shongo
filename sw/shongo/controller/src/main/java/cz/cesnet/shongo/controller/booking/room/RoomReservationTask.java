@@ -595,7 +595,6 @@ public class RoomReservationTask extends ReservationTask
         RoomProviderCapability roomProviderCapability = roomProviderVariant.getRoomProviderCapability();
         Long deviceResourceId = roomProviderCapability.getDeviceResource().getId();
 
-
         // Room configuration
         RoomConfiguration roomConfiguration = new RoomConfiguration();
         roomConfiguration.setTechnologies(roomProviderVariant.getTechnologies());
