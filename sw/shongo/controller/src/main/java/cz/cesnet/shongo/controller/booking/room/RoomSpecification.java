@@ -344,14 +344,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
 
         Set<Technology> technologies = getTechnologies();
         if (technologies.size() == 0) {
-            if (isReusement()) {
-                // When no technologies are requested, set technologies from requested aliases
-                technologies = reusedRoomEndpoint.getTechnologies();
-            }
-            else {
-                // When no technologies are requested, set technologies from requested aliases
-                technologies = getAliasTechnologies();
-            }
+            // When no technologies are requested, set technologies from requested aliases
+            technologies = getAliasTechnologies();
         }
 
         RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, getParticipantCount());
@@ -567,6 +561,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 throw new CommonReportSet.EntityNotExistsException(
                         RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
             }
+            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
+            if (reusedRoomEndpoint == null) {
+                throw new CommonReportSet.EntityNotExistsException(
+                        RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
+            }
+            technologies = reusedRoomEndpoint.getTechnologies();
             setParticipantCount(usedRoomSpecificationApi.getParticipantCount());
         }
         else {

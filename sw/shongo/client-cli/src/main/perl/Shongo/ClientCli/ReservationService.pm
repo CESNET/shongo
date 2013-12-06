@@ -249,10 +249,12 @@ sub list_reservation_requests()
     if ( !defined($response) ) {
         return
     }
-    my $Specification = {
-        'ReservationRequestSummary.ResourceSpecification' => 'Resource',
-        'ReservationRequestSummary.RoomSpecification' => 'Room',
-        'ReservationRequestSummary.AliasSpecification' => 'Alias'
+    my $SpecificationType = {
+        'RESOURCE' => 'Resource',
+        'ROOM' => 'Room',
+        'PERMANENT_ROOM' => 'Permanent Room',
+        'USED_ROOM' => 'Used Room',
+        'ALIAS' => 'Alias'
     };
     my $table = {
         'columns' => [
@@ -267,11 +269,11 @@ sub list_reservation_requests()
     };
     foreach my $reservation_request (@{$response->{'items'}}) {
         my $specification = 'Other';
-        if ( defined($reservation_request->{'specification'}) && defined($reservation_request->{'specification'}->{'class'}) ) {
-            $specification = $Specification->{$reservation_request->{'specification'}->{'class'}};
+        if ( defined($reservation_request->{'specificationType'}) && defined($SpecificationType->{$reservation_request->{'specificationType'}}) ) {
+            $specification = $SpecificationType->{$reservation_request->{'specificationType'}};
         }
         my $technologies = '';
-        foreach my $technology (@{$reservation_request->{'technologies'}}) {
+        foreach my $technology (@{$reservation_request->{'specificationTechnologies'}}) {
             if ( length($technologies) > 0 ) {
                 $technologies .= ', ';
             }
@@ -281,7 +283,7 @@ sub list_reservation_requests()
             'id' => $reservation_request->{'id'},
             'dateTime' => [$reservation_request->{'dateTime'}, datetime_format($reservation_request->{'dateTime'})],
             'user' => [$reservation_request->{'userId'}, $application->format_user($reservation_request->{'userId'})],
-            'specification' => [$reservation_request->{'specification'}, $specification],
+            'specification' => [$reservation_request->{'specificationType'}, $specification],
             'technology' => $technologies,
             'description' => $reservation_request->{'description'}
         });

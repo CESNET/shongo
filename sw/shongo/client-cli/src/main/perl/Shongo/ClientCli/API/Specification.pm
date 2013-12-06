@@ -29,7 +29,9 @@ our $Type = ordered_hash(
     'ValueSpecification' => 'Value',
     'AliasSpecification' => 'Alias',
     'AliasSetSpecification' => 'Alias Set',
-    'RoomSpecification' => 'Virtual Room'
+    'RoomSpecification' => 'One-time Room',
+    'PermanentRoomSpecification' => 'Permanent Room',
+    'UsedRoomSpecification' => 'Used Room'
 );
 
 #
@@ -193,7 +195,18 @@ sub on_init()
                 'required' => 1
             });
         }
-        case 'RoomSpecification' {
+        case 'UsedRoomSpecification' {
+            $self->add_attribute('reusedRoomExecutableId', {
+                'title' => 'Reused Room ExecutableId',
+                'required' => 1
+            });
+            $self->add_attribute('participantCount', {
+                'title' => 'Participant Count',
+                'type' => 'int',
+                'required' => 1
+            });
+        }
+        case ['RoomSpecification', 'PermanentRoomSpecification'] {
             $self->add_attribute('technologies', {
                 'type' => 'collection',
                 'item' => {

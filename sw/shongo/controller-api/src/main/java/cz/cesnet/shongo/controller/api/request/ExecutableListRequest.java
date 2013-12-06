@@ -21,8 +21,6 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
 
     private String roomId;
 
-    private String roomLicenseCount;
-
     public ExecutableListRequest()
     {
         super(Sort.class);
@@ -58,16 +56,6 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         this.types.add(type);
     }
 
-    public String getRoomLicenseCount()
-    {
-        return roomLicenseCount;
-    }
-
-    public void setRoomLicenseCount(String roomLicenseCount)
-    {
-        this.roomLicenseCount = roomLicenseCount;
-    }
-
     public String getRoomId()
     {
         return roomId;
@@ -89,7 +77,6 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
 
     private static final String HISTORY = "history";
     private static final String TYPES = "types";
-    private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
     private static final String ROOM_ID = "roomId";
 
     @Override
@@ -99,7 +86,6 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         dataMap.set(HISTORY, history);
         dataMap.set(TYPES, types);
         dataMap.set(ROOM_ID, roomId);
-        dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
         return dataMap;
     }
 
@@ -110,6 +96,5 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         history = dataMap.getBool(HISTORY);
         types = (Set) dataMap.getSet(TYPES, ExecutableSummary.Type.class);
         roomId = dataMap.getString(ROOM_ID);
-        roomLicenseCount = dataMap.getString(roomLicenseCount);
     }
 }
