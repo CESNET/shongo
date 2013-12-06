@@ -29,8 +29,7 @@ tooltipModule.directive('tooltip', function($compile) {
                     at: 'bottom right'
                 },
                 style: {
-                    classes: 'qtip-app',
-                    width: '800px'
+                    classes: 'qtip-app'
                 }
             };
             var width = element.attr('tooltip-width');

@@ -193,7 +193,7 @@
             </form:label>
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="description" cssClass="error"/>
+                <form:errors path="description" cssClass="error"/>&nbsp;
                 <tag:help><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
             </div>
         </div>
