@@ -142,6 +142,14 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @param homeTimeZone sets the {@link #homeTimeZone}
+     */
+    public void setHomeTimeZone(DateTimeZone homeTimeZone)
+    {
+        this.homeTimeZone = homeTimeZone;
+    }
+
+    /**
      * @return {@link #timeZoneDefaultWarning}
      */
     public boolean isTimeZoneDefaultWarning()
@@ -225,7 +233,7 @@ public class UserSession implements Serializable
         }
 
         homeTimeZone = userSettings.getHomeTimeZone();
-        DateTimeZone timeZone = userSettings.getCurrentTimeZone();
+        DateTimeZone timeZone = (userSettings.isCurrentTimeZoneEnabled() ? userSettings.getCurrentTimeZone() : null);
         if (timeZone == null) {
             timeZone = homeTimeZone;
         }
@@ -234,6 +242,7 @@ public class UserSession implements Serializable
             timeZoneDefaultWarning = false;
         }
         else {
+            setTimeZone(null);
             timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
         }
 

@@ -16,6 +16,11 @@
     angular.module('jsp:userSettings', ['ngTooltip']);
 </script>
 
+<c:set var="currentTimeZone" value="${userSettings.currentTimeZone}"/>
+<c:if test="${empty currentTimeZone}">
+    <c:set var="currentTimeZone" value="UTC"/>
+</c:if>
+
 <form:form class="form-horizontal"
            commandName="userSettings"
            method="post"
@@ -24,7 +29,7 @@
                 useWebService = ${userSettings.useWebService};
                 locale = '${userSettings.locale}';
                 homeTimeZone = '${userSettings.homeTimeZone}';
-                currentTimeZone = '${userSettings.currentTimeZone}';
+                currentTimeZone = '${currentTimeZone}';
                 currentTimeZoneEnabled = ${userSettings.currentTimeZoneEnabled};
            ">
 
@@ -48,7 +53,7 @@
                 </tag:help>
             </form:label>
             <div class="controls">
-                <form:checkbox path="useWebService" tabindex="${tabIndex}" ng-model="useWebService"/>&nbsp
+                <form:checkbox path="useWebService" tabindex="${tabIndex}" ng-model="useWebService"/>&nbsp;
                 <a class="btn" href="${webServiceUrl}" target="_blank"><spring:message code="views.userSettings.useWebService.edit"/></a>
             </div>
         </div>
@@ -60,7 +65,7 @@
                     <spring:message code="views.userSettings.locale.help"/>
                 </tag:help>
             </form:label>
-            <div class="controls">
+            <div class="controls double-width">
                 <form:select path="locale" tabindex="${tabIndex}" ng-model="locale" ng-disabled="useWebService">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <form:option value="en">English</form:option>
@@ -80,8 +85,8 @@
                     <spring:message code="views.userSettings.homeTimeZone.help"/>
                 </tag:help>
             </form:label>
-            <div class="controls">
-                <form:select path="homeTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}" ng-model="homeTimeZone">
+            <div class="controls double-width">
+                <form:select path="homeTimeZone" tabindex="${tabIndex}" ng-model="homeTimeZone">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>
@@ -96,16 +101,14 @@
 
         <div class="control-group">
             <form:label class="control-label" path="currentTimeZoneEnabled">
-                <form:checkbox id="currentTimeZoneEnabled" path="currentTimeZoneEnabled" tabindex="${tabIndex}" ng-model="currentTimeZoneEnabled"/>
                 <spring:message code="views.userSettings.currentTimeZone" var="currentTimeZoneLabel"/>
                 <tag:help label="${currentTimeZoneLabel}:">
                     <spring:message code="views.userSettings.currentTimeZone.help"/>
                 </tag:help>
-
             </form:label>
             <div class="controls">
-                <form:select path="currentTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}" ng-disabled="!currentTimeZoneEnabled" ng-model="currentTimeZone">
-                    <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
+                <form:checkbox id="currentTimeZoneEnabled" path="currentTimeZoneEnabled" tabindex="${tabIndex}" ng-model="currentTimeZoneEnabled"/>&nbsp;
+                <form:select path="currentTimeZone" cssStyle="width: 340px;" tabindex="${tabIndex}" ng-disabled="!currentTimeZoneEnabled" ng-model="currentTimeZone">
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                     </c:forEach>

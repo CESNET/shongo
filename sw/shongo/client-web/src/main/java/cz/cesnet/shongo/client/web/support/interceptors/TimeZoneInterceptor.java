@@ -40,7 +40,12 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
         if (!Strings.isNullOrEmpty(timeZoneOffset)) {
             // Set new time zone
             DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
-            userSession.setTimeZone(dateTimeZone);
+            if (userSession.getTimeZone() == null) {
+                userSession.setTimeZone(dateTimeZone);
+            }
+            if (userSession.getHomeTimeZone() == null) {
+                userSession.setHomeTimeZone(dateTimeZone);
+            }
             userSession.update(request, null);
 
             String requestUrl = (String) WebUtils.getSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE);
@@ -65,7 +70,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
             }
         }
         // If timezone is not set retrieve it
-        else if (userSession.getTimeZone() == null) {
+        else if (userSession.getTimeZone() == null || userSession.getHomeTimeZone() == null) {
             // Skip handlers with ignore annotation
             if (handler instanceof HandlerMethod) {
                 HandlerMethod handlerMethod = (HandlerMethod) handler;

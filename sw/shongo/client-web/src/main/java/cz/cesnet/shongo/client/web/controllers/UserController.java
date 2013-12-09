@@ -110,6 +110,7 @@ public class UserController
             HttpServletRequest request,
             @ModelAttribute("userSettings") UserSettingsModel userSettings)
     {
+
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
         if (userSettings.isUseWebService()) {
             // Reload user settings (some attributes may be loaded from web service)
