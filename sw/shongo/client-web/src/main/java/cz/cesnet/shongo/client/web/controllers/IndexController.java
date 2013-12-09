@@ -40,6 +40,15 @@ public class IndexController
     }
 
     /**
+     * Handle help view.
+     */
+    @RequestMapping(value = ClientWebUrl.HELP, method = RequestMethod.GET)
+    public String handleHelpView()
+    {
+        return "help";
+    }
+
+    /**
      * Handle development view.
      */
     @RequestMapping(value = "development", method = RequestMethod.GET)

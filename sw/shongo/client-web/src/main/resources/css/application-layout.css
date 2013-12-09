@@ -6,7 +6,7 @@ html, body   {
 }
 body {
 }
-.content {
+body > .content {
     display: table;
     height: 100%;
     width: 100%;

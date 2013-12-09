@@ -60,6 +60,12 @@
         <put-attribute name="body" value="/WEB-INF/views/development.jsp" type="template"/>
     </definition>
 
+    <definition name="help" extends="layout">
+        <put-attribute name="title" value="views.help.title"/>
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/help.jsp" type="template"/>
+    </definition>
+
     <definition name="error" extends="layoutAngular">
         <put-attribute name="title" value="views.error.title"/>
         <put-attribute name="body" value="/WEB-INF/views/error.jsp" type="template"/>

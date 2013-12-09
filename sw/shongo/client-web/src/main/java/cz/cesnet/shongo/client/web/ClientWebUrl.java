@@ -15,6 +15,8 @@ public class ClientWebUrl
             "/login";
     public static final String LOGOUT =
             "/logout";
+    public static final String HELP =
+            "/help";
     public static final String CHANGELOG =
             "/changelog";
 

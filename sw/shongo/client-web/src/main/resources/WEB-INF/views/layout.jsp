@@ -85,6 +85,8 @@
     </script>
 </head>
 
+<body id="top">
+
 <div class="content">
 
     <%-- Page navigation header --%>
@@ -128,6 +130,10 @@
                                 <a class="menuitem" href="${userSettingsUrl}"><spring:message code="views.layout.settings"/></a>
                             </li>
                         </security:authorize>
+                        <li>
+                            <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
+                            <a href="${helpUrl}"><spring:message code="navigation.help"/></a>
+                        </li>
                     </ul>
                 </div>
             </div>

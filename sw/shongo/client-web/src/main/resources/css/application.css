@@ -644,19 +644,19 @@ div.not-available {
 }
 
 /* tags/helpRoomType.tag */
-.tagHelpRoomType .room-examples {
+.room-examples {
     font-style: italic;
 }
-.tagHelpRoomType .room-example {
+.room-examples .room-example {
     display: inline-block;
     text-align: center;
     margin: 0px 30px;
 }
-.tagHelpRoomType .room-example .room-image {
+.room-examples .room-example .room-image {
     display: inline-block;
     position: relative;
 }
-.tagHelpRoomType .room-example .room-image .room-name {
+.room-examples .room-example .room-image .room-name {
     position: absolute;
     margin-left:auto;
     margin-right:auto;
@@ -685,6 +685,60 @@ div.not-available {
 /* vies/error.jsp */
 .jspError pre {
     margin: 10px;
+}
+
+/* vies/help.jsp */
+.jspHelp {
+    position: relative;
+}
+.jspHelp > .menu {
+    margin-top: 20px;
+    font-weight: bold;
+}
+.jspHelp > .menu > ul > li > a {
+    padding: 5px 10px 5px 15px;
+    border: 1px solid #ccc;
+    border-bottom: none;
+}
+.jspHelp > .menu > ul > li > a > i {
+    margin-left: 10px;
+}
+.jspHelp > .menu > ul > li.active > a {
+    border-color: #08c;
+}
+.jspHelp > .menu > ul > li:first-child > a {
+    -webkit-border-top-left-radius: 6px;
+    -webkit-border-top-right-radius: 6px;
+    -moz-border-top-left-radius: 6px;
+    -moz-border-top-right-radius: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+.jspHelp > .menu > ul > li:last-child > a {
+    -webkit-border-bottom-left-radius: 6px;
+    -webkit-border-bottom-right-radius: 6px;
+    -moz-border-bottom-left-radius: 6px;
+    -moz-border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom: 1px solid #ccc;
+}
+.jspHelp > .content > h2 {
+    padding-bottom: 5px;
+    margin: 20px 0 20px;
+    border-bottom: 1px solid #eee;
+}
+@media (min-width: 1000px) {
+    .jspHelp > .menu {
+        margin-top: 0px;
+        padding: 9px 0;
+        position: fixed;
+        top: 78px;
+    }
+
+    .jspHelp > .content {
+        padding-left: 160px;
+    }
 }
 
 /* vies/reservationRequestDetail.jsp */
