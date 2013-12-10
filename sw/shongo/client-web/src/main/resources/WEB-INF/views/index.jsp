@@ -62,6 +62,7 @@
     <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
         <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
     </tag:url>
+    <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
     <script type="text/javascript">
         var module = angular.module('jsp:indexDashboard', ['tag:expandableBlock', 'ngPagination', 'ngTooltip', 'ngSanitize']);
@@ -171,9 +172,12 @@
                         <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort>
                         <tag:help selectable="true" width="800px">
                             <h1><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></h1>
-                            <tag:helpRoomType roomType="ADHOC_ROOM"/>
+                            <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
                             <h1><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></h1>
-                            <tag:helpRoomType roomType="PERMANENT_ROOM"/>
+                            <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
+                            <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">
+                                <spring:message code="views.help.rooms.display"/>
+                            </a>
                         </tag:help>
                     </th>
                     <th style="min-width: 150px;">

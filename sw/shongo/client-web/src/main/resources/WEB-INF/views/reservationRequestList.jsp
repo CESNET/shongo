@@ -28,6 +28,7 @@
 <tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
     <tag:param name="specificationType" value="ADHOC_ROOM"/>
 </tag:url>
+<tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
 <script type="text/javascript">
     angular.module('jsp:reservationRequestList', ['tag:expandableBlock', 'tag:reservationRequestList', 'ngTooltip', 'ngSanitize']);
@@ -57,8 +58,13 @@
                                     detailed="true" createUrl="${createPermanentRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
-                <spring:message code="views.reservationRequestList.permanentRooms"/>
-                <tag:help selectable="true"><tag:helpRoomType roomType="PERMANENT_ROOM"/></tag:help>
+                <spring:message code="views.reservationRequestList.permanentRooms"/>&nbsp;
+                <tag:help selectable="true">
+                    <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
+                    <a class="btn btn-success" href="${helpUrl}#permanent-room" target="_blank">
+                        <spring:message code="views.help.roomType.display"/>
+                    </a>
+                </tag:help>
             </h2>
         </tag:reservationRequestList>
 
@@ -68,8 +74,13 @@
                                     detailed="true" createUrl="${createAdhocRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
-                <spring:message code="views.reservationRequestList.adhocRooms"/>
-                <tag:help selectable="true"><tag:helpRoomType roomType="ADHOC_ROOM"/></tag:help>
+                <spring:message code="views.reservationRequestList.adhocRooms"/>&nbsp;
+                <tag:help selectable="true">
+                    <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
+                    <a class="btn btn-success" href="${helpUrl}#adhoc-room" target="_blank">
+                        <spring:message code="views.help.roomType.display"/>
+                    </a>
+                </tag:help>
             </h2>
         </tag:reservationRequestList>
 

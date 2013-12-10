@@ -436,6 +436,9 @@ span.dotted {
 .qtip-app p {
     font-size: 13px;
 }
+.qtip-app a:last-child {
+    margin-bottom: 5px;
+}
 
 /** Modals */
 .modal.center {

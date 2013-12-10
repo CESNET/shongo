@@ -11,59 +11,57 @@
 <%--
 <%----%>
 <div class="tagHelpRoomType">
-    <%--<spring:message code="views.reservationRequest.specificationHelp.ADHOC_ROOM"/>--%>
-    <%--<spring:message code="views.reservationRequest.specificationHelp.PERMANENT_ROOM"/></p>--%>
     <c:choose>
         <c:when test="${roomType == 'ADHOC_ROOM'}">
-            <p><spring:message code="views.roomType.ADHOC_ROOM.description"/></p>
+            <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
             <div class="room-examples">
-                <p><spring:message code="views.roomType.ADHOC_ROOM.example"/></p>
+                <p><spring:message code="views.help.roomType.ADHOC_ROOM.example"/></p>
                 <div class="room-example">
                     <div class="room-image">
                         <img src="/img/room/adhoc_room1.png"/>
 
-                        <p class="room-name"><spring:message code="views.roomType.ADHOC_ROOM.example.room1.name"/></p>
+                        <p class="room-name"><spring:message code="views.help.roomType.ADHOC_ROOM.example.room1.name"/></p>
                     </div>
-                    <p><spring:message code="views.roomType.ADHOC_ROOM.example.room1.description"/></p>
+                    <p><spring:message code="views.help.roomType.ADHOC_ROOM.example.room1.description"/></p>
                 </div>
                 <div class="room-example">
                     <div class="room-image">
                         <img src="/img/room/adhoc_room2.png"/>
 
-                        <p class="room-name"><spring:message code="views.roomType.ADHOC_ROOM.example.room2.name"/></p>
+                        <p class="room-name"><spring:message code="views.help.roomType.ADHOC_ROOM.example.room2.name"/></p>
                     </div>
-                    <p><spring:message code="views.roomType.ADHOC_ROOM.example.room2.description"/></p>
+                    <p><spring:message code="views.help.roomType.ADHOC_ROOM.example.room2.description"/></p>
                 </div>
             </div>
         </c:when>
         <c:when test="${roomType == 'PERMANENT_ROOM'}">
-            <p><spring:message code="views.roomType.PERMANENT_ROOM.description"/></p>
+            <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
             <div class="room-examples">
-                <p><spring:message code="views.roomType.PERMANENT_ROOM.example"/></p>
+                <p><spring:message code="views.help.roomType.PERMANENT_ROOM.example"/></p>
                 <div class="room-example">
                     <div class="room-image">
                         <img src="/img/room/permanent_room.png"/>
 
-                        <p class="room-name"><spring:message code="views.roomType.PERMANENT_ROOM.example.room.name"/></p>
+                        <p class="room-name"><spring:message code="views.help.roomType.PERMANENT_ROOM.example.room.name"/></p>
                     </div>
-                    <p><spring:message code="views.roomType.PERMANENT_ROOM.example.room.description"/></p>
+                    <p><spring:message code="views.help.roomType.PERMANENT_ROOM.example.room.description"/></p>
                 </div>
-                <p><spring:message code="views.roomType.PERMANENT_ROOM.example.capacity"/></p>
+                <p><spring:message code="views.help.roomType.PERMANENT_ROOM.example.capacity"/></p>
                 <div class="room-example">
                     <div class="room-image">
                         <img src="/img/room/permanent_room_capacity1.png"/>
 
-                        <p class="room-name"><spring:message code="views.roomType.PERMANENT_ROOM.example.room.name"/></p>
+                        <p class="room-name"><spring:message code="views.help.roomType.PERMANENT_ROOM.example.room.name"/></p>
                     </div>
-                    <p><spring:message code="views.roomType.PERMANENT_ROOM.example.capacity1"/></p>
+                    <p><spring:message code="views.help.roomType.PERMANENT_ROOM.example.capacity1"/></p>
                 </div>
                 <div class="room-example">
                     <div class="room-image">
                         <img src="/img/room/permanent_room_capacity2.png"/>
 
-                        <p class="room-name"><spring:message code="views.roomType.PERMANENT_ROOM.example.room.name"/></p>
+                        <p class="room-name"><spring:message code="views.help.roomType.PERMANENT_ROOM.example.room.name"/></p>
                     </div>
-                    <p><spring:message code="views.roomType.PERMANENT_ROOM.example.capacity2"/></p>
+                    <p><spring:message code="views.help.roomType.PERMANENT_ROOM.example.capacity2"/></p>
                 </div>
             </div>
         </c:when>
