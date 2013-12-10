@@ -102,7 +102,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
     {
         NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
-        notificationMessage.appendTitle(" (by " + user.getFullName() + ")");
+        notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         return notificationMessage;
     }
 }

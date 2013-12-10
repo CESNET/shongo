@@ -149,7 +149,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     {
         NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
         if (user != null) {
-            notificationMessage.appendTitle(" (by " + user.getFullName() + ")");
+            notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         }
         return notificationMessage;
     }

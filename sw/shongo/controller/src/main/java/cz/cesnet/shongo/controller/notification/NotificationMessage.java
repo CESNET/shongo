@@ -150,8 +150,16 @@ public class NotificationMessage
         return notificationMessage;
     }
 
-    public void appendTitle(String title)
+    public void appendTitleAfter(String after, String text)
     {
-        this.title += title;
+        int index = this.title.lastIndexOf(after);
+        if (index == -1) {
+            throw new IllegalArgumentException("String '" + after + " wasn't found in title '" + title + "'.");
+        }
+        StringBuilder titleBuilder = new StringBuilder();
+        titleBuilder.append(this.title.substring(0, index + after.length()));
+        titleBuilder.append(text);
+        titleBuilder.append(this.title.substring(index + after.length()));
+        title = titleBuilder.toString();
     }
 }
