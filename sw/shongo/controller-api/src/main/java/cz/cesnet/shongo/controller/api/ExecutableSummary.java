@@ -266,7 +266,6 @@ public class ExecutableSummary extends IdentifiedComplexType
     private static final String ROOM_USAGE_LICENSE_COUNT = "roomUsageLicenseCount";
     private static final String ROOM_USAGE_COUNT = "roomUsageCount";
 
-
     @Override
     public DataMap toData()
     {

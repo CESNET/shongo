@@ -224,6 +224,20 @@ sub on_init()
         },
     });
 
+    switch ($class) {
+        case ['RoomExecutable', 'UsedRoomExecutable'] {
+            $self->add_attribute(
+                'participantConfiguration', {
+                    'title' => 'Participants',
+                    'format' => sub {
+                        my ($attribute_value) = @_;
+                        return $self->format_value($attribute_value->{'participants'});
+                    }
+                }
+            );
+        }
+    }
+
     return $self;
 }
 

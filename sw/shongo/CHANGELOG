@@ -4,6 +4,8 @@
 
     * Merge user identities by using Perun as provider of user information.
 
+    * Added help page with description of room types.
+
 0.6.0 (2013-10-18)
 
     * Reservation system web interface rewritten to Java from scratch.

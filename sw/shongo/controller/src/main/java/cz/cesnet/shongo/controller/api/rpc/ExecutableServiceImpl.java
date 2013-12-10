@@ -162,6 +162,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         cz.cesnet.shongo.controller.booking.executable.Executable.class, request.getRoomId()));
             }
 
+            // List only rooms with given user-id participant
+            if (request.getParticipantUserId() != null) {
+                queryFilter.addFilter("executable_summary.id IN("
+                        + " SELECT room_endpoint.id"
+                        + " FROM room_endpoint"
+                        + " LEFT JOIN used_room_endpoint ON used_room_endpoint.id = room_endpoint.id"
+                        + " LEFT JOIN room_endpoint_participants ON room_endpoint_participants.room_endpoint_id = room_endpoint.id OR room_endpoint_participants.room_endpoint_id = used_room_endpoint.room_endpoint_id"
+                        + " LEFT JOIN person_participant ON person_participant.id = room_endpoint_participants.abstract_participant_id"
+                        + " LEFT JOIN person ON person.id = person_participant.person_id"
+                        + " WHERE person.user_id = :participantUserId"
+                        + ")");
+                queryFilter.addFilterParameter("participantUserId", request.getParticipantUserId());
+            }
+
             // Sort query part
             String queryOrderBy;
             ExecutableListRequest.Sort sort = request.getSort();

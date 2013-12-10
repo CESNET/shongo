@@ -34,8 +34,8 @@ sub populate()
         },
         'list-executables' => {
             desc => 'List summary of all existing executables',
-            options => 'user=s',
-            args => '[-user=*|<user-id>]',
+            options => 'participant=s all',
+            args => '[-all] [-participant=<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_executables($params->{'options'});
@@ -113,9 +113,14 @@ sub list_executables()
     my ($options) = @_;
     my $filter = {};
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_hash_request('Executable.listExecutables', {
-        'history' => 1
-    });
+    my $request = {};
+    if ( defined($options->{'all'}) ) {
+        $request->{'history'} = 1;
+    }
+    if ( defined($options->{'participant'}) ) {
+        $request->{'participantUserId'} = $options->{'participant'};
+    }
+    my $response = $application->secure_hash_request('Executable.listExecutables', $request);
     if ( !defined($response) ) {
         return
     }

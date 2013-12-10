@@ -4,8 +4,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Represents a person that can have name and who can be contacted by email or phone.
@@ -13,6 +12,8 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Table(name = "person")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class AbstractPerson extends SimplePersistentObject implements Cloneable
 {
     /**
