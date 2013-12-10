@@ -40,7 +40,7 @@ public abstract class Authorization
         ROOT_USER_DATA = new UserData();
         UserInformation rootUserInformation = ROOT_USER_DATA.getUserInformation();
         rootUserInformation.setUserId(ROOT_USER_ID);
-        rootUserInformation.setFirstName("root");
+        rootUserInformation.setLastName("root");
     }
 
     /**

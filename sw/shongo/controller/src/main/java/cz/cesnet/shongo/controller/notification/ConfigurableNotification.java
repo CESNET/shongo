@@ -149,7 +149,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     @Override
-    protected final NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
     {
         List<Configuration> configurations = recipientConfigurations.get(recipient);
         if (configurations == null || configurations.size() == 0) {
@@ -157,7 +157,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
         else if (configurations.size() == 1) {
             // Single message
-            return getRenderedMessageForConfiguration(configurations.get(0));
+            return getRenderedMessageForConfiguration(configurations.get(0)).clone();
         }
         else {
             // Multiple messages

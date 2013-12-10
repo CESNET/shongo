@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -19,11 +20,14 @@ import java.util.Locale;
  */
 public class AllocationFailedNotification extends AbstractReservationRequestNotification
 {
+    private UserInformation user;
+
     private Interval requestedSlot;
 
     private Target target;
 
     private AllocationStateReport.UserError userError;
+
     private AllocationStateReport adminReport;
 
     /**
@@ -39,6 +43,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
+        this.user = authorizationManager.getUserInformation(getReservationRequestUpdatedBy());
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest, entityManager);
         this.userError = reservationRequest.getAllocationStateReport(Report.UserType.USER).toUserError();
@@ -91,5 +96,13 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         NotificationMessage message = renderMessageFromTemplate(
                 renderContext, titleBuilder.toString(), "allocation-failed.ftl");
         return message;
+    }
+
+    @Override
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    {
+        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
+        notificationMessage.appendTitle(" (by " + user.getFullName() + ")");
+        return notificationMessage;
     }
 }

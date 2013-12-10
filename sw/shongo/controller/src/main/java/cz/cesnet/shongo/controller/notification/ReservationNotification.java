@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -13,6 +15,7 @@ import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import org.hsqldb.lib.HsqlArrayHeap;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -25,6 +28,8 @@ import java.util.*;
  */
 public class ReservationNotification extends AbstractReservationRequestNotification
 {
+    private UserInformation user;
+
     private Type type;
 
     private String id;
@@ -52,6 +57,10 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
+        String updatedBy = getReservationRequestUpdatedBy();
+        if (updatedBy != null) {
+            this.user = authorizationManager.getUserInformation(updatedBy);
+        }
         this.type = type;
         this.id = EntityIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
@@ -133,6 +142,16 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
             templateFileName = "reservation.ftl";
         }
         return renderMessageFromTemplate(renderContext, titleBuilder.toString(), templateFileName);
+    }
+
+    @Override
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    {
+        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
+        if (user != null) {
+            notificationMessage.appendTitle(" (by " + user.getFullName() + ")");
+        }
+        return notificationMessage;
     }
 
     /**

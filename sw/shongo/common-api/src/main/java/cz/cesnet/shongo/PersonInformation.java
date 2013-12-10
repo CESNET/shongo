@@ -34,7 +34,7 @@ public interface PersonInformation
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(personInformation.getFullName());
             String organization = personInformation.getRootOrganization();
-            String email = personInformation.getPrimaryEmail();;
+            String email = personInformation.getPrimaryEmail();
             if (organization != null || email != null) {
                 stringBuilder.append(" (");
                 if (organization != null) {

@@ -61,19 +61,19 @@ public class DummyAuthorization extends Authorization
         USER1_DATA = new UserData();
         UserInformation user1Information = USER1_DATA.getUserInformation();
         user1Information.setUserId("1");
-        user1Information.setFirstName("test1");
+        user1Information.setLastName("test1");
         user1Information.setEmail("test1@cesnet.cz");
 
         USER2_DATA = new UserData();
         UserInformation user2Information = USER2_DATA.getUserInformation();
         user2Information.setUserId("2");
-        user2Information.setFirstName("test2");
+        user2Information.setLastName("test2");
         user2Information.setEmail("test2@cesnet.cz");
 
         USER3_DATA = new UserData();
         UserInformation user3Information = USER3_DATA.getUserInformation();
         user3Information.setUserId("3");
-        user3Information.setFirstName("test3");
+        user3Information.setLastName("test3");
         user3Information.setEmail("test3@cesnet.cz");
 
         userDataByAccessToken = new HashMap<String, UserData>();

@@ -228,6 +228,18 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
         return name;
     }
 
+    @Transient
+    public String getLastName()
+    {
+        int index = name.lastIndexOf(" ");
+        if (index != -1) {
+            return name.substring(index + 1);
+        }
+        else {
+            return name;
+        }
+    }
+
     @Override
     @Transient
     public String getRootOrganization()

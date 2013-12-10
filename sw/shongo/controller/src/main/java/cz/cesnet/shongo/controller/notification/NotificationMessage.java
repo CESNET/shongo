@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.util.ParametrizedString;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -46,6 +47,10 @@ public class NotificationMessage
     private String title;
 
     private StringBuilder content = new StringBuilder();
+
+    private NotificationMessage()
+    {
+    }
 
     public NotificationMessage(PersonInformation recipient, ControllerConfiguration configuration)
     {
@@ -133,5 +138,20 @@ public class NotificationMessage
         childContent.append("\n");
         childContent.append(message.getContent());
         content.append(childContent.toString().replaceAll("\n", "\n" + indent));
+    }
+
+    public NotificationMessage clone()
+    {
+        NotificationMessage notificationMessage = new NotificationMessage();
+        notificationMessage.userSettingsUrl = this.userSettingsUrl;
+        notificationMessage.languages.addAll(this.languages);
+        notificationMessage.title = this.title;
+        notificationMessage.content = this.content;
+        return notificationMessage;
+    }
+
+    public void appendTitle(String title)
+    {
+        this.title += title;
     }
 }

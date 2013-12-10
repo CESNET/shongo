@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.GeneratorException;
-import cz.cesnet.shongo.generator.PatternParser;
+import cz.cesnet.shongo.util.PatternParser;
 import org.apache.commons.jexl2.*;
 
 import java.util.Collection;

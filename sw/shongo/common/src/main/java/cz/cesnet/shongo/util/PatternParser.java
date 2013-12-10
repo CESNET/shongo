@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.generator;
+package cz.cesnet.shongo.util;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -61,7 +61,7 @@ public class PatternParser
     /**
      * @param text     source string in which the {@link #pattern} should be replaced.
      * @param callback to be called for each parsed value
-     * @return replaced string
+     * @return replaced string parts
      */
     public Collection<String> parse(String text, Callback callback)
     {
@@ -80,5 +80,19 @@ public class PatternParser
             textParts.add(callback.processString(text));
         }
         return textParts;
+    }
+
+    /**
+     * @param text     source string in which the {@link #pattern} should be replaced.
+     * @param callback to be called for each parsed value
+     * @return replaced string
+     */
+    public String parseAndJoin(String text, Callback callback)
+    {
+        StringBuilder result = new StringBuilder();
+        for (String part : parse(text, callback)) {
+            result.append(part);
+        }
+        return result.toString();
     }
 }

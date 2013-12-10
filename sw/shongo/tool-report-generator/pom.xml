@@ -17,6 +17,11 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>common</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
         <!-- Template engine for creating files -->
         <dependency>
             <groupId>org.freemarker</groupId>
