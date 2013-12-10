@@ -348,7 +348,7 @@ paginationModule.directive('paginationPageSize', function () {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
             var text = element.html();
-            var attributeClass = (attrs.class != null ? attrs.class : '');
+            var attributeClass = (attrs.class != null ? (' ' + attrs.class) : '');
             var optionUnlimited = '';
             if ( attrs.unlimited != null ) {
                 optionUnlimited = '<option value="-1">' + attrs.unlimited + '</option>';
@@ -358,7 +358,7 @@ paginationModule.directive('paginationPageSize', function () {
                 refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn" title="' + attrs.refresh +'"><span class="icon-refresh"></span></a>';
             }
             var html =
-                '<div class="' + attributeClass + '">' +
+                '<div class="pagination-page-size' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;' +
                 '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
                 '<option value="5" selected="true">5</option>' +
@@ -382,13 +382,13 @@ paginationModule.directive('paginationPages', function () {
             var text = element.html();
             var attributeClass = (attrs.class != null ? (' ' + attrs.class) : '');
             var html =
-                '<div class="pagination' + attributeClass + '" style="text-align: right;">' +
-                '<span ng-hide="pages.length == 1">' + text + ' ' +
-                '  <span ng-repeat="page in pages">' +
-                '    <a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
-                '    <span ng-show="page.active" class="page">{{$index + 1}}</span>' +
-                '  </span>' +
+                '<div class="pagination-pages' + attributeClass + '" style="text-align: right;">' +
+                '<div ng-hide="pages.length == 1">' + text + ' ' +
+                '<span ng-repeat="page in pages">' +
+                '<a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
+                '<span ng-show="page.active" class="page">{{$index + 1}}</span>' +
                 '</span>' +
+                '</div>' +
                 '</div>';
             element.replaceWith(html);
         }

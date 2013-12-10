@@ -98,7 +98,8 @@ public class RoomController
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ExecutableListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
-            @RequestParam(value = "room-id", required = false) String roomId)
+            @RequestParam(value = "room-id", required = false) String roomId,
+            @RequestParam(value = "participant-user-id", required = false) String participantUserId)
     {
         ExecutableListRequest request = new ExecutableListRequest();
         request.setSecurityToken(securityToken);
@@ -111,8 +112,13 @@ public class RoomController
             request.setRoomId(roomId);
         }
         else {
+            if (participantUserId != null) {
+                request.setRoomLicenseCount(ExecutableListRequest.FILTER_NON_ZERO);
+                request.addType(ExecutableSummary.Type.USED_ROOM);
+            }
             request.addType(ExecutableSummary.Type.ROOM);
         }
+        request.setParticipantUserId(participantUserId);
         ListResponse<ExecutableSummary> response = executableService.listExecutables(request);
 
         // Build response
@@ -122,6 +128,7 @@ public class RoomController
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", executableSummary.getId());
             item.put("name", executableSummary.getRoomName());
+            item.put("description", executableSummary.getRoomDescription());
 
             TechnologyModel technology =
                     TechnologyModel.find(executableSummary.getRoomTechnologies());
@@ -166,6 +173,25 @@ public class RoomController
         data.put("items", items);
         return data;
     }
+
+    /**
+     * Handle data request for list of rooms.
+     */
+    @RequestMapping(value = ClientWebUrl.ROOM_DATA, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleRoomListData(
+            UserSession userSession,
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId)
+    {
+        AbstractRoomExecutable roomExecutable =
+                (AbstractRoomExecutable) executableService.getExecutable(securityToken, roomId);
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("aliases", RoomModel.formatAliasesDescription(roomExecutable.getAliases(),
+                roomExecutable.getState().isAvailable(), new MessageProvider(messageSource, userSession.getLocale())));
+        return data;
+    }
+
 
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
     public ModelAndView handleRoomManagement(

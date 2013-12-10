@@ -34,6 +34,11 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     private String roomId;
 
     /**
+     * Room license count.
+     */
+    private String roomLicenseCount;
+
+    /**
      * Specifies user-id for user which must participates in returned {@link Executable}s.
      */
     private String participantUserId;
@@ -113,6 +118,22 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     }
 
     /**
+     * @return {@link #roomLicenseCount}
+     */
+    public String getRoomLicenseCount()
+    {
+        return roomLicenseCount;
+    }
+
+    /**
+     * @param roomLicenseCount sets the {@link #roomLicenseCount}
+     */
+    public void setRoomLicenseCount(String roomLicenseCount)
+    {
+        this.roomLicenseCount = roomLicenseCount;
+    }
+
+    /**
      * @return {@link #participantUserId}
      */
     public String getParticipantUserId()
@@ -143,6 +164,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     private static final String HISTORY = "history";
     private static final String TYPES = "types";
     private static final String ROOM_ID = "roomId";
+    private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
     private static final String PARTICIPANT_USER_ID = "participantUserId";
 
     @Override
@@ -152,6 +174,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         dataMap.set(HISTORY, history);
         dataMap.set(TYPES, types);
         dataMap.set(ROOM_ID, roomId);
+        dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
         dataMap.set(PARTICIPANT_USER_ID, participantUserId);
         return dataMap;
     }
@@ -163,6 +186,7 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         history = dataMap.getBool(HISTORY);
         types = (Set) dataMap.getSet(TYPES, ExecutableSummary.Type.class);
         roomId = dataMap.getString(ROOM_ID);
+        roomLicenseCount = dataMap.getString(ROOM_LICENSE_COUNT);
         participantUserId = dataMap.getString(PARTICIPANT_USER_ID);
     }
 }

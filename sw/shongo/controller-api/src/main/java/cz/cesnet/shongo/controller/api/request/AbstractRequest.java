@@ -22,6 +22,11 @@ public abstract class AbstractRequest extends AbstractComplexType
     public static final String FILTER_NOT_EMPTY = "*";
 
     /**
+     * When this value is set to an attribute filter it requests that the target value should be greater than zero.
+     */
+    public static final String FILTER_NON_ZERO = "+";
+
+    /**
      * {@link SecurityToken} of user who is requesting this request.
      */
     private SecurityToken securityToken;

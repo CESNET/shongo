@@ -277,6 +277,7 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
             participantConfiguration.addParticipant(participant.toApi());
         }
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
+        abstractRoomExecutableApi.setDescription(roomDescription);
     }
 
     @Override

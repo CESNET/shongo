@@ -35,6 +35,7 @@
             <add-attribute value="angular-resource.min.js"/>
             <add-attribute value="angular-sanitize.min.js"/>
             <add-attribute value="angular-tooltip.js"/>
+            <add-attribute value="angular-ui-bootstrap.min.js"/>
         </put-list-attribute>
     </definition>
 
@@ -204,7 +205,6 @@
             <add-attribute value="jquery-select2.css"/>
         </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular-ui-bootstrap.min.js"/>
             <add-attribute value="jquery-select2.min.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">

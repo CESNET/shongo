@@ -305,6 +305,7 @@ SELECT
     alias.value AS room_name,
     string_agg(DISTINCT room_configuration_technologies.technologies, ',') AS room_technologies,
     room_configuration.license_count AS room_license_count,
+    room_endpoint.room_description AS room_description,
     used_room_endpoint.room_endpoint_id AS room_id,
     room_endpoint_earliest_usage.slot_start AS room_usage_slot_start,
     room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,

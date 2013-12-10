@@ -129,14 +129,42 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         try {
             QueryFilter queryFilter = new QueryFilter("executable_summary", true);
 
-            // List only reservations which is current user permitted to read
-            queryFilter.addFilterId(authorization, securityToken, AclRecord.EntityType.EXECUTABLE, Permission.READ);
+            String participantUserId = request.getParticipantUserId();
+            if (participantUserId != null) {
+                // Do not filter executables by permissions because they will be filtered by participation,
+                // check only the existence of the participant user
+                authorization.checkUserExistence(participantUserId);
+
+
+                if (!participantUserId.equals(securityToken.getUserId()) && !authorization.isAdmin(securityToken)) {
+                    throw new ControllerReportSet.SecurityNotAuthorizedException(
+                            "read participation executables for user " + participantUserId);
+                }
+            }
+            else {
+                // List only executables which is current user permitted to read
+                queryFilter.addFilterId(authorization, securityToken, AclRecord.EntityType.EXECUTABLE, Permission.READ);
+            }
 
             // If history executables should not be included
             String filterExecutableId = "id IS NOT NULL";
             if (!request.isHistory()) {
                 // List only executables which are allocated by any existing reservation
                 filterExecutableId = "id IN(SELECT reservation.executable_id FROM reservation)";
+            }
+
+            // List only rooms with given user-id participant
+            if (request.getParticipantUserId() != null) {
+                queryFilter.addFilter("executable_summary.id IN("
+                        + " SELECT room_endpoint.id"
+                        + " FROM room_endpoint"
+                        + " LEFT JOIN used_room_endpoint ON used_room_endpoint.id = room_endpoint.id"
+                        + " LEFT JOIN room_endpoint_participants ON room_endpoint_participants.room_endpoint_id = room_endpoint.id OR room_endpoint_participants.room_endpoint_id = used_room_endpoint.room_endpoint_id"
+                        + " LEFT JOIN person_participant ON person_participant.id = room_endpoint_participants.abstract_participant_id"
+                        + " LEFT JOIN person ON person.id = person_participant.person_id"
+                        + " WHERE person.user_id = :participantUserId"
+                        + ")");
+                queryFilter.addFilterParameter("participantUserId", request.getParticipantUserId());
             }
 
             // List only executables of requested classes
@@ -162,18 +190,16 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         cz.cesnet.shongo.controller.booking.executable.Executable.class, request.getRoomId()));
             }
 
-            // List only rooms with given user-id participant
-            if (request.getParticipantUserId() != null) {
-                queryFilter.addFilter("executable_summary.id IN("
-                        + " SELECT room_endpoint.id"
-                        + " FROM room_endpoint"
-                        + " LEFT JOIN used_room_endpoint ON used_room_endpoint.id = room_endpoint.id"
-                        + " LEFT JOIN room_endpoint_participants ON room_endpoint_participants.room_endpoint_id = room_endpoint.id OR room_endpoint_participants.room_endpoint_id = used_room_endpoint.room_endpoint_id"
-                        + " LEFT JOIN person_participant ON person_participant.id = room_endpoint_participants.abstract_participant_id"
-                        + " LEFT JOIN person ON person.id = person_participant.person_id"
-                        + " WHERE person.user_id = :participantUserId"
-                        + ")");
-                queryFilter.addFilterParameter("participantUserId", request.getParticipantUserId());
+            // Filter room license count
+            String roomLicenseCount = request.getRoomLicenseCount();
+            if (roomLicenseCount != null) {
+                if (roomLicenseCount.equals(ExecutableListRequest.FILTER_NON_ZERO)) {
+                    queryFilter.addFilter("executable_summary.room_license_count > 0");
+                }
+                else {
+                    queryFilter.addFilter("executable_summary.room_license_count = :roomLicenseCount");
+                    queryFilter.addFilterParameter("roomLicenseCount", Long.parseLong(roomLicenseCount));
+                }
             }
 
             // Sort query part
@@ -224,11 +250,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executableSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
                 executableSummary.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
                         record[4].toString()).toApi());
+                executableSummary.setRoomDescription(record[8] != null ? (String) record[8] : null);
 
                 switch (executableSummary.getType()) {
                     case USED_ROOM:
                         executableSummary.setRoomId(
-                                EntityIdentifier.formatId(EntityType.EXECUTABLE, record[8].toString()));
+                                EntityIdentifier.formatId(EntityType.EXECUTABLE, record[9].toString()));
                     case ROOM:
                         executableSummary.setRoomName(record[5] != null ? record[5].toString() : null);
                         if (record[6] != null) {
@@ -240,19 +267,19 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             }
                         }
                         executableSummary.setRoomLicenseCount(((Number) record[7]).intValue());
-                        if (record[9] != null && record[10] != null) {
+                        if (record[10] != null && record[11] != null) {
                             executableSummary.setRoomUsageSlot(
-                                    new Interval(new DateTime(record[9]), new DateTime(record[10])));
-                        }
-                        if (record[11] != null) {
-                            executableSummary.setRoomUsageState(
-                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                                            record[11].toString()).toApi());
+                                    new Interval(new DateTime(record[10]), new DateTime(record[11])));
                         }
                         if (record[12] != null) {
-                            executableSummary.setRoomUsageLicenseCount(((Number) record[12]).intValue());
+                            executableSummary.setRoomUsageState(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
+                                            record[12].toString()).toApi());
                         }
-                        executableSummary.setRoomUsageCount(((Number) record[13]).intValue());
+                        if (record[13] != null) {
+                            executableSummary.setRoomUsageLicenseCount(((Number) record[13]).intValue());
+                        }
+                        executableSummary.setRoomUsageCount(((Number) record[14]).intValue());
                         break;
                 }
 

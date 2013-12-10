@@ -46,6 +46,11 @@ public class ExecutableSummary extends IdentifiedComplexType
     private Integer roomLicenseCount;
 
     /**
+     * Room description.
+     */
+    private String roomDescription;
+
+    /**
      * Used room id for {@link Type#USED_ROOM}.
      */
     private String roomId;
@@ -175,6 +180,22 @@ public class ExecutableSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #roomDescription}
+     */
+    public String getRoomDescription()
+    {
+        return roomDescription;
+    }
+
+    /**
+     * @param roomDescription sets the {@link #roomDescription}
+     */
+    public void setRoomDescription(String roomDescription)
+    {
+        this.roomDescription = roomDescription;
+    }
+
+    /**
      * @return {@link #roomId}
      */
     public String getRoomId()
@@ -260,6 +281,7 @@ public class ExecutableSummary extends IdentifiedComplexType
     private static final String ROOM_NAME = "roomName";
     private static final String ROOM_TECHNOLOGIES = "roomTechnologies";
     private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
+    private static final String ROOM_DESCRIPTION = "roomDescription";
     private static final String ROOM_ID = "roomId";
     private static final String ROOM_USAGE_SLOT = "roomUsageSlot";
     private static final String ROOM_USAGE_STATE = "roomUsageState";
@@ -276,6 +298,7 @@ public class ExecutableSummary extends IdentifiedComplexType
         dataMap.set(ROOM_NAME, roomName);
         dataMap.set(ROOM_TECHNOLOGIES, roomTechnologies);
         dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
+        dataMap.set(ROOM_DESCRIPTION, roomDescription);
         dataMap.set(ROOM_ID, roomId);
         dataMap.set(ROOM_USAGE_SLOT, roomUsageSlot);
         dataMap.set(ROOM_USAGE_STATE, roomUsageState);
@@ -294,6 +317,7 @@ public class ExecutableSummary extends IdentifiedComplexType
         roomName = dataMap.getString(ROOM_NAME);
         roomTechnologies = dataMap.getSet(ROOM_TECHNOLOGIES, Technology.class);
         roomLicenseCount = dataMap.getInteger(ROOM_LICENSE_COUNT);
+        roomDescription = dataMap.getString(ROOM_DESCRIPTION);
         roomId = dataMap.getString(ROOM_ID);
         roomUsageSlot = dataMap.getInterval(ROOM_USAGE_SLOT);
         roomUsageState = dataMap.getEnum(ROOM_USAGE_STATE, ExecutableState.class);

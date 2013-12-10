@@ -97,6 +97,7 @@ SELECT
     NULL AS room_name,
     NULL AS room_technologies,
     room_configuration.license_count AS room_license_count,
+    room_endpoint.room_description AS room_description,
     used_room_endpoint.room_endpoint_id AS room_id,
     0 AS room_usage_count,
     NULL AS room_usage_slot_start,

@@ -48,7 +48,7 @@ tooltipModule.directive('tooltip', function($compile) {
             if (selectable == "true") {
                 options["hide"] = {
                     fixed: true,
-                        delay: 300
+                    delay: 300
                 };
             }
             element.qtip(options);

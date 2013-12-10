@@ -28,6 +28,7 @@
         <security:intercept-url pattern="/login*" access="permitAll()"/>
         <security:intercept-url pattern="/report" access="permitAll()"/>
         <security:intercept-url pattern="/report/submit" access="permitAll()"/>
+        <security:intercept-url pattern="/error/submit" access="permitAll()"/>
 
         <!-- Other pages need login -->
         <security:intercept-url pattern="/**" access="isAuthenticated()"/>

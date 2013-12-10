@@ -29,6 +29,11 @@ public abstract class AbstractRoomExecutable extends Executable
     private int licenseCount;
 
     /**
+     * Description of the room.
+     */
+    private String description;
+
+    /**
      * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link EndpointExecutable}.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
@@ -89,6 +94,22 @@ public abstract class AbstractRoomExecutable extends Executable
     public void setLicenseCount(int licenseCount)
     {
         this.licenseCount = licenseCount;
+    }
+
+    /**
+     * @return {@link #description}
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * @param description sets the {@link #description}
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
 
     /**
@@ -199,6 +220,7 @@ public abstract class AbstractRoomExecutable extends Executable
 
     private static final String TECHNOLOGIES = "technologies";
     private static final String LICENSE_COUNT = "licenseCount";
+    private static final String DESCRIPTION = "description";
     private static final String ALIASES = "aliases";
     private static final String ROOM_SETTINGS = "roomSettings";
     private static final String PARTICIPANT_CONFIGURATION = "participantConfiguration";
@@ -209,6 +231,7 @@ public abstract class AbstractRoomExecutable extends Executable
         DataMap dataMap = super.toData();
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(LICENSE_COUNT, licenseCount);
+        dataMap.set(DESCRIPTION, description);
         dataMap.set(ALIASES, aliases);
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(PARTICIPANT_CONFIGURATION, participantConfiguration);
@@ -221,6 +244,7 @@ public abstract class AbstractRoomExecutable extends Executable
         super.fromData(dataMap);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         licenseCount = dataMap.getInt(LICENSE_COUNT);
+        description = dataMap.getString(DESCRIPTION);
         aliases = dataMap.getList(ALIASES, Alias.class);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         participantConfiguration = dataMap.getComplexType(
