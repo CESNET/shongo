@@ -41,7 +41,7 @@ public class AliasReservationTask extends ReservationTask
 
     /**
      * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
-     * will be assigned (so no permanent room should be allocated).
+     * will be assigned.
      */
     private DeviceResource targetResource;
 
