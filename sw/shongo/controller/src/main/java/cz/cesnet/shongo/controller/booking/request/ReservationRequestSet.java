@@ -118,17 +118,17 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    public ReservationRequestSet clone()
+    public ReservationRequestSet clone(EntityManager entityManager)
     {
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
-        reservationRequest.synchronizeFrom(this);
+        reservationRequest.synchronizeFrom(this, entityManager);
         return reservationRequest;
     }
 
     @Override
-    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest, EntityManager entityManager)
     {
-        boolean modified = super.synchronizeFrom(abstractReservationRequest);
+        boolean modified = super.synchronizeFrom(abstractReservationRequest, entityManager);
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
 

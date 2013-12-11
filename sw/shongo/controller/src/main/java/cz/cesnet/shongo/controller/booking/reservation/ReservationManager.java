@@ -153,7 +153,7 @@ public class ReservationManager extends AbstractManager
      * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
      * in given {@code interval}.
      *
-     * @param reusedReservation which must be referenced in the {@link ExistingReservation#reservation}
+     * @param reusedReservation which must be referenced in the {@link ExistingReservation#reusedReservation}
      * @param interval
      * @return list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
      */
@@ -161,7 +161,7 @@ public class ReservationManager extends AbstractManager
     {
         return entityManager.createQuery(
                 "SELECT reservation FROM ExistingReservation reservation"
-                        + " WHERE reservation.reservation = :reusedReservation"
+                        + " WHERE reservation.reusedReservation = :reusedReservation"
                         + " AND reservation.slotStart < :end"
                         + " AND reservation.slotEnd > :start",
                 ExistingReservation.class)
@@ -307,10 +307,7 @@ public class ReservationManager extends AbstractManager
         // Add top reservation requests by reused allocation
         List<AbstractReservationRequest> reservationRequestsWithReusedAllocation = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reusedAllocation = :allocation"
-                        + "    OR reservationRequest.specification IN("
-                        + "      SELECT roomSpecification FROM RoomSpecification roomSpecification"
-                        + "      WHERE roomSpecification.reusedAllocation = :allocation)",
+                        + " WHERE reservationRequest.reusedAllocation = :allocation",
                 AbstractReservationRequest.class)
                 .setParameter("allocation", allocation)
                 .getResultList();
@@ -336,7 +333,7 @@ public class ReservationManager extends AbstractManager
             // Add top reservation requests by existing reservations
             List<ExistingReservation> existingReservations = entityManager.createQuery(
                     "SELECT reservation FROM ExistingReservation reservation"
-                            + " WHERE reservation.reservation IN(:reservations)", ExistingReservation.class)
+                            + " WHERE reservation.reusedReservation IN(:reservations)", ExistingReservation.class)
                     .setParameter("reservations", reservations)
                     .getResultList();
             for (ExistingReservation reservation : existingReservations) {

@@ -1,17 +1,13 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
@@ -48,11 +44,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     private Integer participantCount;
 
     /**
-     * Specifies {@link Allocation} from which a {@link RoomEndpoint} should be reused.
-     *
-     * @see #isReusement
+     * Specifies whether some reusable {@link RoomEndpoint} should be reused.
      */
-    private Allocation reusedAllocation;
+    private boolean reusedRoom;
 
     /**
      * List of {@link cz.cesnet.shongo.controller.booking.room.settting.RoomSetting}s for the {@link RoomConfiguration}
@@ -117,20 +111,20 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @return {@link #reusedAllocation}
+     * @return {@link #reusedRoom}
      */
-    @ManyToOne
-    public Allocation getReusedAllocation()
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isReusedRoom()
     {
-        return reusedAllocation;
+        return reusedRoom;
     }
 
     /**
-     * @param reusedAllocation sets the {@link #reusedAllocation}
+     * @param reusedRoom sets the {@link #reusedRoom}
      */
-    public void setReusedAllocation(Allocation reusedAllocation)
+    public void setReusedRoom(boolean reusedRoom)
     {
-        this.reusedAllocation = reusedAllocation;
+        this.reusedRoom = reusedRoom;
     }
 
     /**
@@ -191,11 +185,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
-    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
+    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications, EntityManager entityManager)
     {
         this.aliasSpecifications.clear();
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            this.aliasSpecifications.add(aliasSpecification.clone());
+            this.aliasSpecifications.add(aliasSpecification.clone(entityManager));
         }
     }
 
@@ -249,11 +243,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param serviceSpecifications sets the {@link #serviceSpecifications}
      */
-    public void setServiceSpecifications(List<ExecutableServiceSpecification> serviceSpecifications)
+    public void setServiceSpecifications(List<ExecutableServiceSpecification> serviceSpecifications, EntityManager entityManager)
     {
         this.serviceSpecifications.clear();
         for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-            this.serviceSpecifications.add(serviceSpecification.clone());
+            this.serviceSpecifications.add(serviceSpecification.clone(entityManager));
         }
     }
 
@@ -265,45 +259,21 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     @Transient
     public boolean isPermanent()
     {
-        return participantCount == null && reusedAllocation == null;
-    }
-
-    /**
-     * TODO: describe what is reusement of a room
-     *
-     * @return true whether capacity should be allocated, false otherwise
-     */
-    @Transient
-    public boolean isReusement()
-    {
-        return participantCount != null && reusedAllocation != null;
-    }
-
-    @Transient
-    private RoomEndpoint getReusedRoomEndpoint()
-    {
-        if (reusedAllocation == null) {
-            return null;
-        }
-        Reservation reusedReservation = reusedAllocation.getCurrentReservation();
-        if (reusedReservation == null || !(reusedReservation.getExecutable() instanceof RoomEndpoint)) {
-            return null;
-        }
-        return (RoomEndpoint) reusedReservation.getExecutable();
+        return participantCount == null && !reusedRoom;
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         RoomSpecification roomSpecification = (RoomSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
-        modified |= !ObjectHelper.isSame(getReusedAllocation(), roomSpecification.getReusedAllocation());
+        modified |= !ObjectHelper.isSame(isReusedRoom(), roomSpecification.isReusedRoom());
         modified |= !ObjectHelper.isSame(getDeviceResource(), roomSpecification.getDeviceResource());
 
         setParticipantCount(roomSpecification.getParticipantCount());
-        setReusedAllocation(roomSpecification.getReusedAllocation());
+        setReusedRoom(roomSpecification.isReusedRoom());
         setDeviceResource(roomSpecification.getDeviceResource());
 
         if (!roomSettings.equals(roomSpecification.getRoomSettings())) {
@@ -312,7 +282,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
 
         if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
-            setAliasSpecifications(roomSpecification.getAliasSpecifications());
+            setAliasSpecifications(roomSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }
 
@@ -322,7 +292,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
 
         if (!serviceSpecifications.equals(roomSpecification.getServiceSpecifications())) {
-            setServiceSpecifications(roomSpecification.getServiceSpecifications());
+            setServiceSpecifications(roomSpecification.getServiceSpecifications(), entityManager);
             modified = true;
         }
 
@@ -344,11 +314,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.addParticipants(getParticipants());
         roomReservationTask.addServiceSpecifications(getServiceSpecifications());
 
-        RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
-        if (reusedAllocation != null && reusedRoomEndpoint == null) {
-            throw new SchedulerReportSet.RoomExecutableNotExistsException();
-        }
-        if (reusedRoomEndpoint != null) {
+        if (reusedRoom) {
+            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint(schedulerContext.getEntityManager());
+            if (reusedRoomEndpoint == null) {
+                throw new SchedulerReportSet.RoomExecutableNotExistsException();
+            }
             roomReservationTask.setReusedRoomEndpoint(reusedRoomEndpoint);
         }
         else {
@@ -369,7 +339,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         if (isPermanent()) {
             return new cz.cesnet.shongo.controller.api.PermanentRoomSpecification();
         }
-        else if (isReusement()) {
+        else if (isReusedRoom()) {
             return new cz.cesnet.shongo.controller.api.UsedRoomSpecification();
         }
         else {
@@ -423,11 +393,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             cz.cesnet.shongo.controller.api.UsedRoomSpecification usedRoomSpecificationApi =
                     (cz.cesnet.shongo.controller.api.UsedRoomSpecification) specificationApi;
 
-            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
-            if (reusedRoomEndpoint == null) {
-                throw new IllegalStateException("Reused room endpoint must be defined.");
-            }
-            usedRoomSpecificationApi.setReusedRoomExecutableId(EntityIdentifier.formatId(reusedRoomEndpoint));
             usedRoomSpecificationApi.setParticipantCount(getParticipantCount());
             for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
                 usedRoomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
@@ -533,6 +498,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
             serviceSpecifications = roomSpecificationApi.getServiceSpecifications();
 
+            setReusedRoom(false);
             setParticipantCount(roomSpecificationApi.getParticipantCount());
         }
         // Load UsedRoomSpecification
@@ -541,40 +507,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     (cz.cesnet.shongo.controller.api.UsedRoomSpecification) specificationApi;
             serviceSpecifications = usedRoomSpecificationApi.getServiceSpecifications();
 
-            EntityIdentifier entityIdentifier =
-                    EntityIdentifier.parse(usedRoomSpecificationApi.getReusedRoomExecutableId());
-            if (entityIdentifier.getEntityType().equals(EntityType.RESERVATION_REQUEST)) {
-                ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-                ReservationRequest reservationRequest =
-                        reservationRequestManager.getReservationRequest(entityIdentifier.getPersistenceId());
-                setReusedAllocation(reservationRequest.getAllocation());
-            }
-            else if (entityIdentifier.getEntityType().equals(EntityType.EXECUTABLE)) {
-                Long reusedRoomEndpointId = entityIdentifier.getPersistenceId();
-                ExecutableManager executableManager = new ExecutableManager(entityManager);
-                Executable executable = executableManager.get(reusedRoomEndpointId);
-                if (!(executable instanceof RoomEndpoint)) {
-                    throw new CommonReportSet.EntityNotExistsException(
-                            RoomEndpoint.class.getSimpleName(), reusedRoomEndpointId.toString());
-                }
-                Reservation reservation = executableManager.getReservation(executable);
-                if (reservation == null || reservation.getAllocation() == null) {
-                    throw new ControllerReportSet.ExecutableNotReusableException(reusedRoomEndpointId.toString());
-                }
-                setReusedAllocation(reservation.getAllocation());
-            }
-            else {
-                throw new CommonReportSet.EntityNotExistsException(
-                        RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
-            }
-            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
-            if (reusedRoomEndpoint == null) {
-                throw new CommonReportSet.EntityNotExistsException(
-                        RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
-            }
+            setReusedRoom(true);
             setParticipantCount(usedRoomSpecificationApi.getParticipantCount());
         }
         else {
+            setReusedRoom(false);
             setParticipantCount(null);
         }
 
@@ -612,12 +549,33 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public void updateTechnologies()
+    public void updateTechnologies(EntityManager entityManager)
     {
-        RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
-        if (reusedRoomEndpoint != null) {
-            setTechnologies(reusedRoomEndpoint.getTechnologies());
+        if (reusedRoom) {
+            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint(entityManager);
+            if (reusedRoomEndpoint != null) {
+                setTechnologies(reusedRoomEndpoint.getTechnologies());
+            }
         }
+    }
+
+    @Transient
+    private RoomEndpoint getReusedRoomEndpoint(EntityManager entityManager)
+    {
+        if (this.id == null) {
+            return null;
+        }
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = reservationRequestManager.getBySpecification(this);
+        Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+        if (reusedAllocation == null) {
+            return null;
+        }
+        Reservation reusedReservation = reusedAllocation.getCurrentReservation();
+        if (reusedReservation == null || !(reusedReservation.getExecutable() instanceof RoomEndpoint)) {
+            return null;
+        }
+        return (RoomEndpoint) reusedReservation.getExecutable();
     }
 
     /**

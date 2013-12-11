@@ -293,6 +293,26 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param specification of the {@link AbstractReservationRequest}
+     * @return {@link AbstractReservationRequest} with given {@code specification} or {@code null}
+     */
+    public AbstractReservationRequest getBySpecification(Specification specification)
+            throws CommonReportSet.EntityNotExistsException
+    {
+        try {
+            return entityManager.createQuery(
+                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.specification.id = :specificationId",
+                    AbstractReservationRequest.class)
+                    .setParameter("specificationId", specification.getId())
+                    .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
+
+    /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
      * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
@@ -367,10 +387,7 @@ public class ReservationRequestManager extends AbstractManager
         List<AbstractReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :stateActive"
-                        + " AND (reservationRequest.reusedAllocation = :allocation"
-                        + "   OR reservationRequest.specification IN("
-                        + "     SELECT roomSpecification FROM RoomSpecification roomSpecification"
-                        + "     WHERE roomSpecification.reusedAllocation = :allocation))",
+                        + " AND reservationRequest.reusedAllocation = :allocation",
                 AbstractReservationRequest.class)
                 .setParameter("stateActive", AbstractReservationRequest.State.ACTIVE)
                 .setParameter("allocation", allocation)
@@ -391,10 +408,7 @@ public class ReservationRequestManager extends AbstractManager
                         + " AND reservationRequest.allocationState = :allocationState"
                         + " AND reservationRequest.slotStart < :end"
                         + " AND reservationRequest.slotEnd > :start"
-                        + " AND (reservationRequest.reusedAllocation = :allocation"
-                        + "   OR reservationRequest.specification IN("
-                        + "     SELECT roomSpecification FROM RoomSpecification roomSpecification"
-                        + "     WHERE roomSpecification.reusedAllocation = :allocation))",
+                        + " AND reservationRequest.reusedAllocation = :allocation",
                 ReservationRequest.class)
                 .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
                 .setParameter("allocationState", ReservationRequest.AllocationState.ALLOCATED)

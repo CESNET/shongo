@@ -219,7 +219,7 @@ public abstract class Target
         private List<cz.cesnet.shongo.controller.booking.alias.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.booking.alias.Alias>();
 
-        public Room(RoomSpecification roomSpecification, EntityManager entityManager)
+        public Room(RoomSpecification roomSpecification, Target reusedTarget, EntityManager entityManager)
         {
             Integer participantCount = roomSpecification.getParticipantCount();
             if (participantCount != null) {
@@ -255,21 +255,9 @@ public abstract class Target
                     }
                 }
             }
-            Allocation reusedAllocation = roomSpecification.getReusedAllocation();
-            if (reusedAllocation != null) {
-                Reservation reusedReservation = reusedAllocation.getCurrentReservation();
-                Target reusedTarget;
-                if (reusedReservation != null) {
-                    reusedTarget = createInstance(reusedReservation, entityManager);
-
-                }
-                else {
-                    reusedTarget = createInstance(reusedAllocation.getReservationRequest(), entityManager);
-                }
-                if (reusedTarget instanceof Room) {
-                    reusedRoom = (Room) reusedTarget;
-                    name = reusedRoom.getName();
-                }
+            if (reusedTarget instanceof Room) {
+                reusedRoom = (Room) reusedTarget;
+                name = reusedRoom.getName();
             }
         }
 
@@ -455,7 +443,15 @@ public abstract class Target
             return new Alias((AliasSetSpecification) specification);
         }
         else if (specification instanceof RoomSpecification) {
-            return new Room((RoomSpecification) specification, entityManager);
+            Target reusedTarget = null;
+            Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+            if (reusedAllocation != null) {
+                Reservation reusedReservation = reusedAllocation.getCurrentReservation();
+                if (reusedReservation != null) {
+                    reusedTarget = createInstance(reusedReservation, entityManager);
+                }
+            }
+            return new Room((RoomSpecification) specification, reusedTarget, entityManager);
         }
         else {
             return new Other(specification);

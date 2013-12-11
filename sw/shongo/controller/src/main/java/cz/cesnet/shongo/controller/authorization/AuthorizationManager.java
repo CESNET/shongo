@@ -537,7 +537,7 @@ public class AuthorizationManager extends AbstractManager
             // Reused reservation
             if (reservation instanceof ExistingReservation) {
                 ExistingReservation existingReservation = (ExistingReservation) reservation;
-                Reservation reusedReservation = existingReservation.getReservation();
+                Reservation reusedReservation = existingReservation.getReusedReservation();
                 createChildAclRecord(aclRecord, userId, reusedReservation, Role.READER,
                         AclRecordDependency.Type.DELETE_CASCADE);
             }

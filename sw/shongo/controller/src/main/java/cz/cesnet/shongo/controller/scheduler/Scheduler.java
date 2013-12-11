@@ -6,10 +6,13 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.SwitchableComponent;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -179,8 +182,7 @@ public class Scheduler extends SwitchableComponent
                     entityManager.getTransaction().begin();
 
                     // Reload the request (rollback may happened)
-                    reservationRequest = reservationRequestManager.getReservationRequest(
-                            reservationRequest.getId());
+                    reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
                     SchedulerContext schedulerContext = new SchedulerContext(
@@ -192,7 +194,7 @@ public class Scheduler extends SwitchableComponent
                     while (iterator.hasNext()) {
                         ReservationRequest reservationRequestToReallocate = iterator.next();
                         allocateReservationRequest(reservationRequestToReallocate, schedulerContext, notifications);
-                        reservationRequestToReallocate.getSpecification().updateTechnologies();
+                        reservationRequestToReallocate.getSpecification().updateTechnologies(entityManager);
                     }
 
                     // Finalize (delete old reservations, etc)
@@ -287,7 +289,7 @@ public class Scheduler extends SwitchableComponent
     {
         if (reservation instanceof ExistingReservation) {
             ExistingReservation existingReservation = (ExistingReservation) reservation;
-            Reservation referencedReservation = existingReservation.getReservation();
+            Reservation referencedReservation = existingReservation.getReusedReservation();
             referencedReservations.add(referencedReservation);
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
@@ -348,8 +350,9 @@ public class Scheduler extends SwitchableComponent
 
         // Fill allocated reservation from reused reservation request as reusable
         Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+        Reservation reusableReservation = null;
         if (reusedAllocation != null) {
-            Reservation reusableReservation = schedulerContext.getReusableReservation(reusedAllocation);
+            reusableReservation = schedulerContext.getReusableReservation(reusedAllocation);
             schedulerContext.addAvailableReservation(reusableReservation, AvailableReservation.Type.REUSABLE);
         }
 
@@ -366,6 +369,37 @@ public class Scheduler extends SwitchableComponent
 
         // Allocate reservation
         Reservation allocatedReservation = reservationTask.perform();
+
+        // Check mandatory reusable reservation
+        if (reusableReservation != null && reservationRequest.isReusedAllocationMandatory()) {
+            boolean reused = false;
+            Executable reusableExecutable = reusableReservation.getExecutable();
+            for (Reservation reservation : schedulerContext.getAllocatedReservations()) {
+                if (reservation instanceof ExistingReservation) {
+                    ExistingReservation existingReservation = (ExistingReservation) reservation;
+                    if (existingReservation.getReusedReservation().equals(reusableReservation)) {
+                        reused = true;
+                        break;
+                    }
+                }
+            }
+            if (!reused && reusableExecutable instanceof RoomEndpoint) {
+                for (Reservation reservation : schedulerContext.getAllocatedReservations()) {
+                    Executable executable = reservation.getExecutable();
+                    if (executable instanceof UsedRoomEndpoint) {
+                        UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
+                        if (usedRoomEndpoint.getReusedRoomEndpoint().equals(reusableExecutable)) {
+                            reused = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!reused) {
+                throw new SchedulerReportSet.ReservationWithoutMandatoryUsageException(
+                        reusedAllocation.getReservationRequest());
+            }
+        }
 
         // Create allocated reservation
         boolean isNew = !allocatedReservation.isPersisted();

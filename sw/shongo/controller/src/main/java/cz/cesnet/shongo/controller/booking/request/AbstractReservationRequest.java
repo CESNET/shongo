@@ -30,7 +30,7 @@ import java.util.Map;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractReservationRequest extends PersistentObject implements Cloneable, ReportableSimple
+public abstract class AbstractReservationRequest extends PersistentObject implements ReportableSimple
 {
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
@@ -99,6 +99,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * this {@link #allocation}.
      */
     private Allocation reusedAllocation;
+
+    /**
+     * Specifies whether usage of {@link #reusedAllocation} is mandatory or optional.
+     */
+    private boolean reusedAllocationMandatory;
 
     /**
      * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
@@ -331,6 +336,23 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @return {@link #reusedAllocationMandatory}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isReusedAllocationMandatory()
+    {
+        return reusedAllocationMandatory;
+    }
+
+    /**
+     * @param reusedAllocationMandatory sets the {@link #reusedAllocationMandatory}
+     */
+    public void setReusedAllocationMandatory(boolean reusedAllocationMandatory)
+    {
+        this.reusedAllocationMandatory = reusedAllocationMandatory;
+    }
+
+    /**
      * @return {@link #reusement}
      */
     @Column(nullable = false)
@@ -378,18 +400,20 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @param entityManager
      * @return new cloned instance of this {@link AbstractReservationRequest}
      */
-    @Override
-    public abstract AbstractReservationRequest clone();
+    public abstract AbstractReservationRequest clone(EntityManager entityManager);
 
     /**
      * Synchronize properties from given {@code abstractReservationRequest}.
      *
-     * @param reservationRequest from which will be copied all properties values to this {@link AbstractReservationRequest}
+     *
+     * @param reservationRequest from which will be copied all properties values to this {@link cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest}
+     * @param entityManager
      * @return true if some modification was made
      */
-    public boolean synchronizeFrom(AbstractReservationRequest reservationRequest)
+    public boolean synchronizeFrom(AbstractReservationRequest reservationRequest, EntityManager entityManager)
     {
         boolean modified = !ObjectHelper.isSame(getCreatedBy(), reservationRequest.getCreatedBy())
                 || !ObjectHelper.isSame(getUpdatedBy(), reservationRequest.getUpdatedBy())
@@ -398,6 +422,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
                 || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain())
                 || !ObjectHelper.isSame(getReusedAllocation(), reservationRequest.getReusedAllocation())
+                || !ObjectHelper.isSame(isReusedAllocationMandatory(), reservationRequest.isReusedAllocationMandatory())
                 || !ObjectHelper.isSame(getReusement(), reservationRequest.getReusement());
         setCreatedBy(reservationRequest.getCreatedBy());
         setUpdatedBy(reservationRequest.getUpdatedBy());
@@ -406,18 +431,19 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         setDescription(reservationRequest.getDescription());
         setInterDomain(reservationRequest.isInterDomain());
         setReusedAllocation(reservationRequest.getReusedAllocation());
+        setReusedAllocationMandatory(reservationRequest.isReusedAllocationMandatory());
         setReusement(reservationRequest.getReusement());
 
         Specification oldSpecification = getSpecification();
         Specification newSpecification = reservationRequest.getSpecification();
         if (oldSpecification == null || !oldSpecification.getClass().equals(newSpecification.getClass())) {
             // Setup new specification
-            setSpecification(newSpecification.clone());
+            setSpecification(newSpecification.clone(entityManager));
             modified = true;
         }
         else {
             // Check specification for modifications
-            modified |= oldSpecification.synchronizeFrom(newSpecification);
+            modified |= oldSpecification.synchronizeFrom(newSpecification, entityManager);
         }
 
         return modified;
@@ -504,7 +530,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         api.setSpecification(getSpecification().toApi());
         api.setInterDomain(isInterDomain());
         if (reusedAllocation != null) {
-            api.setReusedReservationRequestId(EntityIdentifier.formatId(reusedAllocation.getReservationRequest()));
+            api.setReusedReservationRequestId(
+                    EntityIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
         }
         api.setReusement(getReusement());
 
@@ -559,6 +586,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
             }
             setReusedAllocation(reusedReservationRequest.getAllocation());
         }
+        setReusedAllocationMandatory(api.isReusedReservationRequestMandatory());
         setReusement(api.getReusement());
     }
 

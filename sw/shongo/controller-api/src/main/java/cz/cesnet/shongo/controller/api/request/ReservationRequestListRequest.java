@@ -29,8 +29,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     private AllocationState allocationState;
 
-    private String roomReusedReservationRequestId;
-
     public ReservationRequestListRequest()
     {
         super(Sort.class);
@@ -124,16 +122,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         this.allocationState = allocationState;
     }
 
-    public String getRoomReusedReservationRequestId()
-    {
-        return roomReusedReservationRequestId;
-    }
-
-    public void setRoomReusedReservationRequestId(String roomReusedReservationRequestId)
-    {
-        this.roomReusedReservationRequestId = roomReusedReservationRequestId;
-    }
-
     public static enum Sort
     {
         ALIAS_ROOM_NAME,
@@ -154,7 +142,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String SPECIFICATION_TYPES = "specificationTypes";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String ALLOCATION_STATE = "allocationState";
-    private static final String ROOM_REUSED_RESERVATION_REQUEST_ID = "roomReusedReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -166,7 +153,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(SPECIFICATION_TYPES, specificationTypes);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(ALLOCATION_STATE, allocationState);
-        dataMap.set(ROOM_REUSED_RESERVATION_REQUEST_ID, roomReusedReservationRequestId);
         return dataMap;
     }
 
@@ -181,6 +167,5 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
                 SPECIFICATION_TYPES, ReservationRequestSummary.SpecificationType.class);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
-        roomReusedReservationRequestId = dataMap.getString(ROOM_REUSED_RESERVATION_REQUEST_ID);
     }
 }

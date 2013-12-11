@@ -12,6 +12,8 @@ SELECT
     specification.id AS id,
     GROUP_CONCAT(specification_technologies.technologies SEPARATOR ',') AS technologies,
     CASE 
+        WHEN room_specification.id IS NOT NULL AND room_specification.participant_count IS NULL THEN 'PERMANENT_ROOM'
+        WHEN room_specification.id IS NOT NULL AND room_specification.reused_room THEN 'USED_ROOM'
         WHEN room_specification.id IS NOT NULL THEN 'ROOM'
         WHEN alias_specification.id IS NOT NULL OR alias_set_specification.id IS NOT NULL THEN 'ALIAS'
         WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
@@ -19,12 +21,10 @@ SELECT
     END AS type,
     NULL AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
-    allocation.abstract_reservation_request_id AS room_reused_reservation_request_id,
     resource_specification.resource_id AS resource_id
 FROM specification
 LEFT JOIN specification_technologies ON specification_technologies.specification_id = specification.id
 LEFT JOIN room_specification ON room_specification.id = specification.id
-LEFT JOIN allocation ON allocation.id = room_specification.allocation_id
 LEFT JOIN resource_specification ON resource_specification.id = specification.id
 LEFT JOIN alias_specification ON alias_specification.id = specification.id
 LEFT JOIN alias_set_specification ON alias_set_specification.id = specification.id
@@ -33,8 +33,6 @@ GROUP BY
     alias_specification.id,
     alias_set_specification.id,
     room_specification.id,
-    room_specification.participant_count,
-    allocation.abstract_reservation_request_id,
     resource_specification.id;
 
 /**

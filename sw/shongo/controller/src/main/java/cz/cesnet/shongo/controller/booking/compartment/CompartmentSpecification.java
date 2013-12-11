@@ -144,7 +144,7 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public void updateTechnologies()
+    public void updateTechnologies(EntityManager entityManager)
     {
         clearTechnologies();
         for (AbstractParticipant participant : participants) {
@@ -177,11 +177,11 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());

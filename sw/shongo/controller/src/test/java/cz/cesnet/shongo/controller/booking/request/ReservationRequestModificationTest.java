@@ -290,15 +290,14 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
-        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
-        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomExecutableId = permanentRoomExecutable.getId();
+        checkAllocated(permanentRoomReservationRequestId);
 
         // Allocate a permanent room capacity
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        reservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        reservationRequest.setSpecification(new UsedRoomSpecification(5));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

@@ -194,7 +194,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
             Assert.assertEquals(1, reservationRequests1.size());
 
             // Modify reservation request set
-            ReservationRequestSet newReservationRequest = oldReservationRequest.clone();
+            ReservationRequestSet newReservationRequest = oldReservationRequest.clone(entityManager);
             newReservationRequest.addSlot("2012-02-01", "PT1H");
             newReservationRequest.setSpecification(new MultiCompartmentSpecification());
             reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
@@ -212,7 +212,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
             oldReservationRequest = newReservationRequest;
 
             // Modify reservation request set
-            newReservationRequest = oldReservationRequest.clone();
+            newReservationRequest = oldReservationRequest.clone(entityManager);
             newReservationRequest.addSlot("2012-03-01", "PT1H");
             reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
 

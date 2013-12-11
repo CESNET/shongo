@@ -16,7 +16,7 @@ public class ExistingReservation extends Reservation
     /**
      * Existing {@link Reservation}.
      */
-    private Reservation reservation;
+    private Reservation reusedReservation;
 
     /**
      * Constructor.
@@ -26,28 +26,28 @@ public class ExistingReservation extends Reservation
     }
 
     /**
-     * @return {@link #reservation}
+     * @return {@link #reusedReservation}
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public Reservation getReservation()
+    public Reservation getReusedReservation()
     {
-        return reservation;
+        return reusedReservation;
     }
 
     /**
-     * @param reservation sets the {@link #reservation}
+     * @param reservation sets the {@link #reusedReservation}
      */
-    public void setReservation(Reservation reservation)
+    public void setReusedReservation(Reservation reservation)
     {
-        this.reservation = reservation;
+        this.reusedReservation = reservation;
     }
 
     @Override
     @Transient
     public Reservation getAllocationReservation()
     {
-        return reservation;
+        return reusedReservation;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class ExistingReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.ExistingReservation existingReservationApi =
                 (cz.cesnet.shongo.controller.api.ExistingReservation) api;
-        existingReservationApi.setReservation(getReservation().toApi(admin));
+        existingReservationApi.setReservation(getReusedReservation().toApi(admin));
         super.toApi(api, admin);
     }
 }

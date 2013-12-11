@@ -13,11 +13,6 @@ import java.util.List;
 public class UsedRoomSpecification extends AbstractRoomSpecification
 {
     /**
-     * Shongo-id for reused {@link RoomExecutable} or {@link ReservationRequest} that allocates the {@link RoomExecutable}.
-     */
-    private String reusedRoomExecutableId;
-
-    /**
      * Number of ports which must be allocated for the virtual room.
      */
     private Integer participantCount;
@@ -37,29 +32,11 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
     /**
      * Constructor.
      *
-     * @param reusedRoomExecutableId sets the {@link #reusedRoomExecutableId}
      * @param participantCount sets the {@link #participantCount}
      */
-    public UsedRoomSpecification(String reusedRoomExecutableId, int participantCount)
+    public UsedRoomSpecification(int participantCount)
     {
-        setReusedRoomExecutableId(reusedRoomExecutableId);
         setParticipantCount(participantCount);
-    }
-
-    /**
-     * @return {@link #reusedRoomExecutableId}
-     */
-    public String getReusedRoomExecutableId()
-    {
-        return reusedRoomExecutableId;
-    }
-
-    /**
-     * @param reusedRoomExecutableId sets the {@link #reusedRoomExecutableId}
-     */
-    public void setReusedRoomExecutableId(String reusedRoomExecutableId)
-    {
-        this.reusedRoomExecutableId = reusedRoomExecutableId;
     }
 
     /**
@@ -102,7 +79,6 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(REUSED_ROOM_EXECUTABLE_ID, reusedRoomExecutableId);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
         dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
@@ -112,7 +88,6 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        reusedRoomExecutableId = dataMap.getStringRequired(REUSED_ROOM_EXECUTABLE_ID);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }

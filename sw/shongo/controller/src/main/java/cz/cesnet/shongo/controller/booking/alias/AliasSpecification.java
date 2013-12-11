@@ -211,7 +211,7 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public void updateTechnologies()
+    public void updateTechnologies(EntityManager entityManager)
     {
         clearTechnologies();
         addTechnologies(aliasTechnologies);
@@ -225,17 +225,17 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public AliasSpecification clone()
+    public AliasSpecification clone(EntityManager entityManager)
     {
-        return (AliasSpecification) super.clone();
+        return (AliasSpecification) super.clone(entityManager);
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())

@@ -41,11 +41,11 @@ public class AliasSetSpecification extends Specification
     /**
      * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
-    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
+    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications, EntityManager entityManager)
     {
         this.aliasSpecifications.clear();
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            this.aliasSpecifications.add(aliasSpecification.clone());
+            this.aliasSpecifications.add(aliasSpecification.clone(entityManager));
         }
     }
 
@@ -66,7 +66,7 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public void updateTechnologies()
+    public void updateTechnologies(EntityManager entityManager)
     {
         clearTechnologies();
         for (AliasSpecification specification : aliasSpecifications) {
@@ -75,14 +75,14 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
 
         if (!aliasSpecifications.equals(aliasSetSpecification.getAliasSpecifications())) {
-            setAliasSpecifications(aliasSetSpecification.getAliasSpecifications());
+            setAliasSpecifications(aliasSetSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }
 

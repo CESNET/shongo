@@ -89,18 +89,21 @@ public abstract class Specification extends SimplePersistentObject implements Re
 
     /**
      * Update {@link #technologies} for this {@link Specification}.
+     * @param entityManager
      */
-    public void updateTechnologies()
+    public void updateTechnologies(EntityManager entityManager)
     {
     }
 
     /**
      * Synchronize properties from given {@code specification}.
      *
-     * @param specification from which will be copied all properties values to this {@link Specification}
+     *
+     * @param specification from which will be copied all properties values to this {@link cz.cesnet.shongo.controller.booking.specification.Specification}
+     * @param entityManager
      * @return true if some modification was made, false otherwise
      */
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         boolean modified = false;
         if (!technologies.equals(specification.getTechnologies())) {
@@ -120,7 +123,7 @@ public abstract class Specification extends SimplePersistentObject implements Re
 
             // Add new child specifications
             for (Specification newSpecification : compositeSpecificationFrom.getChildSpecifications()) {
-                compositeSpecification.addChildSpecification(newSpecification.clone());
+                compositeSpecification.addChildSpecification(newSpecification.clone(entityManager));
                 modified = true;
             }
         }
@@ -132,11 +135,11 @@ public abstract class Specification extends SimplePersistentObject implements Re
      *         {@link CompositeSpecification} (it can contain children) the child specifications
      *         should be recursively cloned too.
      */
-    public Specification clone()
+    public Specification clone(EntityManager entityManager)
     {
         Specification specification = ClassHelper.createInstanceFromClass(getClass());
-        specification.synchronizeFrom(this);
-        specification.updateTechnologies();
+        specification.synchronizeFrom(this, entityManager);
+        specification.updateTechnologies(entityManager);
         return specification;
     }
 
@@ -208,7 +211,7 @@ public abstract class Specification extends SimplePersistentObject implements Re
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
         // Update current technologies
-        updateTechnologies();
+        updateTechnologies(entityManager);
     }
 
     /**

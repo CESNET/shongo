@@ -408,10 +408,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * Load attributes from given {@code specification}.
      *
      * @param specification
-     * @param reusedReservationRequestId
      */
-    public void fromSpecificationApi(Specification specification, String reusedReservationRequestId,
-            CacheProvider cacheProvider)
+    public void fromSpecificationApi(Specification specification, CacheProvider cacheProvider)
     {
         if (specification instanceof AbstractRoomSpecification) {
             AbstractRoomSpecification abstractRoomSpecification = (AbstractRoomSpecification) specification;
@@ -464,9 +462,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
             roomParticipantCount = usedRoomSpecification.getParticipantCount();
-            Executable permanentRoom = cacheProvider.getExecutable(usedRoomSpecification.getReusedRoomExecutableId());
-            permanentRoomReservationRequestId = cacheProvider.getReservationRequestIdByExecutable(permanentRoom);
-
         }
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
@@ -504,7 +499,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
-        fromSpecificationApi(specification, abstractReservationRequest.getReusedReservationRequestId(), cacheProvider);
+        fromSpecificationApi(specification, cacheProvider);
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            permanentRoomReservationRequestId = abstractReservationRequest.getReusedReservationRequestId();
+        }
 
         // Date/time slot and periodicity
         Period duration;
@@ -636,7 +634,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
             case PERMANENT_ROOM_CAPACITY: {
                 UsedRoomSpecification usedRoomSpecification = new UsedRoomSpecification();
-                usedRoomSpecification.setReusedRoomExecutableId(permanentRoomReservationRequestId);
                 usedRoomSpecification.setParticipantCount(roomParticipantCount);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     usedRoomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
@@ -767,6 +764,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             abstractReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        }
+        else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
         }
 
         // Create specification
@@ -1027,7 +1027,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         // List reservation requests which reuse the reservation request to be deleted
         ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
         reservationRequestListRequest.setSecurityToken(securityToken);
-        reservationRequestListRequest.setRoomReusedReservationRequestId(reservationRequestId);
+        reservationRequestListRequest.setReusedReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequestSummary> reservationRequests =
                 reservationService.listReservationRequests(reservationRequestListRequest);
         return reservationRequests.getItems();

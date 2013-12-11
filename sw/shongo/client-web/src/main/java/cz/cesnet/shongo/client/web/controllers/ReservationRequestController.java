@@ -85,7 +85,7 @@ public class ReservationRequestController
         request.setSortDescending(sortDescending);
         request.setAllocationState(allocationState);
         if (permanentRoomId != null) {
-            request.setRoomReusedReservationRequestId(permanentRoomId);
+            request.setReusedReservationRequestId(permanentRoomId);
             specificationTypes.add(SpecificationType.PERMANENT_ROOM_CAPACITY);
         }
         if (specificationTypes != null && specificationTypes.size() > 0) {
@@ -103,7 +103,7 @@ public class ReservationRequestController
 
         Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
-            String reusedReservationRequestId = reservationRequest.getRoomReusedReservationRequestId();
+            String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
@@ -175,7 +175,7 @@ public class ReservationRequestController
                 }
                 case PERMANENT_ROOM_CAPACITY:
                 {
-                    String reusedReservationRequestId = reservationRequest.getRoomReusedReservationRequestId();
+                    String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
                     item.put("roomReservationRequestId", reusedReservationRequestId);
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(

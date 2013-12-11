@@ -58,11 +58,11 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getResource(), resourceSpecification.getResource());
 
         setResource(resourceSpecification.getResource());

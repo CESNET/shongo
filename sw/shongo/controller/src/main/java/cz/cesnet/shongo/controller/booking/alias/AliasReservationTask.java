@@ -2,15 +2,11 @@ package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.value.ValueReservationTask;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
-import cz.cesnet.shongo.controller.booking.room.RoomConfiguration;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.Migration;
-import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -247,7 +243,7 @@ public class AliasReservationTask extends ReservationTask
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
                 ExistingReservation existingValueReservation = new ExistingReservation();
                 existingValueReservation.setSlot(interval);
-                existingValueReservation.setReservation(originalReservation);
+                existingValueReservation.setReusedReservation(originalReservation);
                 return existingValueReservation;
             }
 

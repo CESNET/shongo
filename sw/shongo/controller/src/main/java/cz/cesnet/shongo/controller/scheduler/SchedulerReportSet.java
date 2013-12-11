@@ -2020,6 +2020,118 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Reused reservation request {@link #reservationRequest} is mandatory but wasn't used.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReservationWithoutMandatoryUsageReport")
+    public static class ReservationWithoutMandatoryUsageReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest;
+
+        public ReservationWithoutMandatoryUsageReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reservation-without-mandatory-usage";
+        }
+
+        public ReservationWithoutMandatoryUsageReport(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
+        {
+            setReservationRequest(reservationRequest);
+        }
+
+        @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
+        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
+        {
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
+        }
+
+        public void setReservationRequest(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
+        {
+            this.reservationRequest = reservationRequest;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservationRequest", reservationRequest);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reservation-without-mandatory-usage", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationWithoutMandatoryUsageReport}.
+     */
+    public static class ReservationWithoutMandatoryUsageException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ReservationWithoutMandatoryUsageException(ReservationWithoutMandatoryUsageReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationWithoutMandatoryUsageException(Throwable throwable, ReservationWithoutMandatoryUsageReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationWithoutMandatoryUsageException(cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
+        {
+            ReservationWithoutMandatoryUsageReport report = new ReservationWithoutMandatoryUsageReport();
+            report.setReservationRequest(reservationRequest);
+            this.report = report;
+        }
+
+        public ReservationWithoutMandatoryUsageException(Throwable throwable, cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest)
+        {
+            super(throwable);
+            ReservationWithoutMandatoryUsageReport report = new ReservationWithoutMandatoryUsageReport();
+            report.setReservationRequest(reservationRequest);
+            this.report = report;
+        }
+
+        public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
+        {
+            return getReport().getReservationRequest();
+        }
+
+        @Override
+        public ReservationWithoutMandatoryUsageReport getReport()
+        {
+            return (ReservationWithoutMandatoryUsageReport) report;
+        }
+    }
+
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationReport")
     public static abstract class ReservationReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
@@ -3937,6 +4049,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ConnectionFromToReport.class);
         addReportClass(ConnectionToMultipleReport.class);
         addReportClass(ReservationRequestInvalidSlotReport.class);
+        addReportClass(ReservationWithoutMandatoryUsageReport.class);
         addReportClass(ReservationReport.class);
         addReportClass(ReservationAlreadyUsedReport.class);
         addReportClass(ReservationReusingReport.class);

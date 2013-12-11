@@ -505,7 +505,8 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot(dateTime, capacityDuration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        UsedRoomSpecification capacitySpecification = new UsedRoomSpecification(permanentRoomExecutableId, 10);
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        UsedRoomSpecification capacitySpecification = new UsedRoomSpecification(10);
         AdobeConnectRoomSetting capacitySetting = new AdobeConnectRoomSetting();
         capacitySetting.setPin("abcd");
         capacitySetting.setAccessMode(AdobeConnectAccessMode.PUBLIC);
@@ -621,7 +622,8 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot(dateTime, duration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 10));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(10));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 
@@ -719,14 +721,14 @@ public class ExecutableTest extends AbstractExecutorTest
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
         RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomExecutableId = permanentRoomExecutable.getId();
         Assert.assertEquals("Permanent room should not be allocated from the fake connect server.",
                 "test", permanentRoomExecutable.getAliasByType(AliasType.ADOBE_CONNECT_URI).getValue());
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot(dateTime, duration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 10));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(10));
         allocateAndCheck(capacityReservationRequest);
 
         // Start virtual rooms
@@ -791,7 +793,8 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest capacityReservationRequest1 = new ReservationRequest();
         capacityReservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        capacityReservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId);
+        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
         checkAllocated(capacityReservationRequestId1);
 
@@ -799,7 +802,8 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest capacityReservationRequest2 = new ReservationRequest();
         capacityReservationRequest2.setSlot("2012-02-01T12:00", "PT2H");
         capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        capacityReservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId);
+        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
         checkAllocated(capacityReservationRequestId2);
 

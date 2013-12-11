@@ -166,7 +166,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                     // When the parent reservation request is not preprocessed in the slot
                     if (stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
                         // Update child reservation request
-                        boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet);
+                        boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet, entityManager);
 
                         // Update child reservation request date/time slot
                         if (!slot.equals(childReservationRequest.getSlot())) {
@@ -190,7 +190,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                     // Create a new reservation request
                     childReservationRequest = new ReservationRequest();
                     childReservationRequest.setSlot(slot);
-                    childReservationRequest.synchronizeFrom(reservationRequestSet);
+                    childReservationRequest.synchronizeFrom(reservationRequestSet, entityManager);
                     reservationRequestManager.create(childReservationRequest);
 
                     // Add the new reservation request as child to allocation

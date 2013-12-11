@@ -109,7 +109,7 @@ public class ValueReservationTask extends ReservationTask
             addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
             ExistingReservation existingValueReservation = new ExistingReservation();
             existingValueReservation.setSlot(slot);
-            existingValueReservation.setReservation(originalReservation);
+            existingValueReservation.setReusedReservation(originalReservation);
             return existingValueReservation;
         }
 

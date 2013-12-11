@@ -29,6 +29,7 @@ public class AllocationStateReportMessages
     public static final String CONNECTION_FROM_TO = "connection-from-to";
     public static final String CONNECTION_TO_MULTIPLE = "connection-to-multiple";
     public static final String RESERVATION_REQUEST_INVALID_SLOT = "reservation-request-invalid-slot";
+    public static final String RESERVATION_WITHOUT_MANDATORY_USAGE = "reservation-without-mandatory-usage";
     public static final String RESERVATION_ALREADY_USED = "reservation-already-used";
     public static final String RESERVATION_REUSING = "reservation-reusing";
     public static final String VALUE_ALREADY_ALLOCATED = "value-already-allocated";
@@ -75,6 +76,7 @@ public class AllocationStateReportMessages
         addMessage(CONNECTION_FROM_TO, new Report.UserType[]{}, Report.Language.ENGLISH, "Creating connection from ${endpointFrom} to ${endpointTo}.");
         addMessage(CONNECTION_TO_MULTIPLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot create connection from ${endpointFrom} to ${endpointTo}, because the target represents multiple endpoints (not supported yet).");
         addMessage(RESERVATION_REQUEST_INVALID_SLOT, new Report.UserType[]{}, Report.Language.ENGLISH, "Requested time slot doesn't correspond to ${interval} from reused reservation request ${reservationRequest}.");
+        addMessage(RESERVATION_WITHOUT_MANDATORY_USAGE, new Report.UserType[]{}, Report.Language.ENGLISH, "Reused reservation request ${reservationRequest} is mandatory but wasn't used.");
         addMessage(RESERVATION_ALREADY_USED, new Report.UserType[]{}, Report.Language.ENGLISH, "Reused reservation request ${reservationRequest} is not available because it's reservation ${reservation} is already used in reservation request ${usageReservationRequest} for ${usageInterval}.");
         addMessage(RESERVATION_REUSING, new Report.UserType[]{}, Report.Language.ENGLISH, "Reusing ${reservation}.");
         addMessage(VALUE_ALREADY_ALLOCATED, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is already allocated in interval ${interval}.");

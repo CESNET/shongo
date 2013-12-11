@@ -1279,7 +1279,7 @@
 
 
         <!--
-          - RESERVATION
+          - RESERVATION REQUEST
           -->
 
         <report>
@@ -1294,6 +1294,25 @@
             </description>
             <message>
                 Requested time slot doesn't correspond to ${interval} from reused reservation request ${reservationRequest}.
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <!--
+          - RESERVATION
+          -->
+
+        <report>
+            <id>reservation-without-mandatory-usage</id>
+            <classification severity="error"/>
+            <params>
+                <param name="reservationRequest" type="AbstractReservationRequest"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reused reservation request ${reservationRequest} is mandatory but wasn't used.
             </message>
             <visible>user</visible>
         </report>

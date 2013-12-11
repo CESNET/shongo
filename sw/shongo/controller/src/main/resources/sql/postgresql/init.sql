@@ -36,9 +36,9 @@ CREATE VIEW specification_summary AS
 SELECT     
     specification.id AS id,
     string_agg(specification_technologies.technologies, ',') AS technologies,
-    CASE 
+    CASE
         WHEN room_specification.id IS NOT NULL AND room_specification.participant_count IS NULL THEN 'PERMANENT_ROOM'
-        WHEN room_specification.id IS NOT NULL AND allocation.abstract_reservation_request_id IS NOT NULL THEN 'USED_ROOM'
+        WHEN room_specification.id IS NOT NULL AND room_specification.reused_room THEN 'USED_ROOM'
         WHEN room_specification.id IS NOT NULL THEN 'ROOM'
         WHEN alias_specification_summary.id IS NOT NULL THEN 'ALIAS'
         WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
@@ -46,21 +46,17 @@ SELECT
     END AS type,
     alias_specification_summary.room_name AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
-    allocation.abstract_reservation_request_id AS room_reused_reservation_request_id,
     resource_specification.resource_id AS resource_id
 FROM specification
 LEFT JOIN specification_technologies ON specification_technologies.specification_id = specification.id
 LEFT JOIN room_specification ON room_specification.id = specification.id
-LEFT JOIN allocation ON allocation.id = room_specification.allocation_id
 LEFT JOIN resource_specification ON resource_specification.id = specification.id
 LEFT JOIN alias_specification_summary ON alias_specification_summary.id = specification.id
 GROUP BY 
     specification.id,    
-    alias_specification_summary.id,    
+    alias_specification_summary.id,
     alias_specification_summary.room_name,
     room_specification.id,
-    room_specification.participant_count,
-    allocation.abstract_reservation_request_id,
     resource_specification.id;
 
 /**
@@ -145,9 +141,7 @@ SELECT
     usage_reservation_request.allocation_state AS allocation_state,
     usage_executable.state AS executable_state
 FROM abstract_reservation_request
-  LEFT JOIN abstract_reservation_request AS usage ON usage.state = 'ACTIVE' AND (usage.reused_allocation_id = abstract_reservation_request.allocation_id OR usage.specification_id IN(
-    SELECT room_specification.id FROM room_specification WHERE room_specification.allocation_id = abstract_reservation_request.allocation_id
-  ))
+  LEFT JOIN abstract_reservation_request AS usage ON usage.state = 'ACTIVE' AND usage.reused_allocation_id = abstract_reservation_request.allocation_id
   INNER JOIN reservation_request AS usage_reservation_request ON usage_reservation_request.id = usage.id
   LEFT JOIN reservation ON reservation.allocation_id = usage.allocation_id
   LEFT JOIN executable AS usage_executable ON usage_executable.id = reservation.executable_id
@@ -167,19 +161,16 @@ SELECT
     reservation_request.slot_end AS slot_end
 FROM (
   SELECT /* reused allocations with "future minimum" slot ending for usages */
-    COALESCE(room_specification.allocation_id, abstract_reservation_request.reused_allocation_id) AS allocation_id,
+    abstract_reservation_request.reused_allocation_id AS allocation_id,
     MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min
   FROM reservation_request
   LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
-  LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
-  WHERE reservation_request.allocation_state = 'ALLOCATED' AND (abstract_reservation_request.reused_allocation_id IS NOT NULL OR room_specification.allocation_id IS NOT NULL)
-  GROUP BY COALESCE(room_specification.allocation_id, abstract_reservation_request.reused_allocation_id)
+  WHERE reservation_request.allocation_state = 'ALLOCATED' AND abstract_reservation_request.reused_allocation_id IS NOT NULL
+  GROUP BY abstract_reservation_request.reused_allocation_id
 ) AS reservation_request_usage_slots
 /* join usages which matches the "future minimum" or the "whole maximum" slot ending */
 INNER JOIN allocation ON allocation.id = reservation_request_usage_slots.allocation_id
-INNER JOIN abstract_reservation_request ON abstract_reservation_request.reused_allocation_id = reservation_request_usage_slots.allocation_id OR abstract_reservation_request.specification_id IN(
-  SELECT room_specification.id FROM room_specification WHERE room_specification.allocation_id = reservation_request_usage_slots.allocation_id
-)
+INNER JOIN abstract_reservation_request ON abstract_reservation_request.reused_allocation_id = reservation_request_usage_slots.allocation_id
 INNER JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
        AND reservation_request.slot_end = reservation_request_usage_slots.slot_end_future_min
 /* we want one usage which has the earliest slot ending */

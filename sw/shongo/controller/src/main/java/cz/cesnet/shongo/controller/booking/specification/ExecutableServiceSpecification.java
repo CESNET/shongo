@@ -61,17 +61,17 @@ public abstract class ExecutableServiceSpecification extends Specification
     }
 
     @Override
-    public ExecutableServiceSpecification clone()
+    public ExecutableServiceSpecification clone(EntityManager entityManager)
     {
-        return (ExecutableServiceSpecification) super.clone();
+        return (ExecutableServiceSpecification) super.clone(entityManager);
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         ExecutableServiceSpecification executableServiceSpecification = (ExecutableServiceSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getExecutable(), executableServiceSpecification.getExecutable());
         modified |= !ObjectHelper.isSame(isEnabled(), executableServiceSpecification.isEnabled());
 

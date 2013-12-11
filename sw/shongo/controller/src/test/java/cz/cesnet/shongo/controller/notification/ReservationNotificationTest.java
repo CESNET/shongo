@@ -166,15 +166,13 @@ public class ReservationNotificationTest extends AbstractControllerTest
                 add(AliasType.SIP_URI);
             }});
         permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
-        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
-        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomExecutableId = permanentRoomExecutable.getId();
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setDescription("Capacity Reservation Request");
         capacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 

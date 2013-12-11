@@ -475,7 +475,7 @@ public class RoomReservationTask extends ReservationTask
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
                 ExistingReservation existingValueReservation = new ExistingReservation();
                 existingValueReservation.setSlot(interval);
-                existingValueReservation.setReservation(originalReservation);
+                existingValueReservation.setReusedReservation(originalReservation);
                 return existingValueReservation;
             }
 
@@ -624,7 +624,7 @@ public class RoomReservationTask extends ReservationTask
             // Reuse available reservation which allocates the reusable room
             ExistingReservation existingReservation = new ExistingReservation();
             existingReservation.setSlot(getInterval());
-            existingReservation.setReservation(originalReservation);
+            existingReservation.setReusedReservation(originalReservation);
             addChildReservation(existingReservation);
             schedulerContext.removeAvailableReservation(availableRoomEndpoint.getAvailableReservation());
 

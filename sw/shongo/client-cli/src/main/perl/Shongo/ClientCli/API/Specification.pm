@@ -196,10 +196,6 @@ sub on_init()
             });
         }
         case 'UsedRoomSpecification' {
-            $self->add_attribute('reusedRoomExecutableId', {
-                'title' => 'Reused Room ExecutableId',
-                'required' => 1
-            });
             $self->add_attribute('participantCount', {
                 'title' => 'Participant Count',
                 'type' => 'int',

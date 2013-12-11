@@ -61,6 +61,11 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private String reusedReservationRequestId;
 
     /**
+     * Specifies whether usage of {@link #reusedReservationRequestId} is mandatory or optional.
+     */
+    private boolean reusedReservationRequestMandatory;
+
+    /**
      * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
      */
     private ReservationRequestReusement reusement;
@@ -218,6 +223,24 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     }
 
     /**
+     * @param reusedReservationRequestId sets the {@link #reusedReservationRequestId}
+     * @param mandatory sets the {@link #reusedReservationRequestMandatory}
+     */
+    public void setReusedReservationRequestId(String reusedReservationRequestId, boolean mandatory)
+    {
+        this.reusedReservationRequestId = reusedReservationRequestId;
+        this.reusedReservationRequestMandatory = mandatory;
+    }
+
+    /**
+     * @return {@link #reusedReservationRequestMandatory}
+     */
+    public boolean isReusedReservationRequestMandatory()
+    {
+        return reusedReservationRequestMandatory;
+    }
+
+    /**
      * @return {@link #reusement}
      */
     public ReservationRequestReusement getReusement()
@@ -256,6 +279,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private static final String SPECIFICATION = "specification";
     private static final String INTER_DOMAIN = "interDomain";
     private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
+    private static final String REUSED_RESERVATION_REQUEST_MANDATORY = "reusedReservationRequestMandatory";
     private static final String REUSEMENT = "reusement";
 
     @Override
@@ -271,6 +295,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(INTER_DOMAIN, interDomain);
         dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
+        dataMap.set(REUSED_RESERVATION_REQUEST_MANDATORY, reusedReservationRequestMandatory);
         dataMap.set(REUSEMENT, reusement);
         return dataMap;
     }
@@ -288,6 +313,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         specification = dataMap.getComplexTypeRequired(SPECIFICATION, Specification.class);
         interDomain = dataMap.getBool(INTER_DOMAIN);
         reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
+        reusedReservationRequestMandatory = dataMap.getBool(REUSED_RESERVATION_REQUEST_MANDATORY);
         reusement = dataMap.getEnum(REUSEMENT, ReservationRequestReusement.class);
     }
 }

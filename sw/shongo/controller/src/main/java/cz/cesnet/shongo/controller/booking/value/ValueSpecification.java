@@ -96,11 +96,11 @@ public class ValueSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
         ValueSpecification valueSpecification = (ValueSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getValues(), valueSpecification.getValues())
                 || !ObjectHelper.isSame(getValueProvider(), valueSpecification.getValueProvider());
 

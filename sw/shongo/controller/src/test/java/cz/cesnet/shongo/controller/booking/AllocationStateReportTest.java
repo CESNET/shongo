@@ -72,7 +72,8 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot("2013-01-01T00:00", "PT2H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocationFailed(capacityReservationRequestId);
 
@@ -140,14 +141,16 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest capacityReservationRequest1 = new ReservationRequest();
         capacityReservationRequest1.setSlot("2012-03-01T14:00", "PT2H");
         capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        capacityReservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
         checkAllocated(capacityReservationRequestId1);
 
         ReservationRequest capacityReservationRequest2 = new ReservationRequest();
         capacityReservationRequest2.setSlot("2012-03-01T14:00", "PT2H");
         capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(permanentRoomReservationRequestId, 5));
+        capacityReservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
         checkAllocationFailed(capacityReservationRequestId2);
 

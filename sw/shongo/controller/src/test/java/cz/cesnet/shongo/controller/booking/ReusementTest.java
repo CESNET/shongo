@@ -382,19 +382,20 @@ public class ReusementTest extends AbstractControllerTest
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
         RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomExecutableId = permanentRoomExecutable.getId();
         Assert.assertEquals("001", permanentRoomExecutable.getAliasByType(AliasType.H323_E164).getValue());
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2013-07-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest1.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        reservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        reservationRequest1.setSpecification(new UsedRoomSpecification(5));
         String reservationRequest1Id = allocate(reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
         reservationRequest2.setSlot("2013-07-02T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest2.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        reservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        reservationRequest2.setSpecification(new UsedRoomSpecification(5));
         String reservationRequest2Id = allocate(reservationRequest2);
 
         // Check allocated capacities for permanent room
@@ -438,7 +439,8 @@ public class ReusementTest extends AbstractControllerTest
         reservationRequestSet.addSlot("2013-07-03T12:00", "PT2H");
         reservationRequestSet.addSlot("2013-07-04T12:00", "PT2H");
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        reservationRequestSet.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        reservationRequestSet.setSpecification(new UsedRoomSpecification(5));
         String reservationRequestSetId = allocate(reservationRequestSet);
         checkAllocated(reservationRequestSetId);
 
@@ -473,19 +475,68 @@ public class ReusementTest extends AbstractControllerTest
                 new PermanentRoomSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
-        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
-        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomExecutableId = permanentRoomExecutable.getId();
+        checkAllocated(permanentRoomReservationRequestId);
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, capacityReservationRequestId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
         runScheduler();
+    }
+
+    @Test
+    public void testReusementMandatoryAndOptional() throws Exception
+    {
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.setAllocatable(true);
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, connect);
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        roomReservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        checkAllocated(roomReservationRequestId);
+
+        ReservationRequest usageReservationRequest1 = new ReservationRequest();
+        usageReservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
+        usageReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        usageReservationRequest1.setReusedReservationRequestId(roomReservationRequestId, true);
+        usageReservationRequest1.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        String usageReservationRequestId1 = allocate(usageReservationRequest1);
+        checkAllocated(usageReservationRequestId1);
+
+        ReservationRequest usageReservationRequest2 = new ReservationRequest();
+        usageReservationRequest2.setSlot("2012-01-01T18:00", "PT2H");
+        usageReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        usageReservationRequest2.setReusedReservationRequestId(roomReservationRequestId, true);
+        usageReservationRequest2.setSpecification(new RoomSpecification(10, Technology.H323));
+        String usageReservationRequestId2 = allocate(usageReservationRequest2);
+        checkAllocationFailed(usageReservationRequestId2);
+
+        ReservationRequest usageReservationRequest3 = new ReservationRequest();
+        usageReservationRequest3.setSlot("2012-01-01T18:00", "PT2H");
+        usageReservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
+        usageReservationRequest3.setReusedReservationRequestId(roomReservationRequestId, false);
+        usageReservationRequest3.setSpecification(new RoomSpecification(10, Technology.H323));
+        String usageReservationRequestId3 = allocate(usageReservationRequest3);
+        checkAllocated(usageReservationRequestId3);
     }
 }

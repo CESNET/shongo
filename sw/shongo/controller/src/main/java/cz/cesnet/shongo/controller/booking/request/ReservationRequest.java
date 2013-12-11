@@ -302,18 +302,17 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         super.validate();
     }
 
-    @Override
-    public ReservationRequest clone()
+    public ReservationRequest clone(EntityManager entityManager)
     {
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.synchronizeFrom(this);
+        reservationRequest.synchronizeFrom(this, entityManager);
         return reservationRequest;
     }
 
     @Override
-    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest, EntityManager entityManager)
     {
-        boolean modified = super.synchronizeFrom(abstractReservationRequest);
+        boolean modified = super.synchronizeFrom(abstractReservationRequest, entityManager);
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
 

@@ -667,14 +667,13 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
-        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
-        RoomExecutable permanentRoom = (RoomExecutable) permanentRoomReservation.getExecutable();
-        String permanentRoomId = permanentRoom.getId();
+        checkAllocated(permanentRoomReservationRequestId);
 
         ReservationRequest capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomId, 5));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
         String capacityReservationRequestId = service.createReservationRequest(
                 SECURITY_TOKEN_USER1, capacityReservationRequest);
 
@@ -690,14 +689,13 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         permanentRoomReservationRequest.setSpecification(new RoomSpecification(1, Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
-        permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
-        permanentRoom = (RoomExecutable) permanentRoomReservation.getExecutable();
-        permanentRoomId = permanentRoom.getId();
+        checkAllocated(permanentRoomReservationRequestId);
 
         capacityReservationRequest = new ReservationRequest();
         capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(permanentRoomId, 5));
+        capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
         capacityReservationRequestId = service.createReservationRequest(SECURITY_TOKEN_USER1, capacityReservationRequest);
 
         getAuthorizationService().createAclRecord(

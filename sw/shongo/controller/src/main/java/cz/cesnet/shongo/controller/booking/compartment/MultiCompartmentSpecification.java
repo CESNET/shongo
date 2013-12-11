@@ -97,9 +97,9 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, EntityManager entityManager)
     {
-        return super.synchronizeFrom(specification);
+        return super.synchronizeFrom(specification, entityManager);
     }
 
     @Override

@@ -217,6 +217,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             reservationRequestManager.create(reservationRequest);
 
+            reservationRequest.getSpecification().updateTechnologies(entityManager);
+
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
 
             Allocation reusedAllocation = reservationRequest.getReusedAllocation();
@@ -294,12 +296,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 // Update old detached reservation request (the changes will not be serialized to database)
                 oldReservationRequest.fromApi(reservationRequestApi, entityManager);
                 // Create new reservation request by cloning old reservation request
-                newReservationRequest = oldReservationRequest.clone();
+                newReservationRequest = oldReservationRequest.clone(entityManager);
             }
             else {
                 // Create new reservation request
                 newReservationRequest = ClassHelper.createInstanceFromClass(reservationRequestClass);
-                newReservationRequest.synchronizeFrom(oldReservationRequest);
+                newReservationRequest.synchronizeFrom(oldReservationRequest, entityManager);
                 newReservationRequest.fromApi(reservationRequestApi, entityManager);
             }
             newReservationRequest.setCreatedBy(userId);
@@ -622,26 +624,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
                             + ":reusedReservationRequestId");
                     queryFilter.addFilterParameter("reusedReservationRequestId", persistenceId);
-                }
-            }
-
-            String roomReusedReservationRequestId = request.getRoomReusedReservationRequestId();
-            if (roomReusedReservationRequestId != null) {
-                if (roomReusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
-                    // List only reservation requests which hasn't reused any reservation request
-                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id IS NULL");
-                }
-                else if (roomReusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
-                    // List only reservation requests which reuse any reservation request
-                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id IS NOT NULL");
-                }
-                else {
-                    // List only reservation requests which reuse given reservation request
-                    Long persistenceId = EntityIdentifier.parseId(
-                            ReservationRequest.class, roomReusedReservationRequestId);
-                    queryFilter.addFilter("specification_summary.room_reused_reservation_request_id = "
-                            + ":roomReusedReservationRequestId");
-                    queryFilter.addFilterParameter("roomReusedReservationRequestId", persistenceId);
                 }
             }
 
@@ -1092,30 +1074,28 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         String type = record[12].toString().trim();
         if (type.equals("ALIAS")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ALIAS);
-            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
             reservationRequestSummary.setRoomParticipantCount(
                     record[14] != null ? ((Number) record[14]).intValue() : null);
-            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("PERMANENT_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
-            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("USED_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
             reservationRequestSummary.setRoomParticipantCount(
                     record[14] != null ? ((Number) record[14]).intValue() : null);
-            reservationRequestSummary.setRoomReusedReservationRequestId(record[15] != null ?
-                    EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, record[15].toString()) : null);
-            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
+            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
             reservationRequestSummary.setResourceId(EntityIdentifier.formatId(
-                    EntityType.RESOURCE, ((Number) record[17]).longValue()));
+                    EntityType.RESOURCE, ((Number) record[16]).longValue()));
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
@@ -1128,13 +1108,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
         }
-        if (record[18] != null) {
+        if (record[17] != null) {
             reservationRequestSummary.setUsageExecutableState(
                     cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                            record[18].toString().trim()).toApi());
+                            record[17].toString().trim()).toApi());
         }
-        if (record[19] != null) {
-            reservationRequestSummary.setFutureSlotCount(((Number) record[19]).intValue());
+        if (record[18] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number) record[18]).intValue());
         }
         return reservationRequestSummary;
     }
