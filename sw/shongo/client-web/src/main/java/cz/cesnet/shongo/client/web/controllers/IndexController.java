@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,7 @@ public class IndexController
      * Handle help view.
      */
     @RequestMapping(value = ClientWebUrl.HELP, method = RequestMethod.GET)
+    @IgnoreDateTimeZone
     public String handleHelpView()
     {
         return "help";
