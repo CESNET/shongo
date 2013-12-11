@@ -180,12 +180,14 @@
                 </tag:url>
                 <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
             </c:if>
-            <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
+            <div class="table-actions-left">
+                <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
+            </div>
         </c:if>
 
     </c:if>
 
-    <div class="pull-right table-actions">
+    <div class="table-actions pull-right">
         <a class="btn btn-primary" href="${backUrl}" tabindex="1">
             <spring:message code="views.button.back"/>
         </a>

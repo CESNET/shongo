@@ -15,7 +15,7 @@
     <spring:message code="views.userRoleList.heading"/>&nbsp;${headingFor}
 </h1>
 
-<div ng-app="jsp:userRoleList">
+<div ng-app="jsp:userRoleList" class="table-actions-left">
 
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
     <tag:url var="aclUrl" value="<%= ClientWebUrl.USER_ROLE_LIST_DATA %>">
@@ -32,7 +32,7 @@
 
 </div>
 
-<div class="pull-right">
+<div class="table-actions pull-right">
     <tag:url var="backUrl" value="${requestScope.backUrl}"/>
     <a class="btn" href="${backUrl}"><spring:message code="views.button.back"/></a>
 </div>

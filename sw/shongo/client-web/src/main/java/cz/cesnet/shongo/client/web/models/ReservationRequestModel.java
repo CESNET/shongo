@@ -599,6 +599,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         permanentRoomReservationRequest = cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
         roomName = permanentRoomReservationRequest.getRoomName();
+        technology = TechnologyModel.find(permanentRoomReservationRequest.getSpecificationTechnologies());
         addPermanentRoomParticipants();
     }
 

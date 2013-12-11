@@ -88,9 +88,18 @@ a.bordered:hover {
 }
 
 /* Action under table */
-div.table-actions {
+.table-actions {
     margin-top: 10px;
     margin-bottom: 10px;
+}
+.table-actions-left .table-actions {
+    float: left;
+}
+.table-actions-right .table-actions {
+    float: right;
+}
+div.table-actions.pull-right {
+    float: right;
 }
 
 /* Description list */

@@ -393,8 +393,8 @@
 
     <c:choose>
         <c:when test="${not empty body}">
-            ${body}
-            <div class="pull-right">${buttons}</div>
+            <div class="table-actions-left">${body}</div>
+            <div class="table-actions pull-right">${buttons}</div>
         </c:when>
         <c:otherwise>
             <div class="control-group">

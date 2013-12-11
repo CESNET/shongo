@@ -37,55 +37,53 @@
     <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
 </c:set>
 
-<c:choose>
-    <c:when test="${data != null}">
-        <table class="table table-striped table-hover">
-                ${tableHead}
-            <tbody>
-            <c:forEach items="${data}" var="participant">
-                <tr>
-                    <td>${participant.name}</td>
-                    <td><spring:message code="views.participant.role.${participant.role}"/></td>
-                    <td>${participant.email}</td>
-                    <c:if test="${description}">
-                        <td>${participant.description}</td>
-                    </c:if>
-                    <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
-                        <td>
-                            <c:if test="${not empty participant.id && not empty modifyUrl}">
-                                <tag:url var="participantModifyUrl" value="${modifyUrl}">
-                                    <c:if test="${not empty urlParam}">
-                                        <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
-                                    </c:if>
-                                    <tag:param name="participantId" value="${participant.id}"/>
-                                </tag:url>
-                                <tag:listAction code="modify" url="${participantModifyUrl}" tabindex="2"/>
-                            </c:if>
-                            <c:if test="${not empty participant.id && not empty deleteUrl}">
-                                <tag:url var="participantDeleteUrl" value="${deleteUrl}">
-                                    <c:if test="${not empty urlParam}">
-                                        <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
-                                    </c:if>
-                                    <tag:param name="participantId" value="${participant.id}"/>
-                                </tag:url>
-                                <tag:listAction code="delete" url="${participantDeleteUrl}" tabindex="2"/>
-                            </c:if>
-                        </td>
-                    </c:if>
-                </tr>
-            </c:forEach>
-            <c:if test="${empty data}">
-                <tr>${tableEmptyRow}</tr>
+<table class="table table-striped table-hover">
+    ${tableHead}
+    <tbody>
+    <c:forEach items="${data}" var="participant">
+        <tr>
+            <td>${participant.name}</td>
+            <td><spring:message code="views.participant.role.${participant.role}"/></td>
+            <td>${participant.email}</td>
+            <c:if test="${description}">
+                <td>${participant.description}</td>
             </c:if>
-            </tbody>
-        </table>
-        <c:if test="${isWritable && createUrl != null}">
-            <a class="btn btn-primary" href="${createUrl}">
-                <spring:message code="views.button.add"/>
-            </a>
-        </c:if>
-    </c:when>
+            <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
+                <td>
+                    <c:if test="${not empty participant.id && not empty modifyUrl}">
+                        <tag:url var="participantModifyUrl" value="${modifyUrl}">
+                            <c:if test="${not empty urlParam}">
+                                <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
+                            </c:if>
+                            <tag:param name="participantId" value="${participant.id}"/>
+                        </tag:url>
+                        <tag:listAction code="modify" url="${participantModifyUrl}" tabindex="2"/>
+                    </c:if>
+                    <c:if test="${not empty participant.id && not empty deleteUrl}">
+                        <tag:url var="participantDeleteUrl" value="${deleteUrl}">
+                            <c:if test="${not empty urlParam}">
+                                <tag:param name="${urlParam}" value="${participant[urlValue]}"/>
+                            </c:if>
+                            <tag:param name="participantId" value="${participant.id}"/>
+                        </tag:url>
+                        <tag:listAction code="delete" url="${participantDeleteUrl}" tabindex="2"/>
+                    </c:if>
+                </td>
+            </c:if>
+        </tr>
+    </c:forEach>
+    <c:if test="${empty data}">
+        <tr>${tableEmptyRow}</tr>
+    </c:if>
+    </tbody>
+</table>
+<c:if test="${isWritable && createUrl != null}">
+    <div class="table-actions">
+        <a class="btn btn-primary" href="${createUrl}">
+            <spring:message code="views.button.add"/>
+        </a>
+    </div>
+</c:if>
 
-</c:choose>
 
 

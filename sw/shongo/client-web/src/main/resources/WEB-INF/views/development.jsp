@@ -7,20 +7,6 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<div class="actions">
-    <span><spring:message code="views.wizard.createRoom"/></span>
-    <ul>
-        <li>
-            <a><spring:message code="views.wizard.createRoom.adhoc"/></a>
-            <tag:helpRoomType roomType="ADHOC_ROOM"/>
-        </li>
-        <li>
-            <a><spring:message code="views.wizard.createRoom.permanent"/></a>
-            <tag:helpRoomType roomType="PERMANENT_ROOM"/>
-        </li>
-    </ul>
-</div>
-
 <style type="text/css">
     td {
         padding: 0px 5px;

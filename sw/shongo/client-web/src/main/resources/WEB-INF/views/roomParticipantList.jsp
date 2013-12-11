@@ -15,9 +15,13 @@
     <spring:message code="views.roomParticipantList.heading"/>&nbsp;<spring:message code="views.room.for.${room.type}" arguments="${room.name}"/>
 </h1>
 
-<div ng-app="jsp:roomParticipantList">
+<div ng-app="jsp:roomParticipantList" class="table-actions-left">
 
     <p><spring:message code="views.room.participants.help"/></p>
+    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+        <tag:param name="roomId" value="${room.id}"/>
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
     <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
         <tag:param name="back-url" value="${requestUrl}"/>
     </tag:url>
@@ -25,19 +29,12 @@
         <tag:param name="back-url" value="${requestUrl}"/>
     </tag:url>
     <tag:participantList data="${room.participants}"
-                         modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
+                         createUrl="${participantCreateUrl}" modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
                          urlParam="roomId" urlValue="roomId"/>
-    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
-        <tag:param name="roomId" value="${room.id}"/>
-        <tag:param name="back-url" value="${requestUrl}"/>
-    </tag:url>
-    <a class="btn btn-primary" href="${participantCreateUrl}">
-        <spring:message code="views.button.add"/>
-    </a>
 
 </div>
 
-<div class="pull-right">
+<div class="table-actions pull-right">
     <tag:url var="backUrl" value="${requestScope.backUrl}"/>
     <a class="btn" href="${backUrl}"><spring:message code="views.button.back"/></a>
 </div>

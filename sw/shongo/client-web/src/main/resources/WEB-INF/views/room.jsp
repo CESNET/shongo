@@ -263,26 +263,28 @@
                              modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
                              urlParam="roomId" urlValue="roomId"/>
         <c:if test="${isWritable}">
-            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
-                <tag:param name="roomId" value="${room.id}"/>
-                <tag:param name="back-url" value="${requestUrl}"/>
-            </tag:url>
-            <a class="btn btn-primary" href="${participantCreateUrl}">
-                <spring:message code="views.button.add"/>
-                <c:if test="${not empty room.usageId}">
-                    (<spring:message code="views.room.participants.addRoom"/>)
-                </c:if>
-            </a>
-            <c:if test="${not empty room.usageId}">
+            <div class="table-actions">
                 <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
-                    <tag:param name="roomId" value="${room.usageId}"/>
+                    <tag:param name="roomId" value="${room.id}"/>
                     <tag:param name="back-url" value="${requestUrl}"/>
                 </tag:url>
                 <a class="btn btn-primary" href="${participantCreateUrl}">
                     <spring:message code="views.button.add"/>
-                    (<spring:message code="views.room.participants.addUsage"/>)
+                    <c:if test="${not empty room.usageId}">
+                        (<spring:message code="views.room.participants.addRoom"/>)
+                    </c:if>
                 </a>
-            </c:if>
+                <c:if test="${not empty room.usageId}">
+                    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+                        <tag:param name="roomId" value="${room.usageId}"/>
+                        <tag:param name="back-url" value="${requestUrl}"/>
+                    </tag:url>
+                    <a class="btn btn-primary" href="${participantCreateUrl}">
+                        <spring:message code="views.button.add"/>
+                        (<spring:message code="views.room.participants.addUsage"/>)
+                    </a>
+                </c:if>
+            </div>
         </c:if>
     </c:if>
 

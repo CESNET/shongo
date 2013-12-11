@@ -61,9 +61,11 @@
             </tbody>
         </table>
         <c:if test="${isWritable && createUrl != null}">
-            <a class="btn btn-primary" href="${createUrl}">
-                <spring:message code="views.button.add"/>
-            </a>
+            <div class="table-actions">
+                <a class="btn btn-primary" href="${createUrl}">
+                    <spring:message code="views.button.add"/>
+                </a>
+            </div>
         </c:if>
     </c:when>
 
