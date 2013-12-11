@@ -229,8 +229,8 @@ public class ServiceImpl implements Service
                 throw new CommandException("Room " + roomId + " doesn't exist in device " +
                         EntityIdentifier.formatId(EntityType.RESOURCE, deviceResourceId) + ".");
             }
-            DeviceResource deviceResource = roomEndpoint.getDeviceResource();
-            RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
+            DeviceResource resource = roomEndpoint.getResource();
+            RecordingCapability recordingCapability = resource.getCapabilityRequired(RecordingCapability.class);
             entityManager.getTransaction().begin();
             String recordingFolderId = executor.getRecordingFolderId(roomEndpoint, recordingCapability);
             entityManager.getTransaction().commit();

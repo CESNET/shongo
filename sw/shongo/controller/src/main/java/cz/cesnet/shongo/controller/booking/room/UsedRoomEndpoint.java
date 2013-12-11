@@ -97,19 +97,6 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    @Transient
-    public Resource getResource()
-    {
-        if (reusedRoomEndpoint instanceof ResourceRoomEndpoint) {
-            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) reusedRoomEndpoint;
-            return resourceRoomEndpoint.getResource();
-        }
-        else {
-            throw new TodoImplementException(reusedRoomEndpoint.getClass());
-        }
-    }
-
-    @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
         return new UsedRoomExecutable();
@@ -147,9 +134,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Transient
     @Override
-    public DeviceResource getDeviceResource()
+    public DeviceResource getResource()
     {
-        return reusedRoomEndpoint.getDeviceResource();
+        return reusedRoomEndpoint.getResource();
     }
 
     @Override

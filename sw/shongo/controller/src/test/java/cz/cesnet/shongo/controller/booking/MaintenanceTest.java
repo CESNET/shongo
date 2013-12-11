@@ -144,7 +144,7 @@ public class MaintenanceTest extends AbstractControllerTest
         Assert.assertEquals(2, getReservationService().listReservations(reservationListRequest).getItemCount());
 
         // Remove slot from the request
-        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        reservationRequest = getReservationRequest(id, ReservationRequestSet.class);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
         id = allocate(reservationRequest);
 
@@ -152,7 +152,7 @@ public class MaintenanceTest extends AbstractControllerTest
         Assert.assertEquals(1, getReservationService().listReservations(reservationListRequest).getItemCount());
 
         // Change resource in the request
-        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        reservationRequest = getReservationRequest(id, ReservationRequestSet.class);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(secondResourceId);
         id = allocate(reservationRequest);
 

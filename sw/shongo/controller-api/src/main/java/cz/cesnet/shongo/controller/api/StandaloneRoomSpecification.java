@@ -61,7 +61,17 @@ public abstract class StandaloneRoomSpecification extends AbstractRoomSpecificat
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        this.technologies = technologies;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
+    }
+
+    /**
+     * @param technology sets the {@link #technologies}
+     */
+    public void setTechnology(Technology technology)
+    {
+        this.technologies.clear();
+        this.technologies.add(technology);
     }
 
     /**

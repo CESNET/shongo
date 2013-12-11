@@ -108,14 +108,12 @@ public class ReservationNotificationTest extends AbstractControllerTest
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(3);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(6);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
@@ -159,8 +157,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocationFailed(permanentRoomReservationRequestId);
 
-        permanentRoomReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, permanentRoomReservationRequestId);
+        permanentRoomReservationRequest =
+                getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
         PermanentRoomSpecification permanentRoomSpecification =
                 (PermanentRoomSpecification) permanentRoomReservationRequest.getSpecification();
         permanentRoomSpecification.getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
@@ -216,8 +214,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         AliasSpecification aliasSpecification = (AliasSpecification) reservationRequest.getSpecification();
         aliasSpecification.setValue(null);
         aliasSpecification.setAliasTypes(new HashSet<AliasType>()

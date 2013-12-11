@@ -77,7 +77,7 @@ public class RecordingServiceReservationTask extends ReservationTask
 
         if (executable instanceof RecordableEndpoint) {
             RecordableEndpoint recordableEndpoint = (RecordableEndpoint) executable;
-            DeviceResource deviceResource = recordableEndpoint.getDeviceResource();
+            DeviceResource deviceResource = recordableEndpoint.getResource();
             RecordingCapability recordingCapability = deviceResource.getCapability(RecordingCapability.class);
 
             // Set required technologies for recorder

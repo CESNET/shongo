@@ -337,25 +337,29 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             roomProviderCapability = deviceResource.getCapabilityRequired(RoomProviderCapability.class);
         }
 
-        RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
-        if (reusedAllocation != null && reusedRoomEndpoint == null) {
-            throw new SchedulerReportSet.RoomExecutableNotExistsException();
-        }
-
-        Set<Technology> technologies = getTechnologies();
-        if (technologies.size() == 0) {
-            // When no technologies are requested, set technologies from requested aliases
-            technologies = getAliasTechnologies();
-        }
-
         RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, getParticipantCount());
-        roomReservationTask.setReusedRoomEndpoint(reusedRoomEndpoint);
-        roomReservationTask.addTechnologyVariant(technologies);
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
         roomReservationTask.setRoomProviderCapability(roomProviderCapability);
         roomReservationTask.addParticipants(getParticipants());
         roomReservationTask.addServiceSpecifications(getServiceSpecifications());
+
+        RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
+        if (reusedAllocation != null && reusedRoomEndpoint == null) {
+            throw new SchedulerReportSet.RoomExecutableNotExistsException();
+        }
+        if (reusedRoomEndpoint != null) {
+            roomReservationTask.setReusedRoomEndpoint(reusedRoomEndpoint);
+        }
+        else {
+            Set<Technology> technologies = getTechnologies();
+            if (technologies.size() == 0) {
+                // When no technologies are requested, set technologies from requested aliases
+                technologies = getAliasTechnologies();
+            }
+            roomReservationTask.addTechnologyVariant(technologies);
+        }
+
         return roomReservationTask;
     }
 
@@ -419,9 +423,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             cz.cesnet.shongo.controller.api.UsedRoomSpecification usedRoomSpecificationApi =
                     (cz.cesnet.shongo.controller.api.UsedRoomSpecification) specificationApi;
 
-            if (reusedAllocation != null) {
-                usedRoomSpecificationApi.setReusedRoomExecutableId(EntityIdentifier.formatId(getReusedRoomEndpoint()));
+            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
+            if (reusedRoomEndpoint == null) {
+                throw new IllegalStateException("Reused room endpoint must be defined.");
             }
+            usedRoomSpecificationApi.setReusedRoomExecutableId(EntityIdentifier.formatId(reusedRoomEndpoint));
             usedRoomSpecificationApi.setParticipantCount(getParticipantCount());
             for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
                 usedRoomSpecificationApi.addServiceSpecification(serviceSpecification.toApi());
@@ -566,7 +572,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 throw new CommonReportSet.EntityNotExistsException(
                         RoomEndpoint.class.getSimpleName(), entityIdentifier.toString());
             }
-            technologies = reusedRoomEndpoint.getTechnologies();
             setParticipantCount(usedRoomSpecificationApi.getParticipantCount());
         }
         else {
@@ -604,6 +609,15 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
 
         super.fromApi(specificationApi, entityManager);
+    }
+
+    @Override
+    public void updateTechnologies()
+    {
+        RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint();
+        if (reusedRoomEndpoint != null) {
+            setTechnologies(reusedRoomEndpoint.getTechnologies());
+        }
     }
 
     /**

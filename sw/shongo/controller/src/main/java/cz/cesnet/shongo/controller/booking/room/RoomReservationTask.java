@@ -54,7 +54,8 @@ public class RoomReservationTask extends ReservationTask
 
     /**
      * Collection of {@link Technology} set variants where at least one must be supported by
-     * allocated {@link RoomReservation}.
+     * allocated {@link RoomReservation}. If empty no specific technologies are requested and
+     * the all device technologies are used.
      */
     private List<Set<Technology>> technologyVariants = new LinkedList<Set<Technology>>();
 
@@ -189,6 +190,17 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation() throws SchedulerException
     {
+        // Update specification by reused room endpoint
+        if (reusedRoomEndpoint != null) {
+            // Room provider from reused room endpoint must be used
+            DeviceResource deviceResource = reusedRoomEndpoint.getResource();
+            roomProviderCapability = deviceResource.getCapabilityRequired(RoomProviderCapability.class);
+
+            // Technologies from reused room endpoint must be used
+            technologyVariants.clear();
+            technologyVariants.add(reusedRoomEndpoint.getTechnologies());
+        }
+
         // Check maximum duration
         if (participantCount != null && schedulerContext.isMaximumFutureAndDurationRestricted()) {
             checkMaximumDuration(getInterval(), getCache().getRoomReservationMaximumDuration());
@@ -320,16 +332,7 @@ public class RoomReservationTask extends ReservationTask
                 RoomEndpoint roomEndpoint = availableExecutable.getExecutable();
 
                 // Check whether available room is in current device resource
-                Long roomEndpointResourceId;
-                if (roomEndpoint instanceof ResourceRoomEndpoint) {
-                    roomEndpointResourceId = ((ResourceRoomEndpoint) roomEndpoint).getResource().getId();
-                }
-                else if (roomEndpoint instanceof UsedRoomEndpoint) {
-                    roomEndpointResourceId = ((UsedRoomEndpoint) roomEndpoint).getResource().getId();
-                }
-                else {
-                    throw new TodoImplementException(roomEndpoint.getClass());
-                }
+                Long roomEndpointResourceId = roomEndpoint.getResource().getId();
                 if (!roomEndpointResourceId.equals(deviceResource.getId())) {
                     continue;
                 }

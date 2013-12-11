@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
-import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
@@ -19,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * {@link AbstractDatabaseTest} which provides a {@link Controller} instance to extending classes.
@@ -303,6 +300,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * Run {@link Preprocessor}.
+     *
+     * @param dateTime representing now
+     */
+    protected void runPreprocessor(DateTime dateTime)
+    {
+        runPreprocessor(new Interval(dateTime, workingInterval.getEnd()));
+    }
+
+    /**
      * Run {@link cz.cesnet.shongo.controller.scheduler.Scheduler}.
      *
      * @param interval
@@ -322,7 +329,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler(DateTime dateTime)
     {
-        runScheduler(new Interval(dateTime, Temporal.DATETIME_INFINITY_END));
+        runScheduler(new Interval(dateTime, workingInterval.getEnd()));
     }
 
     /**
@@ -370,6 +377,52 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         runPreprocessor(interval);
         runScheduler(interval);
+    }
+
+    /**
+     * @param reservationRequestId
+     * @param reservationRequestClass
+     * @return reservation request for given {@code reservationRequestId}
+     */
+    public <T extends cz.cesnet.shongo.controller.api.AbstractReservationRequest> T getReservationRequest(
+            String reservationRequestId, Class<T> reservationRequestClass)
+    {
+        return reservationRequestClass.cast(
+                getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId));
+    }
+
+    /**
+     * @return list of {@link ReservationRequestSummary}s
+     */
+    public List<ReservationRequestSummary> listReservationRequests()
+    {
+        return getReservationService().listReservationRequests(
+                new ReservationRequestListRequest(SECURITY_TOKEN)).getItems();
+    }
+
+    /**
+     * @return map of {@link ReservationRequestSummary}s by identifiers
+     */
+    public Map<String, ReservationRequestSummary> getReservationRequestMap()
+    {
+        List<ReservationRequestSummary> reservationRequests = getReservationService().listReservationRequests(
+                new ReservationRequestListRequest(SECURITY_TOKEN)).getItems();
+        Map<String, ReservationRequestSummary> reservationRequestMap = new HashMap<String, ReservationRequestSummary>();
+        for (ReservationRequestSummary reservationRequest : reservationRequests) {
+            reservationRequestMap.put(reservationRequest.getId(), reservationRequest);
+        }
+        return reservationRequestMap;
+    }
+
+    /**
+     * @param reservationId
+     * @param reservationClass
+     * @return reservation request for given {@code reservationRequestId}
+     */
+    public <T extends cz.cesnet.shongo.controller.api.Reservation> T getReservation(
+            String reservationId, Class<T> reservationClass)
+    {
+        return reservationClass.cast(getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId));
     }
 
     /**
@@ -457,11 +510,27 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * @see #allocate(SecurityToken, AbstractReservationRequest)
+     * @see #allocate(SecurityToken, AbstractReservationRequest, org.joda.time.DateTime)
      */
     protected String allocate(AbstractReservationRequest reservationRequest) throws Exception
     {
-        return allocate(SECURITY_TOKEN, reservationRequest);
+        return allocate(SECURITY_TOKEN, reservationRequest, workingInterval.getStart());
+    }
+
+    /**
+     * @see #allocate(SecurityToken, AbstractReservationRequest, org.joda.time.DateTime)
+     */
+    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest) throws Exception
+    {
+        return allocate(securityToken, reservationRequest, workingInterval.getStart());
+    }
+
+    /**
+     * @see #allocate(SecurityToken, AbstractReservationRequest, org.joda.time.DateTime)
+     */
+    protected String allocate(AbstractReservationRequest reservationRequest, DateTime dateTime) throws Exception
+    {
+        return allocate(SECURITY_TOKEN, reservationRequest, dateTime);
     }
 
     /**
@@ -469,10 +538,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param securityToken
      * @param reservationRequest to be allocated
+     * @param dateTime
      * @return shongo-id of created or modified {@link ReservationRequest}
      * @throws Exception
      */
-    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest)
+    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest,
+            DateTime dateTime)
             throws Exception
     {
         String reservationRequestId;
@@ -483,9 +554,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             reservationRequestId = getReservationService().modifyReservationRequest(securityToken, reservationRequest);
         }
         if (reservationRequest instanceof ReservationRequestSet) {
-            runPreprocessor();
+            runPreprocessor(dateTime);
         }
-        runScheduler();
+        runScheduler(dateTime);
         return reservationRequestId;
     }
 

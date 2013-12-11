@@ -192,6 +192,7 @@ public class Scheduler extends SwitchableComponent
                     while (iterator.hasNext()) {
                         ReservationRequest reservationRequestToReallocate = iterator.next();
                         allocateReservationRequest(reservationRequestToReallocate, schedulerContext, notifications);
+                        reservationRequestToReallocate.getSpecification().updateTechnologies();
                     }
 
                     // Finalize (delete old reservations, etc)

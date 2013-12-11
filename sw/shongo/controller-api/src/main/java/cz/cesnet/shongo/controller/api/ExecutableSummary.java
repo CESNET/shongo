@@ -325,6 +325,15 @@ public class ExecutableSummary extends IdentifiedComplexType
         roomUsageCount = dataMap.getInt(ROOM_USAGE_COUNT);
     }
 
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName() + "{id=" + id
+                + ", type=" + type
+                + ", technology=" + roomTechnologies
+                + "}";
+    }
+
     /**
      * Type of {@link ExecutableSummary}.
      */

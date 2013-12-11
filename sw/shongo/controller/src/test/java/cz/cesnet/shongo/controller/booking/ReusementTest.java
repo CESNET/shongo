@@ -83,7 +83,7 @@ public class ReusementTest extends AbstractControllerTest
         runScheduler();
         checkAllocationFailed(id);
 
-        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        request = getReservationRequest(id, ReservationRequest.class);
         request.setReusedReservationRequestId(lectureRoomReservationRequestId);
 
         Reservation reservation = allocateAndCheck(request);
@@ -406,14 +406,12 @@ public class ReusementTest extends AbstractControllerTest
         Assert.assertEquals("001", room2.getAliasByType(AliasType.H323_E164).getValue());
 
         // Modify permanent room alias value
-        ReservationRequest reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                    SECURITY_TOKEN, permanentRoomReservationRequestId);
+        ReservationRequest reservationRequest =
+                getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
         PermanentRoomSpecification permanentRoomSpecification =
                 (PermanentRoomSpecification) reservationRequest.getSpecification();
         permanentRoomSpecification.getAliasSpecificationByType(AliasType.H323_E164).setValue("555");
-        permanentRoomReservationRequestId =
-                getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler(new DateTime("2013-07-01T13:00"));
+        permanentRoomReservationRequestId = allocate(reservationRequest, new DateTime("2013-07-01T13:00"));
 
         // Check allocated permanent room alias value
         permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);

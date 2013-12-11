@@ -317,9 +317,9 @@ public class CompartmentReservationTask extends ReservationTask
                     ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
                     deviceResource = resourceEndpoint.getDeviceResource();
                 }
-                else if (endpointTo instanceof ResourceRoomEndpoint) {
-                    ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
-                    deviceResource = resourceRoomEndpoint.getDeviceResource();
+                else if (endpointTo instanceof RoomEndpoint) {
+                    RoomEndpoint roomEndpoint = (RoomEndpoint) endpointTo;
+                    deviceResource = roomEndpoint.getResource();
                 }
                 AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
                 aliasReservationTask.addTechnology(technology);

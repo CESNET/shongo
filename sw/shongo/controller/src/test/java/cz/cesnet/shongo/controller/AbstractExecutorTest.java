@@ -13,8 +13,9 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.*;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -113,6 +114,14 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     protected ExecutionResult runExecutor(DateTime referenceDateTime)
     {
         return executor.execute(referenceDateTime);
+    }
+
+    /**
+     * @return list of {@link ExecutableSummary}
+     */
+    public List<ExecutableSummary> listExecutable()
+    {
+        return getExecutableService().listExecutables(new ExecutableListRequest(SECURITY_TOKEN)).getItems();
     }
 
     /**

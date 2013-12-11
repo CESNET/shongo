@@ -23,7 +23,7 @@ public interface RecordableEndpoint
     /**
      * @return {@link DeviceResource} of this endpoint
      */
-    public DeviceResource getDeviceResource();
+    public DeviceResource getResource();
 
     /**
      * @return set of {@link Technology}s of this {@link RecordableEndpoint}

@@ -24,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.report.Report;
@@ -215,8 +216,14 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     public String getRecordingFolderDescription()
     {
         return String.format("[%s:exe:%d][res:%d][room:%s]",
-                Domain.getLocalDomainName(), getId(), getDeviceResource().getId(), getRoomId());
+                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId());
     }
+
+    /**
+     * @return {@link DeviceResource} for this {@link RoomEndpoint}
+     */
+    @Transient
+    public abstract DeviceResource getResource();
 
     /**
      * @return {@link Technology} specific id of the {@link RoomConfiguration}.

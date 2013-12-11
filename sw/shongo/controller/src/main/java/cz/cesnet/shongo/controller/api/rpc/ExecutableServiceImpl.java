@@ -576,7 +576,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwEntityNotExistFault(RoomExecutable.class, entityId.getPersistenceId());
                 return;
             }
-            DeviceResource deviceResource = roomExecutable.getDeviceResource();
+            DeviceResource deviceResource = roomExecutable.getResource();
             if (!authorization.hasPermission(securityToken, roomExecutable, Permission.WRITE) ||
                     !authorization.hasPermission(securityToken, deviceResource, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", entityId);

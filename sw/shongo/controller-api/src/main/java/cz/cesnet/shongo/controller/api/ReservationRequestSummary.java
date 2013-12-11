@@ -471,6 +471,16 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         roomName = dataMap.getString(ROOM_NAME);
     }
 
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName() + "{id=" + id
+                + ", type=" + specificationType
+                + ", reusedRoom=" + roomReusedReservationRequestId
+                + ", technology=" + specificationTechnologies
+                +"}";
+    }
+
     /**
      * Type of specification for {@link ReservationRequestSummary}.
      */

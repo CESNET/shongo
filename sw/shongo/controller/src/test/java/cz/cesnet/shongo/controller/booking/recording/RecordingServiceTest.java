@@ -83,13 +83,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertNull(recordingService.getRecordingId());
 
         // Request starting of the service
-        roomReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, roomReservationRequestId);
+        roomReservationRequest = getReservationRequest(roomReservationRequestId, ReservationRequest.class);
         RoomSpecification roomSpecification = (RoomSpecification) roomReservationRequest.getSpecification();
         roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
-        roomReservationRequestId = getReservationService().modifyReservationRequest(
-                SECURITY_TOKEN, roomReservationRequest);
-        runScheduler(dateTime.plusHours(1));
+        roomReservationRequestId = allocate(roomReservationRequest, dateTime.plusHours(1));
         roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
         roomExecutable = (RoomExecutable) roomReservation.getExecutable();
         roomExecutableId = roomExecutable.getId();

@@ -131,10 +131,11 @@ sub list_executables()
     );
     my $table = {
         'columns' => [
-            {'field' => 'id',    'title' => 'Identifier'},
-            {'field' => 'type',  'title' => 'Type'},
-            {'field' => 'slot',  'title' => 'Slot'},
-            {'field' => 'state', 'title' => 'State'},
+            {'field' => 'id',         'title' => 'Identifier'},
+            {'field' => 'type',       'title' => 'Type'},
+            {'field' => 'technology', 'title' => 'Technology'},
+            {'field' => 'slot',       'title' => 'Slot'},
+            {'field' => 'state',      'title' => 'State'},
         ],
         'data' => []
     };
@@ -143,9 +144,17 @@ sub list_executables()
         if ( defined($Type->{$executable->{'type'}}) )  {
             $type = $Type->{$executable->{'type'}};
         }
+        my $technologies = '';
+        foreach my $technology (@{$executable->{'roomTechnologies'}}) {
+            if ( length($technologies) > 0 ) {
+                $technologies .= ', ';
+            }
+            $technologies .= $Shongo::Common::Technology->{$technology};
+        }
         push(@{$table->{'data'}}, {
             'id' => $executable->{'id'},
             'type' => [$executable->{'type'}, $type],
+            'technology' => [$executable->{'roomTechnologies'}, $technologies],
             'slot' => [$executable->{'slot'}, interval_format($executable->{'slot'})],
             'state' => [$executable->{'state'}, Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)]
         });

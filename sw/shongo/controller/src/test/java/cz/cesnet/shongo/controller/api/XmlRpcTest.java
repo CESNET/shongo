@@ -28,7 +28,7 @@ public class XmlRpcTest extends AbstractControllerTest
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:1", id);
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        reservationRequest = getReservationRequest(id, ReservationRequest.class);
         Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
         RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
         Assert.assertEquals(new HashSet<Technology>()
@@ -70,8 +70,7 @@ public class XmlRpcTest extends AbstractControllerTest
 
         String id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
         Assert.assertEquals("shongo:cz.cesnet:req:1", id);
-        ReservationRequest reservationRequest =
-                (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        ReservationRequest reservationRequest = getReservationRequest(id, ReservationRequest.class);
         Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
         RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
         Assert.assertEquals(new HashSet<Technology>()
@@ -147,8 +146,7 @@ public class XmlRpcTest extends AbstractControllerTest
             id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
             Assert.assertNotNull(id);
 
-            reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                    SECURITY_TOKEN, id);
+            reservationRequestSet = getReservationRequest(id, ReservationRequestSet.class);
             Assert.assertNotNull(reservationRequestSet);
             Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
             Assert.assertEquals(2, reservationRequestSet.getSlots().size());
@@ -158,15 +156,13 @@ public class XmlRpcTest extends AbstractControllerTest
         // Modify reservation request
         // ---------------------------
         {
-            ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+            ReservationRequestSet reservationRequestSet = getReservationRequest(id, ReservationRequestSet.class);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
 
             id = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestSet);
 
-            reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                    SECURITY_TOKEN, id);
+            reservationRequestSet = getReservationRequest(id, ReservationRequestSet.class);
             Assert.assertNotNull(reservationRequestSet);
             Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequestSet.getPurpose());
             Assert.assertEquals(1, reservationRequestSet.getSlots().size());
@@ -176,8 +172,7 @@ public class XmlRpcTest extends AbstractControllerTest
         // Delete reservation request
         // ---------------------------
         {
-            ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+            ReservationRequestSet reservationRequestSet = getReservationRequest(id, ReservationRequestSet.class);
             Assert.assertNotNull(reservationRequestSet);
 
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);

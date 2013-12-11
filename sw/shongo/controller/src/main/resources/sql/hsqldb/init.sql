@@ -95,7 +95,7 @@ SELECT
     execution_target.slot_end AS slot_end,
     executable.state AS state,
     NULL AS room_name,
-    NULL AS room_technologies,
+    GROUP_CONCAT(DISTINCT room_configuration_technologies.technologies SEPARATOR ',') AS room_technologies,
     room_configuration.license_count AS room_license_count,
     room_endpoint.room_description AS room_description,
     used_room_endpoint.room_endpoint_id AS room_id,
@@ -109,3 +109,11 @@ LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
 LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
 LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
+LEFT JOIN room_configuration_technologies ON room_configuration_technologies.room_configuration_id = room_configuration.id
+GROUP BY
+    executable.id,
+    execution_target.id,
+    room_endpoint.id,
+    used_room_endpoint.id,
+    room_configuration.id
+ORDER BY executable.id

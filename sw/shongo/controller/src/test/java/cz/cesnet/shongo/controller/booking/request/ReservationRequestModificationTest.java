@@ -10,10 +10,12 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -301,8 +303,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         checkAllocated(reservationRequestId);
 
         // Increase room capacity
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         ((UsedRoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
         allocateAndCheck(reservationRequest);
     }
@@ -332,8 +333,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
         String roomName = roomExecutable.getAliasByType(AliasType.ROOM_NAME).getValue();
 
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
         roomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME, roomName));
@@ -360,8 +360,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals("Value should be allocated.", "1", valueReservation1.getValue());
 
         // Modify allocated value
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSpecification(new ValueSpecification(valueProviderId, "2"));
         ValueReservation valueReservation2 = (ValueReservation) allocateAndCheck(reservationRequest);
 
@@ -400,8 +399,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals("Same number should be allocated.", "0", valueReservation2_1.getValue());
 
         // Extend #2 to not intersect #1
-        reservationRequest2 = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequest2Id);
+        reservationRequest2 = getReservationRequest(reservationRequest2Id, ReservationRequest.class);
         reservationRequest2.setSlot("2013-01-01T00:00", "2014-01-01T00:00");
         ValueReservation valueReservation2_2 = (ValueReservation) allocateAndCheck(reservationRequest2);
 
@@ -411,8 +409,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
                 valueReservation2_1.getValue(), valueReservation2_2.getValue());
 
         // Extend #2 to intersect #1
-        reservationRequest2 = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequest2Id);
+        reservationRequest2 = getReservationRequest(reservationRequest2Id, ReservationRequest.class);
         reservationRequest2.setSlot("2013-01-01T00:00", "2014-06-01T00:00");
         ValueReservation valueReservation2_3 = (ValueReservation) allocateAndCheck(reservationRequest2);
 
@@ -441,8 +438,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals("Alias should be allocated.", "1", aliasReservation1.getValue());
 
         // Modify allocated alias
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("2"));
         AliasReservation aliasReservation2 = (AliasReservation) allocateAndCheck(reservationRequest);
 
@@ -476,8 +472,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         // In 2014
         setWorkingInterval(Interval.parse("2014-01-01T00:00/2014-02-01T00:00"));
         // Extend the validity of the alias reservation
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSlot("2013-01-01T00:00", "P2Y");
         AliasReservation aliasReservation2 = (AliasReservation) allocateAndCheck(reservationRequest);
 
@@ -517,8 +512,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Assert.assertEquals("Second alias should be allocated.", "2", aliasReservation1_2.getValue());
 
         // Modify allocated alias set
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         aliasSetSpecification = (AliasSetSpecification) reservationRequest.getSpecification();
         aliasSetSpecification.getAliases().get(1).setValue("22");
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("2"));
@@ -580,8 +574,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         // In 2014
         setWorkingInterval(Interval.parse("2014-01-01T00:00/2014-02-01T00:00"));
         // Extend the validity of the alias reservation
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSlot("2013-01-01T00:00", "P2Y");
         Reservation reservation2 = allocateAndCheck(reservationRequest);
 
@@ -618,8 +611,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         RoomReservation roomReservation1 = (RoomReservation) checkAllocated(reservationRequestId);
 
         // Increase the room capacity
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(5);
         RoomReservation roomReservation2 = (RoomReservation) allocateAndCheck(reservationRequest);
 
@@ -648,8 +640,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         RoomReservation roomReservation1 = (RoomReservation) checkAllocated(reservationRequestId);
 
         // Extend the validity of the room reservation
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         RoomReservation roomReservation2 = (RoomReservation) allocateAndCheck(reservationRequest);
 
@@ -698,8 +689,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         checkAllocated(reservationRequestId);
 
         // Extend the validity of the alias reservation
-        aliasReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, aliasReservationRequestId);
+        aliasReservationRequest = getReservationRequest(aliasReservationRequestId, ReservationRequest.class);
         aliasReservationRequest.startModification();
         aliasReservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         Reservation aliasReservation2 = allocateAndCheck(aliasReservationRequest);

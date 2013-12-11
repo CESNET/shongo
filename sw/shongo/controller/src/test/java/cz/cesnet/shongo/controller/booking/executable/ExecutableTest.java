@@ -11,6 +11,8 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.compartment.Connection;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -25,8 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Tests for {@link cz.cesnet.shongo.controller.executor.Executor}.
@@ -748,6 +749,94 @@ public class ExecutableTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, performedCommandClasses);
+    }
+
+    @Test
+    public void testPermanentRoomWithCapacityTechnologyModification() throws Exception
+    {
+        final Set<Technology> technologiesH323 = new HashSet<Technology>(){{
+            add(Technology.H323);
+        }};
+        final Set<Technology> technologiesAdobeConnect = new HashSet<Technology>(){{
+            add(Technology.ADOBE_CONNECT);
+        }};
+
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.setAllocatable(true);
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, connect);
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Create permanent room
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification(Technology.H323);
+        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        RoomExecutable permanentRoomExecutable = (RoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomExecutableId = permanentRoomExecutable.getId();
+
+        // Allocate a permanent room capacity
+        ReservationRequest capacityReservationRequest1 = new ReservationRequest();
+        capacityReservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
+        capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
+        checkAllocated(capacityReservationRequestId1);
+
+        // Allocate a permanent room capacity
+        ReservationRequest capacityReservationRequest2 = new ReservationRequest();
+        capacityReservationRequest2.setSlot("2012-02-01T12:00", "PT2H");
+        capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(permanentRoomExecutableId, 5));
+        String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
+        checkAllocated(capacityReservationRequestId2);
+
+        Map<String, ReservationRequestSummary> reservationRequestMap = getReservationRequestMap();
+        Assert.assertEquals(technologiesH323,
+                reservationRequestMap.get(permanentRoomReservationRequestId).getSpecificationTechnologies());
+        Assert.assertEquals(technologiesH323,
+                reservationRequestMap.get(capacityReservationRequestId1).getSpecificationTechnologies());
+        Assert.assertEquals(technologiesH323,
+                reservationRequestMap.get(capacityReservationRequestId2).getSpecificationTechnologies());
+
+        // Increase room capacity
+        permanentRoomReservationRequest =
+                getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
+        permanentRoomSpecification = ((PermanentRoomSpecification) permanentRoomReservationRequest.getSpecification());
+        permanentRoomSpecification.setTechnology(Technology.ADOBE_CONNECT);
+        permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest, new DateTime("2012-02-01T00:00"));
+        checkAllocated(permanentRoomReservationRequestId);
+
+        capacityReservationRequest1 = getReservationRequest(capacityReservationRequestId1, ReservationRequest.class);
+        capacityReservationRequest2 = getReservationRequest(capacityReservationRequestId2, ReservationRequest.class);
+        RoomReservation capacityReservation1 =
+                getReservation(capacityReservationRequest1.getLastReservationId(), RoomReservation.class);
+        RoomReservation capacityReservation2 =
+                getReservation(capacityReservationRequest2.getLastReservationId(), RoomReservation.class);
+        UsedRoomExecutable capacity1 = (UsedRoomExecutable) capacityReservation1.getExecutable();
+        UsedRoomExecutable capacity2 = (UsedRoomExecutable) capacityReservation2.getExecutable();
+        Assert.assertEquals(technologiesH323, capacity1.getTechnologies());
+        Assert.assertEquals(technologiesAdobeConnect, capacity2.getTechnologies());
+
+        reservationRequestMap = getReservationRequestMap();
+        Assert.assertEquals(technologiesAdobeConnect,
+                reservationRequestMap.get(permanentRoomReservationRequestId).getSpecificationTechnologies());
+        Assert.assertEquals(technologiesH323,
+                reservationRequestMap.get(capacityReservationRequestId1).getSpecificationTechnologies());
+        Assert.assertEquals(technologiesAdobeConnect,
+                reservationRequestMap.get(capacityReservationRequestId2).getSpecificationTechnologies());
     }
 
     /**

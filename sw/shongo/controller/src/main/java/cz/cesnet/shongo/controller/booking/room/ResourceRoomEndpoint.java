@@ -76,7 +76,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      */
     @Transient
     @Override
-    public DeviceResource getDeviceResource()
+    public DeviceResource getResource()
     {
         return roomProviderCapability.getDeviceResource();
     }
@@ -120,7 +120,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;
         roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
-        roomExecutableEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
+        roomExecutableEndpointApi.setResourceId(EntityIdentifier.formatId(getResource()));
         roomExecutableEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
             roomExecutableEndpointApi.addTechnology(technology);
@@ -163,7 +163,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public boolean isStandalone()
     {
-        return getDeviceResource().isStandaloneTerminal();
+        return getResource().isStandaloneTerminal();
     }
 
     @Override
@@ -171,7 +171,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public List<Alias> getAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
-        TerminalCapability terminalCapability = getDeviceResource().getCapability(TerminalCapability.class);
+        TerminalCapability terminalCapability = getResource().getCapability(TerminalCapability.class);
         if (terminalCapability != null) {
             aliases.addAll(terminalCapability.getAliases());
         }
@@ -182,7 +182,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     public void addAssignedAlias(Alias assignedAlias) throws SchedulerException
     {
-        getDeviceResource().evaluateAlias(assignedAlias);
+        getResource().evaluateAlias(assignedAlias);
         super.addAssignedAlias(assignedAlias);
     }
 
@@ -190,21 +190,21 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public Address getAddress()
     {
-        return getDeviceResource().getAddress();
+        return getResource().getAddress();
     }
 
     @Override
     @Transient
     public String getDescription()
     {
-        return String.format("room in %s", getDeviceResource().getReportDescription());
+        return String.format("room in %s", getResource().getReportDescription());
     }
 
     @Override
     @Transient
     public String getConnectorAgentName()
     {
-        Mode mode = getDeviceResource().getMode();
+        Mode mode = getResource().getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
@@ -212,13 +212,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         else {
             throw new IllegalStateException("Resource " + getDescription() + " is not managed!");
         }
-    }
-
-    @Override
-    @Transient
-    public Resource getResource()
-    {
-        return getDeviceResource();
     }
 
     @Override
@@ -258,7 +251,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             throw new ExecutionReportSet.RoomNotStartedException(alias != null ? alias.getValue() : null);
         }
 
-        DeviceResource deviceResource = getDeviceResource();
+        DeviceResource deviceResource = getResource();
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
@@ -278,7 +271,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
-        DeviceResource deviceResource = getDeviceResource();
+        DeviceResource deviceResource = getResource();
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
@@ -320,7 +313,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
-        DeviceResource deviceResource = getDeviceResource();
+        DeviceResource deviceResource = getResource();
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
