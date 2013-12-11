@@ -25,7 +25,7 @@ our $ClassMapping = {
     '^.*Specification$' => 'Shongo::ClientCli::API::Specification',
     '^.*Participant$' => 'Shongo::ClientCli::API::Participant',
     '^.*Person$' => 'Shongo::ClientCli::API::Person',
-    '^(CompartmentExecutable|RoomExecutable)$' => 'Shongo::ClientCli::API::Executable',
+    '^.*Executable$' => 'Shongo::ClientCli::API::Executable',
     '^ValueProvider\.(Pattern|Filtered)$' => 'Shongo::ClientCli::API::ValueProvider'
 };
 
