@@ -167,7 +167,7 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
     {
         Collection<AclRecord> aclRecords = aclRecordCache.getAclRecords(userId, entityId);
         for (AclRecord aclRecord : aclRecords) {
-            if (aclRecord.getRole().equals(role)) {
+            if (aclRecord.getEntityRole().equals(role)) {
                 return aclRecord;
             }
         }

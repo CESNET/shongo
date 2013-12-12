@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.ParticipantRole;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -10,7 +9,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -30,8 +29,6 @@ import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Controller for creating a new room.
@@ -118,7 +115,7 @@ public class WizardRoomController extends WizardParticipantsController
         WizardView wizardView = getWizardView(Page.ROOM_TYPE, "wizardCreateRoom.jsp");
         ReservationRequestModel reservationRequest =
                 new ReservationRequestModel(new CacheProvider(cache, securityToken));
-        reservationRequest.addUserRole(securityToken.getUserInformation(), Role.OWNER);
+        reservationRequest.addUserRole(securityToken.getUserInformation(), EntityRole.OWNER);
         reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
@@ -255,7 +252,7 @@ public class WizardRoomController extends WizardParticipantsController
         reservationRequest.addUserRole(userRole);
 
         // Add admin participant for owner
-        if (userRole.getRole().equals(Role.OWNER)) {
+        if (userRole.getEntityRole().equals(EntityRole.OWNER)) {
             boolean administratorExists = false;
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
@@ -290,7 +287,7 @@ public class WizardRoomController extends WizardParticipantsController
         reservationRequest.removeUserRole(userRole);
 
         // Delete admin participant for owner
-        if (userRole.getRole().equals(Role.OWNER)) {
+        if (userRole.getEntityRole().equals(EntityRole.OWNER)) {
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
                         ParticipantRole.ADMIN.equals(participant.getRole()) &&
@@ -430,7 +427,7 @@ public class WizardRoomController extends WizardParticipantsController
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
             authorizationService.createAclRecord(securityToken,
-                    userRole.getUserId(), reservationRequestId, userRole.getRole());
+                    userRole.getUserId(), reservationRequestId, userRole.getEntityRole());
         }
 
         // Clear session attributes

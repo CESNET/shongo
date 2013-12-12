@@ -103,21 +103,21 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="role">
-                <spring:message code="views.userRole.role"/>:
+            <form:label class="control-label" path="entityRole">
+                <spring:message code="views.userRole.entityRole"/>:
             </form:label>
             <div class="controls">
                 <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
-                <form:select path="role" tabindex="${tabIndex}">
+                <form:select path="entityRole" tabindex="${tabIndex}">
                     <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.userRole.role.${role}"/></form:option>
+                        <form:option value="${role}"><spring:message code="views.userRole.entityRole.${role}"/></form:option>
                     </c:forEach>
                 </form:select>
-                <form:errors path="role" cssClass="error"/>
+                <form:errors path="entityRole" cssClass="error"/>
                 <tag:help>
                     <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.userRole.role.${role}"/></strong>
-                        <p><spring:message code="views.userRole.roleHelp.${role}"/></p>
+                        <strong><spring:message code="views.userRole.entityRole.${role}"/></strong>
+                        <p><spring:message code="views.userRole.entityRoleHelp.${role}"/></p>
                     </c:forEach>
                 </tag:help>
             </div>

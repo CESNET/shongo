@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 
 import java.util.*;
 
@@ -19,7 +19,7 @@ public class AclEntityState
     /**
      * Map of user-ids which by role which has the role for the entity.
      */
-    private Map<Role, Set<String>> userIdsByRole = new HashMap<Role, Set<String>>();
+    private Map<EntityRole, Set<String>> userIdsByRole = new HashMap<EntityRole, Set<String>>();
 
     /**
      * @param aclRecord to be added to the {@link AclEntityState}
@@ -28,7 +28,7 @@ public class AclEntityState
     {
         Long aclRecordId = aclRecord.getId();
         if (aclRecords.put(aclRecordId, aclRecord) == null) {
-            Role role = aclRecord.getRole();
+            EntityRole role = aclRecord.getEntityRole();
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds == null) {
                 userIds = new HashSet<String>();
@@ -45,7 +45,7 @@ public class AclEntityState
     {
         Long aclRecordId = aclRecord.getId();
         if (aclRecords.remove(aclRecordId) != null) {
-            Role role = aclRecord.getRole();
+            EntityRole role = aclRecord.getEntityRole();
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds != null) {
                 userIds.remove(aclRecord.getUserId());
@@ -67,7 +67,7 @@ public class AclEntityState
     /**
      * @return {@link Set} of user-ids which has the given {@code role} for the entity
      */
-    public synchronized Set<String> getUserIdsByRole(Role role)
+    public synchronized Set<String> getUserIdsByRole(EntityRole role)
     {
         Set<String> userIds = userIdsByRole.get(role);
         if (userIds != null) {

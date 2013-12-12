@@ -394,11 +394,11 @@ public abstract class Authorization
 
     /**
      * @param persistentObject for which the users must have given {@code role}
-     * @param role             which the users must have for given {@code persistentObject}
+     * @param entityRole             which the users must have for given {@code persistentObject}
      * @return collection of {@link UserData} of users which have given {@code role}
      *         for given {@code persistentObject}
      */
-    public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, Role role)
+    public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, EntityRole entityRole)
     {
         AclRecord.EntityId entityId = new AclRecord.EntityId(persistentObject);
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
@@ -406,7 +406,7 @@ public abstract class Authorization
             aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
-        Set<String> userIds = aclEntityState.getUserIdsByRole(role);
+        Set<String> userIds = aclEntityState.getUserIdsByRole(entityRole);
         if (userIds == null) {
             return Collections.emptySet();
         }

@@ -668,17 +668,17 @@
         </report>
 
         <report>
-            <id>acl-invalid-role</id>
+            <id>acl-invalid-entity-role</id>
             <classification severity="error"/>
             <params>
                 <param name="entity" type="String"/>
-                <param name="role" type="String"/>
+                <param name="entityRole" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                ACL Role ${role} is invalid for entity ${entity}.
+                ACL role ${entityRole} is invalid for entity ${entity}.
             </message>
             <example>
                 TODO:

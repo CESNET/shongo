@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
@@ -32,7 +32,7 @@ public class AclRecordListRequest extends ListRequest
     /**
      * Role which the user has for the entity.
      */
-    private Set<Role> roles = new HashSet<Role>();
+    private Set<EntityRole> entityRoles = new HashSet<EntityRole>();
 
     /**
      * Constructor.
@@ -69,12 +69,12 @@ public class AclRecordListRequest extends ListRequest
      * @param securityToken sets the {@link #securityToken}
      * @param userId to be added to the {@link #userIds}
      */
-    public AclRecordListRequest(SecurityToken securityToken, String userId, String entityId, Role role)
+    public AclRecordListRequest(SecurityToken securityToken, String userId, String entityId, EntityRole entityRole)
     {
         super(securityToken);
         addUserId(userId);
         addEntityId(entityId);
-        addRole(role);
+        addEntityRole(entityRole);
     }
 
     public Set<String> getAclRecordIds()
@@ -122,25 +122,25 @@ public class AclRecordListRequest extends ListRequest
         entityIds.add(entityId);
     }
 
-    public Set<Role> getRoles()
+    public Set<EntityRole> getEntityRoles()
     {
-        return roles;
+        return entityRoles;
     }
 
-    public void setRoles(Set<Role> roles)
+    public void setEntityRoles(Set<EntityRole> entityRoles)
     {
-        this.roles = roles;
+        this.entityRoles = entityRoles;
     }
 
-    public void addRole(Role role)
+    public void addEntityRole(EntityRole entityRole)
     {
-        roles.add(role);
+        entityRoles.add(entityRole);
     }
 
     private static final String ACL_RECORD_IDS = "aclRecordIds";
     private static final String USER_IDS = "userIds";
     private static final String ENTITY_IDS = "entityIds";
-    private static final String ROLES = "roles";
+    private static final String ENTITY_ROLES = "entityRoles";
 
     @Override
     public DataMap toData()
@@ -149,7 +149,7 @@ public class AclRecordListRequest extends ListRequest
         dataMap.set(ACL_RECORD_IDS, aclRecordIds);
         dataMap.set(USER_IDS, userIds);
         dataMap.set(ENTITY_IDS, entityIds);
-        dataMap.set(ROLES, roles);
+        dataMap.set(ENTITY_ROLES, entityRoles);
         return dataMap;
     }
 
@@ -160,6 +160,6 @@ public class AclRecordListRequest extends ListRequest
         aclRecordIds = dataMap.getSet(ACL_RECORD_IDS, String.class);
         userIds = dataMap.getSet(USER_IDS, String.class);
         entityIds = dataMap.getSet(ENTITY_IDS, String.class);
-        roles = dataMap.getSet(ROLES, Role.class);
+        entityRoles = dataMap.getSet(ENTITY_ROLES, EntityRole.class);
     }
 }

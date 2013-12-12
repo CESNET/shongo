@@ -50,7 +50,7 @@ public class AclUserState
             // Update permissions
             AclRecord.EntityType aclRecordEntityType = entityId.getEntityType();
             EntityType entityType = aclRecordEntityType.getEntityType();
-            for (EntityPermission entityPermission : entityType.getRolePermissions(aclRecord.getRole())) {
+            for (EntityPermission entityPermission : entityType.getRolePermissions(aclRecord.getEntityRole())) {
                 entityState.permissions.add(entityPermission);
             }
 
@@ -87,7 +87,7 @@ public class AclUserState
             AclRecord.EntityType aclRecordEntityType = entityId.getEntityType();
             EntityType entityType = aclRecordEntityType.getEntityType();
             for (AclRecord existingAclRecord : entityState.aclRecords.values()) {
-                for (EntityPermission entityPermission : entityType.getRolePermissions(existingAclRecord.getRole())) {
+                for (EntityPermission entityPermission : entityType.getRolePermissions(existingAclRecord.getEntityRole())) {
                     entityState.permissions.add(entityPermission);
                 }
             }

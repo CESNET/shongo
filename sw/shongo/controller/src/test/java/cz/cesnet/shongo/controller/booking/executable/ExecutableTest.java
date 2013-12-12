@@ -7,12 +7,10 @@ import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
-import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.compartment.Connection;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -439,12 +437,12 @@ public class ExecutableTest extends AbstractExecutorTest
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
 
         // Update room
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequestId, Role.OWNER);
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequestId, EntityRole.OWNER);
         result = runExecutor(dateTime);
         Assert.assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
 
         // Update room
-        deleteAclRecord(user2Id, reservationRequestId, Role.OWNER);
+        deleteAclRecord(user2Id, reservationRequestId, EntityRole.OWNER);
         result = runExecutor(dateTime);
         Assert.assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
 
@@ -628,7 +626,7 @@ public class ExecutableTest extends AbstractExecutorTest
         checkAllocated(capacityReservationRequestId);
 
         getAuthorizationService().createAclRecord(
-                SECURITY_TOKEN_USER1, user2Id, capacityReservationRequestId, Role.OWNER);
+                SECURITY_TOKEN_USER1, user2Id, capacityReservationRequestId, EntityRole.OWNER);
 
         // Start virtual rooms
         ExecutionResult result = runExecutor(dateTime);
@@ -651,7 +649,7 @@ public class ExecutableTest extends AbstractExecutorTest
         Assert.assertEquals("Room should have 2 participants.", 2, room.getParticipantRoles().size());
 
         // Update permanent room
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user3Id, permanentRoomReservationRequestId, Role.OWNER);
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user3Id, permanentRoomReservationRequestId, EntityRole.OWNER);
         result = runExecutor(dateTime);
         Assert.assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
         // Check room

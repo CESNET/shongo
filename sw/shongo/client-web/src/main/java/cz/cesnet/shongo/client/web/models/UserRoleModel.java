@@ -2,7 +2,7 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.api.AclRecord;
 
 import java.util.LinkedHashMap;
@@ -17,11 +17,11 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 {
     private String id;
 
-    private String entityId;
-
     private UserInformation user;
 
-    private Role role;
+    private String entityId;
+
+    private EntityRole entityRole;
 
     private boolean deletable = false;
 
@@ -58,16 +58,6 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.id = CommonModel.getNewId();
     }
 
-    public String getEntityId()
-    {
-        return entityId;
-    }
-
-    public void setEntityId(String entityId)
-    {
-        this.entityId = entityId;
-    }
-
     public String getUserId()
     {
         if (user == null) {
@@ -98,14 +88,24 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.user = user;
     }
 
-    public Role getRole()
+    public String getEntityId()
     {
-        return role;
+        return entityId;
     }
 
-    public void setRole(Role role)
+    public void setEntityId(String entityId)
     {
-        this.role = role;
+        this.entityId = entityId;
+    }
+
+    public EntityRole getEntityRole()
+    {
+        return entityRole;
+    }
+
+    public void setEntityRole(EntityRole entityRole)
+    {
+        this.entityRole = entityRole;
     }
 
     public boolean isDeletable()
@@ -123,7 +123,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.id = aclRecord.getId();
         setUserId(aclRecord.getUserId());
         setEntityId(aclRecord.getEntityId());
-        setRole(aclRecord.getRole());
+        setEntityRole(aclRecord.getEntityRole());
         setDeletable(aclRecord.isDeletable());
     }
 
@@ -135,7 +135,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         }
         aclRecord.setUserId(user.getUserId());
         aclRecord.setEntityId(entityId);
-        aclRecord.setRole(role);
+        aclRecord.setEntityRole(entityRole);
         return aclRecord;
     }
 
@@ -146,7 +146,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         attributes.put("ID", id);
         attributes.put("Entity", entityId);
         attributes.put("User", user);
-        attributes.put("Role", role);
+        attributes.put("Role", entityRole);
         return ReportModel.formatAttributes(attributes);
     }
 }

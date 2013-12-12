@@ -2,11 +2,11 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 
 /**
- * Represents a record in Shongo ACL which means that user with specified {@link #userId} has role
- * with specified {@link #role} for resource with specified {@link #entityId}.
+ * Represents a record in Shongo ACL which means that user with specified {@link #userId} has entityRole
+ * with specified {@link #entityRole} for resource with specified {@link #entityId}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -19,14 +19,14 @@ public class AclRecord extends IdentifiedComplexType
 
     /**
      * Identifier of entity of some {@link cz.cesnet.shongo.controller.EntityType} for which the user
-     * gets granted the {@link #role}.
+     * gets granted the {@link #entityRole}.
      */
     private String entityId;
 
     /**
-     * {@link cz.cesnet.shongo.controller.Role} which the user gets granted for the entity with {@link #entityId}.
+     * {@link cz.cesnet.shongo.controller.EntityRole} which the user gets granted for the entity with {@link #entityId}.
      */
-    private Role role;
+    private EntityRole entityRole;
 
     /**
      * Specifies whether {@link AclRecord} is not referenced by another {@link AclRecord} and thus it can be deleted.
@@ -45,13 +45,13 @@ public class AclRecord extends IdentifiedComplexType
      *
      * @param userId   sets the {@link #userId}
      * @param entityId sets the {@link #entityId}
-     * @param role     sets the {@link #role}
+     * @param entityRole     sets the {@link #entityRole}
      */
-    public AclRecord(String userId, String entityId, Role role)
+    public AclRecord(String userId, String entityId, EntityRole entityRole)
     {
         this.userId = userId;
         this.entityId = entityId;
-        this.role = role;
+        this.entityRole = entityRole;
     }
 
     /**
@@ -87,19 +87,19 @@ public class AclRecord extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #role}
+     * @return {@link #entityRole}
      */
-    public Role getRole()
+    public EntityRole getEntityRole()
     {
-        return role;
+        return entityRole;
     }
 
     /**
-     * @param role {@link #role}
+     * @param entityRole {@link #entityRole}
      */
-    public void setRole(Role role)
+    public void setEntityRole(EntityRole entityRole)
     {
-        this.role = role;
+        this.entityRole = entityRole;
     }
 
     /**
@@ -121,7 +121,7 @@ public class AclRecord extends IdentifiedComplexType
     @Override
     public String toString()
     {
-        return String.format("AclRecord (user: %s, entity: %s, role: %s)", userId, entityId, role);
+        return String.format("AclRecord (user: %s, entity: %s, entityRole: %s)", userId, entityId, entityRole);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class AclRecord extends IdentifiedComplexType
         if (entityId != null ? !entityId.equals(record.entityId) : record.entityId != null) {
             return false;
         }
-        if (role != record.role) {
+        if (entityRole != record.entityRole) {
             return false;
         }
         if (userId != null ? !userId.equals(record.userId) : record.userId != null) {
@@ -154,13 +154,13 @@ public class AclRecord extends IdentifiedComplexType
     {
         int result = userId != null ? userId.hashCode() : 0;
         result = 31 * result + (entityId != null ? entityId.hashCode() : 0);
-        result = 31 * result + (role != null ? role.hashCode() : 0);
+        result = 31 * result + (entityRole != null ? entityRole.hashCode() : 0);
         return result;
     }
 
     private static final String USER_ID = "userId";
     private static final String ENTITY_ID = "entityId";
-    private static final String ROLE = "role";
+    private static final String ENTITY_ROLE = "entityRole";
     private static final String DELETABLE = "deletable";
 
     @Override
@@ -169,7 +169,7 @@ public class AclRecord extends IdentifiedComplexType
         DataMap dataMap = super.toData();
         dataMap.set(USER_ID, userId);
         dataMap.set(ENTITY_ID, entityId);
-        dataMap.set(ROLE, role);
+        dataMap.set(ENTITY_ROLE, entityRole);
         dataMap.set(DELETABLE, deletable);
         return dataMap;
     }
@@ -180,7 +180,7 @@ public class AclRecord extends IdentifiedComplexType
         super.fromData(dataMap);
         userId = dataMap.getString(USER_ID);
         entityId = dataMap.getString(ENTITY_ID);
-        role = dataMap.getEnum(ROLE, Role.class);
+        entityRole = dataMap.getEnum(ENTITY_ROLE, EntityRole.class);
         deletable = dataMap.getBool(DELETABLE);
     }
 }

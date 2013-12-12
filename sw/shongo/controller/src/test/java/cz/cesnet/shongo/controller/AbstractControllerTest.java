@@ -606,20 +606,20 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * @param userId
      * @param entityId
-     * @param role
+     * @param entityRole
      * @return {@link AclRecord} with given parameters
      * @throws Exception
      */
-    protected AclRecord getAclRecord(String userId, String entityId, Role role) throws Exception
+    protected AclRecord getAclRecord(String userId, String entityId, EntityRole entityRole) throws Exception
     {
         ListResponse<AclRecord> aclRecords = getAuthorizationService().listAclRecords(
-                new AclRecordListRequest(SECURITY_TOKEN, userId, entityId, role));
+                new AclRecordListRequest(SECURITY_TOKEN, userId, entityId, entityRole));
 
         if (aclRecords.getItemCount() == 0) {
             return null;
         }
         if (aclRecords.getItemCount() > 1) {
-            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
+            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, entityRole).toString() + ".");
         }
         return aclRecords.getItem(0);
     }
@@ -629,14 +629,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param userId
      * @param entityId
-     * @param role
+     * @param entityRole
      * @throws Exception
      */
-    protected void deleteAclRecord(String userId, String entityId, Role role) throws Exception
+    protected void deleteAclRecord(String userId, String entityId, EntityRole entityRole) throws Exception
     {
-        AclRecord aclRecord = getAclRecord(userId, entityId, role);
+        AclRecord aclRecord = getAclRecord(userId, entityId, entityRole);
         if (aclRecord == null) {
-            throw new RuntimeException(new AclRecord(userId, entityId, role).toString() + " doesn't exist.");
+            throw new RuntimeException(new AclRecord(userId, entityId, entityRole).toString() + " doesn't exist.");
         }
         getAuthorizationService().deleteAclRecord(SECURITY_TOKEN_ROOT, aclRecord.getId());
     }

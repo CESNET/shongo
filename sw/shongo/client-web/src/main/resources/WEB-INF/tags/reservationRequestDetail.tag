@@ -283,7 +283,7 @@
         <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
         <dd>
             <c:forEach items="${reservationRequest.userRoles}" var="userRole" varStatus="status">
-                ${userRole.user.fullName} (<spring:message code="views.userRole.role.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
+                ${userRole.user.fullName} (<spring:message code="views.userRole.entityRole.${userRole.entityRole}"/>)<c:if test="${!status.last}">, </c:if>
             </c:forEach>
             <c:if test="${not empty modifyUserRolesUrl && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
                 (<a href="${modifyUserRolesUrl}"><spring:message code="views.reservationRequest.userRoles.modify"/></a>)

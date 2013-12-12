@@ -13,13 +13,13 @@ $$ LANGUAGE plpgsql;
  * and update it's acl_record_dependency records.
  */
 CREATE RULE ignore_update_duplicate AS ON UPDATE TO acl_record
-WHERE EXISTS(SELECT 1 FROM acl_record WHERE (user_id, entity_id, entity_type, role) = (NEW.user_id, NEW.entity_id, NEW.entity_type, NEW.role))
+WHERE EXISTS(SELECT 1 FROM acl_record WHERE (user_id, entity_id, entity_type, entity_role) = (NEW.user_id, NEW.entity_id, NEW.entity_type, NEW.entity_role))
 DO INSTEAD (
     SELECT alc_record_change_id(
-        (SELECT id FROM acl_record WHERE (user_id, entity_id, entity_type, role) = (OLD.user_id, OLD.entity_id, OLD.entity_type, OLD.role)),
-        (SELECT id FROM acl_record WHERE (user_id, entity_id, entity_type, role) = (NEW.user_id, NEW.entity_id, NEW.entity_type, NEW.role))
+        (SELECT id FROM acl_record WHERE (user_id, entity_id, entity_type, entity_role) = (OLD.user_id, OLD.entity_id, OLD.entity_type, OLD.entity_role)),
+        (SELECT id FROM acl_record WHERE (user_id, entity_id, entity_type, entity_role) = (NEW.user_id, NEW.entity_id, NEW.entity_type, NEW.entity_role))
     );
-    DELETE FROM acl_record WHERE (user_id, entity_id, entity_type, role) = (OLD.user_id, OLD.entity_id, OLD.entity_type, OLD.role);
+    DELETE FROM acl_record WHERE (user_id, entity_id, entity_type, entity_role) = (OLD.user_id, OLD.entity_id, OLD.entity_type, OLD.entity_role);
 );
 
 /**

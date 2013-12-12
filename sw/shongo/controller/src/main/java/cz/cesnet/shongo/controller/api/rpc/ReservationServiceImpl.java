@@ -219,7 +219,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             reservationRequest.getSpecification().updateTechnologies(entityManager);
 
-            authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
+            authorizationManager.createAclRecord(userId, reservationRequest, EntityRole.OWNER);
 
             Allocation reusedAllocation = reservationRequest.getReusedAllocation();
             if (reusedAllocation != null) {

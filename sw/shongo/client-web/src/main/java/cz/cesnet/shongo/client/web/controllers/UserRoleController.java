@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -8,7 +7,7 @@ import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -97,8 +96,8 @@ public class UserRoleController
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclRecord.getId());
             item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
-            String role = aclRecord.getRole().toString();
-            item.put("role", messageSource.getMessage("views.userRole.role." + role, null, locale));
+            String entityRole = aclRecord.getEntityRole().toString();
+            item.put("entityRole", messageSource.getMessage("views.userRole.entityRole." + entityRole, null, locale));
             item.put("deletable", aclRecord.isDeletable());
             items.add(item);
         }
@@ -141,7 +140,7 @@ public class UserRoleController
             return handleRoleCreate(userRole);
         }
         authorizationService.createAclRecord(securityToken,
-                userRole.getUserId(), userRole.getEntityId(), userRole.getRole());
+                userRole.getUserId(), userRole.getEntityId(), userRole.getEntityRole());
 
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
     }
@@ -160,7 +159,7 @@ public class UserRoleController
         AclRecordListRequest request = new AclRecordListRequest();
         request.setSecurityToken(securityToken);
         request.addEntityId(entityId);
-        request.addRole(Role.OWNER);
+        request.addEntityRole(EntityRole.OWNER);
         ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
         if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(userRoleId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");

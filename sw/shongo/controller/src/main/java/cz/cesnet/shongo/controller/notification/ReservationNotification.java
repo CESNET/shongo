@@ -4,7 +4,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -14,8 +14,6 @@ import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import org.hsqldb.lib.HsqlArrayHeap;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -65,7 +63,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         this.id = EntityIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
-        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, Role.OWNER));
+        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, EntityRole.OWNER));
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);

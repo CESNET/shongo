@@ -119,7 +119,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Save it
             resourceManager.create(resource);
 
-            authorizationManager.createAclRecord(userId, resource, Role.OWNER);
+            authorizationManager.createAclRecord(userId, resource, EntityRole.OWNER);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

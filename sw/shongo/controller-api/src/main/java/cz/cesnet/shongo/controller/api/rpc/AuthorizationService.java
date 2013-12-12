@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.EntityPermission;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
@@ -71,11 +71,11 @@ public interface AuthorizationService extends Service
      * @param token    token of the user requesting the operation
      * @param userId   identifier of the Shongo user
      * @param entityId identifier of the Shongo public entity
-     * @param role     role which the user gets granted for the entity
+     * @param entityRole     role which the user gets granted for the entity
      * @return identifier of newly created ACL record
      */
     @API
-    public String createAclRecord(SecurityToken token, String userId, String entityId, Role role);
+    public String createAclRecord(SecurityToken token, String userId, String entityId, EntityRole entityRole);
 
     /**
      * Delete {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}.

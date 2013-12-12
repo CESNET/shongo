@@ -224,7 +224,7 @@ public class InMemoryAclPropagationCache
 
             // Propagate ACL to child entity states
             for (Map.Entry<EntityState, AclRecordPropagator> entry : childEntityStates.entrySet()) {
-                entry.getValue().addAclRecord(entry.getKey(), userId, aclRecord.getRole());
+                entry.getValue().addAclRecord(entry.getKey(), userId, aclRecord.getEntityRole());
             }
 
             return true;
@@ -257,7 +257,7 @@ public class InMemoryAclPropagationCache
 
         public boolean addAclRecord(AclRecord aclRecord)
         {
-            roles.add(aclRecord.getRole());
+            roles.add(aclRecord.getEntityRole());
             return aclRecords.add(aclRecord);
         }
     }
@@ -289,7 +289,7 @@ public class InMemoryAclPropagationCache
         {
             for (EntityUserState entityUserState : sourceEntityState.entityUserStateByUserId.values()) {
                 for (AclRecord aclRecord : entityUserState.aclRecords) {
-                    addAclRecord(targetEntityState, aclRecord.getUserId(), aclRecord.getRole());
+                    addAclRecord(targetEntityState, aclRecord.getUserId(), aclRecord.getEntityRole());
                 }
             }
             for (Map.Entry<EntityState, AclRecordPropagator> entry : sourceEntityState.parentEntityStates.entrySet()) {

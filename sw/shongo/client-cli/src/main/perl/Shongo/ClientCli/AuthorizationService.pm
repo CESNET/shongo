@@ -405,7 +405,7 @@ sub list_acl()
         $request->{'entityIds'} = [RPC::XML::string->new($options->{'entity'})];
     }
     if ( defined($options->{'role'}) ) {
-        $request->{'roles'} = [RPC::XML::string->new($options->{'role'})];
+        $request->{'entityRoles'} = [RPC::XML::string->new($options->{'role'})];
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Authorization.listAclRecords', $request);

@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
@@ -144,7 +143,7 @@ public class ServiceImpl implements Service
                                 "No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
                     Authorization authorization = Authorization.getInstance();
-                    for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER)) {
+                    for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, EntityRole.OWNER)) {
                         recipients.add(user);
                     }
                     for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {

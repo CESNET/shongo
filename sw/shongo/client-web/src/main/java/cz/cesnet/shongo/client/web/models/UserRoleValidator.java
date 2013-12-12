@@ -21,6 +21,6 @@ public class UserRoleValidator implements Validator
     public void validate(Object object, Errors errors)
     {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userId", "validation.field.required");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "role", "validation.field.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "entityRole", "validation.field.required");
     }
 }

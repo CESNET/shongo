@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -19,7 +19,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "entity_type", "role"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "entity_type", "entity_role"}))
 @org.hibernate.annotations.Table(appliesTo = "acl_record", indexes = {
         @Index(name = "acl_record_entity", columnNames = {"entity_id", "entity_type"})
 })
@@ -36,9 +36,9 @@ public class AclRecord extends SimplePersistentObject
     private EntityId entityId;
 
     /**
-     * {@link Role} of the ACL.
+     * {@link EntityRole} of the ACL.
      */
-    private Role role;
+    private EntityRole entityRole;
 
     /**
      * @return {@link #userId}
@@ -80,22 +80,22 @@ public class AclRecord extends SimplePersistentObject
     }
 
     /**
-     * @return {@link #role}
+     * @return {@link #entityRole}
      */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Index(name = "acl_record_role")
-    public Role getRole()
+    public EntityRole getEntityRole()
     {
-        return role;
+        return entityRole;
     }
 
     /**
-     * @param role sets the {@link #role}
+     * @param entityRole sets the {@link #entityRole}
      */
-    public void setRole(Role role)
+    public void setEntityRole(EntityRole entityRole)
     {
-        this.role = role;
+        this.entityRole = entityRole;
     }
 
     public static enum EntityType

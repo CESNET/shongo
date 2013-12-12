@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Enumeration of all possible user {@link Role}s to entities of all {@link EntityType}s.
+ * Enumeration of all possible user {@link EntityRole}s to entities of all {@link EntityType}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum Role
+public enum EntityRole
 {
     /**
      * User is a owner of an entity (has all permissions).
@@ -39,7 +39,7 @@ public enum Role
      *
      * @param id sets the {@link #id}
      */
-    private Role(String id)
+    private EntityRole(String id)
     {
         this.id = id;
     }
@@ -52,25 +52,25 @@ public enum Role
         return id;
     }
 
-    private static Map<String, Role> roleById;
+    private static Map<String, EntityRole> roleById;
 
     static {
-        roleById = new HashMap<String, Role>();
-        for (Role role : Role.class.getEnumConstants()) {
-            roleById.put(role.getId(), role);
+        roleById = new HashMap<String, EntityRole>();
+        for (EntityRole entityRole : EntityRole.class.getEnumConstants()) {
+            roleById.put(entityRole.getId(), entityRole);
         }
     }
 
     /**
-     * @param roleId {@link Role#id}
-     * @return {@link Role} for given role identifier
+     * @param roleId {@link EntityRole#id}
+     * @return {@link EntityRole} for given role identifier
      */
-    public static Role forId(String roleId)
+    public static EntityRole forId(String roleId)
     {
-        Role role = roleById.get(roleId);
-        if (role == null) {
+        EntityRole entityRole = roleById.get(roleId);
+        if (entityRole == null) {
             throw new IllegalArgumentException();
         }
-        return role;
+        return entityRole;
     }
 }

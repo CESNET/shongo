@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.util;
 
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AclRecordDependency;
 import cz.cesnet.shongo.util.Timer;
@@ -60,13 +60,13 @@ public class PersistenceTest
             AclRecord aclRecord1 = new AclRecord();
             aclRecord1.setUserId("0");
             aclRecord1.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
-            aclRecord1.setRole(Role.OWNER);
+            aclRecord1.setEntityRole(EntityRole.OWNER);
             entityManager.persist(aclRecord1);
 
             AclRecord aclRecord2 = new AclRecord();
             aclRecord2.setUserId("0");
             aclRecord2.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
-            aclRecord2.setRole(Role.OWNER);
+            aclRecord2.setEntityRole(EntityRole.OWNER);
             entityManager.persist(aclRecord2);
 
             AclRecordDependency aclRecordDependency1 = new AclRecordDependency();

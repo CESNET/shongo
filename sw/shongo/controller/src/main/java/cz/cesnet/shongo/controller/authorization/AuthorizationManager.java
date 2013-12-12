@@ -74,10 +74,10 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @param userId
      * @param entity
-     * @param role
+     * @param entityRole
      * @return collection of {@link AclRecord} for given parameters
      */
-    public Collection<AclRecord> listAclRecords(String userId, PersistentObject entity, Role role)
+    public Collection<AclRecord> listAclRecords(String userId, PersistentObject entity, EntityRole entityRole)
     {
         AclRecord.EntityId entityId = null;
         if (entity != null) {
@@ -87,13 +87,13 @@ public class AuthorizationManager extends AbstractManager
                 + " WHERE (:userId IS NULL OR acl.userId = :userId)"
                 + " AND (:entityTypeNull = TRUE OR acl.entityId.entityType = :entityType)"
                 + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
-                + " AND (:roleNull = TRUE OR acl.role = :role)", AclRecord.class)
+                + " AND (:roleNull = TRUE OR acl.entityRole = :role)", AclRecord.class)
                 .setParameter("userId", userId)
                 .setParameter("entityTypeNull", entityId == null || entityId.getEntityType() == null)
                 .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
                 .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
-                .setParameter("roleNull", role == null)
-                .setParameter("role", role)
+                .setParameter("roleNull", entityRole == null)
+                .setParameter("role", entityRole)
                 .getResultList();
     }
 
@@ -141,20 +141,20 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @param userId
      * @param entityId
-     * @param role
+     * @param entityRole
      * @return collection of {@link AclRecord} for given parameters
      */
-    public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, Role role)
+    public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, EntityRole entityRole)
     {
         List<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
                 + " WHERE acl.userId = :userId"
                 + " AND acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId"
-                + " AND acl.role = :role", AclRecord.class)
+                + " AND acl.entityRole = :role", AclRecord.class)
                 .setParameter("userId", userId)
                 .setParameter("entityType", entityId.getEntityType())
                 .setParameter("entityId", entityId.getPersistenceId())
-                .setParameter("role", role)
+                .setParameter("role", entityRole)
                 .getResultList();
         if (aclRecords.size() == 1) {
             return aclRecords.get(0);
@@ -164,25 +164,25 @@ public class AuthorizationManager extends AbstractManager
         }
         else {
             throw new RuntimeException(
-                    String.format("Multiple ACL (user: %s, entity: %s, role: %s) exist.", userId, entityId, role));
+                    String.format("Multiple ACL (user: %s, entity: %s, role: %s) exist.", userId, entityId, entityRole));
         }
     }
 
     /**
      * @param entity
-     * @param role
+     * @param entityRole
      * @return list of user-ids with given {@code role} for given {@code entityId}
      */
-    public Collection<String> getUserIdsWithRole(PersistentObject entity, Role role)
+    public Collection<String> getUserIdsWithRole(PersistentObject entity, EntityRole entityRole)
     {
         AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         return entityManager.createQuery("SELECT acl.userId FROM AclRecord acl"
                 + " WHERE acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId"
-                + " AND acl.role = :role", String.class)
+                + " AND acl.entityRole = :role", String.class)
                 .setParameter("entityType", entityId.getEntityType())
                 .setParameter("entityId", entityId.getPersistenceId())
-                .setParameter("role", role)
+                .setParameter("role", entityRole)
                 .getResultList();
     }
 
@@ -248,10 +248,10 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param userId   of user for which the ACL is created.
      * @param entity   for which the ACL is created.
-     * @param role     which is created for given user and given entity
+     * @param entityRole     which is created for given user and given entity
      * @return new {@link AclRecord}
      */
-    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role)
+    public AclRecord createAclRecord(String userId, PersistentObject entity, EntityRole entityRole)
     {
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
@@ -260,15 +260,15 @@ public class AuthorizationManager extends AbstractManager
         AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         AclRecord.EntityType entityType = entityId.getEntityType();
 
-        if (!entityType.getEntityType().allowsRole(role)) {
-            throw new ControllerReportSet.AclInvalidRoleException(EntityIdentifier.formatId(entity), role.toString());
+        if (!entityType.getEntityType().allowsRole(entityRole)) {
+            throw new ControllerReportSet.AclInvalidRoleException(EntityIdentifier.formatId(entity), entityRole.toString());
         }
 
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
         }
 
-        AclRecord aclRecord = activeTransaction.getAclRecord(userId, entityId, role);
+        AclRecord aclRecord = activeTransaction.getAclRecord(userId, entityId, entityRole);
         if (aclRecord != null) {
             return aclRecord;
         }
@@ -277,7 +277,7 @@ public class AuthorizationManager extends AbstractManager
             aclRecord = new AclRecord();
             aclRecord.setUserId(userId);
             aclRecord.setEntityId(entityId);
-            aclRecord.setRole(role);
+            aclRecord.setEntityRole(entityRole);
             entityManager.persist(aclRecord);
 
             activeTransaction.addAclRecord(aclRecord);
@@ -286,11 +286,11 @@ public class AuthorizationManager extends AbstractManager
         }
         catch (Throwable throwable) {
             throw new RuntimeException(String.format("ACL Record creation failed (user: %s, entity: %s, role: %s)",
-                    userId, entityId, role), throwable);
+                    userId, entityId, entityRole), throwable);
         }
 
         Controller.loggerAcl.info("ACL Record created (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), userId, entityId, role});
+                new Object[]{aclRecord.getId(), userId, entityId, entityRole});
 
         return aclRecord;
     }
@@ -314,9 +314,9 @@ public class AuthorizationManager extends AbstractManager
         Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
         for (AclRecord parentAclRecord : parentAclRecords) {
             String userId = parentAclRecord.getUserId();
-            Role role = parentAclRecord.getRole();
-            if (childEntityType.allowsRole(role)) {
-                createChildAclRecord(parentAclRecord, userId, childEntity, role,
+            EntityRole entityRole = parentAclRecord.getEntityRole();
+            if (childEntityType.allowsRole(entityRole)) {
+                createChildAclRecord(parentAclRecord, userId, childEntity, entityRole,
                         AclRecordDependency.Type.DELETE_DETACH);
             }
         }
@@ -347,12 +347,12 @@ public class AuthorizationManager extends AbstractManager
      * @param parentAclRecord
      * @param userId
      * @param childEntity
-     * @param role
+     * @param entityRole
      */
     private void createChildAclRecord(AclRecord parentAclRecord, String userId, PersistentObject childEntity,
-            Role role, AclRecordDependency.Type dependencyType)
+            EntityRole entityRole, AclRecordDependency.Type dependencyType)
     {
-        AclRecord childAclRecord = createAclRecord(userId, childEntity, role);
+        AclRecord childAclRecord = createAclRecord(userId, childEntity, entityRole);
 
         List<AclRecordDependency> aclRecordDependencies =
                 entityManager.createQuery("SELECT dependency FROM AclRecordDependency dependency"
@@ -451,7 +451,7 @@ public class AuthorizationManager extends AbstractManager
                     Controller.loggerAcl.info(
                             "ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
                                     + " because it is referenced.", new Object[]{childAclRecord.getId(),
-                            childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getRole()
+                            childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getEntityRole()
                     });
                 }
             }
@@ -463,7 +463,7 @@ public class AuthorizationManager extends AbstractManager
         activeTransaction.removeAclRecord(aclRecord);
 
         Controller.loggerAcl.info("Deleted ACL Record (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getEntityRole()});
     }
 
     /**
@@ -475,7 +475,7 @@ public class AuthorizationManager extends AbstractManager
     private void afterAclRecordCreated(AclRecord aclRecord, PersistentObject entity)
     {
         String userId = aclRecord.getUserId();
-        Role role = aclRecord.getRole();
+        EntityRole entityRole = aclRecord.getEntityRole();
 
         // Create child ACL records
         if (entity instanceof AbstractReservationRequest) {
@@ -484,8 +484,8 @@ public class AuthorizationManager extends AbstractManager
 
             // Child reservation requests
             for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
-                if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
-                    createChildAclRecord(aclRecord, userId, childReservationRequest, role,
+                if (EntityType.RESERVATION_REQUEST.allowsRole(entityRole)) {
+                    createChildAclRecord(aclRecord, userId, childReservationRequest, entityRole,
                             AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
@@ -496,22 +496,22 @@ public class AuthorizationManager extends AbstractManager
                 List<AbstractReservationRequest> reservationRequestUsages =
                         reservationRequestManager.listReservationRequestActiveUsages(reservationRequest);
                 for (AbstractReservationRequest reservationRequestUsage : reservationRequestUsages) {
-                    if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
-                        createChildAclRecord(aclRecord, userId, reservationRequestUsage, role,
+                    if (EntityType.RESERVATION_REQUEST.allowsRole(entityRole)) {
+                        createChildAclRecord(aclRecord, userId, reservationRequestUsage, entityRole,
                                 AclRecordDependency.Type.DELETE_DETACH);
                     }
                 }
             }
 
             // Allocated reservations
-            if (EntityType.RESERVATION.allowsRole(role)) {
+            if (EntityType.RESERVATION.allowsRole(entityRole)) {
                 for (Reservation reservation : allocation.getReservations()) {
-                    createChildAclRecord(aclRecord, userId, reservation, role, AclRecordDependency.Type.DELETE_DETACH);
+                    createChildAclRecord(aclRecord, userId, reservation, entityRole, AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
-            else if (role.equals(Role.RESERVATION_REQUEST_USER)) {
+            else if (entityRole.equals(EntityRole.RESERVATION_REQUEST_USER)) {
                 for (Reservation reservation : allocation.getReservations()) {
-                    createChildAclRecord(aclRecord, userId, reservation, Role.READER, AclRecordDependency.Type.DELETE_DETACH);
+                    createChildAclRecord(aclRecord, userId, reservation, EntityRole.READER, AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
         }
@@ -520,8 +520,8 @@ public class AuthorizationManager extends AbstractManager
 
             // Child reservations
             for (Reservation childReservation : reservation.getChildReservations()) {
-                if (EntityType.RESERVATION.allowsRole(role)) {
-                    createChildAclRecord(aclRecord, userId, childReservation, role,
+                if (EntityType.RESERVATION.allowsRole(entityRole)) {
+                    createChildAclRecord(aclRecord, userId, childReservation, entityRole,
                             AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
@@ -529,8 +529,8 @@ public class AuthorizationManager extends AbstractManager
             // Executable
             Executable executable = reservation.getExecutable();
             if (reservation.getExecutable() != null) {
-                if (EntityType.EXECUTABLE.allowsRole(role)) {
-                    createChildAclRecord(aclRecord, userId, executable, role, AclRecordDependency.Type.DELETE_DETACH);
+                if (EntityType.EXECUTABLE.allowsRole(entityRole)) {
+                    createChildAclRecord(aclRecord, userId, executable, entityRole, AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
 
@@ -538,13 +538,13 @@ public class AuthorizationManager extends AbstractManager
             if (reservation instanceof ExistingReservation) {
                 ExistingReservation existingReservation = (ExistingReservation) reservation;
                 Reservation reusedReservation = existingReservation.getReusedReservation();
-                createChildAclRecord(aclRecord, userId, reusedReservation, Role.READER,
+                createChildAclRecord(aclRecord, userId, reusedReservation, EntityRole.READER,
                         AclRecordDependency.Type.DELETE_CASCADE);
             }
         }
 
         // Update entities
-        if (entity instanceof Executable && role.equals(Role.OWNER)) {
+        if (entity instanceof Executable && entityRole.equals(EntityRole.OWNER)) {
             Executable executable = (Executable) entity;
             Executable.State state = executable.getState();
             if (state.equals(Executable.State.STARTED)) {
@@ -561,9 +561,9 @@ public class AuthorizationManager extends AbstractManager
      */
     private void beforeAclRecordDeleted(AclRecord aclRecord, PersistentObject entity)
     {
-        Role role = aclRecord.getRole();
+        EntityRole entityRole = aclRecord.getEntityRole();
 
-        if (entity instanceof Executable && role.equals(Role.OWNER)) {
+        if (entity instanceof Executable && entityRole.equals(EntityRole.OWNER)) {
             Executable executable = (Executable) entity;
             Executable.State state = executable.getState();
             if (state.equals(Executable.State.STARTED)) {
@@ -674,12 +674,12 @@ public class AuthorizationManager extends AbstractManager
         /**
          * @param userId
          * @param entityId
-         * @param role
+         * @param entityRole
          * @return {@link AclRecord} for given parameters or null if doesn't exist
          */
-        public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, Role role)
+        public AclRecord getAclRecord(String userId, AclRecord.EntityId entityId, EntityRole entityRole)
         {
-            AclRecord aclRecord = AuthorizationManager.this.getAclRecord(userId, entityId, role);
+            AclRecord aclRecord = AuthorizationManager.this.getAclRecord(userId, entityId, entityRole);
             if (aclRecord == null) {
                 // If the ACL record is added in the transaction, return it
                 for (AclRecord addedAclRecord : addedAclRecords) {
@@ -689,7 +689,7 @@ public class AuthorizationManager extends AbstractManager
                     if (!entityId.equals(addedAclRecord.getEntityId())) {
                         continue;
                     }
-                    if (!role.equals(addedAclRecord.getRole())) {
+                    if (!entityRole.equals(addedAclRecord.getEntityRole())) {
                         continue;
                     }
                     return addedAclRecord;
