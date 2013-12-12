@@ -72,6 +72,22 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
+    {
+        return authorization.hasSystemPermission(securityToken, systemPermission);
+    }
+
+    @Override
+    public Set<SystemPermission> getSystemPermissions(SecurityToken securityToken)
+    {
+        Set<SystemPermission> systemPermissions = new HashSet<SystemPermission>();
+        for (SystemPermission systemPermission : SystemPermission.values()) {
+            authorization.hasSystemPermission(securityToken, systemPermission);
+        }
+        return systemPermissions;
+    }
+
+    @Override
     public ListResponse<UserInformation> listUsers(UserListRequest request)
     {
         authorization.validate(request.getSecurityToken());
@@ -141,10 +157,131 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public UserSettings getUserSettings(SecurityToken securityToken)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+        try {
+            return userSettingsManager.getUserSettings(securityToken);
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettingsApi)
+    {
+        authorization.validate(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+        try {
+            entityManager.getTransaction().begin();
+
+            userSettingsManager.updateUserSettings(securityToken, userSettingsApi);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId)
+    {
+        authorization.validate(securityToken);
+        authorization.clearCache();
+
+        if (!authorization.isAdministrator(securityToken)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user id %s to %s", oldUserId, newUserId);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+
+            String query = NativeQuery.getNativeQuery(entityManagerFactory, NativeQuery.MODIFY_USER_ID);
+            String queryParts[] = query.split("\\[perform\\]");
+            String queryInit = queryParts[0].trim();
+            String queryDestroy = queryParts[1].trim();
+
+            authorization.checkUserExistence(newUserId);
+
+            if (!queryInit.isEmpty()) {
+                entityManager.createNativeQuery(queryInit).executeUpdate();
+            }
+
+            entityManager.createQuery("UPDATE AclRecord SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery("UPDATE UserPerson SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery("UPDATE Resource SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            // Delete old UserSettings if the new exists
+            if (entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId")
+                    .setParameter("userId", newUserId)
+                    .getResultList().size() > 0) {
+                try {
+                    cz.cesnet.shongo.controller.settings.UserSettings userSettings = entityManager.createQuery(
+                            "SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId",
+                            cz.cesnet.shongo.controller.settings.UserSettings.class)
+                            .setParameter("userId", oldUserId)
+                            .getSingleResult();
+                    entityManager.remove(userSettings);
+                    entityManager.flush();
+                }
+                catch (NoResultException exception) {
+                    // Old user settings doesn't exist, we don't have to delete it
+                }
+            }
+            entityManager.createQuery("UPDATE UserSettings SET userId = :newUserId WHERE userId = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery(
+                    "UPDATE AbstractReservationRequest SET createdBy = :newUserId WHERE createdBy = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            entityManager.createQuery(
+                    "UPDATE AbstractReservationRequest SET updatedBy = :newUserId WHERE updatedBy = :oldUserId")
+                    .setParameter("oldUserId", oldUserId)
+                    .setParameter("newUserId", newUserId)
+                    .executeUpdate();
+
+            if (!queryDestroy.isEmpty()) {
+                entityManager.createNativeQuery(queryDestroy).executeUpdate();
+            }
+
+            entityManager.getTransaction().commit();
+
+            authorization.clearCache();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
     public List<Group> listGroups(SecurityToken token)
     {
         authorization.validate(token);
-        if (!authorization.isAdmin(token)) {
+        if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list user groups");
         }
         return authorization.listGroups();
@@ -154,7 +291,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public String createGroup(SecurityToken token, Group group)
     {
         authorization.validate(token);
-        if (!authorization.isAdmin(token)) {
+        if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create group");
         }
         return authorization.createGroup(group);
@@ -164,7 +301,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void deleteGroup(SecurityToken token, String groupId)
     {
         authorization.validate(token);
-        if (!authorization.isAdmin(token)) {
+        if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete group " + groupId);
         }
         authorization.deleteGroup(groupId);
@@ -174,7 +311,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void addGroupUser(SecurityToken token, String groupId, String userId)
     {
         authorization.validate(token);
-        if (!authorization.isAdmin(token)) {
+        if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add user to group " + groupId);
         }
         authorization.addGroupUser(groupId, userId);
@@ -184,7 +321,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void removeGroupUser(SecurityToken token, String groupId, String userId)
     {
         authorization.validate(token);
-        if (!authorization.isAdmin(token)) {
+        if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("remove user from group " + groupId);
         }
         authorization.removeGroupUser(groupId, userId);
@@ -273,7 +410,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             // List only records for entities which are requested
             if (request.getEntityIds().size() > 0) {
-                boolean isAdmin = authorization.isAdmin(securityToken);
+                boolean isAdmin = authorization.isAdministrator(securityToken);
                 StringBuilder entityIdsFilterBuilder = new StringBuilder();
                 for (String entityId : request.getEntityIds()) {
                     EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
@@ -396,7 +533,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             if (entity == null) {
                 ControllerReportSetHelper.throwEntityNotExistFault(entityIdentifier);
             }
-            if (!authorization.isAdmin(securityToken)) {
+            if (!authorization.isAdministrator(securityToken)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
             authorizationManager.beginTransaction();
@@ -453,132 +590,11 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public UserSettings getUserSettings(SecurityToken securityToken)
-    {
-        authorization.validate(securityToken);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
-        try {
-            return userSettingsManager.getUserSettings(securityToken);
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    @Override
-    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettingsApi)
-    {
-        authorization.validate(securityToken);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
-        try {
-            entityManager.getTransaction().begin();
-
-            userSettingsManager.updateUserSettings(securityToken, userSettingsApi);
-
-            entityManager.getTransaction().commit();
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    @Override
-    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId)
-    {
-        authorization.validate(securityToken);
-        authorization.clearCache();
-
-        if (!authorization.isAdmin(securityToken)) {
-            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user id %s to %s", oldUserId, newUserId);
-        }
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-
-            String query = NativeQuery.getNativeQuery(entityManagerFactory, NativeQuery.MODIFY_USER_ID);
-            String queryParts[] = query.split("\\[perform\\]");
-            String queryInit = queryParts[0].trim();
-            String queryDestroy = queryParts[1].trim();
-
-            authorization.checkUserExistence(newUserId);
-
-            if (!queryInit.isEmpty()) {
-                entityManager.createNativeQuery(queryInit).executeUpdate();
-            }
-
-            entityManager.createQuery("UPDATE AclRecord SET userId = :newUserId WHERE userId = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            entityManager.createQuery("UPDATE UserPerson SET userId = :newUserId WHERE userId = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            entityManager.createQuery("UPDATE Resource SET userId = :newUserId WHERE userId = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            // Delete old UserSettings if the new exists
-            if (entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId")
-                    .setParameter("userId", newUserId)
-                    .getResultList().size() > 0) {
-                try {
-                    cz.cesnet.shongo.controller.settings.UserSettings userSettings = entityManager.createQuery(
-                            "SELECT userSettings FROM UserSettings userSettings WHERE userId = :userId",
-                            cz.cesnet.shongo.controller.settings.UserSettings.class)
-                            .setParameter("userId", oldUserId)
-                            .getSingleResult();
-                    entityManager.remove(userSettings);
-                    entityManager.flush();
-                }
-                catch (NoResultException exception) {
-                    // Old user settings doesn't exist, we don't have to delete it
-                }
-            }
-            entityManager.createQuery("UPDATE UserSettings SET userId = :newUserId WHERE userId = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            entityManager.createQuery(
-                    "UPDATE AbstractReservationRequest SET createdBy = :newUserId WHERE createdBy = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            entityManager.createQuery(
-                    "UPDATE AbstractReservationRequest SET updatedBy = :newUserId WHERE updatedBy = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .executeUpdate();
-
-            if (!queryDestroy.isEmpty()) {
-                entityManager.createNativeQuery(queryDestroy).executeUpdate();
-            }
-
-            entityManager.getTransaction().commit();
-
-            authorization.clearCache();
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    @Override
     public Map<String, String> listReferencedUsers(SecurityToken securityToken)
     {
         authorization.validate(securityToken);
 
-        if (!authorization.isAdmin(securityToken)) {
+        if (!authorization.isAdministrator(securityToken)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list referenced users");
         }
 

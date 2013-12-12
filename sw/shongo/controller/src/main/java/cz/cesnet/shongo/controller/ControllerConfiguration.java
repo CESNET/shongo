@@ -143,9 +143,9 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SECURITY_ROOT_ACCESS_TOKEN = "security.root-access-token";
 
     /**
-     * Specifies the name of group which contains system administrators (they can use the {@link UserSessionSettings#adminMode}).
+     * Specifies the name of group which contains system administrators (they can use the {@link UserSessionSettings#administratorMode}).
      */
-    public static final String SECURITY_ADMIN_GROUP = "security.admin-group";
+    public static final String SECURITY_ADMIN_GROUP = "security.administrator-group";
 
     /**
      * SSL host verification mappings.

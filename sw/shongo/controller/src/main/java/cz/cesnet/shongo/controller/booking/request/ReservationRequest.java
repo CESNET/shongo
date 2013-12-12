@@ -332,9 +332,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(boolean admin)
+    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(boolean administrator)
     {
-        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(admin);
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(administrator);
     }
 
     @Override

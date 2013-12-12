@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Group;
@@ -56,12 +57,12 @@ public abstract class Authorization
     /**
      * @see ControllerConfiguration#SECURITY_ADMIN_GROUP
      */
-    protected String adminGroupName;
+    protected String administratorGroupName;
 
     /**
      * Set of access-tokens which has administrator access.
      */
-    protected Set<String> adminAccessTokens = new HashSet<String>();
+    protected Set<String> administratorAccessTokens = new HashSet<String>();
 
     /**
      * {@link cz.cesnet.shongo.controller.settings.UserSessionSettings}s.
@@ -83,7 +84,7 @@ public abstract class Authorization
                 ControllerConfiguration.SECURITY_EXPIRATION_ACL));
         this.cache.setGroupExpiration(configuration.getDuration(
                 ControllerConfiguration.SECURITY_EXPIRATION_GROUP));
-        this.adminGroupName = configuration.getString(ControllerConfiguration.SECURITY_ADMIN_GROUP);
+        this.administratorGroupName = configuration.getString(ControllerConfiguration.SECURITY_ADMIN_GROUP);
     }
 
     /**
@@ -126,6 +127,27 @@ public abstract class Authorization
             throw new ControllerReportSet.SecurityMissingTokenException();
         }
         return onValidate(securityToken);
+    }
+
+    /**
+     * @param securityToken
+     * @param systemPermission
+     * @return
+     */
+    public final boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
+    {
+        String userId = securityToken.getUserId();
+        switch (systemPermission) {
+            case ADMINISTRATION: {
+                return listGroupUserIds(getGroupIdByName(administratorGroupName)).contains(userId);
+            }
+            case RESERVATION: {
+                return true;
+            }
+            default: {
+                throw new TodoImplementException(systemPermission);
+            }
+        }
     }
 
     /**
@@ -299,9 +321,9 @@ public abstract class Authorization
      * @return true if the user is Shongo admin (should have all permissions),
      *         false otherwise
      */
-    public final boolean isAdmin(SecurityToken securityToken)
+    public final boolean isAdministrator(SecurityToken securityToken)
     {
-        return adminAccessTokens.contains(securityToken.getAccessToken());
+        return administratorAccessTokens.contains(securityToken.getAccessToken());
     }
 
     /**
@@ -314,7 +336,7 @@ public abstract class Authorization
     public boolean hasEntityPermission(SecurityToken securityToken,
             AclRecord.EntityId entityId, EntityPermission entityPermission)
     {
-        if (isAdmin(securityToken)) {
+        if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
             return true;
         }
@@ -348,7 +370,7 @@ public abstract class Authorization
     public Set<EntityPermission> getEntityPermissions(SecurityToken securityToken, PersistentObject entity)
     {
         AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
-        if (isAdmin(securityToken)) {
+        if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
             EntityType entityType = entityId.getEntityType().getEntityType();
             return entityType.getPermissions();
@@ -376,7 +398,7 @@ public abstract class Authorization
     public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclRecord.EntityType entityType,
             EntityPermission entityPermission)
     {
-        if (isAdmin(securityToken)) {
+        if (isAdministrator(securityToken)) {
             return null;
         }
         String userId = securityToken.getUserId();
@@ -394,7 +416,7 @@ public abstract class Authorization
 
     /**
      * @param persistentObject for which the users must have given {@code role}
-     * @param entityRole             which the users must have for given {@code persistentObject}
+     * @param entityRole       which the users must have for given {@code persistentObject}
      * @return collection of {@link UserData} of users which have given {@code role}
      *         for given {@code persistentObject}
      */
@@ -427,10 +449,6 @@ public abstract class Authorization
         if (userSessionSettings == null) {
             // Create new user session settings
             userSessionSettings = new UserSessionSettings(securityToken);
-            String userId = securityToken.getUserId();
-            if (listGroupUserIds(getGroupIdByName(adminGroupName)).contains(userId)) {
-                userSessionSettings.setAdminMode(Boolean.FALSE);
-            }
             // Store it
             this.userSessionSettings.put(securityToken, userSessionSettings);
         }
@@ -443,12 +461,11 @@ public abstract class Authorization
     public void updateUserSessionSettings(UserSessionSettings userSessionSettings)
     {
         SecurityToken securityToken = userSessionSettings.getSecurityToken();
-        Boolean adminMode = userSessionSettings.getAdminMode();
-        if (Boolean.TRUE.equals(adminMode)) {
-            adminAccessTokens.add(securityToken.getAccessToken());
+        if (userSessionSettings.getAdministratorMode()) {
+            administratorAccessTokens.add(securityToken.getAccessToken());
         }
-        else if (Boolean.FALSE.equals(adminMode)) {
-            adminAccessTokens.remove(securityToken.getAccessToken());
+        else {
+            administratorAccessTokens.remove(securityToken.getAccessToken());
         }
     }
 
@@ -491,7 +508,7 @@ public abstract class Authorization
     {
         Set<String> userIds = cache.getUserIdsInGroup(groupId);
         if (userIds == null) {
-            userIds = onListGroupUserIds(groupId);
+            userIds = new HashSet<String>(onListGroupUserIds(groupId));
             cache.putUserIdsInGroup(groupId, userIds);
         }
         return userIds;

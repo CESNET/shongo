@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 
 import javax.persistence.*;
@@ -45,9 +44,9 @@ public class ResourceReservation extends TargetedReservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(boolean admin)
+    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(boolean administrator)
     {
-        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi(admin);
+        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi(administrator);
     }
 
     @Override
@@ -57,13 +56,13 @@ public class ResourceReservation extends TargetedReservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
         resourceReservationApi.setResourceId(EntityIdentifier.formatId(resource));
         resourceReservationApi.setResourceName(resource.getName());
-        super.toApi(api, admin);
+        super.toApi(api, administrator);
     }
 
     @Override

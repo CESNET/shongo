@@ -59,7 +59,7 @@
             <!-- Expiration of user groups -->
             <group>PT5M</group>
         </expiration>
-        <admin-group>admins</admin-group>
+        <administrator-group>admins</administrator-group>
     </security>
 
     <!-- SSL configuration -->

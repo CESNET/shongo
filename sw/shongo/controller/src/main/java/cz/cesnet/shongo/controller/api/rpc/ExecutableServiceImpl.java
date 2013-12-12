@@ -136,7 +136,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 authorization.checkUserExistence(participantUserId);
 
 
-                if (!participantUserId.equals(securityToken.getUserId()) && !authorization.isAdmin(securityToken)) {
+                if (!participantUserId.equals(securityToken.getUserId()) && !authorization.isAdministrator(
+                        securityToken)) {
                     throw new ControllerReportSet.SecurityNotAuthorizedException(
                             "read participation executables for user " + participantUserId);
                 }
@@ -308,7 +309,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
-            Executable executableApi = executable.toApi(authorization.isAdmin(securityToken));
+            Executable executableApi = executable.toApi(authorization.isAdministrator(securityToken));
             cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {
@@ -656,7 +657,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!executableService.isActive()) {
                 ExecutionReport executionReport = executableService.getLastReport();
                 cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
-                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdmin(securityToken) ?
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdministrator(securityToken) ?
                                 Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
                 executionReportApi.addReport(new StateReportSerializer(executionReport));
                 return executionReportApi;
@@ -710,7 +711,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (executableService.isActive()) {
                 ExecutionReport executionReport = executableService.getLastReport();
                 cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
-                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdmin(securityToken) ?
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdministrator(securityToken) ?
                                 Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
                 executionReportApi.addReport(new StateReportSerializer(executionReport));
                 return executionReportApi;

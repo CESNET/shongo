@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.EntityRole;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,6 +20,19 @@ import java.util.Set;
  */
 public class AuthorizationTest extends AbstractControllerTest
 {
+    @Test
+    public void testSystemPermissions() throws Exception
+    {
+        AuthorizationService service = getAuthorizationService();
+
+        Assert.assertFalse("Ordinary user shouldn't have the administration permission",
+                service.hasSystemPermission(SECURITY_TOKEN_USER1, SystemPermission.ADMINISTRATION));
+
+        getAuthorization().addAdministratorUserId(getUserId(SECURITY_TOKEN_USER1));
+        Assert.assertTrue("Administrator should have the administration permission",
+                service.hasSystemPermission(SECURITY_TOKEN_USER1, SystemPermission.ADMINISTRATION));
+    }
+
     @Test
     public void testResource() throws Exception
     {

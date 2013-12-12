@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -42,6 +43,12 @@ public class Cache
 
     @Resource
     private ExecutableService executableService;
+
+    /**
+     * {@link UserInformation}s by user-ids.
+     */
+    private ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>> systemPermissionsByToken =
+            new ExpirationMap<SecurityToken, Map<SystemPermission, Boolean>>();
 
     /**
      * {@link UserInformation}s by user-ids.
@@ -98,6 +105,7 @@ public class Cache
     public Cache()
     {
         // Set expiration durations
+        systemPermissionsByToken.setExpiration(Duration.standardMinutes(5));
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
         reservationRequestById.setExpiration(Duration.standardMinutes(5));
@@ -113,11 +121,15 @@ public class Cache
     {
         logger.debug("Clearing expired user cache...");
         DateTime dateTimeNow = DateTime.now();
+        systemPermissionsByToken.clearExpired(dateTimeNow);
         userInformationByUserId.clearExpired(dateTimeNow);
         userStateByToken.clearExpired(dateTimeNow);
         for (UserState userState : userStateByToken) {
             userState.entityPermissionsByEntity.clearExpired(dateTimeNow);
         }
+        reservationRequestById.clearExpired(dateTimeNow);
+        reservationById.clearExpired(dateTimeNow);
+        executableById.clearExpired(dateTimeNow);
     }
 
     /**
@@ -126,6 +138,27 @@ public class Cache
     public void clearExecutable(String executableId)
     {
         executableById.remove(executableId);
+    }
+
+    /**
+     * @param securityToken
+     * @param systemPermission
+     * @return true whether requesting user has given {@code systemPermission},
+     *         false otherwise
+     */
+    public synchronized boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
+    {
+        Map<SystemPermission, Boolean> systemPermissions = systemPermissionsByToken.get(securityToken);
+        if (systemPermissions == null) {
+            systemPermissions = new HashMap<SystemPermission, Boolean>();
+            systemPermissionsByToken.put(securityToken, systemPermissions);
+        }
+        Boolean systemPermissionResult = systemPermissions.get(systemPermission);
+        if (systemPermissionResult == null) {
+            systemPermissionResult = authorizationService.hasSystemPermission(securityToken, systemPermission);
+            systemPermissions.put(systemPermission, systemPermissionResult);
+        }
+        return systemPermissionResult;
     }
 
     /**

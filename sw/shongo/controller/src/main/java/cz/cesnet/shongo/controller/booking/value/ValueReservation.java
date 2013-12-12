@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.booking.value;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import javax.persistence.*;
@@ -69,9 +68,9 @@ public class ValueReservation extends TargetedReservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ValueReservation toApi(boolean admin)
+    public cz.cesnet.shongo.controller.api.ValueReservation toApi(boolean administrator)
     {
-        return (cz.cesnet.shongo.controller.api.ValueReservation) super.toApi(admin);
+        return (cz.cesnet.shongo.controller.api.ValueReservation) super.toApi(administrator);
     }
 
     @Override
@@ -81,7 +80,7 @@ public class ValueReservation extends TargetedReservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
     {
         cz.cesnet.shongo.controller.api.ValueReservation valueReservationApi =
                 (cz.cesnet.shongo.controller.api.ValueReservation) api;
@@ -89,7 +88,7 @@ public class ValueReservation extends TargetedReservation
         valueReservationApi.setResourceId(EntityIdentifier.formatId(valueProviderResource));
         valueReservationApi.setResourceName(valueProviderResource.getName());
         valueReservationApi.setValue(getValue());
-        super.toApi(api, admin);
+        super.toApi(api, administrator);
     }
 
     @Override

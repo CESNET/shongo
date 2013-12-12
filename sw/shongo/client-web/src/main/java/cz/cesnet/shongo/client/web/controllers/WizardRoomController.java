@@ -116,7 +116,7 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequest =
                 new ReservationRequestModel(new CacheProvider(cache, securityToken));
         reservationRequest.addUserRole(securityToken.getUserInformation(), EntityRole.OWNER);
-        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMIN);
+        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
         return wizardView;
@@ -256,13 +256,13 @@ public class WizardRoomController extends WizardParticipantsController
             boolean administratorExists = false;
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
-                        ParticipantRole.ADMIN.equals(participant.getRole()) &&
+                        ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
                         userRole.getUserId().equals(participant.getUserId())) {
                     administratorExists = true;
                 }
             }
             if (!administratorExists) {
-                reservationRequest.addRoomParticipant(userRole.getUser(), ParticipantRole.ADMIN);
+                reservationRequest.addRoomParticipant(userRole.getUser(), ParticipantRole.ADMINISTRATOR);
             }
         }
 
@@ -290,7 +290,7 @@ public class WizardRoomController extends WizardParticipantsController
         if (userRole.getEntityRole().equals(EntityRole.OWNER)) {
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
-                        ParticipantRole.ADMIN.equals(participant.getRole()) &&
+                        ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
                         userRole.getUserId().equals(participant.getUserId())) {
                     reservationRequest.deleteParticipant(participant.getId());
                     break;

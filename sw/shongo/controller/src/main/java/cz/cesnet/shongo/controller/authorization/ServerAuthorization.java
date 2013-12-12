@@ -118,7 +118,7 @@ public class ServerAuthorization extends Authorization
 
         // Root access token
         rootAccessToken = configuration.getString(ControllerConfiguration.SECURITY_ROOT_ACCESS_TOKEN);
-        adminAccessTokens.add(rootAccessToken);
+        administratorAccessTokens.add(rootAccessToken);
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();

@@ -128,19 +128,19 @@
             </div>
         </div>
 
-        <c:if test="${userSettings.adminModeAvailable}">
+        <security:authorize access="hasPermission(ADMINISTRATION)">
             <div class="control-group">
-                <form:label class="control-label" path="adminMode">
-                    <spring:message code="views.userSettings.adminMode" var="adminModeLabel"/>
+                <form:label class="control-label" path="administratorMode">
+                    <spring:message code="views.userSettings.administratorMode" var="adminModeLabel"/>
                     <tag:help label="${adminModeLabel}:">
-                        <spring:message code="views.userSettings.adminMode.help"/>
+                        <spring:message code="views.userSettings.administratorMode.help"/>
                     </tag:help>
                 </form:label>
                 <div class="controls">
-                    <form:checkbox path="adminMode" tabindex="${tabIndex}"/>&nbsp;
+                    <form:checkbox path="administratorMode" tabindex="${tabIndex}"/>&nbsp;
                 </div>
             </div>
-        </c:if>
+        </security:authorize>
 
     </fieldset>
 

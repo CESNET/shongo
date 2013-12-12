@@ -51,8 +51,7 @@
     </security:authentication-manager>
 
     <!-- Create expression handler with custom permission evaluator -->
-    <bean id="expressionHandler"
-          class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+    <bean id="expressionHandler" class="cz.cesnet.shongo.client.web.auth.WebSecurityExpressionHandler">
         <property name="permissionEvaluator" ref="permissionEvaluator"/>
     </bean>
 

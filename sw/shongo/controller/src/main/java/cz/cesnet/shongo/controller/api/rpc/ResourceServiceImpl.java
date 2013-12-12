@@ -99,7 +99,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         // Change user id (only root can do that)
         String userId = securityToken.getUserId();
-        if (resourceApi.getUserId() != null && authorization.isAdmin(securityToken)) {
+        if (resourceApi.getUserId() != null && authorization.isAdministrator(securityToken)) {
             userId = resourceApi.getUserId();
         }
 
@@ -352,7 +352,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             Collection<cz.cesnet.shongo.controller.booking.resource.ResourceReservation> resourceReservations =
                     resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
             for (ResourceReservation resourceReservation : resourceReservations) {
-                resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdmin(securityToken)));
+                resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdministrator(securityToken)));
             }
 
             // Fill alias allocations
@@ -362,7 +362,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 List<cz.cesnet.shongo.controller.booking.alias.AliasReservation> aliasReservations =
                         resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
                 for (AliasReservation aliasReservation : aliasReservations) {
-                    resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdmin(securityToken)));
+                    resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdministrator(
+                            securityToken)));
                 }
             }
             return resourceAllocation;

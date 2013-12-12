@@ -57,14 +57,9 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     private boolean timeZoneDefaultWarning;
 
     /**
-     * @see UserSettings#adminMode
+     * @see UserSettings#administratorMode
      */
-    private boolean adminMode;
-
-    /**
-     * Specifies whether {@link #adminMode} can be set for the user.
-     */
-    private boolean adminModeAvailable;
+    private boolean administratorMode;
 
     /**
      * @see {@link #IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE}
@@ -199,27 +194,19 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * @return {@link #adminMode}
+     * @return {@link #administratorMode}
      */
-    public boolean isAdminMode()
+    public boolean isAdministratorMode()
     {
-        return adminMode;
+        return administratorMode;
     }
 
     /**
-     * @param adminMode sets the {@link #adminMode}
+     * @param administratorMode sets the {@link #administratorMode}
      */
-    public void setAdminMode(boolean adminMode)
+    public void setAdministratorMode(boolean administratorMode)
     {
-        this.adminMode = adminMode;
-    }
-
-    /**
-     * @return {@link #adminModeAvailable}
-     */
-    public boolean isAdminModeAvailable()
-    {
-        return adminModeAvailable;
+        this.administratorMode = administratorMode;
     }
 
     /**
@@ -284,8 +271,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         this.timeZoneDefaultWarning = !userSettings.getAttributeBool(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE);
         this.currentTimeZone = userSettings.getCurrentTimeZone();
         this.currentTimeZoneEnabled = (this.currentTimeZone != null && !this.currentTimeZone.equals(this.homeTimeZone));
-        this.adminMode = (userSettings.getAdminMode() != null ? userSettings.getAdminMode() : false);
-        this.adminModeAvailable = userSettings.getAdminMode() != null;
+        this.administratorMode = userSettings.getAdministratorMode();
 
         UserInterface userInterface = userSettings.getAttribute(USER_INTERFACE_ATTRIBUTE, UserInterface.class);
         if (userInterface != null) {
@@ -312,9 +298,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         if (currentTimeZoneEnabled) {
             userSettings.setCurrentTimeZone(currentTimeZone);
         }
-        if (adminModeAvailable) {
-            userSettings.setAdminMode(adminMode);
-        }
+        userSettings.setAdministratorMode(administratorMode);
         UserInterface userInterface = getUserInterface();
         if (userInterface != null) {
             userSettings.setAttribute(USER_INTERFACE_ATTRIBUTE, userInterface.toString());
@@ -341,7 +325,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         attributes.put("HomeTimeZone", homeTimeZone);
         attributes.put("HomeTimeZoneWarning", timeZoneDefaultWarning);
         attributes.put("CurrentTimeZone", currentTimeZone);
-        attributes.put("AdminMode", adminMode);
+        attributes.put("AdminMode", administratorMode);
         attributes.put("UserInterface", userInterface);
         return ReportModel.formatAttributes(attributes);
     }

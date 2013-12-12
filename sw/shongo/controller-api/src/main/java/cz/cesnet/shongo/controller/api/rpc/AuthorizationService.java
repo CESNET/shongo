@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
@@ -12,6 +13,7 @@ import cz.cesnet.shongo.controller.api.request.UserListRequest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface defining service for accessing Shongo ACL.
@@ -21,11 +23,49 @@ import java.util.Map;
 public interface AuthorizationService extends Service
 {
     /**
+     * @param securityToken    token of the user requesting the operation
+     * @param systemPermission to be checked
+     * @return true whether requesting user has given {@code systemPermission},
+     *         false otherwise
+     */
+    @API
+    public boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @return set of {@link SystemPermission}s which the requesting user has
+     */
+    @API
+    public Set<SystemPermission> getSystemPermissions(SecurityToken securityToken);
+
+    /**
      * @param request {@link UserListRequest}
      * @return collection of {@link UserInformation}s that matches given {@code filter}
      */
     @API
     public ListResponse<UserInformation> listUsers(UserListRequest request);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @return {@link UserSettings} for the requesting user
+     */
+    @API
+    public UserSettings getUserSettings(SecurityToken securityToken);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @param userSettings  to be updated for the requesting user
+     */
+    @API
+    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettings);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @param oldUserId     old user id
+     * @param newUserId     new user id
+     */
+    @API
+    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId);
 
     /**
      * @param token token of the user requesting the operation
@@ -68,10 +108,10 @@ public interface AuthorizationService extends Service
     /**
      * Create {@link cz.cesnet.shongo.controller.api.AclRecord} for given parameters.
      *
-     * @param token    token of the user requesting the operation
-     * @param userId   identifier of the Shongo user
-     * @param entityId identifier of the Shongo public entity
-     * @param entityRole     role which the user gets granted for the entity
+     * @param token      token of the user requesting the operation
+     * @param userId     identifier of the Shongo user
+     * @param entityId   identifier of the Shongo public entity
+     * @param entityRole role which the user gets granted for the entity
      * @return identifier of newly created ACL record
      */
     @API
@@ -111,28 +151,6 @@ public interface AuthorizationService extends Service
      */
     @API
     public void setEntityUser(SecurityToken token, String entityId, String newUserId);
-
-    /**
-     * @param securityToken token of the user requesting the operation
-     * @return {@link UserSettings} for the requesting user
-     */
-    @API
-    public UserSettings getUserSettings(SecurityToken securityToken);
-
-    /**
-     * @param securityToken token of the user requesting the operation
-     * @param userSettings  to be updated for the requesting user
-     */
-    @API
-    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettings);
-
-    /**
-     * @param securityToken token of the user requesting the operation
-     * @param oldUserId     old user id
-     * @param newUserId     new user id
-     */
-    @API
-    public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId);
 
     /**
      * @param securityToken token of the user requesting the operation

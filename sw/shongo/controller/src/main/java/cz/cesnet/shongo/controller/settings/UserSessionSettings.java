@@ -15,10 +15,9 @@ public class UserSessionSettings
     private final SecurityToken securityToken;
 
     /**
-     * Specifies whether user should act in administrator role (for active session). {@code null} means that user isn't
-     * administrator.
+     * Specifies whether user should act as administrator for active session (i.e., he can see all reservation requests).
      */
-    private Boolean adminMode;
+    private boolean administratorMode = false;
 
     /**
      * Constructor.
@@ -39,18 +38,18 @@ public class UserSessionSettings
     }
 
     /**
-     * @return {@link #adminMode}
+     * @return {@link #administratorMode}
      */
-    public Boolean getAdminMode()
+    public boolean getAdministratorMode()
     {
-        return adminMode;
+        return administratorMode;
     }
 
     /**
-     * @param adminMode sets the {@link #adminMode}
+     * @param administratorMode sets the {@link #administratorMode}
      */
-    public void setAdminMode(Boolean adminMode)
+    public void setAdministratorMode(boolean administratorMode)
     {
-        this.adminMode = adminMode;
+        this.administratorMode = administratorMode;
     }
 }

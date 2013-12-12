@@ -116,7 +116,7 @@
                             <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
                             <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
                         </li>
-                        <c:if test="${sessionScope.SHONGO_USER.adminMode}">
+                        <c:if test="${sessionScope.SHONGO_USER.administratorMode}">
                             <li>
                                 <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST %>"/>
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
@@ -163,7 +163,7 @@
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <b class="icon-cog"></b>
-                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.SHONGO_USER.adminMode}">&nbsp;(<spring:message code="views.layout.user.adminMode"/>)</c:if>
+                            <b><security:authentication property="principal.fullName"/></b><c:if test="${sessionScope.SHONGO_USER.administratorMode}">&nbsp;(<spring:message code="views.layout.user.administratorMode"/>)</c:if>
                             <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu" role="menu">
@@ -177,19 +177,19 @@
                                     --%><spring:message code="views.userSettings.advancedUserInterface"/>
                                 </a>
                             </li>
-                            <c:if test="${sessionScope.SHONGO_USER.adminModeAvailable}">
-                                <tag:url var="adminModeUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
-                                    <tag:param name="name" value="adminMode"/>
-                                    <tag:param name="value" value="${!sessionScope.SHONGO_USER.adminMode}"/>
+                            <security:authorize access="hasPermission(ADMINISTRATION)">
+                                <tag:url var="administratorModeUrl" value="<%= ClientWebUrl.USER_SETTINGS_ATTRIBUTE %>">
+                                    <tag:param name="name" value="administratorMode"/>
+                                    <tag:param name="value" value="${!sessionScope.SHONGO_USER.administratorMode}"/>
                                     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                                 </tag:url>
                                 <li>
-                                    <a class="menuitem" href="${adminModeUrl}">
-                                        <c:if test="${sessionScope.SHONGO_USER.adminMode}"><span class="icon-ok"></span></c:if><%--
-                                    --%><spring:message code="views.userSettings.adminMode"/>
+                                    <a class="menuitem" href="${administratorModeUrl}">
+                                        <c:if test="${sessionScope.SHONGO_USER.administratorMode}"><span class="icon-ok"></span></c:if><%--
+                                    --%><spring:message code="views.userSettings.administratorMode"/>
                                     </a>
                                 </li>
-                            </c:if>
+                            </security:authorize>
                             <li class="divider"></li>
                             <li>
                                 <a class="menuitem" href="${logoutUrl}"><spring:message code="views.layout.logout"/></a>

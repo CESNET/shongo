@@ -478,10 +478,11 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return converted {@link AbstractReservationRequest}
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
+     * @param administrator
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(boolean admin)
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(boolean administrator)
     {
-        return toApi(admin ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+        return toApi(administrator ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
     }
 
     /**

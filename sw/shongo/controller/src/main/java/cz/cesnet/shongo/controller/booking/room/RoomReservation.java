@@ -4,7 +4,6 @@ import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 
@@ -102,7 +101,7 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
     {
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
@@ -110,7 +109,7 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
         roomReservationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
         roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(getLicenseCount());
-        super.toApi(api, admin);
+        super.toApi(api, administrator);
     }
 
     @Override

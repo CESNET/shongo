@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,8 +100,8 @@ public class DummyAuthorization extends Authorization
     {
         super(configuration);
 
-        this.adminAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
-        createGroup(new Group(adminGroupName));
+        this.administratorAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
+        createGroup(new Group(administratorGroupName));
     }
 
     /**
@@ -120,9 +119,9 @@ public class DummyAuthorization extends Authorization
     /**
      * @param userId to be added to the group of administrators
      */
-    public void addAdminUserId(String userId)
+    public void addAdministratorUserId(String userId)
     {
-        addGroupUser(getGroupIdByName(adminGroupName), userId);
+        addGroupUser(getGroupIdByName(administratorGroupName), userId);
     }
 
     @Override

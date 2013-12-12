@@ -172,7 +172,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             catch (SchedulerException exception) {
                 // Specification cannot be allocated or reservation request cannot be reused in requested time slot
-                return exception.getReport().toAllocationStateReport(authorization.isAdmin(securityToken) ?
+                return exception.getReport().toAllocationStateReport(authorization.isAdministrator(securityToken) ?
                         Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
             }
 
@@ -192,7 +192,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         // Change user id (only root can do that)
         String userId = securityToken.getUserId();
-        if (reservationRequestApi.getUserId() != null && authorization.isAdmin(securityToken)) {
+        if (reservationRequestApi.getUserId() != null && authorization.isAdministrator(securityToken)) {
             userId = reservationRequestApi.getUserId();
         }
 
@@ -277,7 +277,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // Change user id (only root can do that)
             String userId = securityToken.getUserId();
-            if (reservationRequestApi.getUserId() != null && authorization.isAdmin(securityToken)) {
+            if (reservationRequestApi.getUserId() != null && authorization.isAdministrator(securityToken)) {
                 userId = reservationRequestApi.getUserId();
             }
 
@@ -716,7 +716,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
             }
 
-            return reservationRequest.toApi(authorization.isAdmin(securityToken));
+            return reservationRequest.toApi(authorization.isAdministrator(securityToken));
         }
         finally {
             entityManager.close();
@@ -777,7 +777,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", entityId);
             }
 
-            return reservation.toApi(authorization.isAdmin(securityToken));
+            return reservation.toApi(authorization.isAdministrator(securityToken));
         }
         finally {
             entityManager.close();
@@ -938,7 +938,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // Fill reservations to response
             for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation : reservations) {
-                response.addItem(reservation.toApi(authorization.isAdmin(securityToken)));
+                response.addItem(reservation.toApi(authorization.isAdministrator(securityToken)));
             }
             return response;
         }

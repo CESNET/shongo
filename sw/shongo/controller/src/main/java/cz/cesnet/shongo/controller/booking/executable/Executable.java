@@ -236,10 +236,11 @@ public abstract class Executable extends ExecutionTarget
 
     /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
+     * @param administrator
      */
-    public final cz.cesnet.shongo.controller.api.Executable toApi(boolean admin)
+    public final cz.cesnet.shongo.controller.api.Executable toApi(boolean administrator)
     {
-        return toApi(admin ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+        return toApi(administrator ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
     }
 
     /**

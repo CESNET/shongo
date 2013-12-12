@@ -199,7 +199,7 @@ public class RoomModel extends ParticipantConfigurationModel
         // Room state
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
-        if (!this.state.isAvailable() && userSession.isAdminMode()) {
+        if (!this.state.isAvailable() && userSession.isAdministratorMode()) {
             this.stateReport = roomExecutable.getStateReport().toString(
                     messageProvider.getLocale(), messageProvider.getTimeZone());
         }

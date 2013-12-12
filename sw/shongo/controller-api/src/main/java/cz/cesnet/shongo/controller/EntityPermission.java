@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 /**
- * Enumeration of all possible user {@link EntityPermission}s for entities of all {@link EntityType}s.
+ * Enumeration of all possible user permissions for entities of all {@link EntityType}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -21,6 +21,6 @@ public enum ParticipantRole
     /**
      * Represents a user who administrate the meeting and thus he can do all possible actions and configurations.
      */
-    ADMIN
+    ADMINISTRATOR
 }
 

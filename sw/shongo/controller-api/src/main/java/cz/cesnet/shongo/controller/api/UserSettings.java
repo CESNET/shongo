@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.SystemPermission;
 import org.joda.time.DateTimeZone;
 
 import java.util.Collections;
@@ -41,11 +42,10 @@ public class UserSettings extends AbstractComplexType
     private DateTimeZone currentTimeZone;
 
     /**
-     * {@link Boolean#TRUE} or {@link Boolean#FALSE} specifies whether user should act in administrator role
-     * (for active session).
-     * Value {@code null} means that user isn't administrator and thus he cannot act as administrator.
+     * Specifies whether user should act in administrator role (for active session).
+     * Only valid when user have {@link SystemPermission#ADMINISTRATION}.
      */
-    private Boolean adminMode;
+    private boolean administratorMode;
 
     /**
      * Other custom user settings attributes which should be globally stored.
@@ -117,19 +117,19 @@ public class UserSettings extends AbstractComplexType
     }
 
     /**
-     * @return {@link #adminMode}
+     * @return {@link #administratorMode}
      */
-    public Boolean getAdminMode()
+    public boolean getAdministratorMode()
     {
-        return adminMode;
+        return administratorMode;
     }
 
     /**
-     * @param adminMode {@link #adminMode}
+     * @param administratorMode {@link #administratorMode}
      */
-    public void setAdminMode(Boolean adminMode)
+    public void setAdministratorMode(boolean administratorMode)
     {
-        this.adminMode = adminMode;
+        this.administratorMode = administratorMode;
     }
 
     /**
@@ -194,14 +194,14 @@ public class UserSettings extends AbstractComplexType
     @Override
     public String toString()
     {
-        return String.format("UserSettings (%s, %s, %s)", locale, homeTimeZone, adminMode);
+        return String.format("UserSettings (%s, %s, %s)", locale, homeTimeZone, administratorMode);
     }
 
     private static final String USE_WEB_SERVICE = "useWebService";
     private static final String LOCALE = "locale";
     private static final String HOME_TIME_ZONE = "homeTimeZone";
     private static final String CURRENT_TIME_ZONE = "currentTimeZone";
-    private static final String ADMIN_MODE = "adminMode";
+    private static final String ADMINISTRATOR_MODE = "administratorMode";
     private static final String ATTRIBUTES = "attributes";
 
     @Override
@@ -212,7 +212,7 @@ public class UserSettings extends AbstractComplexType
         dataMap.set(LOCALE, locale);
         dataMap.set(HOME_TIME_ZONE, homeTimeZone);
         dataMap.set(CURRENT_TIME_ZONE, currentTimeZone);
-        dataMap.set(ADMIN_MODE, adminMode);
+        dataMap.set(ADMINISTRATOR_MODE, administratorMode);
         dataMap.set(ATTRIBUTES, attributes);
         return dataMap;
     }
@@ -225,7 +225,7 @@ public class UserSettings extends AbstractComplexType
         locale = dataMap.getLocale(LOCALE);
         homeTimeZone = dataMap.getDateTimeZone(HOME_TIME_ZONE);
         currentTimeZone = dataMap.getDateTimeZone(CURRENT_TIME_ZONE);
-        adminMode = dataMap.getBoolean(ADMIN_MODE);
+        administratorMode = dataMap.getBoolean(ADMINISTRATOR_MODE);
         attributes = dataMap.getMap(ATTRIBUTES, String.class, String.class);
     }
 }

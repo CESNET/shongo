@@ -425,11 +425,12 @@ public class Reservation extends PersistentObject implements ReportableSimple
 
     /**
      * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
+     * @param administrator
      */
-    public cz.cesnet.shongo.controller.api.Reservation toApi(boolean admin)
+    public cz.cesnet.shongo.controller.api.Reservation toApi(boolean administrator)
     {
         cz.cesnet.shongo.controller.api.Reservation api = createApi();
-        toApi(api, admin);
+        toApi(api, administrator);
         return api;
     }
 
@@ -443,9 +444,9 @@ public class Reservation extends PersistentObject implements ReportableSimple
 
     /**
      * @param api   {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
-     * @param admin
+     * @param administrator
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
     {
         api.setId(EntityIdentifier.formatId(this));
         if (getReservationRequest() != null) {
@@ -453,7 +454,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
-            cz.cesnet.shongo.controller.api.Executable executable = getExecutable().toApi(admin);
+            cz.cesnet.shongo.controller.api.Executable executable = getExecutable().toApi(administrator);
             executable.setReservationId(api.getId());
             api.setExecutable(executable);
         }

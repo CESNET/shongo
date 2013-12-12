@@ -4,6 +4,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.RoomModel;
 import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -26,30 +27,42 @@ public class PermissionEvaluator implements org.springframework.security.access.
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permissionValue)
     {
         SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
-        String entityId;
-        if (targetDomainObject instanceof RoomModel) {
-            entityId = ((RoomModel) targetDomainObject).getId();
-        }
-        else if (targetDomainObject instanceof Executable) {
-            entityId = ((Executable) targetDomainObject).getId();
-        }
-        else if (targetDomainObject instanceof AbstractReservationRequest) {
-            entityId = ((AbstractReservationRequest) targetDomainObject).getId();
-        }
-        else if (targetDomainObject instanceof ReservationRequestModel) {
-            entityId = ((ReservationRequestModel) targetDomainObject).getId();
+        if (targetDomainObject == null) {
+            SystemPermission systemPermission;
+            if (permissionValue instanceof SystemPermission) {
+                systemPermission = (SystemPermission) permissionValue;
+            }
+            else {
+                systemPermission = SystemPermission.valueOf(permissionValue.toString());
+            }
+            return cache.hasSystemPermission(securityToken, systemPermission);
         }
         else {
-            throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
+            String entityId;
+            if (targetDomainObject instanceof RoomModel) {
+                entityId = ((RoomModel) targetDomainObject).getId();
+            }
+            else if (targetDomainObject instanceof Executable) {
+                entityId = ((Executable) targetDomainObject).getId();
+            }
+            else if (targetDomainObject instanceof AbstractReservationRequest) {
+                entityId = ((AbstractReservationRequest) targetDomainObject).getId();
+            }
+            else if (targetDomainObject instanceof ReservationRequestModel) {
+                entityId = ((ReservationRequestModel) targetDomainObject).getId();
+            }
+            else {
+                throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
+            }
+            EntityPermission entityPermission;
+            if (permissionValue instanceof EntityPermission) {
+                entityPermission = (EntityPermission) permissionValue;
+            }
+            else {
+                entityPermission = EntityPermission.valueOf(permissionValue.toString());
+            }
+            return cache.getEntityPermissions(securityToken, entityId).contains(entityPermission);
         }
-        EntityPermission entityPermission;
-        if (permissionValue instanceof EntityPermission) {
-            entityPermission = (EntityPermission) permissionValue;
-        }
-        else {
-            entityPermission = EntityPermission.valueOf(permissionValue.toString());
-        }
-        return cache.getEntityPermissions(securityToken, entityId).contains(entityPermission);
     }
 
     @Override

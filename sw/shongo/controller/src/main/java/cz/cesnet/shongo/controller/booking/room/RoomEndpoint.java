@@ -241,11 +241,11 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
         Room roomApi = new Room();
         fillRoomApi(roomApi, executableManager);
 
-        // If roomApi doesn't contain any participant with ParticipantRole#ADMIN, fill the owners of this room
+        // If roomApi doesn't contain any participant with ParticipantRole#ADMINISTRATOR, fill the owners of this room
         Authorization authorization = Authorization.getInstance();
-        if (!roomApi.hasParticipantWithRole(ParticipantRole.ADMIN)) {
+        if (!roomApi.hasParticipantWithRole(ParticipantRole.ADMINISTRATOR)) {
             for (UserInformation executableOwner : authorization.getUsersWithRole(this, EntityRole.OWNER)) {
-                roomApi.addParticipantRole(executableOwner.getUserId(), ParticipantRole.ADMIN);
+                roomApi.addParticipantRole(executableOwner.getUserId(), ParticipantRole.ADMINISTRATOR);
             }
         }
 

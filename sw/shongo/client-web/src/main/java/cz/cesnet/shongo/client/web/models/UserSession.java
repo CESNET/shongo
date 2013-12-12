@@ -54,9 +54,9 @@ public class UserSession implements Serializable
     private boolean timeZoneDefaultWarning = true;
 
     /**
-     * @see UserSettingsModel#adminMode
+     * @see UserSettingsModel#administratorMode
      */
-    private Boolean adminMode;
+    private boolean administratorMode = false;
 
     /**
      * @see UserSettingsModel.UserInterface
@@ -75,7 +75,6 @@ public class UserSession implements Serializable
     {
         this.locale = null;
         this.timeZone = null;
-        this.adminMode = null;
         this.userInterface = UserSettingsModel.DEFAULT_USER_INTERFACE;
     }
 
@@ -158,20 +157,11 @@ public class UserSession implements Serializable
     }
 
     /**
-     * @return {@link #adminMode}
+     * @return {@link #administratorMode}
      */
-    public boolean isAdminMode()
+    public boolean isAdministratorMode()
     {
-        return (adminMode != null ? adminMode : false);
-    }
-
-    /**
-     * @return true whether {@link #adminMode} is available,
-     *         false otherwise
-     */
-    public boolean isAdminModeAvailable()
-    {
-        return adminMode != null;
+        return administratorMode;
     }
 
     /**
@@ -246,7 +236,7 @@ public class UserSession implements Serializable
             timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
         }
 
-        adminMode = (userSettings.isAdminModeAvailable() ? userSettings.isAdminMode() : null);
+        administratorMode = userSettings.isAdministratorMode();
         userInterface = userSettings.getUserInterface();
         userInterfaceSelected = userSettings.isUserInterfaceSelected();
 
@@ -269,7 +259,7 @@ public class UserSession implements Serializable
         }
 
         logger.info("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
-                locale, timeZone, adminMode, userInterface, (userInformation != null ? userInformation : "anonymous")
+                locale, timeZone, administratorMode, userInterface, (userInformation != null ? userInformation : "anonymous")
         });
 
         WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);

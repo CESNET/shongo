@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.settings;
 
+import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
@@ -45,7 +46,7 @@ public class UserSettingsManager
                 authorization.getUserSessionSettings(securityToken);
 
         cz.cesnet.shongo.controller.api.UserSettings userSettingsApi = getUserSettings(securityToken.getUserId());
-        userSettingsApi.setAdminMode(userSessionSettings.getAdminMode());
+        userSettingsApi.setAdministratorMode(userSessionSettings.getAdministratorMode());
         return userSettingsApi;
     }
 
@@ -82,13 +83,20 @@ public class UserSettingsManager
         cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
                 authorization.getUserSessionSettings(securityToken);
 
-        // Update adminMode settings only when it is available (i.e., it is not null)
-        if (userSessionSettings.getAdminMode() != null && userSettingsApi.getAdminMode() != null) {
-            userSessionSettings.setAdminMode(userSettingsApi.getAdminMode());
+        // Update administrator mode setting by user permission
+        boolean administratorMode = userSettingsApi.getAdministratorMode();
+        if (administratorMode) {
+            if (!authorization.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION)) {
+                administratorMode = false;
+            }
+        }
+        // If administrator mode setting has changed, store the change
+        if (administratorMode != userSessionSettings.getAdministratorMode()) {
+            userSessionSettings.setAdministratorMode(administratorMode);
             authorization.updateUserSessionSettings(userSessionSettings);
         }
 
-        //Update user settings
+        // Update user settings
         UserSettings userSettings = getPersistentUserSettings(securityToken.getUserId());
         if (userSettings == null) {
             userSettings = new cz.cesnet.shongo.controller.settings.UserSettings();

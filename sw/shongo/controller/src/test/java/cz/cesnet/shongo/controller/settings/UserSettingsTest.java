@@ -16,7 +16,7 @@ public class UserSettingsTest extends AbstractControllerTest
     @Override
     protected void onInit()
     {
-        getAuthorization().addAdminUserId(getUserId(SECURITY_TOKEN_USER1));
+        getAuthorization().addAdministratorUserId(getUserId(SECURITY_TOKEN_USER1));
         super.onInit();
     }
 
@@ -33,13 +33,13 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER1);
         Assert.assertEquals(null, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertEquals(Boolean.FALSE, userSettings.getAdminMode());
+        Assert.assertFalse(userSettings.getAdministratorMode());
 
         // Check normal user
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(null, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertEquals(null, userSettings.getAdminMode());
+        Assert.assertFalse(userSettings.getAdministratorMode());
 
         // Check update locale
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
@@ -47,7 +47,7 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(UserSettings.LOCALE_CZECH, userSettings.getLocale());
         Assert.assertEquals(null, userSettings.getHomeTimeZone());
-        Assert.assertEquals(null, userSettings.getAdminMode());
+        Assert.assertFalse(userSettings.getAdministratorMode());
 
         // Check update language
         userSettings.setHomeTimeZone(DateTimeZone.forID("+05:00"));
@@ -55,13 +55,13 @@ public class UserSettingsTest extends AbstractControllerTest
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
         Assert.assertEquals(UserSettings.LOCALE_CZECH, userSettings.getLocale());
         Assert.assertEquals(DateTimeZone.forID("+05:00"), userSettings.getHomeTimeZone());
-        Assert.assertEquals(null, userSettings.getAdminMode());
+        Assert.assertFalse(userSettings.getAdministratorMode());
 
         // Check admin mode not working for normal user
-        userSettings.setAdminMode(true);
+        userSettings.setAdministratorMode(true);
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN_USER2, userSettings);
         userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER2);
-        Assert.assertEquals(null, userSettings.getAdminMode());
+        Assert.assertFalse(userSettings.getAdministratorMode());
 
         // Test custom attribute
         userSettings.setAttribute("client.test", "value");

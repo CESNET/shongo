@@ -933,7 +933,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     case PRESENTER:
                         role = "mini-host";
                         break;
-                    case ADMIN:
+                    case ADMINISTRATOR:
                         role = "host";
                         break;
                 }
@@ -1358,7 +1358,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 roomParticipant.setRole(ParticipantRole.PRESENTER);
             }
             else if ("host".equals(role)) {
-                roomParticipant.setRole(ParticipantRole.ADMIN);
+                roomParticipant.setRole(ParticipantRole.ADMINISTRATOR);
             }
 
             String userPrincipalName = getUserPrincipalNameByPrincipalId(userDetails.getChildText("principal-id"));
