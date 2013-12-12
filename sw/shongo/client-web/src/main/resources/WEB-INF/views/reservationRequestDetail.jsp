@@ -25,12 +25,15 @@
 
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
-    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
-                                domainObject="${reservationRequest}" var="isProvidable"/>
+
+    <security:authorize access="hasPermission(RESERVATION)">
+        <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
+                                    domainObject="${reservationRequest}" var="canCreatePermanentRoomCapacity"/>
+    </security:authorize>
 </c:if>
 
 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-    <c:set var="isProvidable" value="${false}"/>
+    <c:set var="canCreatePermanentRoomCapacity" value="${false}"/>
 </c:if>
 
 <script type="text/javascript">
@@ -57,7 +60,7 @@
     <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
         <span><spring:message code="views.select.action"/></span>
         <ul>
-            <c:if test="${isProvidable}">
+            <c:if test="${canCreatePermanentRoomCapacity}">
                 <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
                     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
@@ -172,7 +175,7 @@
         <%-- Permanent room capacities --%>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <hr/>
-            <c:if test="${isProvidable}">
+            <c:if test="${canCreatePermanentRoomCapacity}">
                 <tag:url var="createUsageUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
                     <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>

@@ -73,7 +73,7 @@
     <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
     <script type="text/javascript">
-        var module = angular.module('jsp:indexDashboard', ['ui.bootstrap', 'tag:expandableBlock', 'ngPagination', 'ngTooltip', 'ngSanitize']);
+        var module = angular.module('jsp:indexDashboard', ['ui.bootstrap', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
 
         function PermanentRoomCapacitiesController($scope, $resource) {
             $scope.items = null;
@@ -187,21 +187,23 @@
             </div>
         </c:if>
 
-        <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
-            <span><spring:message code="views.select.action"/></span>
-            <ul>
-                <li>
-                    <a href="${createRoomUrl}" tabindex="1">
-                        <spring:message code="views.index.action.createRoom"/>
-                    </a>
-                </li>
-                <li>
-                    <a href="${reservationRequestListUrl}" tabindex="1">
-                        <spring:message code="views.index.action.reservationRequestList"/>
-                    </a>
-                </li>
-            </ul>
-        </tag:expandableBlock>
+        <security:authorize access="hasPermission(RESERVATION)">
+            <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
+                <span><spring:message code="views.select.action"/></span>
+                <ul>
+                    <li>
+                        <a href="${createRoomUrl}" tabindex="1">
+                            <spring:message code="views.index.action.createRoom"/>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${reservationRequestListUrl}" tabindex="1">
+                            <spring:message code="views.index.action.reservationRequestList"/>
+                        </a>
+                    </li>
+                </ul>
+            </tag:expandableBlock>
+        </security:authorize>
 
         <tabset>
 

@@ -136,12 +136,17 @@ public abstract class Authorization
      */
     public final boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
     {
+        if (isAdministrator(securityToken)) {
+            // Administrator has all permissions
+            return true;
+        }
         String userId = securityToken.getUserId();
         switch (systemPermission) {
             case ADMINISTRATION: {
                 return listGroupUserIds(getGroupIdByName(administratorGroupName)).contains(userId);
             }
             case RESERVATION: {
+                // TODO: check some user attributes
                 return true;
             }
             default: {

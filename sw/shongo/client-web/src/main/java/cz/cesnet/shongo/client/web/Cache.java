@@ -135,9 +135,17 @@ public class Cache
     /**
      * @param executableId to be removed from the {@link #executableById}
      */
-    public void clearExecutable(String executableId)
+    public synchronized void clearExecutable(String executableId)
     {
         executableById.remove(executableId);
+    }
+
+    /**
+     * @param securityToken to be removed from the {@link #systemPermissionsByToken}
+     */
+    public synchronized void clearSystemPermissions(SecurityToken securityToken)
+    {
+        systemPermissionsByToken.remove(securityToken);
     }
 
     /**

@@ -190,6 +190,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
+        // Check whether user can create reservation requests
+        if (!authorization.hasSystemPermission(securityToken, SystemPermission.RESERVATION)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create reservation request");
+        }
+
         // Change user id (only root can do that)
         String userId = securityToken.getUserId();
         if (reservationRequestApi.getUserId() != null && authorization.isAdministrator(securityToken)) {

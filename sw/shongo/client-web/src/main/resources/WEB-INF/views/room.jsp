@@ -494,16 +494,18 @@
                 <spring:message code="views.room.recording.book"/>
             </span>
         </c:if>--%>
-        <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
-            <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-                <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
-                <tag:param name="permanentRoom" value="${room.id}"/>
-                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-            </tag:url>
-            <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
-                <spring:message code="views.room.requestCapacity"/>
-            </a>
-        </c:if>
+        <security:authorize access="hasPermission(RESERVATION)">
+            <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
+                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
+                    <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+                    <tag:param name="permanentRoom" value="${room.id}"/>
+                    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                </tag:url>
+                <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
+                    <spring:message code="views.room.requestCapacity"/>
+                </a>
+            </c:if>
+        </security:authorize>
         <a class="btn" href="javascript: location.reload();">
             <spring:message code="views.button.refresh"/>
         </a>

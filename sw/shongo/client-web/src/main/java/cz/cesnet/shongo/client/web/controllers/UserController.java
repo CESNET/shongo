@@ -95,6 +95,7 @@ public class UserController
             throw new IllegalArgumentException(name);
         }
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
+        cache.clearSystemPermissions(securityToken);
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);
         return "redirect:" + BackUrl.getInstance(request);
@@ -112,6 +113,7 @@ public class UserController
     {
 
         authorizationService.updateUserSettings(securityToken, userSettings.toApi());
+        cache.clearSystemPermissions(securityToken);
         if (userSettings.isUseWebService()) {
             // Reload user settings (some attributes may be loaded from web service)
             userSettings.fromApi(authorizationService.getUserSettings(securityToken));

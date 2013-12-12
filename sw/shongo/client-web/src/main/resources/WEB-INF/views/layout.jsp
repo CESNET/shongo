@@ -196,6 +196,20 @@
                             </li>
                         </ul>
                     </li>
+                    <security:authorize access="!hasPermission(RESERVATION)">
+                        <script type="text/javascript">
+                            $(function () {
+                                $('#warning').qtip({
+                                    content: { text: "<spring:message code="views.layout.user.reservationDisabled"/>" },
+                                    position: { my: 'top right',at: 'bottom center' },
+                                    style: { classes: 'qtip-app' }
+                                });
+                            });
+                        </script>
+                        <li class="navbar-text" style="margin-left: 0px;">
+                            <b id="warning" class="icon-warning-sign" style="color: #f71;"></b>
+                        </li>
+                    </security:authorize>
                 </security:authorize>
 
                 <%-- Timezone --%>
