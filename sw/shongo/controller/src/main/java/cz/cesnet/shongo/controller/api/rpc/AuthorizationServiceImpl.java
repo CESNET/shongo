@@ -7,8 +7,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -200,7 +200,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             PersistentObject entity = checkEntityExistence(entityIdentifier, entityManager);
-            if (!authorization.hasPermission(securityToken, entity, Permission.WRITE)) {
+            if (!authorization.hasEntityPermission(securityToken, entity, EntityPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
             }
             authorizationManager.beginTransaction();
@@ -231,7 +231,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
-            if (!authorization.hasPermission(securityToken, aclRecord.getEntityId(), Permission.WRITE)) {
+            if (!authorization.hasEntityPermission(securityToken, aclRecord.getEntityId(), EntityPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
             }
             authorizationManager.beginTransaction();
@@ -291,7 +291,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                             throw new TodoImplementException("List only ACL to which the requester has permission.");
                         }
                         else {
-                            if (!authorization.hasPermission(securityToken, entity, Permission.READ)) {
+                            if (!authorization.hasEntityPermission(securityToken, entity, EntityPermission.READ)) {
                                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
                             }
                         }
@@ -363,17 +363,17 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Map<String, PermissionSet> listPermissions(PermissionListRequest request)
+    public Map<String, EntityPermissionSet> listEntityPermissions(EntityPermissionListRequest request)
     {
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            Map<String, PermissionSet> response = new HashMap<String, PermissionSet>();
+            Map<String, EntityPermissionSet> response = new HashMap<String, EntityPermissionSet>();
             for (String entityId : request.getEntityIds()) {
                 EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
                 PersistentObject entity = checkEntityExistence(entityIdentifier, entityManager);
-                response.put(entityId, new PermissionSet(authorization.getPermissions(securityToken, entity)));
+                response.put(entityId, new EntityPermissionSet(authorization.getEntityPermissions(securityToken, entity)));
             }
             return response;
         }

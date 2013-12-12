@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web.auth;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.RoomModel;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -27,9 +27,6 @@ public class PermissionEvaluator implements org.springframework.security.access.
     {
         SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
         String entityId;
-        if (targetDomainObject instanceof ReservationRequestModel) {
-            entityId = ((ReservationRequestModel) targetDomainObject).getId();
-        }
         if (targetDomainObject instanceof RoomModel) {
             entityId = ((RoomModel) targetDomainObject).getId();
         }
@@ -45,14 +42,14 @@ public class PermissionEvaluator implements org.springframework.security.access.
         else {
             throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
         }
-        Permission permission;
-        if (permissionValue instanceof Permission) {
-            permission = (Permission) permissionValue;
+        EntityPermission entityPermission;
+        if (permissionValue instanceof EntityPermission) {
+            entityPermission = (EntityPermission) permissionValue;
         }
         else {
-            permission = Permission.valueOf(permissionValue.toString());
+            entityPermission = EntityPermission.valueOf(permissionValue.toString());
         }
-        return cache.getPermissions(securityToken, entityId).contains(permission);
+        return cache.getEntityPermissions(securityToken, entityId).contains(entityPermission);
     }
 
     @Override

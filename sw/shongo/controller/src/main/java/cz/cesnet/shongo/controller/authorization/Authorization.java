@@ -133,10 +133,11 @@ public abstract class Authorization
      *
      * @param securityToken of an user
      * @return {@link UserInformation} for the user with given {@code securityToken}
-     * @throws ControllerReportSet.UserNotExistsException when user not exists
+     * @throws ControllerReportSet.UserNotExistsException
+     *          when user not exists
      */
     public final UserInformation getUserInformation(SecurityToken securityToken)
-        throws ControllerReportSet.UserNotExistsException
+            throws ControllerReportSet.UserNotExistsException
     {
         UserInformation userInformation = securityToken.getUserInformation();
         if (userInformation != null) {
@@ -176,7 +177,8 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException when user not exists
+     * @throws ControllerReportSet.UserNotExistsException
+     *          when user not exists
      */
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -190,10 +192,11 @@ public abstract class Authorization
      *
      * @param principalName of an user
      * @return {@link UserInformation} for the user with given {@code principalName}
-     * @throws ControllerReportSet.UserNotExistsException when user not exists
+     * @throws ControllerReportSet.UserNotExistsException
+     *          when user not exists
      */
     public UserInformation getUserInformationByPrincipalName(String principalName)
-        throws ControllerReportSet.UserNotExistsException
+            throws ControllerReportSet.UserNotExistsException
     {
         String userId;
         if (cache.hasUserIdByPrincipalName(principalName)) {
@@ -219,7 +222,8 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException when user not exists
+     * @throws ControllerReportSet.UserNotExistsException
+     *          when user not exists
      */
     public final UserData getUserData(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -265,7 +269,8 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException when user not exists
+     * @throws ControllerReportSet.UserNotExistsException
+     *          when user not exists
      */
     public final UserPerson getUserPerson(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -300,13 +305,14 @@ public abstract class Authorization
     }
 
     /**
-     * @param securityToken of the user
-     * @param entityId      of the entity
-     * @param permission    which the user must have for the entity
+     * @param securityToken    of the user
+     * @param entityId         of the entity
+     * @param entityPermission which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasPermission(SecurityToken securityToken, AclRecord.EntityId entityId, Permission permission)
+    public boolean hasEntityPermission(SecurityToken securityToken,
+            AclRecord.EntityId entityId, EntityPermission entityPermission)
     {
         if (isAdmin(securityToken)) {
             // Administrator has all possible permissions
@@ -318,27 +324,28 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        return aclUserState.hasPermission(entityId, permission);
+        return aclUserState.hasEntityPermission(entityId, entityPermission);
     }
 
     /**
-     * @param securityToken of the user
-     * @param entity        the entity
-     * @param permission    which the user must have for the entity
+     * @param securityToken    of the user
+     * @param entity           the entity
+     * @param entityPermission which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasPermission(SecurityToken securityToken, PersistentObject entity, Permission permission)
+    public boolean hasEntityPermission(SecurityToken securityToken,
+            PersistentObject entity, EntityPermission entityPermission)
     {
-        return hasPermission(securityToken, new AclRecord.EntityId(entity), permission);
+        return hasEntityPermission(securityToken, new AclRecord.EntityId(entity), entityPermission);
     }
 
     /**
      * @param securityToken of the user
      * @param entity        the entity
-     * @return set of {@link Permission}s which the user have for the entity
+     * @return set of {@link cz.cesnet.shongo.controller.EntityPermission}s which the user have for the entity
      */
-    public Set<Permission> getPermissions(SecurityToken securityToken, PersistentObject entity)
+    public Set<EntityPermission> getEntityPermissions(SecurityToken securityToken, PersistentObject entity)
     {
         AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         if (isAdmin(securityToken)) {
@@ -352,22 +359,22 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<Permission> permissions = aclUserState.getPermissions(entityId);
-        if (permissions == null) {
+        Set<EntityPermission> entityPermissions = aclUserState.getEntityPermissions(entityId);
+        if (entityPermissions == null) {
             return Collections.emptySet();
         }
-        return permissions;
+        return entityPermissions;
     }
 
     /**
-     * @param securityToken of the user
-     * @param entityType    for entities which should be returned
-     * @param permission    which the user must have for the entities
+     * @param securityToken    of the user
+     * @param entityType       for entities which should be returned
+     * @param entityPermission which the user must have for the entities
      * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
      *         or null if the user can view all entities
      */
     public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclRecord.EntityType entityType,
-            Permission permission)
+            EntityPermission entityPermission)
     {
         if (isAdmin(securityToken)) {
             return null;
@@ -378,7 +385,7 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<Long> entities = aclUserState.getEntitiesByPermission(entityType, permission);
+        Set<Long> entities = aclUserState.getEntitiesByPermission(entityType, entityPermission);
         if (entities == null) {
             return Collections.emptySet();
         }

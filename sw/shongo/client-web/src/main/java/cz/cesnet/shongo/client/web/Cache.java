@@ -2,10 +2,10 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -21,7 +21,7 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * Cache of {@link UserInformation}s, {@link Permission}s, {@link ReservationRequestSummary}s.
+ * Cache of {@link UserInformation}s, {@link EntityPermission}s, {@link ReservationRequestSummary}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -80,15 +80,15 @@ public class Cache
         /**
          * Set of permissions which the user has for entity.
          */
-        private ExpirationMap<String, Set<Permission>> permissionsByEntity =
-                new ExpirationMap<String, Set<Permission>>();
+        private ExpirationMap<String, Set<EntityPermission>> entityPermissionsByEntity =
+                new ExpirationMap<String, Set<EntityPermission>>();
 
         /**
          * Constructor.
          */
         public UserState()
         {
-            permissionsByEntity.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
+            entityPermissionsByEntity.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         }
     }
 
@@ -116,7 +116,7 @@ public class Cache
         userInformationByUserId.clearExpired(dateTimeNow);
         userStateByToken.clearExpired(dateTimeNow);
         for (UserState userState : userStateByToken) {
-            userState.permissionsByEntity.clearExpired(dateTimeNow);
+            userState.entityPermissionsByEntity.clearExpired(dateTimeNow);
         }
     }
 
@@ -165,56 +165,45 @@ public class Cache
     /**
      * @param securityToken of the requesting user
      * @param entityId      of the entity
-     * @return set of {@link Permission} for requesting user and given {@code entityId}
+     * @return set of {@link EntityPermission} for requesting user and given {@code entityId}
      */
-    public synchronized Set<Permission> getPermissions(SecurityToken securityToken, String entityId)
+    public synchronized Set<EntityPermission> getEntityPermissions(SecurityToken securityToken, String entityId)
     {
         UserState userState = getUserState(securityToken);
-        Set<Permission> permissions = userState.permissionsByEntity.get(entityId);
-        if (permissions == null) {
-            Map<String, PermissionSet> permissionsByEntity =
-                    authorizationService.listPermissions(new PermissionListRequest(securityToken, entityId));
-            permissions = new HashSet<Permission>();
-            permissions.addAll(permissionsByEntity.get(entityId).getPermissions());
-            userState.permissionsByEntity.put(entityId, permissions);
+        Set<EntityPermission> entityPermissions = userState.entityPermissionsByEntity.get(entityId);
+        if (entityPermissions == null) {
+            Map<String, EntityPermissionSet> permissionsByEntity =
+                    authorizationService.listEntityPermissions(new EntityPermissionListRequest(securityToken, entityId));
+            entityPermissions = new HashSet<EntityPermission>();
+            entityPermissions.addAll(permissionsByEntity.get(entityId).getEntityPermissions());
+            userState.entityPermissionsByEntity.put(entityId, entityPermissions);
         }
-        return permissions;
-    }
-
-    /**
-     * @param securityToken of the requesting user
-     * @param entityId      of the entity
-     * @param permission    to be checked for existence
-     * @return true if the requesting user has given {@code permission} for entity with given {@code entityId}
-     */
-    public boolean hasPermission(SecurityToken securityToken, String entityId, Permission permission)
-    {
-        Set<Permission> permissions = getPermissions(securityToken, entityId);
-        return permissions.contains(permission);
+        return entityPermissions;
     }
 
     /**
      * @param securityToken
      * @param reservationRequests
-     * @return map of {@link Permission}s by reservation request identifier
+     * @return map of {@link EntityPermission}s by reservation request identifier
      */
-    public Map<String, Set<Permission>> getPermissionsForReservationRequests(SecurityToken securityToken,
+    public Map<String, Set<EntityPermission>> getReservationRequestsPermissions(SecurityToken securityToken,
             Collection<ReservationRequestSummary> reservationRequests)
     {
-        Map<String, Set<Permission>> permissionsByReservationRequestId = new HashMap<String, Set<Permission>>();
+        Map<String, Set<EntityPermission>> permissionsByReservationRequestId = new HashMap<String, Set<EntityPermission>>();
         Set<String> reservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : reservationRequests) {
             String reservationRequestId = reservationRequest.getId();
-            Set<Permission> permissions = getPermissionsWithoutFetching(securityToken, reservationRequestId);
-            if (permissions != null) {
-                permissionsByReservationRequestId.put(reservationRequestId, permissions);
+            Set<EntityPermission> entityPermissions =
+                    getEntityPermissionsWithoutFetching(securityToken, reservationRequestId);
+            if (entityPermissions != null) {
+                permissionsByReservationRequestId.put(reservationRequestId, entityPermissions);
             }
             else {
                 reservationRequestIds.add(reservationRequestId);
             }
         }
         if (reservationRequestIds.size() > 0) {
-            permissionsByReservationRequestId.putAll(fetchPermissions(securityToken, reservationRequestIds));
+            permissionsByReservationRequestId.putAll(fetchEntityPermissions(securityToken, reservationRequestIds));
         }
         return permissionsByReservationRequestId;
     }
@@ -222,42 +211,43 @@ public class Cache
     /**
      * @param securityToken of the requesting user
      * @param entityId      of the entity
-     * @return set of {@link Permission} for requesting user and given {@code entityId}
-     *         or null if the {@link Permission}s aren't cached
+     * @return set of {@link EntityPermission} for requesting user and given {@code entityId}
+     *         or null if the {@link EntityPermission}s aren't cached
      */
-    public synchronized Set<Permission> getPermissionsWithoutFetching(SecurityToken securityToken, String entityId)
+    public synchronized Set<EntityPermission> getEntityPermissionsWithoutFetching(
+            SecurityToken securityToken, String entityId)
     {
         UserState userState = getUserState(securityToken);
-        return userState.permissionsByEntity.get(entityId);
+        return userState.entityPermissionsByEntity.get(entityId);
     }
 
     /**
-     * Fetch {@link Permission}s for given {@code entityIds}.
+     * Fetch {@link EntityPermission}s for given {@code entityIds}.
      *
      * @param securityToken
      * @param entityIds
-     * @return fetched {@link Permission}s by {@code entityIds}
+     * @return fetched {@link EntityPermission}s by {@code entityIds}
      */
-    public synchronized Map<String, Set<Permission>> fetchPermissions(SecurityToken securityToken,
-            Set<String> entityIds)
+    public synchronized Map<String, Set<EntityPermission>> fetchEntityPermissions(
+            SecurityToken securityToken, Set<String> entityIds)
     {
-        Map<String, Set<Permission>> result = new HashMap<String, Set<Permission>>();
+        Map<String, Set<EntityPermission>> result = new HashMap<String, Set<EntityPermission>>();
         if (entityIds.isEmpty()) {
             return result;
         }
         UserState userState = getUserState(securityToken);
-        Map<String, PermissionSet> permissionsByEntity =
-                authorizationService.listPermissions(new PermissionListRequest(securityToken, entityIds));
-        for (Map.Entry<String, PermissionSet> entry : permissionsByEntity.entrySet()) {
+        Map<String, EntityPermissionSet> permissionsByEntity =
+                authorizationService.listEntityPermissions(new EntityPermissionListRequest(securityToken, entityIds));
+        for (Map.Entry<String, EntityPermissionSet> entry : permissionsByEntity.entrySet()) {
             String entityId = entry.getKey();
-            Set<Permission> permissions = userState.permissionsByEntity.get(entityId);
-            if (permissions == null) {
-                permissions = new HashSet<Permission>();
-                userState.permissionsByEntity.put(entityId, permissions);
+            Set<EntityPermission> entityPermissions = userState.entityPermissionsByEntity.get(entityId);
+            if (entityPermissions == null) {
+                entityPermissions = new HashSet<EntityPermission>();
+                userState.entityPermissionsByEntity.put(entityId, entityPermissions);
             }
-            permissions.clear();
-            permissions.addAll(entry.getValue().getPermissions());
-            result.put(entityId, permissions);
+            entityPermissions.clear();
+            entityPermissions.addAll(entry.getValue().getEntityPermissions());
+            result.put(entityId, entityPermissions);
         }
         return result;
     }

@@ -1,17 +1,18 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link ListRequest} for reservations.
+ * {@link ListRequest} for {@link EntityPermission}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PermissionListRequest extends AbstractRequest
+public class EntityPermissionListRequest extends AbstractRequest
 {
     /**
      * Identifier of the Shongo public entity.
@@ -21,7 +22,7 @@ public class PermissionListRequest extends AbstractRequest
     /**
      * Constructor.
      */
-    public PermissionListRequest()
+    public EntityPermissionListRequest()
     {
     }
 
@@ -30,7 +31,7 @@ public class PermissionListRequest extends AbstractRequest
      *
      * @param securityToken sets the {@link #securityToken}
      */
-    public PermissionListRequest(SecurityToken securityToken)
+    public EntityPermissionListRequest(SecurityToken securityToken)
     {
         super(securityToken);
     }
@@ -41,7 +42,7 @@ public class PermissionListRequest extends AbstractRequest
      * @param securityToken sets the {@link #securityToken}
      * @param entityId to be added to the {@link #entityIds}
      */
-    public PermissionListRequest(SecurityToken securityToken, String entityId)
+    public EntityPermissionListRequest(SecurityToken securityToken, String entityId)
     {
         super(securityToken);
         this.entityIds.add(entityId);
@@ -53,7 +54,7 @@ public class PermissionListRequest extends AbstractRequest
      * @param securityToken sets the {@link #securityToken}
      * @param entityIds to be added to the {@link #entityIds}
      */
-    public PermissionListRequest(SecurityToken securityToken, Set<String> entityIds)
+    public EntityPermissionListRequest(SecurityToken securityToken, Set<String> entityIds)
     {
         super(securityToken);
         this.entityIds.addAll(entityIds);

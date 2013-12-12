@@ -8,7 +8,7 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -365,8 +365,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         // Get permissions for reservation requests
-        Map<String, Set<Permission>> permissionsByReservationRequestId =
-                cache.getPermissionsForReservationRequests(securityToken, response.getItems());
+        Map<String, Set<EntityPermission>> permissionsByReservationRequestId =
+                cache.getReservationRequestsPermissions(securityToken, response.getItems());
 
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
@@ -388,8 +388,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
-            Set<Permission> permissions = permissionsByReservationRequestId.get(usageId);
-            item.put("isWritable", permissions.contains(Permission.WRITE));
+            Set<EntityPermission> entityPermissions = permissionsByReservationRequestId.get(usageId);
+            item.put("isWritable", entityPermissions.contains(EntityPermission.WRITE));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());

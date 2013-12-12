@@ -18,14 +18,14 @@ public enum Role
     /**
      * This role allows the user to provide a reservation request to a new reservation request.
      *
-     * @see {@link Permission#PROVIDE_RESERVATION_REQUEST}
+     * @see {@link EntityPermission#PROVIDE_RESERVATION_REQUEST}
      */
     RESERVATION_REQUEST_USER("2"),
 
     /**
      * This role allows the user to read/view entity.
      *
-     * @see {@link Permission#READ}
+     * @see {@link EntityPermission#READ}
      */
     READER("3");
 

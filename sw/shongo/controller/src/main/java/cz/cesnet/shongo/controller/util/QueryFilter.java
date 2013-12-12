@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -133,12 +133,12 @@ public class QueryFilter
      * @param authorization
      * @param securityToken
      * @param entityType
-     * @param permission
+     * @param entityPermission
      */
-    public void addFilterId(Authorization authorization, SecurityToken securityToken, AclRecord.EntityType entityType,
-            Permission permission)
+    public void addFilterId(Authorization authorization, SecurityToken securityToken,
+            AclRecord.EntityType entityType, EntityPermission entityPermission)
     {
-        addFilterIn("id", authorization.getEntitiesWithPermission(securityToken, entityType, permission));
+        addFilterIn("id", authorization.getEntitiesWithPermission(securityToken, entityType, entityPermission));
     }
 
     /**
@@ -148,12 +148,12 @@ public class QueryFilter
      * @param authorization
      * @param securityToken
      * @param entityType
-     * @param permission
+     * @param entityPermission
      */
     public void addFilterId(String column, Authorization authorization, SecurityToken securityToken,
-            AclRecord.EntityType entityType, Permission permission)
+            AclRecord.EntityType entityType, EntityPermission entityPermission)
     {
-        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, entityType, permission));
+        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, entityType, entityPermission));
     }
 
     /**

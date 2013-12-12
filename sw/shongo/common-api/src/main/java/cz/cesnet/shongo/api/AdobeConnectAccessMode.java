@@ -34,7 +34,7 @@ public enum AdobeConnectAccessMode
      *
      * @return String code, value of permission-id (api call permissions-update)
      */
-    public String getPermissionsId() {
+    public String getPermissionId() {
         return this.code;
     }
 }

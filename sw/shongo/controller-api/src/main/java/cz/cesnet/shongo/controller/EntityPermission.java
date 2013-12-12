@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller;
 
 /**
- * Enumeration of all possible user {@link Permission}s for entities of all {@link EntityType}s.
+ * Enumeration of all possible user {@link EntityPermission}s for entities of all {@link EntityType}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum Permission
+public enum EntityPermission
 {
     /**
      * User can read/view the entity.
@@ -39,7 +39,7 @@ public enum Permission
      *
      * @param code sets the {@link #code}
      */
-    private Permission(String code)
+    private EntityPermission(String code)
     {
         this.code = code;
     }

@@ -253,7 +253,7 @@ public class InMemoryAclPropagationCache
 
         private Set<Role> roles = new HashSet<Role>();
 
-        private Set<Permission> permissions = new HashSet<Permission>();
+        private Set<EntityPermission> permissions = new HashSet<EntityPermission>();
 
         public boolean addAclRecord(AclRecord aclRecord)
         {

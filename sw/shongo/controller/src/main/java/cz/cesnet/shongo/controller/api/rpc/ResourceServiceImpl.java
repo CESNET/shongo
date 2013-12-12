@@ -160,7 +160,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(securityToken, resource, Permission.WRITE)) {
+            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
             }
 
@@ -201,7 +201,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(securityToken, resource, Permission.WRITE)) {
+            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
@@ -252,7 +252,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         try {
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
-                    AclRecord.EntityType.RESOURCE, Permission.READ);
+                    AclRecord.EntityType.RESOURCE, EntityPermission.READ);
             String filterUserId = QueryFilter.getUserIdFromFilter(filter);
             List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
@@ -297,7 +297,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(securityToken, resource, Permission.READ)) {
+            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
             }
 
@@ -325,7 +325,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resourceImpl =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(securityToken, resourceImpl, Permission.READ)) {
+            if (!authorization.hasEntityPermission(securityToken, resourceImpl, EntityPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
             }
 

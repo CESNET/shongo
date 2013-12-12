@@ -6,7 +6,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -111,8 +111,8 @@ public class ReservationRequestController
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Get permissions for reservation requests
-        Map<String, Set<Permission>> permissionsByReservationRequestId =
-                cache.getPermissionsForReservationRequests(securityToken, response.getItems());
+        Map<String, Set<EntityPermission>> permissionsByReservationRequestId =
+                cache.getReservationRequestsPermissions(securityToken, response.getItems());
 
         // Build response
         DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
@@ -140,9 +140,9 @@ public class ReservationRequestController
                 item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
-            Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
-            item.put("isWritable", permissions.contains(Permission.WRITE));
-            item.put("isProvidable", permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST));
+            Set<EntityPermission> entityPermissions = permissionsByReservationRequestId.get(reservationRequestId);
+            item.put("isWritable", entityPermissions.contains(EntityPermission.WRITE));
+            item.put("isProvidable", entityPermissions.contains(EntityPermission.PROVIDE_RESERVATION_REQUEST));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());

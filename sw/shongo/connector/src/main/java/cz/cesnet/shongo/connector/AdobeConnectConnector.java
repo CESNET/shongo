@@ -294,13 +294,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
 
-        if (AdobeConnectAccessMode.PRIVATE.getPermissionsId().equals(accessMode)) {
+        if (AdobeConnectAccessMode.PRIVATE.getPermissionId().equals(accessMode)) {
             adobeConnectAccessMode = AdobeConnectAccessMode.PRIVATE;
         }
-        else if (AdobeConnectAccessMode.PROTECTED.getPermissionsId().equals(accessMode)) {
+        else if (AdobeConnectAccessMode.PROTECTED.getPermissionId().equals(accessMode)) {
             adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
         }
-        else if (AdobeConnectAccessMode.PUBLIC.getPermissionsId().equals(accessMode)) {
+        else if (AdobeConnectAccessMode.PUBLIC.getPermissionId().equals(accessMode)) {
             adobeConnectAccessMode = AdobeConnectAccessMode.PUBLIC;
         }
 
@@ -320,9 +320,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         accessModeAttributes.add("acl-id",roomId);
         accessModeAttributes.add("principal-id","public-access");
         if (mode == null) {
-            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionsId());
+            accessModeAttributes.add("permission-id",AdobeConnectAccessMode.PROTECTED.getPermissionId());
         } else {
-            accessModeAttributes.add("permission-id",mode.getPermissionsId());
+            accessModeAttributes.add("permission-id",mode.getPermissionId());
         }
 
         request("permissions-update", accessModeAttributes);

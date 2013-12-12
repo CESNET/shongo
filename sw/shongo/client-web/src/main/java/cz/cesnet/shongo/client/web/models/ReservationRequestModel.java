@@ -10,7 +10,7 @@ import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
@@ -998,15 +998,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             for (ReservationRequestSummary reservationRequestSummary : response) {
                 reservationRequestIds.add(reservationRequestSummary.getId());
             }
-            cache.fetchPermissions(securityToken, reservationRequestIds);
+            cache.fetchEntityPermissions(securityToken, reservationRequestIds);
 
             for (ReservationRequestSummary reservationRequestSummary : response) {
                 ExecutableState executableState = reservationRequestSummary.getExecutableState();
                 if (executableState == null || (!executableState.isAvailable() && !executableState.equals(ExecutableState.NOT_STARTED))) {
                     continue;
                 }
-                Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
-                if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
+                Set<EntityPermission> entityPermissions = cache.getEntityPermissions(securityToken,
+                        reservationRequestSummary.getId());
+                if (!entityPermissions.contains(EntityPermission.PROVIDE_RESERVATION_REQUEST)) {
                     continue;
                 }
                 reservationRequests.add(reservationRequestSummary);
