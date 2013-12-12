@@ -35,6 +35,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,6 +70,10 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         this.login = username;
         this.password = password;
 
+        //TODO: check if accessable
+        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+
+
         // Setup options
         //TODO: what needed
 
@@ -89,7 +94,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public void disconnect() throws CommandException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
     }
 
     @Override
@@ -146,207 +151,178 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         throw new TodoImplementException("CiscoTCSConnector.deleteRecording");
     }
 
-    protected void request(String action, Map<String, String> attributes) throws CommandException
+    protected String buildXmlTag(String unpairTag)
     {
-        try {
-            SOAPMessage soapMessage = this.soapConnection.call(createSOAPRequest(),new Object());
-        }
-        catch (SOAPException e) {
-            throw new CommandException("TODO: deal with this exception in request()" ,e);
-        }
+        return "<" + unpairTag + " />";
     }
 
-    protected SOAPMessage createSOAPRequest() throws SOAPException
+    protected String buildXmlTag(Map.Entry<String,Object> pairTag)
     {
-        MessageFactory messageFactory = MessageFactory.newInstance();
-        SOAPMessage soapMessage = messageFactory.createMessage();
-        SOAPPart soapPart = soapMessage.getSOAPPart();
+        StringBuilder tag = new StringBuilder();
 
-        String serverURI = "https://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress().getPort() + "/tcs/SoapServer.php";
+        tag.append("<" + pairTag.getKey() + " >");
+        tag.append(pairTag.getValue());
+        tag.append("</" + pairTag.getKey() + " >");
 
-        ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
+        return tag.toString();
+    }
 
-        // SOAP Envelope
-        SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.setPrefix("soap");
-        envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
-        envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    protected String builExecdXml(Command command) throws CommandException
+    {
+        StringBuilder xml = new StringBuilder();
 
-        /*
-        Constructed SOAP Request Message:
-        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:example="http://ws.cdyne.com/">
-            <SOAP-ENV:Header/>
-            <SOAP-ENV:Body>
-                <example:VerifyEmail>
-                    <example:email>mutantninja@gmail.com</example:email>
-                    <example:LicenseKey>123</example:LicenseKey>
-                </example:VerifyEmail>
-            </SOAP-ENV:Body>
-        </SOAP-ENV:Envelope>
-         */
+        // Headers
+        xml.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
+                "xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                "<soap:Body>\n");
 
-        // SOAP Body
-        SOAPBody soapBody = envelope.getBody();
+        // Body
+        if (command.getCommand() == null || command.getCommand().isEmpty()) {
+            throw new CommandException("Command cannot be null or empty.");
+        }
 
-        // set header
-        SOAPElement header = soapBody.addBodyElement(new QName("Header"));
+        xml.append("<" + command.getCommand() + " xmlns=\"http://www.tandberg.net/XML/Streaming/1.0\" >");
 
-        SOAPElement security = header.addChildElement(new QName("Security"));
-        SOAPElement usernameToken= security.addChildElement(new QName("UsernameToken"));
-        SOAPElement username= usernameToken.addChildElement(new QName("Username"));
-        SOAPElement password= usernameToken.addChildElement(new QName("Password"));
+        for (Object argument : command.getArguments()) {
+            if (!String.class.isInstance(argument) || argument.toString().isEmpty()) {
+                throw new CommandException("Command arguments must be String and not empty.");
+            }
 
-        //enter the username and password
-        /*username.addTextNode("opicak");
-        password.addTextNode("kalamita42");
-        */
-        SOAPElement soapBodyElem = soapBody.addChildElement("RequestConferenceID");
-        soapBodyElem.addNamespaceDeclaration("test","http://www.tandberg.net/XML/Streaming/1.0");
+            xml.append((String) argument);
+        }
 
-        //soapBodyElem.addAttribute("xmlns","http://www.tandberg.net/XML/Streaming/1.0");
-        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("email");
-        soapBodyElem1.addTextNode("mutantninja@gmail.com");
-        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("LicenseKey");
-        soapBodyElem2.addTextNode("123");
+        for (Map.Entry<String,Object> entry : command.getParameters().entrySet()) {
+            xml.append(entry);
+        }
 
-        MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader("SOAPAction", serverURI  + "VerifyEmail");
+        // Footers
+        xml.append("</" + command.getCommand() + ">");
 
-        soapMessage.saveChanges();
+        xml.append("</soap:Body>\n" +
+                "</soap:Envelope>)");
 
-        /* Print the request message */
-        System.out.print("Request SOAP Message = ");
+        return xml.toString();
+    }
+
+    protected HttpEntity exec(Command command) throws CommandException{
         try {
-            soapMessage.writeTo(System.out);
-        }
-        catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+            while (true) {
 
-        return soapMessage;
+                logger.debug(String.format("%s issuing command '%s' on %s",
+                        CiscoTCSConnector.class, command, this.info.getDeviceAddress()));
+
+
+                //CloseableHttpClient httpclient = HttpClients.createDefault();
+                HttpClient lHttpClient = new DefaultHttpClient();
+                //lHttpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
+
+                // A org.apache.http.impl.auth.DigestScheme instance is
+// what will process the challenge from the web-server
+                final DigestScheme md5Auth = new DigestScheme();
+
+
+                // Setup POST request
+                HttpPost lHttpPost = new HttpPost("http://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress()
+                        .getPort() + "/tcs/SoapServer.php");
+//        HttpPost lHttpPost = new HttpPost("http://195.113.151.188/tcs/SoapServer.php");
+
+                ConfiguredSSLContext.getInstance().addAdditionalCertificates(lHttpPost.getURI().getHost());
+
+// Set SOAPAction header
+                lHttpPost.addHeader("SOAPAction", "http://www.tandberg.net/XML/Streaming/1.0/GetSystemInformation");
+
+                // Add XML to request, direct in the body - no parameter name tcs.getSoapMessage().toString()
+                // String xml = builExecdXml(command);
+                String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                        "<soap:Body>\n" +
+                        "<GetSystemInformation xmlns=\"http://www.tandberg.net/XML/Streaming/1.0\"/>\n" +
+                        "</soap:Body>\n" +
+                        "</soap:Envelope>";
+                StringEntity lEntity = new StringEntity(xml, "text/xml", "utf-8");
+                lHttpPost.setEntity(lEntity);
+
+                // Protocol version should be 1.0 because of compatibility with TCS
+                lHttpPost.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
+// Execute POST
+                HttpResponse authResponse = lHttpClient.execute(lHttpPost);
+
+// This should return an HTTP 401 Unauthorized with
+// a challenge to solve.
+                //final HttpResponse authResponse = lHttpResponse;
+
+// Validate that we got an HTTP 401 back
+                if(authResponse.getStatusLine().getStatusCode() ==
+                        HttpStatus.SC_UNAUTHORIZED) {
+                    if(authResponse.containsHeader("WWW-Authenticate")) {
+                        // Get the challenge.
+                        final Header challenge =
+                                authResponse.getHeaders("WWW-Authenticate")[0];
+                        // Solve it.
+                        md5Auth.processChallenge(challenge);
+                        // Generate a solution Authentication header using your
+                        // username and password.
+                        // Do another POST, but this time include the solution
+                        final Header solution = md5Auth.authenticate(
+                                new UsernamePasswordCredentials(this.login, this.password),
+//                        new UsernamePasswordCredentials("admin", "nahr8vadloHesl94ko1AP1"),
+                                new BasicHttpRequest(HttpPost.METHOD_NAME,"/tcs/SoapServer.php"));
+
+                        // Authentication header as generated by HttpClient.
+                        lHttpPost.setHeader(solution);
+
+                        lHttpPost.releaseConnection();
+
+                        System.out.println("===================");
+                        System.out.println(lHttpPost.getURI());
+                        System.out.println("===================");
+                        for (Header header : lHttpPost.getAllHeaders()){
+                            System.out.println(header.toString() + " : " + header.getName() + " --- " + header.getValue());
+                        }
+                        System.out.println("===================");
+
+                        final HttpResponse goodResponse =  lHttpClient.execute(lHttpPost);
+                        //doPost(url, postBody, contentType, solution);
+
+                        EntityUtils.toString(goodResponse.getEntity());
+                    } else {
+                        throw new Error("Web-service responded with Http 401, " +
+                                "but didn't send us a usable WWW-Authenticate header.");
+                    }
+                } else {
+                    throw new Error("Didn't get an Http 401 " +
+                            "like we were expecting.");
+                }
+
+                if (authResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
+                {
+                    throw new RuntimeException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
+                }
+
+// Get hold of response XML
+                String lResponseXml = EntityUtils.toString(authResponse.getEntity());
+
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Command issuing error", ex);
+        }
     }
 
     public static void main(String[] args) throws Exception
     {
-        Address address = new Address("195.113.151.188",443);
+        Address address = new Address("195.113.151.188",80);
 
-        //ConfiguredSSLContext.getInstance().addAdditionalCertificates(address.getHost());
 
 
         CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address, "opicak", "kalamita42");
-        /*
-        SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-        SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+        tcs.connect(address, "admin", "nahr8vadloHesl94ko1AP1");
 
-        String url = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/Helium.wsdl";
-        String tcsUrl = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/SoapServer.php";
+        Command command = new Command("");
 
-        try {
-            URL link = new URL("http","195.113.151.188","/tcs/SoapServer.php");
-            SOAPMessage message = tcs.createSOAPRequest();
-            System.out.println(message.getMimeHeaders().getAllHeaders().next());
-            SOAPMessage response = soapConnection.call(message, link);
-            response.getContentDescription();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        tcs.exec(command);
 
-//        printSOAPResponse(response);
-
-        soapConnection.close();
-        */
-
-
-
-        //CloseableHttpClient httpclient = HttpClients.createDefault();
-        HttpClient lHttpClient = new DefaultHttpClient();
-                //lHttpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
-
-        // A org.apache.http.impl.auth.DigestScheme instance is
-// what will process the challenge from the web-server
-        final DigestScheme md5Auth = new DigestScheme();
-
-// Setup proxy server to call through
-//        HttpHost lProxy = new HttpHost("hostname", 1234);
-//        lHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, lProxy);
-
-        // Setup POST request
-        HttpPost lHttpPost = new HttpPost("http://195.113.151.188/tcs/SoapServer.php");
-
-        ConfiguredSSLContext.getInstance().addAdditionalCertificates(lHttpPost.getURI().getHost());
-
-// Set SOAPAction header
-        lHttpPost.addHeader("SOAPAction", "http://www.tandberg.net/XML/Streaming/1.0/GetSystemInformation");
-
-        // Add XML to request, direct in the body - no parameter name tcs.getSoapMessage().toString()
-        String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-                "<soap:Body>\n" +
-                "<GetSystemInformation xmlns=\"http://www.tandberg.net/XML/Streaming/1.0\"/>\n" +
-                "</soap:Body>\n" +
-                "</soap:Envelope>";
-        StringEntity lEntity = new StringEntity(xml, "text/xml", "utf-8");
-        lHttpPost.setEntity(lEntity);
-
-        lHttpPost.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
-// Execute POST
-        HttpResponse authResponse = lHttpClient.execute(lHttpPost);
-
-// This should return an HTTP 401 Unauthorized with
-// a challenge to solve.
-        //final HttpResponse authResponse = lHttpResponse;
-
-// Validate that we got an HTTP 401 back
-        if(authResponse.getStatusLine().getStatusCode() ==
-                HttpStatus.SC_UNAUTHORIZED) {
-            if(authResponse.containsHeader("WWW-Authenticate")) {
-                // Get the challenge.
-                final Header challenge =
-                        authResponse.getHeaders("WWW-Authenticate")[0];
-                // Solve it.
-                md5Auth.processChallenge(challenge);
-                // Generate a solution Authentication header using your
-                // username and password.
-                // Do another POST, but this time include the solution
-                final Header solution = md5Auth.authenticate(
-                        new UsernamePasswordCredentials("admin", "nahr8vadloHesl94ko1AP1"),
-                        new BasicHttpRequest(HttpPost.METHOD_NAME,"/tcs/SoapServer.php"));
-
-                // Authentication header as generated by HttpClient.
-                lHttpPost.setHeader(solution);
-
-                lHttpPost.releaseConnection();
-
-                System.out.println("===================");
-                System.out.println(lHttpPost.getURI());
-                System.out.println("===================");
-                for (Header header : lHttpPost.getAllHeaders()){
-                    System.out.println(header.toString() + " : " + header.getName() + " --- " + header.getValue());
-                }
-                System.out.println("===================");
-
-                final HttpResponse goodResponse =  lHttpClient.execute(lHttpPost);
-                        //doPost(url, postBody, contentType, solution);
-
-                EntityUtils.toString(goodResponse.getEntity());
-           } else {
-                throw new Error("Web-service responded with Http 401, " +
-                        "but didn't send us a usable WWW-Authenticate header.");
-            }
-        } else {
-            throw new Error("Didn't get an Http 401 " +
-                    "like we were expecting.");
-        }
-
-        if (authResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
-        {
-            throw new RuntimeException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
-        }
-
-// Get hold of response XML
-        String lResponseXml = EntityUtils.toString(authResponse.getEntity());
-
-
+        tcs.disconnect();
 
     }
 
@@ -358,190 +334,5 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         StreamResult result = new StreamResult(System.out);
         transformer.transform(sourceContent, result);
     }
-
-
-
-
-
-
-
-private static final String TECHNET_NAMESPACE_PREFIX = "shongo";
-private static final String WEBSERVICE_SECURE_URL =
-"https://195.113.151.188:443/tcs/SoapServer.php";
-private static final String WEBSERVICE_INSECURE_URL =
-"http://195.113.151.188:443/tcs/SoapServer.php";
-
-
-/**
-* Get the login token
-*
-* @param username
-* @param password
-* @return The authentication ticket
-* @throws SOAPException
-*/
-private String login( final String username, final String password) throws SOAPException {
-final SOAPMessage soapMessage = getSoapMessage();
-final SOAPBody soapBody = soapMessage.getSOAPBody();
-final SOAPElement loginElement = soapBody.addChildElement("Login");
-
-loginElement.addChildElement("Username").addTextNode(username);
-loginElement.addChildElement("Password").addTextNode(password);
-
-soapMessage.saveChanges();
-    System.out.println("sjem tu");
-final SOAPConnection soapConnection = getSoapConnection();
-    System.out.println("sjem tu");
-
-    final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_INSECURE_URL);
-    System.out.println("sjem tu");
-
-final String textContent = soapMessageReply.getSOAPHeader().getFirstChild().getTextContent();
-
-soapConnection.close();
-
-return textContent;
-}
-
-/**
-* Returns the price
-*
-* @param authenticationTicket
-* @param shape
-* @param size
-* @param color
-* @param clarity
-* @throws SOAPException
-*
-private void getPrice( final String authenticationTicket, final String shape, final float size, final String color,
-final String clarity) throws SOAPException {
-final SOAPMessage soapMessage = getSoapMessage();
-
-addAuthenticationTicket(authenticationTicket, soapMessage);
-
-final SOAPBody soapBody = soapMessage.getSOAPBody();
-final SOAPElement getPriceElement = soapBody.addChildElement("GetPrice", TECHNET_NAMESPACE_PREFIX);
-getPriceElement.addChildElement("shape", TECHNET_NAMESPACE_PREFIX).addTextNode(shape);
-getPriceElement.addChildElement("size", TECHNET_NAMESPACE_PREFIX).addTextNode(String.valueOf(size));
-getPriceElement.addChildElement("color", TECHNET_NAMESPACE_PREFIX).addTextNode(color);
-getPriceElement.addChildElement("clarity", TECHNET_NAMESPACE_PREFIX).addTextNode(clarity);
-
-soapMessage.saveChanges();
-
-final SOAPConnection soapConnection = getSoapConnection();
-
-final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_INSECURE_URL);
-
-final SOAPBody replyBody = soapMessageReply.getSOAPBody();
-final Node getPriceResponse = replyBody.getFirstChild();
-final Node getPriceResult = getPriceResponse.getFirstChild();
-
-final NodeList childNodes = getPriceResult.getChildNodes();
-final String replyShape = childNodes.item(0).getTextContent();
-final String lowSize = childNodes.item(1).getTextContent();
-
-// ... etc etc
-// You can create a bean that will encompass all elements
-
-soapConnection.close();
-}
-
-/**
-* Gets the price sheet
-*
-* @param authenticationTicket
-* @param shapes
-* @throws SOAPException
-* @throws TransformerException
-*
-private void getPriceSheet( final String authenticationTicket, final Shapes shapes)
-throws SOAPException, TransformerException {
-final SOAPMessage soapMessage = getSoapMessage();
-
-addAuthenticationTicket(authenticationTicket, soapMessage);
-
-final SOAPBody soapBody = soapMessage.getSOAPBody();
-
-final SOAPElement getPriceSheetElement =
-soapBody.addChildElement("GetPriceSheet", TECHNET_NAMESPACE_PREFIX);
-
-getPriceSheetElement.addChildElement(
-"shape", TECHNET_NAMESPACE_PREFIX).addTextNode(shapes.enumString);
-
-soapMessage.saveChanges();
-
-final SOAPConnection soapConnection = getSoapConnection();
-final SOAPMessage soapMessageReply = soapConnection.call(soapMessage, WEBSERVICE_INSECURE_URL);
-
-// this will print out the result
-// Create transformer
-
-final TransformerFactory tff = TransformerFactory.newInstance();
-final Transformer tf = tff.newTransformer();
-
-// Get reply content
-final Source sc = soapMessageReply.getSOAPPart().getContent();
-
-// Set output transformation
-final StreamResult result = new StreamResult(System.out);
-tf.transform(sc, result);
-System.out.println();
-
-// Close connection
-soapConnection.close();
-}
-
-/**
-* Create a SOAP Connection
-*
-* @return
-* @throws UnsupportedOperationException
-* @throws SOAPException
-*/
-private SOAPConnection getSoapConnection() throws UnsupportedOperationException, SOAPException {
-final SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-final SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-
-return soapConnection;
-}
-
-/**
-* Create the SOAP Message
-*
-* @return
-* @throws SOAPException
-*/
-private SOAPMessage getSoapMessage() throws SOAPException {
-final MessageFactory messageFactory = MessageFactory.newInstance();
-final SOAPMessage soapMessage = messageFactory.createMessage();
-
-// Object for message parts
-final SOAPPart soapPart = soapMessage.getSOAPPart();
-final SOAPEnvelope envelope = soapPart.getEnvelope();
-                                                                                       /*
-envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
-envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-envelope.addNamespaceDeclaration("enc", "http://schemas.xmlsoap.org/soap/encoding/");
-envelope.addNamespaceDeclaration("env", "http://schemas.xmlsoap.org/soap/envelop/"); */
-envelope.addNamespaceDeclaration("URL", WEBSERVICE_SECURE_URL);
-
-
-// add the technet namespace as "technet"
-envelope.addNamespaceDeclaration(TECHNET_NAMESPACE_PREFIX, "http://technet.rapaport.com/");
-
-envelope.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
-
-return soapMessage;
-}
-
-private void addAuthenticationTicket( final String authenticationTicket, final SOAPMessage soapMessage)
-throws SOAPException {
-final SOAPHeader header = soapMessage.getSOAPHeader();
-final SOAPElement authenticationTicketHeader =
-header.addChildElement("AuthenticationTicketHeader", TECHNET_NAMESPACE_PREFIX);
-authenticationTicketHeader.addChildElement(
-"Ticket", TECHNET_NAMESPACE_PREFIX).addTextNode(authenticationTicket);
-}
-
 
 }

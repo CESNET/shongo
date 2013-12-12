@@ -101,12 +101,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     /**
      * Timeout for checking room capacity, default value is 5 minutes
      */
-    private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
+    private final long CAPACITY_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
 
     /**
      * Timeout for checking if recording are in right folder, default value is 5 minutes
      */
-    private final int RECORDING_CHECK_TIMEOUT = 5*60*1000;
+    private final long RECORDING_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
 
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
@@ -472,7 +472,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException
     {
-        logger.error("DOSTLO TO SEM?");
         ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
         RequestAttributeList attributes = new RequestAttributeList();
@@ -616,12 +615,20 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
 
             throw ex;
+        } catch (Exception ex) {
+            logger.debug("RECORDING:" + ex);
+            throw new CommandException("unknown exception" + ex);
         }
 
         RequestAttributeList recAttributes = new RequestAttributeList();
         recAttributes.add("sco-id", scoId);
 
         Element response = request("meeting-recorder-activity-info", recAttributes);
+
+        for(Element child : response.getChild("meeting-recorder-activity-info").getChildren()) {
+            logger.debug("RECORDING  CHILD: " + child.getName());
+        }
+        logger.debug("recording id: " + response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"));
 
         return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
     }
@@ -1572,9 +1579,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         //TODO: deal with permissions and delete
         RequestAttributeList permissionsInfoAttributes = new RequestAttributeList();
         permissionsInfoAttributes.add("acl-id",recordingsFolderID);
-        permissionsInfoAttributes.add("principal-id","public-access");
+        permissionsInfoAttributes.add("filter-principal-id","public-access");
 
-        String permissions = request("permissions-info",permissionsInfoAttributes).getChild("permission").getAttributeValue("permission-id");
+        String permissions = request("permissions-info",permissionsInfoAttributes).getChild("permissions").getChild("principal").getAttributeValue(
+                "permission-id");
 
         if (!"manage".equals(permissions)) {
             RequestAttributeList permissionsUpdateAttributes = new RequestAttributeList();
@@ -1941,6 +1949,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 if (isError(result)) {
                     if (isLoginNeeded(result)) {
                         logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+                        this.info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
+
                         breezesession = null;
                         login();
                         continue;
@@ -2028,6 +2038,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
             /************************/
 
+            System.out.println(acc.RECORDING_CHECK_TIMEOUT);
             /************************/
 
             acc.disconnect();
