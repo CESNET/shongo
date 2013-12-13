@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.util;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.EntityRole;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.authorization.AclRecordDependency;
+import cz.cesnet.shongo.controller.acl.*;
+import cz.cesnet.shongo.controller.authorization.AclEntryDependency;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.util.Timer;
 import org.junit.After;
 import org.junit.Assert;
@@ -51,33 +53,53 @@ public class PersistenceTest
     }
 
     @Test
-    public void test() throws Exception
+    public void testAclEntryUniqueness() throws Exception
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             entityManager.getTransaction().begin();
 
-            AclRecord aclRecord1 = new AclRecord();
-            aclRecord1.setUserId("0");
-            aclRecord1.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
-            aclRecord1.setEntityRole(EntityRole.OWNER);
-            entityManager.persist(aclRecord1);
+            TestReservation reservation = new TestReservation();
+            reservation.setId(1l);
 
-            AclRecord aclRecord2 = new AclRecord();
-            aclRecord2.setUserId("0");
-            aclRecord2.setEntityId(new AclRecord.EntityId(AclRecord.EntityType.RESERVATION, 1l));
-            aclRecord2.setEntityRole(EntityRole.OWNER);
-            entityManager.persist(aclRecord2);
+            AclProvider aclProvider = new AclProvider(entityManagerFactory)
+            {
+                @Override
+                protected String getObjectClassName(Class<? extends PersistentObject> objectClass)
+                {
+                    return objectClass.getSimpleName();
+                }
 
-            AclRecordDependency aclRecordDependency1 = new AclRecordDependency();
-            aclRecordDependency1.setParentAclRecord(aclRecord1);
-            aclRecordDependency1.setChildAclRecord(aclRecord2);
-            entityManager.persist(aclRecordDependency1);
+                @Override
+                protected Long getObjectId(PersistentObject object)
+                {
+                    return object.getId();
+                }
+            };
+            AclIdentity aclIdentity = aclProvider.getIdentity(AclIdentityType.USER, "0");
+            AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(reservation);
 
-            AclRecordDependency aclRecordDependency2 = new AclRecordDependency();
-            aclRecordDependency2.setParentAclRecord(aclRecord1);
-            aclRecordDependency2.setChildAclRecord(aclRecord2);
-            entityManager.persist(aclRecordDependency2);
+            AclEntry aclEntry1 = new AclEntry();
+            aclEntry1.setIdentity(aclIdentity);
+            aclEntry1.setObjectIdentity(aclObjectIdentity);
+            aclEntry1.setRole(EntityRole.OWNER.toString());
+            entityManager.persist(aclEntry1);
+
+            AclEntry aclEntry2 = new AclEntry();
+            aclEntry2.setIdentity(aclIdentity);
+            aclEntry2.setObjectIdentity(aclObjectIdentity);
+            aclEntry2.setRole(EntityRole.OWNER.toString());
+            entityManager.persist(aclEntry2);
+
+            AclEntryDependency aclEntryDependency1 = new AclEntryDependency();
+            aclEntryDependency1.setParentAclEntry(aclEntry1);
+            aclEntryDependency1.setChildAclEntry(aclEntry2);
+            entityManager.persist(aclEntryDependency1);
+
+            AclEntryDependency aclEntryDependency2 = new AclEntryDependency();
+            aclEntryDependency2.setParentAclEntry(aclEntry1);
+            aclEntryDependency2.setChildAclEntry(aclEntry2);
+            entityManager.persist(aclEntryDependency2);
 
             entityManager.getTransaction().commit();
 
@@ -92,6 +114,14 @@ public class PersistenceTest
         }
         finally {
             entityManager.close();
+        }
+    }
+
+    public static class TestReservation extends Reservation
+    {
+        public void setId(Long id)
+        {
+            this.id = id;
         }
     }
 }

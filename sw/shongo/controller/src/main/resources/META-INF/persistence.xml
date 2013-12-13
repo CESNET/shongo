@@ -26,8 +26,11 @@
 
     <persistence-unit name="persistence-test">
 
-        <class>cz.cesnet.shongo.controller.authorization.AclRecord</class>
-        <class>cz.cesnet.shongo.controller.authorization.AclRecordDependency</class>
+        <class>cz.cesnet.shongo.controller.acl.AclEntry</class>
+        <class>cz.cesnet.shongo.controller.acl.AclIdentity</class>
+        <class>cz.cesnet.shongo.controller.acl.AclObjectClass</class>
+        <class>cz.cesnet.shongo.controller.acl.AclObjectIdentity</class>
+        <class>cz.cesnet.shongo.controller.authorization.AclEntryDependency</class>
 
         <!-- Hibernate configuration -->
         <properties>

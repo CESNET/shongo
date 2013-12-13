@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.acl.AclProvider;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.report.ReportRuntimeException;
@@ -25,6 +26,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManagerFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,10 +92,11 @@ public class ServerAuthorization extends Authorization
      * Constructor.
      *
      * @param configuration to load authorization configuration from
+     * @param aclProvider
      */
-    private ServerAuthorization(ControllerConfiguration configuration)
+    private ServerAuthorization(ControllerConfiguration configuration, EntityManagerFactory entityManagerFactory)
     {
-        super(configuration);
+        super(configuration, entityManagerFactory);
 
         // Debug HTTP requests
         //System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
@@ -674,9 +677,10 @@ public class ServerAuthorization extends Authorization
      * @return new instance of {@link ServerAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists
      */
-    public static ServerAuthorization createInstance(ControllerConfiguration configuration) throws IllegalStateException
+    public static ServerAuthorization createInstance(ControllerConfiguration configuration,
+            EntityManagerFactory entityManagerFactory) throws IllegalStateException
     {
-        ServerAuthorization serverAuthorization = new ServerAuthorization(configuration);
+        ServerAuthorization serverAuthorization = new ServerAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(serverAuthorization);
         return serverAuthorization;
     }

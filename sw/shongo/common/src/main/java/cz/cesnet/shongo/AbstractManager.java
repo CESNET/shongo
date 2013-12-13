@@ -32,6 +32,14 @@ public abstract class AbstractManager extends PersistenceTransactionHelper
     }
 
     /**
+     * @return {@link #entityManager}
+     */
+    public EntityManager getEntityManager()
+    {
+        return entityManager;
+    }
+
+    /**
      * @param persistentObject object to be created in the database
      */
     protected void create(PersistentObject persistentObject)

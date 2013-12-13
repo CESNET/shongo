@@ -76,7 +76,7 @@ public class EntityIdentifier
      */
     public EntityIdentifier(PersistentObject persistentObject)
     {
-        this.entityType = getEntityType(persistentObject.getClass());
+        this.entityType = EntityTypeResolver.getEntityType(persistentObject.getClass());
         this.persistenceId = persistentObject.getId();
     }
 
@@ -126,7 +126,7 @@ public class EntityIdentifier
      */
     public Class<? extends PersistentObject> getEntityClass()
     {
-        return getEntityTypeClass(entityType);
+        return EntityTypeResolver.getEntityTypeClass(entityType);
     }
 
     /**
@@ -174,78 +174,14 @@ public class EntityIdentifier
     }
 
     /**
-     * Entity types by code.
-     */
-    private static final Map<String, EntityType> entityTypeByCode = new HashMap<String, EntityType>();
-
-    /**
-     * Entity types by class.
-     */
-    private static final Map<Class, EntityType> entityTypeByClass = new HashMap<Class, EntityType>();
-
-    /**
-     * Static initialization.
-     */
-    static {
-        for (EntityType entityType : EntityType.class.getEnumConstants()) {
-            entityTypeByCode.put(entityType.getCode(), entityType);
-            entityTypeByClass.put(getEntityTypeClass(entityType), entityType);
-        }
-    }
-
-    /**
-     * @param entityClass entity type class
-     * @return entity type string
-     * @throws RuntimeException when entity type class isn't mapped to any entity type
-     */
-    public synchronized static EntityType getEntityType(Class entityClass)
-    {
-        EntityType entityType = entityTypeByClass.get(entityClass);
-        if (entityType == null) {
-            for (Map.Entry<Class, EntityType> entry : entityTypeByClass.entrySet()) {
-                Class entryClass = entry.getKey();
-                if (entryClass.isAssignableFrom(entityClass)) {
-                    entityType = entry.getValue();
-                }
-            }
-            if (entityType == null) {
-                throw new RuntimeException(
-                        String.format("Unknown identifier type for entity '%s'", entityClass.getName()));
-            }
-            entityTypeByClass.put(entityClass, entityType);
-        }
-        return entityType;
-    }
-
-    /**
-     * @param entityType for which the class should be returned
-     * @return entity class for given {@code entityType}
-     */
-    public static Class<? extends PersistentObject> getEntityTypeClass(EntityType entityType)
-    {
-        switch (entityType) {
-            case RESOURCE:
-                return Resource.class;
-            case RESERVATION_REQUEST:
-                return AbstractReservationRequest.class;
-            case RESERVATION:
-                return Reservation.class;
-            case EXECUTABLE:
-                return Executable.class;
-            default:
-                throw new TodoImplementException(entityType);
-        }
-    }
-
-    /**
      * @param entityClass to be checked
      * @return true if given {@code entityClass} is bound to any entity type,
      *         false otherwise
      */
-    public static boolean hasEntityType(Class entityClass)
+    public static boolean isAvailableForEntityType(Class<? extends PersistentObject> entityClass)
     {
         try {
-            getEntityType(entityClass);
+            EntityTypeResolver.getEntityType(entityClass);
             return true;
         }
         catch (RuntimeException exception) {
@@ -264,7 +200,7 @@ public class EntityIdentifier
         }
         Matcher matcher = LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(entityId);
         if (matcher.matches()) {
-            return new EntityIdentifier(entityTypeByCode.get(matcher.group(1)), parsePersistenceId(matcher.group(2)));
+            return new EntityIdentifier(EntityType.getByCode(matcher.group(1)), parsePersistenceId(matcher.group(2)));
         }
         return parse(Domain.getLocalDomainName(), entityId);
     }
@@ -284,7 +220,7 @@ public class EntityIdentifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier
      */
-    public static String formatId(Class entityClass, Long entityLocalId)
+    public static String formatId(Class<? extends PersistentObject> entityClass, Long entityLocalId)
     {
         return formatId(Domain.getLocalDomainName(), entityClass, entityLocalId);
     }
@@ -314,7 +250,7 @@ public class EntityIdentifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier
      */
-    public static String formatId(Class entityClass, String entityLocalId)
+    public static String formatId(Class<? extends PersistentObject> entityClass, String entityLocalId)
     {
         return formatId(Domain.getLocalDomainName(), entityClass, entityLocalId);
     }
@@ -374,7 +310,7 @@ public class EntityIdentifier
      * @param entityId    entity local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    public static Long parseId(Class entityClass, String entityId)
+    public static Long parseId(Class<? extends PersistentObject> entityClass, String entityId)
     {
         return parseId(Domain.getLocalDomainName(), entityClass, entityId);
     }
@@ -422,7 +358,7 @@ public class EntityIdentifier
         if (!domain.equals(matcher.group(1))) {
             throw new ControllerReportSet.IdentifierInvalidDomainException(entityId, domain);
         }
-        EntityType entityType = entityTypeByCode.get(matcher.group(2));
+        EntityType entityType = EntityType.getByCode(matcher.group(2));
         return new EntityIdentifier(entityType, parsePersistenceId(matcher.group(3)));
     }
 
@@ -453,7 +389,7 @@ public class EntityIdentifier
      * @param entityId    entity local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    private static Long parseId(String domain, Class entityClass, String entityId)
+    private static Long parseId(String domain, Class<? extends PersistentObject> entityClass, String entityId)
             throws ControllerReportSet.IdentifierInvalidException,
                    ControllerReportSet.IdentifierInvalidDomainException,
                    ControllerReportSet.IdentifierInvalidTypeException
@@ -462,7 +398,7 @@ public class EntityIdentifier
             return parsePersistenceId(entityId);
         }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
-        EntityType requiredType = getEntityType(entityClass);
+        EntityType requiredType = EntityTypeResolver.getEntityType(entityClass);
         if (entityIdentifier.entityType != requiredType) {
             throw new ControllerReportSet.IdentifierInvalidTypeException(entityId, requiredType.getCode());
         }
@@ -475,7 +411,7 @@ public class EntityIdentifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier.
      */
-    private static String formatId(String domain, Class entityClass, Long entityLocalId)
+    private static String formatId(String domain, Class<? extends PersistentObject> entityClass, Long entityLocalId)
     {
         return formatId(domain, entityClass, (entityLocalId == null ? null : entityLocalId.toString()));
     }
@@ -497,9 +433,9 @@ public class EntityIdentifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier.
      */
-    private static String formatId(String domain, Class entityClass, String entityLocalId)
+    private static String formatId(String domain, Class<? extends PersistentObject> entityClass, String entityLocalId)
     {
-        return formatId(domain, getEntityType(entityClass), entityLocalId);
+        return formatId(domain, EntityTypeResolver.getEntityType(entityClass), entityLocalId);
     }
 
     /**

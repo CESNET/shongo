@@ -4,9 +4,13 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.EntityTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +54,11 @@ public abstract class Authorization
     protected EntityManagerFactory entityManagerFactory;
 
     /**
+     * @see cz.cesnet.shongo.controller.acl.AclProvider
+     */
+    private AclProvider aclProvider;
+
+    /**
      * @see AuthorizationCache
      */
     private AuthorizationCache cache = new AuthorizationCache();
@@ -74,8 +83,32 @@ public abstract class Authorization
      *
      * @param configuration to load authorization configuration from
      */
-    protected Authorization(ControllerConfiguration configuration)
+    protected Authorization(ControllerConfiguration configuration, EntityManagerFactory entityManagerFactory)
     {
+        this.entityManagerFactory = entityManagerFactory;
+        this.aclProvider = new AclProvider(entityManagerFactory)
+        {
+            @Override
+            protected String getObjectClassName(Class<? extends PersistentObject> objectClass)
+            {
+                if (objectClass.equals(Allocation.class)) {
+                    objectClass = AbstractReservationRequest.class;
+                }
+                return EntityTypeResolver.getEntityType(objectClass).toString();
+            }
+
+            @Override
+            protected Long getObjectId(PersistentObject object)
+            {
+                if (object instanceof AbstractReservationRequest) {
+                    AbstractReservationRequest reservationRequest = (AbstractReservationRequest) object;
+                    return reservationRequest.getAllocation().getId();
+                }
+                else {
+                    return object.getId();
+                }
+            }
+        };
         this.cache.setUserIdExpiration(configuration.getDuration(
                 ControllerConfiguration.SECURITY_EXPIRATION_USER_ID));
         this.cache.setUserInformationExpiration(configuration.getDuration(
@@ -96,11 +129,11 @@ public abstract class Authorization
     }
 
     /**
-     * @param entityManagerFactory sets the {@link #entityManagerFactory}
+     * @return {@link cz.cesnet.shongo.controller.acl.AclProvider}
      */
-    public final void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    public AclProvider getAclProvider()
     {
-        this.entityManagerFactory = entityManagerFactory;
+        return aclProvider;
     }
 
     /**
@@ -333,13 +366,27 @@ public abstract class Authorization
 
     /**
      * @param securityToken    of the user
-     * @param entityId         of the entity
-     * @param entityPermission which the user must have for the entity
+     * @param entity           the entity
+     * @param objectPermission which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasEntityPermission(SecurityToken securityToken,
-            AclRecord.EntityId entityId, EntityPermission entityPermission)
+    public boolean hasObjectPermission(SecurityToken securityToken,
+            PersistentObject entity, ObjectPermission objectPermission)
+    {
+        AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(entity);
+        return hasObjectPermission(securityToken, objectIdentity, objectPermission);
+    }
+
+    /**
+     * @param securityToken    of the user
+     * @param objectIdentity           the entity
+     * @param objectPermission which the user must have for the entity
+     * @return true if the user has given {@code permission} for the entity,
+     *         false otherwise
+     */
+    public boolean hasObjectPermission(SecurityToken securityToken,
+            AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
     {
         if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
@@ -351,33 +398,19 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        return aclUserState.hasEntityPermission(entityId, entityPermission);
-    }
-
-    /**
-     * @param securityToken    of the user
-     * @param entity           the entity
-     * @param entityPermission which the user must have for the entity
-     * @return true if the user has given {@code permission} for the entity,
-     *         false otherwise
-     */
-    public boolean hasEntityPermission(SecurityToken securityToken,
-            PersistentObject entity, EntityPermission entityPermission)
-    {
-        return hasEntityPermission(securityToken, new AclRecord.EntityId(entity), entityPermission);
+        return aclUserState.hasObjectPermission(objectIdentity, objectPermission);
     }
 
     /**
      * @param securityToken of the user
-     * @param entity        the entity
-     * @return set of {@link cz.cesnet.shongo.controller.EntityPermission}s which the user have for the entity
+     * @param object        the object for which the permissions should be returned
+     * @return set of {@link ObjectPermission}s which the user have for the object
      */
-    public Set<EntityPermission> getEntityPermissions(SecurityToken securityToken, PersistentObject entity)
+    public Set<ObjectPermission> getObjectPermissions(SecurityToken securityToken, PersistentObject object)
     {
-        AclRecord.EntityId entityId = new AclRecord.EntityId(entity);
         if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
-            EntityType entityType = entityId.getEntityType().getEntityType();
+            EntityType entityType = EntityTypeResolver.getEntityType(object);
             return entityType.getPermissions();
         }
         String userId = securityToken.getUserId();
@@ -386,22 +419,23 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<EntityPermission> entityPermissions = aclUserState.getEntityPermissions(entityId);
-        if (entityPermissions == null) {
+        AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(object);
+        Set<ObjectPermission> objectPermissions = aclUserState.getObjectPermissions(aclObjectIdentity);
+        if (objectPermissions == null) {
             return Collections.emptySet();
         }
-        return entityPermissions;
+        return objectPermissions;
     }
 
     /**
      * @param securityToken    of the user
-     * @param entityType       for entities which should be returned
-     * @param entityPermission which the user must have for the entities
-     * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
-     *         or null if the user can view all entities
+     * @param objectClass of objects which should be returned
+     * @param objectPermission which the user must have for the entities
+     * @return set of object identifiers for which the user with given {@code userId} has given {@code permission}
+     *         or null if the user can view all objects
      */
-    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclRecord.EntityType entityType,
-            EntityPermission entityPermission)
+    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclObjectClass objectClass,
+            ObjectPermission objectPermission)
     {
         if (isAdministrator(securityToken)) {
             return null;
@@ -412,7 +446,7 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<Long> entities = aclUserState.getEntitiesByPermission(entityType, entityPermission);
+        Set<Long> entities = aclUserState.getObjectsByPermission(objectClass, objectPermission);
         if (entities == null) {
             return Collections.emptySet();
         }
@@ -427,13 +461,13 @@ public abstract class Authorization
      */
     public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, EntityRole entityRole)
     {
-        AclRecord.EntityId entityId = new AclRecord.EntityId(persistentObject);
-        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
-            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(persistentObject);
+        AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
+        if (aclObjectState == null) {
+            aclObjectState = fetchAclObjectState(aclObjectIdentity);
+            cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
-        Set<String> userIds = aclEntityState.getUserIdsByRole(entityRole);
+        Set<String> userIds = aclObjectState.getUserIdsByRole(entityRole);
         if (userIds == null) {
             return Collections.emptySet();
         }
@@ -673,13 +707,13 @@ public abstract class Authorization
     private AclUserState fetchAclUserState(String userId)
     {
         AclUserState aclUserState = new AclUserState();
-
+        AclIdentity aclIdentity = aclProvider.getIdentity(AclIdentityType.USER, userId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            for (AclRecord aclRecord : authorizationManager.listAclRecords(userId)) {
-                aclUserState.addAclRecord(aclRecord);
-                cache.putAclRecordById(aclRecord);
+            for (AclEntry aclEntry : authorizationManager.listAclEntries(aclIdentity)) {
+                aclUserState.addAclRecord(aclEntry);
+                cache.putAclRecordById(aclEntry);
             }
         }
         finally {
@@ -689,84 +723,99 @@ public abstract class Authorization
     }
 
     /**
-     * Fetch {@link AclEntityState} for given {@code entityId}.
+     * Fetch {@link AclObjectState} for given {@code aclObjectIdentity}.
      *
-     * @param entityId of entity for which the ACL should be fetched
-     * @return fetched {@link AclEntityState} for given {@code entityId}
+     * @param aclObjectIdentity of object for which the ACL should be fetched
+     * @return fetched {@link AclObjectState} for given {@code aclObjectIdentity}
      */
-    private AclEntityState fetchAclEntityState(AclRecord.EntityId entityId)
+    private AclObjectState fetchAclObjectState(AclObjectIdentity aclObjectIdentity)
     {
-        AclEntityState aclEntityState = new AclEntityState();
+        AclObjectState aclObjectState = new AclObjectState();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            for (AclRecord aclRecord : authorizationManager.listAclRecords(entityId)) {
-                aclEntityState.addAclRecord(aclRecord);
-                cache.putAclRecordById(aclRecord);
+            for (AclEntry aclEntry : authorizationManager.listAclEntries(aclObjectIdentity)) {
+                aclObjectState.addAclRecord(aclEntry);
+                cache.putAclRecordById(aclEntry);
             }
         }
         finally {
             entityManager.close();
         }
-        return aclEntityState;
+        return aclObjectState;
     }
 
     /**
-     * Add given {@code aclRecord} to the {@link AuthorizationCache}.
+     * Add given {@code aclEntry} to the {@link AuthorizationCache}.
      *
-     * @param aclRecord to be added
+     * @param aclEntry to be added
      */
-    void addAclRecordToCache(AclRecord aclRecord)
+    void addAclRecordToCache(AclEntry aclEntry)
     {
-        String userId = aclRecord.getUserId();
-        AclRecord.EntityId entityId = aclRecord.getEntityId();
-
-        // Update AclRecord cache
-        cache.putAclRecordById(aclRecord);
+        // Update AclEntry cache
+        cache.putAclRecordById(aclEntry);
 
         // Update AclUserState cache
-        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-        if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
-            cache.putAclUserStateByUserId(userId, aclUserState);
-        }
-        else {
-            aclUserState.addAclRecord(aclRecord);
+        for (String userId : getUserIds(aclEntry.getIdentity())) {
+            AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+            if (aclUserState == null) {
+                aclUserState = fetchAclUserState(userId);
+                cache.putAclUserStateByUserId(userId, aclUserState);
+            }
+            else {
+                aclUserState.addAclRecord(aclEntry);
+            }
         }
 
-        // Update AclEntityState cache
-        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
-            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        // Update AclObjectState cache
+        AclObjectIdentity aclObjectIdentity = aclEntry.getObjectIdentity();
+        AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
+        if (aclObjectState == null) {
+            aclObjectState = fetchAclObjectState(aclObjectIdentity);
+            cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
         else {
-            aclEntityState.addAclRecord(aclRecord);
+            aclObjectState.addAclRecord(aclEntry);
         }
     }
 
     /**
-     * Remove given {@code aclRecord} to the {@link AuthorizationCache}.
-     *
-     * @param aclRecord to be deleted
+     * @param aclIdentity
+     * @return collection of user-id for given {@code aclIdentity}
      */
-    void removeAclRecordFromCache(AclRecord aclRecord)
+    public Set<String> getUserIds(AclIdentity aclIdentity)
     {
-        // Update AclRecord cache
-        cache.removeAclRecordById(aclRecord);
+        switch (aclIdentity.getType()) {
+            case USER:
+                return Collections.singleton(aclIdentity.getPrincipalId());
+            default:
+                throw new TodoImplementException(aclIdentity.getType());
+        }
+    }
+
+    /**
+     * Remove given {@code aclEntry} to the {@link AuthorizationCache}.
+     *
+     * @param aclEntry to be deleted
+     */
+    void removeAclRecordFromCache(AclEntry aclEntry)
+    {
+        // Update AclEntry cache
+        cache.removeAclRecordById(aclEntry);
 
         // Update AclUserState cache
-        String userId = aclRecord.getUserId();
-        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-        if (aclUserState != null) {
-            aclUserState.removeAclRecord(aclRecord);
+        for (String userId : getUserIds(aclEntry.getIdentity())) {
+            AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+            if (aclUserState != null) {
+                aclUserState.removeAclRecord(aclEntry);
+            }
         }
 
-        // Update AclEntityState cache
-        AclRecord.EntityId entityId = aclRecord.getEntityId();
-        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState != null) {
-            aclEntityState.removeAclRecord(aclRecord);
+        // Update AclObjectState cache
+        AclObjectIdentity aclObjectIdentity = aclEntry.getObjectIdentity();
+        AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
+        if (aclObjectState != null) {
+            aclObjectState.removeAclRecord(aclEntry);
         }
     }
 

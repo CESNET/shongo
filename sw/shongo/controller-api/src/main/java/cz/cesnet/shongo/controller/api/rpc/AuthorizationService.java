@@ -2,12 +2,12 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.EntityPermission;
 import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
-import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
+import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 
@@ -136,13 +136,13 @@ public interface AuthorizationService extends Service
     public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request);
 
     /**
-     * List {@link EntityPermission}s of requesting user for entities.
+     * List {@link ObjectPermission}s of requesting user for entities.
      *
-     * @param request {@link EntityPermissionListRequest}
-     * @return set of permissions for each requested entity
+     * @param request {@link ObjectPermissionListRequest}
+     * @return set of permissions for each requested object
      */
     @API
-    public Map<String, EntityPermissionSet> listEntityPermissions(EntityPermissionListRequest request);
+    public Map<String, ObjectPermissionSet> listObjectPermissions(ObjectPermissionListRequest request);
 
     /**
      * @param token     token of the user requesting the operation

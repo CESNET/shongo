@@ -1,28 +1,28 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link ListRequest} for {@link EntityPermission}.
+ * {@link ListRequest} for {@link ObjectPermission}s for objects.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityPermissionListRequest extends AbstractRequest
+public class ObjectPermissionListRequest extends AbstractRequest
 {
     /**
      * Identifier of the Shongo public entity.
      */
-    private Set<String> entityIds = new HashSet<String>();
+    private Set<String> objectIds = new HashSet<String>();
 
     /**
      * Constructor.
      */
-    public EntityPermissionListRequest()
+    public ObjectPermissionListRequest()
     {
     }
 
@@ -31,7 +31,7 @@ public class EntityPermissionListRequest extends AbstractRequest
      *
      * @param securityToken sets the {@link #securityToken}
      */
-    public EntityPermissionListRequest(SecurityToken securityToken)
+    public ObjectPermissionListRequest(SecurityToken securityToken)
     {
         super(securityToken);
     }
@@ -40,48 +40,48 @@ public class EntityPermissionListRequest extends AbstractRequest
      * Constructor.
      *
      * @param securityToken sets the {@link #securityToken}
-     * @param entityId to be added to the {@link #entityIds}
+     * @param entityId to be added to the {@link #objectIds}
      */
-    public EntityPermissionListRequest(SecurityToken securityToken, String entityId)
+    public ObjectPermissionListRequest(SecurityToken securityToken, String entityId)
     {
         super(securityToken);
-        this.entityIds.add(entityId);
+        this.objectIds.add(entityId);
     }
 
     /**
      * Constructor.
      *
      * @param securityToken sets the {@link #securityToken}
-     * @param entityIds to be added to the {@link #entityIds}
+     * @param objectIds to be added to the {@link #objectIds}
      */
-    public EntityPermissionListRequest(SecurityToken securityToken, Set<String> entityIds)
+    public ObjectPermissionListRequest(SecurityToken securityToken, Set<String> objectIds)
     {
         super(securityToken);
-        this.entityIds.addAll(entityIds);
+        this.objectIds.addAll(objectIds);
     }
 
-    public Set<String> getEntityIds()
+    public Set<String> getObjectIds()
     {
-        return entityIds;
+        return objectIds;
     }
 
-    public void setEntityIds(Set<String> entityIds)
+    public void setObjectIds(Set<String> objectIds)
     {
-        this.entityIds = entityIds;
+        this.objectIds = objectIds;
     }
 
     public void addEntityId(String entityId)
     {
-        entityIds.add(entityId);
+        objectIds.add(entityId);
     }
 
-    private static final String ENTITY_IDS = "entityIds";
+    private static final String OBJECT_IDS = "objectIds";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(ENTITY_IDS, entityIds);
+        dataMap.set(OBJECT_IDS, objectIds);
         return dataMap;
     }
 
@@ -89,6 +89,6 @@ public class EntityPermissionListRequest extends AbstractRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        entityIds = dataMap.getSet(ENTITY_IDS, String.class);
+        objectIds = dataMap.getSet(OBJECT_IDS, String.class);
     }
 }

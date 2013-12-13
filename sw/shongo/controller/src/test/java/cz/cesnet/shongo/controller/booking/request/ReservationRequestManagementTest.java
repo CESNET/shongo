@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
-import cz.cesnet.shongo.controller.api.request.EntityPermissionListRequest;
+import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -562,10 +562,10 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         String user2Id = getUserId(SECURITY_TOKEN_USER2);
 
-        Set<EntityPermission> NONE = new HashSet<EntityPermission>();
-        Set<EntityPermission> READ = new HashSet<EntityPermission>()
+        Set<ObjectPermission> NONE = new HashSet<ObjectPermission>();
+        Set<ObjectPermission> READ = new HashSet<ObjectPermission>()
         {{
-                add(EntityPermission.READ);
+                add(ObjectPermission.READ);
             }};
 
         // Check ReservationRequestReusement.ARBITRARY
@@ -585,7 +585,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, EntityRole.READER);
         Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclRecords should not be propagated",
-                NONE, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest2Id));
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest2Id));
 
         // Check ReservationRequestReusement.OWNED
         ReservationRequest reservationRequest3 = new ReservationRequest();
@@ -602,9 +602,10 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest4.setReusedReservationRequestId(reservationRequest3Id);
         String reservationRequest4Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest4);
 
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id, EntityRole.READER);
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id,
+                EntityRole.READER);
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated",
-                READ, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
+                READ, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
 
         ReservationRequest reservationRequest5 = new ReservationRequest();
         reservationRequest5.setSlot("2012-01-01T00:00", "P1D");
@@ -614,29 +615,29 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         String reservationRequest5Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest5);
 
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated to new request",
-                READ, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+                READ, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
 
         deleteAclRecord(user2Id, reservationRequest3Id, EntityRole.READER);
-        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecord deletion should be also propagated",
-                NONE, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
-        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecord deletion should be also propagated",
-                NONE, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclEntry deletion should be also propagated",
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest4Id));
+        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclEntry deletion should be also propagated",
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
 
         // Check ReservationRequestReusement.OWNED for modified request
         getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id, EntityRole.READER);
-        Assert.assertEquals(READ, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+        Assert.assertEquals(READ, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
 
         String reservationRequest5IdOld = reservationRequest5Id;
         reservationRequest5 = (ReservationRequest) service.getReservationRequest(
                 SECURITY_TOKEN_USER1, reservationRequest5Id);
         reservationRequest5Id = service.modifyReservationRequest(SECURITY_TOKEN_USER1, reservationRequest5);
-        Assert.assertEquals(READ, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
-        Assert.assertEquals(READ, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5IdOld));
+        Assert.assertEquals(READ, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+        Assert.assertEquals(READ, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5IdOld));
 
         deleteAclRecord(user2Id, reservationRequest3Id, EntityRole.READER);
         Assert.assertEquals(
                 "For ReservationRequestReusement.OWNED the deletion should be also propagated for modified request",
-                NONE, listEntityPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, reservationRequest5Id));
     }
 
     @Test
@@ -646,10 +647,10 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         String user2Id = getUserId(SECURITY_TOKEN_USER2);
 
-        Set<EntityPermission> NONE = new HashSet<EntityPermission>();
-        Set<EntityPermission> READ = new HashSet<EntityPermission>()
+        Set<ObjectPermission> NONE = new HashSet<ObjectPermission>();
+        Set<ObjectPermission> READ = new HashSet<ObjectPermission>()
         {{
-                add(EntityPermission.READ);
+                add(ObjectPermission.READ);
             }};
 
         DeviceResource mcu = new DeviceResource();
@@ -679,7 +680,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         getAuthorizationService().createAclRecord(
                 SECURITY_TOKEN_USER1, user2Id, permanentRoomReservationRequestId, EntityRole.READER);
         Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclRecords should not be propagated",
-                NONE, listEntityPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
+                NONE, listObjectPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
 
         // Check ReservationRequestReusement.OWNED
         permanentRoomReservationRequest = new ReservationRequest();
@@ -700,12 +701,12 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         getAuthorizationService().createAclRecord(
                 SECURITY_TOKEN_USER1, user2Id, permanentRoomReservationRequestId, EntityRole.READER);
         Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated",
-                READ, listEntityPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
+                READ, listObjectPermissions(SECURITY_TOKEN_USER2, capacityReservationRequestId));
     }
 
-    private Set<EntityPermission> listEntityPermissions(SecurityToken securityToken, String entityId)
+    private Set<ObjectPermission> listObjectPermissions(SecurityToken securityToken, String entityId)
     {
-        return getAuthorizationService().listEntityPermissions(new EntityPermissionListRequest(
-                securityToken, entityId)).get(entityId).getEntityPermissions();
+        return getAuthorizationService().listObjectPermissions(new ObjectPermissionListRequest(
+                securityToken, entityId)).get(entityId).getObjectPermissions();
     }
 }

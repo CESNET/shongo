@@ -56,20 +56,20 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
         EntityIdentifier reservationId = new EntityIdentifier(reservation);
 
-        aclRecordCache.addAclRecord(new AclRecord(user1Id, reservationRequestId, Role.OWNER));
+        aclRecordCache.addAclRecord(new AclEntry(user1Id, reservationRequestId, Role.OWNER));
         Assert.assertEquals("Reservation request should be added to cache",
                 1, aclRecordCache.getEntityCount());
         Assert.assertEquals("One ACL record for reservation request should be created",
                 1, aclRecordCache.getAclRecordCount(reservationRequestId));
 
-        AclRecord aclRecord = getAclRecord(user1Id, reservationId, Role.OWNER);
+        AclEntry aclRecord = getAclEntry(user1Id, reservationId, Role.OWNER);
         Assert.assertEquals("Reservation should be automatically added to cache", 2, aclRecordCache.getEntityCount());
         Assert.assertNotNull("ACL record for reservation should be automatically created", aclRecord);
 
-        aclRecordCache.addAclRecord(new AclRecord(user2Id, reservationRequestId, Role.OWNER));
+        aclRecordCache.addAclRecord(new AclEntry(user2Id, reservationRequestId, Role.OWNER));
         Assert.assertEquals("Another ACL record for reservation request should be created",
                 2, aclRecordCache.getAclRecordCount(reservationRequestId));
-        Assert.assertNotNull("ACL record should have been created", getAclRecord(user2Id, reservationId, Role.OWNER));
+        Assert.assertNotNull("ACL record should have been created", getAclEntry(user2Id, reservationId, Role.OWNER));
     }
 
     @Test
@@ -102,8 +102,8 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier reservationRequestSetId = new EntityIdentifier(reservationRequestSet);
         EntityIdentifier executableId = new EntityIdentifier(executable);
 
-        aclRecordCache.addAclRecord(new AclRecord(userId, reservationRequestSetId, Role.OWNER));
-        AclRecord aclRecord = getAclRecord(userId, executableId, Role.OWNER);
+        aclRecordCache.addAclRecord(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
+        AclEntry aclRecord = getAclEntry(userId, executableId, Role.OWNER);
         Assert.assertEquals("Reservation request, reservation and executable should be automatically added to cache",
                 4, aclRecordCache.getEntityCount());
         Assert.assertNotNull("ACL record for executable should be automatically created", aclRecord);
@@ -155,18 +155,18 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier childReservationId = new EntityIdentifier(childReservation1);
         EntityIdentifier reusedReservationId = new EntityIdentifier(reusedReservation);
 
-        aclRecordCache.addAclRecord(new AclRecord(userId, reservationRequestSetId, Role.OWNER));
-        AclRecord executableAclRecord = getAclRecord(userId, executableId, Role.OWNER);
-        AclRecord childReservationAclRecord = getAclRecord(userId, childReservationId, Role.OWNER);
-        AclRecord reusedReservationAclRecord = getAclRecord(userId, reusedReservationId, Role.OWNER);
+        aclRecordCache.addAclRecord(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
+        AclEntry executableAclRecord = getAclEntry(userId, executableId, Role.OWNER);
+        AclEntry childReservationAclRecord = getAclEntry(userId, childReservationId, Role.OWNER);
+        AclEntry reusedReservationAclRecord = getAclEntry(userId, reusedReservationId, Role.OWNER);
         Assert.assertEquals("All child entities for reservation request set should be automatically added to cache",
                 7, aclRecordCache.getEntityCount());
     }
 
-    private AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role) throws Exception
+    private AclEntry getAclEntry(String userId, EntityIdentifier entityId, Role role) throws Exception
     {
-        Collection<AclRecord> aclRecords = aclRecordCache.getAclRecords(userId, entityId);
-        for (AclRecord aclRecord : aclRecords) {
+        Collection<AclEntry> aclRecords = aclRecordCache.getAclRecords(userId, entityId);
+        for (AclEntry aclRecord : aclRecords) {
             if (aclRecord.getEntityRole().equals(role)) {
                 return aclRecord;
             }

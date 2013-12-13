@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web.auth;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.RoomModel;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -54,14 +54,14 @@ public class PermissionEvaluator implements org.springframework.security.access.
             else {
                 throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
             }
-            EntityPermission entityPermission;
-            if (permissionValue instanceof EntityPermission) {
-                entityPermission = (EntityPermission) permissionValue;
+            ObjectPermission objectPermission;
+            if (permissionValue instanceof ObjectPermission) {
+                objectPermission = (ObjectPermission) permissionValue;
             }
             else {
-                entityPermission = EntityPermission.valueOf(permissionValue.toString());
+                objectPermission = ObjectPermission.valueOf(permissionValue.toString());
             }
-            return cache.getEntityPermissions(securityToken, entityId).contains(entityPermission);
+            return cache.getObjectPermissions(securityToken, entityId).contains(objectPermission);
         }
     }
 

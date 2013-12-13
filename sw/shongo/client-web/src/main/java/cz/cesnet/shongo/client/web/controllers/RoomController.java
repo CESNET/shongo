@@ -13,7 +13,7 @@ import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
@@ -227,11 +227,11 @@ public class RoomController
 
         // Reservation request for room
         String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
-        Set<EntityPermission> reservationRequestPermissions = cache.getEntityPermissions(securityToken,
+        Set<ObjectPermission> reservationRequestPermissions = cache.getObjectPermissions(securityToken,
                 reservationRequestId);
         modelAndView.addObject("reservationRequestId", reservationRequestId);
         modelAndView.addObject("reservationRequestProvidable",
-                reservationRequestPermissions.contains(EntityPermission.PROVIDE_RESERVATION_REQUEST));
+                reservationRequestPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
 
         // Add use roles
         // Add user roles

@@ -365,7 +365,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
-            if (!authorization.hasEntityPermission(securityToken, deviceResource, EntityPermission.CONTROL_RESOURCE)) {
+            if (!authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.CONTROL_RESOURCE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
                         "control device %s", deviceResourceIdentifier);
             }
@@ -390,12 +390,12 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
-            if (!authorization.hasEntityPermission(securityToken, deviceResource, EntityPermission.CONTROL_RESOURCE)) {
+            if (!authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.CONTROL_RESOURCE)) {
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(
                         deviceResourceIdentifier.getPersistenceId(), roomId);
                 if (roomEndpoint == null
-                        || !authorization.hasEntityPermission(securityToken, roomEndpoint, EntityPermission.READ)) {
+                        || !authorization.hasObjectPermission(securityToken, roomEndpoint, ObjectPermission.READ)) {
                     ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
                             "control device %s", deviceResourceIdentifier);
                 }

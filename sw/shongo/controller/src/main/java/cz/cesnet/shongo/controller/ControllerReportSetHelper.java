@@ -26,7 +26,7 @@ public class ControllerReportSetHelper
             throws CommonReportSet.EntityNotExistsException
     {
         throw new CommonReportSet.EntityNotExistsException(entityType.getSimpleName(),
-                (EntityIdentifier.hasEntityType(entityType)
+                (EntityIdentifier.isAvailableForEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
 
@@ -37,7 +37,7 @@ public class ControllerReportSetHelper
             throws CommonReportSet.EntityNotDeletableReferencedException
     {
         throw new CommonReportSet.EntityNotDeletableReferencedException(entityType.getSimpleName(),
-                (EntityIdentifier.hasEntityType(entityType)
+                (EntityIdentifier.isAvailableForEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
 

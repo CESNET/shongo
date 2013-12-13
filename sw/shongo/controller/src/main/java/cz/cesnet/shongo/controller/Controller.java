@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.acl.AclProvider;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
@@ -434,11 +435,10 @@ public class Controller
             instance = this;
         }
 
-        // Initialize authorization
+        // Check authorization
         if (authorization == null) {
             throw new IllegalStateException("Authorization is not set.");
         }
-        authorization.setEntityManagerFactory(entityManagerFactory);
 
         logger.info("Controller for domain '{}' is starting...", Domain.getLocalDomain().getName());
 
@@ -857,7 +857,7 @@ public class Controller
         Controller.initializeDatabase(entityManagerFactory);
 
         // Setup controller
-        Authorization authorization = ServerAuthorization.createInstance(configuration);
+        Authorization authorization = ServerAuthorization.createInstance(configuration, entityManagerFactory);
         controller.setAuthorization(authorization);
         controller.setEntityManagerFactory(entityManagerFactory);
 

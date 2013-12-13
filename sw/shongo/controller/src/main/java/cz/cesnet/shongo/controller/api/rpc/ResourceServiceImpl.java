@@ -2,9 +2,10 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.acl.AclIdentityType;
+import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.*;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
@@ -119,7 +120,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Save it
             resourceManager.create(resource);
 
-            authorizationManager.createAclRecord(userId, resource, EntityRole.OWNER);
+            authorizationManager.createAclRecord(AclIdentityType.USER, userId, resource, EntityRole.OWNER);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -160,7 +161,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
             }
 
@@ -201,7 +202,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
@@ -251,8 +252,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
+            AclObjectClass aclObjectClass = authorization.getAclProvider().getObjectClass(
+                    cz.cesnet.shongo.controller.booking.resource.Resource.class);
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
-                    AclRecord.EntityType.RESOURCE, EntityPermission.READ);
+                    aclObjectClass, ObjectPermission.READ);
             String filterUserId = QueryFilter.getUserIdFromFilter(filter);
             List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
@@ -297,7 +300,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, resource, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
             }
 
@@ -325,7 +328,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.resource.Resource resourceImpl =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, resourceImpl, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, resourceImpl, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
             }
 

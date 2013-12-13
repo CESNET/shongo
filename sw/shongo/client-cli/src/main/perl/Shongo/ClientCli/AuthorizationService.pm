@@ -442,7 +442,7 @@ sub list_permissions()
         return;
     }
     my $entityId = $args[0];
-    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listEntityPermissions', {
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listObjectPermissions', {
         'entityIds' => [RPC::XML::string->new($entityId)],
     });
     my $table = {
@@ -451,7 +451,7 @@ sub list_permissions()
         ],
         'data' => []
     };
-    foreach my $permission (@{$response->{$entityId}->{'entityPermissions'}}) {
+    foreach my $permission (@{$response->{$entityId}->{'objectPermissions'}}) {
         push(@{$table->{'data'}}, {
             'permission' => $permission
         });

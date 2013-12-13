@@ -6,7 +6,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -111,7 +111,7 @@ public class ReservationRequestController
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Get permissions for reservation requests
-        Map<String, Set<EntityPermission>> permissionsByReservationRequestId =
+        Map<String, Set<ObjectPermission>> permissionsByReservationRequestId =
                 cache.getReservationRequestsPermissions(securityToken, response.getItems());
 
         // Build response
@@ -140,9 +140,9 @@ public class ReservationRequestController
                 item.put("stateHelp", state.getHelp(messageSource, locale, specificationType, lastReservationId));
             }
 
-            Set<EntityPermission> entityPermissions = permissionsByReservationRequestId.get(reservationRequestId);
-            item.put("isWritable", entityPermissions.contains(EntityPermission.WRITE));
-            item.put("isProvidable", entityPermissions.contains(EntityPermission.PROVIDE_RESERVATION_REQUEST));
+            Set<ObjectPermission> objectPermissions = permissionsByReservationRequestId.get(reservationRequestId);
+            item.put("isWritable", objectPermissions.contains(ObjectPermission.WRITE));
+            item.put("isProvidable", objectPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());

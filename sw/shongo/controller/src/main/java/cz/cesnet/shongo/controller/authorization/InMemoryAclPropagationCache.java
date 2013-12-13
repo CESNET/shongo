@@ -20,7 +20,7 @@ public class InMemoryAclPropagationCache
 
     private EntityManagerFactory entityManagerFactory;
 
-    private ExpirationMap<String, AclRecord> aclRecordCache = new ExpirationMap<String, AclRecord>();
+    private ExpirationMap<String, AclEntry> aclRecordCache = new ExpirationMap<String, AclEntry>();
 
     private ExpirationMap<EntityIdentifier, EntityState> entityStateById =
             new ExpirationMap<EntityIdentifier, EntityState>();
@@ -32,7 +32,7 @@ public class InMemoryAclPropagationCache
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    public void addAclRecord(AclRecord aclRecord) throws FaultException
+    public void addAclRecord(AclEntry aclRecord) throws FaultException
     {
         String aclRecordId = aclRecord.getId();
         if (aclRecordId != null) {
@@ -60,7 +60,7 @@ public class InMemoryAclPropagationCache
 
         // Fetch new entity state
         entityState = new EntityState(entityId);
-        for (AclRecord aclRecord : onListAclRecords(null, entityId, null)) {
+        for (AclEntry aclRecord : onListAclRecords(null, entityId, null)) {
             entityState.addAclRecord(aclRecord);
         }
         entityStateById.put(entityId, entityState);
@@ -166,17 +166,17 @@ public class InMemoryAclPropagationCache
         return propagatorByParentEntity;
     }
 
-    public Collection<AclRecord> getAclRecords(String userId)
+    public Collection<AclEntry> getAclRecords(String userId)
     {
         return null;
     }
 
-    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
+    public Collection<AclEntry> getAclRecords(EntityIdentifier entityId)
     {
         return null;
     }
 
-    public Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId) throws FaultException
+    public Collection<AclEntry> getAclRecords(String userId, EntityIdentifier entityId) throws FaultException
     {
         EntityState entityState = getEntityState(entityId, true);
         EntityUserState entityUserState = entityState.getUserState(userId);
@@ -184,7 +184,7 @@ public class InMemoryAclPropagationCache
     }
 
 
-    protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
+    protected Collection<AclEntry> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
         return Collections.emptyList();
@@ -210,7 +210,7 @@ public class InMemoryAclPropagationCache
             this.entityId = entityId;
         }
 
-        public boolean addAclRecord(AclRecord aclRecord)
+        public boolean addAclRecord(AclEntry aclRecord)
         {
             if (!entityId.equals(aclRecord.getEntityId())) {
                 throw new RuntimeException();
@@ -249,13 +249,13 @@ public class InMemoryAclPropagationCache
 
     private static class EntityUserState
     {
-        private Set<AclRecord> aclRecords = new HashSet<AclRecord>();
+        private Set<AclEntry> aclRecords = new HashSet<AclEntry>();
 
         private Set<Role> roles = new HashSet<Role>();
 
-        private Set<EntityPermission> permissions = new HashSet<EntityPermission>();
+        private Set<ObjectPermission> permissions = new HashSet<ObjectPermission>();
 
-        public boolean addAclRecord(AclRecord aclRecord)
+        public boolean addAclRecord(AclEntry aclRecord)
         {
             roles.add(aclRecord.getEntityRole());
             return aclRecords.add(aclRecord);
@@ -266,7 +266,7 @@ public class InMemoryAclPropagationCache
     {
         private Map<EntityType, Set<Long>> accessibleEntitiesByType = new HashMap<EntityType, Set<Long>>();
 
-        public void addAclRecord(AclRecord aclRecord)
+        public void addAclRecord(AclEntry aclRecord)
         {
             throw new TodoImplementException();
         }
@@ -281,14 +281,14 @@ public class InMemoryAclPropagationCache
             }
             logger.debug("Adding dynamic ACL (user: {}, entity: {}, role: {})",
                     new Object[]{userId, targetEntityState.entityId, role});
-            AclRecord aclRecord = new AclRecord(userId, targetEntityState.entityId, role);
+            AclEntry aclRecord = new AclEntry(userId, targetEntityState.entityId, role);
             targetEntityState.addAclRecord(aclRecord);
         }
 
         public final void addAclRecords(EntityState sourceEntityState, EntityState targetEntityState)
         {
             for (EntityUserState entityUserState : sourceEntityState.entityUserStateByUserId.values()) {
-                for (AclRecord aclRecord : entityUserState.aclRecords) {
+                for (AclEntry aclRecord : entityUserState.aclRecords) {
                     addAclRecord(targetEntityState, aclRecord.getUserId(), aclRecord.getEntityRole());
                 }
             }

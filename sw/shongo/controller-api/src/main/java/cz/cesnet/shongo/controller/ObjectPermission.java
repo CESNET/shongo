@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum EntityPermission
+public enum ObjectPermission
 {
     /**
      * User can read/view the entity.
@@ -39,7 +39,7 @@ public enum EntityPermission
      *
      * @param code sets the {@link #code}
      */
-    private EntityPermission(String code)
+    private ObjectPermission(String code)
     {
         this.code = code;
     }

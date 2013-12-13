@@ -96,9 +96,9 @@ public class DummyAuthorization extends Authorization
      *
      * @param configuration to be used
      */
-    public DummyAuthorization(ControllerConfiguration configuration)
+    public DummyAuthorization(ControllerConfiguration configuration, EntityManagerFactory entityManagerFactory)
     {
-        super(configuration);
+        super(configuration, entityManagerFactory);
 
         this.administratorAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
         createGroup(new Group(administratorGroupName));
@@ -111,9 +111,7 @@ public class DummyAuthorization extends Authorization
      */
     public DummyAuthorization(EntityManagerFactory entityManagerFactory)
     {
-        this(new ControllerConfiguration());
-
-        this.entityManagerFactory = entityManagerFactory;
+        this(new ControllerConfiguration(), entityManagerFactory);
     }
 
     /**
@@ -244,12 +242,14 @@ public class DummyAuthorization extends Authorization
 
     /**
      * @param configuration to be used for initialization
+     * @param entityManagerFactory
      * @return new instance of {@link DummyAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists
      */
-    public static DummyAuthorization createInstance(ControllerConfiguration configuration) throws IllegalStateException
+    public static DummyAuthorization createInstance(ControllerConfiguration configuration,
+            EntityManagerFactory entityManagerFactory) throws IllegalStateException
     {
-        DummyAuthorization authorization = new DummyAuthorization(configuration);
+        DummyAuthorization authorization = new DummyAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(authorization);
         return authorization;
     }

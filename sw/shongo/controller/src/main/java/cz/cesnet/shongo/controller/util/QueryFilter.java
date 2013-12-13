@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Converter;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.Query;
@@ -132,13 +133,13 @@ public class QueryFilter
      *
      * @param authorization
      * @param securityToken
-     * @param entityType
-     * @param entityPermission
+     * @param objectClass
+     * @param objectPermission
      */
     public void addFilterId(Authorization authorization, SecurityToken securityToken,
-            AclRecord.EntityType entityType, EntityPermission entityPermission)
+            Class<? extends PersistentObject> objectClass, ObjectPermission objectPermission)
     {
-        addFilterIn("id", authorization.getEntitiesWithPermission(securityToken, entityType, entityPermission));
+        addFilterId("id", authorization, securityToken, objectClass, objectPermission);
     }
 
     /**
@@ -147,13 +148,14 @@ public class QueryFilter
      * @param column
      * @param authorization
      * @param securityToken
-     * @param entityType
-     * @param entityPermission
+     * @param objectClass
+     * @param objectPermission
      */
     public void addFilterId(String column, Authorization authorization, SecurityToken securityToken,
-            AclRecord.EntityType entityType, EntityPermission entityPermission)
+            Class<? extends PersistentObject> objectClass, ObjectPermission objectPermission)
     {
-        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, entityType, entityPermission));
+        AclObjectClass aclObjectClass = authorization.getAclProvider().getObjectClass(objectClass);
+        addFilterIn(column, authorization.getEntitiesWithPermission(securityToken, aclObjectClass, objectPermission));
     }
 
     /**

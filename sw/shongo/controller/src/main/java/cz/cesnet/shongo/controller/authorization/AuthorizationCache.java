@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.acl.AclEntry;
+import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
 import org.joda.time.Duration;
 
 import java.util.Set;
@@ -9,7 +10,7 @@ import java.util.Set;
 import static cz.cesnet.shongo.controller.authorization.Authorization.UserData;
 
 /**
- * Represents a cache of {@link AclRecord}s
+ * Represents a cache of {@link AclEntry}s
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -32,9 +33,9 @@ public class AuthorizationCache
             new ExpirationMap<String, UserData>();
 
     /**
-     * Cache of {@link AclRecord} by {@link AclRecord#id}.
+     * Cache of {@link AclEntry} by {@link AclEntry#id}.
      */
-    private ExpirationMap<Long, AclRecord> aclRecordCache = new ExpirationMap<Long, AclRecord>();
+    private ExpirationMap<Long, AclEntry> aclRecordCache = new ExpirationMap<Long, AclEntry>();
 
     /**
      * Cache of {@link AclUserState} by user-id.
@@ -42,10 +43,10 @@ public class AuthorizationCache
     private ExpirationMap<String, AclUserState> aclUserStateCache = new ExpirationMap<String, AclUserState>();
 
     /**
-     * Cache of {@link AclEntityState} by {@link AclRecord.EntityId}.
+     * Cache of {@link AclObjectState} by {@link AclObjectIdentity}.
      */
-    private ExpirationMap<AclRecord.EntityId, AclEntityState> aclEntityStateCache =
-            new ExpirationMap<AclRecord.EntityId, AclEntityState>();
+    private ExpirationMap<AclObjectIdentity, AclObjectState> aclObjectStateCache =
+            new ExpirationMap<AclObjectIdentity, AclObjectState>();
 
     /**
      * Cache of group-id by group name.
@@ -81,7 +82,7 @@ public class AuthorizationCache
     {
         aclRecordCache.setExpiration(expiration);
         aclUserStateCache.setExpiration(expiration);
-        aclEntityStateCache.setExpiration(expiration);
+        aclObjectStateCache.setExpiration(expiration);
     }
 
     /**
@@ -102,7 +103,7 @@ public class AuthorizationCache
         userInformationCache.clear();
         aclRecordCache.clear();
         aclUserStateCache.clear();
-        aclEntityStateCache.clear();
+        aclObjectStateCache.clear();
     }
 
     /**
@@ -185,17 +186,17 @@ public class AuthorizationCache
 
     /**
      * @param aclRecordId
-     * @return {@link AclRecord} by given {@code aclRecordId}
+     * @return {@link AclEntry} by given {@code aclRecordId}
      */
-    public synchronized AclRecord getAclRecordById(Long aclRecordId)
+    public synchronized AclEntry getAclRecordById(Long aclRecordId)
     {
         return aclRecordCache.get(aclRecordId);
     }
 
     /**
-     * @return {@link AclRecord}s
+     * @return {@link AclEntry}s
      */
-    public synchronized Iterable<AclRecord> getAclRecords()
+    public synchronized Iterable<AclEntry> getAclRecords()
     {
         return aclRecordCache;
     }
@@ -203,22 +204,22 @@ public class AuthorizationCache
     /**
      * Put given {@code userAcl} to the cache
      *
-     * @param aclRecord
+     * @param aclEntry
      */
-    public synchronized void putAclRecordById(AclRecord aclRecord)
+    public synchronized void putAclRecordById(AclEntry aclEntry)
     {
-        aclRecordCache.put(aclRecord.getId(), aclRecord);
+        aclRecordCache.put(aclEntry.getId(), aclEntry);
     }
 
     /**
      * Remove given {@code userAcl} from the cache
      *
-     * @param aclRecord
-     * @return removed {@link AclRecord}
+     * @param aclEntry
+     * @return removed {@link AclEntry}
      */
-    public synchronized AclRecord removeAclRecordById(AclRecord aclRecord)
+    public synchronized AclEntry removeAclRecordById(AclEntry aclEntry)
     {
-        return aclRecordCache.remove(aclRecord.getId());
+        return aclRecordCache.remove(aclEntry.getId());
     }
 
     /**
@@ -242,23 +243,24 @@ public class AuthorizationCache
     }
 
     /**
-     * @param entityId
-     * @return {@link AclEntityState} by given {@code entityId}
+     * @param aclObjectIdentity
+     * @return {@link AclObjectState} by given {@code entityId}
      */
-    public synchronized AclEntityState getAclEntityStateByEntityId(AclRecord.EntityId entityId)
+    public synchronized AclObjectState getAclObjectStateByIdentity(AclObjectIdentity aclObjectIdentity)
     {
-        return aclEntityStateCache.get(entityId);
+        return aclObjectStateCache.get(aclObjectIdentity);
     }
 
     /**
-     * Put given {@code aclEntityState} to the cache by the given {@code entityId}.
+     * Put given {@code aclObjectState} to the cache by the given {@code entityId}.
      *
-     * @param entityId
-     * @param aclEntityState
+     * @param aclObjectIdentity
+     * @param aclObjectState
      */
-    public synchronized void putAclEntityStateByEntityId(AclRecord.EntityId entityId, AclEntityState aclEntityState)
+    public synchronized void putAclObjectStateByIdentity(AclObjectIdentity aclObjectIdentity,
+            AclObjectState aclObjectState)
     {
-        aclEntityStateCache.put(entityId, aclEntityState);
+        aclObjectStateCache.put(aclObjectIdentity, aclObjectState);
     }
 
     /**

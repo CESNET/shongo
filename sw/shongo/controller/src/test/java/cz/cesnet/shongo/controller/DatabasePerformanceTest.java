@@ -82,7 +82,8 @@ public class DatabasePerformanceTest
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(entityManagerFactory);
 
-        Authorization authorization = DummyAuthorization.createInstance(controller.getConfiguration());
+        Authorization authorization = DummyAuthorization.createInstance(
+                controller.getConfiguration(), entityManagerFactory);
         controller.setAuthorization(authorization);
 
         Cache cache = new Cache();

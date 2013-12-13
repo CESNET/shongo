@@ -15,7 +15,6 @@ import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
@@ -144,7 +143,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
             else {
                 // List only executables which is current user permitted to read
-                queryFilter.addFilterId(authorization, securityToken, AclRecord.EntityType.EXECUTABLE, EntityPermission.READ);
+                queryFilter.addFilterId(authorization, securityToken,
+                        cz.cesnet.shongo.controller.booking.executable.Executable.class, ObjectPermission.READ);
             }
 
             // If history executables should not be included
@@ -305,7 +305,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
@@ -336,7 +336,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
@@ -447,7 +447,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
@@ -480,7 +480,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
@@ -518,7 +518,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update executable %s", entityId);
             }
 
@@ -578,8 +578,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 return;
             }
             DeviceResource deviceResource = roomExecutable.getResource();
-            if (!authorization.hasEntityPermission(securityToken, roomExecutable, EntityPermission.WRITE) ||
-                    !authorization.hasEntityPermission(securityToken, deviceResource, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, roomExecutable, ObjectPermission.WRITE) ||
+                    !authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", entityId);
             }
             if (!roomExecutable.getState()
@@ -633,7 +633,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", entityId);
             }
 
@@ -687,7 +687,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(persistenceId);
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.WRITE)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", entityId);
             }
 
@@ -748,7 +748,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(executableId);
 
-            if (!authorization.hasEntityPermission(securityToken, executable, EntityPermission.READ)) {
+            if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 

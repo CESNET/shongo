@@ -256,7 +256,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         controller.setEntityManagerFactory(getEntityManagerFactory());
 
         // Create authorization
-        authorization = DummyAuthorization.createInstance(controller.getConfiguration());
+        authorization = DummyAuthorization.createInstance(controller.getConfiguration(), getEntityManagerFactory());
         controller.setAuthorization(authorization);
 
         onInit();

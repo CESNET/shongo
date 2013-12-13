@@ -1,8 +1,13 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.EntityPermission;
+import cz.cesnet.shongo.controller.ObjectPermission;
+import cz.cesnet.shongo.controller.EntityRole;
 import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.controller.acl.AclEntry;
+import cz.cesnet.shongo.controller.acl.AclObjectClass;
+import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
+import cz.cesnet.shongo.controller.booking.EntityTypeResolver;
 
 import java.util.*;
 
@@ -14,152 +19,153 @@ import java.util.*;
 public class AclUserState
 {
     /**
-     * Set of {@link AclRecord}s for the user.
+     * Set of {@link AclEntry}s for the user.
      */
-    private Map<Long, AclRecord> aclRecords = new HashMap<Long, AclRecord>();
+    private Map<Long, AclEntry> aclRecords = new HashMap<Long, AclEntry>();
 
     /**
-     * {@link EntityState} for the user.
+     * {@link cz.cesnet.shongo.controller.authorization.AclUserState.ObjectState} for the user.
      */
-    private Map<AclRecord.EntityId, EntityState> entityStateByEntityId =
-            new HashMap<AclRecord.EntityId, EntityState>();
+    private Map<AclObjectIdentity, ObjectState> objectStateByObjectIdentity =
+            new HashMap<AclObjectIdentity, ObjectState>();
 
     /**
-     * Map of entities which are accessible to the user (he has {@link cz.cesnet.shongo.controller.EntityPermission#READ} for them) by {@link EntityType}.
+     * Map of objects which are accessible to the user (he has {@link ObjectPermission#READ} for them) by {@link AclObjectClass}.
      */
-    private Map<AclRecord.EntityType, Set<Long>> accessibleEntitiesByType =
-            new HashMap<AclRecord.EntityType, Set<Long>>();
+    private Map<AclObjectClass, Set<Long>> accessibleObjectsByClass =
+            new HashMap<AclObjectClass, Set<Long>>();
 
     /**
-     * @param aclRecord to be added to the {@link AclUserState}
+     * @param aclEntry to be added to the {@link AclUserState}
      */
-    public synchronized void addAclRecord(AclRecord aclRecord)
+    public synchronized void addAclRecord(AclEntry aclEntry)
     {
-        Long aclRecordId = aclRecord.getId();
-        AclRecord.EntityId entityId = aclRecord.getEntityId();
-        if (aclRecords.put(aclRecordId, aclRecord) == null) {
-            EntityState entityState = entityStateByEntityId.get(entityId);
-            if (entityState == null) {
-                entityState = new EntityState();
-                entityStateByEntityId.put(entityId, entityState);
+        Long aclRecordId = aclEntry.getId();
+        AclObjectIdentity objectIdentity = aclEntry.getObjectIdentity();
+        if (aclRecords.put(aclRecordId, aclEntry) == null) {
+            ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
+            if (objectState == null) {
+                objectState = new ObjectState();
+                objectStateByObjectIdentity.put(objectIdentity, objectState);
             }
 
             // Update records
-            entityState.aclRecords.put(aclRecordId, aclRecord);
+            objectState.aclRecords.put(aclRecordId, aclEntry);
 
             // Update permissions
-            AclRecord.EntityType aclRecordEntityType = entityId.getEntityType();
-            EntityType entityType = aclRecordEntityType.getEntityType();
-            for (EntityPermission entityPermission : entityType.getRolePermissions(aclRecord.getEntityRole())) {
-                entityState.permissions.add(entityPermission);
+            AclObjectClass objectClass = objectIdentity.getObjectClass();
+            EntityRole entityRole = EntityRole.valueOf(aclEntry.getRole());
+            EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
+            for (ObjectPermission objectPermission : entityType.getRolePermissions(entityRole)) {
+                objectState.permissions.add(objectPermission);
             }
 
             // Update accessible entities
-            if (entityState.permissions.contains(EntityPermission.READ)) {
-                Set<Long> entities = accessibleEntitiesByType.get(aclRecordEntityType);
+            if (objectState.permissions.contains(ObjectPermission.READ)) {
+                Set<Long> entities = accessibleObjectsByClass.get(objectClass);
                 if (entities == null) {
                     entities = new HashSet<Long>();
-                    accessibleEntitiesByType.put(aclRecordEntityType, entities);
+                    accessibleObjectsByClass.put(objectClass, entities);
                 }
-                entities.add(entityId.getPersistenceId());
+                entities.add(objectIdentity.getObjectId());
             }
         }
     }
 
     /**
-     * @param aclRecord to be removed from the {@link AclUserState}
+     * @param aclEntry to be removed from the {@link AclUserState}
      */
-    public synchronized void removeAclRecord(AclRecord aclRecord)
+    public synchronized void removeAclRecord(AclEntry aclEntry)
     {
-        Long aclRecordId = aclRecord.getId();
+        Long aclRecordId = aclEntry.getId();
         if (aclRecords.remove(aclRecordId) != null) {
-            AclRecord.EntityId entityId = aclRecord.getEntityId();
-            EntityState entityState = entityStateByEntityId.get(entityId);
-            if (entityState == null) {
+            AclObjectIdentity objectIdentity = aclEntry.getObjectIdentity();
+            ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
+            if (objectState == null) {
                 return;
             }
 
             // Update records
-            entityState.aclRecords.remove(aclRecordId);
+            objectState.aclRecords.remove(aclRecordId);
 
             // Update permissions
-            entityState.permissions.clear();
-            AclRecord.EntityType aclRecordEntityType = entityId.getEntityType();
-            EntityType entityType = aclRecordEntityType.getEntityType();
-            for (AclRecord existingAclRecord : entityState.aclRecords.values()) {
-                for (EntityPermission entityPermission : entityType.getRolePermissions(existingAclRecord.getEntityRole())) {
-                    entityState.permissions.add(entityPermission);
+            objectState.permissions.clear();
+            AclObjectClass objectClass = objectIdentity.getObjectClass();
+            EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
+            for (AclEntry existingAclEntry : objectState.aclRecords.values()) {
+                EntityRole entityRole = EntityRole.valueOf(existingAclEntry.getRole());
+                for (ObjectPermission objectPermission : entityType.getRolePermissions(entityRole)) {
+                    objectState.permissions.add(objectPermission);
                 }
             }
 
             // Update accessible entities
-            if (!entityState.permissions.contains(EntityPermission.READ)) {
-                Set<Long> entities = accessibleEntitiesByType.get(aclRecordEntityType);
+            if (!objectState.permissions.contains(ObjectPermission.READ)) {
+                Set<Long> entities = accessibleObjectsByClass.get(objectClass);
                 if (entities != null) {
-                    entities.remove(entityId.getPersistenceId());
+                    entities.remove(objectIdentity.getObjectId());
                     if (entities.size() == 0) {
-                        accessibleEntitiesByType.remove(aclRecordEntityType);
+                        accessibleObjectsByClass.remove(objectClass);
                     }
                 }
             }
 
-            // Remove entity states
-            if (entityState.aclRecords.size() == 0) {
-                entityStateByEntityId.remove(entityId);
+            // Remove objects states
+            if (objectState.aclRecords.size() == 0) {
+                objectStateByObjectIdentity.remove(objectIdentity);
             }
         }
     }
 
     /**
-     * @param entityId for which the {@link AclRecord}s should be returned
-     * @return set of {@link AclRecord}s for given {@code entityId}
+     * @param objectIdentity for which the {@link AclEntry}s should be returned
+     * @return set of {@link AclEntry}s for given {@code entityId}
      */
-    public synchronized Collection<AclRecord> getAclRecords(AclRecord.EntityId entityId)
+    public synchronized Collection<AclEntry> getAclRecords(AclObjectIdentity objectIdentity)
     {
-        EntityState entityState = entityStateByEntityId.get(entityId);
-        if (entityState != null) {
-            return entityState.aclRecords.values();
+        ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
+        if (objectState != null) {
+            return objectState.aclRecords.values();
         }
         return null;
     }
 
     /**
-     * @param entityId for which the {@link cz.cesnet.shongo.controller.EntityPermission}s should be returned
-     * @return set of {@link cz.cesnet.shongo.controller.EntityPermission} for given {@code entityId}
+     * @param objectIdentity for which the {@link ObjectPermission}s should be returned
+     * @return set of {@link ObjectPermission} for given {@code objectIdentity}
      */
-    public synchronized Set<EntityPermission> getEntityPermissions(AclRecord.EntityId entityId)
+    public synchronized Set<ObjectPermission> getObjectPermissions(AclObjectIdentity objectIdentity)
     {
-        EntityState entityState = entityStateByEntityId.get(entityId);
-        if (entityState != null) {
-            return Collections.unmodifiableSet(entityState.permissions);
+        ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
+        if (objectState != null) {
+            return Collections.unmodifiableSet(objectState.permissions);
         }
         return null;
     }
 
     /**
-     * @param entityId for which the {@link cz.cesnet.shongo.controller.EntityPermission}s should be returned
-     * @return true if the user has given {@code permission} for the entity,
+     * @param objectIdentity for which the {@link ObjectPermission}s should be returned
+     * @return true if the user has given {@code permission} for the object,
      *         false otherwise
      */
-    public synchronized boolean hasEntityPermission(AclRecord.EntityId entityId, EntityPermission entityPermission)
+    public synchronized boolean hasObjectPermission(AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
     {
-        EntityState entityState = entityStateByEntityId.get(entityId);
-        return entityState != null && entityState.permissions.contains(entityPermission);
+        ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
+        return objectState != null && objectState.permissions.contains(objectPermission);
     }
 
     /**
-     * @param entityType of which the {@link AclRecord.EntityId}s should be returned
-     * @param entityPermission which the user must have for the returned {@link AclRecord.EntityId}s
-     * @return set of {@link AclRecord.EntityId}s of given {@code entityType}
-     *         for which the user has given {@code permission}
+     * @param objectClass of which the {@link AclObjectIdentity#objectId}s should be returned
+     * @param objectPermission which the user must have for the returned {@link AclObjectIdentity#objectId}s
+     * @return set of {@link AclObjectIdentity#objectId}s of given {@code objectClass} for which the user has given {@code permission}
      */
-    public synchronized Set<Long> getEntitiesByPermission(
-            AclRecord.EntityType entityType, EntityPermission entityPermission)
+    public synchronized Set<Long> getObjectsByPermission(
+            AclObjectClass objectClass, ObjectPermission objectPermission)
     {
-        if (!entityPermission.equals(EntityPermission.READ)) {
-            throw new TodoImplementException(entityPermission);
+        if (!objectPermission.equals(ObjectPermission.READ)) {
+            throw new TodoImplementException(objectPermission);
         }
-        Set<Long> entities = accessibleEntitiesByType.get(entityType);
+        Set<Long> entities = accessibleObjectsByClass.get(objectClass);
         if (entities != null) {
             return Collections.unmodifiableSet(entities);
         }
@@ -167,18 +173,18 @@ public class AclUserState
     }
 
     /**
-     * Represents an entity state for the user.
+     * Represents an object state for the user.
      */
-    private static class EntityState
+    private static class ObjectState
     {
         /**
-         * Set of {@link AclRecord}s for the entity.
+         * Set of {@link AclEntry}s for the object.
          */
-        private Map<Long, AclRecord> aclRecords = new HashMap<Long, AclRecord>();
+        private Map<Long, AclEntry> aclRecords = new HashMap<Long, AclEntry>();
 
         /**
-         * Set of {@link cz.cesnet.shongo.controller.EntityPermission}s for the entity.
+         * Set of {@link ObjectPermission}s for the object.
          */
-        Set<EntityPermission> permissions = new HashSet<EntityPermission>();
+        Set<ObjectPermission> permissions = new HashSet<ObjectPermission>();
     }
 }
