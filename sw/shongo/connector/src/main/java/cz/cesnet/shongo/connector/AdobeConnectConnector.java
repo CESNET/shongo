@@ -615,27 +615,33 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
 
             throw ex;
-        } catch (Exception ex) {
-            logger.debug("RECORDING:" + ex);
-            throw new CommandException("unknown exception" + ex);
         }
 
         RequestAttributeList recAttributes = new RequestAttributeList();
         recAttributes.add("sco-id", scoId);
 
         Element response;
+        int count = 0;
         while (true) {
+            try {
+                Thread.sleep(500);
+            }
+            catch (InterruptedException e) {
+                logger.debug("unexpected wakening, but nothing to worry about");
+            }
             response = request("meeting-recorder-activity-info", recAttributes);
 
-            if (!"null".equals(response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"))) {
+            if (response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id") != null) {
                 break;
             }
-        }
 
-        for(Element child : response.getChild("meeting-recorder-activity-info").getChildren()) {
-            logger.debug("RECORDING  CHILD: " + child.getName());
+            count++;
+            logger.debug("Failed to get recording id for " + count + ". times. It probably meens, that recording didn't start.");
+
+            if (count > 4) {
+                throw new CommandException("Cannot get recording id for.");
+            }
         }
-        logger.debug("recording id: " + response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"));
 
         return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
     }
@@ -1753,7 +1759,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         Element response = request("report-active-meetings",new RequestAttributeList());
 
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id",getMeetingsFolderID());
+        attributes.add("sco-id", getMeetingsFolderID());
         attributes.add("type", "meeting");
         Element shongoRoomsElement = request("sco-contents",attributes);
 
