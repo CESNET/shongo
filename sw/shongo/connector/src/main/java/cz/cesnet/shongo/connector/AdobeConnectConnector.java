@@ -623,7 +623,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList recAttributes = new RequestAttributeList();
         recAttributes.add("sco-id", scoId);
 
-        Element response = request("meeting-recorder-activity-info", recAttributes);
+        Element response;
+        while (true) {
+            response = request("meeting-recorder-activity-info", recAttributes);
+
+            if (!"null".equals(response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"))) {
+                break;
+            }
+        }
 
         for(Element child : response.getChild("meeting-recorder-activity-info").getChildren()) {
             logger.debug("RECORDING  CHILD: " + child.getName());
@@ -2038,7 +2045,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
             /************************/
 
-            System.out.println(acc.RECORDING_CHECK_TIMEOUT);
+
             /************************/
 
             acc.disconnect();
