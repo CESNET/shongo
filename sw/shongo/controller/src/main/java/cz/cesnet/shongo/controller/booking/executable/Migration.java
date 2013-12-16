@@ -1,12 +1,14 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 
 import javax.persistence.*;
+import java.util.Map;
 
 /**
  * Represents a migration from {@link #sourceExecutable} to {@link #targetExecutable}.
@@ -135,6 +137,7 @@ public class Migration extends SimplePersistentObject
                 if (state != null) {
                     targetResourceRoom.setState(Executable.State.STARTED);
                     sourceResourceRoom.setState(Executable.State.STOPPED);
+                    migrateRecordingFolders(sourceRoom, targetRoom);
                     return true;
                 }
                 else {
@@ -154,6 +157,7 @@ public class Migration extends SimplePersistentObject
                 if (state != null) {
                     targetUsedRoom.setState(Executable.State.STARTED);
                     sourceUsedRoom.setState(Executable.State.STOPPED);
+                    migrateRecordingFolders(sourceRoom, targetRoom);
                     return true;
                 }
                 else {
@@ -162,5 +166,18 @@ public class Migration extends SimplePersistentObject
             }
         }
         return false;
+    }
+
+    /**
+     * Migrate {@link RoomEndpoint#recordingFolderIds} from {@code sourceRoom} to {@code targetRoom}.
+     *
+     * @param sourceRoom
+     * @param targetRoom
+     */
+    private void migrateRecordingFolders(RoomEndpoint sourceRoom, RoomEndpoint targetRoom)
+    {
+        for(Map.Entry<RecordingCapability, String> entry : sourceRoom.getRecordingFolderIds().entrySet()) {
+            targetRoom.putRecordingFolderId(entry.getKey(), entry.getValue());
+        }
     }
 }

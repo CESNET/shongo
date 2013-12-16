@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -57,6 +59,7 @@ public class MigrationTest extends AbstractExecutorTest
         runScheduler(Interval.parse("2012-01-01T12:00/2012-02-01T12:00"));
         Reservation reservation = checkAllocated(requestId);
 
+
         // Set the allocated room as started, because a migration is allocated only for started rooms
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -100,19 +103,21 @@ public class MigrationTest extends AbstractExecutorTest
     @Test
     public void testRoomMigrationSameDevice() throws Exception
     {
-        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
+        ConnectTestAgent mcuAgent = getController().addJadeAgent("connect", new ConnectTestAgent());
 
         DateTime dateTimeStart = DateTime.parse("2012-01-01T12:00");
         DateTime dateTimeEnd = DateTime.parse("2012-01-01T14:00");
         DateTime dateTimeMiddle = dateTimeStart.plus((dateTimeEnd.getMillis() - dateTimeStart.getMillis()) / 2);
 
-        DeviceResource mcu = new DeviceResource();
-        mcu.setName("mcu");
-        mcu.setAllocatable(true);
-        mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10));
-        mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.setAllocatable(true);
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
+        connect.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
+        connect.addCapability(new RecordingCapability());
+        connect.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connect);
         Long mcuPersistenceId = ObjectIdentifier.parse(mcuId).getPersistenceId();
 
         ReservationService service = getReservationService();
@@ -121,11 +126,16 @@ public class MigrationTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTimeStart, dateTimeEnd);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
-        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.ADOBE_CONNECT));
+        String reservationRequestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(new Interval(dateTimeStart, Period.months(1)));
-        checkAllocated(requestId);
+        Reservation reservation = checkAllocated(reservationRequestId);
+        cz.cesnet.shongo.controller.api.Executable executable = reservation.getExecutable();
+        String executableId = executable.getId();
+        RecordingService recordingService = getExecutableService(executableId, RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        String recordingServiceId = recordingService.getId();
 
         // Execute room
         ExecutionResult result = runExecutor(dateTimeStart);
@@ -134,13 +144,21 @@ public class MigrationTest extends AbstractExecutorTest
         Assert.assertEquals(mcuPersistenceId, room1.getResource().getId());
         Assert.assertEquals(5, room1.getLicenseCount());
 
+        // Start recording
+        getExecutableService().activateExecutableService(SECURITY_TOKEN, executableId, recordingServiceId);
+
         // Modify room
-        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(7);
-        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationRequestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(new Interval(dateTimeMiddle, Period.months(1)));
-        checkAllocated(requestId);
+        reservation = checkAllocated(reservationRequestId);
+        executable = reservation.getExecutable();
+        executableId = executable.getId();
+        recordingService = getExecutableService(executableId, RecordingService.class);
+        Assert.assertNotNull(recordingService);
+        recordingServiceId = recordingService.getId();
 
         // Execute room migration
         result = runExecutor(dateTimeMiddle);
@@ -151,10 +169,17 @@ public class MigrationTest extends AbstractExecutorTest
         Assert.assertEquals(mcuPersistenceId, room2.getResource().getId());
         Assert.assertEquals(7, room2.getLicenseCount());
 
+        // Start recording
+        getExecutableService().activateExecutableService(SECURITY_TOKEN, executableId, recordingServiceId);
+
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
