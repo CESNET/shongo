@@ -154,8 +154,38 @@ COMMIT TRANSACTION;
  * 2012-12-16: Refactorizations of acl_record to acl_entry.
  */
 BEGIN TRANSACTION;
-
-
-
-
+CREATE TABLE acl_entry (id int8 not null, role varchar(255) not null, acl_identity_id int8 not null, acl_object_identity_id int8 not null, primary key (id), unique (acl_identity_id, acl_object_identity_id, role));
+CREATE TABLE acl_entry_dependency (id int8 not null, type varchar(255), child_acl_entry_id int8 not null, parent_acl_entry_id int8 not null, primary key (id), unique (parent_acl_entry_id, child_acl_entry_id));
+CREATE TABLE acl_identity (id int8 not null, principal_id varchar(255) not null, type varchar(255) not null, primary key (id), unique (type, principal_id));
+CREATE TABLE acl_object_class (id int8 not null, class varchar(255) not null unique, primary key (id));
+CREATE TABLE acl_object_identity (id int8 not null, object_id int8 not null, acl_object_class_id int8 not null, primary key (id), unique (acl_object_class_id, object_id));
+ALTER TABLE acl_entry add constraint FK5302D47DCC9409C0 foreign key (acl_identity_id) references acl_identity;
+ALTER TABLE acl_entry add constraint FK5302D47D748E9AE9 foreign key (acl_object_identity_id) references acl_object_identity;
+ALTER TABLE acl_entry_dependency add constraint FK35BB944D9513D3B7 foreign key (child_acl_entry_id) references acl_entry;
+ALTER TABLE acl_entry_dependency add constraint FK35BB944D786976E9 foreign key (parent_acl_entry_id) references acl_entry;
+ALTER TABLE acl_object_identity add constraint FK2A2BB0097D29732B foreign key (acl_object_class_id) references acl_object_class;
+/* Create user identities */
+INSERT INTO acl_identity(id, type, principal_id)
+    SELECT nextval('hibernate_sequence'), 'USER', user_id FROM acl_record GROUP BY user_id;
+/* Create object classes */
+INSERT INTO acl_object_class(id, class)
+    SELECT nextval('hibernate_sequence'), data.object_class FROM (
+        SELECT DISTINCT CASE WHEN entity_type = 'ALLOCATION' THEN 'RESERVATION_REQUEST' ELSE entity_type END AS object_class FROM acl_record
+    ) AS data;
+/* Create object identities */
+INSERT INTO acl_object_identity(id, acl_object_class_id, object_id)
+    SELECT nextval('hibernate_sequence'), acl_object_class.id, data.object_id FROM(
+        SELECT CASE WHEN entity_type = 'ALLOCATION' THEN 'RESERVATION_REQUEST' ELSE entity_type END AS object_class, entity_id AS object_id FROM acl_record GROUP BY entity_type, entity_id
+    ) AS data
+    LEFT JOIN acl_object_class ON acl_object_class.class = data.object_class;
+/* Create entries */
+INSERT INTO acl_entry (id, acl_identity_id, acl_object_identity_id, role)
+    SELECT nextval('hibernate_sequence'), acl_identity.id, acl_object_identity.id, data.role FROM(
+        SELECT user_id, CASE WHEN entity_type = 'ALLOCATION' THEN 'RESERVATION_REQUEST' ELSE entity_type END AS object_class, entity_id AS object_id, entity_role AS role FROM acl_record
+    ) AS data
+    LEFT JOIN acl_identity ON acl_identity.type = 'USER' AND acl_identity.principal_id = data.user_id
+    LEFT JOIN acl_object_class ON acl_object_class.class = data.object_class
+    LEFT JOIN acl_object_identity ON acl_object_identity.acl_object_class_id = acl_object_class.id AND acl_object_identity.object_id = data.object_id;
+DROP TABLE acl_record_dependency;
+DROP TABLE acl_record;
 COMMIT TRANSACTION;
