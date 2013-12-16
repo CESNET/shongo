@@ -112,9 +112,11 @@ public class RoomModel extends ParticipantConfigurationModel
      * @param messageProvider   sets the {@link #messageProvider}
      * @param executableService which can be used for initializing
      * @param userSession       which can be used for initializing
+     * @param services          specifies whether {@link #recordingService} should be loaded
      */
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider,
-            MessageProvider messageProvider, ExecutableService executableService, UserSession userSession)
+            MessageProvider messageProvider, ExecutableService executableService, UserSession userSession,
+            boolean services)
     {
         SecurityToken securityToken = cacheProvider.getSecurityToken();
 
@@ -160,7 +162,6 @@ public class RoomModel extends ParticipantConfigurationModel
             usageRequest.setSort(ExecutableListRequest.Sort.SLOT);
             usageRequest.setSortDescending(true);
             ListResponse<ExecutableSummary> usageSummaries = executableService.listExecutables(usageRequest);
-            DateTime dateTimeNow = DateTime.now();
             for (ExecutableSummary usageSummary : usageSummaries) {
                 Interval usageSlot = usageSummary.getSlot();
                 if (usageSummary.getState().isAvailable()) {
@@ -173,13 +174,15 @@ public class RoomModel extends ParticipantConfigurationModel
                     for (AbstractParticipant participant : participants.getParticipants()) {
                         addParticipant(new Participant(this.usageId, participant, cacheProvider));
                     }
-                    this.recordingService = getRecordingService(executableService, securityToken, this.usageId);
-                    this.recordable = this.recordingService != null;
                     loadRoomSettings(usage);
+                    if (services) {
+                        this.recordingService = getRecordingService(executableService, securityToken, this.usageId);
+                        this.recordable = this.recordingService != null;
+                    }
                     break;
                 }
             }
-            if (!recordable) {
+            if (services && !recordable) {
                 this.recordingService = null;
                 this.recordable = isPermanentRoomRecordable(executableService, securityToken, this.id);
             }
@@ -192,8 +195,10 @@ public class RoomModel extends ParticipantConfigurationModel
             else {
                 this.type = RoomType.ADHOC_ROOM;
             }
-            this.recordingService = getRecordingService(executableService, securityToken, this.id);
-            this.recordable = this.recordingService != null;
+            if (services) {
+                this.recordingService = getRecordingService(executableService, securityToken, this.id);
+                this.recordable = this.recordingService != null;
+            }
         }
 
         // Room state

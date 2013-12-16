@@ -84,7 +84,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public ExecutableServiceImpl(Executor executor)
     {
         this.executor = executor;
-        this.executableRecordingsCache.setExpiration(Duration.standardMinutes(1));
+        this.executableRecordingsCache.setExpiration(Duration.standardSeconds(30));
     }
 
     @Override

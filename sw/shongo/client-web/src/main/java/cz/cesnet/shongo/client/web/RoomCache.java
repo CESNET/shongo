@@ -42,7 +42,7 @@ public class RoomCache
     private Cache cache;
 
     /**
-     * {@link RoomExecutable} by roomExecutableId".
+     * {@link RoomExecutable} by roomExecutableId.
      */
     private final ExpirationMap<String, RoomExecutable> roomExecutableCache =
             new ExpirationMap<String, RoomExecutable>();
@@ -77,10 +77,10 @@ public class RoomCache
     public RoomCache()
     {
         // Set expiration durations
-        roomCache.setExpiration(Duration.standardSeconds(20));
-        roomParticipantsCache.setExpiration(Duration.standardSeconds(20));
-        roomExecutableCache.setExpiration(Duration.standardSeconds(20));
-        roomParticipantSnapshotCache.setExpiration(Duration.standardSeconds(20));
+        roomCache.setExpiration(Duration.standardSeconds(30));
+        roomParticipantsCache.setExpiration(Duration.standardSeconds(15));
+        roomExecutableCache.setExpiration(Duration.standardSeconds(15));
+        roomParticipantSnapshotCache.setExpiration(Duration.standardSeconds(15));
     }
 
     /**

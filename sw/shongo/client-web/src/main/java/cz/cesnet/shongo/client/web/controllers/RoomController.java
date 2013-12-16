@@ -211,7 +211,7 @@ public class RoomController
         MessageProvider messageProvider = new MessageProvider(
                 messageSource, userSession.getLocale(), userSession.getTimeZone());
         RoomModel roomModel = new RoomModel(
-                roomExecutable, cacheProvider, messageProvider, executableService, userSession);
+                roomExecutable, cacheProvider, messageProvider, executableService, userSession, true);
         modelAndView.addObject("room", roomModel);
 
         // Runtime room
@@ -593,7 +593,7 @@ public class RoomController
         MessageProvider messageProvider = new MessageProvider(
                 messageSource, userSession.getLocale(), userSession.getTimeZone());
         RoomModel roomModel = new RoomModel(
-                roomExecutable, cacheProvider, messageProvider, executableService, userSession);
+                roomExecutable, cacheProvider, messageProvider, executableService, userSession, false);
         roomModel.disableDependentParticipants();
         model.addAttribute("room", roomModel);
         return "roomParticipantList";
