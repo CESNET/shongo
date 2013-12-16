@@ -14,7 +14,7 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int GROUP_ALREADY_EXISTS_CODE = 102;
     public static final int USER_ALREADY_IN_GROUP_CODE = 103;
     public static final int USER_NOT_IN_GROUP_CODE = 104;
-    public static final int ACL_INVALID_ROLE_CODE = 105;
+    public static final int ACL_INVALID_OBJECT_ROLE_CODE = 105;
     public static final int SECURITY_MISSING_TOKEN_CODE = 106;
     public static final int SECURITY_INVALID_TOKEN_CODE = 107;
     public static final int SECURITY_NOT_AUTHORIZED_CODE = 108;
@@ -38,7 +38,7 @@ public class ControllerReportSet extends AbstractReportSet
     public static final String GROUP_ALREADY_EXISTS = "group-already-exists";
     public static final String USER_ALREADY_IN_GROUP = "user-already-in-group";
     public static final String USER_NOT_IN_GROUP = "user-not-in-group";
-    public static final String ACL_INVALID_ROLE = "acl-invalid-role";
+    public static final String ACL_INVALID_OBJECT_ROLE = "acl-invalid-object-role";
     public static final String SECURITY_MISSING_TOKEN = "security-missing-token";
     public static final String SECURITY_INVALID_TOKEN = "security-invalid-token";
     public static final String SECURITY_NOT_AUTHORIZED = "security-not-authorized";
@@ -66,7 +66,7 @@ public class ControllerReportSet extends AbstractReportSet
         addMessage(GROUP_ALREADY_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Group ${group} already exists.");
         addMessage(USER_ALREADY_IN_GROUP, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} is already in group ${group}.");
         addMessage(USER_NOT_IN_GROUP, new Report.UserType[]{}, Report.Language.ENGLISH, "User ${user} isn't in group ${group}.");
-        addMessage(ACL_INVALID_ROLE, new Report.UserType[]{}, Report.Language.ENGLISH, "ACL Role ${role} is invalid for entity ${entity}.");
+        addMessage(ACL_INVALID_OBJECT_ROLE, new Report.UserType[]{}, Report.Language.ENGLISH, "ACL role ${role} is invalid for object ${objectType}.");
         addMessage(SECURITY_MISSING_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Security token is missing but is required.");
         addMessage(SECURITY_INVALID_TOKEN, new Report.UserType[]{}, Report.Language.ENGLISH, "Invalid security token ${token}.");
         addMessage(SECURITY_NOT_AUTHORIZED, new Report.UserType[]{}, Report.Language.ENGLISH, "You are not authorized to ${action}.");
@@ -823,38 +823,38 @@ public class ControllerReportSet extends AbstractReportSet
     }
 
     /**
-     * ACL Role {@link #role} is invalid for entity {@link #entity}.
+     * ACL role {@link #role} is invalid for object {@link #objectType}.
      */
-    public static class AclInvalidRoleReport extends AbstractReport implements ApiFault
+    public static class AclInvalidObjectRoleReport extends AbstractReport implements ApiFault
     {
-        protected String entity;
+        protected String objectType;
 
         protected String role;
 
-        public AclInvalidRoleReport()
+        public AclInvalidObjectRoleReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "acl-invalid-role";
+            return "acl-invalid-object-role";
         }
 
-        public AclInvalidRoleReport(String entity, String role)
+        public AclInvalidObjectRoleReport(String objectType, String role)
         {
-            setEntity(entity);
+            setObjectType(objectType);
             setRole(role);
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return entity;
+            return objectType;
         }
 
-        public void setEntity(String entity)
+        public void setObjectType(String objectType)
         {
-            this.entity = entity;
+            this.objectType = objectType;
         }
 
         public String getRole()
@@ -876,7 +876,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ACL_INVALID_ROLE_CODE;
+            return ACL_INVALID_OBJECT_ROLE_CODE;
         }
 
         @Override
@@ -888,20 +888,20 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new AclInvalidRoleException(this);
+            return new AclInvalidObjectRoleException(this);
         }
 
         @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
-            entity = (String) reportSerializer.getParameter("entity", String.class);
+            objectType = (String) reportSerializer.getParameter("objectType", String.class);
             role = (String) reportSerializer.getParameter("role", String.class);
         }
 
         @Override
         public void writeParameters(ReportSerializer reportSerializer)
         {
-            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("objectType", objectType);
             reportSerializer.setParameter("role", role);
         }
 
@@ -915,7 +915,7 @@ public class ControllerReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("entity", entity);
+            parameters.put("objectType", objectType);
             parameters.put("role", role);
             return parameters;
         }
@@ -923,46 +923,46 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("acl-invalid-role", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("acl-invalid-object-role", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link AclInvalidRoleReport}.
+     * Exception for {@link AclInvalidObjectRoleReport}.
      */
-    public static class AclInvalidRoleException extends ReportRuntimeException implements ApiFaultException
+    public static class AclInvalidObjectRoleException extends ReportRuntimeException implements ApiFaultException
     {
-        public AclInvalidRoleException(AclInvalidRoleReport report)
+        public AclInvalidObjectRoleException(AclInvalidObjectRoleReport report)
         {
             this.report = report;
         }
 
-        public AclInvalidRoleException(Throwable throwable, AclInvalidRoleReport report)
+        public AclInvalidObjectRoleException(Throwable throwable, AclInvalidObjectRoleReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public AclInvalidRoleException(String entity, String role)
+        public AclInvalidObjectRoleException(String objectType, String role)
         {
-            AclInvalidRoleReport report = new AclInvalidRoleReport();
-            report.setEntity(entity);
+            AclInvalidObjectRoleReport report = new AclInvalidObjectRoleReport();
+            report.setObjectType(objectType);
             report.setRole(role);
             this.report = report;
         }
 
-        public AclInvalidRoleException(Throwable throwable, String entity, String role)
+        public AclInvalidObjectRoleException(Throwable throwable, String objectType, String role)
         {
             super(throwable);
-            AclInvalidRoleReport report = new AclInvalidRoleReport();
-            report.setEntity(entity);
+            AclInvalidObjectRoleReport report = new AclInvalidObjectRoleReport();
+            report.setObjectType(objectType);
             report.setRole(role);
             this.report = report;
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return getReport().getEntity();
+            return getReport().getObjectType();
         }
 
         public String getRole()
@@ -971,14 +971,14 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public AclInvalidRoleReport getReport()
+        public AclInvalidObjectRoleReport getReport()
         {
-            return (AclInvalidRoleReport) report;
+            return (AclInvalidObjectRoleReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (AclInvalidRoleReport) report;
+            return (AclInvalidObjectRoleReport) report;
         }
     }
 
@@ -3386,7 +3386,7 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(GroupAlreadyExistsReport.class);
         addReportClass(UserAlreadyInGroupReport.class);
         addReportClass(UserNotInGroupReport.class);
-        addReportClass(AclInvalidRoleReport.class);
+        addReportClass(AclInvalidObjectRoleReport.class);
         addReportClass(SecurityMissingTokenReport.class);
         addReportClass(SecurityInvalidTokenReport.class);
         addReportClass(SecurityNotAuthorizedReport.class);

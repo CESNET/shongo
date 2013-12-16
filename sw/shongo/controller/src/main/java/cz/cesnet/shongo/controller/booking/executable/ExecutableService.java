@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.report.ReportException;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -117,7 +115,7 @@ public abstract class ExecutableService extends ExecutionTarget
     public void toApi(cz.cesnet.shongo.controller.api.ExecutableService executableServiceApi)
     {
         executableServiceApi.setId(getId());
-        executableServiceApi.setExecutableId(EntityIdentifier.formatId(executable));
+        executableServiceApi.setExecutableId(ObjectIdentifier.formatId(executable));
         executableServiceApi.setActive(state.isActive());
         executableServiceApi.setSlot(getSlot());
     }
@@ -238,7 +236,7 @@ public abstract class ExecutableService extends ExecutionTarget
     @Override
     public String getReportDescription()
     {
-        return EntityIdentifier.formatId(this);
+        return ObjectIdentifier.formatId(this);
     }
 
     @Transient

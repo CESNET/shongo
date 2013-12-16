@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.booking.streaming;
 
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 
@@ -54,6 +54,6 @@ public class StreamingService extends ExecutableService
         cz.cesnet.shongo.controller.api.StreamingService streamingServiceApi =
                 (cz.cesnet.shongo.controller.api.StreamingService) executableServiceApi;
 
-        streamingServiceApi.setResourceId(EntityIdentifier.formatId(streamingCapability.getResource()));
+        streamingServiceApi.setResourceId(ObjectIdentifier.formatId(streamingCapability.getResource()));
     }
 }

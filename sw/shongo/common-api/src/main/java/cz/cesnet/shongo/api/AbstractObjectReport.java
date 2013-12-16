@@ -7,11 +7,11 @@ import org.joda.time.DateTimeZone;
 import java.util.*;
 
 /**
- * Represents a report for an entity.
+ * Represents a report for an object.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractEntityReport extends AbstractComplexType
+public abstract class AbstractObjectReport extends AbstractComplexType
 {
     public static final String ID = "id";
     public static final String TYPE = "type";
@@ -33,7 +33,7 @@ public abstract class AbstractEntityReport extends AbstractComplexType
      *
      * @param userType sets the {@link #userType}
      */
-    public AbstractEntityReport(Report.UserType userType)
+    public AbstractObjectReport(Report.UserType userType)
     {
         this.userType = userType;
     }
@@ -68,7 +68,7 @@ public abstract class AbstractEntityReport extends AbstractComplexType
     /**
      * @param locale
      * @param timeZone
-     * @return {@link AbstractEntityReport} as string for given {@code locale} and {@code timeZone}
+     * @return {@link AbstractObjectReport} as string for given {@code locale} and {@code timeZone}
      */
     public String toString(Locale locale, DateTimeZone timeZone)
     {
@@ -77,7 +77,7 @@ public abstract class AbstractEntityReport extends AbstractComplexType
 
     /**
      * @param locale
-     * @return {@link AbstractEntityReport} as string for given {@code locale}
+     * @return {@link AbstractObjectReport} as string for given {@code locale}
      */
     public final String toString(Locale locale)
     {

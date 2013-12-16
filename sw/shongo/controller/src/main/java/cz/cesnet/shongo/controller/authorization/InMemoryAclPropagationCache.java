@@ -22,8 +22,8 @@ public class InMemoryAclPropagationCache
 
     private ExpirationMap<String, AclEntry> aclEntryCache = new ExpirationMap<String, AclEntry>();
 
-    private ExpirationMap<EntityIdentifier, EntityState> entityStateById =
-            new ExpirationMap<EntityIdentifier, EntityState>();
+    private ExpirationMap<ObjectIdentifier, EntityState> entityStateById =
+            new ExpirationMap<ObjectIdentifier, EntityState>();
 
     private ExpirationMap<String, UserState> userStateById = new ExpirationMap<String, UserState>();
 
@@ -39,61 +39,61 @@ public class InMemoryAclPropagationCache
             aclEntryCache.put(aclEntryId, aclEntry);
         }
 
-        EntityIdentifier entityId = aclEntry.getObjectId();
-        EntityState entityState = getEntityState(entityId, true);
+        ObjectIdentifier objectId = aclEntry.getObjectId();
+        EntityState entityState = getEntityState(objectId, true);
         entityState.addAclEntry(aclEntry);
 
-        String userId = aclEntry.getUserId();
+        String userId = aclEntry.getIdentityPrincipalId();
         UserState userState = userStateById.get(userId);
         if (userState != null) {
             userState.addAclEntry(aclEntry);
         }
     }
 
-    private EntityState getEntityState(EntityIdentifier entityId, boolean initialize) throws FaultException
+    private EntityState getEntityState(ObjectIdentifier objectId, boolean initialize) throws FaultException
     {
         // Find existing state
-        EntityState entityState = entityStateById.get(entityId);
+        EntityState entityState = entityStateById.get(objectId);
         if (entityState != null) {
             return entityState;
         }
 
         // Fetch new entity state
-        entityState = new EntityState(entityId);
-        for (AclEntry aclEntry : onListAclEntrys(null, entityId, null)) {
+        entityState = new EntityState(objectId);
+        for (AclEntry aclEntry : onListAclEntrys(null, objectId, null)) {
             entityState.addAclEntry(aclEntry);
         }
-        entityStateById.put(entityId, entityState);
+        entityStateById.put(objectId, entityState);
 
         // Fetch all parent entity states (recursive)
-        PersistentObject entity = getEntity(entityId);
+        PersistentObject entity = getEntity(objectId);
         Map<PersistentObject, AclEntryPropagator> propagatorByParentEntity = getPropagatorByParentEntity(entity);
-        for (PersistentObject parentEntity : propagatorByParentEntity.keySet()) {
-            EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
-            EntityState parentEntityState = getEntityState(parentEntityId, false);
-            AclEntryPropagator propagator = propagatorByParentEntity.get(parentEntity);
-            entityState.parentEntityStates.put(parentEntityState, propagator);
-            parentEntityState.childEntityStates.put(entityState, propagator);
+        for (PersistentObject parentObject : propagatorByParentEntity.keySet()) {
+            ObjectIdentifier parentObjectId = new ObjectIdentifier(parentObject);
+            EntityState parentObjectState = getEntityState(parentObjectId, false);
+            AclEntryPropagator propagator = propagatorByParentEntity.get(parentObject);
+            entityState.parentObjectStates.put(parentObjectState, propagator);
+            parentObjectState.childEntityStates.put(entityState, propagator);
         }
 
         // Initialize newly fetched state
         if (initialize) {
-            for (EntityState parentEntityState : entityState.parentEntityStates.keySet()) {
-                AclEntryPropagator propagator = entityState.parentEntityStates.get(parentEntityState);
-                propagator.addAclEntrys(parentEntityState, entityState);
+            for (EntityState parentObjectState : entityState.parentObjectStates.keySet()) {
+                AclEntryPropagator propagator = entityState.parentObjectStates.get(parentObjectState);
+                propagator.addAclEntrys(parentObjectState, entityState);
             }
         }
 
         return entityState;
     }
 
-    private PersistentObject getEntity(EntityIdentifier entityId) throws FaultException
+    private PersistentObject getEntity(ObjectIdentifier objectId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            PersistentObject entity = entityManager.find(objectId.getObjectClass(), objectId.getPersistenceId());
             if (entity == null) {
-                ControllerReportSetHelper.throwEntityNotExistFault(entityId);
+                ControllerReportSetHelper.throwObjectNotExistFault(objectId);
             }
             return entity;
         }
@@ -104,7 +104,7 @@ public class InMemoryAclPropagationCache
 
     private Map<PersistentObject, AclEntryPropagator> getPropagatorByParentEntity(PersistentObject entity)
     {
-        logger.debug("Get parent for {}...", new EntityIdentifier(entity));
+        logger.debug("Get parent for {}...", new ObjectIdentifier(entity));
         Map<PersistentObject, AclEntryPropagator> propagatorByParentEntity =
                 new HashMap<PersistentObject, AclEntryPropagator>();
         if (entity instanceof ReservationRequest) {
@@ -171,20 +171,20 @@ public class InMemoryAclPropagationCache
         return null;
     }
 
-    public Collection<AclEntry> getAclEntries(EntityIdentifier entityId)
+    public Collection<AclEntry> getAclEntries(ObjectIdentifier objectId)
     {
         return null;
     }
 
-    public Collection<AclEntry> getAclEntries(String userId, EntityIdentifier entityId) throws FaultException
+    public Collection<AclEntry> getAclEntries(String userId, ObjectIdentifier objectId) throws FaultException
     {
-        EntityState entityState = getEntityState(entityId, true);
+        EntityState entityState = getEntityState(objectId, true);
         EntityUserState entityUserState = entityState.getUserState(userId);
         return entityUserState.aclEntrys;
     }
 
 
-    protected Collection<AclEntry> onListAclEntrys(String userId, EntityIdentifier entityId, Role role)
+    protected Collection<AclEntry> onListAclEntrys(String userId, ObjectIdentifier objectId, Role role)
             throws FaultException
     {
         return Collections.emptyList();
@@ -193,9 +193,9 @@ public class InMemoryAclPropagationCache
 
     private class EntityState
     {
-        private EntityIdentifier entityId;
+        private ObjectIdentifier objectId;
 
-        private Map<EntityState, AclEntryPropagator> parentEntityStates =
+        private Map<EntityState, AclEntryPropagator> parentObjectStates =
                 new HashMap<EntityState, AclEntryPropagator>();
 
         private Map<EntityState, AclEntryPropagator> childEntityStates =
@@ -205,18 +205,18 @@ public class InMemoryAclPropagationCache
 
         private Map<Role, Set<String>> userIdsByRole = new HashMap<Role, Set<String>>();
 
-        public EntityState(EntityIdentifier entityId)
+        public EntityState(ObjectIdentifier objectId)
         {
-            this.entityId = entityId;
+            this.objectId = objectId;
         }
 
         public boolean addAclEntry(AclEntry aclEntry)
         {
-            if (!entityId.equals(aclEntry.getObjectId())) {
+            if (!objectId.equals(aclEntry.getObjectId())) {
                 throw new RuntimeException();
             }
 
-            String userId = aclEntry.getUserId();
+            String userId = aclEntry.getIdentityPrincipalId();
             EntityUserState entityUserState = getUserState(userId);
             if (!entityUserState.addAclEntry(aclEntry)) {
                 return false;
@@ -264,7 +264,7 @@ public class InMemoryAclPropagationCache
 
     private static class UserState
     {
-        private Map<EntityType, Set<Long>> accessibleEntitiesByType = new HashMap<EntityType, Set<Long>>();
+        private Map<ObjectType, Set<Long>> accessibleEntitiesByType = new HashMap<ObjectType, Set<Long>>();
 
         public void addAclEntry(AclEntry aclEntry)
         {
@@ -280,8 +280,8 @@ public class InMemoryAclPropagationCache
                 return;
             }
             logger.debug("Adding dynamic ACL (user: {}, entity: {}, role: {})",
-                    new Object[]{userId, targetEntityState.entityId, role});
-            AclEntry aclEntry = new AclEntry(userId, targetEntityState.entityId, role);
+                    new Object[]{userId, targetEntityState.objectId, role});
+            AclEntry aclEntry = new AclEntry(userId, targetEntityState.objectId, role);
             targetEntityState.addAclEntry(aclEntry);
         }
 
@@ -289,10 +289,10 @@ public class InMemoryAclPropagationCache
         {
             for (EntityUserState entityUserState : sourceEntityState.entityUserStateByUserId.values()) {
                 for (AclEntry aclEntry : entityUserState.aclEntrys) {
-                    addAclEntry(targetEntityState, aclEntry.getUserId(), aclEntry.getRole());
+                    addAclEntry(targetEntityState, aclEntry.getIdentityPrincipalId(), aclEntry.getRole());
                 }
             }
-            for (Map.Entry<EntityState, AclEntryPropagator> entry : sourceEntityState.parentEntityStates.entrySet()) {
+            for (Map.Entry<EntityState, AclEntryPropagator> entry : sourceEntityState.parentObjectStates.entrySet()) {
                 entry.getValue().addAclEntrys(entry.getKey(), sourceEntityState);
             }
         }
@@ -303,9 +303,9 @@ public class InMemoryAclPropagationCache
         return entityStateById.size();
     }
 
-    int getAclEntryCount(EntityIdentifier entityId)
+    int getAclEntryCount(ObjectIdentifier objectId)
     {
-        EntityState entityState = entityStateById.get(entityId);
+        EntityState entityState = entityStateById.get(objectId);
         int aclEntryCount = 0;
         for (EntityUserState entityUserState : entityState.entityUserStateByUserId.values()) {
             aclEntryCount += entityUserState.aclEntrys.size();

@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.EntityTypeResolver;
+import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
@@ -94,7 +94,7 @@ public abstract class Authorization
                 if (objectClass.equals(Allocation.class)) {
                     objectClass = AbstractReservationRequest.class;
                 }
-                return EntityTypeResolver.getEntityType(objectClass).toString();
+                return ObjectTypeResolver.getObjectType(objectClass).toString();
             }
 
             @Override
@@ -410,8 +410,8 @@ public abstract class Authorization
     {
         if (isAdministrator(securityToken)) {
             // Administrator has all possible permissions
-            EntityType entityType = EntityTypeResolver.getEntityType(object);
-            return entityType.getPermissions();
+            ObjectType objectType = ObjectTypeResolver.getObjectType(object);
+            return objectType.getPermissions();
         }
         String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);

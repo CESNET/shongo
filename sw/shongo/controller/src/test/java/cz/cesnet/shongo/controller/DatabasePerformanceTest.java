@@ -6,7 +6,7 @@ import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.util.Timer;
@@ -127,7 +127,7 @@ public class DatabasePerformanceTest
 
             cz.cesnet.shongo.controller.booking.request.ReservationRequest persistentReservationRequest =
                     entityManager.find(cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
-                            EntityIdentifier.parseId(
+                            ObjectIdentifier.parseId(
                                     cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
                                     reservationRequestId));
 

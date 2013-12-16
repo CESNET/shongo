@@ -3,10 +3,10 @@ package cz.cesnet.shongo.controller.booking.resource;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.report.ReportableComplex;
 import org.joda.time.DateTime;
 
@@ -186,7 +186,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     {
         T capability = getCapability(capabilityType);
         if (capability == null) {
-            throw new RuntimeException("Resource '" + EntityIdentifier.formatId(this)
+            throw new RuntimeException("Resource '" + ObjectIdentifier.formatId(this)
                     + "' doesn't have required capability " + capabilityType.getSimpleName() + ".");
         }
         return capability;
@@ -391,7 +391,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     public Map<String, Object> getReportDescription()
     {
         Map<String, Object> reportDescription = new HashMap<String, Object>();
-        reportDescription.put("id", EntityIdentifier.formatId(this));
+        reportDescription.put("id", ObjectIdentifier.formatId(this));
         reportDescription.put("name", name);
         return reportDescription;
     }
@@ -416,7 +416,7 @@ public class Resource extends PersistentObject implements ReportableComplex
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
-        resourceApi.setId(EntityIdentifier.formatId(this));
+        resourceApi.setId(ObjectIdentifier.formatId(this));
         resourceApi.setUserId(getUserId());
         resourceApi.setName(getName());
         resourceApi.setAllocatable(isAllocatable());
@@ -428,7 +428,7 @@ public class Resource extends PersistentObject implements ReportableComplex
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resourceApi.setParentResourceId(EntityIdentifier.formatId(parentResource));
+            resourceApi.setParentResourceId(ObjectIdentifier.formatId(parentResource));
         }
 
         for (Capability capability : getCapabilities()) {
@@ -440,7 +440,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         }
 
         for (Resource childResource : getChildResources()) {
-            resourceApi.addChildResourceId(EntityIdentifier.formatId(childResource));
+            resourceApi.addChildResourceId(ObjectIdentifier.formatId(childResource));
         }
     }
 
@@ -476,7 +476,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setAllocatable(resourceApi.getAllocatable());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
-            newParentResourceId = EntityIdentifier.parseId(
+            newParentResourceId = ObjectIdentifier.parseId(
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, resourceApi.getParentResourceId());
         }
         Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
@@ -538,10 +538,10 @@ public class Resource extends PersistentObject implements ReportableComplex
     /**
      * Validate resource.
      *
-     * @throws CommonReportSet.EntityInvalidException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
      *
      */
-    public void validate() throws CommonReportSet.EntityInvalidException
+    public void validate() throws CommonReportSet.ObjectInvalidException
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
@@ -550,7 +550,7 @@ public class Resource extends PersistentObject implements ReportableComplex
             }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
-                    throw new CommonReportSet.EntityInvalidException(getClass().getSimpleName(),
+                    throw new CommonReportSet.ObjectInvalidException(getClass().getSimpleName(),
                             "Resource cannot contain multiple '" + capabilityType.getSimpleName() + "'.");
 
                 }

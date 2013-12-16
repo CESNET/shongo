@@ -119,9 +119,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException when resource doesn't exist
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException when resource doesn't exist
      */
-    public Resource get(Long resourceId) throws CommonReportSet.EntityNotExistsException
+    public Resource get(Long resourceId) throws CommonReportSet.ObjectNotExistsException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -131,16 +131,16 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(Resource.class, resourceId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(Resource.class, resourceId);
         }
     }
 
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException when device resource doesn't exist
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException when device resource doesn't exist
      */
-    public DeviceResource getDevice(Long deviceResourceId) throws CommonReportSet.EntityNotExistsException
+    public DeviceResource getDevice(Long deviceResourceId) throws CommonReportSet.ObjectNotExistsException
     {
         try {
             DeviceResource deviceResource = entityManager.createQuery(
@@ -150,7 +150,7 @@ public class ResourceManager extends AbstractManager
             return deviceResource;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(DeviceResource.class, deviceResourceId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(DeviceResource.class, deviceResourceId);
         }
     }
 

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.api.AbstractObjectReport;
 import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -11,11 +11,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * {@link cz.cesnet.shongo.api.AbstractEntityReport} for {@link ExecutableState}.
+ * {@link cz.cesnet.shongo.api.AbstractObjectReport} for {@link ExecutableState}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutionReport extends AbstractEntityReport
+public class ExecutionReport extends AbstractObjectReport
 {
     public static final String DATE_TIME = "dateTime";
 

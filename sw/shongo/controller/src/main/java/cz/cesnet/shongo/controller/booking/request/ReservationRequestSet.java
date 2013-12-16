@@ -143,7 +143,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    public void validate() throws CommonReportSet.EntityInvalidException
+    public void validate() throws CommonReportSet.ObjectInvalidException
     {
         for (DateTimeSlot slot : slots) {
             validateSlotDuration(slot.getDuration());

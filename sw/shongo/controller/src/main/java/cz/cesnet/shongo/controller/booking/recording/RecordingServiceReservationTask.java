@@ -2,8 +2,7 @@ package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.TechnologySet;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -100,7 +99,7 @@ public class RecordingServiceReservationTask extends ReservationTask
                 // and we shouldn't allocate the recording service for it)
                 if (recordingCapability.getLicenseCount() == null) {
                     throw new SchedulerReportSet.RoomEndpointAlwaysRecordableException(
-                            EntityIdentifier.formatId(executable));
+                            ObjectIdentifier.formatId(executable));
                 }
             }
         }

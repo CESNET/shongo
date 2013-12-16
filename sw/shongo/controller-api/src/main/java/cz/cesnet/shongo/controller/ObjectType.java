@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller;
 import java.util.*;
 
 /**
- * Enumeration of all possible public entity types.
+ * Enumeration of all possible public object types.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum EntityType
+public enum ObjectType
 {
     /**
      * Represents a {@link cz.cesnet.shongo.controller.api.Resource}.
@@ -88,12 +88,12 @@ public enum EntityType
             , null);
 
     /**
-     * Unique code for the {@link EntityType}.
+     * Unique code for the {@link ObjectType}.
      */
     private final String code;
 
     /**
-     * Map of all possible {@link ObjectPermission}s for the {@link EntityType} {@link ObjectRole}.
+     * Map of all possible {@link ObjectPermission}s for the {@link ObjectType} {@link ObjectRole}.
      */
     private final Map<ObjectRole, Set<ObjectPermission>> roles;
 
@@ -103,7 +103,7 @@ public enum EntityType
     private final Set<ObjectRole> propagatableRoles;
 
     /**
-     * Set of all possible {@link ObjectPermission}s for the {@link EntityType}.
+     * Set of all possible {@link ObjectPermission}s for the {@link ObjectType}.
      */
     private final Set<ObjectPermission> permissions;
 
@@ -114,7 +114,7 @@ public enum EntityType
      * @param roles             sets the {@link #roles}
      * @param propagatableRoles sets the {@link #propagatableRoles}
      */
-    private EntityType(String code, Map<ObjectRole, ObjectPermission[]> roles, Set<ObjectRole> propagatableRoles)
+    private ObjectType(String code, Map<ObjectRole, ObjectPermission[]> roles, Set<ObjectRole> propagatableRoles)
     {
         this.code = code;
         Set<ObjectPermission> permissions = new HashSet<ObjectPermission>();
@@ -145,7 +145,7 @@ public enum EntityType
     }
 
     /**
-     * @return sets of allowed {@link ObjectRole}s for the {@link EntityType}.
+     * @return sets of allowed {@link ObjectRole}s for the {@link ObjectType}.
      */
     public Set<ObjectRole> getRoles()
     {
@@ -153,7 +153,7 @@ public enum EntityType
     }
 
     /**
-     * @return ordered list of allowed {@link ObjectRole}s for the {@link EntityType}.
+     * @return ordered list of allowed {@link ObjectRole}s for the {@link ObjectType}.
      */
     public List<ObjectRole> getOrderedRoles()
     {
@@ -172,7 +172,7 @@ public enum EntityType
 
     /**
      * @param role for which the {@link ObjectPermission}s should be returned
-     * @return sets of allowed {@link ObjectPermission}s for given {@link ObjectRole} and the {@link EntityType}.
+     * @return sets of allowed {@link ObjectPermission}s for given {@link ObjectRole} and the {@link ObjectType}.
      */
     public Set<ObjectPermission> getRolePermissions(ObjectRole role)
     {
@@ -181,7 +181,7 @@ public enum EntityType
 
     /**
      * @param role to be checked for allowance
-     * @return true whether given role is allowed for the {@link EntityType},
+     * @return true whether given role is allowed for the {@link ObjectType},
      *         false otherwise
      */
     public boolean allowsRole(ObjectRole role)
@@ -191,7 +191,7 @@ public enum EntityType
 
     /**
      * @param role to be checked
-     * @return true whether given {@code role} for this {@link EntityType} should be propagated to authorization server,
+     * @return true whether given {@code role} for this {@link ObjectType} should be propagated to authorization server,
      *         false otherwise
      */
     public boolean isRolePropagatable(ObjectRole role)
@@ -200,25 +200,25 @@ public enum EntityType
     }
 
     /**
-     * Entity types by code.
+     * Object types by code.
      */
-    private static final Map<String, EntityType> entityTypeByCode = new HashMap<String, EntityType>();
+    private static final Map<String, ObjectType> objectTypeByCode = new HashMap<String, ObjectType>();
 
     /**
      * Static initialization.
      */
     static {
-        for (EntityType entityType : EntityType.class.getEnumConstants()) {
-            entityTypeByCode.put(entityType.getCode(), entityType);
+        for (ObjectType objectType : ObjectType.class.getEnumConstants()) {
+            objectTypeByCode.put(objectType.getCode(), objectType);
         }
     }
 
     /**
      * @param code
-     * @return {@link EntityType} with given {@code code} or {@code null} if it doesn't exist
+     * @return {@link ObjectType} with given {@code code} or {@code null} if it doesn't exist
      */
-    public static EntityType getByCode(String code)
+    public static ObjectType getByCode(String code)
     {
-        return entityTypeByCode.get(code);
+        return objectTypeByCode.get(code);
     }
 }

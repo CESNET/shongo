@@ -15,12 +15,11 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.*;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueSpecification;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -72,7 +71,7 @@ public abstract class Target
 
     protected void setResource(cz.cesnet.shongo.controller.booking.resource.Resource resource)
     {
-        resourceId = EntityIdentifier.formatId(resource);
+        resourceId = ObjectIdentifier.formatId(resource);
         resourceName = resource.getName();
     }
 

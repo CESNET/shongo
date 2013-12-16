@@ -17,7 +17,7 @@ import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.Migration;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
@@ -187,7 +187,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             // List only usages of specified room
             if (request.getRoomId() != null) {
                 queryFilter.addFilter("executable_summary.room_id = :roomId");
-                queryFilter.addFilterParameter("roomId", EntityIdentifier.parseId(
+                queryFilter.addFilterParameter("roomId", ObjectIdentifier.parseId(
                         cz.cesnet.shongo.controller.booking.executable.Executable.class, request.getRoomId()));
             }
 
@@ -246,7 +246,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
                 ExecutableSummary executableSummary = new ExecutableSummary();
-                executableSummary.setId(EntityIdentifier.formatId(EntityType.EXECUTABLE, record[0].toString()));
+                executableSummary.setId(ObjectIdentifier.formatId(ObjectType.EXECUTABLE, record[0].toString()));
                 executableSummary.setType(ExecutableSummary.Type.valueOf(record[1].toString().trim()));
                 executableSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
                 executableSummary.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
@@ -256,7 +256,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 switch (executableSummary.getType()) {
                     case USED_ROOM:
                         executableSummary.setRoomId(
-                                EntityIdentifier.formatId(EntityType.EXECUTABLE, record[9].toString()));
+                                ObjectIdentifier.formatId(ObjectType.EXECUTABLE, record[9].toString()));
                     case ROOM:
                         executableSummary.setRoomName(record[5] != null ? record[5].toString() : null);
                         if (record[6] != null) {
@@ -300,20 +300,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
 
             Executable executableApi = executable.toApi(authorization.isAdministrator(securityToken));
             cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {
-                executableApi.setReservationId(EntityIdentifier.formatId(reservation));
+                executableApi.setReservationId(ObjectIdentifier.formatId(reservation));
             }
             return executableApi;
         }
@@ -331,13 +331,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(request.getExecutableId(), EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(request.getExecutableId(), ObjectType.EXECUTABLE);
         try {
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
 
             QueryFilter queryFilter = new QueryFilter("executableService", true);
@@ -440,15 +440,15 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
                 cz.cesnet.shongo.controller.booking.executable.Executable.State executableState = executable.getState();
@@ -472,16 +472,16 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", objectId);
             }
 
             executableManager.delete(executable, authorizationManager);
@@ -490,8 +490,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             authorizationManager.commitTransaction();
         }
         catch (javax.persistence.RollbackException exception) {
-            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
-                    cz.cesnet.shongo.controller.booking.executable.Executable.class, entityId.getPersistenceId());
+            ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
+                    cz.cesnet.shongo.controller.booking.executable.Executable.class, objectId.getPersistenceId());
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -511,15 +511,15 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update executable %s", objectId);
             }
 
             Set<cz.cesnet.shongo.controller.booking.executable.Executable> executablesToUpdate =
@@ -568,19 +568,20 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(roomExecutableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(roomExecutableId, ObjectType.EXECUTABLE);
         try {
             // Get and check room executable
             ResourceRoomEndpoint roomExecutable =
-                    entityManager.find(ResourceRoomEndpoint.class, entityId.getPersistenceId());
+                    entityManager.find(ResourceRoomEndpoint.class, objectId.getPersistenceId());
             if (roomExecutable == null) {
-                ControllerReportSetHelper.throwEntityNotExistFault(RoomExecutable.class, entityId.getPersistenceId());
+                ControllerReportSetHelper.throwObjectNotExistFault(
+                        cz.cesnet.shongo.controller.booking.executable.Executable.class, objectId.getPersistenceId());
                 return;
             }
             DeviceResource deviceResource = roomExecutable.getResource();
             if (!authorization.hasObjectPermission(securityToken, roomExecutable, ObjectPermission.WRITE) ||
                     !authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", objectId);
             }
             if (!roomExecutable.getState()
                     .equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
@@ -602,7 +603,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     .getResultList();
             if (roomExecutables.size() > 0) {
                 throw new CommonReportSet.UnknownErrorException("Device room is already used in " +
-                        EntityIdentifier.formatId(roomExecutables.get(0)) + ".");
+                        ObjectIdentifier.formatId(roomExecutables.get(0)) + ".");
             }
 
             // Attach device room to room executable
@@ -628,13 +629,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
-                    executableManager.get(entityId.getPersistenceId());
+                    executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", objectId);
             }
 
             cz.cesnet.shongo.controller.booking.executable.ExecutableService executableService =
@@ -681,14 +682,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(executableId, ObjectType.EXECUTABLE);
         try {
-            Long persistenceId = entityId.getPersistenceId();
+            Long persistenceId = objectId.getPersistenceId();
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(persistenceId);
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control executable %s", objectId);
             }
 
             cz.cesnet.shongo.controller.booking.executable.ExecutableService executableService =
@@ -742,14 +743,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(request.getExecutableId(), EntityType.EXECUTABLE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(request.getExecutableId(), ObjectType.EXECUTABLE);
         try {
-            Long executableId = entityId.getPersistenceId();
+            Long executableId = objectId.getPersistenceId();
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(executableId);
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
 
             List<Recording> recordings = executableRecordingsCache.get(executableId);
@@ -856,7 +857,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         String agentName = managedMode.getConnectorAgentName();
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, command);
         if (!sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
-            throw new ControllerReportSet.DeviceCommandFailedException(EntityIdentifier.formatId(deviceResource),
+            throw new ControllerReportSet.DeviceCommandFailedException(ObjectIdentifier.formatId(deviceResource),
                     command.toString(), sendLocalCommand.getJadeReport());
         }
         return sendLocalCommand.getResult();

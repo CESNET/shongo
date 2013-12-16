@@ -4,11 +4,11 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
@@ -284,7 +284,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     @Override
     public String getReportContextName()
     {
-        return "reservation request " + EntityIdentifier.formatId(this);
+        return "reservation request " + ObjectIdentifier.formatId(this);
     }
 
     @Transient
@@ -295,7 +295,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public void validate() throws CommonReportSet.EntityInvalidException
+    public void validate() throws CommonReportSet.ObjectInvalidException
     {
         validateSlotDuration(getSlot().toPeriod());
 
@@ -350,13 +350,13 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         if (parentAllocation != null) {
             reservationRequestApi.setParentReservationRequestId(
-                    EntityIdentifier.formatId(parentAllocation.getReservationRequest()));
+                    ObjectIdentifier.formatId(parentAllocation.getReservationRequest()));
         }
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setAllocationState(allocationState.toApi());
         reservationRequestApi.setAllocationStateReport(getAllocationStateReport(userType));
         for (Reservation reservation : getAllocation().getReservations()) {
-            reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
+            reservationRequestApi.addReservationId(ObjectIdentifier.formatId(reservation));
         }
         super.toApi(api, userType);
     }

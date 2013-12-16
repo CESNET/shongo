@@ -67,8 +67,8 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, resourceId);
             Assert.fail("Resource should not exist.");
         }
-        catch (CommonReportSet.EntityNotExistsException exception) {
-            Assert.assertEquals(resourceId, exception.getId());
+        catch (CommonReportSet.ObjectNotExistsException exception) {
+            Assert.assertEquals(resourceId, exception.getObjectId());
         }
     }
 
@@ -116,8 +116,8 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
             Assert.fail("Device resource should not exist.");
         }
-        catch (CommonReportSet.EntityNotExistsException exception) {
-            Assert.assertEquals(deviceResourceId, exception.getId());
+        catch (CommonReportSet.ObjectNotExistsException exception) {
+            Assert.assertEquals(deviceResourceId, exception.getObjectId());
         }
     }
 

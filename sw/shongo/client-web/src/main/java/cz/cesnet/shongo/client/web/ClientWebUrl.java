@@ -101,13 +101,13 @@ public class ClientWebUrl
             "/reservation-request/participant/{participantId}/delete";
 
     public static final String USER_ROLE_LIST =
-            "/user-role/{entityId:.+}/list";
+            "/user-role/{objectId:.+}/list";
     public static final String USER_ROLE_LIST_DATA =
-            "/user-role/{entityId:.+}/list/data";
+            "/user-role/{objectId:.+}/list/data";
     public static final String USER_ROLE_CREATE =
-            "/user-role/{entityId:.+}/create";
+            "/user-role/{objectId:.+}/create";
     public static final String USER_ROLE_DELETE =
-            "/user-role/{entityId:.+}/{roleId}/delete";
+            "/user-role/{objectId:.+}/{roleId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";

@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -53,19 +54,19 @@ public class UserRoleController
     public ModelAndView handleListView(
             Locale locale,
             SecurityToken securityToken,
-            @PathVariable(value = "entityId") String entityId)
+            @PathVariable(value = "objectId") String objectId)
     {
         ModelAndView modelAndView = new ModelAndView("userRoleList");
-        modelAndView.addObject("entityId", entityId);
-        if (entityId.contains(":req:")) {
-            ReservationRequestSummary reservationRequest = cache.getReservationRequestSummary(securityToken, entityId);
+        modelAndView.addObject("objectId", objectId);
+        if (objectId.contains(":req:")) {
+            ReservationRequestSummary reservationRequest = cache.getReservationRequestSummary(securityToken, objectId);
             SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
             modelAndView.addObject("headingFor",
                     messageSource.getMessage("views.reservationRequest.for." + specificationType,
                             new Object[]{reservationRequest.getRoomName()}, locale));
         }
         else {
-            throw new UnsupportedApiException(entityId);
+            throw new UnsupportedApiException(objectId);
         }
         return modelAndView;
     }
@@ -78,7 +79,7 @@ public class UserRoleController
     public Map handleListData(
             Locale locale,
             SecurityToken securityToken,
-            @PathVariable(value = "entityId") String entityId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
@@ -87,7 +88,7 @@ public class UserRoleController
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        request.addEntityId(entityId);
+        request.addObjectId(objectId);
         ListResponse<AclEntry> response = authorizationService.listAclEntries(request);
 
         // Build response
@@ -95,7 +96,10 @@ public class UserRoleController
         for (AclEntry aclEntry : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclEntry.getId());
-            item.put("user", cache.getUserInformation(securityToken, aclEntry.getUserId()));
+            if (!aclEntry.getIdentityType().equals(AclIdentityType.USER)) {
+                throw new UnsupportedApiException(aclEntry.getIdentityType());
+            }
+            item.put("user", cache.getUserInformation(securityToken, aclEntry.getIdentityPrincipalId()));
             String objectRole = aclEntry.getRole().toString();
             item.put("role", messageSource.getMessage("views.userRole.objectRole." + objectRole, null, locale));
             item.put("deletable", aclEntry.isDeletable());
@@ -114,10 +118,10 @@ public class UserRoleController
     @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.GET)
     public ModelAndView handleRoleCreate(
             SecurityToken securityToken,
-            @PathVariable(value = "entityId") String entityId)
+            @PathVariable(value = "objectId") String objectId)
     {
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
-        userRole.setObjectId(entityId);
+        userRole.setObjectId(objectId);
         return handleRoleCreate(userRole);
     }
 
@@ -127,11 +131,11 @@ public class UserRoleController
     @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.POST)
     public Object handleRoleCreateProcess(
             SecurityToken securityToken,
-            @PathVariable(value = "entityId") String entityId,
+            @PathVariable(value = "objectId") String objectId,
             @ModelAttribute("userRole") UserRoleModel userRole,
             BindingResult result)
     {
-        if (!userRole.getObjectId().equals(entityId)) {
+        if (!userRole.getObjectId().equals(objectId)) {
             throw new IllegalStateException("Acl entry object id doesn't match the reservation request id.");
         }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
@@ -140,9 +144,9 @@ public class UserRoleController
             return handleRoleCreate(userRole);
         }
         authorizationService.createAclEntry(securityToken,
-                userRole.getUserId(), userRole.getObjectId(), userRole.getRole());
+                new AclEntry(userRole.getUserId(), userRole.getObjectId(), userRole.getRole()));
 
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, objectId);
     }
 
     /**
@@ -152,13 +156,13 @@ public class UserRoleController
             method = RequestMethod.GET)
     public String handleRoleDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "entityId") String entityId,
+            @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "roleId") String userRoleId,
             Model model)
     {
         AclEntryListRequest request = new AclEntryListRequest();
         request.setSecurityToken(securityToken);
-        request.addEntityId(entityId);
+        request.addObjectId(objectId);
         request.addRole(ObjectRole.OWNER);
         ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
         if (aclEntries.getItemCount() == 1 && aclEntries.getItem(0).getId().equals(userRoleId)) {
@@ -167,7 +171,7 @@ public class UserRoleController
             return "message";
         }
         authorizationService.deleteAclEntry(securityToken, userRoleId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, objectId);
     }
 
     /**

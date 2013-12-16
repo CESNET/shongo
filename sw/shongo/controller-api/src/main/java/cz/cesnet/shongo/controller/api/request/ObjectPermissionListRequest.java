@@ -40,12 +40,12 @@ public class ObjectPermissionListRequest extends AbstractRequest
      * Constructor.
      *
      * @param securityToken sets the {@link #securityToken}
-     * @param entityId to be added to the {@link #objectIds}
+     * @param objectId to be added to the {@link #objectIds}
      */
-    public ObjectPermissionListRequest(SecurityToken securityToken, String entityId)
+    public ObjectPermissionListRequest(SecurityToken securityToken, String objectId)
     {
         super(securityToken);
-        this.objectIds.add(entityId);
+        this.objectIds.add(objectId);
     }
 
     /**
@@ -70,9 +70,9 @@ public class ObjectPermissionListRequest extends AbstractRequest
         this.objectIds = objectIds;
     }
 
-    public void addEntityId(String entityId)
+    public void addObjectId(String objectId)
     {
-        objectIds.add(entityId);
+        objectIds.add(objectId);
     }
 
     private static final String OBJECT_IDS = "objectIds";

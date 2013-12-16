@@ -25,12 +25,12 @@ public class AclEntryListRequest extends ListRequest
     private Set<String> userIds = new HashSet<String>();
 
     /**
-     * Identifier of the Shongo public entity.
+     * Identifier of the Shongo public objects.
      */
     private Set<String> objectIds = new HashSet<String>();
 
     /**
-     * Role which the user has for the entity.
+     * Role which the user has for the object.
      */
     private Set<ObjectRole> roles = new HashSet<ObjectRole>();
 
@@ -69,11 +69,11 @@ public class AclEntryListRequest extends ListRequest
      * @param securityToken sets the {@link #securityToken}
      * @param userId to be added to the {@link #userIds}
      */
-    public AclEntryListRequest(SecurityToken securityToken, String userId, String entityId, ObjectRole objectRole)
+    public AclEntryListRequest(SecurityToken securityToken, String userId, String objectId, ObjectRole objectRole)
     {
         super(securityToken);
         addUserId(userId);
-        addEntityId(entityId);
+        addObjectId(objectId);
         addRole(objectRole);
     }
 
@@ -117,9 +117,9 @@ public class AclEntryListRequest extends ListRequest
         this.objectIds = objectIds;
     }
 
-    public void addEntityId(String entityId)
+    public void addObjectId(String objectId)
     {
-        objectIds.add(entityId);
+        objectIds.add(objectId);
     }
 
     public Set<ObjectRole> getRoles()

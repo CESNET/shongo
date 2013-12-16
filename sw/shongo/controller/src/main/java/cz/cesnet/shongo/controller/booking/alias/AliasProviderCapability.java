@@ -3,10 +3,8 @@ package cz.cesnet.shongo.controller.booking.alias;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
-import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -281,7 +279,7 @@ public class AliasProviderCapability extends Capability
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getResource()) {
-            aliasProviderApi.setValueProvider(EntityIdentifier.formatId(valueProviderResource));
+            aliasProviderApi.setValueProvider(ObjectIdentifier.formatId(valueProviderResource));
         }
         else {
             aliasProviderApi.setValueProvider(valueProvider.toApi());

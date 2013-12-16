@@ -4,7 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.acl.AclIdentityType;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -113,10 +113,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Ignore reservations for already allocated reservation request
             String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
             if (ignoredReservationRequestId != null) {
-                EntityIdentifier entityId = EntityIdentifier.parse(
-                        ignoredReservationRequestId, EntityType.RESERVATION_REQUEST);
+                ObjectIdentifier objectId = ObjectIdentifier.parse(
+                        ignoredReservationRequestId, ObjectType.RESERVATION_REQUEST);
                 cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest ignoredReservationRequest =
-                        reservationRequestManager.get(entityId.getPersistenceId());
+                        reservationRequestManager.get(objectId.getPersistenceId());
                 for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                         ignoredReservationRequest.getAllocation().getReservations()) {
                     if (reservation.getSlot().overlaps(interval)) {
@@ -140,10 +140,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 // Check reservation request reusability
                 String reservationRequestId = request.getReservationRequestId();
                 if (reservationRequestId != null) {
-                    EntityIdentifier entityId = EntityIdentifier.parse(
-                            reservationRequestId, EntityType.RESERVATION_REQUEST);
+                    ObjectIdentifier objectId = ObjectIdentifier.parse(
+                            reservationRequestId, ObjectType.RESERVATION_REQUEST);
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
-                            reservationRequestManager.get(entityId.getPersistenceId());
+                            reservationRequestManager.get(objectId.getPersistenceId());
                     schedulerContext.getReusableReservation(reservationRequest.getAllocation());
                 }
 
@@ -237,7 +237,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
-            return EntityIdentifier.formatId(reservationRequest);
+            return ObjectIdentifier.formatId(reservationRequest);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -261,23 +261,23 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         String reservationRequestId = reservationRequestApi.getId();
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         try {
             // Get old reservation request and check permissions and restrictions for modification
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest oldReservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
             if (!authorization.hasObjectPermission(securityToken, oldReservationRequest, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify reservation request %s", objectId);
             }
             switch (oldReservationRequest.getState()) {
                 case MODIFIED:
-                    throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(entityId.toId());
+                    throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(objectId.toId());
                 case DELETED:
-                    throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
+                    throw new ControllerReportSet.ReservationRequestDeletedException(objectId.toId());
             }
             if (!isReservationRequestModifiable(oldReservationRequest)) {
-                throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
+                throw new ControllerReportSet.ReservationRequestNotModifiableException(objectId.toId());
             }
 
             // Change user id (only root can do that)
@@ -318,7 +318,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            oldReservationRequest = reservationRequestManager.get(entityId.getPersistenceId());
+            oldReservationRequest = reservationRequestManager.get(objectId.getPersistenceId());
             oldReservationRequest.setUpdatedBy(userId);
 
             // Create new reservation request and update old reservation request
@@ -354,7 +354,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
-            return EntityIdentifier.formatId(newReservationRequest);
+            return ObjectIdentifier.formatId(newReservationRequest);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -374,7 +374,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (reservationRequestId == null) {
             throw new IllegalArgumentException();
         }
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -384,12 +384,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
 
             if (!abstractReservationRequest.getState().equals(
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.State.ACTIVE)) {
                 throw new ControllerReportSet.ReservationRequestNotRevertibleException(
-                        EntityIdentifier.formatId(abstractReservationRequest));
+                        ObjectIdentifier.formatId(abstractReservationRequest));
             }
 
             if (abstractReservationRequest instanceof ReservationRequest) {
@@ -398,12 +398,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (reservationRequest.getAllocationState().equals(
                         ReservationRequest.AllocationState.ALLOCATED)) {
                     throw new ControllerReportSet.ReservationRequestNotRevertibleException(
-                            EntityIdentifier.formatId(abstractReservationRequest));
+                            ObjectIdentifier.formatId(abstractReservationRequest));
                 }
             }
 
             if (!authorization.hasObjectPermission(securityToken, abstractReservationRequest, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("revert reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("revert reservation request %s", objectId);
             }
 
             // Set modified reservation request as ACTIVE
@@ -420,7 +420,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
-            return EntityIdentifier.formatId(modifiedReservationRequest);
+            return ObjectIdentifier.formatId(modifiedReservationRequest);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -440,7 +440,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (reservationRequestId == null) {
             throw new IllegalArgumentException();
         }
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -450,21 +450,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", objectId);
             }
             switch (reservationRequest.getState()) {
                 case MODIFIED:
-                    throw new ControllerReportSet.ReservationRequestNotDeletableException(entityId.toId());
+                    throw new ControllerReportSet.ReservationRequestNotDeletableException(objectId.toId());
                 case DELETED:
-                    throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
+                    throw new ControllerReportSet.ReservationRequestDeletedException(objectId.toId());
             }
             ReservationManager reservationManager = new ReservationManager(entityManager);
             if (!isReservationRequestDeletable(reservationRequest, reservationManager)) {
                 throw new ControllerReportSet.ReservationRequestNotDeletableException(
-                        EntityIdentifier.formatId(reservationRequest));
+                        ObjectIdentifier.formatId(reservationRequest));
             }
 
             reservationRequest.setUpdatedBy(securityToken.getUserId());
@@ -488,7 +488,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public void updateReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -498,10 +498,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest abstractReservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, abstractReservationRequest, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update reservation request %s", objectId);
             }
 
             // Update reservation requests
@@ -564,7 +564,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("reservation_request_summary.id IN (:reservationRequestIds)");
                 Set<Long> reservationRequestIds = new HashSet<Long>();
                 for (String reservationRequestId : request.getReservationRequestIds()) {
-                    reservationRequestIds.add(EntityIdentifier.parseId(
+                    reservationRequestIds.add(ObjectIdentifier.parseId(
                             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
                             reservationRequestId));
                 }
@@ -578,7 +578,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         + " SELECT DISTINCT abstract_reservation_request.allocation_id"
                         + " FROM abstract_reservation_request "
                         + " WHERE abstract_reservation_request.id = :parentReservationRequestId)");
-                queryFilter.addFilterParameter("parentReservationRequestId", EntityIdentifier.parseId(
+                queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseId(
                         cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
                         parentReservationRequestId));
             }
@@ -624,7 +624,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
                 else {
                     // List only reservation requests which reuse given reservation request
-                    Long persistenceId = EntityIdentifier.parseId(
+                    Long persistenceId = ObjectIdentifier.parseId(
                             ReservationRequest.class, reusedReservationRequestId);
                     queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
                             + ":reusedReservationRequestId");
@@ -712,13 +712,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
             }
 
             return reservationRequest.toApi(authorization.isAdministrator(securityToken));
@@ -736,19 +736,19 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
             cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
-                    reservationRequestManager.get(entityId.getPersistenceId());
+                    reservationRequestManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
             }
 
             String historyQuery = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_HISTORY);
 
             List history = entityManager.createNativeQuery(historyQuery)
-                    .setParameter("reservationRequestId", entityId.getPersistenceId())
+                    .setParameter("reservationRequestId", objectId.getPersistenceId())
                     .getResultList();
 
             List<ReservationRequestSummary> reservationRequestSummaries = new LinkedList<ReservationRequestSummary>();
@@ -772,14 +772,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationId, EntityType.RESERVATION);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationId, ObjectType.RESERVATION);
 
         try {
             cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
-                    reservationManager.get(entityId.getPersistenceId());
+                    reservationManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, reservation, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", objectId);
             }
 
             return reservation.toApi(authorization.isAdministrator(securityToken));
@@ -809,7 +809,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter("reservation.id IN (:reservationIds)");
                 Set<Long> reservationIds = new HashSet<Long>();
                 for (String reservationId : request.getReservationIds()) {
-                    reservationIds.add(EntityIdentifier.parseId(
+                    reservationIds.add(ObjectIdentifier.parseId(
                             cz.cesnet.shongo.controller.booking.reservation.Reservation.class, reservationId));
                 }
                 queryFilter.addFilterParameter("reservationIds", reservationIds);
@@ -859,7 +859,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         + "   LEFT JOIN childReservationRequest.allocation childAllocation"
                         + "   WHERE reservationRequest.id = :reservationRequestId"
                         + " ))");
-                queryFilter.addFilterParameter("reservationRequestId", EntityIdentifier.parseId(
+                queryFilter.addFilterParameter("reservationRequestId", ObjectIdentifier.parseId(
                         cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
                         request.getReservationRequestId()));
             }
@@ -964,9 +964,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     private void checkReusedReservationRequest(SecurityToken securityToken, String reusedReservationRequestId,
             ReservationRequestManager reservationRequestManager)
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reusedReservationRequestId);
         cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
-                reservationRequestManager.get(entityId.getPersistenceId());
+                reservationRequestManager.get(objectId.getPersistenceId());
         if (reservationRequest.getState().equals(
                 cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.State.DELETED)) {
             throw new ControllerReportSet.ReservationRequestDeletedException(reusedReservationRequestId);
@@ -974,7 +974,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (!authorization.hasObjectPermission(securityToken, reservationRequest,
                 ObjectPermission.PROVIDE_RESERVATION_REQUEST)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
-                    "provide reservation request %s", entityId);
+                    "provide reservation request %s", objectId);
         }
     }
 
@@ -1053,8 +1053,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     private ReservationRequestSummary getReservationRequestSummary(Object[] record)
     {
         ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
-        reservationRequestSummary.setId(EntityIdentifier.formatId(
-                EntityType.RESERVATION_REQUEST, record[0].toString()));
+        reservationRequestSummary.setId(ObjectIdentifier.formatId(
+                ObjectType.RESERVATION_REQUEST, record[0].toString()));
         reservationRequestSummary.setType(ReservationRequestType.valueOf(record[1].toString().trim()));
         reservationRequestSummary.setDateTime(new DateTime(record[2]));
         reservationRequestSummary.setUserId(record[3].toString());
@@ -1073,10 +1073,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             record[9].toString().trim()).toApi());
         }
         reservationRequestSummary.setReusedReservationRequestId(record[10] != null ?
-                EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, record[10].toString()) : null);
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[10].toString()) : null);
         if (record[11] != null) {
-            reservationRequestSummary.setLastReservationId(EntityIdentifier.formatId(
-                    EntityType.RESERVATION, record[11].toString()));
+            reservationRequestSummary.setLastReservationId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION, record[11].toString()));
         }
         String type = record[12].toString().trim();
         if (type.equals("ALIAS")) {
@@ -1101,8 +1101,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
-            reservationRequestSummary.setResourceId(EntityIdentifier.formatId(
-                    EntityType.RESOURCE, ((Number) record[16]).longValue()));
+            reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
+                    ObjectType.RESOURCE, ((Number) record[16]).longValue()));
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);

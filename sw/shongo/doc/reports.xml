@@ -491,17 +491,17 @@
         </report>
 
         <report>
-            <id>entity-not-exists</id>
+            <id>object-not-exists</id>
             <classification severity="error"/>
             <params>
-                <param name="entity" type="String"/>
-                <param name="id" type="String"/>
+                <param name="objectType" type="String"/>
+                <param name="objectId" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                Entity ${entity} with identifier ${id} doesn't exist.
+                Object ${objectType} with identifier ${objectId} doesn't exist.
             </message>
             <example>
                 TODO:
@@ -510,17 +510,17 @@
         </report>
 
         <report>
-            <id>entity-invalid</id>
+            <id>object-invalid</id>
             <classification severity="error"/>
             <params>
-                <param name="entity" type="String"/>
+                <param name="objectId" type="String"/>
                 <param name="reason" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                Entity ${entity} validation failed: ${reason}
+                Object ${objectId} validation failed: ${reason}
             </message>
             <example>
                 TODO:
@@ -529,17 +529,17 @@
         </report>
 
         <report>
-            <id>entity-not-deletable-referenced</id>
+            <id>object-not-deletable-referenced</id>
             <classification severity="error"/>
             <params>
-                <param name="entity" type="String"/>
-                <param name="id" type="String"/>
+                <param name="objectType" type="String"/>
+                <param name="objectId" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.
+                Object ${objectType} with identifier ${objectId} cannot be deleted because it is still referenced.
             </message>
             <example>
                 TODO:
@@ -668,17 +668,17 @@
         </report>
 
         <report>
-            <id>acl-invalid-entity-role</id>
+            <id>acl-invalid-object-role</id>
             <classification severity="error"/>
             <params>
-                <param name="entity" type="String"/>
+                <param name="objectType" type="String"/>
                 <param name="role" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                ACL role ${role} is invalid for entity ${entity}.
+                ACL role ${role} is invalid for object ${objectType}.
             </message>
             <example>
                 TODO:

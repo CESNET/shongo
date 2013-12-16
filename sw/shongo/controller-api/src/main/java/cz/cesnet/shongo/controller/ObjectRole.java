@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Enumeration of all possible user {@link ObjectRole}s to entities of all {@link EntityType}s.
+ * Enumeration of all possible user {@link ObjectRole}s to entities of all {@link ObjectType}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

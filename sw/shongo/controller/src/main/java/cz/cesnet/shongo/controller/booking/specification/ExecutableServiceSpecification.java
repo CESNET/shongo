@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.booking.specification;
 
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.util.ObjectHelper;
@@ -96,7 +96,7 @@ public abstract class ExecutableServiceSpecification extends Specification
                 (cz.cesnet.shongo.controller.api.ExecutableServiceSpecification) specificationApi;
 
         if (executable != null) {
-            executableServiceSpecificationApi.setExecutableId(EntityIdentifier.formatId(executable));
+            executableServiceSpecificationApi.setExecutableId(ObjectIdentifier.formatId(executable));
         }
         executableServiceSpecificationApi.setEnabled(enabled);
     }
@@ -114,7 +114,7 @@ public abstract class ExecutableServiceSpecification extends Specification
             setExecutable(null);
         }
         else {
-            Long executableId = EntityIdentifier.parseId(Executable.class,
+            Long executableId = ObjectIdentifier.parseId(Executable.class,
                     endpointId);
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             setExecutable(executableManager.get(executableId));

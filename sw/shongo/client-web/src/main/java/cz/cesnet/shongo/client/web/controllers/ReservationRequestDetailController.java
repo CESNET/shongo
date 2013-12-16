@@ -164,7 +164,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         // Add user roles
         AclEntryListRequest userRoleRequest = new AclEntryListRequest();
         userRoleRequest.setSecurityToken(securityToken);
-        userRoleRequest.addEntityId(reservationRequestId);
+        userRoleRequest.addObjectId(reservationRequestId);
         for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
             reservationRequestModel.addUserRole(new UserRoleModel(aclEntry, cacheProvider));
         }

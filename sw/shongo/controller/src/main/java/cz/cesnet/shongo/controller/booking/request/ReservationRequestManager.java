@@ -117,7 +117,7 @@ public class ReservationRequestManager extends AbstractManager
 
         Allocation allocation = reservationRequest.getAllocation();
         if (!deleteAllocation(allocation, reservationRequest.getUpdatedBy(), authorizationManager)) {
-            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+            ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
 
@@ -149,7 +149,7 @@ public class ReservationRequestManager extends AbstractManager
 
         Allocation allocation = reservationRequest.getAllocation();
         if (!deleteAllocation(allocation, reservationRequest.getUpdatedBy(), authorizationManager)) {
-            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+            ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
 
@@ -250,10 +250,10 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link AbstractReservationRequest} doesn't exist
      */
-    public AbstractReservationRequest get(Long reservationRequestId) throws CommonReportSet.EntityNotExistsException
+    public AbstractReservationRequest get(Long reservationRequestId) throws CommonReportSet.ObjectNotExistsException
     {
         try {
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
@@ -265,18 +265,18 @@ public class ReservationRequestManager extends AbstractManager
         }
         catch (NoResultException exception) {
             return ControllerReportSetHelper
-                    .throwEntityNotExistFault(AbstractReservationRequest.class, reservationRequestId);
+                    .throwObjectNotExistFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequest(Long reservationRequestId)
-            throws CommonReportSet.EntityNotExistsException
+            throws CommonReportSet.ObjectNotExistsException
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
@@ -287,7 +287,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(ReservationRequest.class, reservationRequestId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(ReservationRequest.class, reservationRequestId);
         }
     }
 
@@ -296,7 +296,7 @@ public class ReservationRequestManager extends AbstractManager
      * @return {@link AbstractReservationRequest} with given {@code specification} or {@code null}
      */
     public AbstractReservationRequest getBySpecification(Specification specification)
-            throws CommonReportSet.EntityNotExistsException
+            throws CommonReportSet.ObjectNotExistsException
     {
         try {
             return entityManager.createQuery(
@@ -314,11 +314,11 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link ReservationRequestSet} doesn't exist
      */
     public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId)
-            throws CommonReportSet.EntityNotExistsException
+            throws CommonReportSet.ObjectNotExistsException
     {
         try {
             ReservationRequestSet reservationRequestSet = entityManager.createQuery(
@@ -329,7 +329,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(
+            return ControllerReportSetHelper.throwObjectNotExistFault(
                     ReservationRequestSet.class, reservationRequestSetId);
         }
     }

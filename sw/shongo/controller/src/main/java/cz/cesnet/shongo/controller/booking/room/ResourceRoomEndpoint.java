@@ -9,7 +9,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
@@ -120,7 +120,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;
         roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
-        roomExecutableEndpointApi.setResourceId(EntityIdentifier.formatId(getResource()));
+        roomExecutableEndpointApi.setResourceId(ObjectIdentifier.formatId(getResource()));
         roomExecutableEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
             roomExecutableEndpointApi.addTechnology(technology);

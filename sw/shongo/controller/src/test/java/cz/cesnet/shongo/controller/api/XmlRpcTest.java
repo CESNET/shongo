@@ -195,8 +195,8 @@ public class XmlRpcTest extends AbstractControllerTest
             resourceService.getResource(SECURITY_TOKEN, "1");
             Assert.fail("Exception should be thrown.");
         }
-        catch (CommonReportSet.EntityNotExistsException exception) {
-            Assert.assertEquals("shongo:cz.cesnet:res:1", exception.getId());
+        catch (CommonReportSet.ObjectNotExistsException exception) {
+            Assert.assertEquals("shongo:cz.cesnet:res:1", exception.getObjectId());
         }
     }
 

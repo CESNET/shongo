@@ -38,18 +38,18 @@ public class PermissionEvaluator implements org.springframework.security.access.
             return cache.hasSystemPermission(securityToken, systemPermission);
         }
         else {
-            String entityId;
+            String objectId;
             if (targetDomainObject instanceof RoomModel) {
-                entityId = ((RoomModel) targetDomainObject).getId();
+                objectId = ((RoomModel) targetDomainObject).getId();
             }
             else if (targetDomainObject instanceof Executable) {
-                entityId = ((Executable) targetDomainObject).getId();
+                objectId = ((Executable) targetDomainObject).getId();
             }
             else if (targetDomainObject instanceof AbstractReservationRequest) {
-                entityId = ((AbstractReservationRequest) targetDomainObject).getId();
+                objectId = ((AbstractReservationRequest) targetDomainObject).getId();
             }
             else if (targetDomainObject instanceof ReservationRequestModel) {
-                entityId = ((ReservationRequestModel) targetDomainObject).getId();
+                objectId = ((ReservationRequestModel) targetDomainObject).getId();
             }
             else {
                 throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
@@ -61,7 +61,7 @@ public class PermissionEvaluator implements org.springframework.security.access.
             else {
                 objectPermission = ObjectPermission.valueOf(permissionValue.toString());
             }
-            return cache.getObjectPermissions(securityToken, entityId).contains(objectPermission);
+            return cache.getObjectPermissions(securityToken, objectId).contains(objectPermission);
         }
     }
 

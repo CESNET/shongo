@@ -311,11 +311,12 @@ sub create_acl()
         console_print_error("Arguments '<user-id> <object-id> <role>' must be specified.");
         return;
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.createAclEntry',
-        RPC::XML::string->new($args[0]),
-        RPC::XML::string->new($args[1]),
-        RPC::XML::string->new($args[2])
-    );
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.createAclEntry', {
+        'identityType' => 'USER',
+        'identityPrincipalId' => RPC::XML::string->new($args[0]),
+        'objectId' => RPC::XML::string->new($args[1]),
+        'role' => RPC::XML::string->new($args[2])
+    });
     if ( defined($response) && !ref($response) ) {
         console_print_info("ACL entry '%s' has been created.", $response);
     }
@@ -328,20 +329,20 @@ sub delete_acl()
     my $ids = [];
 
     my $user_id = {};
-    my $entityId = {};
+    my $objectId = {};
     my $role = {};
     if ( defined($options->{'user'}) ) {
         $user_id = RPC::XML::string->new($options->{'user'});
     }
-    if ( defined($options->{'entity'}) ) {
-        $entityId = RPC::XML::string->new($options->{'entity'});
+    if ( defined($options->{'object'}) ) {
+        $objectId = RPC::XML::string->new($options->{'object'});
     }
     if ( defined($options->{'role'}) ) {
         $role = RPC::XML::string->new($options->{'role'});
     }
-    if ( ref($user_id) ne 'HASH' || ref($entityId) ne 'HASH' || ref($role) ne 'HASH' ) {
+    if ( ref($user_id) ne 'HASH' || ref($objectId) ne 'HASH' || ref($role) ne 'HASH' ) {
         my $application = Shongo::ClientCli->instance();
-        my $response = $application->secure_request('Authorization.listAclEntries', $user_id, $entityId, $role);
+        my $response = $application->secure_request('Authorization.listAclEntries', $user_id, $objectId, $role);
         if ( defined($response) ) {
             foreach my $entry (@{$response}) {
                 push(@{$ids}, $entry->{'id'});
@@ -443,7 +444,7 @@ sub list_permissions()
     }
     my $objectId = $args[0];
     my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listObjectPermissions', {
-        'entityIds' => [RPC::XML::string->new($objectId)],
+        'objectIds' => [RPC::XML::string->new($objectId)],
     });
     my $table = {
         'columns' => [

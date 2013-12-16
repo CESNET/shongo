@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
@@ -60,8 +60,10 @@ public class MigrationTest extends AbstractExecutorTest
         // Set the allocated room as started, because a migration is allocated only for started rooms
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(EntityIdentifier.parseId(
-                cz.cesnet.shongo.controller.booking.executable.Executable.class, reservation.getExecutable().getId()));
+        cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(
+                ObjectIdentifier.parseId(
+                        cz.cesnet.shongo.controller.booking.executable.Executable.class,
+                        reservation.getExecutable().getId()));
         executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
         executableManager.update(executable);
         entityManager.close();
@@ -111,7 +113,7 @@ public class MigrationTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
-        Long mcuPersistenceId = EntityIdentifier.parse(mcuId).getPersistenceId();
+        Long mcuPersistenceId = ObjectIdentifier.parse(mcuId).getPersistenceId();
 
         ReservationService service = getReservationService();
 
@@ -173,7 +175,7 @@ public class MigrationTest extends AbstractExecutorTest
         mcu1.addCapability(new RoomProviderCapability(5));
         mcu1.setMode(new ManagedMode(mcuAgent1.getName()));
         String mcu1Id = getResourceService().createResource(SECURITY_TOKEN, mcu1);
-        Long mcu1PersistenceId = EntityIdentifier.parse(mcu1Id).getPersistenceId();
+        Long mcu1PersistenceId = ObjectIdentifier.parse(mcu1Id).getPersistenceId();
 
         DeviceResource mcu2 = new DeviceResource();
         mcu2.setName("mcu1");
@@ -182,7 +184,7 @@ public class MigrationTest extends AbstractExecutorTest
         mcu2.addCapability(new RoomProviderCapability(10));
         mcu2.setMode(new ManagedMode(mcuAgent2.getName()));
         String mcu2Id = getResourceService().createResource(SECURITY_TOKEN, mcu2);
-        Long mcu2PersistenceId = EntityIdentifier.parse(mcu2Id).getPersistenceId();
+        Long mcu2PersistenceId = ObjectIdentifier.parse(mcu2Id).getPersistenceId();
 
         ReservationService service = getReservationService();
 

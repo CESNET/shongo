@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
@@ -86,8 +86,8 @@ public class Reporter
                 if (Controller.hasInstance()) {
                     entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
                     try {
-                        EntityIdentifier resourceId = EntityIdentifier.parse(
-                                resourceReport.getResourceId(), EntityType.RESOURCE);
+                        ObjectIdentifier resourceId = ObjectIdentifier.parse(
+                                resourceReport.getResourceId(), ObjectType.RESOURCE);
                         resource = entityManager.find(Resource.class, resourceId.getPersistenceId());
                     }
                     catch (Exception exception) {
@@ -307,7 +307,7 @@ public class Reporter
         if (resource != null) {
             emailContent.append("\n\nRESOURCE\n\n");
             emailContent.append(" Identifier: ");
-            emailContent.append(new EntityIdentifier(resource).toId());
+            emailContent.append(new ObjectIdentifier(resource).toId());
             emailContent.append("\n");
             emailContent.append("       Name: ");
             emailContent.append(resource.getName());

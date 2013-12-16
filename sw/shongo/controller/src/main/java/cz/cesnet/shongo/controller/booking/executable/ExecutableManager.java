@@ -66,10 +66,10 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executableId of the {@link Executable}
      * @return {@link Executable} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link Executable} doesn't exist
      */
-    public Executable get(Long executableId) throws CommonReportSet.EntityNotExistsException
+    public Executable get(Long executableId) throws CommonReportSet.ObjectNotExistsException
     {
         try {
             return entityManager.createQuery(
@@ -81,14 +81,14 @@ public class ExecutableManager extends AbstractManager
                     .getSingleResult();
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(Executable.class, executableId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(Executable.class, executableId);
         }
     }
 
     /**
      * @param executableServiceId of the {@link ExecutableService}
      * @return {@link ExecutableService} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link ExecutableService} doesn't exist
      */
     public ExecutableService getService(Long executableServiceId)
@@ -100,7 +100,7 @@ public class ExecutableManager extends AbstractManager
                     .getSingleResult();
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(ExecutableService.class, executableServiceId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(ExecutableService.class, executableServiceId);
         }
     }
 

@@ -2,11 +2,11 @@ package cz.cesnet.shongo.controller.booking.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -420,7 +420,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     @Transient
     public String getReportDescription()
     {
-        return EntityIdentifier.formatId(this);
+        return ObjectIdentifier.formatId(this);
     }
 
     /**
@@ -448,9 +448,9 @@ public class Reservation extends PersistentObject implements ReportableSimple
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
     {
-        api.setId(EntityIdentifier.formatId(this));
+        api.setId(ObjectIdentifier.formatId(this));
         if (getReservationRequest() != null) {
-            api.setReservationRequestId(EntityIdentifier.formatId(getReservationRequest()));
+            api.setReservationRequestId(ObjectIdentifier.formatId(getReservationRequest()));
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
@@ -459,10 +459,10 @@ public class Reservation extends PersistentObject implements ReportableSimple
             api.setExecutable(executable);
         }
         if (getParentReservation() != null) {
-            api.setParentReservationId(EntityIdentifier.formatId(getParentReservation()));
+            api.setParentReservationId(ObjectIdentifier.formatId(getParentReservation()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationId(EntityIdentifier.formatId(childReservation));
+            api.addChildReservationId(ObjectIdentifier.formatId(childReservation));
         }
         api.sortChildReservationIds();
     }

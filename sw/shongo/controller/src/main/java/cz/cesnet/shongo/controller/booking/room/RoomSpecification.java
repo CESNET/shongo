@@ -2,11 +2,10 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -367,7 +366,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                     (cz.cesnet.shongo.controller.api.StandaloneRoomSpecification) abstractRoomSpecificationApi;
 
             if (deviceResource != null) {
-                standaloneRoomSpecificationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
+                standaloneRoomSpecificationApi.setResourceId(ObjectIdentifier.formatId(deviceResource));
             }
             for (Technology technology : getTechnologies()) {
                 standaloneRoomSpecificationApi.addTechnology(technology);
@@ -458,7 +457,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.booking.resource.Resource.class,
+                Long resourceId = ObjectIdentifier.parseId(cz.cesnet.shongo.controller.booking.resource.Resource.class,
                         standaloneRoomSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));

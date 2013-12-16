@@ -111,13 +111,11 @@ public interface AuthorizationService extends Service
      *
      *
      * @param token      token of the user requesting the operation
-     * @param userId     identifier of the Shongo user
-     * @param objectId   identifier of the Shongo object
-     * @param role       role which the user gets granted for the object
+     * @param aclEntry   to be created
      * @return identifier of newly created ACL entry
      */
     @API
-    public String createAclEntry(SecurityToken token, String userId, String objectId, ObjectRole role);
+    public String createAclEntry(SecurityToken token, AclEntry aclEntry);
 
     /**
      * Delete {@link cz.cesnet.shongo.controller.api.AclEntry} with given {@code id}.
@@ -138,7 +136,7 @@ public interface AuthorizationService extends Service
     public ListResponse<AclEntry> listAclEntries(AclEntryListRequest request);
 
     /**
-     * List {@link ObjectPermission}s of requesting user for entities.
+     * List {@link ObjectPermission}s of requesting user for objects.
      *
      * @param request {@link ObjectPermissionListRequest}
      * @return set of permissions for each requested object
@@ -148,11 +146,11 @@ public interface AuthorizationService extends Service
 
     /**
      * @param token     token of the user requesting the operation
-     * @param entityId  of the object
-     * @param newUserId new user-id for the given {@code entityId}
+     * @param objectId  of the object
+     * @param newUserId new user-id for the given {@code objectId}
      */
     @API
-    public void setObjectUser(SecurityToken token, String entityId, String newUserId);
+    public void setObjectUser(SecurityToken token, String objectId, String newUserId);
 
     /**
      * @param securityToken token of the user requesting the operation

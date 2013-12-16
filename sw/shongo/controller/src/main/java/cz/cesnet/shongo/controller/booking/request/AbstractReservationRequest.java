@@ -8,10 +8,10 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
@@ -373,13 +373,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * Validate {@link AbstractReservationRequest}.
      *
-     * @throws CommonReportSet.EntityInvalidException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectInvalidException
      *
      */
-    public void validate() throws CommonReportSet.EntityInvalidException
+    public void validate() throws CommonReportSet.ObjectInvalidException
     {
         if (modifiedReservationRequest != null && !modifiedReservationRequest.getState().equals(State.MODIFIED)) {
-            throw new CommonReportSet.EntityInvalidException(EntityIdentifier.formatId(modifiedReservationRequest),
+            throw new CommonReportSet.ObjectInvalidException(ObjectIdentifier.formatId(modifiedReservationRequest),
                     "Modified reservation request isn't of type MODIFIED.");
         }
     }
@@ -472,7 +472,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     @Transient
     public String getReportDescription()
     {
-        return EntityIdentifier.formatId(this);
+        return ObjectIdentifier.formatId(this);
     }
 
     /**
@@ -522,7 +522,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.UserType userType)
     {
-        api.setId(EntityIdentifier.formatId(this));
+        api.setId(ObjectIdentifier.formatId(this));
         api.setUserId(getCreatedBy());
         api.setDateTime(getCreatedAt());
         api.setPurpose(getPurpose());
@@ -532,7 +532,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         api.setInterDomain(isInterDomain());
         if (reusedAllocation != null) {
             api.setReusedReservationRequestId(
-                    EntityIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
+                    ObjectIdentifier.formatId(reusedAllocation.getReservationRequest()), reusedAllocationMandatory);
         }
         api.setReusement(getReusement());
 
@@ -577,7 +577,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
 
         if (api.getReusedReservationRequestId() != null) {
             Long reusedReservationRequestId =
-                    EntityIdentifier.parseId(ReservationRequest.class, api.getReusedReservationRequestId());
+                    ObjectIdentifier.parseId(ReservationRequest.class, api.getReusedReservationRequestId());
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationRequest reusedReservationRequest =
                     reservationRequestManager.getReservationRequest(reusedReservationRequestId);

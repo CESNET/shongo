@@ -69,14 +69,14 @@ public abstract class AclEntryManager extends AbstractManager
     /**
      * @param entryId
      * @return {@link AclEntry} with given {@code entryId}
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when {@link AclEntry} doesn't exist
      */
-    public AclEntry getAclEntry(Long entryId) throws CommonReportSet.EntityNotExistsException
+    public AclEntry getAclEntry(Long entryId) throws CommonReportSet.ObjectNotExistsException
     {
         AclEntry aclEntry = entityManager.find(AclEntry.class, entryId);
         if (aclEntry == null) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(AclEntry.class, entryId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(AclEntry.class, entryId);
         }
         return aclEntry;
     }

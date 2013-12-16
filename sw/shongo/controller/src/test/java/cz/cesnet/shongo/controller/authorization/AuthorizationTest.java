@@ -193,8 +193,10 @@ public class AuthorizationTest extends AbstractControllerTest
         Assert.assertEquals(aliasReservation.getId(), reservation1.getReservation().getId());
         Assert.assertEquals(aliasReservation.getId(), reservation2.getReservation().getId());
 
-        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, ObjectRole.OWNER);
-        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, user2Id, reservationRequest2Id, ObjectRole.OWNER);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1,
+                new AclEntry(user2Id, reservationRequest1Id, ObjectRole.OWNER));
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1,
+                new AclEntry(user2Id, reservationRequest2Id, ObjectRole.OWNER));
 
         Assert.assertNotNull("Reader role should be created",
                 getAclEntry(user2Id, aliasReservation.getId(), ObjectRole.READER));

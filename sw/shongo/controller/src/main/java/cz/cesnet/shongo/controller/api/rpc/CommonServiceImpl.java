@@ -6,7 +6,7 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -126,7 +126,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
-                connector.setResourceId(EntityIdentifier.formatId(deviceResource));
+                connector.setResourceId(ObjectIdentifier.formatId(deviceResource));
                 deviceResourceMap.remove(agentName);
             }
 
@@ -136,7 +136,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());
-            connector.setResourceId(EntityIdentifier.formatId(entry.getValue()));
+            connector.setResourceId(ObjectIdentifier.formatId(entry.getValue()));
             connector.setStatus(Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }

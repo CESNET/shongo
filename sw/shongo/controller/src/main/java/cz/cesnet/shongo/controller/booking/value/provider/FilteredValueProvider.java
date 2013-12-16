@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.booking.value.provider;
 
 import cz.cesnet.shongo.controller.FilterType;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 
@@ -104,7 +104,7 @@ public class FilteredValueProvider extends ValueProvider
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getCapability().getResource()) {
-            filteredValueProviderApi.setValueProvider(EntityIdentifier.formatId(valueProviderResource));
+            filteredValueProviderApi.setValueProvider(ObjectIdentifier.formatId(valueProviderResource));
         }
         else {
             filteredValueProviderApi.setValueProvider(valueProvider.toApi());

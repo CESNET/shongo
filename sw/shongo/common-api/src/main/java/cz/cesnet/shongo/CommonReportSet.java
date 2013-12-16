@@ -21,9 +21,9 @@ public class CommonReportSet extends AbstractReportSet
     public static final int CLASS_COLLECTION_REQUIRED_CODE = 9;
     public static final int COLLECTION_ITEM_NULL_CODE = 10;
     public static final int COLLECTION_ITEM_TYPE_MISMATCH_CODE = 11;
-    public static final int ENTITY_NOT_EXISTS_CODE = 12;
-    public static final int ENTITY_INVALID_CODE = 13;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED_CODE = 14;
+    public static final int OBJECT_NOT_EXISTS_CODE = 12;
+    public static final int OBJECT_INVALID_CODE = 13;
+    public static final int OBJECT_NOT_DELETABLE_REFERENCED_CODE = 14;
     public static final int METHOD_NOT_DEFINED_CODE = 15;
 
     public static final String UNKNOWN_ERROR = "unknown-error";
@@ -38,9 +38,9 @@ public class CommonReportSet extends AbstractReportSet
     public static final String CLASS_COLLECTION_REQUIRED = "class-collection-required";
     public static final String COLLECTION_ITEM_NULL = "collection-item-null";
     public static final String COLLECTION_ITEM_TYPE_MISMATCH = "collection-item-type-mismatch";
-    public static final String ENTITY_NOT_EXISTS = "entity-not-exists";
-    public static final String ENTITY_INVALID = "entity-invalid";
-    public static final String ENTITY_NOT_DELETABLE_REFERENCED = "entity-not-deletable-referenced";
+    public static final String OBJECT_NOT_EXISTS = "object-not-exists";
+    public static final String OBJECT_INVALID = "object-invalid";
+    public static final String OBJECT_NOT_DELETABLE_REFERENCED = "object-not-deletable-referenced";
     public static final String METHOD_NOT_DEFINED = "method-not-defined";
 
     /**
@@ -60,9 +60,9 @@ public class CommonReportSet extends AbstractReportSet
         addMessage(CLASS_COLLECTION_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
         addMessage(COLLECTION_ITEM_NULL, new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
         addMessage(COLLECTION_ITEM_TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} contains item of type ${presentType} which doesn't match the required type ${requiredType}.");
-        addMessage(ENTITY_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} doesn't exist.");
-        addMessage(ENTITY_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} validation failed: ${reason}");
-        addMessage(ENTITY_NOT_DELETABLE_REFERENCED, new Report.UserType[]{}, Report.Language.ENGLISH, "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.");
+        addMessage(OBJECT_NOT_EXISTS, new Report.UserType[]{}, Report.Language.ENGLISH, "Object ${objectType} with identifier ${objectId} doesn't exist.");
+        addMessage(OBJECT_INVALID, new Report.UserType[]{}, Report.Language.ENGLISH, "Object ${objectId} validation failed: ${reason}");
+        addMessage(OBJECT_NOT_DELETABLE_REFERENCED, new Report.UserType[]{}, Report.Language.ENGLISH, "Object ${objectType} with identifier ${objectId} cannot be deleted because it is still referenced.");
         addMessage(METHOD_NOT_DEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Method ${method} is not defined.");
     }};
 
@@ -1969,48 +1969,48 @@ public class CommonReportSet extends AbstractReportSet
     }
 
     /**
-     * Entity {@link #entity} with identifier {@link #id} doesn't exist.
+     * Object {@link #objectType} with identifier {@link #objectId} doesn't exist.
      */
-    public static class EntityNotExistsReport extends AbstractReport implements ApiFault
+    public static class ObjectNotExistsReport extends AbstractReport implements ApiFault
     {
-        protected String entity;
+        protected String objectType;
 
-        protected String id;
+        protected String objectId;
 
-        public EntityNotExistsReport()
+        public ObjectNotExistsReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "entity-not-exists";
+            return "object-not-exists";
         }
 
-        public EntityNotExistsReport(String entity, String id)
+        public ObjectNotExistsReport(String objectType, String objectId)
         {
-            setEntity(entity);
-            setId(id);
+            setObjectType(objectType);
+            setObjectId(objectId);
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return entity;
+            return objectType;
         }
 
-        public void setEntity(String entity)
+        public void setObjectType(String objectType)
         {
-            this.entity = entity;
+            this.objectType = objectType;
         }
 
-        public String getId()
+        public String getObjectId()
         {
-            return id;
+            return objectId;
         }
 
-        public void setId(String id)
+        public void setObjectId(String objectId)
         {
-            this.id = id;
+            this.objectId = objectId;
         }
 
         @Override
@@ -2022,7 +2022,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_EXISTS_CODE;
+            return OBJECT_NOT_EXISTS_CODE;
         }
 
         @Override
@@ -2034,21 +2034,21 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new EntityNotExistsException(this);
+            return new ObjectNotExistsException(this);
         }
 
         @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
-            entity = (String) reportSerializer.getParameter("entity", String.class);
-            id = (String) reportSerializer.getParameter("id", String.class);
+            objectType = (String) reportSerializer.getParameter("objectType", String.class);
+            objectId = (String) reportSerializer.getParameter("objectId", String.class);
         }
 
         @Override
         public void writeParameters(ReportSerializer reportSerializer)
         {
-            reportSerializer.setParameter("entity", entity);
-            reportSerializer.setParameter("id", id);
+            reportSerializer.setParameter("objectType", objectType);
+            reportSerializer.setParameter("objectId", objectId);
         }
 
         @Override
@@ -2061,106 +2061,106 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("entity", entity);
-            parameters.put("id", id);
+            parameters.put("objectType", objectType);
+            parameters.put("objectId", objectId);
             return parameters;
         }
 
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-not-exists", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("object-not-exists", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link EntityNotExistsReport}.
+     * Exception for {@link ObjectNotExistsReport}.
      */
-    public static class EntityNotExistsException extends ReportRuntimeException implements ApiFaultException
+    public static class ObjectNotExistsException extends ReportRuntimeException implements ApiFaultException
     {
-        public EntityNotExistsException(EntityNotExistsReport report)
+        public ObjectNotExistsException(ObjectNotExistsReport report)
         {
             this.report = report;
         }
 
-        public EntityNotExistsException(Throwable throwable, EntityNotExistsReport report)
+        public ObjectNotExistsException(Throwable throwable, ObjectNotExistsReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public EntityNotExistsException(String entity, String id)
+        public ObjectNotExistsException(String objectType, String objectId)
         {
-            EntityNotExistsReport report = new EntityNotExistsReport();
-            report.setEntity(entity);
-            report.setId(id);
+            ObjectNotExistsReport report = new ObjectNotExistsReport();
+            report.setObjectType(objectType);
+            report.setObjectId(objectId);
             this.report = report;
         }
 
-        public EntityNotExistsException(Throwable throwable, String entity, String id)
+        public ObjectNotExistsException(Throwable throwable, String objectType, String objectId)
         {
             super(throwable);
-            EntityNotExistsReport report = new EntityNotExistsReport();
-            report.setEntity(entity);
-            report.setId(id);
+            ObjectNotExistsReport report = new ObjectNotExistsReport();
+            report.setObjectType(objectType);
+            report.setObjectId(objectId);
             this.report = report;
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return getReport().getEntity();
+            return getReport().getObjectType();
         }
 
-        public String getId()
+        public String getObjectId()
         {
-            return getReport().getId();
+            return getReport().getObjectId();
         }
 
         @Override
-        public EntityNotExistsReport getReport()
+        public ObjectNotExistsReport getReport()
         {
-            return (EntityNotExistsReport) report;
+            return (ObjectNotExistsReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (EntityNotExistsReport) report;
+            return (ObjectNotExistsReport) report;
         }
     }
 
     /**
-     * Entity {@link #entity} validation failed: {@link #reason}
+     * Object {@link #objectId} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends AbstractReport implements ApiFault
+    public static class ObjectInvalidReport extends AbstractReport implements ApiFault
     {
-        protected String entity;
+        protected String objectId;
 
         protected String reason;
 
-        public EntityInvalidReport()
+        public ObjectInvalidReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "entity-invalid";
+            return "object-invalid";
         }
 
-        public EntityInvalidReport(String entity, String reason)
+        public ObjectInvalidReport(String objectId, String reason)
         {
-            setEntity(entity);
+            setObjectId(objectId);
             setReason(reason);
         }
 
-        public String getEntity()
+        public String getObjectId()
         {
-            return entity;
+            return objectId;
         }
 
-        public void setEntity(String entity)
+        public void setObjectId(String objectId)
         {
-            this.entity = entity;
+            this.objectId = objectId;
         }
 
         public String getReason()
@@ -2182,7 +2182,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_INVALID_CODE;
+            return OBJECT_INVALID_CODE;
         }
 
         @Override
@@ -2194,20 +2194,20 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new EntityInvalidException(this);
+            return new ObjectInvalidException(this);
         }
 
         @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
-            entity = (String) reportSerializer.getParameter("entity", String.class);
+            objectId = (String) reportSerializer.getParameter("objectId", String.class);
             reason = (String) reportSerializer.getParameter("reason", String.class);
         }
 
         @Override
         public void writeParameters(ReportSerializer reportSerializer)
         {
-            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("objectId", objectId);
             reportSerializer.setParameter("reason", reason);
         }
 
@@ -2221,7 +2221,7 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("entity", entity);
+            parameters.put("objectId", objectId);
             parameters.put("reason", reason);
             return parameters;
         }
@@ -2229,46 +2229,46 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-invalid", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("object-invalid", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link EntityInvalidReport}.
+     * Exception for {@link ObjectInvalidReport}.
      */
-    public static class EntityInvalidException extends ReportRuntimeException implements ApiFaultException
+    public static class ObjectInvalidException extends ReportRuntimeException implements ApiFaultException
     {
-        public EntityInvalidException(EntityInvalidReport report)
+        public ObjectInvalidException(ObjectInvalidReport report)
         {
             this.report = report;
         }
 
-        public EntityInvalidException(Throwable throwable, EntityInvalidReport report)
+        public ObjectInvalidException(Throwable throwable, ObjectInvalidReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public EntityInvalidException(String entity, String reason)
+        public ObjectInvalidException(String objectId, String reason)
         {
-            EntityInvalidReport report = new EntityInvalidReport();
-            report.setEntity(entity);
+            ObjectInvalidReport report = new ObjectInvalidReport();
+            report.setObjectId(objectId);
             report.setReason(reason);
             this.report = report;
         }
 
-        public EntityInvalidException(Throwable throwable, String entity, String reason)
+        public ObjectInvalidException(Throwable throwable, String objectId, String reason)
         {
             super(throwable);
-            EntityInvalidReport report = new EntityInvalidReport();
-            report.setEntity(entity);
+            ObjectInvalidReport report = new ObjectInvalidReport();
+            report.setObjectId(objectId);
             report.setReason(reason);
             this.report = report;
         }
 
-        public String getEntity()
+        public String getObjectId()
         {
-            return getReport().getEntity();
+            return getReport().getObjectId();
         }
 
         public String getReason()
@@ -2277,60 +2277,60 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public EntityInvalidReport getReport()
+        public ObjectInvalidReport getReport()
         {
-            return (EntityInvalidReport) report;
+            return (ObjectInvalidReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (EntityInvalidReport) report;
+            return (ObjectInvalidReport) report;
         }
     }
 
     /**
-     * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
+     * Object {@link #objectType} with identifier {@link #objectId} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends AbstractReport implements ApiFault
+    public static class ObjectNotDeletableReferencedReport extends AbstractReport implements ApiFault
     {
-        protected String entity;
+        protected String objectType;
 
-        protected String id;
+        protected String objectId;
 
-        public EntityNotDeletableReferencedReport()
+        public ObjectNotDeletableReferencedReport()
         {
         }
 
         @Override
         public String getUniqueId()
         {
-            return "entity-not-deletable-referenced";
+            return "object-not-deletable-referenced";
         }
 
-        public EntityNotDeletableReferencedReport(String entity, String id)
+        public ObjectNotDeletableReferencedReport(String objectType, String objectId)
         {
-            setEntity(entity);
-            setId(id);
+            setObjectType(objectType);
+            setObjectId(objectId);
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return entity;
+            return objectType;
         }
 
-        public void setEntity(String entity)
+        public void setObjectType(String objectType)
         {
-            this.entity = entity;
+            this.objectType = objectType;
         }
 
-        public String getId()
+        public String getObjectId()
         {
-            return id;
+            return objectId;
         }
 
-        public void setId(String id)
+        public void setObjectId(String objectId)
         {
-            this.id = id;
+            this.objectId = objectId;
         }
 
         @Override
@@ -2342,7 +2342,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public int getFaultCode()
         {
-            return ENTITY_NOT_DELETABLE_REFERENCED_CODE;
+            return OBJECT_NOT_DELETABLE_REFERENCED_CODE;
         }
 
         @Override
@@ -2354,21 +2354,21 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public Exception getException()
         {
-            return new EntityNotDeletableReferencedException(this);
+            return new ObjectNotDeletableReferencedException(this);
         }
 
         @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
-            entity = (String) reportSerializer.getParameter("entity", String.class);
-            id = (String) reportSerializer.getParameter("id", String.class);
+            objectType = (String) reportSerializer.getParameter("objectType", String.class);
+            objectId = (String) reportSerializer.getParameter("objectId", String.class);
         }
 
         @Override
         public void writeParameters(ReportSerializer reportSerializer)
         {
-            reportSerializer.setParameter("entity", entity);
-            reportSerializer.setParameter("id", id);
+            reportSerializer.setParameter("objectType", objectType);
+            reportSerializer.setParameter("objectId", objectId);
         }
 
         @Override
@@ -2381,70 +2381,70 @@ public class CommonReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("entity", entity);
-            parameters.put("id", id);
+            parameters.put("objectType", objectType);
+            parameters.put("objectId", objectId);
             return parameters;
         }
 
         @Override
         public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
         {
-            return MESSAGES.getMessage("entity-not-deletable-referenced", userType, language, timeZone, getParameters());
+            return MESSAGES.getMessage("object-not-deletable-referenced", userType, language, timeZone, getParameters());
         }
     }
 
     /**
-     * Exception for {@link EntityNotDeletableReferencedReport}.
+     * Exception for {@link ObjectNotDeletableReferencedReport}.
      */
-    public static class EntityNotDeletableReferencedException extends ReportRuntimeException implements ApiFaultException
+    public static class ObjectNotDeletableReferencedException extends ReportRuntimeException implements ApiFaultException
     {
-        public EntityNotDeletableReferencedException(EntityNotDeletableReferencedReport report)
+        public ObjectNotDeletableReferencedException(ObjectNotDeletableReferencedReport report)
         {
             this.report = report;
         }
 
-        public EntityNotDeletableReferencedException(Throwable throwable, EntityNotDeletableReferencedReport report)
+        public ObjectNotDeletableReferencedException(Throwable throwable, ObjectNotDeletableReferencedReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public EntityNotDeletableReferencedException(String entity, String id)
+        public ObjectNotDeletableReferencedException(String objectType, String objectId)
         {
-            EntityNotDeletableReferencedReport report = new EntityNotDeletableReferencedReport();
-            report.setEntity(entity);
-            report.setId(id);
+            ObjectNotDeletableReferencedReport report = new ObjectNotDeletableReferencedReport();
+            report.setObjectType(objectType);
+            report.setObjectId(objectId);
             this.report = report;
         }
 
-        public EntityNotDeletableReferencedException(Throwable throwable, String entity, String id)
+        public ObjectNotDeletableReferencedException(Throwable throwable, String objectType, String objectId)
         {
             super(throwable);
-            EntityNotDeletableReferencedReport report = new EntityNotDeletableReferencedReport();
-            report.setEntity(entity);
-            report.setId(id);
+            ObjectNotDeletableReferencedReport report = new ObjectNotDeletableReferencedReport();
+            report.setObjectType(objectType);
+            report.setObjectId(objectId);
             this.report = report;
         }
 
-        public String getEntity()
+        public String getObjectType()
         {
-            return getReport().getEntity();
+            return getReport().getObjectType();
         }
 
-        public String getId()
+        public String getObjectId()
         {
-            return getReport().getId();
+            return getReport().getObjectId();
         }
 
         @Override
-        public EntityNotDeletableReferencedReport getReport()
+        public ObjectNotDeletableReferencedReport getReport()
         {
-            return (EntityNotDeletableReferencedReport) report;
+            return (ObjectNotDeletableReferencedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return (EntityNotDeletableReferencedReport) report;
+            return (ObjectNotDeletableReferencedReport) report;
         }
     }
 
@@ -2600,9 +2600,9 @@ public class CommonReportSet extends AbstractReportSet
         addReportClass(ClassCollectionRequiredReport.class);
         addReportClass(CollectionItemNullReport.class);
         addReportClass(CollectionItemTypeMismatchReport.class);
-        addReportClass(EntityNotExistsReport.class);
-        addReportClass(EntityInvalidReport.class);
-        addReportClass(EntityNotDeletableReferencedReport.class);
+        addReportClass(ObjectNotExistsReport.class);
+        addReportClass(ObjectInvalidReport.class);
+        addReportClass(ObjectNotDeletableReferencedReport.class);
         addReportClass(MethodNotDefinedReport.class);
     }
 }

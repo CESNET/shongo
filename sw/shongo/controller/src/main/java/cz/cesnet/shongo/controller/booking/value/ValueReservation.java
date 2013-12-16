@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.booking.value;
 
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 
 import javax.persistence.*;
@@ -85,7 +85,7 @@ public class ValueReservation extends TargetedReservation
         cz.cesnet.shongo.controller.api.ValueReservation valueReservationApi =
                 (cz.cesnet.shongo.controller.api.ValueReservation) api;
         Resource valueProviderResource = valueProvider.getCapabilityResource();
-        valueReservationApi.setResourceId(EntityIdentifier.formatId(valueProviderResource));
+        valueReservationApi.setResourceId(ObjectIdentifier.formatId(valueProviderResource));
         valueReservationApi.setResourceName(valueProviderResource.getName());
         valueReservationApi.setValue(getValue());
         super.toApi(api, administrator);

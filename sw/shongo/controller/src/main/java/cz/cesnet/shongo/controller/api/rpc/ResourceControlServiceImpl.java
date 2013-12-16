@@ -11,7 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -362,7 +362,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             authorization.validate(securityToken);
-            EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
             if (!authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.CONTROL_RESOURCE)) {
@@ -387,7 +387,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
             authorization.validate(securityToken);
-            EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
             if (!authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.CONTROL_RESOURCE)) {
@@ -422,7 +422,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
             return managedMode.getConnectorAgentName();
         }
         throw new RuntimeException(String.format("Resource '%s' is not managed!",
-                EntityIdentifier.formatId(deviceResource)));
+                ObjectIdentifier.formatId(deviceResource)));
 
     }
 }

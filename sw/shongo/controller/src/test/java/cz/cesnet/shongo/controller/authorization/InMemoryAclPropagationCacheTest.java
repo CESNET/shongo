@@ -53,8 +53,8 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
 
         entityManager.getTransaction().commit();
 
-        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
-        EntityIdentifier reservationId = new EntityIdentifier(reservation);
+        ObjectIdentifier reservationRequestId = new ObjectIdentifier(reservationRequest);
+        ObjectIdentifier reservationId = new ObjectIdentifier(reservation);
 
         aclEntryCache.addAclEntry(new AclEntry(user1Id, reservationRequestId, Role.OWNER));
         Assert.assertEquals("Reservation request should be added to cache",
@@ -99,8 +99,8 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
 
         entityManager.getTransaction().commit();
 
-        EntityIdentifier reservationRequestSetId = new EntityIdentifier(reservationRequestSet);
-        EntityIdentifier executableId = new EntityIdentifier(executable);
+        ObjectIdentifier reservationRequestSetId = new ObjectIdentifier(reservationRequestSet);
+        ObjectIdentifier executableId = new ObjectIdentifier(executable);
 
         aclEntryCache.addAclEntry(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
         AclEntry aclEntry = getAclEntry(userId, executableId, Role.OWNER);
@@ -150,10 +150,10 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
 
         entityManager.getTransaction().commit();
 
-        EntityIdentifier reservationRequestSetId = new EntityIdentifier(reservationRequestSet);
-        EntityIdentifier executableId = new EntityIdentifier(executable);
-        EntityIdentifier childReservationId = new EntityIdentifier(childReservation1);
-        EntityIdentifier reusedReservationId = new EntityIdentifier(reusedReservation);
+        ObjectIdentifier reservationRequestSetId = new ObjectIdentifier(reservationRequestSet);
+        ObjectIdentifier executableId = new ObjectIdentifier(executable);
+        ObjectIdentifier childReservationId = new ObjectIdentifier(childReservation1);
+        ObjectIdentifier reusedReservationId = new ObjectIdentifier(reusedReservation);
 
         aclEntryCache.addAclEntry(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
         AclEntry executableAclEntry = getAclEntry(userId, executableId, Role.OWNER);
@@ -163,9 +163,9 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
                 7, aclEntryCache.getEntityCount());
     }
 
-    private AclEntry getAclEntry(String userId, EntityIdentifier entityId, Role role) throws Exception
+    private AclEntry getAclEntry(String userId, ObjectIdentifier objectId, Role role) throws Exception
     {
-        Collection<AclEntry> aclEntrys = aclEntryCache.getAclEntries(userId, entityId);
+        Collection<AclEntry> aclEntrys = aclEntryCache.getAclEntries(userId, objectId);
         for (AclEntry aclEntry : aclEntrys) {
             if (aclEntry.getRole().equals(role)) {
                 return aclEntry;

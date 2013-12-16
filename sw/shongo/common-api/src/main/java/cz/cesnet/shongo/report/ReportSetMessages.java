@@ -3,7 +3,7 @@ package cz.cesnet.shongo.report;
 import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.api.AbstractObjectReport;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -335,7 +335,7 @@ public abstract class ReportSetMessages
                         else if (param1 instanceof Map){
                             @SuppressWarnings("unchecked")
                             Map<String, Object> jadeReport = (Map<String, Object>) param1;
-                            String jadeReportId = (String) jadeReport.get(AbstractEntityReport.ID);
+                            String jadeReportId = (String) jadeReport.get(AbstractObjectReport.ID);
                             return JadeReportSet.getMessage(jadeReportId, userType, language, timeZone, jadeReport);
                         }
                         else {

@@ -2,7 +2,7 @@
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Reporter;
@@ -14,8 +14,6 @@ import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.booking.resource.Address;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.report.Report;
 
@@ -110,7 +108,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         UsedRoomExecutable usedRoomExecutableEndpointApi =
                 (UsedRoomExecutable) executableApi;
 
-        usedRoomExecutableEndpointApi.setReusedRoomExecutableId(EntityIdentifier.formatId(reusedRoomEndpoint));
+        usedRoomExecutableEndpointApi.setReusedRoomExecutableId(ObjectIdentifier.formatId(reusedRoomEndpoint));
 
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
         usedRoomExecutableEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());

@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
@@ -206,7 +206,7 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
             }
         }
         if (callableAlias == null) {
-            throw new RuntimeException("No callable alias exists for '" + EntityIdentifier.formatId(this) + ".");
+            throw new RuntimeException("No callable alias exists for '" + ObjectIdentifier.formatId(this) + ".");
         }
         return callableAlias;
     }

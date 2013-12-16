@@ -9,6 +9,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
+import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -296,7 +297,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
             authorizationService.createAclEntry(securityToken,
-                    userRole.getUserId(), reservationRequestId, userRole.getRole());
+                    new AclEntry(userRole.getUserId(), reservationRequestId, userRole.getRole()));
         }
 
         // Clear session attributes

@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 
 /**
  * Extensions for {@link CommonReportSet} and {@link ControllerReportSet}.
@@ -11,34 +12,34 @@ import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 public class ControllerReportSetHelper
 {
     /**
-     * @throws {@link cz.cesnet.shongo.CommonReportSet.EntityNotExistsException}
+     * @throws {@link CommonReportSet.ObjectNotExistsException}
      */
-    public static <T> T throwEntityNotExistFault(EntityIdentifier entityId)
-            throws CommonReportSet.EntityNotExistsException
+    public static <T> T throwObjectNotExistFault(ObjectIdentifier objectId)
+            throws CommonReportSet.ObjectNotExistsException
     {
-        throw new CommonReportSet.EntityNotExistsException(entityId.getEntityClass().getSimpleName(), entityId.toId());
+        throw new CommonReportSet.ObjectNotExistsException(objectId.getObjectClass().getSimpleName(), objectId.toId());
     }
 
     /**
-     * @throws {@link cz.cesnet.shongo.CommonReportSet.EntityNotExistsException}
+     * @throws {@link CommonReportSet.ObjectNotExistsException}
      */
-    public static <T> T throwEntityNotExistFault(Class entityType, Long entityId)
-            throws CommonReportSet.EntityNotExistsException
+    public static <T> T throwObjectNotExistFault(Class<? extends PersistentObject> objectType, Long objectId)
+            throws CommonReportSet.ObjectNotExistsException
     {
-        throw new CommonReportSet.EntityNotExistsException(entityType.getSimpleName(),
-                (EntityIdentifier.isAvailableForEntityType(entityType)
-                         ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
+        throw new CommonReportSet.ObjectNotExistsException(objectType.getSimpleName(),
+                (ObjectIdentifier.isAvailableForObjectType(objectType)
+                         ? ObjectIdentifier.formatId(objectType, objectId) : objectId.toString()));
     }
 
     /**
-     * @throws {@link CommonReportSet.EntityNotDeletableReferencedException}
+     * @throws {@link CommonReportSet.ObjectNotDeletableReferencedException}
      */
-    public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId)
-            throws CommonReportSet.EntityNotDeletableReferencedException
+    public static <T> T throwObjectNotDeletableReferencedFault(Class<? extends PersistentObject> objectType,
+            Long objectId) throws CommonReportSet.ObjectNotDeletableReferencedException
     {
-        throw new CommonReportSet.EntityNotDeletableReferencedException(entityType.getSimpleName(),
-                (EntityIdentifier.isAvailableForEntityType(entityType)
-                         ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
+        throw new CommonReportSet.ObjectNotDeletableReferencedException(objectType.getSimpleName(),
+                (ObjectIdentifier.isAvailableForObjectType(objectType)
+                         ? ObjectIdentifier.formatId(objectType, objectId) : objectId.toString()));
     }
 
     /**

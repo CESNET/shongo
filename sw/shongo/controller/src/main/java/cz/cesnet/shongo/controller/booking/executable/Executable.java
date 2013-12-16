@@ -5,7 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.compartment.Compartment;
 import cz.cesnet.shongo.controller.booking.compartment.Connection;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -177,7 +177,7 @@ public abstract class Executable extends ExecutionTarget
                 return service;
             }
         }
-        throw new CommonReportSet.EntityNotExistsException(
+        throw new CommonReportSet.ObjectNotExistsException(
                 ExecutableService.class.getSimpleName(), serviceId.toString());
     }
 
@@ -217,14 +217,14 @@ public abstract class Executable extends ExecutionTarget
     @Override
     public String getReportDescription()
     {
-        return EntityIdentifier.formatId(this);
+        return ObjectIdentifier.formatId(this);
     }
 
     @Transient
     @Override
     public String getReportContextName()
     {
-        return "executable " + EntityIdentifier.formatId(this);
+        return "executable " + ObjectIdentifier.formatId(this);
     }
 
     @Transient
@@ -249,7 +249,7 @@ public abstract class Executable extends ExecutionTarget
     public cz.cesnet.shongo.controller.api.Executable toApi(Report.UserType userType)
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
-        executableApi.setId(EntityIdentifier.formatId(this));
+        executableApi.setId(ObjectIdentifier.formatId(this));
         toApi(executableApi, userType);
         return executableApi;
     }
@@ -270,7 +270,7 @@ public abstract class Executable extends ExecutionTarget
      */
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
     {
-        executableApi.setId(EntityIdentifier.formatId(this));
+        executableApi.setId(ObjectIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
         executableApi.setStateReport(getExecutionReport(userType));
@@ -463,7 +463,7 @@ public abstract class Executable extends ExecutionTarget
             throws ControllerReportSet.ExecutableInvalidConfigurationException
     {
         throw new ControllerReportSet.ExecutableInvalidConfigurationException(
-                EntityIdentifier.formatId(this), ClassHelper.getClassShortName(executableConfiguration.getClass()));
+                ObjectIdentifier.formatId(this), ClassHelper.getClassShortName(executableConfiguration.getClass()));
     }
 
     /**

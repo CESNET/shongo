@@ -2,15 +2,15 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.acl.AclIdentityType;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.*;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
@@ -141,7 +141,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         }
 
         // Return resource shongo-id
-        return EntityIdentifier.formatId(resource);
+        return ObjectIdentifier.formatId(resource);
     }
 
     @Override
@@ -152,17 +152,17 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         String resourceId = resourceApi.getId();
-        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
 
         try {
             entityManager.getTransaction().begin();
 
             // Get reservation request
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
-                    resourceManager.get(entityId.getPersistenceId());
+                    resourceManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", objectId);
             }
 
             // Synchronize from API
@@ -189,7 +189,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void deleteResource(SecurityToken securityToken, String resourceId)
     {
         authorization.validate(securityToken);
-        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -200,10 +200,10 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
             // Get the resource
             cz.cesnet.shongo.controller.booking.resource.Resource resource =
-                    resourceManager.get(entityId.getPersistenceId());
+                    resourceManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", objectId);
             }
 
             authorizationManager.deleteAclEntriesForEntity(resource);
@@ -225,8 +225,8 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
-                            Resource.class, entityId.getPersistenceId());
+                    ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(
+                            cz.cesnet.shongo.controller.booking.resource.Resource.class, objectId.getPersistenceId());
                     return;
                 }
             }
@@ -262,7 +262,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.booking.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();
-                summary.setId(EntityIdentifier.formatId(resource));
+                summary.setId(ObjectIdentifier.formatId(resource));
                 summary.setUserId(resource.getUserId());
                 summary.setName(resource.getName());
                 if (resource instanceof DeviceResource) {
@@ -277,7 +277,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 }
                 cz.cesnet.shongo.controller.booking.resource.Resource parentResource = resource.getParentResource();
                 if (parentResource != null) {
-                    summary.setParentResourceId(EntityIdentifier.formatId(parentResource));
+                    summary.setParentResourceId(ObjectIdentifier.formatId(parentResource));
                 }
                 summaryList.add(summary);
             }
@@ -295,13 +295,14 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
 
         try {
-            cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
+            cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(
+                    objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, resource, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", objectId);
             }
 
             return resource.toApi(entityManager);
@@ -322,14 +323,14 @@ public class ResourceServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
 
         try {
             cz.cesnet.shongo.controller.booking.resource.Resource resourceImpl =
-                    resourceManager.get(entityId.getPersistenceId());
+                    resourceManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, resourceImpl, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", objectId);
             }
 
             RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
@@ -347,13 +348,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             else {
                 resourceAllocation = new ResourceAllocation();
             }
-            resourceAllocation.setId(EntityIdentifier.formatId(resourceImpl));
+            resourceAllocation.setId(ObjectIdentifier.formatId(resourceImpl));
             resourceAllocation.setName(resourceImpl.getName());
             resourceAllocation.setInterval(interval);
 
             // Fill resource allocations
             Collection<cz.cesnet.shongo.controller.booking.resource.ResourceReservation> resourceReservations =
-                    resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
+                    resourceManager.listResourceReservationsInInterval(objectId.getPersistenceId(), interval);
             for (ResourceReservation resourceReservation : resourceReservations) {
                 resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdministrator(securityToken)));
             }

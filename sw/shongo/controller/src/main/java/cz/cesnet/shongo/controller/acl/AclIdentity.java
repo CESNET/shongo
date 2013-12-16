@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.AclIdentityType;
 
 import javax.persistence.*;
 
@@ -17,7 +18,7 @@ public class AclIdentity extends SimplePersistentObject
     /**
      * Type of identity.
      *
-     * @see AclIdentityType
+     * @see cz.cesnet.shongo.controller.AclIdentityType
      */
     private AclIdentityType type;
 

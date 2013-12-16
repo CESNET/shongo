@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.booking.value.provider;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.value.ValueProviderCapability;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
@@ -172,7 +172,7 @@ public abstract class ValueProvider extends SimplePersistentObject
             EntityManager entityManager)
     {
         if (object instanceof String) {
-            Long resourceId = EntityIdentifier.parseId(
+            Long resourceId = ObjectIdentifier.parseId(
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, (String) object);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);

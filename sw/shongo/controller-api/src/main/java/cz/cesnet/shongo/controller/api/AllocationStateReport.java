@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.AbstractEntityReport;
+import cz.cesnet.shongo.api.AbstractObjectReport;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.AllocationStateReportMessages;
 import cz.cesnet.shongo.report.Report;
@@ -15,11 +15,11 @@ import org.joda.time.Period;
 import java.util.*;
 
 /**
- * {@link cz.cesnet.shongo.api.AbstractEntityReport} for {@link AllocationState}.
+ * {@link cz.cesnet.shongo.api.AbstractObjectReport} for {@link AllocationState}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocationStateReport extends AbstractEntityReport
+public class AllocationStateReport extends AbstractObjectReport
 {
     /**
      * Constructor.
@@ -380,13 +380,13 @@ public class AllocationStateReport extends AbstractEntityReport
      */
     public static class ReusementInvalidSlot extends UserError
     {
-        private String reusedEntityId;
+        private String reusedObjectId;
 
         private Interval reusedReservationRequestSlot;
 
-        public ReusementInvalidSlot(String reusedEntityId, Interval reusedReservationRequestSlot)
+        public ReusementInvalidSlot(String reusedObjectId, Interval reusedReservationRequestSlot)
         {
-            this.reusedEntityId = reusedEntityId;
+            this.reusedObjectId = reusedObjectId;
             this.reusedReservationRequestSlot = reusedReservationRequestSlot;
         }
 
@@ -395,12 +395,12 @@ public class AllocationStateReport extends AbstractEntityReport
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             String reusedEntity;
-            if (reusedEntityId.contains(":exe:")) {
-                reusedEntity = MESSAGE_SOURCE.getMessage("reusementInvalidSlot.reusedRoom", locale, reusedEntityId);
+            if (reusedObjectId.contains(":exe:")) {
+                reusedEntity = MESSAGE_SOURCE.getMessage("reusementInvalidSlot.reusedRoom", locale, reusedObjectId);
             }
             else {
                 reusedEntity = MESSAGE_SOURCE.getMessage(
-                        "reusementInvalidSlot.reusedReservationRequest", locale, reusedEntityId);
+                        "reusementInvalidSlot.reusedReservationRequest", locale, reusedObjectId);
             }
             String reusedReservationRequestSlot = dateTimeFormatter.formatInterval(this.reusedReservationRequestSlot);
             return MESSAGE_SOURCE.getMessage("reusementInvalidSlot", locale,
@@ -413,16 +413,16 @@ public class AllocationStateReport extends AbstractEntityReport
      */
     public static class ReusementAlreadyUsed extends UserError
     {
-        private String reusedEntityId;
+        private String reusedObjectId;
 
         private String usageReservationRequestId;
 
         private Interval usageReservationRequestSlot;
 
-        public ReusementAlreadyUsed(String reusedEntityId, String usageReservationRequestId,
+        public ReusementAlreadyUsed(String reusedObjectId, String usageReservationRequestId,
                 Interval usageReservationRequestSlot)
         {
-            this.reusedEntityId = reusedEntityId;
+            this.reusedObjectId = reusedObjectId;
             this.usageReservationRequestId = usageReservationRequestId;
             this.usageReservationRequestSlot = usageReservationRequestSlot;
         }
@@ -432,12 +432,12 @@ public class AllocationStateReport extends AbstractEntityReport
         {
             DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.with(locale, timeZone);
             String reusedEntity;
-            if (reusedEntityId.contains(":exe:")) {
-                reusedEntity = MESSAGE_SOURCE.getMessage("reusementAlreadyUsed.reusedRoom", locale, reusedEntityId);
+            if (reusedObjectId.contains(":exe:")) {
+                reusedEntity = MESSAGE_SOURCE.getMessage("reusementAlreadyUsed.reusedRoom", locale, reusedObjectId);
             }
             else {
                 reusedEntity = MESSAGE_SOURCE.getMessage(
-                        "reusementAlreadyUsed.reusedReservationRequest", locale, reusedEntityId);
+                        "reusementAlreadyUsed.reusedReservationRequest", locale, reusedObjectId);
             }
             String usageReservationRequest = MESSAGE_SOURCE.getMessage(
                     "reusementAlreadyUsed.usageReservationRequest", locale, usageReservationRequestId);

@@ -237,7 +237,7 @@ public class RoomController
         // Add user roles
         AclEntryListRequest userRoleRequest = new AclEntryListRequest();
         userRoleRequest.setSecurityToken(securityToken);
-        userRoleRequest.addEntityId(reservationRequestId);
+        userRoleRequest.addObjectId(reservationRequestId);
         List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
         for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
             userRoles.add(new UserRoleModel(aclEntry, cacheProvider));

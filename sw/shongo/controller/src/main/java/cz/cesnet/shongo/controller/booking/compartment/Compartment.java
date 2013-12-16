@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.booking.compartment;
 
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.api.CompartmentExecutable;
 import cz.cesnet.shongo.controller.api.ConnectionExecutable;
 import cz.cesnet.shongo.controller.api.EndpointExecutable;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -139,8 +139,8 @@ public class Compartment extends Executable
         for (Connection connection : getConnections()) {
             ConnectionExecutable connectionApi =
                     new ConnectionExecutable();
-            connectionApi.setEndpointFromId(EntityIdentifier.formatId(connection.getEndpointFrom()));
-            connectionApi.setEndpointToId(EntityIdentifier.formatId(connection.getEndpointTo()));
+            connectionApi.setEndpointFromId(ObjectIdentifier.formatId(connection.getEndpointFrom()));
+            connectionApi.setEndpointToId(ObjectIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
             compartmentApi.addConnection(connectionApi);

@@ -2,10 +2,11 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 
 /**
- * Represents a record in Shongo ACL which means that user with specified {@link #userId} has role
+ * Represents a record in Shongo ACL which means that user with specified {@link #identityPrincipalId} has role
  * with specified {@link #role} for resource with specified {@link #objectId}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -13,18 +14,23 @@ import cz.cesnet.shongo.controller.ObjectRole;
 public class AclEntry extends IdentifiedComplexType
 {
     /**
-     * User-id of user of the {@link AclEntry}.
+     * @see AclIdentityType
      */
-    private String userId;
+    private AclIdentityType identityType;
 
     /**
-     * Identifier of object of some {@link cz.cesnet.shongo.controller.EntityType} for which the user
+     * Principal-id of the {@link #identityType} for this {@link AclEntry}.
+     */
+    private String identityPrincipalId;
+
+    /**
+     * Identifier of object of some {@link cz.cesnet.shongo.controller.ObjectType} for which the user
      * gets granted the {@link #role}.
      */
     private String objectId;
 
     /**
-     * {@link cz.cesnet.shongo.controller.ObjectRole} which the user gets granted for the object with {@link #objectId}.
+     * {@link ObjectRole} which the user gets granted for the object with {@link #objectId}.
      */
     private ObjectRole role;
 
@@ -43,31 +49,61 @@ public class AclEntry extends IdentifiedComplexType
     /**
      * Constructor.
      *
-     * @param userId   sets the {@link #userId}
-     * @param objectId sets the {@link #objectId}
-     * @param role     sets the {@link #role}
+     * @param identityType        sets the {@link #identityType}
+     * @param identityPrincipalId sets the {@link #identityPrincipalId}
+     * @param objectId            sets the {@link #objectId}
+     * @param role                sets the {@link #role}
      */
-    public AclEntry(String userId, String objectId, ObjectRole role)
+    public AclEntry(AclIdentityType identityType, String identityPrincipalId, String objectId, ObjectRole role)
     {
-        this.userId = userId;
+        this.identityType = identityType;
+        this.identityPrincipalId = identityPrincipalId;
         this.objectId = objectId;
         this.role = role;
     }
 
     /**
-     * @return {@link #userId}
+     * Constructor.
+     *
+     * @param userId   sets the {@link #identityPrincipalId} and {@link #identityType} to {@link AclIdentityType#USER}
+     * @param objectId sets the {@link #objectId}
+     * @param role     sets the {@link #role}
      */
-    public String getUserId()
+    public AclEntry(String userId, String objectId, ObjectRole role)
     {
-        return userId;
+        this(AclIdentityType.USER, userId, objectId, role);
     }
 
     /**
-     * @param userId sets the {@link #userId}
+     * @return {@link #identityType}
      */
-    public void setUserId(String userId)
+    public AclIdentityType getIdentityType()
     {
-        this.userId = userId;
+        return identityType;
+    }
+
+    /**
+     * @param identityType sets thye {@link #identityType}
+     */
+    public void setIdentityType(AclIdentityType identityType)
+    {
+        this.identityType = identityType;
+    }
+
+    /**
+     * @return {@link #identityPrincipalId}
+     */
+    public String getIdentityPrincipalId()
+    {
+        return identityPrincipalId;
+    }
+
+    /**
+     * @param identityPrincipalId sets the {@link #identityPrincipalId}
+     */
+    public void setIdentityPrincipalId(String identityPrincipalId)
+    {
+        this.identityPrincipalId = identityPrincipalId;
     }
 
     /**
@@ -121,7 +157,7 @@ public class AclEntry extends IdentifiedComplexType
     @Override
     public String toString()
     {
-        return String.format("AclEntry (user: %s, object: %s, role: %s)", userId, objectId, role);
+        return String.format("AclEntry (user: %s, object: %s, role: %s)", identityPrincipalId, objectId, role);
     }
 
     @Override
@@ -142,7 +178,8 @@ public class AclEntry extends IdentifiedComplexType
         if (role != record.role) {
             return false;
         }
-        if (userId != null ? !userId.equals(record.userId) : record.userId != null) {
+        if (identityPrincipalId != null ? !identityPrincipalId
+                .equals(record.identityPrincipalId) : record.identityPrincipalId != null) {
             return false;
         }
 
@@ -152,13 +189,14 @@ public class AclEntry extends IdentifiedComplexType
     @Override
     public int hashCode()
     {
-        int result = userId != null ? userId.hashCode() : 0;
+        int result = identityPrincipalId != null ? identityPrincipalId.hashCode() : 0;
         result = 31 * result + (objectId != null ? objectId.hashCode() : 0);
         result = 31 * result + (role != null ? role.hashCode() : 0);
         return result;
     }
 
-    private static final String USER_ID = "userId";
+    private static final String IDENTITY_TYPE = "identityType";
+    private static final String IDENTITY_PRINCIPAL_ID = "identityPrincipalId";
     private static final String OBJECT_ID = "objectId";
     private static final String ROLE = "role";
     private static final String DELETABLE = "deletable";
@@ -167,7 +205,8 @@ public class AclEntry extends IdentifiedComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(USER_ID, userId);
+        dataMap.set(IDENTITY_TYPE, identityType);
+        dataMap.set(IDENTITY_PRINCIPAL_ID, identityPrincipalId);
         dataMap.set(OBJECT_ID, objectId);
         dataMap.set(ROLE, role);
         dataMap.set(DELETABLE, deletable);
@@ -178,7 +217,8 @@ public class AclEntry extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        userId = dataMap.getString(USER_ID);
+        identityType = dataMap.getEnumRequired(IDENTITY_TYPE, AclIdentityType.class);
+        identityPrincipalId = dataMap.getString(IDENTITY_PRINCIPAL_ID);
         objectId = dataMap.getString(OBJECT_ID);
         role = dataMap.getEnum(ROLE, ObjectRole.class);
         deletable = dataMap.getBool(DELETABLE);

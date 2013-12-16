@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
-import cz.cesnet.shongo.controller.booking.EntityTypeResolver;
+import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 
 import java.util.*;
 
@@ -55,8 +55,8 @@ public class AclUserState
             // Update permissions
             AclObjectClass objectClass = objectIdentity.getObjectClass();
             ObjectRole objectRole = ObjectRole.valueOf(aclEntry.getRole());
-            EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
-            for (ObjectPermission objectPermission : entityType.getRolePermissions(objectRole)) {
+            ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
+            for (ObjectPermission objectPermission : objectType.getRolePermissions(objectRole)) {
                 objectState.permissions.add(objectPermission);
             }
 
@@ -91,10 +91,10 @@ public class AclUserState
             // Update permissions
             objectState.permissions.clear();
             AclObjectClass objectClass = objectIdentity.getObjectClass();
-            EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
+            ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
             for (AclEntry existingAclEntry : objectState.aclEntries.values()) {
                 ObjectRole objectRole = ObjectRole.valueOf(existingAclEntry.getRole());
-                for (ObjectPermission objectPermission : entityType.getRolePermissions(objectRole)) {
+                for (ObjectPermission objectPermission : objectType.getRolePermissions(objectRole)) {
                     objectState.permissions.add(objectPermission);
                 }
             }

@@ -114,10 +114,10 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotExistsException
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
      *          when the {@link Reservation} doesn't exist
      */
-    public Reservation get(Long reservationId) throws CommonReportSet.EntityNotExistsException
+    public Reservation get(Long reservationId) throws CommonReportSet.ObjectNotExistsException
     {
         try {
             Reservation reservation = entityManager.createQuery(
@@ -128,7 +128,7 @@ public class ReservationManager extends AbstractManager
             return reservation;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper.throwEntityNotExistFault(Reservation.class, reservationId);
+            return ControllerReportSetHelper.throwObjectNotExistFault(Reservation.class, reservationId);
         }
     }
 

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.booking.room;
 
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
@@ -106,7 +106,7 @@ public class RoomReservation extends TargetedReservation implements EndpointProv
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
         DeviceResource deviceResource = getDeviceResource();
-        roomReservationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
+        roomReservationApi.setResourceId(ObjectIdentifier.formatId(deviceResource));
         roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(getLicenseCount());
         super.toApi(api, administrator);

@@ -6,7 +6,7 @@ import cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -117,7 +117,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         cz.cesnet.shongo.controller.api.RecordingService recordingServiceApi =
                 (cz.cesnet.shongo.controller.api.RecordingService) executableServiceApi;
 
-        recordingServiceApi.setResourceId(EntityIdentifier.formatId(recordingCapability.getResource()));
+        recordingServiceApi.setResourceId(ObjectIdentifier.formatId(recordingCapability.getResource()));
         recordingServiceApi.setRecordingId(recordingId);
     }
 

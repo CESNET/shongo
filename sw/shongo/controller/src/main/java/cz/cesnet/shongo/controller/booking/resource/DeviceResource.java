@@ -2,9 +2,8 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.controller.api.Synchronization;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 
@@ -108,7 +107,7 @@ public class DeviceResource extends Resource
     public ManagedMode requireManaged() throws RuntimeException
     {
         if (!isManaged()) {
-            throw new RuntimeException("Device resource " + EntityIdentifier.formatId(this) + " must be managed.");
+            throw new RuntimeException("Device resource " + ObjectIdentifier.formatId(this) + " must be managed.");
         }
         return (ManagedMode) this.mode;
     }
@@ -260,7 +259,7 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public void validate() throws CommonReportSet.EntityInvalidException
+    public void validate() throws CommonReportSet.ObjectInvalidException
     {
         super.validate();
     }

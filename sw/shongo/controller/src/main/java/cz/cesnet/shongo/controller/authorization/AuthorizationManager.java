@@ -7,8 +7,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
-import cz.cesnet.shongo.controller.booking.EntityTypeResolver;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectTypeResolver;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -176,9 +176,9 @@ public class AuthorizationManager extends AclEntryManager
         }
 
         AclObjectIdentity objectIdentity = aclProvider.getObjectIdentity(object);
-        EntityType entityType = EntityTypeResolver.getEntityType(objectIdentity);
-        if (!entityType.allowsRole(objectRole)) {
-            throw new ControllerReportSet.AclInvalidRoleException(EntityIdentifier.formatId(object),
+        ObjectType objectType = ObjectTypeResolver.getObjectType(objectIdentity);
+        if (!objectType.allowsRole(objectRole)) {
+            throw new ControllerReportSet.AclInvalidObjectRoleException(ObjectIdentifier.formatId(object),
                     objectRole.toString());
         }
 
@@ -224,11 +224,11 @@ public class AuthorizationManager extends AclEntryManager
 
         AclObjectIdentity parentObjectIdentity = aclProvider.getObjectIdentity(parentObject);
         AclObjectIdentity childObjectIdentity = aclProvider.getObjectIdentity(childObject);
-        EntityType childEntityType = EntityTypeResolver.getEntityType(childObjectIdentity);
+        ObjectType childObjectType = ObjectTypeResolver.getObjectType(childObjectIdentity);
         for (AclEntry parentAclEntry : activeTransaction.getAclEntries(parentObjectIdentity)) {
             AclIdentity identity = parentAclEntry.getIdentity();
             ObjectRole objectRole = ObjectRole.valueOf(parentAclEntry.getRole());
-            if (childEntityType.allowsRole(objectRole)) {
+            if (childObjectType.allowsRole(objectRole)) {
                 createChildAclEntry(parentAclEntry, identity, childObject, objectRole,
                         AclEntryDependency.Type.DELETE_DETACH);
             }
@@ -322,7 +322,7 @@ public class AuthorizationManager extends AclEntryManager
         }
 
         AclObjectIdentity objectIdentity = aclEntry.getObjectIdentity();
-        Class<? extends PersistentObject> objectClass = EntityTypeResolver.getEntityTypeClass(objectIdentity);
+        Class<? extends PersistentObject> objectClass = ObjectTypeResolver.getObjectTypeClass(objectIdentity);
         if (objectClass.equals(AbstractReservationRequest.class)) {
             objectClass = Allocation.class;
         }
@@ -344,7 +344,7 @@ public class AuthorizationManager extends AclEntryManager
                 }
             }
             else {
-                ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(AclEntry.class, aclEntry.getId());
+                ControllerReportSetHelper.throwObjectNotDeletableReferencedFault(AclEntry.class, aclEntry.getId());
             }
         }
 
@@ -364,7 +364,7 @@ public class AuthorizationManager extends AclEntryManager
                 try {
                     deleteAclEntry(childAclEntry);
                 }
-                catch (CommonReportSet.EntityNotDeletableReferencedException exception) {
+                catch (CommonReportSet.ObjectNotDeletableReferencedException exception) {
                     Controller.loggerAcl.info(
                             "ACL entry (id: {}, identity: {}, object: {}, role: {}) cannot be deleted,"
                                     + " because it is referenced.", new Object[]{childAclEntry.getId(),
@@ -401,7 +401,7 @@ public class AuthorizationManager extends AclEntryManager
 
             // Child reservation requests
             for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
-                if (EntityType.RESERVATION_REQUEST.allowsRole(objectRole)) {
+                if (ObjectType.RESERVATION_REQUEST.allowsRole(objectRole)) {
                     createChildAclEntry(aclEntry, identity, childReservationRequest, objectRole,
                             AclEntryDependency.Type.DELETE_DETACH);
                 }
@@ -413,7 +413,7 @@ public class AuthorizationManager extends AclEntryManager
                 List<AbstractReservationRequest> reservationRequestUsages =
                         reservationRequestManager.listReservationRequestActiveUsages(reservationRequest);
                 for (AbstractReservationRequest reservationRequestUsage : reservationRequestUsages) {
-                    if (EntityType.RESERVATION_REQUEST.allowsRole(objectRole)) {
+                    if (ObjectType.RESERVATION_REQUEST.allowsRole(objectRole)) {
                         createChildAclEntry(aclEntry, identity, reservationRequestUsage, objectRole,
                                 AclEntryDependency.Type.DELETE_DETACH);
                     }
@@ -421,7 +421,7 @@ public class AuthorizationManager extends AclEntryManager
             }
 
             // Allocated reservations
-            if (EntityType.RESERVATION.allowsRole(objectRole)) {
+            if (ObjectType.RESERVATION.allowsRole(objectRole)) {
                 for (Reservation reservation : allocation.getReservations()) {
                     createChildAclEntry(aclEntry, identity, reservation, objectRole,
                             AclEntryDependency.Type.DELETE_DETACH);
@@ -439,7 +439,7 @@ public class AuthorizationManager extends AclEntryManager
 
             // Child reservations
             for (Reservation childReservation : reservation.getChildReservations()) {
-                if (EntityType.RESERVATION.allowsRole(objectRole)) {
+                if (ObjectType.RESERVATION.allowsRole(objectRole)) {
                     createChildAclEntry(aclEntry, identity, childReservation, objectRole,
                             AclEntryDependency.Type.DELETE_DETACH);
                 }
@@ -448,7 +448,7 @@ public class AuthorizationManager extends AclEntryManager
             // Executable
             Executable executable = reservation.getExecutable();
             if (reservation.getExecutable() != null) {
-                if (EntityType.EXECUTABLE.allowsRole(objectRole)) {
+                if (ObjectType.EXECUTABLE.allowsRole(objectRole)) {
                     createChildAclEntry(aclEntry, identity, executable, objectRole,
                             AclEntryDependency.Type.DELETE_DETACH);
                 }
@@ -576,7 +576,7 @@ public class AuthorizationManager extends AclEntryManager
 
         /**
          * @param objectIdentity
-         * @return collection of {@link AclEntry}s for given {@code entityId}
+         * @return collection of {@link AclEntry}s for given {@code objectIdentity}
          */
         public Collection<AclEntry> getAclEntries(AclObjectIdentity objectIdentity)
         {

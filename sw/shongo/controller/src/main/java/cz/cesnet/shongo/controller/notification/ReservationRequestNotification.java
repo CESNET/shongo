@@ -4,7 +4,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import org.joda.time.DateTime;
@@ -50,7 +50,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
-        this.id = EntityIdentifier.formatId(reservationRequest);
+        this.id = ObjectIdentifier.formatId(reservationRequest);
         this.url = configuration.getNotificationReservationRequestUrl(this.id);
         this.updatedAt = reservationRequest.getUpdatedAt();
         this.updatedBy = reservationRequest.getUpdatedBy();

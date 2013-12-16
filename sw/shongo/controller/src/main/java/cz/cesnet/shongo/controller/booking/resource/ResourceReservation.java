@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
-import cz.cesnet.shongo.controller.booking.EntityIdentifier;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 
 import javax.persistence.*;
@@ -60,7 +60,7 @@ public class ResourceReservation extends TargetedReservation
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
-        resourceReservationApi.setResourceId(EntityIdentifier.formatId(resource));
+        resourceReservationApi.setResourceId(ObjectIdentifier.formatId(resource));
         resourceReservationApi.setResourceName(resource.getName());
         super.toApi(api, administrator);
     }

@@ -159,7 +159,7 @@ public class Allocation extends SimplePersistentObject
                             String.format("New reservation cannot be added to allocation"
                                     + " because it's time slot '%s' collides with '%s' from old reservation '%s'.",
                                     reservationSlot, oldReservation.getSlot(),
-                                    EntityIdentifier.formatId(oldReservation)));
+                                    ObjectIdentifier.formatId(oldReservation)));
                 }
             }
             reservations.add(reservation);

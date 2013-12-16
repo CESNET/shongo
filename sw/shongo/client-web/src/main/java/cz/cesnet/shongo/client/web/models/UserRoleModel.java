@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
 
@@ -121,7 +122,10 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     public void fromApi(AclEntry aclEntry)
     {
         this.id = aclEntry.getId();
-        setUserId(aclEntry.getUserId());
+        if (!aclEntry.getIdentityType().equals(AclIdentityType.USER)) {
+            throw new UnsupportedApiException(aclEntry.getIdentityType());
+        }
+        setUserId(aclEntry.getIdentityPrincipalId());
         setObjectId(aclEntry.getObjectId());
         setRole(aclEntry.getRole());
         setDeletable(aclEntry.isDeletable());
@@ -133,7 +137,8 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         if (!isNew()) {
             aclEntry.setId(id);
         }
-        aclEntry.setUserId(user.getUserId());
+        aclEntry.setIdentityType(AclIdentityType.USER);
+        aclEntry.setIdentityPrincipalId(user.getUserId());
         aclEntry.setObjectId(objectId);
         aclEntry.setRole(role);
         return aclEntry;
@@ -144,7 +149,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     {
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
         attributes.put("ID", id);
-        attributes.put("Entity", objectId);
+        attributes.put("Object", objectId);
         attributes.put("User", user);
         attributes.put("Role", role);
         return ReportModel.formatAttributes(attributes);

@@ -10,7 +10,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<%@attribute name="entityType" required="true" type="cz.cesnet.shongo.controller.EntityType" %>
+<%@attribute name="objectType" required="true" type="cz.cesnet.shongo.controller.ObjectType" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
@@ -84,7 +84,7 @@
         <c:if test="${not empty userRole.objectId}">
             <div class="control-group">
                 <form:label class="control-label" path="objectId">
-                    <spring:message code="views.userRole.entityType.${entityType}"/>:
+                    <spring:message code="views.userRole.objectType.${objectType}"/>:
                 </form:label>
                 <div class="controls double-width">
                     <form:input path="objectId" readonly="true" tabindex="${tabIndex}"/>
@@ -107,7 +107,7 @@
                 <spring:message code="views.userRole.objectRole"/>:
             </form:label>
             <div class="controls">
-                <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
+                <spring:eval var="roles" expression="objectType.getOrderedRoles()"/>
                 <form:select path="role" tabindex="${tabIndex}">
                     <c:forEach items="${roles}" var="role">
                         <form:option value="${role}"><spring:message code="views.userRole.objectRole.${role}"/></form:option>

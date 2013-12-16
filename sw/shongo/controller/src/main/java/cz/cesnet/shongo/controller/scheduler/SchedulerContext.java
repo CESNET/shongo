@@ -388,10 +388,10 @@ public class SchedulerContext
     }
 
     /**
-     * @param entityId for which the {@link AvailableReservation}s should be returned
+     * @param objectId for which the {@link AvailableReservation}s should be returned
      * @return {@link AvailableReservation}s ({@link ResourceReservation}s) for given {@code resource}
      */
-    public <T extends TargetedReservation> Set<AvailableReservation<T>> getAvailableReservations(Long entityId,
+    public <T extends TargetedReservation> Set<AvailableReservation<T>> getAvailableReservations(Long objectId,
             Class<T> reservationType)
     {
         @SuppressWarnings("unchecked")
@@ -400,7 +400,7 @@ public class SchedulerContext
         if (reservationTransaction == null) {
             return Collections.emptySet();
         }
-        return reservationTransaction.getAvailableReservations(entityId);
+        return reservationTransaction.getAvailableReservations(objectId);
     }
 
     /**

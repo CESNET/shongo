@@ -244,7 +244,7 @@ public class AuthorizationCache
 
     /**
      * @param aclObjectIdentity
-     * @return {@link AclObjectState} by given {@code entityId}
+     * @return {@link AclObjectState} by given {@code aclObjectIdentity}
      */
     public synchronized AclObjectState getAclObjectStateByIdentity(AclObjectIdentity aclObjectIdentity)
     {
@@ -252,7 +252,7 @@ public class AuthorizationCache
     }
 
     /**
-     * Put given {@code aclObjectState} to the cache by the given {@code entityId}.
+     * Put given {@code aclObjectState} to the cache by the given {@code aclObjectIdentity}.
      *
      * @param aclObjectIdentity
      * @param aclObjectState
