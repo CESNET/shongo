@@ -2,9 +2,7 @@ package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.EntityRole;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -89,7 +87,7 @@ public abstract class AclEntryManager extends AbstractManager
      * @param role
      * @return {@link AclEntry} for given parameters or {@code null} if it doesn't exist
      */
-    public AclEntry getAclRecord(AclIdentity identity, AclObjectIdentity objectIdentity, String role)
+    public AclEntry getAclEntry(AclIdentity identity, AclObjectIdentity objectIdentity, String role)
     {
         List<AclEntry> entries = entityManager.createNamedQuery("AclEntry.find", AclEntry.class)
                 .setParameter("identity", identity)

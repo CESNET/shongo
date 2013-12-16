@@ -81,13 +81,13 @@
 
         <form:hidden path="id"/>
 
-        <c:if test="${not empty userRole.entityId}">
+        <c:if test="${not empty userRole.objectId}">
             <div class="control-group">
-                <form:label class="control-label" path="entityId">
+                <form:label class="control-label" path="objectId">
                     <spring:message code="views.userRole.entityType.${entityType}"/>:
                 </form:label>
                 <div class="controls double-width">
-                    <form:input path="entityId" readonly="true" tabindex="${tabIndex}"/>
+                    <form:input path="objectId" readonly="true" tabindex="${tabIndex}"/>
                 </div>
             </div>
         </c:if>
@@ -103,21 +103,21 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="entityRole">
-                <spring:message code="views.userRole.entityRole"/>:
+            <form:label class="control-label" path="role">
+                <spring:message code="views.userRole.objectRole"/>:
             </form:label>
             <div class="controls">
                 <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
-                <form:select path="entityRole" tabindex="${tabIndex}">
+                <form:select path="role" tabindex="${tabIndex}">
                     <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.userRole.entityRole.${role}"/></form:option>
+                        <form:option value="${role}"><spring:message code="views.userRole.objectRole.${role}"/></form:option>
                     </c:forEach>
                 </form:select>
-                <form:errors path="entityRole" cssClass="error"/>
+                <form:errors path="role" cssClass="error"/>
                 <tag:help>
                     <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.userRole.entityRole.${role}"/></strong>
-                        <p><spring:message code="views.userRole.entityRoleHelp.${role}"/></p>
+                        <strong><spring:message code="views.userRole.objectRole.${role}"/></strong>
+                        <p><spring:message code="views.userRole.objectRoleHelp.${role}"/></p>
                     </c:forEach>
                 </tag:help>
             </div>

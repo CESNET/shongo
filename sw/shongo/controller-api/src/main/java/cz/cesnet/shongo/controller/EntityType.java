@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.TodoImplementException;
-
 import java.util.*;
 
 /**
@@ -15,20 +13,20 @@ public enum EntityType
      * Represents a {@link cz.cesnet.shongo.controller.api.Resource}.
      */
     RESOURCE("res",
-            new HashMap<EntityRole, ObjectPermission[]>()
+            new HashMap<ObjectRole, ObjectPermission[]>()
             {{
-                    put(EntityRole.OWNER, new ObjectPermission[]{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
                             ObjectPermission.READ,
                             ObjectPermission.WRITE,
                             ObjectPermission.CONTROL_RESOURCE,
                     });
-                    put(EntityRole.READER, new ObjectPermission[]{
+                    put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
                 }},
-            new HashSet<EntityRole>()
+            new HashSet<ObjectRole>()
             {{
-                    add(EntityRole.OWNER);
+                    add(ObjectRole.OWNER);
                 }}
     ),
 
@@ -36,24 +34,24 @@ public enum EntityType
      * Represents a {@link cz.cesnet.shongo.controller.api.ReservationRequest}.
      */
     RESERVATION_REQUEST("req",
-            new HashMap<EntityRole, ObjectPermission[]>()
+            new HashMap<ObjectRole, ObjectPermission[]>()
             {{
-                    put(EntityRole.OWNER, new ObjectPermission[]{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
                             ObjectPermission.READ,
                             ObjectPermission.WRITE,
                             ObjectPermission.PROVIDE_RESERVATION_REQUEST
                     });
-                    put(EntityRole.READER, new ObjectPermission[]{
+                    put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
-                    put(EntityRole.RESERVATION_REQUEST_USER, new ObjectPermission[]{
+                    put(ObjectRole.RESERVATION_REQUEST_USER, new ObjectPermission[]{
                             ObjectPermission.READ,
                             ObjectPermission.PROVIDE_RESERVATION_REQUEST
                     });
                 }},
-            new HashSet<EntityRole>()
+            new HashSet<ObjectRole>()
             {{
-                    add(EntityRole.OWNER);
+                    add(ObjectRole.OWNER);
                 }}
     ),
 
@@ -61,14 +59,14 @@ public enum EntityType
      * Represents a {@link cz.cesnet.shongo.controller.api.Reservation}.
      */
     RESERVATION("rsv",
-            new HashMap<EntityRole, ObjectPermission[]>()
+            new HashMap<ObjectRole, ObjectPermission[]>()
             {{
-                    put(EntityRole.OWNER, new ObjectPermission[]{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
                             ObjectPermission.READ,
                             ObjectPermission.WRITE,
                             ObjectPermission.PROVIDE_RESERVATION_REQUEST
                     });
-                    put(EntityRole.READER, new ObjectPermission[]{
+                    put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
                 }},
@@ -78,12 +76,12 @@ public enum EntityType
      * Represents a {@link cz.cesnet.shongo.controller.api.Executable}.
      */
     EXECUTABLE("exe",
-            new HashMap<EntityRole, ObjectPermission[]>()
+            new HashMap<ObjectRole, ObjectPermission[]>()
             {{
-                    put(EntityRole.OWNER, new ObjectPermission[]{
+                    put(ObjectRole.OWNER, new ObjectPermission[]{
                             ObjectPermission.READ, ObjectPermission.WRITE
                     });
-                    put(EntityRole.READER, new ObjectPermission[]{
+                    put(ObjectRole.READER, new ObjectPermission[]{
                             ObjectPermission.READ
                     });
                 }}
@@ -95,14 +93,14 @@ public enum EntityType
     private final String code;
 
     /**
-     * Map of all possible {@link ObjectPermission}s for the {@link EntityType} {@link EntityRole}.
+     * Map of all possible {@link ObjectPermission}s for the {@link EntityType} {@link ObjectRole}.
      */
-    private final Map<EntityRole, Set<ObjectPermission>> roles;
+    private final Map<ObjectRole, Set<ObjectPermission>> roles;
 
     /**
-     * Set of all {@link EntityRole}s which should be propagated to authorization server.
+     * Set of all {@link ObjectRole}s which should be propagated to authorization server.
      */
-    private final Set<EntityRole> propagatableRoles;
+    private final Set<ObjectRole> propagatableRoles;
 
     /**
      * Set of all possible {@link ObjectPermission}s for the {@link EntityType}.
@@ -116,12 +114,12 @@ public enum EntityType
      * @param roles             sets the {@link #roles}
      * @param propagatableRoles sets the {@link #propagatableRoles}
      */
-    private EntityType(String code, Map<EntityRole, ObjectPermission[]> roles, Set<EntityRole> propagatableRoles)
+    private EntityType(String code, Map<ObjectRole, ObjectPermission[]> roles, Set<ObjectRole> propagatableRoles)
     {
         this.code = code;
         Set<ObjectPermission> permissions = new HashSet<ObjectPermission>();
-        Map<EntityRole, Set<ObjectPermission>> newRoles = new HashMap<EntityRole, Set<ObjectPermission>>();
-        for (Map.Entry<EntityRole, ObjectPermission[]> role : roles.entrySet()) {
+        Map<ObjectRole, Set<ObjectPermission>> newRoles = new HashMap<ObjectRole, Set<ObjectPermission>>();
+        for (Map.Entry<ObjectRole, ObjectPermission[]> role : roles.entrySet()) {
             Set<ObjectPermission> rolePermissions = new HashSet<ObjectPermission>();
             Collections.addAll(permissions, role.getValue());
             Collections.addAll(rolePermissions, role.getValue());
@@ -147,19 +145,19 @@ public enum EntityType
     }
 
     /**
-     * @return sets of allowed {@link EntityRole}s for the {@link EntityType}.
+     * @return sets of allowed {@link ObjectRole}s for the {@link EntityType}.
      */
-    public Set<EntityRole> getRoles()
+    public Set<ObjectRole> getRoles()
     {
         return roles.keySet();
     }
 
     /**
-     * @return ordered list of allowed {@link EntityRole}s for the {@link EntityType}.
+     * @return ordered list of allowed {@link ObjectRole}s for the {@link EntityType}.
      */
-    public List<EntityRole> getOrderedRoles()
+    public List<ObjectRole> getOrderedRoles()
     {
-        List<EntityRole> orderedRoles = new ArrayList<EntityRole>(roles.keySet());
+        List<ObjectRole> orderedRoles = new ArrayList<ObjectRole>(roles.keySet());
         Collections.sort(orderedRoles);
         return orderedRoles;
     }
@@ -174,9 +172,9 @@ public enum EntityType
 
     /**
      * @param role for which the {@link ObjectPermission}s should be returned
-     * @return sets of allowed {@link ObjectPermission}s for given {@link EntityRole} and the {@link EntityType}.
+     * @return sets of allowed {@link ObjectPermission}s for given {@link ObjectRole} and the {@link EntityType}.
      */
-    public Set<ObjectPermission> getRolePermissions(EntityRole role)
+    public Set<ObjectPermission> getRolePermissions(ObjectRole role)
     {
         return roles.get(role);
     }
@@ -186,7 +184,7 @@ public enum EntityType
      * @return true whether given role is allowed for the {@link EntityType},
      *         false otherwise
      */
-    public boolean allowsRole(EntityRole role)
+    public boolean allowsRole(ObjectRole role)
     {
         return roles.keySet().contains(role);
     }
@@ -196,7 +194,7 @@ public enum EntityType
      * @return true whether given {@code role} for this {@link EntityType} should be propagated to authorization server,
      *         false otherwise
      */
-    public boolean isRolePropagatable(EntityRole role)
+    public boolean isRolePropagatable(ObjectRole role)
     {
         return propagatableRoles.contains(role);
     }

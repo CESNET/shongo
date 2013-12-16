@@ -18,7 +18,7 @@
     <thead>
     <tr>
         <th><spring:message code="views.userRole.user"/></th>
-        <th><spring:message code="views.userRole.entityRole"/></th>
+        <th><spring:message code="views.userRole.objectRole"/></th>
         <th><spring:message code="views.userRole.email"/></th>
         <c:if test="${isWritable && not empty deleteUrl}">
             <th style="min-width: 85px; width: 85px;">
@@ -44,7 +44,7 @@
                 </tag:url>
                 <tr>
                     <td>${userRole.user.fullName} (${userRole.user.organization})</td>
-                    <td><spring:message code="views.userRole.entityRole.${userRole.entityRole}"/></td>
+                    <td><spring:message code="views.userRole.objectRole.${userRole.role}"/></td>
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>
@@ -88,7 +88,7 @@
                 <tbody>
                 <tr ng-repeat="userRole in items">
                     <td>{{userRole.user.fullName}} ({{userRole.user.organization}})</td>
-                    <td>{{userRole.entityRole}}</td>
+                    <td>{{userRole.role}}</td>
                     <td>{{userRole.user.primaryEmail}}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>

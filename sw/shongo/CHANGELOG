@@ -65,7 +65,7 @@
 
     * Scheduler and Executor are now mutually exclusive.
 
-    * ACL records are stored inside the Controller and only few of them are propagated to authorization server.
+    * ACL entries are stored inside the Controller and only few of them are propagated to authorization server.
 
 0.5.0 (2013-03-27)
 

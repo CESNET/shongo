@@ -120,7 +120,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Save it
             resourceManager.create(resource);
 
-            authorizationManager.createAclRecord(AclIdentityType.USER, userId, resource, EntityRole.OWNER);
+            authorizationManager.createAclEntry(AclIdentityType.USER, userId, resource, ObjectRole.OWNER);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -206,7 +206,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
-            authorizationManager.deleteAclRecordsForEntity(resource);
+            authorizationManager.deleteAclEntriesForEntity(resource);
 
             // Delete the resource
             resourceManager.delete(resource);

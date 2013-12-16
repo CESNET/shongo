@@ -16,7 +16,7 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -235,12 +235,12 @@ public class RoomController
 
         // Add use roles
         // Add user roles
-        AclRecordListRequest userRoleRequest = new AclRecordListRequest();
+        AclEntryListRequest userRoleRequest = new AclEntryListRequest();
         userRoleRequest.setSecurityToken(securityToken);
         userRoleRequest.addEntityId(reservationRequestId);
         List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
-        for (AclRecord aclRecord : authorizationService.listAclRecords(userRoleRequest)) {
-            userRoles.add(new UserRoleModel(aclRecord, cacheProvider));
+        for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
+            userRoles.add(new UserRoleModel(aclEntry, cacheProvider));
         }
         modelAndView.addObject("userRoles", userRoles);
 

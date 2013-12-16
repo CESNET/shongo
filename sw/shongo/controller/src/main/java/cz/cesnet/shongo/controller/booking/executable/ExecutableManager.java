@@ -5,7 +5,6 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -60,7 +59,7 @@ public class ExecutableManager extends AbstractManager
      */
     public void delete(Executable executable, AuthorizationManager authorizationManager)
     {
-        authorizationManager.deleteAclRecordsForEntity(executable);
+        authorizationManager.deleteAclEntriesForEntity(executable);
         super.delete(executable);
     }
 

@@ -35,7 +35,7 @@ public class AuthorizationCache
     /**
      * Cache of {@link AclEntry} by {@link AclEntry#id}.
      */
-    private ExpirationMap<Long, AclEntry> aclRecordCache = new ExpirationMap<Long, AclEntry>();
+    private ExpirationMap<Long, AclEntry> aclEntryCache = new ExpirationMap<Long, AclEntry>();
 
     /**
      * Cache of {@link AclUserState} by user-id.
@@ -80,7 +80,7 @@ public class AuthorizationCache
      */
     public void setAclExpiration(Duration expiration)
     {
-        aclRecordCache.setExpiration(expiration);
+        aclEntryCache.setExpiration(expiration);
         aclUserStateCache.setExpiration(expiration);
         aclObjectStateCache.setExpiration(expiration);
     }
@@ -101,7 +101,7 @@ public class AuthorizationCache
         userIdByAccessTokenCache.clear();
         userIdByPrincipalNameCache.clear();
         userInformationCache.clear();
-        aclRecordCache.clear();
+        aclEntryCache.clear();
         aclUserStateCache.clear();
         aclObjectStateCache.clear();
     }
@@ -185,20 +185,20 @@ public class AuthorizationCache
     }
 
     /**
-     * @param aclRecordId
-     * @return {@link AclEntry} by given {@code aclRecordId}
+     * @param aclEntryId
+     * @return {@link AclEntry} by given {@code aclEntryId}
      */
-    public synchronized AclEntry getAclRecordById(Long aclRecordId)
+    public synchronized AclEntry getAclEntryById(Long aclEntryId)
     {
-        return aclRecordCache.get(aclRecordId);
+        return aclEntryCache.get(aclEntryId);
     }
 
     /**
      * @return {@link AclEntry}s
      */
-    public synchronized Iterable<AclEntry> getAclRecords()
+    public synchronized Iterable<AclEntry> getAclEntries()
     {
-        return aclRecordCache;
+        return aclEntryCache;
     }
 
     /**
@@ -206,9 +206,9 @@ public class AuthorizationCache
      *
      * @param aclEntry
      */
-    public synchronized void putAclRecordById(AclEntry aclEntry)
+    public synchronized void putAclEntryById(AclEntry aclEntry)
     {
-        aclRecordCache.put(aclEntry.getId(), aclEntry);
+        aclEntryCache.put(aclEntry.getId(), aclEntry);
     }
 
     /**
@@ -217,9 +217,9 @@ public class AuthorizationCache
      * @param aclEntry
      * @return removed {@link AclEntry}
      */
-    public synchronized AclEntry removeAclRecordById(AclEntry aclEntry)
+    public synchronized AclEntry removeAclEntryById(AclEntry aclEntry)
     {
-        return aclRecordCache.remove(aclEntry.getId());
+        return aclEntryCache.remove(aclEntry.getId());
     }
 
     /**

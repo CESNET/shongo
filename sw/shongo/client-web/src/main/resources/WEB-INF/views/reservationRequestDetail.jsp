@@ -158,7 +158,7 @@
     <%-- Detail of request --%>
     <c:if test="${isWritable}">
         <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
-            <tag:param name="entityId" value="${reservationRequest.id}"/>
+            <tag:param name="objectId" value="${reservationRequest.id}"/>
             <tag:param name="back-url" value="${requestUrl}"/>
         </tag:url>
     </c:if>

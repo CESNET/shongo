@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.authorization.AclEntryDependency;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -82,13 +82,13 @@ public class PersistenceTest
             AclEntry aclEntry1 = new AclEntry();
             aclEntry1.setIdentity(aclIdentity);
             aclEntry1.setObjectIdentity(aclObjectIdentity);
-            aclEntry1.setRole(EntityRole.OWNER.toString());
+            aclEntry1.setRole(ObjectRole.OWNER.toString());
             entityManager.persist(aclEntry1);
 
             AclEntry aclEntry2 = new AclEntry();
             aclEntry2.setIdentity(aclIdentity);
             aclEntry2.setObjectIdentity(aclObjectIdentity);
-            aclEntry2.setRole(EntityRole.OWNER.toString());
+            aclEntry2.setRole(ObjectRole.OWNER.toString());
             entityManager.persist(aclEntry2);
 
             AclEntryDependency aclEntryDependency1 = new AclEntryDependency();

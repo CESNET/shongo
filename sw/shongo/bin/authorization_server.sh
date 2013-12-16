@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Manage ACL records in remote authorization server.
+# Manage ACL entries in remote authorization server.
 #
-#   "authorization-server.sh list"      List all ACL records
-#   "authorization-server.sh list 1"    List ACL record with id 1
-#   "authorization-server.sh delete 1"  Delete ACL record with id 1
+#   "authorization-server.sh list"      List all ACL entries
+#   "authorization-server.sh list 1"    List ACL entry with id 1
+#   "authorization-server.sh delete 1"  Delete ACL entry with id 1
 #
 
 URL=https://shongo-auth-dev.cesnet.cz

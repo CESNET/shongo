@@ -10,7 +10,7 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -162,11 +162,11 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 messageProvider, executableService, userSession);
 
         // Add user roles
-        AclRecordListRequest userRoleRequest = new AclRecordListRequest();
+        AclEntryListRequest userRoleRequest = new AclEntryListRequest();
         userRoleRequest.setSecurityToken(securityToken);
         userRoleRequest.addEntityId(reservationRequestId);
-        for (AclRecord aclRecord : authorizationService.listAclRecords(userRoleRequest)) {
-            reservationRequestModel.addUserRole(new UserRoleModel(aclRecord, cacheProvider));
+        for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
+            reservationRequestModel.addUserRole(new UserRoleModel(aclEntry, cacheProvider));
         }
 
         model.addAttribute("reservationRequest", reservationRequestModel);

@@ -1,5 +1,22 @@
+/**
+ * 2013-12-01: Perun aware user settings.
+ * 1) Add home_time_zone column to user_settings table
+ * 2) Alter user_settings with czech locale to use web service for loading locale (default web service locale is czech)
+ * 3) Set home_time_zone to value from time_zone
+ * 4) Remove time_zone column from user_settings table.
+ */
 BEGIN TRANSACTION;
+ALTER TABLE user_settings ADD COLUMN home_time_zone VARCHAR(255);
+UPDATE user_settings SET locale = null, use_web_service = true WHERE locale = 'cs';
+UPDATE user_settings SET home_time_zone = time_zone;
+ALTER TABLE user_settings DROP COLUMN time_zone;
+COMMIT TRANSACTION;
 
+
+/**
+ * 2013-12-04: Refactorization of permanent rooms to room specifications.
+ */
+BEGIN TRANSACTION;
 /**
  * Alter tables
  */
@@ -10,8 +27,6 @@ DROP TABLE alias_specification_permanent_room_participants;
 ALTER TABLE room_specification ALTER COLUMN participant_count DROP NOT NULL;
 ALTER TABLE room_specification ADD COLUMN allocation_id int8;
 ALTER TABLE room_specification ADD CONSTRAINT fk_room_specification_allocation_id foreign key (allocation_id) references allocation;
-
-
 /**
  * UPDATE permanent rooms from alias_specifications
  *
@@ -56,8 +71,6 @@ INSERT INTO room_specification_alias_specifications(room_specification_id, alias
     WHERE room_specification.alias_specification_id IS NOT NULL;
 /* De-initialize */
 ALTER TABLE room_specification DROP COLUMN alias_specification_id;
-
-
 /**
  * UPDATE permanent rooms from alias_set_specifications
  *
@@ -70,8 +83,6 @@ INSERT INTO room_specification_alias_specifications(room_specification_id, alias
 DELETE FROM alias_set_specification_alias_specifications;
 /* Delete alias_set_specifications */
 DELETE FROM alias_set_specification;
-
-
 /**
  * UPDATE permanent room capacities
  *
@@ -92,5 +103,59 @@ UPDATE abstract_reservation_request SET reused_allocation_id = NULL WHERE abstra
     LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
     WHERE abstract_reservation_request.reused_allocation_id IS NOT NULL AND room_specification.id IS NOT NULL
 );
+COMMIT TRANSACTION;
+
+
+/**
+ * 2012-12-10: Rename abstract_person to person.
+ */
+BEGIN TRANSACTION;
+ALTER TABLE abstract_person RENAME TO person;
+ALTER TABLE resource_administrators RENAME COLUMN abstract_person_id TO person_id;
+ALTER TABLE device_resource_permanent_persons RENAME COLUMN abstract_person_id TO person_id;
+ALTER TABLE person_participant RENAME COLUMN abstract_person_id TO person_id;
+ALTER TABLE endpoint_persons RENAME COLUMN abstract_person_id TO person_id;
+ALTER TABLE endpoint_participant_persons RENAME COLUMN abstract_person_id TO person_id;
+/* Refactorize room_specification.allocation_id back to abstract_reservation_request.reused_allocation_id */
+ALTER TABLE room_specification ADD COLUMN reused_room boolean default false;
+/* Copy allocation_id from room_specification to reused_allocation_id in abstract_reservation_request */
+UPDATE abstract_reservation_request SET reused_allocation_id = (
+    SELECT room_specification.allocation_id
+    FROM abstract_reservation_request AS source
+    LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
+    WHERE source.id = abstract_reservation_request.id
+) WHERE abstract_reservation_request.id IN (
+    SELECT abstract_reservation_request.id
+    FROM abstract_reservation_request
+    LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
+    WHERE room_specification.allocation_id IS NOT NULL
+);
+/* Set reused_room to room_specification */
+UPDATE room_specification SET reused_room = true WHERE room_specification.id IN (
+    SELECT room_specification.id
+    FROM abstract_reservation_request
+    LEFT JOIN room_specification ON room_specification.id = abstract_reservation_request.specification_id
+    WHERE abstract_reservation_request.reused_allocation_id IS NOT NULL AND room_specification.id IS NOT NULL
+);
+ALTER TABLE room_specification DROP COLUMN allocation_id CASCADE;
+COMMIT TRANSACTION;
+
+
+/**
+ * 2012-12-12: Little refactorizations.
+ */
+BEGIN TRANSACTION;
+ALTER TABLE acl_record RENAME COLUMN role TO entity_role;
+UPDATE person_participant SET role = 'ADMINISTRATOR' WHERE role = 'ADMIN';
+COMMIT TRANSACTION;
+
+
+/**
+ * 2012-12-16: Refactorizations of acl_record to acl_entry.
+ */
+BEGIN TRANSACTION;
+
+
+
 
 COMMIT TRANSACTION;

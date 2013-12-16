@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -209,7 +209,7 @@ public class SchedulerContext
         this.purpose = reservationRequest.getPurpose();
 
         userIds.clear();
-        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequest, EntityRole.OWNER));
+        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER));
         if (userIds.size() == 0) {
             userIds.add(reservationRequest.getCreatedBy());
         }
@@ -306,7 +306,7 @@ public class SchedulerContext
     public boolean containsOwnerUserId(Resource resource)
     {
         Set<String> resourceOwnerIds = new HashSet<String>();
-        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resource, EntityRole.OWNER));
+        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resource, ObjectRole.OWNER));
         if (resourceOwnerIds.size() == 0) {
             resourceOwnerIds.add(resource.getUserId());
         }

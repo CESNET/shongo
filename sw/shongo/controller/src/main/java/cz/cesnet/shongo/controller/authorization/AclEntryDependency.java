@@ -40,11 +40,11 @@ public class AclEntryDependency extends SimplePersistentObject
     }
 
     /**
-     * @param parentAclRecord sets the {@link #parentAclEntry}
+     * @param parentAclEntry sets the {@link #parentAclEntry}
      */
-    public void setParentAclEntry(AclEntry parentAclRecord)
+    public void setParentAclEntry(AclEntry parentAclEntry)
     {
-        this.parentAclEntry = parentAclRecord;
+        this.parentAclEntry = parentAclEntry;
     }
 
     /**
@@ -58,11 +58,11 @@ public class AclEntryDependency extends SimplePersistentObject
     }
 
     /**
-     * @param childAclRecord sets the {@link #childAclEntry}
+     * @param childAclEntry sets the {@link #childAclEntry}
      */
-    public void setChildAclEntry(AclEntry childAclRecord)
+    public void setChildAclEntry(AclEntry childAclEntry)
     {
-        this.childAclEntry = childAclRecord;
+        this.childAclEntry = childAclEntry;
     }
 
     /**

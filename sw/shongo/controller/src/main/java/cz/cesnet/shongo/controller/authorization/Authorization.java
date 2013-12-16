@@ -455,11 +455,11 @@ public abstract class Authorization
 
     /**
      * @param persistentObject for which the users must have given {@code role}
-     * @param entityRole       which the users must have for given {@code persistentObject}
+     * @param objectRole       which the users must have for given {@code persistentObject}
      * @return collection of {@link UserData} of users which have given {@code role}
      *         for given {@code persistentObject}
      */
-    public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, EntityRole entityRole)
+    public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, ObjectRole objectRole)
     {
         AclObjectIdentity aclObjectIdentity = aclProvider.getObjectIdentity(persistentObject);
         AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
@@ -467,7 +467,7 @@ public abstract class Authorization
             aclObjectState = fetchAclObjectState(aclObjectIdentity);
             cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
-        Set<String> userIds = aclObjectState.getUserIdsByRole(entityRole);
+        Set<String> userIds = aclObjectState.getUserIdsByRole(objectRole);
         if (userIds == null) {
             return Collections.emptySet();
         }
@@ -712,8 +712,8 @@ public abstract class Authorization
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             for (AclEntry aclEntry : authorizationManager.listAclEntries(aclIdentity)) {
-                aclUserState.addAclRecord(aclEntry);
-                cache.putAclRecordById(aclEntry);
+                aclUserState.addAclEntry(aclEntry);
+                cache.putAclEntryById(aclEntry);
             }
         }
         finally {
@@ -735,8 +735,8 @@ public abstract class Authorization
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             for (AclEntry aclEntry : authorizationManager.listAclEntries(aclObjectIdentity)) {
-                aclObjectState.addAclRecord(aclEntry);
-                cache.putAclRecordById(aclEntry);
+                aclObjectState.addAclEntry(aclEntry);
+                cache.putAclEntryById(aclEntry);
             }
         }
         finally {
@@ -750,10 +750,10 @@ public abstract class Authorization
      *
      * @param aclEntry to be added
      */
-    void addAclRecordToCache(AclEntry aclEntry)
+    void addAclEntryToCache(AclEntry aclEntry)
     {
         // Update AclEntry cache
-        cache.putAclRecordById(aclEntry);
+        cache.putAclEntryById(aclEntry);
 
         // Update AclUserState cache
         for (String userId : getUserIds(aclEntry.getIdentity())) {
@@ -763,7 +763,7 @@ public abstract class Authorization
                 cache.putAclUserStateByUserId(userId, aclUserState);
             }
             else {
-                aclUserState.addAclRecord(aclEntry);
+                aclUserState.addAclEntry(aclEntry);
             }
         }
 
@@ -775,7 +775,7 @@ public abstract class Authorization
             cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
         else {
-            aclObjectState.addAclRecord(aclEntry);
+            aclObjectState.addAclEntry(aclEntry);
         }
     }
 
@@ -798,16 +798,16 @@ public abstract class Authorization
      *
      * @param aclEntry to be deleted
      */
-    void removeAclRecordFromCache(AclEntry aclEntry)
+    void removeAclEntryFromCache(AclEntry aclEntry)
     {
         // Update AclEntry cache
-        cache.removeAclRecordById(aclEntry);
+        cache.removeAclEntryById(aclEntry);
 
         // Update AclUserState cache
         for (String userId : getUserIds(aclEntry.getIdentity())) {
             AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
             if (aclUserState != null) {
-                aclUserState.removeAclRecord(aclEntry);
+                aclUserState.removeAclEntry(aclEntry);
             }
         }
 
@@ -815,7 +815,7 @@ public abstract class Authorization
         AclObjectIdentity aclObjectIdentity = aclEntry.getObjectIdentity();
         AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
         if (aclObjectState != null) {
-            aclObjectState.removeAclRecord(aclEntry);
+            aclObjectState.removeAclEntry(aclEntry);
         }
     }
 

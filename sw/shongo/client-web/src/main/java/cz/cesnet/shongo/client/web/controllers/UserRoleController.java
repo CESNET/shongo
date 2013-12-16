@@ -7,11 +7,11 @@ import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
-import cz.cesnet.shongo.controller.EntityRole;
-import cz.cesnet.shongo.controller.api.AclRecord;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -82,23 +82,23 @@ public class UserRoleController
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
-        // List ACL records
-        AclRecordListRequest request = new AclRecordListRequest();
+        // List ACL entries
+        AclEntryListRequest request = new AclEntryListRequest();
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
         request.addEntityId(entityId);
-        ListResponse<AclRecord> response = authorizationService.listAclRecords(request);
+        ListResponse<AclEntry> response = authorizationService.listAclEntries(request);
 
         // Build response
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
-        for (AclRecord aclRecord : response.getItems()) {
+        for (AclEntry aclEntry : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", aclRecord.getId());
-            item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
-            String entityRole = aclRecord.getEntityRole().toString();
-            item.put("entityRole", messageSource.getMessage("views.userRole.entityRole." + entityRole, null, locale));
-            item.put("deletable", aclRecord.isDeletable());
+            item.put("id", aclEntry.getId());
+            item.put("user", cache.getUserInformation(securityToken, aclEntry.getUserId()));
+            String objectRole = aclEntry.getRole().toString();
+            item.put("role", messageSource.getMessage("views.userRole.objectRole." + objectRole, null, locale));
+            item.put("deletable", aclEntry.isDeletable());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
@@ -117,7 +117,7 @@ public class UserRoleController
             @PathVariable(value = "entityId") String entityId)
     {
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
-        userRole.setEntityId(entityId);
+        userRole.setObjectId(entityId);
         return handleRoleCreate(userRole);
     }
 
@@ -131,16 +131,16 @@ public class UserRoleController
             @ModelAttribute("userRole") UserRoleModel userRole,
             BindingResult result)
     {
-        if (!userRole.getEntityId().equals(entityId)) {
-            throw new IllegalStateException("Acl record entity id doesn't match the reservation request id.");
+        if (!userRole.getObjectId().equals(entityId)) {
+            throw new IllegalStateException("Acl entry object id doesn't match the reservation request id.");
         }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, result);
         if (result.hasErrors()) {
             return handleRoleCreate(userRole);
         }
-        authorizationService.createAclRecord(securityToken,
-                userRole.getUserId(), userRole.getEntityId(), userRole.getEntityRole());
+        authorizationService.createAclEntry(securityToken,
+                userRole.getUserId(), userRole.getObjectId(), userRole.getRole());
 
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
     }
@@ -156,17 +156,17 @@ public class UserRoleController
             @PathVariable(value = "roleId") String userRoleId,
             Model model)
     {
-        AclRecordListRequest request = new AclRecordListRequest();
+        AclEntryListRequest request = new AclEntryListRequest();
         request.setSecurityToken(securityToken);
         request.addEntityId(entityId);
-        request.addEntityRole(EntityRole.OWNER);
-        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
-        if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(userRoleId)) {
+        request.addRole(ObjectRole.OWNER);
+        ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
+        if (aclEntries.getItemCount() == 1 && aclEntries.getItem(0).getId().equals(userRoleId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
             model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
             return "message";
         }
-        authorizationService.deleteAclRecord(securityToken, userRoleId);
+        authorizationService.deleteAclEntry(securityToken, userRoleId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, entityId);
     }
 

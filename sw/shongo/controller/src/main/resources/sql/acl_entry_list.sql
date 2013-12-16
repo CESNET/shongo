@@ -1,5 +1,5 @@
 ﻿/**
- * Select query for list of acl records.
+ * Select query for list of acl entries.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

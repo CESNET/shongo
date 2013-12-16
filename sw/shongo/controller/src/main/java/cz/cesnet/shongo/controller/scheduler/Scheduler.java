@@ -407,12 +407,12 @@ public class Scheduler extends SwitchableComponent
             // Persist reservation
             reservationManager.create(allocatedReservation);
 
-            // Create ACL records for new reservation
-            authorizationManager.createAclRecordsForChildEntity(reservationRequest, allocatedReservation);
+            // Create ACL entries for new reservation
+            authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
         }
         else {
-            // Update ACL records for modified reservation
-            authorizationManager.updateAclRecordsForChildEntities(allocatedReservation);
+            // Update ACL entries for modified reservation
+            authorizationManager.updateAclEntriesForChildEntities(allocatedReservation);
         }
 
         // Get set of all new reservations

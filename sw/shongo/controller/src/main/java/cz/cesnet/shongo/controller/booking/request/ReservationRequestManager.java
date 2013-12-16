@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -110,7 +109,7 @@ public class ReservationRequestManager extends AbstractManager
      * Mark as deleted existing {@link AbstractReservationRequest} and all it's versions in the database.
      *
      * @param reservationRequest   to be marked as deleted (and all it's versions)
-     * @param authorizationManager to be used for deleting ACL records
+     * @param authorizationManager to be used for deleting ACL entries
      */
     public void softDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
@@ -140,7 +139,7 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} and all it's versions in the database.
      *
      * @param reservationRequest   to be deleted (and all it's versions)
-     * @param authorizationManager to be used for deleting ACL records
+     * @param authorizationManager to be used for deleting ACL entries
      * @return list of {@link Reservation}s which are detached from deleted {@code reservationRequest}'s {@link Allocation}
      */
     public List<Reservation> hardDelete(AbstractReservationRequest reservationRequest,
@@ -177,7 +176,7 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param allocation           for which the {@link Allocation#reservations} should be deleted
      * @param userId               who deleted the allocation
-     * @param authorizationManager to be used for deleting ACL records
+     * @param authorizationManager to be used for deleting ACL entries
      */
     private boolean deleteAllocation(Allocation allocation, String userId, AuthorizationManager authorizationManager)
     {
@@ -213,7 +212,7 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
-     * @param authorizationManager       to be used for deleting ACL records
+     * @param authorizationManager       to be used for deleting ACL entries
      * @param hardDelete                 specifies whether request should be really deleted or only marked as deleted
      */
     public void delete(AbstractReservationRequest abstractReservationRequest,
@@ -224,7 +223,7 @@ public class ReservationRequestManager extends AbstractManager
 
         // Hard delete
         if (hardDelete) {
-            authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
+            authorizationManager.deleteAclEntriesForEntity(abstractReservationRequest);
 
             super.delete(abstractReservationRequest);
         }

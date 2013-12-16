@@ -4,7 +4,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -63,7 +63,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         this.id = EntityIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
-        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, EntityRole.OWNER));
+        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, ObjectRole.OWNER));
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);
@@ -121,7 +121,9 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
             titleBuilder.append(renderContext.message("reservation.type." + type));
             titleBuilder.append(" ");
             titleBuilder.append(renderContext.message("reservation"));
-            titleBuilder.append(" ");
+            titleBuilder.append(" (rsv:");
+            titleBuilder.append(EntityIdentifier.parse(id).getPersistenceId());
+            titleBuilder.append(") ");
             titleBuilder.append(renderContext.formatInterval(slot));
         }
         else {

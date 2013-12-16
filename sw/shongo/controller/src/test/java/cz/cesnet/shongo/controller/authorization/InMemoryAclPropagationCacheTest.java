@@ -4,7 +4,7 @@ import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import org.junit.Test;
 
 /**
- * TODO: Delete this tests, it was only testing implementation of in-memory propagation of ACL records.
+ * TODO: Delete this tests, it was only testing implementation of in-memory propagation of ACL entries.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -15,14 +15,14 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
     {
     }
 
-    /*private AclRecordCache aclRecordCache;
+    /*private AclEntryCache aclEntryCache;
 
     @Override
     public void before() throws Exception
     {
         super.before();
 
-        aclRecordCache = new AclRecordCache(getEntityManagerFactory());
+        aclEntryCache = new AclEntryCache(getEntityManagerFactory());
 
         Domain.setLocalDomain(new Domain("cz.cesnet"));
     }
@@ -56,20 +56,20 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
         EntityIdentifier reservationId = new EntityIdentifier(reservation);
 
-        aclRecordCache.addAclRecord(new AclEntry(user1Id, reservationRequestId, Role.OWNER));
+        aclEntryCache.addAclEntry(new AclEntry(user1Id, reservationRequestId, Role.OWNER));
         Assert.assertEquals("Reservation request should be added to cache",
-                1, aclRecordCache.getEntityCount());
-        Assert.assertEquals("One ACL record for reservation request should be created",
-                1, aclRecordCache.getAclRecordCount(reservationRequestId));
+                1, aclEntryCache.getEntityCount());
+        Assert.assertEquals("One ACL entry for reservation request should be created",
+                1, aclEntryCache.getAclEntryCount(reservationRequestId));
 
-        AclEntry aclRecord = getAclEntry(user1Id, reservationId, Role.OWNER);
-        Assert.assertEquals("Reservation should be automatically added to cache", 2, aclRecordCache.getEntityCount());
-        Assert.assertNotNull("ACL record for reservation should be automatically created", aclRecord);
+        AclEntry aclEntry = getAclEntry(user1Id, reservationId, Role.OWNER);
+        Assert.assertEquals("Reservation should be automatically added to cache", 2, aclEntryCache.getEntityCount());
+        Assert.assertNotNull("ACL entry for reservation should be automatically created", aclEntry);
 
-        aclRecordCache.addAclRecord(new AclEntry(user2Id, reservationRequestId, Role.OWNER));
-        Assert.assertEquals("Another ACL record for reservation request should be created",
-                2, aclRecordCache.getAclRecordCount(reservationRequestId));
-        Assert.assertNotNull("ACL record should have been created", getAclEntry(user2Id, reservationId, Role.OWNER));
+        aclEntryCache.addAclEntry(new AclEntry(user2Id, reservationRequestId, Role.OWNER));
+        Assert.assertEquals("Another ACL entry for reservation request should be created",
+                2, aclEntryCache.getAclEntryCount(reservationRequestId));
+        Assert.assertNotNull("ACL entry should have been created", getAclEntry(user2Id, reservationId, Role.OWNER));
     }
 
     @Test
@@ -102,11 +102,11 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier reservationRequestSetId = new EntityIdentifier(reservationRequestSet);
         EntityIdentifier executableId = new EntityIdentifier(executable);
 
-        aclRecordCache.addAclRecord(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
-        AclEntry aclRecord = getAclEntry(userId, executableId, Role.OWNER);
+        aclEntryCache.addAclEntry(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
+        AclEntry aclEntry = getAclEntry(userId, executableId, Role.OWNER);
         Assert.assertEquals("Reservation request, reservation and executable should be automatically added to cache",
-                4, aclRecordCache.getEntityCount());
-        Assert.assertNotNull("ACL record for executable should be automatically created", aclRecord);
+                4, aclEntryCache.getEntityCount());
+        Assert.assertNotNull("ACL entry for executable should be automatically created", aclEntry);
     }
 
     @Test
@@ -155,20 +155,20 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         EntityIdentifier childReservationId = new EntityIdentifier(childReservation1);
         EntityIdentifier reusedReservationId = new EntityIdentifier(reusedReservation);
 
-        aclRecordCache.addAclRecord(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
-        AclEntry executableAclRecord = getAclEntry(userId, executableId, Role.OWNER);
-        AclEntry childReservationAclRecord = getAclEntry(userId, childReservationId, Role.OWNER);
-        AclEntry reusedReservationAclRecord = getAclEntry(userId, reusedReservationId, Role.OWNER);
+        aclEntryCache.addAclEntry(new AclEntry(userId, reservationRequestSetId, Role.OWNER));
+        AclEntry executableAclEntry = getAclEntry(userId, executableId, Role.OWNER);
+        AclEntry childReservationAclEntry = getAclEntry(userId, childReservationId, Role.OWNER);
+        AclEntry reusedReservationAclEntry = getAclEntry(userId, reusedReservationId, Role.OWNER);
         Assert.assertEquals("All child entities for reservation request set should be automatically added to cache",
-                7, aclRecordCache.getEntityCount());
+                7, aclEntryCache.getEntityCount());
     }
 
     private AclEntry getAclEntry(String userId, EntityIdentifier entityId, Role role) throws Exception
     {
-        Collection<AclEntry> aclRecords = aclRecordCache.getAclRecords(userId, entityId);
-        for (AclEntry aclRecord : aclRecords) {
-            if (aclRecord.getEntityRole().equals(role)) {
-                return aclRecord;
+        Collection<AclEntry> aclEntrys = aclEntryCache.getAclEntries(userId, entityId);
+        for (AclEntry aclEntry : aclEntrys) {
+            if (aclEntry.getRole().equals(role)) {
+                return aclEntry;
             }
         }
         return null;

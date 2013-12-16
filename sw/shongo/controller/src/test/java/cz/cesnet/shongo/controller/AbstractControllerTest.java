@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
@@ -605,39 +605,39 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
     /**
      * @param userId
-     * @param entityId
-     * @param entityRole
-     * @return {@link AclRecord} with given parameters
+     * @param objectId
+     * @param role
+     * @return {@link cz.cesnet.shongo.controller.api.AclEntry} with given parameters
      * @throws Exception
      */
-    protected AclRecord getAclRecord(String userId, String entityId, EntityRole entityRole) throws Exception
+    protected AclEntry getAclEntry(String userId, String objectId, ObjectRole role) throws Exception
     {
-        ListResponse<AclRecord> aclRecords = getAuthorizationService().listAclRecords(
-                new AclRecordListRequest(SECURITY_TOKEN, userId, entityId, entityRole));
+        ListResponse<AclEntry> aclEntries = getAuthorizationService().listAclEntries(
+                new AclEntryListRequest(SECURITY_TOKEN, userId, objectId, role));
 
-        if (aclRecords.getItemCount() == 0) {
+        if (aclEntries.getItemCount() == 0) {
             return null;
         }
-        if (aclRecords.getItemCount() > 1) {
-            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, entityRole).toString() + ".");
+        if (aclEntries.getItemCount() > 1) {
+            throw new RuntimeException("Multiple " + new AclEntry(userId, objectId, role).toString() + ".");
         }
-        return aclRecords.getItem(0);
+        return aclEntries.getItem(0);
     }
 
     /**
-     * Delete {@link AclRecord} with given parameters.
+     * Delete {@link cz.cesnet.shongo.controller.api.AclEntry} with given parameters.
      *
      * @param userId
-     * @param entityId
-     * @param entityRole
+     * @param objectId
+     * @param role
      * @throws Exception
      */
-    protected void deleteAclRecord(String userId, String entityId, EntityRole entityRole) throws Exception
+    protected void deleteAclEntry(String userId, String objectId, ObjectRole role) throws Exception
     {
-        AclRecord aclRecord = getAclRecord(userId, entityId, entityRole);
-        if (aclRecord == null) {
-            throw new RuntimeException(new AclRecord(userId, entityId, entityRole).toString() + " doesn't exist.");
+        AclEntry aclEntry = getAclEntry(userId, objectId, role);
+        if (aclEntry == null) {
+            throw new RuntimeException(new AclEntry(userId, objectId, role).toString() + " doesn't exist.");
         }
-        getAuthorizationService().deleteAclRecord(SECURITY_TOKEN_ROOT, aclRecord.getId());
+        getAuthorizationService().deleteAclEntry(SECURITY_TOKEN_ROOT, aclEntry.getId());
     }
 }

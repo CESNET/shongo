@@ -2,11 +2,11 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
@@ -106,34 +106,36 @@ public interface AuthorizationService extends Service
     public void removeGroupUser(SecurityToken token, String groupId, String userId);
 
     /**
-     * Create {@link cz.cesnet.shongo.controller.api.AclRecord} for given parameters.
+     * Create {@link cz.cesnet.shongo.controller.api.AclEntry} for given parameters.
+     *
+     *
      *
      * @param token      token of the user requesting the operation
      * @param userId     identifier of the Shongo user
-     * @param entityId   identifier of the Shongo public entity
-     * @param entityRole role which the user gets granted for the entity
-     * @return identifier of newly created ACL record
+     * @param objectId   identifier of the Shongo object
+     * @param role       role which the user gets granted for the object
+     * @return identifier of newly created ACL entry
      */
     @API
-    public String createAclRecord(SecurityToken token, String userId, String entityId, EntityRole entityRole);
+    public String createAclEntry(SecurityToken token, String userId, String objectId, ObjectRole role);
 
     /**
-     * Delete {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}.
+     * Delete {@link cz.cesnet.shongo.controller.api.AclEntry} with given {@code id}.
      *
      * @param token       token of the user requesting the operation
-     * @param aclRecordId identifier of newly created ACL record
+     * @param aclEntryId identifier of newly created ACL entry
      */
     @API
-    public void deleteAclRecord(SecurityToken token, String aclRecordId);
+    public void deleteAclEntry(SecurityToken token, String aclEntryId);
 
     /**
-     * Retrieve collection of {@link cz.cesnet.shongo.controller.api.AclRecord} for given parameters.
+     * Retrieve collection of {@link cz.cesnet.shongo.controller.api.AclEntry} for given parameters.
      *
-     * @param request {@link AclRecordListRequest}
-     * @return collection of {@link cz.cesnet.shongo.controller.api.AclRecord} that matches given parameters
+     * @param request {@link cz.cesnet.shongo.controller.api.request.AclEntryListRequest}
+     * @return collection of {@link cz.cesnet.shongo.controller.api.AclEntry} that matches given parameters
      */
     @API
-    public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request);
+    public ListResponse<AclEntry> listAclEntries(AclEntryListRequest request);
 
     /**
      * List {@link ObjectPermission}s of requesting user for entities.
@@ -146,11 +148,11 @@ public interface AuthorizationService extends Service
 
     /**
      * @param token     token of the user requesting the operation
-     * @param entityId  of the entity
+     * @param entityId  of the object
      * @param newUserId new user-id for the given {@code entityId}
      */
     @API
-    public void setEntityUser(SecurityToken token, String entityId, String newUserId);
+    public void setObjectUser(SecurityToken token, String entityId, String newUserId);
 
     /**
      * @param securityToken token of the user requesting the operation

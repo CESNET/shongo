@@ -13,7 +13,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -347,11 +347,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return null;
     }
 
-    public UserRoleModel addUserRole(UserInformation userInformation, EntityRole entityRole)
+    public UserRoleModel addUserRole(UserInformation userInformation, ObjectRole objectRole)
     {
         UserRoleModel userRole = new UserRoleModel(userInformation);
-        userRole.setEntityId(id);
-        userRole.setEntityRole(entityRole);
+        userRole.setObjectId(id);
+        userRole.setRole(objectRole);
         userRoles.add(userRole);
         return userRole;
     }

@@ -2,8 +2,8 @@ package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.controller.EntityRole;
-import cz.cesnet.shongo.controller.api.AclRecord;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AclEntry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,9 +19,9 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 
     private UserInformation user;
 
-    private String entityId;
+    private String objectId;
 
-    private EntityRole entityRole;
+    private ObjectRole role;
 
     private boolean deletable = false;
 
@@ -37,10 +37,10 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.cacheProvider = cacheProvider;
     }
 
-    public UserRoleModel(AclRecord aclRecord, CacheProvider cacheProvider)
+    public UserRoleModel(AclEntry aclEntry, CacheProvider cacheProvider)
     {
         this.cacheProvider = cacheProvider;
-        fromApi(aclRecord);
+        fromApi(aclEntry);
     }
 
     public boolean isNew()
@@ -88,24 +88,24 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.user = user;
     }
 
-    public String getEntityId()
+    public String getObjectId()
     {
-        return entityId;
+        return objectId;
     }
 
-    public void setEntityId(String entityId)
+    public void setObjectId(String objectId)
     {
-        this.entityId = entityId;
+        this.objectId = objectId;
     }
 
-    public EntityRole getEntityRole()
+    public ObjectRole getRole()
     {
-        return entityRole;
+        return role;
     }
 
-    public void setEntityRole(EntityRole entityRole)
+    public void setRole(ObjectRole role)
     {
-        this.entityRole = entityRole;
+        this.role = role;
     }
 
     public boolean isDeletable()
@@ -118,25 +118,25 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.deletable = deletable;
     }
 
-    public void fromApi(AclRecord aclRecord)
+    public void fromApi(AclEntry aclEntry)
     {
-        this.id = aclRecord.getId();
-        setUserId(aclRecord.getUserId());
-        setEntityId(aclRecord.getEntityId());
-        setEntityRole(aclRecord.getEntityRole());
-        setDeletable(aclRecord.isDeletable());
+        this.id = aclEntry.getId();
+        setUserId(aclEntry.getUserId());
+        setObjectId(aclEntry.getObjectId());
+        setRole(aclEntry.getRole());
+        setDeletable(aclEntry.isDeletable());
     }
 
-    public AclRecord toApi()
+    public AclEntry toApi()
     {
-        AclRecord aclRecord = new AclRecord();
+        AclEntry aclEntry = new AclEntry();
         if (!isNew()) {
-            aclRecord.setId(id);
+            aclEntry.setId(id);
         }
-        aclRecord.setUserId(user.getUserId());
-        aclRecord.setEntityId(entityId);
-        aclRecord.setEntityRole(entityRole);
-        return aclRecord;
+        aclEntry.setUserId(user.getUserId());
+        aclEntry.setObjectId(objectId);
+        aclEntry.setRole(role);
+        return aclEntry;
     }
 
     @Override
@@ -144,9 +144,9 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     {
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
         attributes.put("ID", id);
-        attributes.put("Entity", entityId);
+        attributes.put("Entity", objectId);
         attributes.put("User", user);
-        attributes.put("Role", entityRole);
+        attributes.put("Role", role);
         return ReportModel.formatAttributes(attributes);
     }
 }

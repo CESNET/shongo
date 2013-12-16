@@ -1,6 +1,0 @@
-BEGIN TRANSACTION;
-
-ALTER TABLE acl_record RENAME COLUMN role TO entity_role;
-UPDATE person_participant SET role = 'ADMINISTRATOR' WHERE role = 'ADMIN';
-
-COMMIT TRANSACTION;

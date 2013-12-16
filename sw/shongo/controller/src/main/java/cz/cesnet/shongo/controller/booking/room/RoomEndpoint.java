@@ -6,7 +6,7 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
@@ -244,7 +244,7 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
         // If roomApi doesn't contain any participant with ParticipantRole#ADMINISTRATOR, fill the owners of this room
         Authorization authorization = Authorization.getInstance();
         if (!roomApi.hasParticipantWithRole(ParticipantRole.ADMINISTRATOR)) {
-            for (UserInformation executableOwner : authorization.getUsersWithRole(this, EntityRole.OWNER)) {
+            for (UserInformation executableOwner : authorization.getUsersWithRole(this, ObjectRole.OWNER)) {
                 roomApi.addParticipantRole(executableOwner.getUserId(), ParticipantRole.ADMINISTRATOR);
             }
         }

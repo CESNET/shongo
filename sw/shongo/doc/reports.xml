@@ -672,13 +672,13 @@
             <classification severity="error"/>
             <params>
                 <param name="entity" type="String"/>
-                <param name="entityRole" type="String"/>
+                <param name="role" type="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                ACL role ${entityRole} is invalid for entity ${entity}.
+                ACL role ${role} is invalid for entity ${entity}.
             </message>
             <example>
                 TODO:

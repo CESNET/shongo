@@ -7,7 +7,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tag:url var="cancelUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-    <tag:param name="reservationRequestId" value="${userRole.entityId}"/>
+    <tag:param name="reservationRequestId" value="${userRole.objectId}"/>
 </tag:url>
 
 <script type="text/javascript">

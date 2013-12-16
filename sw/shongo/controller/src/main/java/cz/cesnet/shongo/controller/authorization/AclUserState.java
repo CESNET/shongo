@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectPermission;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
@@ -21,7 +21,7 @@ public class AclUserState
     /**
      * Set of {@link AclEntry}s for the user.
      */
-    private Map<Long, AclEntry> aclRecords = new HashMap<Long, AclEntry>();
+    private Map<Long, AclEntry> aclEntries = new HashMap<Long, AclEntry>();
 
     /**
      * {@link cz.cesnet.shongo.controller.authorization.AclUserState.ObjectState} for the user.
@@ -38,11 +38,11 @@ public class AclUserState
     /**
      * @param aclEntry to be added to the {@link AclUserState}
      */
-    public synchronized void addAclRecord(AclEntry aclEntry)
+    public synchronized void addAclEntry(AclEntry aclEntry)
     {
-        Long aclRecordId = aclEntry.getId();
+        Long aclEntryId = aclEntry.getId();
         AclObjectIdentity objectIdentity = aclEntry.getObjectIdentity();
-        if (aclRecords.put(aclRecordId, aclEntry) == null) {
+        if (aclEntries.put(aclEntryId, aclEntry) == null) {
             ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
             if (objectState == null) {
                 objectState = new ObjectState();
@@ -50,13 +50,13 @@ public class AclUserState
             }
 
             // Update records
-            objectState.aclRecords.put(aclRecordId, aclEntry);
+            objectState.aclEntries.put(aclEntryId, aclEntry);
 
             // Update permissions
             AclObjectClass objectClass = objectIdentity.getObjectClass();
-            EntityRole entityRole = EntityRole.valueOf(aclEntry.getRole());
+            ObjectRole objectRole = ObjectRole.valueOf(aclEntry.getRole());
             EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
-            for (ObjectPermission objectPermission : entityType.getRolePermissions(entityRole)) {
+            for (ObjectPermission objectPermission : entityType.getRolePermissions(objectRole)) {
                 objectState.permissions.add(objectPermission);
             }
 
@@ -75,10 +75,10 @@ public class AclUserState
     /**
      * @param aclEntry to be removed from the {@link AclUserState}
      */
-    public synchronized void removeAclRecord(AclEntry aclEntry)
+    public synchronized void removeAclEntry(AclEntry aclEntry)
     {
-        Long aclRecordId = aclEntry.getId();
-        if (aclRecords.remove(aclRecordId) != null) {
+        Long aclEntryId = aclEntry.getId();
+        if (aclEntries.remove(aclEntryId) != null) {
             AclObjectIdentity objectIdentity = aclEntry.getObjectIdentity();
             ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
             if (objectState == null) {
@@ -86,15 +86,15 @@ public class AclUserState
             }
 
             // Update records
-            objectState.aclRecords.remove(aclRecordId);
+            objectState.aclEntries.remove(aclEntryId);
 
             // Update permissions
             objectState.permissions.clear();
             AclObjectClass objectClass = objectIdentity.getObjectClass();
             EntityType entityType = EntityTypeResolver.getEntityType(objectClass);
-            for (AclEntry existingAclEntry : objectState.aclRecords.values()) {
-                EntityRole entityRole = EntityRole.valueOf(existingAclEntry.getRole());
-                for (ObjectPermission objectPermission : entityType.getRolePermissions(entityRole)) {
+            for (AclEntry existingAclEntry : objectState.aclEntries.values()) {
+                ObjectRole objectRole = ObjectRole.valueOf(existingAclEntry.getRole());
+                for (ObjectPermission objectPermission : entityType.getRolePermissions(objectRole)) {
                     objectState.permissions.add(objectPermission);
                 }
             }
@@ -111,7 +111,7 @@ public class AclUserState
             }
 
             // Remove objects states
-            if (objectState.aclRecords.size() == 0) {
+            if (objectState.aclEntries.size() == 0) {
                 objectStateByObjectIdentity.remove(objectIdentity);
             }
         }
@@ -119,13 +119,13 @@ public class AclUserState
 
     /**
      * @param objectIdentity for which the {@link AclEntry}s should be returned
-     * @return set of {@link AclEntry}s for given {@code entityId}
+     * @return set of {@link AclEntry}s for given {@code objectIdentity}
      */
-    public synchronized Collection<AclEntry> getAclRecords(AclObjectIdentity objectIdentity)
+    public synchronized Collection<AclEntry> getAclEntries(AclObjectIdentity objectIdentity)
     {
         ObjectState objectState = objectStateByObjectIdentity.get(objectIdentity);
         if (objectState != null) {
-            return objectState.aclRecords.values();
+            return objectState.aclEntries.values();
         }
         return null;
     }
@@ -180,7 +180,7 @@ public class AclUserState
         /**
          * Set of {@link AclEntry}s for the object.
          */
-        private Map<Long, AclEntry> aclRecords = new HashMap<Long, AclEntry>();
+        private Map<Long, AclEntry> aclEntries = new HashMap<Long, AclEntry>();
 
         /**
          * Set of {@link ObjectPermission}s for the object.

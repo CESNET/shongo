@@ -7,7 +7,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.AclEntry;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
@@ -330,21 +331,22 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String createAclRecord(SecurityToken securityToken, String userId, String entityId, EntityRole entityRole)
+    public String createAclEntry(SecurityToken securityToken, String userId, String objectId, ObjectRole role)
     {
         authorization.validate(securityToken);
         authorization.checkUserExistence(userId);
-        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(objectId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             PersistentObject entity = checkEntityExistence(entityIdentifier, entityManager);
             if (!authorization.hasObjectPermission(securityToken, entity, ObjectPermission.WRITE)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", objectId);
             }
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
-            AclEntry aclEntry = authorizationManager.createAclRecord(AclIdentityType.USER, userId, entity, entityRole);
+            cz.cesnet.shongo.controller.acl.AclEntry aclEntry = authorizationManager.createAclEntry(
+                    AclIdentityType.USER, userId, entity, role);
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
             return (aclEntry != null ? aclEntry.getId().toString() : null);
@@ -361,19 +363,19 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deleteAclRecord(SecurityToken securityToken, String aclRecordId)
+    public void deleteAclEntry(SecurityToken securityToken, String aclEntryId)
     {
         authorization.validate(securityToken);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            AclEntry aclEntry = authorizationManager.getAclEntry(Long.valueOf(aclRecordId));
+            cz.cesnet.shongo.controller.acl.AclEntry aclEntry = authorizationManager.getAclEntry(Long.valueOf(aclEntryId));
             if (!authorization.hasObjectPermission(securityToken, aclEntry.getObjectIdentity(), ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete ACL for %s", aclEntry.getObjectIdentity());
             }
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
-            authorizationManager.deleteAclRecord(aclEntry);
+            authorizationManager.deleteAclEntry(aclEntry);
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
         }
@@ -389,7 +391,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request)
+    public ListResponse<AclEntry> listAclEntries(AclEntryListRequest request)
     {
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
@@ -399,22 +401,22 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             QueryFilter queryFilter = new QueryFilter("acl_entry", true);
 
             // List only records which are requested
-            if (request.getAclRecordIds().size() > 0) {
+            if (request.getEntryIds().size() > 0) {
                 queryFilter.addFilter("acl_entry.id IN (:aclEntryIds)");
                 Set<Long> aclEntryIds = new HashSet<Long>();
-                for (String aclEntryId : request.getAclRecordIds()) {
+                for (String aclEntryId : request.getEntryIds()) {
                     aclEntryIds.add(Long.valueOf(aclEntryId));
                 }
                 queryFilter.addFilterParameter("aclEntryIds", aclEntryIds);
             }
 
             // List only records for entities which are requested
-            if (request.getEntityIds().size() > 0) {
+            if (request.getObjectIds().size() > 0) {
                 boolean isAdmin = authorization.isAdministrator(securityToken);
                 AclProvider aclProvider = authorization.getAclProvider();
                 Set<Long> objectClassesIds = new HashSet<Long>();
                 Set<Long> objectIdentityIds = new HashSet<Long>();
-                for (String entityId : request.getEntityIds()) {
+                for (String entityId : request.getObjectIds()) {
                     EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
                     boolean isGroup = entityIdentifier.isGroup();
 
@@ -470,28 +472,28 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             }
 
             // List only records for requested roles
-            if (request.getEntityRoles().size() > 0) {
-                queryFilter.addFilter("acl_entry.role IN (:entityRoles)");
-                queryFilter.addFilterParameter("entityRoles", request.getEntityRoles());
+            if (request.getRoles().size() > 0) {
+                queryFilter.addFilter("acl_entry.role IN (:roles)");
+                queryFilter.addFilterParameter("roles", request.getRoles());
             }
 
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("filter", queryFilter.toQueryWhere());
             String query = NativeQuery.getNativeQuery(NativeQuery.ACL_ENTRY_LIST, parameters);
 
-            ListResponse<AclRecord> response = new ListResponse<AclRecord>();
-            List<Object[]> aclRecords = performNativeListRequest(query, queryFilter, request, response, entityManager);
+            ListResponse<AclEntry> response = new ListResponse<AclEntry>();
+            List<Object[]> aclEntries = performNativeListRequest(query, queryFilter, request, response, entityManager);
 
             // Fill reservations to response
-            for (Object[] aclRecord : aclRecords) {
-                AclRecord aclRecordApi = new AclRecord();
-                aclRecordApi.setId(aclRecord[0].toString());
-                aclRecordApi.setUserId(aclRecord[3].toString());
-                aclRecordApi.setEntityId(new EntityIdentifier(
-                        EntityType.valueOf(aclRecord[6].toString()), ((Number) aclRecord[7]).longValue()).toId());
-                aclRecordApi.setEntityRole(EntityRole.valueOf(aclRecord[8].toString()));
-                aclRecordApi.setDeletable(((Number) aclRecord[9]).intValue() == 0);
-                response.addItem(aclRecordApi);
+            for (Object[] aclEntry : aclEntries) {
+                AclEntry aclEntryApi = new AclEntry();
+                aclEntryApi.setId(aclEntry[0].toString());
+                aclEntryApi.setUserId(aclEntry[3].toString());
+                aclEntryApi.setObjectId(new EntityIdentifier(
+                        EntityType.valueOf(aclEntry[6].toString()), ((Number) aclEntry[7]).longValue()).toId());
+                aclEntryApi.setRole(ObjectRole.valueOf(aclEntry[8].toString()));
+                aclEntryApi.setDeletable(((Number) aclEntry[9]).intValue() == 0);
+                response.addItem(aclEntryApi);
             }
             return response;
         }
@@ -521,7 +523,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void setEntityUser(SecurityToken securityToken, String entityId, String newUserId)
+    public void setObjectUser(SecurityToken securityToken, String entityId, String newUserId)
     {
         authorization.validate(securityToken);
         authorization.checkUserExistence(newUserId);
@@ -541,35 +543,35 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().begin();
             if (entity instanceof Resource) {
                 Resource resource = (Resource) entity;
-                for (AclEntry aclEntry :
-                        authorizationManager.listAclRecords(resource.getUserId(), resource, EntityRole.OWNER)) {
-                    authorizationManager.deleteAclRecord(aclEntry);
+                for (cz.cesnet.shongo.controller.acl.AclEntry aclEntry :
+                        authorizationManager.listAclEntries(resource.getUserId(), resource, ObjectRole.OWNER)) {
+                    authorizationManager.deleteAclEntry(aclEntry);
                 }
                 resource.setUserId(newUserId);
-                authorizationManager.createAclRecord(AclIdentityType.USER, newUserId, entity, EntityRole.OWNER);
+                authorizationManager.createAclEntry(AclIdentityType.USER, newUserId, entity, ObjectRole.OWNER);
             }
             else if (entity instanceof AbstractReservationRequest) {
                 // Change user to reservation request
                 ReservationRequest reservationRequest = (ReservationRequest) entity;
-                for (AclEntry aclEntry :
-                        authorizationManager.listAclRecords(
-                                reservationRequest.getCreatedBy(), reservationRequest, EntityRole.OWNER)) {
-                    authorizationManager.deleteAclRecord(aclEntry);
+                for (cz.cesnet.shongo.controller.acl.AclEntry aclEntry :
+                        authorizationManager.listAclEntries(
+                                reservationRequest.getCreatedBy(), reservationRequest, ObjectRole.OWNER)) {
+                    authorizationManager.deleteAclEntry(aclEntry);
                 }
                 reservationRequest.setCreatedBy(newUserId);
                 reservationRequest.setUpdatedBy(newUserId);
-                authorizationManager.createAclRecord(AclIdentityType.USER, newUserId, entity, EntityRole.OWNER);
+                authorizationManager.createAclEntry(AclIdentityType.USER, newUserId, entity, ObjectRole.OWNER);
 
                 // Change user to child reservation requests
                 Allocation allocation = reservationRequest.getAllocation();
                 for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
-                    for (AclEntry aclEntry :
-                            authorizationManager.listAclRecords(
-                                    childReservationRequest.getCreatedBy(), childReservationRequest, EntityRole.OWNER)) {
-                        authorizationManager.deleteAclRecord(aclEntry);
+                    for (cz.cesnet.shongo.controller.acl.AclEntry aclEntry :
+                            authorizationManager.listAclEntries(
+                                    childReservationRequest.getCreatedBy(), childReservationRequest, ObjectRole.OWNER)) {
+                        authorizationManager.deleteAclEntry(aclEntry);
                     }
                     childReservationRequest.setCreatedBy(newUserId);
-                    authorizationManager.createAclRecord(AclIdentityType.USER, newUserId, entity, EntityRole.OWNER);
+                    authorizationManager.createAclEntry(AclIdentityType.USER, newUserId, entity, ObjectRole.OWNER);
                 }
             }
             else {

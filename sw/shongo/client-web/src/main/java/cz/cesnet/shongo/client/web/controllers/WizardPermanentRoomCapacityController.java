@@ -295,8 +295,8 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
-            authorizationService.createAclRecord(securityToken,
-                    userRole.getUserId(), reservationRequestId, userRole.getEntityRole());
+            authorizationService.createAclEntry(securityToken,
+                    userRole.getUserId(), reservationRequestId, userRole.getRole());
         }
 
         // Clear session attributes

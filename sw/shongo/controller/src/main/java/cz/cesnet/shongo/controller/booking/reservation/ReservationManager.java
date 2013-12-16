@@ -71,9 +71,9 @@ public class ReservationManager extends AbstractManager
             reservationItem.setParentReservation(null);
         }
 
-        // Get ACL records for deletion
+        // Get ACL entries for deletion
         for (Reservation reservationToDelete : reservations) {
-            authorizationManager.deleteAclRecordsForEntity(reservationToDelete);
+            authorizationManager.deleteAclEntriesForEntity(reservationToDelete);
         }
 
         // Date/time now for stopping executables

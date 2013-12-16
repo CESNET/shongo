@@ -196,8 +196,8 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                     // Add the new reservation request as child to allocation
                     allocation.addChildReservationRequest(childReservationRequest);
 
-                    // Create ACL records for the new reservation request
-                    authorizationManager.createAclRecordsForChildEntity(reservationRequestSet, childReservationRequest);
+                    // Create ACL entries for the new reservation request
+                    authorizationManager.createAclEntriesForChildEntity(reservationRequestSet, childReservationRequest);
 
                     result.createdReservationRequests++;
                 }
@@ -211,7 +211,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                 // Remove child reservation request from allocation
                 allocation.removeChildReservationRequest(reservationRequest);
 
-                // Delete child reservation request and all it's ACL records
+                // Delete child reservation request and all it's ACL entries
                 reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
 
                 result.deletedReservationRequests++;

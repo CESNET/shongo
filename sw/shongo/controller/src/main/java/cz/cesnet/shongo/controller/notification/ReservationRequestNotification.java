@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.EntityRole;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.EntityIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
@@ -57,7 +57,7 @@ public class ReservationRequestNotification extends ConfigurableNotification
         this.description = reservationRequest.getDescription();
         this.target = Target.createInstance(reservationRequest, entityManager);
 
-        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, EntityRole.OWNER)) {
+        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER)) {
             addRecipient(authorizationManager.getUserInformation(userId), false);
         }
     }

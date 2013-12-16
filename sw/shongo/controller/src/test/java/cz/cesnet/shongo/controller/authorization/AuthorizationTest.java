@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.junit.Assert;
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.AclRecord}s.
+ * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.AclEntry}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -37,7 +37,7 @@ public class AuthorizationTest extends AbstractControllerTest
     public void testResource() throws Exception
     {
         String userId = getUserId(SECURITY_TOKEN);
-        Set<cz.cesnet.shongo.controller.api.AclRecord> aclRecords = new HashSet<cz.cesnet.shongo.controller.api.AclRecord>();
+        Set<AclEntry> aclEntries = new HashSet<AclEntry>();
 
         Resource resource = new Resource();
         resource.setName("resource");
@@ -46,20 +46,20 @@ public class AuthorizationTest extends AbstractControllerTest
                 AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, resourceId, EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
 
         getResourceService().deleteResource(SECURITY_TOKEN, resourceId);
 
-        aclRecords.remove(new cz.cesnet.shongo.controller.api.AclRecord(userId, resourceId, EntityRole.OWNER));
-        Assert.assertEquals(0, aclRecords.size());
+        aclEntries.remove(new AclEntry(userId, resourceId, ObjectRole.OWNER));
+        Assert.assertEquals(0, aclEntries.size());
     }
 
     @Test
     public void testReservationRequest() throws Exception
     {
         String userId = getUserId(SECURITY_TOKEN);
-        Set<cz.cesnet.shongo.controller.api.AclRecord> aclRecords = new HashSet<cz.cesnet.shongo.controller.api.AclRecord>();
+        Set<AclEntry> aclEntries = new HashSet<AclEntry>();
 
         Resource resource = new Resource();
         resource.setName("resource");
@@ -68,8 +68,8 @@ public class AuthorizationTest extends AbstractControllerTest
                 AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, resourceId, EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
@@ -78,15 +78,15 @@ public class AuthorizationTest extends AbstractControllerTest
         String reservationRequestId = allocate(reservationRequest);
         Reservation reservation = checkAllocated(reservationRequestId);
 
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, reservationRequestId, EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, reservation.getId(), EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.add(new AclEntry(userId, reservationRequestId, ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, reservation.getId(), ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
 
-        deleteAclRecord(userId, reservationRequestId, EntityRole.OWNER);
+        deleteAclEntry(userId, reservationRequestId, ObjectRole.OWNER);
 
-        aclRecords.clear();
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, resourceId, EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.clear();
+        aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
 
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-02T12:00", "PT2H");
@@ -104,19 +104,19 @@ public class AuthorizationTest extends AbstractControllerTest
         String valueReservation1 = aliasReservation1.getChildReservationIds().get(0);
         String valueReservation2 = aliasReservation2.getChildReservationIds().get(0);
 
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, reservationRequestId, EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, reservation.getId(), EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, aliasReservation1.getId(), EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, aliasReservation2.getId(), EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, valueReservation1, EntityRole.OWNER));
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, valueReservation2, EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.add(new AclEntry(userId, reservationRequestId, ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, reservation.getId(), ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, aliasReservation1.getId(), ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, aliasReservation2.getId(), ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, valueReservation1, ObjectRole.OWNER));
+        aclEntries.add(new AclEntry(userId, valueReservation2, ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
 
-        deleteAclRecord(userId, reservationRequestId, EntityRole.OWNER);
+        deleteAclEntry(userId, reservationRequestId, ObjectRole.OWNER);
 
-        aclRecords.clear();
-        aclRecords.add(new cz.cesnet.shongo.controller.api.AclRecord(userId, resourceId, EntityRole.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());
+        aclEntries.clear();
+        aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
+        Assert.assertEquals(aclEntries, getAclEntries());
     }
 
     @Test
@@ -193,34 +193,34 @@ public class AuthorizationTest extends AbstractControllerTest
         Assert.assertEquals(aliasReservation.getId(), reservation1.getReservation().getId());
         Assert.assertEquals(aliasReservation.getId(), reservation2.getReservation().getId());
 
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, EntityRole.OWNER);
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest2Id, EntityRole.OWNER);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, ObjectRole.OWNER);
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN_USER1, user2Id, reservationRequest2Id, ObjectRole.OWNER);
 
         Assert.assertNotNull("Reader role should be created",
-                getAclRecord(user2Id, aliasReservation.getId(), EntityRole.READER));
+                getAclEntry(user2Id, aliasReservation.getId(), ObjectRole.READER));
 
-        deleteAclRecord(user2Id, reservationRequest1Id, EntityRole.OWNER);
+        deleteAclEntry(user2Id, reservationRequest1Id, ObjectRole.OWNER);
 
         Assert.assertNotNull("Reader role should be kept for the second request",
-                getAclRecord(user2Id, aliasReservation.getId(), EntityRole.READER));
+                getAclEntry(user2Id, aliasReservation.getId(), ObjectRole.READER));
 
-        deleteAclRecord(user2Id, reservationRequest2Id, EntityRole.OWNER);
+        deleteAclEntry(user2Id, reservationRequest2Id, ObjectRole.OWNER);
 
         Assert.assertNull("Reader role should be deleted",
-                getAclRecord(user2Id, aliasReservation.getId(), EntityRole.READER));
+                getAclEntry(user2Id, aliasReservation.getId(), ObjectRole.READER));
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest1Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest2Id);
     }
 
     /**
-     * @return collection of all {@link cz.cesnet.shongo.controller.api.AclRecord} for user with {@link #SECURITY_TOKEN}
+     * @return collection of all {@link cz.cesnet.shongo.controller.api.AclEntry} for user with {@link #SECURITY_TOKEN}
      * @throws Exception
      */
-    private Set<cz.cesnet.shongo.controller.api.AclRecord> getAclRecords() throws Exception
+    private Set<AclEntry> getAclEntries() throws Exception
     {
-        ListResponse<cz.cesnet.shongo.controller.api.AclRecord> aclRecords = getAuthorizationService().listAclRecords(
-                new AclRecordListRequest(SECURITY_TOKEN, getUserId(SECURITY_TOKEN)));
-        return new HashSet<cz.cesnet.shongo.controller.api.AclRecord>(aclRecords.getItems());
+        ListResponse<AclEntry> aclEntries = getAuthorizationService().listAclEntries(
+                new AclEntryListRequest(SECURITY_TOKEN, getUserId(SECURITY_TOKEN)));
+        return new HashSet<AclEntry>(aclEntries.getItems());
     }
 }

@@ -143,7 +143,7 @@ public class ServiceImpl implements Service
                                 "No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
                     Authorization authorization = Authorization.getInstance();
-                    for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, EntityRole.OWNER)) {
+                    for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, ObjectRole.OWNER)) {
                         recipients.add(user);
                     }
                     for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {
