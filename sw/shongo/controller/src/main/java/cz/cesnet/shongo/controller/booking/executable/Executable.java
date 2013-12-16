@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.DateTime;
@@ -332,6 +333,22 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
+     * Finalize this {@link Executable}.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    public final void finalize(Executor executor, ExecutableManager executableManager)
+    {
+        if (getState().isStarted()) {
+            throw new IllegalStateException(
+                    String.format("Executable '%d' can be finalized only if it is stopped.", getId()));
+        }
+        State state = onFinalize(executor, executableManager);
+        setState(state);
+    }
+
+    /**
      * Start this {@link Executable}.
      *
      * @param executor
@@ -365,6 +382,18 @@ public abstract class Executable extends ExecutionTarget
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         return State.SKIPPED;
+    }
+
+    /**
+     * Finalize this {@link Executable}.
+     *
+     * @param executor
+     * @param executableManager
+     * @return new {@link State}
+     */
+    protected State onFinalize(Executor executor, ExecutableManager executableManager)
+    {
+        return State.FINALIZED;
     }
 
     /**
@@ -473,13 +502,13 @@ public abstract class Executable extends ExecutionTarget
     {
         /**
          * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for
-         * {@link cz.cesnet.shongo.controller.scheduler.SchedulerReport}).
+         * {@link SchedulerReport}).
          */
         NOT_ALLOCATED(false, false),
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
-         * {@link ExecutionReport}) and the entity for which it has been stored has been deleted
+         * {@link ExecutionReport}) and the object for which it has been stored has been deleted
          * and thus the {@link Executable} should be also deleted.
          */
         TO_DELETE(false, false),
@@ -523,7 +552,17 @@ public abstract class Executable extends ExecutionTarget
         /**
          * {@link Executable} failed to stop.
          */
-        STOPPING_FAILED(true, false);
+        STOPPING_FAILED(true, false),
+
+        /**
+         * All additional resources allocated for the {@link Executable} has been freed.
+         */
+        FINALIZED(false, false),
+
+        /**
+         * Finalization has failed.
+         */
+        FINALIZATION_FAILED(false, false);
 
         /**
          * Specifies whether state means that executable is started.
@@ -581,6 +620,8 @@ public abstract class Executable extends ExecutionTarget
                 case STARTING_FAILED:
                     return ExecutableState.STARTING_FAILED;
                 case STOPPED:
+                case FINALIZED:
+                case FINALIZATION_FAILED:
                     return ExecutableState.STOPPED;
                 case STOPPING_FAILED:
                     return ExecutableState.STOPPING_FAILED;
@@ -592,7 +633,7 @@ public abstract class Executable extends ExecutionTarget
 
     /**
      * States which represents {@link Executable} which is created only for
-     * {@link cz.cesnet.shongo.controller.scheduler.SchedulerReport} and thus it is not allocated.
+     * {@link SchedulerReport} and thus it is not allocated.
      */
     public static final Set<State> NOT_ALLOCATED_STATES = new HashSet<State>()
     {{

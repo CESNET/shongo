@@ -477,6 +477,51 @@ public abstract class ExecutionAction<T> extends Thread
     }
 
     /**
+     * {@link ExecutionAction} for finalizing {@link Executable}.
+     */
+    public static class FinalizeExecutableAction extends AbstractExecutableAction
+    {
+        /**
+         * Constructor.
+         *
+         * @param executable sets the {@link #target}
+         */
+        public FinalizeExecutableAction(Executable executable)
+        {
+            super(executable);
+        }
+
+        @Override
+        protected void perform(ExecutableManager executableManager)
+        {
+            try {
+                Executable executable = executableManager.get(this.target.getId());
+                executable.finalize(getExecutor(), executableManager);
+            }
+            catch (Exception exception) {
+                Reporter.reportInternalError(Reporter.EXECUTOR, "Finalizing failed", exception);
+            }
+        }
+
+        @Override
+        protected boolean performFinish(ExecutionResult executionResult)
+        {
+            if (target.getState().equals(Executable.State.FINALIZED)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Finalize [exe:%d]", target.getId());
+        }
+    }
+
+    /**
      * {@link ExecutionAction} for stopping {@link Executable}.
      */
     public static class MigrationAction extends ExecutionAction<Migration>

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.executable;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
@@ -206,6 +207,32 @@ public class ExecutableManager extends AbstractManager
                 .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED,
                         Executable.State.MODIFIED))
                 .setParameter("stoppingFailedState", Executable.State.STOPPING_FAILED)
+                .setParameter("maxAttemptCount", maxAttemptCount)
+                .getResultList();
+    }
+
+    /**
+     * @param referenceDateTime which represents now
+     * @param maxAttemptCount
+     * @return list of {@link Executable}s which should be finalized for given {@code referenceDateTime}
+     */
+    public List<Executable> listExecutablesForFinalization(DateTime referenceDateTime, int maxAttemptCount)
+    {
+        return entityManager
+                .createQuery("SELECT executable FROM Executable executable"
+                        + " WHERE executable NOT IN("
+                        + "   SELECT childExecutable FROM Executable executable "
+                        + "   INNER JOIN executable.childExecutables childExecutable "
+                        + " ) AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
+                        + " AND (executable.state IN(:states)"
+                        + "      OR (executable.nextAttempt != NULL AND executable.state = :failedState))"
+                        + " AND (executable.slotEnd < :dateTime)"
+                        + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
+                        + " AND (executable.attemptCount < :maxAttemptCount)",
+                        Executable.class)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("states", EnumSet.of(Executable.State.STOPPED, Executable.State.SKIPPED))
+                .setParameter("failedState", Executable.State.FINALIZATION_FAILED)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
     }

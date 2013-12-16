@@ -114,6 +114,11 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
 
+        // Delete reservation request
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
+        runScheduler();
+        runExecutor(dateTime.plusHours(3));
+
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
@@ -126,8 +131,8 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
-
     }
 
     /**
