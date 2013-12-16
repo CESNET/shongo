@@ -60,9 +60,6 @@
         <tag:param name="reservationRequestId" value="{{capacity.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
-    <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
-        <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
-    </tag:url>
 
     <tag:url var="participantRoomListUrl" value="<%= ClientWebUrl.ROOM_LIST_DATA %>">
         <tag:param name="participant-user-id" value="${userId}"/>
@@ -268,12 +265,12 @@
                             <td>{{reservationRequest.technologyTitle}}</td>
                             <td>
                                 <span ng-bind-html="reservationRequest.earliestSlot"></span>
-                        <span ng-show="reservationRequest.futureSlotCount">
-                            <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
-                            <tag:help label="(${slotMore})" cssClass="push-top">
-                                <spring:message code="views.reservationRequestList.slotMoreHelp"/>
-                            </tag:help>
-                        </span>
+                                <span ng-show="reservationRequest.futureSlotCount">
+                                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore" arguments="{{reservationRequest.futureSlotCount}}"/>
+                                    <tag:help label="(${slotMore})" cssClass="push-top">
+                                        <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                                    </tag:help>
+                                </span>
                             </td>
                             <td class="reservation-request-state">
                                 <tag:help label="{{reservationRequest.stateMessage}}" cssClass="{{reservationRequest.state}}">
@@ -281,21 +278,24 @@
                                 </tag:help>
                             </td>
                             <td>
-                        <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
-                            <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
-                        </span>
+                                <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
+                                    <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
+                                </tag:url>
+                                <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
+                                    <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
+                                </span>
                                 <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${reservationRequestDetailUrl}" tabindex="2"/>
-                        <span ng-show="reservationRequest.isWritable">
-                            <c:if test="${advancedUserInterface}">
-                                <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                    | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
+                                <span ng-show="reservationRequest.isWritable">
+                                    <c:if test="${advancedUserInterface}">
+                                        <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                            | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
+                                        </span>
+                                        <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                            | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
+                                        </span>
+                                    </c:if>
+                                    | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
                                 </span>
-                                <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                    | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
-                                </span>
-                            </c:if>
-                            | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
-                        </span>
                             </td>
                         </tr>
                         <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'"
@@ -371,6 +371,9 @@
                             </th>
                             <th>
                                 <spring:message code="views.room.description"/>
+                            </th>
+                            <th style="min-width: 85px; width: 85px;">
+                                <spring:message code="views.list.action"/>
                                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                             </th>
                         </tr>
@@ -388,11 +391,19 @@
                                 </tag:help>
                             </td>
                             <td>{{room.description}}</td>
+                            <td>
+                                <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
+                                    <tag:param name="roomId" value="{{room.id}}" escape="false"/>
+                                </tag:url>
+                                <span ng-show="room.stateAvailable">
+                                    <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/>
+                                </span>
+                            </td>
                         </tr>
                         </tbody>
                         <tbody>
                         <tr ng-hide="items.length">
-                            <td colspan="5" class="empty"><spring:message code="views.list.none"/></td>
+                            <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
                         </tr>
                         </tbody>
                     </table>
