@@ -398,7 +398,8 @@ paginationModule.directive('paginationPages', function () {
                 '<span ng-show="page.active" class="page">{{$index + 1}}</span>' +
                 '</span>' +
                 '</div>' +
-                '</div>';
+                '</div>' +
+                '<div style="clear: right;"></div>';
             element.replaceWith(html);
         }
     }

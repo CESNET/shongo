@@ -53,7 +53,7 @@
     angular.provideModule('tag:reservationRequestList', ['ngPagination', 'ngTooltip', 'ngSanitize']);
 </script>
 
-<div ng-controller="PaginationController"
+<div class="table-actions-left" ng-controller="PaginationController"
      ng-init="init('${listName}', '${listUrl}', ${listUrlParameters})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
@@ -169,13 +169,13 @@
         </tr>
         </tbody>
     </table>
+    <c:if test="${not empty createUrl}">
+        <div class="table-actions">
+            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
+                <spring:message code="views.button.create"/>
+            </a>
+        </div>
+    </c:if>
     <pagination-pages class="pull-right" ng-show="ready"><spring:message code="views.pagination.pages"/></pagination-pages>
 </div>
-<c:if test="${not empty createUrl}">
-    <div class="table-actions">
-        <a class="btn btn-primary" href="${createUrl}" tabindex="1">
-            <spring:message code="views.button.create"/>
-        </a>
-    </div>
-</c:if>
-
+<div style="clear:both;"></div>

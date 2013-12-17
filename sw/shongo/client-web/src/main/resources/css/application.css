@@ -424,6 +424,7 @@ div.actions.collapsed>a {
 }
 .pagination-pages > div {
     margin-top: 10px;
+    margin-left: 10px;
 }
 .pagination-pages .page {
     border: solid 1px;

@@ -101,17 +101,18 @@
                 <tr ng-hide="items.length">${tableEmptyRow}</tr>
                 </tbody>
             </table>
+            <c:if test="${isWritable && createUrl != null}">
+                <div class="table-actions">
+                    <a class="btn btn-primary" href="${createUrl}" tabindex="1">
+                        <spring:message code="views.button.add"/>
+                    </a>
+                </div>
+            </c:if>
             <pagination-pages class="${(isWritable && createUrl != null) ? 'pull-right' : ''}" ng-show="ready">
                 <spring:message code="views.pagination.pages"/>
             </pagination-pages>
         </div>
-        <c:if test="${isWritable && createUrl != null}">
-            <div class="table-actions">
-                <a class="btn btn-primary" href="${createUrl}" tabindex="1">
-                    <spring:message code="views.button.add"/>
-                </a>
-            </div>
-        </c:if>
+
     </c:when>
 
     <%-- Error --%>

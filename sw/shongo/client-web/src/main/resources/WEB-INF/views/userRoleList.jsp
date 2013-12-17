@@ -31,7 +31,6 @@
                       createUrl="${aclCreateUrl}" deleteUrl="${participantDeleteUrl}"/>
 
 </div>
-
 <div class="table-actions pull-right">
     <tag:url var="backUrl" value="${requestScope.backUrl}"/>
     <a class="btn" href="${backUrl}"><spring:message code="views.button.back"/></a>
