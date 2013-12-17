@@ -87,6 +87,15 @@
             });
         };
     });
+    module.controller('RoomRecordingActionController', function($scope) {
+        $scope.postAndRefresh = function(url) {
+            $.post(url, function(){
+                $timeout(function(){
+                    $scope.$parent.refresh();
+                }, 0);
+            });
+        };
+    });
 <c:if test="${room.recordingService != null}">
     <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START %>" var="startRecordingUrl">
         <tag:param name="roomId" value="${room.id}"/>
@@ -125,13 +134,6 @@
                         $scope.recordingError = null;
                         $scope.$parent.refresh();
                     }
-                }, 0);
-            });
-        };
-        $scope.postAndRefresh = function(url) {
-            $.post(url, function(){
-                $timeout(function(){
-                    $scope.$parent.refresh();
                 }, 0);
             });
         };
@@ -487,7 +489,7 @@
                             </c:otherwise>
                         </c:choose>
                     </td>
-                    <td ng-controller="RoomRecordingController">
+                    <td ng-controller="RoomRecordingActionController">
                         <c:if test="${isWritable}">
                             <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
                                 <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>

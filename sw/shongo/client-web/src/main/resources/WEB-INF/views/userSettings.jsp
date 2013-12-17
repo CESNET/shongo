@@ -48,7 +48,7 @@
         <div class="control-group">
             <form:label class="control-label" path="useWebService">
                 <spring:message code="views.userSettings.useWebService" var="useWebServiceLabel"/>
-                <tag:help label="${useWebServiceLabel}:">
+                <tag:help label="${useWebServiceLabel}:" selectable="true">
                     <spring:message code="views.userSettings.useWebService.help" arguments="${webServiceUrl}"/>
                 </tag:help>
             </form:label>
