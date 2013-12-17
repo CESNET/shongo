@@ -258,7 +258,7 @@ public class UserSession implements Serializable
             }
         }
 
-        logger.info("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
+        logger.debug("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
                 locale, timeZone, administratorMode, userInterface, (userInformation != null ? userInformation : "anonymous")
         });
 
