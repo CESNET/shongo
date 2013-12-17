@@ -260,7 +260,7 @@ public class Reporter
     /**
      * @return list of administrator email addresses
      */
-    private static Collection<String> getAdministratorEmails()
+    private synchronized static Collection<String> getAdministratorEmails()
     {
         if (!Controller.hasInstance()) {
             logger.warn("Cannot get administrator emails because controller doesn't exist.");

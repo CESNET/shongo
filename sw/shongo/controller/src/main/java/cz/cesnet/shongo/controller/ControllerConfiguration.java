@@ -290,7 +290,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @return set of {@link #ADMINISTRATOR_EMAIL}
      */
-    public List<PersonInformation> getAdministrators()
+    public synchronized List<PersonInformation> getAdministrators()
     {
         if (administrators == null) {
             administrators = new LinkedList<PersonInformation>();
@@ -330,7 +330,7 @@ public class ControllerConfiguration extends CombinedConfiguration
     /**
      * @param administrators sets the {@link #administrators}
      */
-    public void setAdministrators(List<PersonInformation> administrators)
+    public synchronized void setAdministrators(List<PersonInformation> administrators)
     {
         this.administrators = administrators;
     }

@@ -16,7 +16,7 @@ FROM (
         acl_object_class.id AS object_class_id,
         acl_object_class.class AS object_class,
         CASE
-            WHEN acl_object_class.class = 'RESERVATION_REQUEST' THEN abstract_reservation_request.id
+            WHEN acl_object_class.class = 'RESERVATION_REQUEST' THEN allocation.abstract_reservation_request_id
             ELSE acl_object_identity.object_id
         END AS object_id,
         acl_entry.role AS role
@@ -24,8 +24,8 @@ FROM (
     LEFT JOIN acl_identity ON acl_identity.id = acl_entry.acl_identity_id
     LEFT JOIN acl_object_identity ON acl_object_identity.id = acl_entry.acl_object_identity_id
     LEFT JOIN acl_object_class ON acl_object_class.id = acl_object_identity.acl_object_class_id
-    LEFT JOIN abstract_reservation_request ON abstract_reservation_request.allocation_id = acl_object_identity.object_id AND acl_object_class.class = 'RESERVATION_REQUEST'
-    WHERE (acl_object_class.class != 'RESERVATION_REQUEST' OR abstract_reservation_request.id IS NOT NULL)
+    LEFT JOIN allocation ON allocation.id = acl_object_identity.object_id AND acl_object_class.class = 'RESERVATION_REQUEST'
+    WHERE (acl_object_class.class != 'RESERVATION_REQUEST' OR allocation.abstract_reservation_request_id IS NOT NULL)
 ) AS acl_entry
 LEFT JOIN acl_entry_dependency ON acl_entry_dependency.child_acl_entry_id = acl_entry.id
 WHERE ${filter}
