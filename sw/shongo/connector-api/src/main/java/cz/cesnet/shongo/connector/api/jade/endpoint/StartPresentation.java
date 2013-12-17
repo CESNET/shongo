@@ -15,7 +15,6 @@ public class StartPresentation extends ConnectorCommand
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Starting presentation");
         getEndpoint(connector).startPresentation();
         return null;
     }

@@ -186,18 +186,18 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
      */
     private Document issueCommand(Command command) throws CommandException
     {
-        logger.info(String.format("%s issuing command '%s' on %s", CodecC90Connector.class, command,
+        logger.debug(String.format("%s issuing command '%s' on %s", CodecC90Connector.class, command,
                 info.getDeviceAddress()));
 
         try {
             Document result = exec(command);
             if (isError(result)) {
                 String errMsg = getErrorMessage(result);
-                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(), errMsg));
+                logger.error(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(), errMsg));
                 throw new CommandException(errMsg);
             }
             else {
-                logger.info(String.format("Command '%s' succeeded on %s", command, info.getDeviceAddress()));
+                logger.debug(String.format("Command '%s' succeeded on %s", command, info.getDeviceAddress()));
                 return result;
             }
         }

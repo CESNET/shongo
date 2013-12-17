@@ -1685,7 +1685,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setCapacityChecking(true);
-                logger.info("Checking of rooms capacity is starting.");
+                logger.debug("Checking of rooms capacity is starting.");
 
                 while (isConnected()) {
                     try {
@@ -1713,7 +1713,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setRecordingChecking(true);
-                logger.info("Checking of recordings is starting.");
+                logger.debug("Checking of recordings is starting.");
 
                 while (isConnected()) {
                     try {
@@ -1819,9 +1819,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             return;
         }
 
-        logger.info("Checking capacity for room " + roomId + " with capacity " + room.getLicenseCount() + " and " + participants + " participants.");
+        logger.debug("Checking capacity for room " + roomId + " with capacity " + room.getLicenseCount() + " and " + participants + " participants.");
         if (participants > room.getLicenseCount()) {
-            logger.info("Capacity has been exceeded in room " + room.getName() + " (room ID: " + roomId + ").");
+            logger.warn("Capacity has been exceeded in room " + room.getName() + " (room ID: " + roomId + ").");
 
             NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId);
             notifyTarget.addMessage("en",

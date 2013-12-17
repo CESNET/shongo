@@ -279,7 +279,7 @@ public class Connector
                     // We want to reconnect if container is not started or when the
                     // previous start failed
                     if (startFailed || jadeContainer.isStarted() == false) {
-                        logger.info("Reconnecting to the JADE main container {}:{}...", getControllerHost(),
+                        logger.warn("Reconnecting to the JADE main container {}:{}...", getControllerHost(),
                                 getControllerPort());
                         startFailed = false;
                         if (jadeContainer.start()) {

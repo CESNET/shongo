@@ -893,10 +893,9 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             if (!responseRequestUrl.startsWith("/index.html")) {
                 throw new RuntimeException("Wrong url " + responseRequestUrl);
             }
-            logger.debug("Http login successful.");
+            logger.info("Http login successful.");
         }
         catch (Exception exception) {
-            logger.error("Http login failed.", exception);
             throw new CommandException("Http login failed", exception);
         }
     }

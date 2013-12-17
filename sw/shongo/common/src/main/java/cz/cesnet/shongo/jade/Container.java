@@ -220,21 +220,21 @@ public class Container
         if (isStarted()) {
             // Stop agents
             for (String agentName : agents.keySet()) {
-                logger.info("Stopping agent '{}'...", agentName);
+                logger.debug("Stopping agent '{}'...", agentName);
                 stopAgent(agentName);
-                logger.info("Agent stopped '{}'.", agentName);
+                logger.debug("Agent stopped '{}'.", agentName);
             }
 
             // Stop platform
             try {
-                logger.info("Killing container ...");
+                logger.debug("Killing container ...");
                 if (profile.isMain()) {
                     containerController.getPlatformController().kill();
                 }
                 else {
                     containerController.kill();
                 }
-                logger.info("Container killed.");
+                logger.debug("Container killed.");
                 containerController = null;
             }
             catch (Exception exception) {
@@ -309,7 +309,7 @@ public class Container
                 }
                 catch (StaleProxyException exception) {
                     if (exception.getMessage().contains("Name-clash")) {
-                        logger.info("Agent '{}' already exists in platform, trying again...", agentName);
+                        logger.warn("Agent '{}' already exists in platform, trying again...", agentName);
                         try {
                             Thread.sleep(100);
                         }
@@ -392,7 +392,7 @@ public class Container
      */
     public void addAgent(String agentName, Class agentClass, Object[] arguments)
     {
-        logger.info("Adding agent '{}'...", agentName);
+        logger.debug("Adding agent '{}'...", agentName);
         agents.put(agentName, agentClass);
         if (arguments != null) {
             agentsArguments.put(agentName, arguments);
@@ -412,7 +412,7 @@ public class Container
      */
     public void addAgent(String agentName, Agent agent, Object[] arguments)
     {
-        logger.info("Adding agent '{}'...", agentName);
+        logger.debug("Adding agent '{}'...", agentName);
         agents.put(agentName, agent);
         if (arguments != null) {
             agentsArguments.put(agentName, arguments);
@@ -430,7 +430,7 @@ public class Container
      */
     public void removeAgent(String agentName)
     {
-        logger.info("Removing agent '{}'...", agentName);
+        logger.debug("Removing agent '{}'...", agentName);
         stopAgent(agentName);
         agents.remove(agentName);
         agentsArguments.remove(agentName);
