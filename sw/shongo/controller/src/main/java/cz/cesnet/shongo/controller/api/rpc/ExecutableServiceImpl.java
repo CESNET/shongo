@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
@@ -35,7 +34,6 @@ import cz.cesnet.shongo.controller.util.StateReportSerializer;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -71,20 +69,18 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
      */
     private final Executor executor;
 
-
     /**
-     * Collection of {@link Recording}s by executableId.
+     * @see RecordingsCache
      */
-    private final ExpirationMap<Long, List<Recording>> executableRecordingsCache =
-            new ExpirationMap<Long, List<Recording>>();
+    private final RecordingsCache recordingsCache;
 
     /**
      * Constructor.
      */
-    public ExecutableServiceImpl(Executor executor)
+    public ExecutableServiceImpl(Executor executor, RecordingsCache recordingsCache)
     {
         this.executor = executor;
-        this.executableRecordingsCache.setExpiration(Duration.standardSeconds(30));
+        this.recordingsCache = recordingsCache;
     }
 
     @Override
@@ -719,10 +715,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             // Clear recordings cache (new recording should be fetched)
-            executableRecordingsCache.remove(executable.getId());
+            recordingsCache.removeExecutableRecordings(executable.getId());
             if (executable instanceof UsedRoomEndpoint) {
                 UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
-                executableRecordingsCache.remove(usedRoomEndpoint.getReusedRoomEndpoint().getId());
+                recordingsCache.removeExecutableRecordings(usedRoomEndpoint.getReusedRoomEndpoint().getId());
             }
 
             return Boolean.TRUE;
@@ -736,7 +732,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request)
+    public ListResponse<ResourceRecording> listExecutableRecordings(ExecutableRecordingListRequest request)
     {
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
@@ -753,17 +749,18 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
 
-            List<Recording> recordings = executableRecordingsCache.get(executableId);
-            if (recordings == null) {
+            List<ResourceRecording> resourceRecordings = recordingsCache.getExecutableRecordings(executableId);
+            if (resourceRecordings == null) {
                 // Get all recording folders
                 Map<RecordingCapability, List<String>> recordingFolders =
                         executableManager.listExecutableRecordingFolders(executable);
 
                 // Get all recordings from folders
-                recordings = new LinkedList<Recording>();
+                resourceRecordings = new LinkedList<ResourceRecording>();
                 for (Map.Entry<RecordingCapability, List<String>> entry : recordingFolders.entrySet()) {
                     RecordingCapability recordingCapability = entry.getKey();
                     DeviceResource recordingDeviceResource = recordingCapability.getDeviceResource();
+                    String recordingDeviceResourceId = ObjectIdentifier.formatId(recordingDeviceResource);
                     for (String recordingFolderId : entry.getValue()) {
                         if (recordingFolderId == null) {
                             continue;
@@ -771,42 +768,45 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         @SuppressWarnings("unchecked")
                         Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
                                 recordingDeviceResource, new ListRecordings(recordingFolderId));
-                        recordings.addAll(serviceRecordings);
+                        for (Recording recording : serviceRecordings) {
+                            resourceRecordings.add(
+                                    new ResourceRecording(recordingDeviceResourceId, recording));
+                        }
                     }
                 }
-                executableRecordingsCache.put(executableId, recordings);
+                recordingsCache.putExecutableRecordings(executableId, resourceRecordings);
             }
 
             ExecutableRecordingListRequest.Sort sort = request.getSort();
             if (sort != null) {
-                List<Recording> sortedRecordings = new ArrayList<Recording>(recordings);
-                Comparator<Recording> comparator;
+                List<ResourceRecording> sortedRecordings = new ArrayList<ResourceRecording>(resourceRecordings);
+                Comparator<ResourceRecording> comparator;
                 switch (sort) {
                     case NAME:
-                        comparator = new Comparator<Recording>()
+                        comparator = new Comparator<ResourceRecording>()
                         {
                             @Override
-                            public int compare(Recording o1, Recording o2)
+                            public int compare(ResourceRecording o1, ResourceRecording o2)
                             {
                                 return o1.getName().compareTo(o2.getName());
                             }
                         };
                         break;
                     case START:
-                        comparator = new Comparator<Recording>()
+                        comparator = new Comparator<ResourceRecording>()
                         {
                             @Override
-                            public int compare(Recording o1, Recording o2)
+                            public int compare(ResourceRecording o1, ResourceRecording o2)
                             {
                                 return o1.getBeginDate().compareTo(o2.getBeginDate());
                             }
                         };
                         break;
                     case DURATION:
-                        comparator = new Comparator<Recording>()
+                        comparator = new Comparator<ResourceRecording>()
                         {
                             @Override
-                            public int compare(Recording o1, Recording o2)
+                            public int compare(ResourceRecording o1, ResourceRecording o2)
                             {
                                 return o1.getDuration().toStandardDuration().compareTo(o2.getDuration().toStandardDuration());
                             }
@@ -819,12 +819,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     comparator = Collections.reverseOrder(comparator);
                 }
                 Collections.sort(sortedRecordings, comparator);
-                recordings = sortedRecordings;
+                resourceRecordings = sortedRecordings;
             }
 
             Integer start = request.getStart();
             Integer count = request.getCount();
-            Integer maxIndex = Math.max(0, recordings.size() - 1);
+            Integer maxIndex = Math.max(0, resourceRecordings.size() - 1);
             if (start == null) {
                 start = 0;
             }
@@ -832,16 +832,16 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 start = maxIndex;
             }
             if (count == null || count == -1) {
-                count = recordings.size();
+                count = resourceRecordings.size();
             }
             int end = start + count;
-            if (end > recordings.size()) {
-                end = recordings.size();
+            if (end > resourceRecordings.size()) {
+                end = resourceRecordings.size();
             }
-            ListResponse<Recording> response = new ListResponse<Recording>();
+            ListResponse<ResourceRecording> response = new ListResponse<ResourceRecording>();
             response.setStart(start);
-            response.setCount(recordings.size());
-            for (Recording recording : recordings.subList(start, end)) {
+            response.setCount(resourceRecordings.size());
+            for (ResourceRecording recording : resourceRecordings.subList(start, end)) {
                 response.addItem(recording);
             }
             return response;

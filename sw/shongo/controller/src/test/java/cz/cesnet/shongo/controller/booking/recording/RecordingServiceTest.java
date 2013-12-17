@@ -2,14 +2,9 @@ package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
-import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
-import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
-import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
@@ -371,7 +366,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         ExecutableRecordingListRequest request = new ExecutableRecordingListRequest();
         request.setSecurityToken(SECURITY_TOKEN);
         request.setExecutableId(roomExecutableId);
-        ListResponse<Recording> recordings = getExecutableService().listExecutableRecordings(request);
+        ListResponse<ResourceRecording> recordings = getExecutableService().listExecutableRecordings(request);
         Assert.assertEquals(2, recordings.getItemCount());
     }
 

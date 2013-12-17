@@ -19,7 +19,7 @@ import java.util.Set;
 public class RoomExecutable extends AbstractRoomExecutable
 {
     /**
-     * Id of the {@link Resource}.
+     * Identifier of the {@link DeviceResource}.
      */
     private String resourceId;
 

@@ -123,7 +123,15 @@
                     else {
                         $scope.isRecordingActive = false;
                         $scope.recordingError = null;
+                        $scope.$parent.refresh();
                     }
+                }, 0);
+            });
+        };
+        $scope.postAndRefresh = function(url) {
+            $.post(url, function(){
+                $timeout(function(){
+                    $scope.$parent.refresh();
                 }, 0);
             });
         };
@@ -443,6 +451,9 @@
                         <spring:message code="views.room.recording.duration"/></pagination-sort></th>
                     <th>
                         <spring:message code="views.room.recording.url"/>
+                    </th>
+                    <th>
+                        <spring:message code="views.list.action"/>
                         <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                     </th>
                 </tr>
@@ -475,6 +486,16 @@
                                 <a href="{{roomRecording.url}}" target="_blank">{{roomRecording.url}}</a>
                             </c:otherwise>
                         </c:choose>
+                    </td>
+                    <td ng-controller="RoomRecordingController">
+                        <c:if test="${isWritable}">
+                            <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
+                                <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                                <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                            </tag:url>
+                            <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
+                            <a href="" ng-click="postAndRefresh('${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                        </c:if>
                     </td>
                 </tr>
                 </tbody>

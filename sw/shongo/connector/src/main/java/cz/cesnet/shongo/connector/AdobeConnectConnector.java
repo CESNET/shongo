@@ -470,12 +470,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
-    public Collection<Recording> listRecordings(String folderId) throws CommandException
+    public Collection<Recording> listRecordings(String recordingFolderId) throws CommandException
     {
         ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", folderId);
+        attributes.add("sco-id", recordingFolderId);
         attributes.add("filter-icon", "archive");
         attributes.add("filter-out-date-end","null");
 
@@ -486,6 +486,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             Recording recording = new Recording();
 
             recording.setId(resultRecording.getAttributeValue("sco-id"));
+            recording.setRecordingFolderId(recordingFolderId);
             recording.setName(resultRecording.getChildText("name"));
 
             String description = resultRecording.getChildText("description");
@@ -519,15 +520,21 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         Recording recording = new Recording();
 
+        String recordingFolderId = scoInfo.getAttributeValue("folder-id");
+        recording.setRecordingFolderId(recordingFolderId);
         recording.setName(scoInfo.getChildText("name"));
 
         String description = scoInfo.getChildText("description");
         recording.setDescription(description == null ? "" : description);
 
-        recording.setBeginDate(DateTime.parse(scoInfo.getChildText("date-begin")));
-        recording.setDuration(new Interval(DateTime.parse(scoInfo.getChildText("date-end")), recording.getBeginDate()).toPeriod());
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + scoInfo
-                .getChildText("url-path");
+        String dateBegin = scoInfo.getChildText("date-begin");
+        recording.setBeginDate(DateTime.parse(dateBegin));
+
+        String dateEnd = scoInfo.getChildText("date-end");
+        recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
+
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
+                + scoInfo.getChildText("url-path");
 
         recording.setUrl(baseUrl);
         recording.setEditableUrl(baseUrl + "?pbMode=edit");

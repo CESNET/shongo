@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.booking.executable;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
@@ -359,11 +359,44 @@ public class ExecutableManager extends AbstractManager
         if (usedRoomEndpoints.size() == 0) {
             return resourceRoomEndpoint;
         }
-        if (usedRoomEndpoints.size() == 1) {
+        else if (usedRoomEndpoints.size() == 1) {
             return usedRoomEndpoints.get(0);
         }
-        throw new RuntimeException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
-                + "s taking place at " + DateTime.now() + ".");
+        else {
+            throw new RuntimeException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
+                    + "s taking place at " + DateTime.now() + ".");
+        }
+    }
+
+    /**
+     * @param deviceResource
+     * @param recordingFolderId
+     * @return {@link Executable} with recording folder with given {@code recordingFolderId}
+     *         in given {@code deviceResource} with {@link RecordingCapability}
+     */
+    public Executable getExecutableByRecordingFolder(DeviceResource deviceResource, String recordingFolderId)
+    {
+        RecordingCapability recordingCapability = deviceResource.getCapabilityRequired(RecordingCapability.class);
+        List<Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable"
+                        + " WHERE executable IN("
+                        + "  SELECT roomEndpoint FROM RoomEndpoint roomEndpoint"
+                        + "  LEFT JOIN roomEndpoint.recordingFolderIds recordingFolder"
+                        + "  WHERE INDEX(recordingFolder) = :recordingCapability AND recordingFolder = :recordingFolderId"
+                        + " )", Executable.class)
+                .setParameter("recordingCapability", recordingCapability)
+                .setParameter("recordingFolderId", recordingFolderId)
+                .getResultList();
+        if (executables.size() == 0) {
+            return null;
+        }
+        else if (executables.size() == 1) {
+            return executables.get(0);
+        }
+        else {
+            throw new RuntimeException("Found multiple " + Executable.class.getSimpleName()
+                    + "s with recording folder " + recordingFolderId + ".");
+        }
     }
 
     /**
@@ -435,7 +468,7 @@ public class ExecutableManager extends AbstractManager
         List<Object[]> results = entityManager.createQuery(
                 "SELECT INDEX(recordingFolder), recordingFolder FROM RoomEndpoint roomEndpoint"
                         + " LEFT JOIN roomEndpoint.recordingFolderIds AS recordingFolder"
-                        + " WHERE recordingFolder IS NOT NULL"
+                        + " WHERE INDEX(recordingFolder) IS NOT NULL"
                         + " AND (roomEndpoint = :executable OR roomEndpoint IN("
                         + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
                         + "   WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"

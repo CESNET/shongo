@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.DeviceResource;
+import cz.cesnet.shongo.controller.api.RecordingCapability;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.Collection;
@@ -156,18 +158,22 @@ public interface ResourceControlService extends Service
     @API
     public void showMessage(SecurityToken token, String deviceResourceId, int duration, String text);
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // Recording service.
-    //
-
     /**
      * @param token
      * @param deviceResourceId
-     * @param roomId identifier of room
-     * @return list of recording URLs for room with given {@code roomId}
+     * @param recordingFolderId
+     * @return list of {@link Recording} for recording folder with given {@code recordingFolderId}
      */
     @API
-    public Collection<Recording> listRecordings(SecurityToken token, String deviceResourceId, String roomId);
+    public Collection<Recording> listRecordings(SecurityToken token, String deviceResourceId, String recordingFolderId);
+
+    /**
+     * Delete existing {@link Recording} in {@link DeviceResource} with {@link RecordingCapability}.
+     *
+     * @param token
+     * @param deviceResourceId
+     * @param recordingId
+     */
+    @API
+    public void deleteRecording(SecurityToken token, String deviceResourceId, String recordingId);
 }

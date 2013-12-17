@@ -7,11 +7,14 @@ import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
 import cz.cesnet.shongo.connector.api.jade.endpoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.io.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.*;
+import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecording;
+import cz.cesnet.shongo.connector.api.jade.recording.GetRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -50,6 +53,21 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
      * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
+
+    /**
+     * @see RecordingsCache
+     */
+    private final RecordingsCache recordingsCache;
+
+    /**
+     * Constructor.
+     *
+     * @param recordingsCache sets the {@link #recordingsCache}
+     */
+    public ResourceControlServiceImpl(RecordingsCache recordingsCache)
+    {
+        this.recordingsCache = recordingsCache;
+    }
 
     @Override
     public void setControllerAgent(ControllerAgent controllerAgent)
@@ -198,7 +216,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         return (Room) performDeviceCommand(deviceResourceId, agentName, new GetRoom(roomId));
     }
 
@@ -212,21 +230,21 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public String modifyRoom(SecurityToken token, String deviceResourceId, Room room)
     {
-        String agentName = validate(token, deviceResourceId, room.getId());
+        String agentName = validateRoom(token, deviceResourceId, room.getId());
         return (String) performDeviceCommand(deviceResourceId, agentName, new ModifyRoom(room));
     }
 
     @Override
     public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new DeleteRoom(roomId));
     }
 
     @Override
     public Collection<RoomParticipant> listRoomParticipants(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         return (List<RoomParticipant>) performDeviceCommand(deviceResourceId, agentName, new ListParticipants(roomId));
     }
 
@@ -234,7 +252,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public RoomParticipant getRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         return (RoomParticipant) performDeviceCommand(deviceResourceId, agentName,
                 new GetParticipant(roomId, roomParticipantId));
     }
@@ -243,7 +261,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public Map<String, MediaData> getRoomParticipantSnapshots(SecurityToken token, String deviceResourceId,
             String roomId, Set<String> roomParticipantIds)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         return (Map<String, MediaData>) performDeviceCommand(deviceResourceId, agentName,
                 new GetParticipantSnapshots(roomId, roomParticipantIds));
     }
@@ -251,14 +269,14 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant)
     {
-        String agentName = validate(token, deviceResourceId, roomParticipant.getRoomId());
+        String agentName = validateRoom(token, deviceResourceId, roomParticipant.getRoomId());
         performDeviceCommand(deviceResourceId, agentName, new ModifyParticipant(roomParticipant));
     }
 
     @Override
     public String dialRoomParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         return (String) performDeviceCommand(deviceResourceId, agentName, new DialParticipant(roomId, alias));
     }
 
@@ -266,7 +284,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void disconnectRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomParticipantId));
     }
 
@@ -274,7 +292,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new MuteParticipant(roomId, roomParticipantId));
     }
 
@@ -282,7 +300,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void unmuteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new UnmuteParticipant(roomId, roomParticipantId));
     }
 
@@ -290,7 +308,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void enableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new EnableParticipantVideo(roomId, roomParticipantId));
     }
 
@@ -298,7 +316,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void disableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName, new DisableParticipantVideo(roomId, roomParticipantId));
     }
 
@@ -306,7 +324,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void setRoomParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId, int level)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName,
                 new SetParticipantMicrophoneLevel(roomId, roomParticipantId, level));
     }
@@ -315,7 +333,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     public void setRoomParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomParticipantId, int level)
     {
-        String agentName = validate(token, deviceResourceId, roomId);
+        String agentName = validateRoom(token, deviceResourceId, roomId);
         performDeviceCommand(deviceResourceId, agentName,
                 new SetParticipantPlaybackLevel(roomId, roomParticipantId, level));
     }
@@ -330,9 +348,37 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public Collection<Recording> listRecordings(SecurityToken token, String deviceResourceId, String recordingFolderId)
     {
-        String agentName = validate(token, deviceResourceId, recordingFolderId);
+        String agentName = validate(token, deviceResourceId);
         return (Collection<Recording>) performDeviceCommand(deviceResourceId, agentName,
                 new ListRecordings(recordingFolderId));
+    }
+
+    @Override
+    public void deleteRecording(SecurityToken token, String deviceResourceId, String recordingId)
+    {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        try {
+            authorization.validate(token);
+            ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
+            DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
+            String agentName = getAgentName(deviceResource);
+            Recording recording = (Recording) performDeviceCommand(
+                    deviceResourceId, agentName, new GetRecording(recordingId));
+            String recordingFolderId = recording.getRecordingFolderId();
+            Executable executable = executableManager.getExecutableByRecordingFolder(deviceResource, recordingFolderId);
+            if (executable == null
+                    || !authorization.hasObjectPermission(token, executable, ObjectPermission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "delete recording %s in device %s", recordingId, deviceResourceIdentifier);
+            }
+            performDeviceCommand(deviceResourceId, agentName, new DeleteRecording(recordingId));
+            recordingsCache.removeRecording(deviceResourceId, recordingFolderId, recordingId);
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -381,7 +427,7 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
      * @param deviceResourceId
      * @return agent name
      */
-    private String validate(SecurityToken securityToken, String deviceResourceId, String roomId)
+    private String validateRoom(SecurityToken securityToken, String deviceResourceId, String roomId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);

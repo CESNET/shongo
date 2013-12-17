@@ -877,12 +877,13 @@ public class Controller
         controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender()));
 
         // Add XML-RPC services
+        RecordingsCache recordingsCache = new RecordingsCache();
         controller.addRpcService(new CommonServiceImpl());
         controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
-        controller.addRpcService(new ResourceControlServiceImpl());
+        controller.addRpcService(new ResourceControlServiceImpl(recordingsCache));
         controller.addRpcService(new ReservationServiceImpl(cache));
-        controller.addRpcService(new ExecutableServiceImpl(executor));
+        controller.addRpcService(new ExecutableServiceImpl(executor, recordingsCache));
 
         // Add JADE service
         NotificationManager notificationManager = controller.getNotificationManager();

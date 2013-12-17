@@ -130,12 +130,14 @@ public class ClientWebUrl
             "/room/{roomId:.+}/modify";
     public static final String ROOM_MANAGEMENT_PARTICIPANTS_DATA =
             "/room/{roomId:.+}/participants/data";
+    public static final String ROOM_MANAGEMENT_RECORDINGS_DATA =
+            "/room/{roomId:.+}/recordings/data";
     public static final String ROOM_MANAGEMENT_RECORDING_START =
             "/room/{roomId:.+}/recording/start";
     public static final String ROOM_MANAGEMENT_RECORDING_STOP =
             "/room/{roomId:.+}/recording/stop";
-    public static final String ROOM_MANAGEMENT_RECORDINGS_DATA =
-            "/room/{roomId:.+}/recordings/data";
+    public static final String ROOM_MANAGEMENT_RECORDING_DELETE =
+            "/room/{roomId:.+}/recording/{resourceId:.+}/{recordingId:.+}/delete";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT =
             "/room/{roomId:.+}/participant/{participantId}/video-snapshot";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_MODIFY =

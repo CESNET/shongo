@@ -334,14 +334,19 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
     protected State onFinalize(Executor executor, ExecutableManager executableManager)
     {
         State state = State.FINALIZED;
-        for (Map.Entry<RecordingCapability, String> entry : recordingFolderIds.entrySet()) {
+        Iterator<Map.Entry<RecordingCapability, String>> iterator = recordingFolderIds.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<RecordingCapability, String> entry = iterator.next();
             DeviceResource deviceResource = entry.getKey().getDeviceResource();
             ManagedMode managedMode = deviceResource.requireManaged();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
                     new DeleteRecordingFolder(entry.getValue()));
-            if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                iterator.remove();
+            }
+            else {
                 executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 state = State.FINALIZATION_FAILED;

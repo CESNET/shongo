@@ -18,10 +18,7 @@ import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
-import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.Agent;
@@ -90,8 +87,9 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         executor = new Executor();
 
         Controller controller = getController();
-        getController().addRpcService(new ResourceControlServiceImpl());
-        getController().addRpcService(new ExecutableServiceImpl(executor));
+        RecordingsCache recordingsCache = new RecordingsCache();
+        getController().addRpcService(new ResourceControlServiceImpl(recordingsCache));
+        getController().addRpcService(new ExecutableServiceImpl(executor, recordingsCache));
 
         executor.setEntityManagerFactory(getEntityManagerFactory());
         executor.init(controller.getConfiguration());
@@ -347,6 +345,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
                 for (String recordingId : folderRecordingIds) {
                     Recording recording = new Recording();
                     recording.setId(recordingId);
+                    recording.setRecordingFolderId(folderId);
                     recordings.add(recording);
                 }
                 return recordings;

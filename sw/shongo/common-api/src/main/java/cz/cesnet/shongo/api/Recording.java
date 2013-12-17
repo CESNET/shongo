@@ -12,6 +12,11 @@ import org.joda.time.Period;
 public class Recording extends IdentifiedComplexType
 {
     /**
+     * Identifier of recording folder whether the {@link Recording} is located.
+     */
+    private String recordingFolderId;
+
+    /**
      * Name of the recording.
      */
     private String name;
@@ -45,6 +50,22 @@ public class Recording extends IdentifiedComplexType
      * Time of the end of the recording.
      */
     private Period duration;
+
+    /**
+     * @return {@link #recordingFolderId}
+     */
+    public String getRecordingFolderId()
+    {
+        return recordingFolderId;
+    }
+
+    /**
+     * @param recordingFolderId sets the {@link #recordingFolderId}
+     */
+    public void setRecordingFolderId(String recordingFolderId)
+    {
+        this.recordingFolderId = recordingFolderId;
+    }
 
     /**
      * @return {@link #name}
@@ -158,6 +179,7 @@ public class Recording extends IdentifiedComplexType
         this.duration = duration;
     }
 
+    public static final String RECORDING_FOLDER_ID = "recordingFolderId";
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
     public static final String URL = "url";
@@ -170,6 +192,7 @@ public class Recording extends IdentifiedComplexType
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(RECORDING_FOLDER_ID, recordingFolderId);
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION,description);
         dataMap.set(URL, url);
@@ -184,6 +207,7 @@ public class Recording extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        recordingFolderId = dataMap.getStringRequired(RECORDING_FOLDER_ID);
         name = dataMap.getString(NAME);
         description = dataMap.getString(DESCRIPTION);
         url = dataMap.getString(URL);
@@ -192,7 +216,6 @@ public class Recording extends IdentifiedComplexType
         beginDate = dataMap.getDateTime(BEGINDATE);
         duration = dataMap.getPeriod(DURATION);
     }
-
 
     @Override
     public String toString()

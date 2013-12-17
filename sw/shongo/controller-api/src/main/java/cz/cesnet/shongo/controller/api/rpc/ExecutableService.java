@@ -1,18 +1,11 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
-import cz.cesnet.shongo.controller.api.ExecutableSummary;
-import cz.cesnet.shongo.controller.api.ExecutionReport;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-
-import java.util.Collection;
 
 /**
  * Interface to the service handling operations on {@link Executable}s.
@@ -112,11 +105,11 @@ public interface ExecutableService extends Service
     public Object deactivateExecutableService(SecurityToken securityToken, String executableId, String executableServiceId);
 
     /**
-     * Lists {@link Recording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.
+     * Lists {@link cz.cesnet.shongo.controller.api.ResourceRecording}s for {@link Executable} with given {@link ExecutableRecordingListRequest#executableId}.
      *
      * @param request {@link ExecutableRecordingListRequest}
-     * @return {@link ListResponse} of {@link Recording}s
+     * @return {@link ListResponse} of {@link cz.cesnet.shongo.controller.api.ResourceRecording}s
      */
     @API
-    public ListResponse<Recording> listExecutableRecordings(ExecutableRecordingListRequest request);
+    public ListResponse<ResourceRecording> listExecutableRecordings(ExecutableRecordingListRequest request);
 }

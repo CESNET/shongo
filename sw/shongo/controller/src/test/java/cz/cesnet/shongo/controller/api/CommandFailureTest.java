@@ -12,6 +12,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ListRooms;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.api.rpc.RecordingsCache;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.jade.Agent;
@@ -39,7 +40,7 @@ public class CommandFailureTest extends AbstractControllerTest
     {
         super.onInit();
 
-        getController().addRpcService(new ResourceControlServiceImpl()
+        getController().addRpcService(new ResourceControlServiceImpl(new RecordingsCache())
         {
             @Override
             protected String getAgentName(cz.cesnet.shongo.controller.booking.resource.DeviceResource deviceResource)

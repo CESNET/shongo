@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -66,6 +67,9 @@ public class RoomController
 
     @Resource
     private AuthorizationService authorizationService;
+
+    @Resource
+    private ResourceControlService resourceControlService;
 
     @Resource
     private Cache cache;
@@ -438,6 +442,29 @@ public class RoomController
         return null;
     }
 
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE, method = RequestMethod.GET)
+    public String handleRoomManagementRecordingDelete(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "resourceId") String resourceId,
+            @PathVariable(value = "recordingId") String recordingId)
+    {
+        resourceControlService.deleteRecording(securityToken, resourceId, recordingId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE, method = RequestMethod.POST)
+    @ResponseBody
+    public Map handleRoomManagementRecordingDeletePost(
+            SecurityToken securityToken,
+            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "resourceId") String resourceId,
+            @PathVariable(value = "recordingId") String recordingId)
+    {
+        handleRoomManagementRecordingDelete(securityToken, roomId, resourceId, recordingId);
+        return null;
+    }
+
     @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Map handleRoomManagementRecordings(
@@ -461,10 +488,12 @@ public class RoomController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        ListResponse<Recording> response = executableService.listExecutableRecordings(request);
+        ListResponse<ResourceRecording> response = executableService.listExecutableRecordings(request);
         List<Map> items = new LinkedList<Map>();
-        for (Recording recording : response.getItems()) {
+        for (ResourceRecording recording : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
+            item.put("id", recording.getId());
+            item.put("resourceId", recording.getResourceId());
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
