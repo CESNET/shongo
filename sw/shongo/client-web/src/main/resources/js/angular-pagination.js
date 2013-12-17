@@ -204,8 +204,9 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
      * @param name of the controller for storing data to cookies
      * @param url for listing items with ":start" and ":count" parameters
      * @param urlParameters for the url
+     * @param refreshEvent to which it should listen and refresh when it happens (the first time auto refresh is skipped)
      */
-    $scope.init = function (name, url, urlParameters) {
+    $scope.init = function (name, url, urlParameters, refreshEvent) {
         // Setup name and resource
         $scope.name = name;
         $scope.resource = $resource(url, urlParameters, {
@@ -221,20 +222,28 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
         if (configuration != null) {
             $scope.pageSize = configuration.pageSize;
         }
-        // List items for the first time (to determine total count)
-        $scope.performList(0, function (result) {
-            setData(result);
-            // If configuration is loaded set configured page index
-            if (configuration != null) {
-                $scope.pageSize = configuration.pageSize;
-                $scope.setPage(configuration.pageIndex, function () {
+        if (refreshEvent != null) {
+            // Bind to refresh event
+            $scope.$on(refreshEvent, function(){
+                $scope.refresh();
+            });
+        }
+        else {
+            // List items for the first time (to determine total count)
+            $scope.performList(0, function (result) {
+                setData(result);
+                // If configuration is loaded set configured page index
+                if (configuration != null) {
+                    $scope.pageSize = configuration.pageSize;
+                    $scope.setPage(configuration.pageIndex, function () {
+                        $scope.setReady(true);
+                    });
+                }
+                else {
                     $scope.setReady(true);
-                });
-            }
-            else {
-                $scope.setReady(true);
-            }
-        });
+                }
+            });
+        }
     };
 
     /**

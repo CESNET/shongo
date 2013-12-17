@@ -72,6 +72,15 @@
     <script type="text/javascript">
         var module = angular.module('jsp:indexDashboard', ['ui.bootstrap', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
 
+        function TabController($scope, $element) {
+            $scope.$watch("active", function(active) {
+                if (active) {
+                    var refreshEvent = 'refresh-' + $element.attr('id');
+                    $scope.$parent.$broadcast(refreshEvent);
+                }
+            });
+        }
+
         function PermanentRoomCapacitiesController($scope, $resource) {
             $scope.items = null;
             if ($scope.reservationRequest.type != 'PERMANENT_ROOM') {
@@ -205,9 +214,9 @@
         <tabset>
 
             <spring:message code="views.index.rooms" var="roomsTitle"/>
-            <tab heading="${roomsTitle}">
+            <tab id="rooms" heading="${roomsTitle}" ng-controller="TabController">
                 <div ng-controller="PaginationController"
-                     ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}');">
+                     ng-init="setSortDefault('SLOT_NEAREST'); init('dashboard', '${reservationRequestListDataUrl}', null, 'refresh-rooms');">
                     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
                     <spring:message code="views.button.refresh" var="paginationRefresh"/>
                     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -341,9 +350,9 @@
             </tab>
 
             <spring:message code="views.index.participation" var="participationTitle"/>
-            <tab heading="${participationTitle}">
+            <tab id="participation" heading="${participationTitle}" ng-controller="TabController">
                 <div ng-controller="PaginationController"
-                     ng-init="init('roomList', '${participantRoomListUrl}')">
+                     ng-init="init('roomList', '${participantRoomListUrl}', null, 'refresh-participation')">
                     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
                     <spring:message code="views.button.refresh" var="paginationRefresh"/>
                     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
