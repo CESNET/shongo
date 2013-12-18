@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
@@ -222,16 +223,16 @@ public class ServiceImpl implements Service
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
-            RoomEndpoint roomEndpoint =
-                    executableManager.getRoomEndpoint(deviceResourceId, roomId);
-            if (roomEndpoint == null) {
+            RecordableEndpoint recordableEndpoint =
+                    (RecordableEndpoint) executableManager.getRoomEndpoint(deviceResourceId, roomId);
+            if (recordableEndpoint == null) {
                 throw new CommandException("Room " + roomId + " doesn't exist in device " +
                         ObjectIdentifier.formatId(ObjectType.RESOURCE, deviceResourceId) + ".");
             }
-            DeviceResource resource = roomEndpoint.getResource();
+            DeviceResource resource = recordableEndpoint.getResource();
             RecordingCapability recordingCapability = resource.getCapabilityRequired(RecordingCapability.class);
             entityManager.getTransaction().begin();
-            String recordingFolderId = executor.getRecordingFolderId(roomEndpoint, recordingCapability);
+            String recordingFolderId = executor.getRecordingFolderId(recordableEndpoint, recordingCapability);
             entityManager.getTransaction().commit();
             return recordingFolderId;
         }

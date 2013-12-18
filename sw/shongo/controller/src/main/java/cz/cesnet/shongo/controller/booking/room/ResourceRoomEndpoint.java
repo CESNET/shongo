@@ -6,13 +6,17 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
@@ -21,13 +25,8 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.persistence.*;
+import java.util.*;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint} in a {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
@@ -35,7 +34,8 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, Reporter.ResourceContext
+public class ResourceRoomEndpoint extends RoomEndpoint
+        implements ManagedEndpoint, RecordableEndpoint, Reporter.ResourceContext
 {
     /**
      * {@link DeviceResource}.
@@ -46,6 +46,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      * {@link cz.cesnet.shongo.Technology} specific id of the {@link RoomConfiguration}.
      */
     private String roomId;
+
+    /**
+     * @see RecordableEndpoint#getRecordingFolderId
+     */
+    private Map<RecordingCapability, String> recordingFolderIds = new HashMap<RecordingCapability, String>();
 
     /**
      * Constructor.
@@ -98,6 +103,30 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public void setRoomId(String roomId)
     {
         this.roomId = roomId;
+    }
+
+    @ElementCollection
+    @Column(name = "recording_folder_id")
+    @MapKeyJoinColumn(name = "recording_capability_id")
+    @Access(AccessType.FIELD)
+    @Override
+    public Map<RecordingCapability, String> getRecordingFolderIds()
+    {
+        return Collections.unmodifiableMap(recordingFolderIds);
+    }
+
+    @Transient
+    @Override
+    public String getRecordingFolderId(RecordingCapability recordingCapability)
+    {
+        return recordingFolderIds.get(recordingCapability);
+    }
+
+    @Transient
+    @Override
+    public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
+    {
+        this.recordingFolderIds.put(recordingCapability, recordingFolderId);
     }
 
     @Override
@@ -214,7 +243,33 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         }
     }
 
+    @Transient
     @Override
+    public Alias getRecordingAlias()
+    {
+        Alias callableAlias = null;
+        for (Alias alias : getAliases()) {
+            if (alias.isCallable()) {
+                callableAlias = alias;
+                break;
+            }
+        }
+        if (callableAlias == null) {
+            throw new RuntimeException("No callable alias exists for '" + ObjectIdentifier.formatId(this) + ".");
+        }
+        return callableAlias;
+    }
+
+    @Transient
+    @Override
+    public String getRecordingFolderDescription()
+    {
+        return String.format("[%s:exe:%d][res:%d][room:%s]",
+                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId());
+    }
+
+    @Override
+    @Transient
     public Room getRoomApi(ExecutableManager executableManager)
     {
         UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
@@ -330,6 +385,31 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                     sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
             return State.STOPPING_FAILED;
         }
+    }
+
+    @Override
+    protected State onFinalize(Executor executor, ExecutableManager executableManager)
+    {
+        State state = State.FINALIZED;
+        Iterator<Map.Entry<RecordingCapability, String>> iterator = recordingFolderIds.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<RecordingCapability, String> entry = iterator.next();
+            DeviceResource deviceResource = entry.getKey().getDeviceResource();
+            ManagedMode managedMode = deviceResource.requireManaged();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new DeleteRecordingFolder(entry.getValue()));
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                iterator.remove();
+            }
+            else {
+                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                state = State.FINALIZATION_FAILED;
+            }
+        }
+        return state;
     }
 
     @Override

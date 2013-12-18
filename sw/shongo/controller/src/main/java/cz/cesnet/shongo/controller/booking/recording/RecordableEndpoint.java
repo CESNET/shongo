@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.util.IdentifierSynchronization;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,6 +40,11 @@ public interface RecordableEndpoint
      * @return description of the folder to which recordings will be stored
      */
     public String getRecordingFolderDescription();
+
+    /**
+     * @return identifier of recording folders by {@link RecordingCapability}
+     */
+    public Map<RecordingCapability, String> getRecordingFolderIds();
 
     /**
      * @param recordingCapability for which the identifier of the folder should be returned

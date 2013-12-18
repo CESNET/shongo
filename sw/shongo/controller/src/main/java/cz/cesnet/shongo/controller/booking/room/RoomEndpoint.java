@@ -40,7 +40,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoint
+public abstract class RoomEndpoint extends Endpoint
 {
     /**
      * @see RoomConfiguration
@@ -56,11 +56,6 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
      * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the {@link RoomEndpoint}.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
-
-    /**
-     * @see RecordableEndpoint#getRecordingFolderId
-     */
-    private Map<RecordingCapability, String> recordingFolderIds = new HashMap<RecordingCapability, String>();
 
     /**
      * @return {@link #roomConfiguration}
@@ -137,29 +132,6 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
         participants.add(participant);
     }
 
-    @ElementCollection
-    @Column(name = "recording_folder_id")
-    @MapKeyJoinColumn(name = "recording_capability_id")
-    @Access(AccessType.FIELD)
-    public Map<RecordingCapability, String> getRecordingFolderIds()
-    {
-        return recordingFolderIds;
-    }
-
-    @Transient
-    @Override
-    public String getRecordingFolderId(RecordingCapability recordingCapability)
-    {
-        return recordingFolderIds.get(recordingCapability);
-    }
-
-    @Transient
-    @Override
-    public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
-    {
-        this.recordingFolderIds.put(recordingCapability, recordingFolderId);
-    }
-
     /**
      * @return {@link RoomConfiguration#licenseCount}
      */
@@ -193,31 +165,6 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
             throw new IllegalStateException("Room configuration hasn't been set yet.");
         }
         return roomConfiguration.getTechnologies();
-    }
-
-    @Transient
-    @Override
-    public Alias getRecordingAlias()
-    {
-        Alias callableAlias = null;
-        for (Alias alias : getAliases()) {
-            if (alias.isCallable()) {
-                callableAlias = alias;
-                break;
-            }
-        }
-        if (callableAlias == null) {
-            throw new RuntimeException("No callable alias exists for '" + ObjectIdentifier.formatId(this) + ".");
-        }
-        return callableAlias;
-    }
-
-    @Transient
-    @Override
-    public String getRecordingFolderDescription()
-    {
-        return String.format("[%s:exe:%d][res:%d][room:%s]",
-                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId());
     }
 
     /**
@@ -329,31 +276,6 @@ public abstract class RoomEndpoint extends Endpoint implements RecordableEndpoin
      */
     public abstract void modifyRoom(Room roomApi, Executor executor)
             throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException;
-
-    @Override
-    protected State onFinalize(Executor executor, ExecutableManager executableManager)
-    {
-        State state = State.FINALIZED;
-        Iterator<Map.Entry<RecordingCapability, String>> iterator = recordingFolderIds.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<RecordingCapability, String> entry = iterator.next();
-            DeviceResource deviceResource = entry.getKey().getDeviceResource();
-            ManagedMode managedMode = deviceResource.requireManaged();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new DeleteRecordingFolder(entry.getValue()));
-            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                iterator.remove();
-            }
-            else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                state = State.FINALIZATION_FAILED;
-            }
-        }
-        return state;
-    }
 
     @Override
     protected void onServiceActivation(ExecutableService service, Executor executor,

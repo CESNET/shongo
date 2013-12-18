@@ -380,7 +380,7 @@ public class ExecutableManager extends AbstractManager
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE executable IN("
-                        + "  SELECT roomEndpoint FROM RoomEndpoint roomEndpoint"
+                        + "  SELECT roomEndpoint FROM ResourceRoomEndpoint roomEndpoint"
                         + "  LEFT JOIN roomEndpoint.recordingFolderIds recordingFolder"
                         + "  WHERE INDEX(recordingFolder) = :recordingCapability AND recordingFolder = :recordingFolderId"
                         + " )", Executable.class)
@@ -466,12 +466,12 @@ public class ExecutableManager extends AbstractManager
     {
         Map<RecordingCapability, List<String>> recordingFolders = new HashMap<RecordingCapability, List<String>>();
         List<Object[]> results = entityManager.createQuery(
-                "SELECT INDEX(recordingFolder), recordingFolder FROM RoomEndpoint roomEndpoint"
+                "SELECT INDEX(recordingFolder), recordingFolder FROM ResourceRoomEndpoint roomEndpoint"
                         + " LEFT JOIN roomEndpoint.recordingFolderIds AS recordingFolder"
                         + " WHERE INDEX(recordingFolder) IS NOT NULL"
                         + " AND (roomEndpoint = :executable OR roomEndpoint IN("
-                        + "   SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
-                        + "   WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"
+                        + "   SELECT usedRoomEndpoint.reusedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
+                        + "   WHERE usedRoomEndpoint = :executable"
                         + "))", Object[].class)
                 .setParameter("executable", executable)
                 .getResultList();

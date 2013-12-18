@@ -1,8 +1,11 @@
     package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.Reporter;
@@ -27,7 +30,8 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, Reporter.ResourceContext
+public class UsedRoomEndpoint extends RoomEndpoint
+            implements ManagedEndpoint, RecordableEndpoint, Reporter.ResourceContext
 {
     /**
      * {@link RoomEndpoint} which is re-used.
@@ -189,7 +193,73 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
             ManagedEndpoint managedEndpoint = (ManagedEndpoint) reusedRoomEndpoint;
             return managedEndpoint.getConnectorAgentName();
         }
-        return null;
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    @Transient
+    public Alias getRecordingAlias()
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            return recordableEndpoint.getRecordingAlias();
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    @Transient
+    public String getRecordingFolderDescription()
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            return recordableEndpoint.getRecordingFolderDescription();
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    @Transient
+    public Map<RecordingCapability, String> getRecordingFolderIds()
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            return recordableEndpoint.getRecordingFolderIds();
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    @Transient
+    public String getRecordingFolderId(RecordingCapability recordingCapability)
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            return recordableEndpoint.getRecordingFolderId(recordingCapability);
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            recordableEndpoint.putRecordingFolderId(recordingCapability, recordingFolderId);
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
     }
 
     @Override
