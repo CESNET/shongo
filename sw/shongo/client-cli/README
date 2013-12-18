@@ -41,7 +41,7 @@ On other platforms the modules can be installed by CPAN utility:
     cpan -i Term::ReadKey
 
 The CPAN can be used even on the Ubuntu/Debian system to upgrade Perl modules, e.g. to install
-the latest version of IO::Socket::SSL:
+the latest version of IO::Socket::SSL (package libssl-dev is needed):
 
     sudo apt-get install build-essential
     sudo cpan -i IO::Socket::SSL
