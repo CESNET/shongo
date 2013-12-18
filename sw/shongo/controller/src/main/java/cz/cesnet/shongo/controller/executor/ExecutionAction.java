@@ -360,6 +360,8 @@ public abstract class ExecutionAction<T> extends Thread
      */
     public static class UpdateExecutableAction extends AbstractExecutableAction
     {
+        private Boolean result;
+
         /**
          * Constructor.
          *
@@ -381,7 +383,7 @@ public abstract class ExecutionAction<T> extends Thread
         {
             try {
                 Executable executable = executableManager.get(this.target.getId());
-                executable.update(getExecutor(), executableManager);
+                result = executable.update(getExecutor(), executableManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.EXECUTOR, "Updating failed", exception);
@@ -391,11 +393,8 @@ public abstract class ExecutionAction<T> extends Thread
         @Override
         protected boolean performFinish(ExecutionResult executionResult)
         {
-            if (!target.getState().isModified()) {
-                if (target.getState().equals(Executable.State.SKIPPED)) {
-                    target.setState(Executable.State.STARTED);
-                }
-                else {
+            if (!target.isModified()) {
+                if (Boolean.TRUE.equals(result)) {
                     executionResult.addUpdatedExecutable(target);
                 }
                 return true;

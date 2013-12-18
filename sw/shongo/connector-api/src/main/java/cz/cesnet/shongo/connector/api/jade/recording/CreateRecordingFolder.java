@@ -18,10 +18,9 @@ public class CreateRecordingFolder extends ConnectorCommand
     {
     }
 
-    public CreateRecordingFolder(String name)
+    public CreateRecordingFolder(RecordingFolder recordingFolder)
     {
-        this.recordingFolder = new RecordingFolder();
-        this.recordingFolder.setName(name);
+        this.recordingFolder = recordingFolder;
     }
 
     public RecordingFolder getRecordingFolder()

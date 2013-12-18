@@ -133,11 +133,13 @@ public class Migration extends SimplePersistentObject
             // Reuse the same room in the device
             if (sourceResourceRoom.getResource().equals(targetResourceRoom.getResource())) {
                 targetResourceRoom.setState(Executable.State.STARTED);
+                targetResourceRoom.setModified(true);
                 targetResourceRoom.setRoomId(sourceRoom.getRoomId());
-                Executable.State state = targetResourceRoom.update(executor, executableManager);
-                if (state != null) {
+                Boolean result = targetResourceRoom.update(executor, executableManager);
+                if (Boolean.TRUE.equals(result)) {
                     targetResourceRoom.setState(Executable.State.STARTED);
                     sourceResourceRoom.setState(Executable.State.STOPPED);
+                    sourceResourceRoom.setModified(false);
                     migrateRecordingFolders(sourceResourceRoom, targetResourceRoom);
                     return true;
                 }
@@ -154,10 +156,12 @@ public class Migration extends SimplePersistentObject
             // If the same room is reused, only update the room
             if (sourceUsedRoom.getReusedRoomEndpoint().equals(targetUsedRoom.getReusedRoomEndpoint())) {
                 targetUsedRoom.setState(Executable.State.STARTED);
-                Executable.State state = targetUsedRoom.update(executor, executableManager);
-                if (state != null) {
+                targetUsedRoom.setModified(true);
+                Boolean result = targetUsedRoom.update(executor, executableManager);
+                if (Boolean.TRUE.equals(result)) {
                     targetUsedRoom.setState(Executable.State.STARTED);
                     sourceUsedRoom.setState(Executable.State.STOPPED);
+                    sourceUsedRoom.setModified(false);
                     migrateRecordingFolders(sourceUsedRoom, targetUsedRoom);
                     return true;
                 }

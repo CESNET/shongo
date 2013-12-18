@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
+import java.util.Map;
+
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link cz.cesnet.shongo.connector.api.RecordingService#modifyRecordingFolder}
@@ -18,10 +20,11 @@ public class ModifyRecordingFolder extends ConnectorCommand
     {
     }
 
-    public ModifyRecordingFolder(String name)
+    public ModifyRecordingFolder(String recordingFolderId, Map<String, RecordingFolder.UserPermission> userPermissions)
     {
         this.recordingFolder = new RecordingFolder();
-        this.recordingFolder.setName(name);
+        this.recordingFolder.setId(recordingFolderId);
+        this.recordingFolder.setUserPermissions(userPermissions);
     }
 
     public RecordingFolder getRecordingFolder()

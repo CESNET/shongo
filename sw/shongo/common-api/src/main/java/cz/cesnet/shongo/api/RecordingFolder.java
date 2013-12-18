@@ -47,6 +47,15 @@ public class RecordingFolder extends IdentifiedComplexType
     }
 
     /**
+     * @param userPermissions sets the {@link #userPermissions}
+     */
+    public void setUserPermissions(Map<String, UserPermission> userPermissions)
+    {
+        this.userPermissions.clear();
+        this.userPermissions.putAll(userPermissions);
+    }
+
+    /**
      * Add entry to {@link #userPermissions}.
      *
      * @param userId

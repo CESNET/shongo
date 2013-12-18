@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RecordingCapability;
@@ -13,6 +14,7 @@ import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
@@ -109,6 +111,11 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
 
+        // Create new ACL for request
+        getAuthorizationService().createAclEntry(SECURITY_TOKEN,
+                new AclEntry(getUserId(SECURITY_TOKEN_USER2), roomReservationRequestId, ObjectRole.READER));
+        runExecutor(dateTime.plusHours(3));
+
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
         runScheduler();
@@ -126,6 +133,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
     }

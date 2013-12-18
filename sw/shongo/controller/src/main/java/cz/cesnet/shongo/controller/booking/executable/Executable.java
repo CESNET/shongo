@@ -31,7 +31,12 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Current state of the {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
      */
-    private State state;
+    protected State state;
+
+    /**
+     * Specifies whether this {@link Executable} should be updated.
+     */
+    private boolean modified;
 
     /**
      * {@link Migration} to be performed to initialize this {@link Executable} from another {@link Executable}.
@@ -99,6 +104,32 @@ public abstract class Executable extends ExecutionTarget
                 }
             }
         }
+    }
+
+    /**
+     * @return {@link #modified}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isModified()
+    {
+        return modified;
+    }
+
+    /**
+     * @param update {@link #modified}
+     */
+    public void setModified(boolean update)
+    {
+        this.modified = update;
+    }
+
+    /**
+     * @return true whether this {@link Executable} can be modified,
+     *         false otherwise
+     */
+    public boolean canBeModified()
+    {
+        return MODIFIABLE_STATES.contains(state);
     }
 
     /**
@@ -236,8 +267,8 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      * @param administrator
+     * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
     public final cz.cesnet.shongo.controller.api.Executable toApi(boolean administrator)
     {
@@ -303,17 +334,17 @@ public abstract class Executable extends ExecutionTarget
      * @param executableManager
      * @return new {@link State} or null when the state hasn't changed
      */
-    public final State update(Executor executor, ExecutableManager executableManager)
+    public final Boolean update(Executor executor, ExecutableManager executableManager)
     {
-        if (!getState().isStarted()) {
+        if (!isModified()) {
             throw new IllegalStateException(
-                    String.format("Executable '%d' can be updated only if it is started.", getId()));
+                    String.format("Executable '%d' can be updated only if it is modified.", getId()));
         }
-        State state = onUpdate(executor, executableManager);
-        if (state != null) {
-            setState(state);
+        Boolean result = onUpdate(executor, executableManager);
+        if (result == null || Boolean.TRUE.equals(result)) {
+            setModified(false);
         }
-        return state;
+        return result;
     }
 
     /**
@@ -365,11 +396,12 @@ public abstract class Executable extends ExecutionTarget
      *
      * @param executor
      * @param executableManager
-     * @return new {@link State} or null when the state should not change
+     * @return {@link Boolean#TRUE} when the updating succeeds, {@link Boolean#FALSE} when it fails and {@code null}
+     *         when the updating isn't needed and it was skipped
      */
-    protected State onUpdate(Executor executor, ExecutableManager executableManager)
+    protected Boolean onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        return null;
+        return Boolean.TRUE;
     }
 
     /**
@@ -504,65 +536,59 @@ public abstract class Executable extends ExecutionTarget
          * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for
          * {@link SchedulerReport}).
          */
-        NOT_ALLOCATED(false, false),
+        NOT_ALLOCATED(false),
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
          * {@link ExecutionReport}) and the object for which it has been stored has been deleted
          * and thus the {@link Executable} should be also deleted.
          */
-        TO_DELETE(false, false),
+        TO_DELETE(false),
 
         /**
          * {@link Executable} has not been started yet.
          */
-        NOT_STARTED(false, false),
+        NOT_STARTED(false),
 
         /**
          * {@link Executable} starting/stopping was skipped (starting/stopping doesn't make sense).
          */
-        SKIPPED(false, false),
+        SKIPPED(false),
 
         /**
          * {@link Executable} is started.
          */
-        STARTED(true, false),
-
-        /**
-         * {@link Executable} is started, but the {@link Executable} has been modified and the change(s) has
-         * not been propagated to the device yet.
-         */
-        MODIFIED(true, true),
+        STARTED(true),
 
         /**
          * {@link Executable} is partially started (e.g., some child executables failed to start).
          */
-        PARTIALLY_STARTED(true, false),
+        PARTIALLY_STARTED(true),
 
         /**
          * {@link Executable} failed to start.
          */
-        STARTING_FAILED(false, false),
+        STARTING_FAILED(false),
 
         /**
          * {@link Executable} has been stopped.
          */
-        STOPPED(false, false),
+        STOPPED(false),
 
         /**
          * {@link Executable} failed to stop.
          */
-        STOPPING_FAILED(true, false),
+        STOPPING_FAILED(true),
 
         /**
          * All additional resources allocated for the {@link Executable} has been freed.
          */
-        FINALIZED(false, false),
+        FINALIZED(false),
 
         /**
          * Finalization has failed.
          */
-        FINALIZATION_FAILED(false, false);
+        FINALIZATION_FAILED(false);
 
         /**
          * Specifies whether state means that executable is started.
@@ -570,20 +596,13 @@ public abstract class Executable extends ExecutionTarget
         private final boolean started;
 
         /**
-         * Specifies whether state means that executable is modified.
-         */
-        private final boolean modified;
-
-        /**
          * Constructor.
          *
-         * @param started  sets the {@link #started}
-         * @param modified sets the {@link #modified}
+         * @param started sets the {@link #started}
          */
-        private State(boolean started, boolean modified)
+        private State(boolean started)
         {
             this.started = started;
-            this.modified = modified;
         }
 
         /**
@@ -592,14 +611,6 @@ public abstract class Executable extends ExecutionTarget
         public boolean isStarted()
         {
             return started;
-        }
-
-        /**
-         * @return {@link #modified}
-         */
-        public boolean isModified()
-        {
-            return modified;
         }
 
         /**
@@ -615,7 +626,6 @@ public abstract class Executable extends ExecutionTarget
                 case SKIPPED:
                     return ExecutableState.NOT_STARTED;
                 case STARTED:
-                case MODIFIED:
                     return ExecutableState.STARTED;
                 case STARTING_FAILED:
                     return ExecutableState.STARTING_FAILED;
@@ -632,24 +642,9 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * States which represents {@link Executable} which is created only for
-     * {@link SchedulerReport} and thus it is not allocated.
+     * {@link State}s in which the {@link Executable} can be modified.
      */
-    public static final Set<State> NOT_ALLOCATED_STATES = new HashSet<State>()
-    {{
-            add(State.NOT_ALLOCATED);
-            add(State.TO_DELETE);
-        }};
-
-    /**
-     * States which represents {@link Executable} which is started.
-     */
-    public static final Set<State> STARTED_STATES = new HashSet<State>()
-    {{
-            add(State.STARTED);
-            add(State.MODIFIED);
-            add(State.STOPPING_FAILED);
-        }};
+    public static final Set<State> MODIFIABLE_STATES = new HashSet<State>();
 
     /**
      * {@link Executable} class by {@link cz.cesnet.shongo.controller.api.Executable} class.
@@ -664,6 +659,11 @@ public abstract class Executable extends ExecutionTarget
      * Initialization for {@link #CLASS_BY_API}.
      */
     static {
+        for (State state : State.values()) {
+            if (state.compareTo(State.STARTED) >= 0 && state.compareTo(State.FINALIZED) < 0) {
+                MODIFIABLE_STATES.add(state);
+            }
+        }
         CLASS_BY_API.put(RoomExecutable.class,
                 new HashSet<Class<? extends Executable>>()
                 {{

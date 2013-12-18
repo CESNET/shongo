@@ -177,13 +177,12 @@ public class ExecutableManager extends AbstractManager
     {
         return entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
-                        + " WHERE executable.state IN(:states)"
-                        + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
+                        + " WHERE executable.state IN(:modifiableStates) AND executable.modified = TRUE"
                         + " AND ((executable.nextAttempt IS NULL AND executable.attemptCount = 0) OR executable.nextAttempt <= :dateTime)"
                         + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
-                .setParameter("states", EnumSet.of(Executable.State.MODIFIED))
+                .setParameter("modifiableStates", Executable.MODIFIABLE_STATES)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
     }
@@ -204,8 +203,7 @@ public class ExecutableManager extends AbstractManager
                         + " AND (executable.attemptCount < :maxAttemptCount)",
                 Executable.class)
                 .setParameter("dateTime", referenceDateTime)
-                .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED,
-                        Executable.State.MODIFIED))
+                .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED))
                 .setParameter("stoppingFailedState", Executable.State.STOPPING_FAILED)
                 .setParameter("maxAttemptCount", maxAttemptCount)
                 .getResultList();
@@ -329,8 +327,7 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param deviceResourceId
      * @param roomId
-     * @return {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} in given {@code deviceResourceId} with given {@code roomId}
-     *         and currently taking place
+     * @return started {@link RoomEndpoint} in given {@code deviceResourceId} with given {@code roomId}
      */
     public RoomEndpoint getRoomEndpoint(Long deviceResourceId, String roomId)
     {
@@ -343,7 +340,8 @@ public class ExecutableManager extends AbstractManager
                             + " AND room.state IN(:startedStates)", ResourceRoomEndpoint.class)
                     .setParameter("resourceId", deviceResourceId)
                     .setParameter("roomId", roomId)
-                    .setParameter("startedStates", Executable.STARTED_STATES)
+                    .setParameter("startedStates", EnumSet.of(
+                            Executable.State.STARTED, Executable.State.STOPPING_FAILED))
                     .getSingleResult();
         }
         catch (NoResultException exception) {
@@ -354,7 +352,8 @@ public class ExecutableManager extends AbstractManager
                         + " WHERE room.reusedRoomEndpoint = :room"
                         + " AND room.state IN(:startedStates)", UsedRoomEndpoint.class)
                 .setParameter("room", resourceRoomEndpoint)
-                .setParameter("startedStates", Executable.STARTED_STATES)
+                .setParameter("startedStates", EnumSet.of(
+                        Executable.State.STARTED, Executable.State.STOPPING_FAILED))
                 .getResultList();
         if (usedRoomEndpoints.size() == 0) {
             return resourceRoomEndpoint;
@@ -363,8 +362,8 @@ public class ExecutableManager extends AbstractManager
             return usedRoomEndpoints.get(0);
         }
         else {
-            throw new RuntimeException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
-                    + "s taking place at " + DateTime.now() + ".");
+            throw new RuntimeException("Found multiple started " + UsedRoomEndpoint.class.getSimpleName()
+                    + "s.");
         }
     }
 
@@ -407,10 +406,10 @@ public class ExecutableManager extends AbstractManager
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
                         + " WHERE room.reusedRoomEndpoint = :roomEndpoint"
-                        + " AND room.state IN(:stateStarted)",
+                        + " AND room.state = :startedState",
                 UsedRoomEndpoint.class)
                 .setParameter("roomEndpoint", resourceRoomEndpoint)
-                .setParameter("stateStarted", EnumSet.of(Executable.State.STARTED, Executable.State.MODIFIED))
+                .setParameter("startedState", Executable.State.STARTED)
                 .getResultList();
         if (usedRoomEndpoints.size() == 0) {
             return null;

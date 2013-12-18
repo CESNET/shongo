@@ -513,7 +513,7 @@ public class RoomReservationTask extends ReservationTask
                     roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
                 }
                 else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
-                    roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
+                    roomEndpoint.setModified(true);
                 }
 
                 // Allocate services (only for rooms which are accessible)

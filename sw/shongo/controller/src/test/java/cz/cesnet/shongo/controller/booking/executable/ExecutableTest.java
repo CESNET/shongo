@@ -323,9 +323,10 @@ public class ExecutableTest extends AbstractExecutorTest
         Assert.assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<Object>()
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }

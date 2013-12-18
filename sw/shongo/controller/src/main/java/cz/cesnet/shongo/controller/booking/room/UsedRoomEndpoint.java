@@ -2,6 +2,7 @@
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
@@ -127,6 +128,12 @@ public class UsedRoomEndpoint extends RoomEndpoint
         }
     }
 
+    @Override
+    public boolean canBeModified()
+    {
+        return state.equals(State.STARTED);
+    }
+
     @Transient
     @Override
     public int getEndpointServiceCount()
@@ -213,11 +220,11 @@ public class UsedRoomEndpoint extends RoomEndpoint
 
     @Override
     @Transient
-    public String getRecordingFolderDescription()
+    public RecordingFolder getRecordingFolderApi()
     {
         if (reusedRoomEndpoint instanceof RecordableEndpoint) {
             RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
-            return recordableEndpoint.getRecordingFolderDescription();
+            return recordableEndpoint.getRecordingFolderApi();
         }
         else {
             throw new TodoImplementException(reusedRoomEndpoint.getClass());
@@ -308,19 +315,24 @@ public class UsedRoomEndpoint extends RoomEndpoint
     }
 
     @Override
-    protected Executable.State onUpdate(Executor executor, ExecutableManager executableManager)
+    protected Boolean onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        try {
-            modifyRoom(getRoomApi(executableManager), executor);
-            return Executable.State.STARTED;
+        if (state.equals(State.STARTED)) {
+            try {
+                modifyRoom(getRoomApi(executableManager), executor);
+                return Boolean.TRUE;
+            }
+            catch (ExecutionReportSet.RoomNotStartedException exception) {
+                executableManager.createExecutionReport(this, exception.getReport());
+            }
+            catch (ExecutionReportSet.CommandFailedException exception) {
+                executableManager.createExecutionReport(this, exception.getReport());
+            }
+            return Boolean.FALSE;
         }
-        catch (ExecutionReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutionReport(this, exception.getReport());
+        else {
+            return null;
         }
-        catch (ExecutionReportSet.CommandFailedException exception) {
-            executableManager.createExecutionReport(this, exception.getReport());
-        }
-        return null;
     }
 
     @Override

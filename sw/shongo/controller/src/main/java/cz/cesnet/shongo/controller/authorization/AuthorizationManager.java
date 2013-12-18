@@ -462,13 +462,11 @@ public class AuthorizationManager extends AclEntryManager
                         AclEntryDependency.Type.DELETE_CASCADE);
             }
         }
-
-        // Update entities
-        if (object instanceof Executable && objectRole.equals(ObjectRole.OWNER)) {
+        else if (object instanceof Executable) {
+            // Update entities
             Executable executable = (Executable) object;
-            Executable.State state = executable.getState();
-            if (state.equals(Executable.State.STARTED)) {
-                executable.setState(Executable.State.MODIFIED);
+            if (executable.canBeModified()) {
+                executable.setModified(true);
             }
         }
     }
@@ -484,9 +482,8 @@ public class AuthorizationManager extends AclEntryManager
         ObjectRole objectRole = ObjectRole.valueOf(aclEntry.getRole());
         if (object instanceof Executable && objectRole.equals(ObjectRole.OWNER)) {
             Executable executable = (Executable) object;
-            Executable.State state = executable.getState();
-            if (state.equals(Executable.State.STARTED)) {
-                executable.setState(Executable.State.MODIFIED);
+            if (executable.canBeModified()) {
+                executable.setModified(true);
             }
         }
     }

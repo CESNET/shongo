@@ -10,6 +10,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
@@ -17,8 +18,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
@@ -447,9 +447,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
-                cz.cesnet.shongo.controller.booking.executable.Executable.State executableState = executable.getState();
-                if (executableState.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED)) {
-                    executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.MODIFIED);
+                if (executable.canBeModified()) {
+                    executable.setModified(true);
                 }
             }
 
@@ -604,7 +603,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             // Attach device room to room executable
             entityManager.getTransaction().begin();
-            roomExecutable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.MODIFIED);
+            roomExecutable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
+            roomExecutable.setModified(true);
             roomExecutable.setRoomId(deviceRoomId);
             executableManager.update(roomExecutable);
             entityManager.getTransaction().commit();

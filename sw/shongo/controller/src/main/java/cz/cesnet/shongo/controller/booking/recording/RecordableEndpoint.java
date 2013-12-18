@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -39,7 +40,7 @@ public interface RecordableEndpoint
     /**
      * @return description of the folder to which recordings will be stored
      */
-    public String getRecordingFolderDescription();
+    public RecordingFolder getRecordingFolderApi();
 
     /**
      * @return identifier of recording folders by {@link RecordingCapability}

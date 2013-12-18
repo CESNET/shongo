@@ -325,7 +325,7 @@ public class Executor extends SwitchableComponent
                     ManagedMode managedMode = deviceResource.requireManaged();
                     String agentName = managedMode.getConnectorAgentName();
                     SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                            new CreateRecordingFolder(recordableEndpoint.getRecordingFolderDescription()));
+                            new CreateRecordingFolder(recordableEndpoint.getRecordingFolderApi()));
                     if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
                         throw new ExecutionReportSet.CommandFailedException(
                                 sendLocalCommand.getName(), sendLocalCommand.getJadeReport());

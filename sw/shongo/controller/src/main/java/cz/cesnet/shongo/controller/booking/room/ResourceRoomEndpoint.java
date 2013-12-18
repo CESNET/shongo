@@ -1,16 +1,20 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
-import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -29,7 +33,7 @@ import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint} in a {@link cz.cesnet.shongo.controller.booking.compartment.Compartment}.
+ * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -262,10 +266,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint
 
     @Transient
     @Override
-    public String getRecordingFolderDescription()
+    public RecordingFolder getRecordingFolderApi()
     {
-        return String.format("[%s:exe:%d][res:%d][room:%s]",
-                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId());
+        RecordingFolder recordingFolder = new RecordingFolder();
+        recordingFolder.setName(String.format("[%s:exe:%d][res:%d][room:%s]",
+                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId()));
+        recordingFolder.setUserPermissions(getRecordingFolderUserPermissions());
+        return recordingFolder;
     }
 
     @Override
@@ -344,25 +351,64 @@ public class ResourceRoomEndpoint extends RoomEndpoint
         }
     }
 
-    @Override
-    protected State onUpdate(Executor executor, ExecutableManager executableManager)
+    @Transient
+    private Map<String, RecordingFolder.UserPermission> getRecordingFolderUserPermissions()
     {
-        UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
-        if (usedRoomEndpoint != null && State.MODIFIED.equals(usedRoomEndpoint.getState())) {
-            // Used room will be automatically modified
-            return State.SKIPPED;
+        Authorization authorization = Authorization.getInstance();
+        Map<String, RecordingFolder.UserPermission> userPermissions =
+                new HashMap<String, RecordingFolder.UserPermission>();
+        for (UserInformation user : authorization.getUsersWithRole(this, ObjectRole.READER)) {
+            userPermissions.put(user.getUserId(), RecordingFolder.UserPermission.READ);
         }
-        try {
-            modifyRoom(getRoomApi(executableManager), executor);
-            return State.STARTED;
+        for (UserInformation user : authorization.getUsersWithRole(this, ObjectRole.OWNER)) {
+            userPermissions.put(user.getUserId(), RecordingFolder.UserPermission.WRITE);
         }
-        catch (ExecutionReportSet.RoomNotStartedException exception) {
-            executableManager.createExecutionReport(this, exception.getReport());
+        return userPermissions;
+    }
+
+    @Override
+    protected Boolean onUpdate(Executor executor, ExecutableManager executableManager)
+    {
+        // Update user permissions to recording folders
+        if (recordingFolderIds.size() > 0) {
+            Map<String, RecordingFolder.UserPermission> userPermissions = getRecordingFolderUserPermissions();
+            for (Map.Entry<RecordingCapability, String> entry : recordingFolderIds.entrySet()) {
+                DeviceResource deviceResource = entry.getKey().getDeviceResource();
+                ManagedMode managedMode = deviceResource.requireManaged();
+                String agentName = managedMode.getConnectorAgentName();
+                ControllerAgent controllerAgent = executor.getControllerAgent();
+                SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                        new ModifyRecordingFolder(entry.getValue(), userPermissions));
+                if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                    executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                            sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                    return Boolean.FALSE;
+                }
+            }
         }
-        catch (ExecutionReportSet.CommandFailedException exception) {
-            executableManager.createExecutionReport(this, exception.getReport());
+
+        // Update started room
+        if (state.equals(State.STARTED)) {
+            UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
+            if (usedRoomEndpoint != null && usedRoomEndpoint.isModified()) {
+                // Room will be updated by UsedRoomEndpoint and thus skip this updating
+                return null;
+            }
+            try {
+                modifyRoom(getRoomApi(executableManager), executor);
+                return Boolean.TRUE;
+            }
+            catch (ExecutionReportSet.RoomNotStartedException exception) {
+                executableManager.createExecutionReport(this, exception.getReport());
+            }
+            catch (ExecutionReportSet.CommandFailedException exception) {
+                executableManager.createExecutionReport(this, exception.getReport());
+            }
+            return Boolean.FALSE;
         }
-        return null;
+        else {
+            return null;
+        }
     }
 
     @Override
