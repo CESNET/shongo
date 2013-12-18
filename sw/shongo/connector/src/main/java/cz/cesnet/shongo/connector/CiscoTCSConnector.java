@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
@@ -100,13 +101,19 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.getDeviceLoadInfo");
     }
 
     @Override
-    public String createRecordingFolder(String description) throws CommandException
+    public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
         throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
+    }
+
+    @Override
+    public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
+    {
+        throw new TodoImplementException("CiscoTCSConnector.modifyRecordingFolder");
     }
 
     @Override
@@ -130,7 +137,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new TodoImplementException("CiscoTCSConnector.getActiveRecording");
     }
 
     @Override

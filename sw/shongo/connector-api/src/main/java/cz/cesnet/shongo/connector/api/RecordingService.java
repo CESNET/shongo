@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 
@@ -10,17 +11,26 @@ import java.util.Collection;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  * @author Ondre Pavelka <pavelka@cesnet.cz>
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface RecordingService
 {
     /**
      * Create a new folder where one or more recordings can be stored.
      *
-     * @param name of the folder by which the folder and it's recordings can be found in case of manual lookup
+     * @param recordingFolder
      * @return identifier of newly created folder (unique among other folders on the device)
      * @throws CommandException
      */
-    public String createRecordingFolder(String name) throws CommandException;
+    public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException;
+
+    /**
+     * Update existing recording folder.
+     *
+     * @param recordingFolder
+     * @throws CommandException
+     */
+    public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException;
 
     /**
      * Delete existing folder for storing recordings.

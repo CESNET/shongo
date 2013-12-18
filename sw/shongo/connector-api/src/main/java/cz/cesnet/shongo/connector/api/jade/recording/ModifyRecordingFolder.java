@@ -8,17 +8,17 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link cz.cesnet.shongo.connector.api.RecordingService#createRecordingFolder}
+ * @see {@link cz.cesnet.shongo.connector.api.RecordingService#modifyRecordingFolder}
  */
-public class CreateRecordingFolder extends ConnectorCommand
+public class ModifyRecordingFolder extends ConnectorCommand
 {
     private RecordingFolder recordingFolder;
 
-    public CreateRecordingFolder()
+    public ModifyRecordingFolder()
     {
     }
 
-    public CreateRecordingFolder(String name)
+    public ModifyRecordingFolder(String name)
     {
         this.recordingFolder = new RecordingFolder();
         this.recordingFolder.setName(name);
@@ -37,12 +37,13 @@ public class CreateRecordingFolder extends ConnectorCommand
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getRecording(connector).createRecordingFolder(recordingFolder);
+        getRecording(connector).modifyRecordingFolder(recordingFolder);
+        return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(CreateRecordingFolder.class.getSimpleName() + " (recordingFolder: %s)", recordingFolder);
+        return String.format(ModifyRecordingFolder.class.getSimpleName() + " (recordingFolder: %s)", recordingFolder);
     }
 }

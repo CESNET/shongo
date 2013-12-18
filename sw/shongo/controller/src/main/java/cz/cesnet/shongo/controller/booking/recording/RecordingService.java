@@ -58,7 +58,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
      * @return {@link #executable} as {@link RecordableEndpoint}
      */
     @Transient
-    public RecordableEndpoint getRecordingEndpoint()
+    public RecordableEndpoint getRecordableEndpoint()
     {
         if (executable instanceof RecordableEndpoint) {
             return (RecordableEndpoint) executable;
@@ -128,7 +128,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
-        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        RecordableEndpoint recordableEndpoint = getRecordableEndpoint();
 
         // Super activation
         State state = super.onActivate(executor, executableManager);
@@ -185,7 +185,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
-        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        RecordableEndpoint recordableEndpoint = getRecordableEndpoint();
 
         // Stop recording
         if (recordingId != null) {
@@ -226,7 +226,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();
         ControllerAgent controllerAgent = executor.getControllerAgent();
-        RecordableEndpoint recordableEndpoint = getRecordingEndpoint();
+        RecordableEndpoint recordableEndpoint = getRecordableEndpoint();
 
         // Check active recording
         Alias alias = recordableEndpoint.getRecordingAlias();

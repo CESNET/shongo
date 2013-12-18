@@ -579,8 +579,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     !authorization.hasObjectPermission(securityToken, deviceResource, ObjectPermission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("attach room %s", objectId);
             }
-            if (!roomExecutable.getState()
-                    .equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
+            if (!roomExecutable.getState().equals(
+                    cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
                 throw new CommonReportSet.UnknownErrorException("Room executable must be NOT_STARTED.");
             }
 

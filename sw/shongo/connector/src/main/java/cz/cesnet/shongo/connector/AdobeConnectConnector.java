@@ -427,26 +427,26 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
-    public String createRecordingFolder(String name) throws CommandException
+    public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        Integer i = 0;
-        String nameSuffix = "";
-
+        String recordingFolderName = recordingFolder.getName();
+        String suffix = "";
+        Integer index = 0;
         while (true) {
             try {
                 RequestAttributeList attributes = new RequestAttributeList();
                 attributes.add("sco-id", getRecordingsFolderID());
-                attributes.add("filter-name", URLEncoder.encode(name + " " + nameSuffix, "UTF8"));
+                attributes.add("filter-name", URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8"));
 
 
                 Element recFolders = request("sco-contents", attributes);
                 if (recFolders.getChild("scos").getChildren().size() == 0) {
-                    name = URLEncoder.encode(name + " " + nameSuffix, "UTF8");
+                    recordingFolderName = URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8");
                     break;
                 }
 
-                i = i + 1;
-                nameSuffix = i.toString();
+                index = index + 1;
+                suffix = index.toString();
             }
             catch (UnsupportedEncodingException e) {
                 throw new CommandException("Error while message encoding.", e);
@@ -455,12 +455,23 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         RequestAttributeList folderAttributes = new RequestAttributeList();
         folderAttributes.add("folder-id", getRecordingsFolderID());
-        folderAttributes.add("name", name);
+        folderAttributes.add("name", recordingFolderName);
         folderAttributes.add("type", "folder");
 
         Element folder = request("sco-update", folderAttributes);
 
+        Map<String, RecordingFolder.UserPermission> userPermissions = recordingFolder.getUserPermissions();
+        if (userPermissions.size() > 0) {
+            throw new TodoImplementException("Set user permissions to recording folder.");
+        }
+
         return folder.getChild("sco").getAttributeValue("sco-id");
+    }
+
+    @Override
+    public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
+    {
+        throw new TodoImplementException("Modify recording folder");
     }
 
     @Override
