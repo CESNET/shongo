@@ -486,6 +486,17 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     @Override
     protected void onModifyRoom(Room room) throws CommandException
     {
+        if (room.getLicenseCount() == 0) {
+            // First we must disconnect all participants
+            for (RoomParticipant roomParticipant : listRoomParticipants(room.getId())) {
+                try {
+                  disconnectRoomParticipant(roomParticipant.getRoomId(), roomParticipant.getId());
+                }
+                catch (CommandException exception) {
+                    throw new CommandException("Cannot disconnect participant" + roomParticipant + ".", exception);
+                }
+            }
+        }
         Command cmd = new Command("conference.modify");
         cmd.setParameter("conferenceName", truncateString(room.getId()));
         setConferenceParametersByRoom(cmd, room);

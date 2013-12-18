@@ -238,8 +238,8 @@ public class RoomParticipant extends IdentifiedComplexType
     public String toString()
     {
         return String.format(RoomParticipant.class.getSimpleName() +
-                " (roomId: %s, roomParticipantId: %s, layout: %s, audioMuted: %s, videoMuted: %s, videoSnapshot: %s, microphoneLevel: %d)",
-                roomId, id, layout, audioMuted, videoMuted, videoSnapshot, microphoneLevel);
+                " (roomId: %s, roomParticipantId: %s, name: %s, layout: %s, audioMuted: %s, videoMuted: %s, videoSnapshot: %s, microphoneLevel: %d)",
+                roomId, id, displayName, layout, audioMuted, videoMuted, videoSnapshot, microphoneLevel);
     }
 
     public static final String ROOM_ID = "roomId";
