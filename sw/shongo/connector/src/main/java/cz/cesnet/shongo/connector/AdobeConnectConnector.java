@@ -108,6 +108,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     private final long RECORDING_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
 
+    /**
+     * Small timeout used between some AC request
+     */
+    private final long AC_REQUEST_DELAY = 100;
+
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
      *                      trailing slash http://www.breeze.example/ is a typical
@@ -459,19 +464,53 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         folderAttributes.add("type", "folder");
 
         Element folder = request("sco-update", folderAttributes);
+        String recordingId = folder.getChild("sco").getAttributeValue("sco-id");
 
-        Map<String, RecordingFolder.UserPermission> userPermissions = recordingFolder.getUserPermissions();
-        if (userPermissions.size() > 0) {
-            throw new TodoImplementException("Set user permissions to recording folder.");
+        if (recordingFolder.getUserPermissions().size() > 0) {
+            recordingFolder.setId(recordingId);
+            modifyRecordingFolder(recordingFolder);
         }
 
-        return folder.getChild("sco").getAttributeValue("sco-id");
+        return recordingId;
     }
 
     @Override
     public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        throw new TodoImplementException("Modify recording folder");
+        resetPermissions(recordingFolder.getId());
+
+        RequestAttributeList userAttributes = new RequestAttributeList();
+        userAttributes.add("acl-id",recordingFolder.getId());
+
+        for (Map.Entry<String, RecordingFolder.UserPermission> userPermissions : recordingFolder.getUserPermissions().entrySet()) {
+            UserInformation userInformation = getUserInformationById(userPermissions.getKey());
+
+            // Configure all principal names for participant
+            Set<String> principalNames = userInformation.getPrincipalNames();
+            if (principalNames.size() == 0) {
+                throw new CommandException("User " + userInformation.getFullName() + " has no principal names.");
+            }
+            for (String principalName : principalNames) {
+                String userId = createAdobeConnectUser(principalName, userInformation);
+                String role = "denied";
+
+                switch (userPermissions.getValue()) {
+                    case READ:
+                        role = "view";
+                        break;
+                    case WRITE:
+                        role = "manage";
+                        break;
+                }
+                userAttributes.add("principal-id", userId);
+                userAttributes.add("permission-id", role);
+                logger.debug("Setting permissions '{}' for recordings folder '{}' for user '{}' (principal-id: {}).",
+                        new Object[]{userPermissions.getValue(), recordingFolder.getId(), userInformation.getFullName(), userId});
+            }
+
+        }
+
+        request("permissions-update",userAttributes);
     }
 
     @Override
@@ -642,7 +681,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         int count = 0;
         while (true) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(AC_REQUEST_DELAY);
             }
             catch (InterruptedException e) {
                 logger.debug("unexpected wakening, but nothing to worry about");
@@ -1615,11 +1654,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         String permissions = request("permissions-info",permissionsInfoAttributes).getChild("permissions").getChild("principal").getAttributeValue(
                 "permission-id");
 
-        if (!"manage".equals(permissions)) {
+        if (!"denied".equals(permissions)) {
             RequestAttributeList permissionsUpdateAttributes = new RequestAttributeList();
             permissionsUpdateAttributes.add("acl-id", recordingsFolderID);
             permissionsUpdateAttributes.add("principal-id", "public-access");
-            permissionsUpdateAttributes.add("permission-id", "manage");
+            permissionsUpdateAttributes.add("permission-id", "denied");
 
             request("permissions-update", permissionsUpdateAttributes);
         }

@@ -43,7 +43,7 @@ case $MODE in
         MCU_CESNET_LICENSE_COUNT=10
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=090:099
-        CONNECT_CESNET=https://actest-w3.cesnet.cz
+        CONNECT_CESNET=https://tconn.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
         RESOURCE_ADMIN_EMAIL=srom.martin@gmail.com
         ;;
