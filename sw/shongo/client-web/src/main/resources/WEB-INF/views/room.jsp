@@ -87,7 +87,7 @@
             });
         };
     });
-    module.controller('RoomRecordingActionController', function($scope) {
+    module.controller('RoomRecordingActionController', function($scope, $timeout) {
         $scope.postAndRefresh = function(url) {
             $.post(url, function(){
                 $timeout(function(){
