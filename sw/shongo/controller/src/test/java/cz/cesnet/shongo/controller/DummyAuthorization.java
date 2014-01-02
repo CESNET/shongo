@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

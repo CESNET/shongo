@@ -5,7 +5,6 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.acl.AclProvider;
 import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.report.ReportRuntimeException;
@@ -92,7 +91,7 @@ public class ServerAuthorization extends Authorization
      * Constructor.
      *
      * @param configuration to load authorization configuration from
-     * @param aclProvider
+     * @param entityManagerFactory
      */
     private ServerAuthorization(ControllerConfiguration configuration, EntityManagerFactory entityManagerFactory)
     {
@@ -272,7 +271,7 @@ public class ServerAuthorization extends Authorization
         String listUsersUrl = authorizationServer + USER_SERVICE_PATH;
         if (search != null) {
             try {
-                listUsersUrl = listUsersUrl + "?fresh=1&search=" + URLEncoder.encode(search, "UTF-8");
+                listUsersUrl = listUsersUrl + "?search=" + URLEncoder.encode(search, "UTF-8");
             }
             catch (UnsupportedEncodingException exception) {
                 throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
@@ -299,7 +298,7 @@ public class ServerAuthorization extends Authorization
     @Override
     public List<Group> onListGroups()
     {
-        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "?fresh=1", "Retrieving groups failed",
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH, "Retrieving groups failed",
                 new RequestHandler<List<Group>>()
                 {
                     @Override
@@ -330,7 +329,7 @@ public class ServerAuthorization extends Authorization
     @Override
     public Set<String> onListGroupUserIds(final String groupId)
     {
-        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users?fresh=1",
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/users",
                 "Retrieving user-ids in group " + groupId + " failed",
                 new RequestHandler<Set<String>>()
                 {
@@ -668,6 +667,15 @@ public class ServerAuthorization extends Authorization
         if (data.has("language")) {
             Locale locale = new Locale(data.get("language").getTextValue());
             userData.setLocale(locale);
+        }
+
+        if(data.has("authentication_info")) {
+            JsonNode authenticationInfo = data.get("authentication_info");
+            if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
+                userData.setUserAuthorizationData(new UserAuthorizationData(
+                        authenticationInfo.get("provider").getTextValue(),
+                        authenticationInfo.get("loa").getIntValue()));
+            }
         }
 
         return userData;

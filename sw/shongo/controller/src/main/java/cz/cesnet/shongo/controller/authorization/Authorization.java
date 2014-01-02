@@ -165,7 +165,7 @@ public abstract class Authorization
     /**
      * @param securityToken
      * @param systemPermission
-     * @return
+     * @return true whether user with given {@code securityToken} has given {@code systemPermission}
      */
     public final boolean hasSystemPermission(SecurityToken securityToken, SystemPermission systemPermission)
     {
@@ -179,8 +179,8 @@ public abstract class Authorization
                 return listGroupUserIds(getGroupIdByName(administratorGroupName)).contains(userId);
             }
             case RESERVATION: {
-                // TODO: check some user attributes
-                return true;
+                UserAuthorizationData userAuthorizationData = getUserAuthorizationData(securityToken);
+                return userAuthorizationData.getLoa() >= UserAuthorizationData.LOA_BASIC;
             }
             default: {
                 throw new TodoImplementException(systemPermission);
@@ -699,6 +699,36 @@ public abstract class Authorization
     protected abstract void onRemoveGroupUser(String groupId, String userId);
 
     /**
+     * @param securityToken
+     * @return {@link UserAuthorizationData} for given {@code securityToken}
+     */
+    private UserAuthorizationData getUserAuthorizationData(SecurityToken securityToken)
+    {
+        String accessToken = securityToken.getAccessToken();
+        UserAuthorizationData userAuthorizationData;
+        if (cache.hasUserAuthorizationDataByAccessToken(accessToken)) {
+            userAuthorizationData = cache.getUserAuthorizationDataByAccessToken(accessToken);
+        }
+        else {
+            try {
+                UserData userData = onGetUserDataByAccessToken(accessToken);
+                userAuthorizationData = userData.getUserAuthorizationData();
+                if (userAuthorizationData == null) {
+                    userAuthorizationData = new UserAuthorizationData(UserAuthorizationData.LOA_NONE);
+                }
+            }
+            catch (ControllerReportSet.UserNotExistsException exception) {
+                userAuthorizationData = null;
+            }
+            cache.putUserAuthorizationDataByAccessToken(accessToken, userAuthorizationData);
+        }
+        if (userAuthorizationData == null) {
+            throw new ControllerReportSet.UserNotExistsException(accessToken);
+        }
+        return userAuthorizationData;
+    }
+
+    /**
      * Fetch {@link AclUserState} for given {@code userId}.
      *
      * @param userId of user for which the ACL should be fetched
@@ -848,61 +878,5 @@ public abstract class Authorization
                     + "has been created.");
         }
         return authorization;
-    }
-
-    /**
-     * Represents user data fetched from web service.
-     */
-    public static class UserData
-    {
-        /**
-         * @see UserInformation
-         */
-        private final UserInformation userInformation = new UserInformation();
-
-        /**
-         * Use preferred language.
-         */
-        private Locale locale;
-
-        /**
-         * @return {@link #userInformation}
-         */
-        public UserInformation getUserInformation()
-        {
-            return userInformation;
-        }
-
-        /**
-         * @return {@link #userInformation#getUserId()}
-         */
-        public String getUserId()
-        {
-            return userInformation.getUserId();
-        }
-
-        /**
-         * @return {@link #userInformation#getFullName()} ()}
-         */
-        public String getFullName()
-        {
-            return userInformation.getFullName();
-        }
-
-        /**
-         * @return {@link #locale}
-         */
-        public Locale getLocale()
-        {
-            return locale;
-        }
-
-        /**
-         * @param locale sets the {@link #locale}
-         */
-        public void setLocale(Locale locale)
-        {
-            this.locale = locale;
-        }
     }
 }

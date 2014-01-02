@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
 import org.joda.time.Duration;
 
 import java.util.Set;
-
-import static cz.cesnet.shongo.controller.authorization.Authorization.UserData;
 
 /**
  * Represents a cache of {@link AclEntry}s
@@ -27,10 +26,16 @@ public class AuthorizationCache
     private ExpirationMap<String, String> userIdByPrincipalNameCache = new ExpirationMap<String, String>();
 
     /**
-     * Cache of {@link cz.cesnet.shongo.api.UserInformation} by user-id.
+     * Cache of {@link UserInformation} by user-id.
      */
-    private ExpirationMap<String, UserData> userInformationCache =
+    private ExpirationMap<String, UserData> userDataByUserIdCache =
             new ExpirationMap<String, UserData>();
+
+    /**
+     * Cache of {@link UserAuthorizationData} by access token.
+     */
+    private ExpirationMap<String, UserAuthorizationData> userAuthorizationDataByAccessTokenCache =
+            new ExpirationMap<String, UserAuthorizationData>();
 
     /**
      * Cache of {@link AclEntry} by {@link AclEntry#id}.
@@ -68,11 +73,11 @@ public class AuthorizationCache
     }
 
     /**
-     * @param expiration sets the {@link #userInformationCache} expiration
+     * @param expiration sets the {@link #userDataByUserIdCache} expiration
      */
     public void setUserInformationExpiration(Duration expiration)
     {
-        userInformationCache.setExpiration(expiration);
+        userDataByUserIdCache.setExpiration(expiration);
     }
 
     /**
@@ -100,7 +105,7 @@ public class AuthorizationCache
     {
         userIdByAccessTokenCache.clear();
         userIdByPrincipalNameCache.clear();
-        userInformationCache.clear();
+        userDataByUserIdCache.clear();
         aclEntryCache.clear();
         aclUserStateCache.clear();
         aclObjectStateCache.clear();
@@ -161,7 +166,7 @@ public class AuthorizationCache
      */
     public synchronized UserData getUserDataByUserId(String userId)
     {
-        return userInformationCache.get(userId);
+        return userDataByUserIdCache.get(userId);
     }
 
     /**
@@ -170,7 +175,7 @@ public class AuthorizationCache
      */
     public synchronized boolean hasUserDataByUserId(String userId)
     {
-        return userInformationCache.contains(userId);
+        return userDataByUserIdCache.contains(userId);
     }
 
     /**
@@ -181,7 +186,37 @@ public class AuthorizationCache
      */
     public synchronized void putUserDataByUserId(String userId, UserData userData)
     {
-        userInformationCache.put(userId, userData);
+        userDataByUserIdCache.put(userId, userData);
+    }
+
+    /**
+     * @param accessToken
+     * @return {@link UserAuthorizationData} by given {@code accessToken}
+     */
+    public synchronized UserAuthorizationData getUserAuthorizationDataByAccessToken(String accessToken)
+    {
+        return userAuthorizationDataByAccessTokenCache.get(accessToken);
+    }
+
+    /**
+     * @param accessToken
+     * @return true whether user with given {@code accessToken} has cached {@link UserAuthorizationData}
+     */
+    public synchronized boolean hasUserAuthorizationDataByAccessToken(String accessToken)
+    {
+        return userAuthorizationDataByAccessTokenCache.contains(accessToken);
+    }
+
+    /**
+     * Put given {@code userAuthorizationData} to the cache by the given {@code accessToken}.
+     *
+     * @param accessToken
+     * @param userAuthorizationData
+     */
+    public synchronized void putUserAuthorizationDataByAccessToken(String accessToken,
+            UserAuthorizationData userAuthorizationData)
+    {
+        userAuthorizationDataByAccessTokenCache.put(accessToken, userAuthorizationData);
     }
 
     /**

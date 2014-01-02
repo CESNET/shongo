@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.settings;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.UserData;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -70,7 +71,7 @@ public class UserSettingsManager
 
         // Set web service data
         if (userSettingsApi.isUseWebService()) {
-            Authorization.UserData userData = authorization.getUserData(userId);
+            UserData userData = authorization.getUserData(userId);
             userSettingsApi.setLocale(userData.getLocale());
         }
 

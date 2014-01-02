@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.net.ConnectException;
 import java.util.Map;
 
 /**
@@ -40,7 +41,7 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
             Exception exception)
     {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        if (exception instanceof ControllerConnectException) {
+        if (exception instanceof ControllerConnectException || exception instanceof ConnectException) {
             return new ModelAndView("controllerNotAvailable");
         }
         else if (exception instanceof org.eclipse.jetty.io.EofException) {
