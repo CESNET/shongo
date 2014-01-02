@@ -74,6 +74,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    @Debug
     public Controller getController()
     {
         Controller controller = new Controller();
@@ -82,6 +83,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    @Debug
     public Collection<Domain> listDomains(SecurityToken token)
     {
         authorization.validate(token);
@@ -92,6 +94,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    @Debug
     public Collection<Connector> listConnectors(SecurityToken token)
     {
         authorization.validate(token);

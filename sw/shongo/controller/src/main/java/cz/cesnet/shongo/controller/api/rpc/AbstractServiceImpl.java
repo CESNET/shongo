@@ -8,6 +8,10 @@ import cz.cesnet.shongo.controller.util.QueryFilter;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,6 +22,15 @@ import java.util.List;
  */
 public abstract class AbstractServiceImpl extends Component
 {
+    /**
+     * Annotation for methods which should be logged as DEBUG message instead of INFO message.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public static @interface Debug
+    {
+    }
+
     /**
      * @param query            query
      * @param queryFilter      {@link QueryFilter} for filtering select and count statement

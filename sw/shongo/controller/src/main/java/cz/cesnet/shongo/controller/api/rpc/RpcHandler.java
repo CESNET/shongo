@@ -50,10 +50,12 @@ public class RpcHandler implements XmlRpcHandler
     {
         final Method method;
         final TypeConverter[] typeConverters;
+        final boolean debug;
 
         MethodData(Method pMethod, org.apache.xmlrpc.common.TypeConverterFactory pTypeConverterFactory)
         {
             method = pMethod;
+            debug = pMethod.getAnnotation(AbstractServiceImpl.Debug.class) != null;
             Class[] paramClasses = method.getParameterTypes();
             typeConverters = new TypeConverter[paramClasses.length];
             if (pTypeConverterFactory instanceof TypeConverterFactory) {
@@ -122,7 +124,7 @@ public class RpcHandler implements XmlRpcHandler
                     for (int j = 0; j < args.length; j++) {
                         args[j] = converters[j].convert(args[j]);
                     }
-                    return invoke(instance, methodData.method, args);
+                    return invoke(instance, methodData.method, args, methodData.debug);
                 }
             }
         }
@@ -130,7 +132,7 @@ public class RpcHandler implements XmlRpcHandler
                 clazz.getSimpleName() + "." + methods[0].method.getName() + "(" + Util.getSignature(args) + ")");
     }
 
-    private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException
+    private Object invoke(Object pInstance, Method pMethod, Object[] pArgs, boolean debug) throws XmlRpcException
     {
         Timer requestTimer = new Timer();
         requestTimer.start();
@@ -162,14 +164,22 @@ public class RpcHandler implements XmlRpcHandler
         }
 
         // Log request start
+        String logMessage;
+        Object[] logMessageParameters;
         if (requestContext.userInformation != null) {
-            Controller.loggerApi.info("Request:{} {} by {} (userId: {})",new Object[]{
-                    requestContext.requestId, requestContext.methodName,
-                    requestContext.userInformation.getFullName(), requestContext.userInformation.getUserId()});
+            logMessage = "Request:{} {} by {} (userId: {})";
+            logMessageParameters = new Object[]{requestContext.requestId, requestContext.methodName,
+                    requestContext.userInformation.getFullName(), requestContext.userInformation.getUserId()};
         }
         else {
-            Controller.loggerApi.info("Request:{} {}", new Object[]{
-                    requestContext.requestId, requestContext.methodName});
+            logMessage = "Request:{} {}";
+            logMessageParameters = new Object[]{requestContext.requestId, requestContext.methodName};
+        }
+        if (debug) {
+            Controller.loggerApi.debug(logMessage, logMessageParameters);
+        }
+        else {
+            Controller.loggerApi.info(logMessage, logMessageParameters);
         }
 
         // Execute request
@@ -213,8 +223,14 @@ public class RpcHandler implements XmlRpcHandler
         finally {
             // Log request end
             long duration = requestTimer.stop();
-            Controller.loggerApi.info("Request:{} Done in {} ms ({}).",
-                    new Object[]{requestContext.requestId, duration, requestState});
+            logMessage = "Request:{} Done in {} ms ({}).";
+            logMessageParameters = new Object[]{requestContext.requestId, duration, requestState};
+            if (debug) {
+                Controller.loggerApi.debug(logMessage, logMessageParameters);
+            }
+            else {
+                Controller.loggerApi.info(logMessage, logMessageParameters);
+            }
         }
     }
 
