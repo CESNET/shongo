@@ -64,11 +64,6 @@ public abstract class Authorization
     private AuthorizationCache cache = new AuthorizationCache();
 
     /**
-     * @see ControllerConfiguration#SECURITY_ADMIN_GROUP
-     */
-    protected String administratorGroupName;
-
-    /**
      * Set of access-tokens which has administrator access.
      */
     protected Set<String> administratorAccessTokens = new HashSet<String>();
@@ -77,6 +72,16 @@ public abstract class Authorization
      * {@link cz.cesnet.shongo.controller.settings.UserSessionSettings}s.
      */
     private Map<SecurityToken, UserSessionSettings> userSessionSettings = new HashMap<SecurityToken, UserSessionSettings>();
+
+    /**
+     * {@link AuthorizationExpression} for decision whether an user can perform administration.
+     */
+    private AuthorizationExpression administrationExpression;
+
+    /**
+     * {@link AuthorizationExpression} for decision whether an user can create reservation.
+     */
+    private AuthorizationExpression reservationExpression;
 
     /**
      * Constructor.
@@ -117,7 +122,24 @@ public abstract class Authorization
                 ControllerConfiguration.SECURITY_EXPIRATION_ACL));
         this.cache.setGroupExpiration(configuration.getDuration(
                 ControllerConfiguration.SECURITY_EXPIRATION_GROUP));
-        this.administratorGroupName = configuration.getString(ControllerConfiguration.SECURITY_ADMIN_GROUP);
+
+        // Authorization expressions
+        this.administrationExpression = new AuthorizationExpression(
+                configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_ADMINISTRATION), this);
+        this.reservationExpression = new AuthorizationExpression(
+                configuration.getString(ControllerConfiguration.SECURITY_AUTHORIZATION_RESERVATION), this);
+    }
+
+    /**
+     * Initialize authorization
+     */
+    protected void initialize()
+    {
+        // Try to evaluate authorization expressions for root user
+        UserInformation rootUserInformation = ROOT_USER_DATA.getUserInformation();
+        UserAuthorizationData rootUserAuthorizationData = ROOT_USER_DATA.getUserAuthorizationData();
+        this.administrationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
+        this.reservationExpression.evaluate(rootUserInformation, rootUserAuthorizationData);
     }
 
     /**
@@ -173,14 +195,14 @@ public abstract class Authorization
             // Administrator has all permissions
             return true;
         }
-        String userId = securityToken.getUserId();
+        UserInformation userInformation = securityToken.getUserInformation();
+        UserAuthorizationData userAuthorizationData = getUserAuthorizationData(securityToken);
         switch (systemPermission) {
             case ADMINISTRATION: {
-                return listGroupUserIds(getGroupIdByName(administratorGroupName)).contains(userId);
+                return administrationExpression.evaluate(userInformation, userAuthorizationData);
             }
             case RESERVATION: {
-                UserAuthorizationData userAuthorizationData = getUserAuthorizationData(securityToken);
-                return userAuthorizationData.getLoa() >= UserAuthorizationData.LOA_BASIC;
+                return reservationExpression.evaluate(userInformation, userAuthorizationData);
             }
             default: {
                 throw new TodoImplementException(systemPermission);
@@ -702,7 +724,7 @@ public abstract class Authorization
      * @param securityToken
      * @return {@link UserAuthorizationData} for given {@code securityToken}
      */
-    private UserAuthorizationData getUserAuthorizationData(SecurityToken securityToken)
+    public UserAuthorizationData getUserAuthorizationData(SecurityToken securityToken)
     {
         String accessToken = securityToken.getAccessToken();
         UserAuthorizationData userAuthorizationData;

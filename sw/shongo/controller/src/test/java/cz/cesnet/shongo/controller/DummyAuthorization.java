@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Group;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.UserAuthorizationData;
 import cz.cesnet.shongo.controller.authorization.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,9 @@ import java.util.*;
 public class DummyAuthorization extends Authorization
 {
     private static Logger logger = LoggerFactory.getLogger(DummyAuthorization.class);
+
+    private static final String ADMINISTRATION_GROUP_NAME = "admins";
+    private static final String RESERVATION_GROUP_NAME = "reservation";
 
     /**
      * Testing user #1 information.
@@ -88,6 +93,7 @@ public class DummyAuthorization extends Authorization
 
         userDataById = new HashMap<String, UserData>();
         for (UserData userData : userDataByAccessToken.values()) {
+            userData.setUserAuthorizationData(new UserAuthorizationData(UserAuthorizationData.LOA_EXTENDED));
             userDataById.put(userData.getUserId(), userData);
         }
     }
@@ -102,7 +108,10 @@ public class DummyAuthorization extends Authorization
         super(configuration, entityManagerFactory);
 
         this.administratorAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
-        createGroup(new Group(administratorGroupName));
+        createGroup(new Group(ADMINISTRATION_GROUP_NAME));
+        createGroup(new Group(RESERVATION_GROUP_NAME));
+
+        initialize();
     }
 
     /**
@@ -116,11 +125,26 @@ public class DummyAuthorization extends Authorization
     }
 
     /**
+     * Set {@link UserAuthorizationData} for user with given {@code securityToken}.
+     *
+     * @param securityToken
+     * @param userAuthorizationData
+     */
+    public void setUserAuthorizationData(SecurityToken securityToken, UserAuthorizationData userAuthorizationData)
+    {
+        UserData userData = userDataByAccessToken.get(securityToken.getAccessToken());
+        if (userData != null) {
+            userData.setUserAuthorizationData(userAuthorizationData);
+        }
+        clearCache();
+    }
+
+    /**
      * @param userId to be added to the group of administrators
      */
     public void addAdministratorUserId(String userId)
     {
-        addGroupUser(getGroupIdByName(administratorGroupName), userId);
+        addGroupUser(getGroupIdByName(ADMINISTRATION_GROUP_NAME), userId);
     }
 
     @Override

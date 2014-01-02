@@ -124,6 +124,8 @@ public class ServerAuthorization extends Authorization
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
+
+        initialize();
     }
 
     /**

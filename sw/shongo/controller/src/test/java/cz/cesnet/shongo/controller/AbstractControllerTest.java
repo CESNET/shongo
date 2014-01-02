@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -139,6 +140,15 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public ReservationService getReservationService()
     {
         return controllerClient.getService(ReservationService.class);
+    }
+
+    /**
+     * @param securityToken for which the {@link UserInformation} should be returned
+     * @return {@link UserInformation} for given {@code securityToken}
+     */
+    public UserInformation getUserInformation(SecurityToken securityToken)
+    {
+        return authorization.getUserInformation(securityToken);
     }
 
     /**

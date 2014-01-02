@@ -83,7 +83,8 @@ public class ParamReplace extends PatternParser implements PatternParser.Callbac
         {
             if (name == null) {
                 return this;
-            } else {
+            }
+            else {
                 return null;
             }
         }

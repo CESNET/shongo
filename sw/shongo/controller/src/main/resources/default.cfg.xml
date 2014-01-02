@@ -48,7 +48,7 @@
         <client-secret>307e64dbdff788d7f85b814d609be38f</client-secret>
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
         <root-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</root-access-token>
-        <!-- Specifies authorization cache expirations -->
+        <!-- Specifies authorization cache expiration -->
         <expiration>
             <!-- Expiration of user-id by access-token -->
             <user-id>PT30M</user-id>
@@ -59,7 +59,14 @@
             <!-- Expiration of user groups -->
             <group>PT5M</group>
         </expiration>
-        <administrator-group>admins</administrator-group>
+        <!-- Authorization expressions -->
+        <authorization>
+            <!-- Expression for decision whether user can act as administrator -->
+            <administration>group("admins").contains(id)</administration>
+            <!-- Expression for decision whether user can create a new reservation request -->
+            <reservation>loa >= 2 || group("reservation").contains(id)</reservation>
+        </authorization>
+
     </security>
 
     <!-- SSL configuration -->

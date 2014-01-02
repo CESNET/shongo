@@ -106,6 +106,7 @@ public class AuthorizationCache
         userIdByAccessTokenCache.clear();
         userIdByPrincipalNameCache.clear();
         userDataByUserIdCache.clear();
+        userAuthorizationDataByAccessTokenCache.clear();
         aclEntryCache.clear();
         aclUserStateCache.clear();
         aclObjectStateCache.clear();
