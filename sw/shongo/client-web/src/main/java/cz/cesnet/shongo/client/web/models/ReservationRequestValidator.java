@@ -136,7 +136,11 @@ public class ReservationRequestValidator implements Validator
                 }
                 else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
                     errors.rejectValue(
-                            "permanentRoomReservationRequestId", "validation.field.permanentRoomNotAvailable");
+                            "start", "validation.field.permanentRoomAlreadyUsed");
+                }
+                else if (userError instanceof AllocationStateReport.ReusementInvalidSlot) {
+                    errors.rejectValue(
+                            "start", "validation.field.permanentRoomNotAvailable");
                 }
                 else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
                     errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
@@ -145,7 +149,7 @@ public class ReservationRequestValidator implements Validator
                     errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
                 }
                 else {
-                    logger.warn("Validation of availability failed: {}", userError);
+                    logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
                 }
             }
         }

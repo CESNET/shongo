@@ -144,7 +144,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             reservationRequestId, ObjectType.RESERVATION_REQUEST);
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                             reservationRequestManager.get(objectId.getPersistenceId());
-                    schedulerContext.getReusableReservation(reservationRequest.getAllocation());
+                    schedulerContext.setReusableAllocation(reservationRequest.getAllocation());
                 }
 
                 // Check specification availability

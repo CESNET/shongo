@@ -352,8 +352,7 @@ public class Scheduler extends SwitchableComponent
         Allocation reusedAllocation = reservationRequest.getReusedAllocation();
         Reservation reusableReservation = null;
         if (reusedAllocation != null) {
-            reusableReservation = schedulerContext.getReusableReservation(reusedAllocation);
-            schedulerContext.addAvailableReservation(reusableReservation, AvailableReservation.Type.REUSABLE);
+            reusableReservation = schedulerContext.setReusableAllocation(reusedAllocation);
         }
 
         // Get reservation task

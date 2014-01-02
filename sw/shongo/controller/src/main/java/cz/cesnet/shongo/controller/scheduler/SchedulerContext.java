@@ -216,6 +216,18 @@ public class SchedulerContext
     }
 
     /**
+     * @param reusedAllocation which can be reused
+     * @return reusable {@link Reservation}
+     * @throws SchedulerException
+     */
+    public Reservation setReusableAllocation(Allocation reusedAllocation) throws SchedulerException
+    {
+        Reservation reusableReservation = getReusableReservation(reusedAllocation);
+        addAvailableReservation(reusableReservation, AvailableReservation.Type.REUSABLE);
+        return reusableReservation;
+    }
+
+    /**
      * @return {@link #cache}
      */
     public Cache getCache()
@@ -814,7 +826,6 @@ public class SchedulerContext
         }
         return reservationType;
     }
-
 
     /**
      * Represents a savepoint for the {@link SchedulerContext} to which it can be reverted.

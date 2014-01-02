@@ -314,10 +314,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.addServiceSpecifications(getServiceSpecifications());
 
         if (reusedRoom) {
-            RoomEndpoint reusedRoomEndpoint = getReusedRoomEndpoint(schedulerContext.getEntityManager());
-            if (reusedRoomEndpoint == null) {
+            Collection<AvailableExecutable<RoomEndpoint>> availableRoomEndpoints =
+                    schedulerContext.getAvailableExecutables(RoomEndpoint.class);
+            if (availableRoomEndpoints.size() != 1) {
                 throw new SchedulerReportSet.RoomExecutableNotExistsException();
             }
+            RoomEndpoint reusedRoomEndpoint = availableRoomEndpoints.iterator().next().getExecutable();
             roomReservationTask.setReusedRoomEndpoint(reusedRoomEndpoint);
         }
         else {
