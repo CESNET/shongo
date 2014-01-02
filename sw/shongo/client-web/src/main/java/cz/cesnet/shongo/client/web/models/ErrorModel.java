@@ -140,6 +140,11 @@ public class ErrorModel
             content.append("\n");
         }
 
+        // User address
+        content.append("  User-IP: ");
+        content.append(request.getRemoteAddr());
+        content.append("\n");
+
         // User agent
         content.append("  User-Agent: ");
         content.append(request.getHeader(HttpHeaders.USER_AGENT));
