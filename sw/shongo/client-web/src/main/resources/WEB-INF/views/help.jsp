@@ -18,6 +18,7 @@
     <div class="menu">
         <ul class="nav nav-list">
             <li class="active"><a href="#top"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.introduction"/></a></li>
+            <li><a href="#loa"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.loa"/></a></li>
             <li><a href="#rooms"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.rooms"/></a></li>
             <li><a href="#resources"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.resources"/></a></li>
         </ul>
@@ -32,6 +33,13 @@
         <tag:url var="reservationRequestUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST %>"/>
         <p><spring:message code="views.help.introduction.text1" arguments="${loginUrl}"/></p>
         <p><spring:message code="views.help.introduction.text2" arguments="${homeUrl},${reservationRequestUrl}"/></p>
+
+        <h2 id="loa"><spring:message code="views.help.loa"/></h2>
+        <p><spring:message code="views.help.loa.text1"/></p>
+        <ul>
+            <li><spring:message code="views.help.loa.text2"/></li>
+            <li><spring:message code="views.help.loa.text3" arguments="${configuration.suggestionEmail}"/></li>
+        </ul>
 
         <h2 id="rooms"><spring:message code="views.help.rooms"/></h2>
         <p><spring:message code="views.help.rooms.text"/></p>

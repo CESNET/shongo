@@ -197,12 +197,14 @@
                         </ul>
                     </li>
                     <security:authorize access="!hasPermission(RESERVATION)">
+                        <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
                         <script type="text/javascript">
                             $(function () {
                                 $('#warning').qtip({
-                                    content: { text: "<spring:message code="views.layout.user.reservationDisabled"/>" },
-                                    position: { my: 'top right',at: 'bottom center' },
-                                    style: { classes: 'qtip-app' }
+                                    content: { text: "<spring:message code="views.layout.user.reservationDisabled" arguments="${helpUrl}#loa" javaScriptEscape="true"/>" },
+                                    position: { my: 'top right', at: 'bottom center' },
+                                    style: { classes: 'qtip-app' },
+                                    hide: { fixed: true, delay: 300 }
                                 });
                             });
                         </script>
