@@ -356,6 +356,24 @@ sub format_user
 }
 
 #
+# @param $group_id group-id of the group
+# @return group formatted to string for group with given $group_id
+#
+sub format_group
+{
+    my ($self, $group_id) = @_;
+    if ( !defined($group_id) ) {
+        return undef;
+    }
+    my $group = $self->{'client'}->get_group($group_id);
+    my $name = '<not-exist>';
+    if ( defined($group) ) {
+        $name = $group->{'name'};
+    }
+    return "$name ($group_id)";
+}
+
+#
 # @param $user_id
 # return true if user exists, false otherwise
 #

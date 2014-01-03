@@ -17,7 +17,6 @@
 
 <div ng-app="jsp:userRoleList" class="table-actions-left">
 
-    <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
     <tag:url var="aclUrl" value="<%= ClientWebUrl.USER_ROLE_LIST_DATA %>">
         <tag:param name="objectId" value=":id"/>
     </tag:url>

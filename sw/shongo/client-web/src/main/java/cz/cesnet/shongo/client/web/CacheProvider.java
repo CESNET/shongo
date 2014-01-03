@@ -50,6 +50,15 @@ public class CacheProvider
     }
 
     /**
+     * @param groupId
+     * @return {@link Group} for given {@code groupId}
+     */
+    public Group getGroup(String groupId)
+    {
+        return cache.getGroup(securityToken, groupId);
+    }
+
+    /**
      * @param reservationRequestId
      * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
      */

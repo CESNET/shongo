@@ -211,7 +211,7 @@
             <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
             <dd>
                 <c:forEach items="${userRoles}" var="userRole" varStatus="status">
-                    ${userRole.user.fullName} (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
+                    ${userRole.identityName} (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
                 </c:forEach>
                 <c:if test="${isWritable}">
                     <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">

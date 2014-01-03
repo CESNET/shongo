@@ -347,6 +347,19 @@ public abstract class Authorization
     }
 
     /**
+     * Checks whether group with given {@code groupId} exists.
+     *
+     * @param groupId of the group to be checked for existence
+     * @throws cz.cesnet.shongo.controller.ControllerReportSet.GroupNotExistsException
+     *          when the group doesn't exist
+     */
+    public void checkGroupExistence(String groupId)
+            throws ControllerReportSet.GroupNotExistsException
+    {
+        getGroup(groupId);
+    }
+
+    /**
      * Retrieve a {@link UserPerson} by given {@code userId}.
      *
      * @param userId of an user
@@ -450,7 +463,7 @@ public abstract class Authorization
     }
 
     /**
-     * @param securityToken    of the user
+     * @param securityToken of the user
      * @param objectClass of objects which should be returned
      * @param objectPermission which the user must have for the entities
      * @return set of object identifiers for which the user with given {@code userId} has given {@code permission}
@@ -552,6 +565,36 @@ public abstract class Authorization
             cache.putGroupIdByName(groupName, groupId);
         }
         return groupId;
+    }
+
+    /**
+     * Retrieve {@link Group} for given {@code groupId}.
+     *
+     * @param groupId of a group
+     * @return {@link Group} for the group with given {@code groupId}
+     * @throws ControllerReportSet.GroupNotExistsException
+     *          when group not exists
+     */
+    public final Group getGroup(String groupId)
+            throws ControllerReportSet.GroupNotExistsException
+    {
+        Group group;
+        if (cache.hasGroupByGroupId(groupId)) {
+            group = cache.getGroupByGroupId(groupId);
+        }
+        else {
+            try {
+                group = onGetGroup(groupId);
+            }
+            catch (ControllerReportSet.GroupNotExistsException exception) {
+                group = null;
+            }
+            cache.putGroupByGroupId(groupId, group);
+        }
+        if (group == null) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        return group;
     }
 
     /**
@@ -688,6 +731,15 @@ public abstract class Authorization
     protected abstract Collection<UserData> onListUserData(String search);
 
     /**
+     * Retrieve {@link Group} for given {@code groupId}.
+     *
+     * @param groupId of a group
+     * @return link cz.cesnet.shongo.controller.api.Group}
+     */
+    protected abstract Group onGetGroup(String groupId)
+            throws ControllerReportSet.GroupNotExistsException;
+
+    /**
      * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
      */
     protected abstract List<Group> onListGroups();
@@ -787,7 +839,7 @@ public abstract class Authorization
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
             for (AclEntry aclEntry : authorizationManager.listAclEntries(aclObjectIdentity)) {
-                aclObjectState.addAclEntry(aclEntry);
+                aclObjectState.addAclEntry(aclEntry, this);
                 cache.putAclEntryById(aclEntry);
             }
         }
@@ -827,7 +879,7 @@ public abstract class Authorization
             cache.putAclObjectStateByIdentity(aclObjectIdentity, aclObjectState);
         }
         else {
-            aclObjectState.addAclEntry(aclEntry);
+            aclObjectState.addAclEntry(aclEntry, this);
         }
     }
 
@@ -840,6 +892,8 @@ public abstract class Authorization
         switch (aclIdentity.getType()) {
             case USER:
                 return Collections.singleton(aclIdentity.getPrincipalId());
+            case GROUP:
+                return listGroupUserIds(aclIdentity.getPrincipalId());
             default:
                 throw new TodoImplementException(aclIdentity.getType());
         }
@@ -867,7 +921,7 @@ public abstract class Authorization
         AclObjectIdentity aclObjectIdentity = aclEntry.getObjectIdentity();
         AclObjectState aclObjectState = cache.getAclObjectStateByIdentity(aclObjectIdentity);
         if (aclObjectState != null) {
-            aclObjectState.removeAclEntry(aclEntry);
+            aclObjectState.removeAclEntry(aclEntry, this);
         }
     }
 

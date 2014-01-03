@@ -18,9 +18,7 @@
 <c:set var="tabIndex" value="1"/>
 
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
-<tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
-    <tag:param name="userId" value=":userId"/>
-</tag:url>
+<tag:url var="groupListUrl" value="<%= ClientWebUrl.GROUP_LIST_DATA %>"/>
 <c:if test="${empty cancelUrl}">
     <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 </c:if>
@@ -28,54 +26,137 @@
 <script type="text/javascript">
     angular.module('tag:userRoleForm', ['ngTooltip']);
 
-    window.formatUser = function(user) {
-        var text = user.firstName;
-        if ( user.lastName != null ) {
-            text += " " + user.lastName;
-        }
-        if ( user.organization != null ) {
-            text += " (" + user.organization + ")";
-        }
-        return text;
-    };
-    $(function () {
-        $("#userId").select2({
-            placeholder: "<spring:message code="views.select.user"/>",
-            width: 'resolve',
-            minimumInputLength: 2,
-            ajax: {
-                url: "${userListUrl}",
-                dataType: 'json',
-                data: function (term, page) {
-                    return {
-                        filter: term
-                    };
-                },
-                results: function (data, page) {
-                    var results = [];
-                    for (var index = 0; index < data.length; index++) {
-                        var dataItem = data[index];
-                        results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
-                    }
-                    return {results: results};
-                }
-            },
-            initSelection: function (element, callback) {
-                var id = $(element).val();
-                callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
-                $.ajax("${userUrl}".replace(':userId', id), {
+    function UserRoleFormController($scope, $timeout) {
+        // Get value or default value if null
+        $scope.value = function (value, defaultValue) {
+            return ((value == null || value == '') ? defaultValue : value);
+        };
+
+        // Get dynamic user role attributes
+        $scope.identityType = $scope.value('${userRole.identityType}', null);
+        $scope.$watch('identityType', function(newValue, oldValue){
+            if (newValue != oldValue) {
+                $("#identityId").val(null);
+            }
+            $scope.initIdentitySelect();
+        });
+
+        /**
+         * Refresh description of current group.
+         */
+        $scope.groupDescription = null;
+        $scope.refreshGroupDescription = function() {
+            var identityId = $(this).val();
+            if ($scope.identityType == 'GROUP' && identityId != null && identityId != $scope.identityId) {
+                $scope.identityId = identityId;
+                $scope.groupDescription = '';
+                $scope.$apply();
+                $.ajax("${userListUrl}?groupId=" + identityId, {
                     dataType: "json"
                 }).done(function (data) {
-                            callback({id: id, text: window.formatUser(data)});
-                        });
+                    $timeout(function(){
+                        for (var index = 0; index < data.length; index++) {
+                            var user = data[index];
+                            if ($scope.groupDescription != '') {
+                                $scope.groupDescription += ', ';
+                            }
+                            $scope.groupDescription += user.fullName;
+                            if (index > 5) {
+                                $scope.groupDescription += ', ...';
+                                break;
+                            }
+                        }
+                        if ($scope.groupDescription == '') {
+                            $scope.groupDescription = "<spring:message code="views.userRole.groupMembers.none"/>";
+                        }
+                    }, 0);
+                });
             }
-        });
-    });
+            else {
+                $scope.identityId = null;
+                $scope.groupDescription = null;
+            }
+        };
+
+        /**
+         * Initialize identity selection box.
+         */
+        $scope.initIdentitySelect = function() {
+            var placeholder;
+            var formatIdentity;
+            var identityListUrl;
+            var identityUrl;
+            var identityField;
+            switch ($scope.identityType) {
+                case "USER":
+                    placeholder = "<spring:message code="views.select.user"/>";
+                    formatIdentity = function(user) {
+                        var text = "<b>" + user.firstName;
+                        if ( user.lastName != null ) {
+                            text += " " + user.lastName;
+                        }
+                        text += "</b>";
+                        if ( user.organization != null ) {
+                            text += " (" + user.organization + ")";
+                        }
+                        return text;
+                    };
+                    identityListUrl = "${userListUrl}";
+                    identityUrl = "${userListUrl}?userId=";
+                    identityField = "userId";
+                    break;
+                case "GROUP":
+                    placeholder = "<spring:message code="views.select.group"/>";
+                    formatIdentity = function(group) {
+                        return "<b>" + group.name + "</b> (" + group.description + ")";
+                    };
+                    identityListUrl = "${groupListUrl}";
+                    identityUrl = "${groupListUrl}?groupId=";
+                    identityField = "id";
+                    break;
+            }
+            $("#identityId").select2({
+                placeholder: placeholder,
+                width: 'resolve',
+                minimumInputLength: 2,
+                ajax: {
+                    url: identityListUrl,
+                    dataType: 'json',
+                    data: function (term, page) {
+                        return {
+                            filter: term
+                        };
+                    },
+                    results: function (data, page) {
+                        var results = [];
+                        for (var index = 0; index < data.length; index++) {
+                            var dataItem = data[index];
+                            results.push({id: dataItem[identityField], text: formatIdentity(dataItem)});
+                        }
+                        return {results: results};
+                    }
+                },
+                escapeMarkup: function (markup) { return markup; },
+                initSelection: function (element, callback) {
+                    var id = $(element).val();
+                    callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
+                    $.ajax(identityUrl + id, {
+                        dataType: "json"
+                    }).done(function (data) {
+                        callback({id: id, text: formatIdentity(data[0])});
+                    });
+                }
+            });
+            $("#identityId").off("change", $scope.refreshGroupDescription);
+            $("#identityId").on("change", $scope.refreshGroupDescription);
+        };
+    }
 </script>
 
 <form:form class="form-horizontal"
            commandName="userRole"
-           method="post">
+           method="post"
+           ng-controller="UserRoleFormController">
 
     <fieldset>
 
@@ -93,33 +174,53 @@
         </c:if>
 
         <div class="control-group">
-            <form:label class="control-label" path="userId">
-                <spring:message code="views.userRole.user"/>:
+            <form:label class="control-label" path="identityType">
+                <spring:message code="views.userRole.identityType"/>:
             </form:label>
-            <div class="controls double-width">
-                <form:input path="userId" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="userId" cssClass="error"/>
+            <div class="controls">
+                <label class="radio inline" for="identityTypeUser">
+                    <form:radiobutton id="identityTypeUser" path="identityType" value="USER" ng-model="identityType"/>
+                    <span><spring:message code="views.userRole.identityType.USER"/></span>
+                </label>
+                <label class="radio inline" for="identityTypeGroup">
+                    <form:radiobutton id="identityTypeGroup" path="identityType" value="GROUP" ng-model="identityType" disabled="true"/>
+                    <span><spring:message code="views.userRole.identityType.GROUP"/></span>
+                </label>
             </div>
         </div>
 
         <div class="control-group">
+            <form:label class="control-label" path="identityId">
+                <span ng-show="identityType == 'USER'"><spring:message code="views.userRole.user"/>:</span>
+                <span ng-show="identityType == 'GROUP'"><spring:message code="views.userRole.group"/>:</span>
+            </form:label>
+            <div class="controls double-width">
+                <form:input path="identityId" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <form:errors path="identityId" cssClass="error"/>
+                <div ng-show="groupDescription" style="margin-top: 5px;">
+                    <i><b><spring:message code="views.userRole.groupMembers"/>:</b> {{groupDescription}}</i>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <spring:eval var="roles" expression="objectType.getOrderedRoles()"/>
             <form:label class="control-label" path="role">
-                <spring:message code="views.userRole.objectRole"/>:
+                <spring:message code="views.userRole.objectRole" var="roleLabel"/>
+                <tag:help label="${roleLabel}:">
+                    <c:forEach items="${roles}" var="role">
+                        <strong><spring:message code="views.userRole.objectRole.${role}"/></strong>
+                        <p><spring:message code="views.userRole.objectRoleHelp.${role}"/></p>
+                    </c:forEach>
+                </tag:help>
             </form:label>
             <div class="controls">
-                <spring:eval var="roles" expression="objectType.getOrderedRoles()"/>
                 <form:select path="role" tabindex="${tabIndex}">
                     <c:forEach items="${roles}" var="role">
                         <form:option value="${role}"><spring:message code="views.userRole.objectRole.${role}"/></form:option>
                     </c:forEach>
                 </form:select>
                 <form:errors path="role" cssClass="error"/>
-                <tag:help>
-                    <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.userRole.objectRole.${role}"/></strong>
-                        <p><spring:message code="views.userRole.objectRoleHelp.${role}"/></p>
-                    </c:forEach>
-                </tag:help>
             </div>
         </div>
 

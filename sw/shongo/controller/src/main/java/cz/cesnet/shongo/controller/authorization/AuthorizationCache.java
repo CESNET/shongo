@@ -4,6 +4,7 @@ import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.acl.AclObjectIdentity;
+import cz.cesnet.shongo.controller.api.Group;
 import org.joda.time.Duration;
 
 import java.util.Set;
@@ -54,6 +55,11 @@ public class AuthorizationCache
             new ExpirationMap<AclObjectIdentity, AclObjectState>();
 
     /**
+     * Cache of {@link Group} by group-id.
+     */
+    private ExpirationMap<String, Group> groupByGroupId = new ExpirationMap<String, Group>();
+
+    /**
      * Cache of group-id by group name.
      */
     private ExpirationMap<String, String> groupIdByName = new ExpirationMap<String, String>();
@@ -78,6 +84,7 @@ public class AuthorizationCache
     public void setUserInformationExpiration(Duration expiration)
     {
         userDataByUserIdCache.setExpiration(expiration);
+        userAuthorizationDataByAccessTokenCache.setExpiration(expiration);
     }
 
     /**
@@ -95,6 +102,7 @@ public class AuthorizationCache
      */
     public void setGroupExpiration(Duration expiration)
     {
+        groupByGroupId.setExpiration(expiration);
         groupIdByName.setExpiration(expiration);
     }
 
@@ -110,6 +118,8 @@ public class AuthorizationCache
         aclEntryCache.clear();
         aclUserStateCache.clear();
         aclObjectStateCache.clear();
+        groupByGroupId.clear();
+        groupIdByName.clear();
     }
 
     /**
@@ -297,6 +307,35 @@ public class AuthorizationCache
             AclObjectState aclObjectState)
     {
         aclObjectStateCache.put(aclObjectIdentity, aclObjectState);
+    }
+
+    /**
+     * @param groupId
+     * @return {@link Group} by given {@code groupId}
+     */
+    public synchronized Group getGroupByGroupId(String groupId)
+    {
+        return groupByGroupId.get(groupId);
+    }
+
+    /**
+     * @param groupId
+     * @return true whether group with given {@code groupId} has cached {@link Group}
+     */
+    public synchronized boolean hasGroupByGroupId(String groupId)
+    {
+        return groupByGroupId.contains(groupId);
+    }
+
+    /**
+     * Put given {@code Group} to the cache by the given {@code groupId}.
+     *
+     * @param groupId
+     * @param group
+     */
+    public synchronized void putGroupByGroupId(String groupId, Group group)
+    {
+        groupByGroupId.put(groupId, group);
     }
 
     /**

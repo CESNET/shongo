@@ -233,6 +233,7 @@ public class UserInformation extends AbstractComplexType implements PersonInform
      */
     public static void filter(List<UserInformation> users, String search)
     {
+        search = StringHelper.removeAccents(search);
         for (Iterator<UserInformation> iterator = users.iterator(); iterator.hasNext(); ) {
             UserInformation userInformation = iterator.next();
 

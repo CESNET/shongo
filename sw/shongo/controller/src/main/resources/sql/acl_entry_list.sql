@@ -31,3 +31,4 @@ LEFT JOIN acl_entry_dependency ON acl_entry_dependency.child_acl_entry_id = acl_
 WHERE ${filter}
 GROUP BY acl_entry.id, acl_entry.identity_id, acl_entry.identity_type, acl_entry.identity_principal_id,
          acl_entry.object_identity_id, acl_entry.object_class_id, acl_entry.object_class, acl_entry.object_id, acl_entry.role
+ORDER BY acl_entry.identity_type, acl_entry.id

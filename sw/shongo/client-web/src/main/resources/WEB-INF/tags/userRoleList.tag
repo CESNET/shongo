@@ -17,7 +17,7 @@
 <c:set var="tableHead">
     <thead>
     <tr>
-        <th><spring:message code="views.userRole.user"/></th>
+        <th><spring:message code="views.userRoleList.for"/></th>
         <th><spring:message code="views.userRole.objectRole"/></th>
         <th><spring:message code="views.userRole.email"/></th>
         <c:if test="${isWritable && not empty deleteUrl}">
@@ -43,7 +43,16 @@
                     <tag:param name="roleId" value="${userRole.id}"/>
                 </tag:url>
                 <tr>
-                    <td>${userRole.user.fullName} (${userRole.user.organization})</td>
+                    <td>${userRole.identityName}
+                        <c:choose>
+                            <c:when test="${userRole.identityType == 'USER'}">
+                                (<spring:message code="views.userRoleList.group"/>)
+                            </c:when>
+                            <c:when test="${userRole.identityType == 'GROUP'}">
+                                (${userRole.user.organization})
+                            </c:when>
+                        </c:choose>
+                    </td>
                     <td><spring:message code="views.userRole.objectRole.${userRole.role}"/></td>
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
@@ -77,19 +86,20 @@
         <div ng-controller="PaginationController"
              ng-init="init('userRoles', '${dataUrl}', {${dataUrlParameters}})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
-            <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}">
+            <spring:message code="views.button.refresh" var="paginationRefresh"/>
+            <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-
+            <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
             <div class="spinner" ng-hide="ready || errorContent"></div>
             <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
             <table class="table table-striped table-hover" ng-show="ready">
                     ${tableHead}
                 <tbody>
                 <tr ng-repeat="userRole in items">
-                    <td>{{userRole.user.fullName}} ({{userRole.user.organization}})</td>
+                    <td>{{userRole.identityName}}</td>
                     <td>{{userRole.role}}</td>
-                    <td>{{userRole.user.primaryEmail}}</td>
+                    <td>{{userRole.email}}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">
                         <td>
                             <span ng-show="userRole.deletable">

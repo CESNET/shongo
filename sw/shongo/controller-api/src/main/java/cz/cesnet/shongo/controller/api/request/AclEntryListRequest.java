@@ -2,13 +2,14 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link ListRequest} for {@link cz.cesnet.shongo.controller.api.AclEntry}s.
+ * {@link ListRequest} for {@link AclEntry}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

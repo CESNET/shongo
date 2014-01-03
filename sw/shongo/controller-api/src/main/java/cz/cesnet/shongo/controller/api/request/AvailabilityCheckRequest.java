@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.Specification;
 import org.joda.time.Interval;
 
 /**
- * {@link cz.cesnet.shongo.controller.api.request.AbstractRequest} for listing objects.
+ * {@link AbstractRequest} for checking availability of {@link Specification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

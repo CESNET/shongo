@@ -198,6 +198,15 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
+    protected Group onGetGroup(String groupId) throws ControllerReportSet.GroupNotExistsException
+    {
+        if (!groups.containsKey(groupId)) {
+            throw new ControllerReportSet.GroupNotExistsException(groupId);
+        }
+        return groups.get(groupId);
+    }
+
+    @Override
     public List<Group> onListGroups()
     {
         return new LinkedList<Group>(groups.values());

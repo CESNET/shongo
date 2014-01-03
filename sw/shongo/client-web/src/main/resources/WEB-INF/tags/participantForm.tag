@@ -26,9 +26,6 @@
 <c:set var="tabIndex" value="1"/>
 
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
-<tag:url var="userUrl" value="<%= ClientWebUrl.USER_DATA %>">
-    <tag:param name="userId" value=":userId"/>
-</tag:url>
 <c:if test="${empty cancelUrl}">
     <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 </c:if>
@@ -81,11 +78,11 @@
             initSelection: function (element, callback) {
                 var id = $(element).val();
                 callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
-                $.ajax("${userUrl}".replace(':userId', id), {
+                $.ajax("${userListUrl}?userId=" + id, {
                     dataType: "json"
                 }).done(function (data) {
-                            callback({id: id, text: window.formatUser(data)});
-                        });
+                    callback({id: id, text: window.formatUser(data[0])});
+                });
             }
         });
     });
@@ -105,11 +102,14 @@
                 <spring:message code="views.participant.type"/>:
             </form:label>
             <div class="controls">
-                <form:radiobutton path="type" value="USER" ng-model="type"/>&nbsp;
-                <span><spring:message code="views.participant.type.USER"/></span>
-                &nbsp;&nbsp;
-                <form:radiobutton path="type" value="ANONYMOUS" ng-model="type" disabled="true"/>&nbsp;
-                <spring:message code="views.participant.type.ANONYMOUS"/>
+                <label class="radio inline" for="typeUser">
+                    <form:radiobutton id="typeUser" path="type" value="USER" ng-model="type"/>
+                    <span><spring:message code="views.participant.type.USER"/></span>
+                </label>
+                <label class="radio inline" for="typeAnonymous">
+                    <form:radiobutton id="typeAnonymous" path="type" value="ANONYMOUS" ng-model="type" disabled="true"/>
+                    <span><spring:message code="views.participant.type.ANONYMOUS"/></span>
+                </label>
                 <form:errors path="type" cssClass="error"/>
             </div>
         </div>

@@ -27,7 +27,7 @@ public class AclObjectState
     /**
      * @param aclEntry to be added to the {@link AclObjectState}
      */
-    public synchronized void addAclEntry(AclEntry aclEntry)
+    public synchronized void addAclEntry(AclEntry aclEntry, Authorization authorization)
     {
         Long aclEntryId = aclEntry.getId();
         if (aclEntries.put(aclEntryId, aclEntry) == null) {
@@ -37,35 +37,21 @@ public class AclObjectState
                 userIds = new HashSet<String>();
                 userIdsByRole.put(role, userIds);
             }
-            AclIdentity identity = aclEntry.getIdentity();
-            switch (identity.getType()) {
-                case USER:
-                    userIds.add(identity.getPrincipalId());
-                    break;
-                default:
-                    throw new TodoImplementException(identity.getType());
-            }
+            userIds.addAll(authorization.getUserIds(aclEntry.getIdentity()));
         }
     }
 
     /**
      * @param aclEntry to be removed from the {@link AclObjectState}
      */
-    public synchronized void removeAclEntry(AclEntry aclEntry)
+    public synchronized void removeAclEntry(AclEntry aclEntry, Authorization authorization)
     {
         Long aclEntryId = aclEntry.getId();
         if (aclEntries.remove(aclEntryId) != null) {
             ObjectRole role = ObjectRole.valueOf(aclEntry.getRole());
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds != null) {
-                AclIdentity identity = aclEntry.getIdentity();
-                switch (identity.getType()) {
-                    case USER:
-                        userIds.remove(identity.getPrincipalId());
-                        break;
-                    default:
-                        throw new TodoImplementException(identity.getType());
-                }
+                userIds.removeAll(authorization.getUserIds(aclEntry.getIdentity()));
                 if (userIds.size() == 0) {
                     userIdsByRole.remove(role);
                 }

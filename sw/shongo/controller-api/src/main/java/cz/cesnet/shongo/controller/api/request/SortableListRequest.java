@@ -4,22 +4,12 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
- * {@link cz.cesnet.shongo.controller.api.request.AbstractRequest} for listing objects.
+ * {@link ListRequest} which can be sorted.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class SortableListRequest<T extends Enum> extends ListRequest
 {
-    /**
-     * Index of first item which should be fetched.
-     */
-    private Integer start;
-
-    /**
-     * Number of items starting at {@link #start} which should be fetched.
-     */
-    private Integer count;
-
     /**
      * Enum class of attributes by which the response should be sorted.
      */

@@ -6,10 +6,7 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
-import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.UserListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +37,7 @@ public interface AuthorizationService extends Service
 
     /**
      * @param request {@link UserListRequest}
-     * @return collection of {@link UserInformation}s that matches given {@code filter}
+     * @return {@link ListResponse} of {@link UserInformation}s
      */
     @API
     public ListResponse<UserInformation> listUsers(UserListRequest request);
@@ -68,11 +65,11 @@ public interface AuthorizationService extends Service
     public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId);
 
     /**
-     * @param token token of the user requesting the operation
-     * @return collection of {@link UserInformation}s that matches given {@code filter}
+     * @param request {@link GroupListRequest}
+     * @return {@link ListResponse} of {@link Group}s
      */
     @API
-    public List<Group> listGroups(SecurityToken token);
+    public ListResponse<Group> listGroups(GroupListRequest request);
 
     /**
      * @param token token of the user requesting the operation

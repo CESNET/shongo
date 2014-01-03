@@ -41,13 +41,17 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
             Exception exception)
     {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        if (exception instanceof ControllerConnectException || exception instanceof ConnectException) {
-            return new ModelAndView("controllerNotAvailable");
-        }
-        else if (exception instanceof org.eclipse.jetty.io.EofException) {
-            // Just log that exceptions and do not report it
-            logger.warn("Not reported exception.", exception);
-            return null;
+        Throwable cause = exception;
+        while (cause != null) {
+            if (exception instanceof ControllerConnectException) {
+                return new ModelAndView("controllerNotAvailable");
+            }
+            else if (exception instanceof org.eclipse.jetty.io.EofException) {
+                // Just log that exceptions and do not report it
+                logger.warn("Not reported exception.", exception);
+                return null;
+            }
+            cause = cause.getCause();
         }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, null, exception, request);
         ModelAndView modelAndView = ErrorController.handleError(errorModel, configuration, reCaptcha, commonService);

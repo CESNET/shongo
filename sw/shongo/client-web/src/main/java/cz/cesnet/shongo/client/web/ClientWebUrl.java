@@ -115,8 +115,8 @@ public class ClientWebUrl
             USER_SETTINGS + "/{name}/{value}";
     public static final String USER_LIST_DATA =
             "/user/list/data";
-    public static final String USER_DATA =
-            "/user/{userId:.+}/data";
+    public static final String GROUP_LIST_DATA =
+            "/group/list/data";
 
     public static final String ROOM_LIST_DATA =
             "/room/list";

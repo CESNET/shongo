@@ -1,4 +1,4 @@
-0.6.1 (2013-12-10)
+0.6.1 (2014-01-03)
 
     * Management of Adobe Connect recordings (start/stop).
 
@@ -7,6 +7,8 @@
     * Added help page with description of room types.
 
     * Added list of your participation in rooms to main page.
+
+    * Restrict the creation of new rooms to users with certain level of authenticity.
 
 0.6.0 (2013-10-18)
 

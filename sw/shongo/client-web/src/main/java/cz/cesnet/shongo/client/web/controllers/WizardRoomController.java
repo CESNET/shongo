@@ -258,7 +258,7 @@ public class WizardRoomController extends WizardParticipantsController
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
                         ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
-                        userRole.getUserId().equals(participant.getUserId())) {
+                        userRole.getIdentityId().equals(participant.getUserId())) {
                     administratorExists = true;
                 }
             }
@@ -292,7 +292,7 @@ public class WizardRoomController extends WizardParticipantsController
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
                         ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
-                        userRole.getUserId().equals(participant.getUserId())) {
+                        userRole.getIdentityId().equals(participant.getUserId())) {
                     reservationRequest.deleteParticipant(participant.getId());
                     break;
                 }
@@ -427,8 +427,7 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
-            authorizationService.createAclEntry(securityToken,
-                    new AclEntry(userRole.getUserId(), reservationRequestId, userRole.getRole()));
+            authorizationService.createAclEntry(securityToken, userRole.toApi());
         }
 
         // Clear session attributes

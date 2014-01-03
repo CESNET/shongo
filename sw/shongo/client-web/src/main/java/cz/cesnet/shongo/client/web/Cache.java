@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.UserListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -55,6 +54,12 @@ public class Cache
      */
     private ExpirationMap<String, UserInformation> userInformationByUserId =
             new ExpirationMap<String, UserInformation>();
+
+    /**
+     * {@link UserInformation}s by group-ids.
+     */
+    private ExpirationMap<String, Group> groupByGroupId =
+            new ExpirationMap<String, Group>();
 
     /**
      * {@link UserState}s by {@link SecurityToken}.
@@ -107,6 +112,7 @@ public class Cache
         // Set expiration durations
         systemPermissionsByToken.setExpiration(Duration.standardMinutes(5));
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
+        groupByGroupId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
         reservationRequestById.setExpiration(Duration.standardMinutes(5));
         reservationById.setExpiration(Duration.standardMinutes(5));
@@ -181,12 +187,32 @@ public class Cache
             ListResponse<UserInformation> response = authorizationService.listUsers(
                     new UserListRequest(securityToken, userId));
             if (response.getCount() == 0) {
-                throw new RuntimeException("User with id '" + userId + "' hasn't been found.");
+                throw new RuntimeException("User with id '" + userId + "' doesn't exist.");
             }
             userInformation = response.getItem(0);
             userInformationByUserId.put(userId, userInformation);
         }
         return userInformation;
+    }
+
+    /**
+     * @param securityToken to be used for fetching the {@link Group}
+     * @param groupId       group-id of the requested group
+     * @return {@link Group} for given {@code groupId}
+     */
+    public synchronized Group getGroup(SecurityToken securityToken, String groupId)
+    {
+        Group group = groupByGroupId.get(groupId);
+        if (group == null) {
+            ListResponse<Group> response = authorizationService.listGroups(
+                    new GroupListRequest(securityToken, groupId));
+            if (response.getCount() == 0) {
+                throw new RuntimeException("Group with id '" + groupId + "' doesn't exist.");
+            }
+            group = response.getItem(0);
+            groupByGroupId.put(groupId, group);
+        }
+        return group;
     }
 
     /**
@@ -213,8 +239,8 @@ public class Cache
         UserState userState = getUserState(securityToken);
         Set<ObjectPermission> objectPermissions = userState.objectPermissionsByObject.get(objectId);
         if (objectPermissions == null) {
-            Map<String, ObjectPermissionSet> permissionsByObject =
-                    authorizationService.listObjectPermissions(new ObjectPermissionListRequest(securityToken, objectId));
+            Map<String, ObjectPermissionSet> permissionsByObject = authorizationService.listObjectPermissions(
+                    new ObjectPermissionListRequest(securityToken, objectId));
             objectPermissions = new HashSet<ObjectPermission>();
             objectPermissions.addAll(permissionsByObject.get(objectId).getObjectPermissions());
             userState.objectPermissionsByObject.put(objectId, objectPermissions);
@@ -332,6 +358,10 @@ public class Cache
         ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);
         if (reservationRequest == null) {
             reservationRequest = getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
+        }
+        if (reservationRequest == null) {
+            throw new CommonReportSet.ObjectNotExistsException(
+                    ReservationRequestSummary.class.getSimpleName(), reservationRequestId);
         }
         return reservationRequest;
     }

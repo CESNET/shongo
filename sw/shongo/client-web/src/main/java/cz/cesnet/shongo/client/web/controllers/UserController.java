@@ -8,8 +8,10 @@ import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.api.request.GroupListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -135,36 +138,62 @@ public class UserController
     }
 
     /**
-     * Handle data request for list of {@link UserInformation} which contains given {@code filter} text in any field.
+     * Handle data request for list of {@link UserInformation}s which contains given {@code filter} text in any field.
      *
      * @param filter
-     * @return list of {@link UserInformation}
+     * @param userId
+     * @return list of {@link UserInformation}s
      */
     @RequestMapping(value = ClientWebUrl.USER_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody
-    public List<UserInformation> handleList(
+    public List<UserInformation> handleUserList(
             SecurityToken securityToken,
-            @RequestParam(value = "filter", required = false) String filter)
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "groupId", required = false) String groupId)
     {
-        UserListRequest request = new UserListRequest();
-        request.setSecurityToken(securityToken);
-        request.setSearch(filter);
-        ListResponse<UserInformation> response = authorizationService.listUsers(request);
-        return response.getItems();
+        if (userId != null) {
+            List<UserInformation> users = new LinkedList<UserInformation>();
+            users.add(cache.getUserInformation(securityToken, userId));
+            return users;
+        }
+        else {
+            UserListRequest request = new UserListRequest();
+            request.setSecurityToken(securityToken);
+            request.setSearch(filter);
+            if (groupId != null) {
+                request.addGroupId(groupId);
+            }
+            ListResponse<UserInformation> response = authorizationService.listUsers(request);
+            return response.getItems();
+        }
     }
 
     /**
-     * Handle data request for {@link UserInformation}.
+     * Handle data request for list of {@link Group}s which contains given {@code filter} text in any field.
      *
-     * @param userId
-     * @return {@link UserInformation} with given {@code userId}
+     * @param filter
+     * @param groupId
+     * @return list of {@link Group}s
      */
-    @RequestMapping(value = ClientWebUrl.USER_DATA, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.GROUP_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody
-    public UserInformation handleDetail(
+    public List<Group> handleGroupList(
             SecurityToken securityToken,
-            @PathVariable(value = "userId") String userId)
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "groupId", required = false) String groupId)
     {
-        return cache.getUserInformation(securityToken, userId);
+        if (groupId != null) {
+            List<Group> users = new LinkedList<Group>();
+            users.add(cache.getGroup(securityToken, groupId));
+            return users;
+        }
+        else {
+            GroupListRequest request = new GroupListRequest();
+            request.setSecurityToken(securityToken);
+            request.setSearch(filter);
+            ListResponse<Group> response = authorizationService.listGroups(request);
+            return response.getItems();
+        }
     }
 }

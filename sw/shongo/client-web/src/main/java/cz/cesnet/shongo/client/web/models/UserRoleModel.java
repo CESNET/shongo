@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
+import cz.cesnet.shongo.controller.api.Group;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,7 +20,13 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 {
     private String id;
 
+    private AclIdentityType identityType;
+
+    private String identityId;
+
     private UserInformation user;
+
+    private Group group;
 
     private String objectId;
 
@@ -30,12 +38,14 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 
     public UserRoleModel(UserInformation userInformation)
     {
-        setUser(userInformation);
+        this.identityType = AclIdentityType.USER;
+        this.user = userInformation;
     }
 
     public UserRoleModel(CacheProvider cacheProvider)
     {
         this.cacheProvider = cacheProvider;
+        this.identityType = AclIdentityType.USER;
     }
 
     public UserRoleModel(AclEntry aclEntry, CacheProvider cacheProvider)
@@ -59,34 +69,67 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.id = CommonModel.getNewId();
     }
 
-    public String getUserId()
+    public AclIdentityType getIdentityType()
     {
-        if (user == null) {
-            return null;
-        }
-        return user.getUserId();
+        return identityType;
     }
 
-    public void setUserId(String userId)
+    public void setIdentityType(AclIdentityType identityType)
     {
-        if (userId == null || userId.isEmpty()) {
-            setUser(null);
-            return;
+        if (!identityType.equals(this.identityType)) {
+            user = null;
+            group = null;
         }
-        if (cacheProvider == null) {
-            throw new IllegalStateException("UserInformationProvider isn't set.");
+        this.identityType = identityType;
+    }
+
+    public String getIdentityId()
+    {
+        return identityId;
+    }
+
+    public void setIdentityId(String identityId)
+    {
+        if (!identityId.equals(this.identityId)) {
+            user = null;
+            group = null;
         }
-        setUser(cacheProvider.getUserInformation(userId));
+        this.identityId = identityId;
+    }
+
+    public String getIdentityName()
+    {
+        switch (identityType) {
+            case USER:
+                return getUser().getFullName();
+            case GROUP:
+                return getGroup().getName();
+            default:
+                throw new TodoImplementException(identityType);
+        }
     }
 
     public UserInformation getUser()
     {
+        if (user == null && identityType.equals(AclIdentityType.USER)) {
+            if (cacheProvider == null) {
+                throw new IllegalStateException("CacheProvider isn't set.");
+            }
+            user = cacheProvider.getUserInformation(identityId);
+
+        }
         return user;
     }
 
-    public void setUser(UserInformation user)
+    public Group getGroup()
     {
-        this.user = user;
+        if (group == null && identityType.equals(AclIdentityType.GROUP)) {
+            if (cacheProvider == null) {
+                throw new IllegalStateException("CacheProvider isn't set.");
+            }
+            group = cacheProvider.getGroup(identityId);
+        }
+        return group;
     }
 
     public String getObjectId()
@@ -122,10 +165,8 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     public void fromApi(AclEntry aclEntry)
     {
         this.id = aclEntry.getId();
-        if (!aclEntry.getIdentityType().equals(AclIdentityType.USER)) {
-            throw new UnsupportedApiException(aclEntry.getIdentityType());
-        }
-        setUserId(aclEntry.getIdentityPrincipalId());
+        setIdentityType(aclEntry.getIdentityType());
+        setIdentityId(aclEntry.getIdentityPrincipalId());
         setObjectId(aclEntry.getObjectId());
         setRole(aclEntry.getRole());
         setDeletable(aclEntry.isDeletable());
@@ -137,8 +178,8 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         if (!isNew()) {
             aclEntry.setId(id);
         }
-        aclEntry.setIdentityType(AclIdentityType.USER);
-        aclEntry.setIdentityPrincipalId(user.getUserId());
+        aclEntry.setIdentityType(identityType);
+        aclEntry.setIdentityPrincipalId(identityId);
         aclEntry.setObjectId(objectId);
         aclEntry.setRole(role);
         return aclEntry;
@@ -150,7 +191,14 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         Map<String, Object> attributes = new LinkedHashMap<String, Object>();
         attributes.put("ID", id);
         attributes.put("Object", objectId);
-        attributes.put("User", user);
+        switch (identityType) {
+            case USER:
+                attributes.put("User", getUser());
+                break;
+            case GROUP:
+                attributes.put("Group", getGroup());
+                break;
+        }
         attributes.put("Role", role);
         return ReportModel.formatAttributes(attributes);
     }

@@ -46,6 +46,7 @@ sub new
         my ($user_id, $user_information) = @_;
         $self->{'user-cache'}->{$user_id} = $user_information;
     };
+    $self->{'group-cache'} = {};
 
     # Set RPC::XML encoding
     $RPC::XML::ENCODING = 'utf-8';
@@ -272,6 +273,43 @@ sub get_user_information()
         return undef;
     }
     return $user_information;
+}
+
+#
+# Retrieve group by $group_id
+#
+# @param $group_id
+# @return group
+#
+sub get_group()
+{
+    my ($self, $group_id) = @_;
+    my $group = $self->{'group-cache'}->{$group_id};
+    if ( !defined($group) ) {
+        my $on_fault = $self->{'on-fault'};
+        $self->{'on-fault'} = undef;
+        my $response = $self->secure_hash_request('Authorization.listGroups', {
+            'groupIds' => [RPC::XML::string->new($group_id)]
+        });
+        $self->{'on-fault'} = $on_fault;
+        if ( defined($response) ) {
+            $group = $response->{'items'}->[0];
+            if ( defined($group) ) {
+                $self->{'group-cache'}->{$group_id} = $group;
+            }
+        }
+        else {
+            # Encode null as empty hash
+            $group = {};
+            $self->{'group-cache'}->{$group_id} = $group;
+            $group = undef;
+        }
+    }
+    # Decode empty hash as null
+    elsif ( !%{$group} ) {
+        return undef;
+    }
+    return $group;
 }
 
 #

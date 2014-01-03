@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
@@ -10,6 +11,7 @@ import cz.cesnet.shongo.client.web.models.UserRoleValidator;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
@@ -96,10 +98,21 @@ public class UserRoleController
         for (AclEntry aclEntry : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclEntry.getId());
-            if (!aclEntry.getIdentityType().equals(AclIdentityType.USER)) {
-                throw new UnsupportedApiException(aclEntry.getIdentityType());
+            String identityPrincipalId = aclEntry.getIdentityPrincipalId();
+            switch (aclEntry.getIdentityType()) {
+                case USER:
+                    UserInformation user = cache.getUserInformation(securityToken, identityPrincipalId);
+                    item.put("identityName", user.getFullName() + " (" + user.getOrganization() + ")");
+                    item.put("email", user.getPrimaryEmail());
+                    break;
+                case GROUP:
+                    Group group = cache.getGroup(securityToken, identityPrincipalId);
+                    item.put("identityName", group.getName() + " (" +
+                            messageSource.getMessage("views.userRoleList.group", null, locale) + ")");
+                    break;
+                default:
+                    throw new UnsupportedApiException(aclEntry.getIdentityType());
             }
-            item.put("user", cache.getUserInformation(securityToken, aclEntry.getIdentityPrincipalId()));
             String objectRole = aclEntry.getRole().toString();
             item.put("role", messageSource.getMessage("views.userRole.objectRole." + objectRole, null, locale));
             item.put("deletable", aclEntry.isDeletable());
@@ -143,8 +156,7 @@ public class UserRoleController
         if (result.hasErrors()) {
             return handleRoleCreate(userRole);
         }
-        authorizationService.createAclEntry(securityToken,
-                new AclEntry(userRole.getUserId(), userRole.getObjectId(), userRole.getRole()));
+        authorizationService.createAclEntry(securityToken, userRole.toApi());
 
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, objectId);
     }

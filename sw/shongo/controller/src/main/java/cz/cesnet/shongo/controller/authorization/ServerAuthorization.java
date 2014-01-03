@@ -90,7 +90,7 @@ public class ServerAuthorization extends Authorization
     /**
      * Constructor.
      *
-     * @param configuration to load authorization configuration from
+     * @param configuration        to load authorization configuration from
      * @param entityManagerFactory
      */
     private ServerAuthorization(ControllerConfiguration configuration, EntityManagerFactory entityManagerFactory)
@@ -298,6 +298,39 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
+    protected Group onGetGroup(final String groupId) throws ControllerReportSet.GroupNotExistsException
+    {
+        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId,
+                "Retrieving group " + groupId + " failed",
+                new RequestHandler<Group>()
+                {
+                    @Override
+                    public Group success(JsonNode data)
+                    {
+                        Group group = new Group();
+                        group.setId(data.get("id").asText());
+                        if (data.has("parentId")) {
+                            group.setParentId(data.get("parentId").asText());
+                        }
+                        group.setName(data.get("name").asText());
+                        if (data.has("description")) {
+                            group.setDescription(data.get("description").asText());
+                        }
+                        return group;
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        int statusCode = statusLine.getStatusCode();
+                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupExistsException")) {
+                            throw new ControllerReportSet.GroupNotExistsException(groupId);
+                        }
+                    }
+                });
+    }
+
+    @Override
     public List<Group> onListGroups()
     {
         return performGetRequest(authorizationServer + GROUP_SERVICE_PATH, "Retrieving groups failed",
@@ -500,8 +533,8 @@ public class ServerAuthorization extends Authorization
     /**
      * Perform given {@code httpRequest}.
      *
-     * @param httpRequest to be performed
-     * @param description for error reporting
+     * @param httpRequest    to be performed
+     * @param description    for error reporting
      * @param requestHandler to handle response or error
      * @return result from given {@code requestHandler}
      */
@@ -671,7 +704,7 @@ public class ServerAuthorization extends Authorization
             userData.setLocale(locale);
         }
 
-        if(data.has("authentication_info")) {
+        if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
                 userData.setUserAuthorizationData(new UserAuthorizationData(

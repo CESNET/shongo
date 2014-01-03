@@ -217,7 +217,7 @@ sub list_groups()
 {
     my (@args) = @_;
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Authorization.listGroups');
+    my $response = $application->secure_hash_request('Authorization.listGroups', {});
     if ( !defined($response) ) {
         return;
     }
@@ -230,7 +230,7 @@ sub list_groups()
         ],
         'data' => []
     };
-    foreach my $entry (@{$response}) {
+    foreach my $entry (@{$response->{'items'}}) {
         push(@{$table->{'data'}}, {
             'id' => $entry->{'id'},
             'parentId' => $entry->{'parentId'},
@@ -416,7 +416,7 @@ sub list_acl()
     my $table = {
         'columns' => [
             {'field' => 'id',        'title' => 'Id'},
-            {'field' => 'user',      'title' => 'User'},
+            {'field' => 'identity',  'title' => 'User/Group'},
             {'field' => 'object',    'title' => 'Object'},
             {'field' => 'role',      'title' => 'Role'},
             {'field' => 'deletable', 'title' => 'Deletable'},
@@ -424,9 +424,16 @@ sub list_acl()
         'data' => []
     };
     foreach my $entry (@{$response->{'items'}}) {
+        my $identity = $entry->{'identityPrincipalId'};
+        if ( $entry->{'identityType'} eq 'USER' ) {
+            $identity = $application->format_user($entry->{'identityPrincipalId'});
+        }
+        elsif ( $entry->{'identityType'} eq 'GROUP' ) {
+            $identity = $application->format_group($entry->{'identityPrincipalId'});
+        }
         push(@{$table->{'data'}}, {
             'id' => $entry->{'id'},
-            'user' => [$entry->{'userId'}, $application->format_user($entry->{'userId'})],
+            'identity' => [$entry->{'identityPrincipalId'}, $identity],
             'object' => $entry->{'objectId'},
             'role' => $entry->{'role'},
             'deletable' => $entry->{'deletable'} ? 'yes' : 'no',

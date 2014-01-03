@@ -20,7 +20,7 @@ public class UserRoleValidator implements Validator
     @Override
     public void validate(Object object, Errors errors)
     {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userId", "validation.field.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "identityId", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "role", "validation.field.required");
     }
 }

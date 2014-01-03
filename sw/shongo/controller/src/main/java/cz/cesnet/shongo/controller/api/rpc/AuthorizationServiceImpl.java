@@ -8,10 +8,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.acl.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AclEntry;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
-import cz.cesnet.shongo.controller.api.request.ObjectPermissionListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.UserListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -23,6 +20,7 @@ import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -281,13 +279,42 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public List<Group> listGroups(SecurityToken token)
+    public ListResponse<Group> listGroups(GroupListRequest request)
     {
-        authorization.validate(token);
-        if (!authorization.isAdministrator(token)) {
-            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list user groups");
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
+
+        List<Group> groups = new LinkedList<Group>(authorization.listGroups());
+
+        String search = StringHelper.removeAccents(request.getSearch());
+        if (search != null) {
+            for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext(); ) {
+                Group group = iterator.next();
+                if (!StringUtils.containsIgnoreCase(StringHelper.removeAccents(group.getName()), search)) {
+                    iterator.remove();
+                }
+            }
         }
-        return authorization.listGroups();
+
+        Set<String> groupIds = request.getGroupIds();
+        if (groupIds.size() > 0) {
+            for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext(); ) {
+                Group group = iterator.next();
+                if (!groupIds.contains(group.getId())) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        int start = request.getStart(0);
+        int end = start + request.getCount(groups.size() - start);
+        ListResponse<Group> response = new ListResponse<Group>();
+        response.setStart(start);
+        response.setCount(end - start);
+        for (Group group : groups.subList(start, end)) {
+            response.addItem(group);
+        }
+        return response;
     }
 
     @Override
@@ -334,10 +361,17 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public String createAclEntry(SecurityToken securityToken, AclEntry aclEntryApi)
     {
         authorization.validate(securityToken);
-        if (!aclEntryApi.getIdentityType().equals(AclIdentityType.USER)) {
-            throw new TodoImplementException(aclEntryApi.getIdentityType());
+        switch (aclEntryApi.getIdentityType()) {
+            case USER:
+                authorization.checkUserExistence(aclEntryApi.getIdentityPrincipalId());
+                break;
+            case GROUP:
+                authorization.checkGroupExistence(aclEntryApi.getIdentityPrincipalId());
+                break;
+            default:
+                throw new TodoImplementException(aclEntryApi.getIdentityType());
         }
-        authorization.checkUserExistence(aclEntryApi.getIdentityPrincipalId());
+
         ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(aclEntryApi.getObjectId());
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
@@ -469,9 +503,6 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             if (request.getUserIds().size() > 0) {
                 queryFilter.addFilter("acl_entry.identity_type = 'USER' AND acl_entry.identity_principal_id IN (:userIds)");
                 queryFilter.addFilterParameter("userIds", request.getUserIds());
-            }
-            else {
-                queryFilter.addFilter("acl_entry.identity_type = 'USER'");
             }
 
             // List only records for requested roles
