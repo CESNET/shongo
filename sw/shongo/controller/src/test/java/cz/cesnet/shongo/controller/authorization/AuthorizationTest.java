@@ -34,6 +34,32 @@ public class AuthorizationTest extends AbstractControllerTest
     }
 
     @Test
+    public void testGroups() throws Exception
+    {
+        AuthorizationService authorization = getAuthorizationService();
+        String userId = getUserId(SECURITY_TOKEN_USER1);
+        String groupId = authorization.createGroup(SECURITY_TOKEN_ROOT, new Group("test"));
+        authorization.addGroupUser(SECURITY_TOKEN_ROOT, groupId, userId);
+
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN_ROOT, resource);
+
+        try {
+            getResourceService().getResource(SECURITY_TOKEN_USER1, resourceId);
+            Assert.fail("Not authorized exception should be thrown.");
+        }
+        catch (ControllerReportSet.SecurityNotAuthorizedException exception) {
+        }
+
+        authorization.createAclEntry(SECURITY_TOKEN_ROOT,
+                new AclEntry(AclIdentityType.GROUP, groupId, resourceId, ObjectRole.OWNER));
+
+        getResourceService().getResource(SECURITY_TOKEN_USER1, resourceId);
+    }
+
+    @Test
     public void testResource() throws Exception
     {
         String userId = getUserId(SECURITY_TOKEN);

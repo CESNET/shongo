@@ -619,6 +619,14 @@ public abstract class Authorization
     }
 
     /**
+     * @return list of group-ids for groups in which the user with given {@code userId} is a member
+     */
+    public final Set<String> listUserGroupIds(String userId)
+    {
+        return new HashSet<String>(onListUserGroupIds(userId));
+    }
+
+    /**
      * @param group
      * @return identifier of the new group
      */
@@ -750,6 +758,11 @@ public abstract class Authorization
     protected abstract Set<String> onListGroupUserIds(String groupId);
 
     /**
+     * @return list of group-ids for groups in which the user with given {@code userId} is a member
+     */
+    protected abstract Set<String> onListUserGroupIds(String userId);
+
+    /**
      * @param group
      * @return identifier of the new group
      */
@@ -811,11 +824,15 @@ public abstract class Authorization
     private AclUserState fetchAclUserState(String userId)
     {
         AclUserState aclUserState = new AclUserState();
-        AclIdentity aclIdentity = aclProvider.getIdentity(AclIdentityType.USER, userId);
+        Set<AclIdentity> aclIdentities = new HashSet<AclIdentity>();
+        aclIdentities.add(aclProvider.getIdentity(AclIdentityType.USER, userId));
+        for (String groupId : listUserGroupIds(userId)) {
+            aclIdentities.add(aclProvider.getIdentity(AclIdentityType.GROUP, groupId));
+        }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            for (AclEntry aclEntry : authorizationManager.listAclEntries(aclIdentity)) {
+            for (AclEntry aclEntry : authorizationManager.listAclEntries(aclIdentities)) {
                 aclUserState.addAclEntry(aclEntry);
                 cache.putAclEntryById(aclEntry);
             }

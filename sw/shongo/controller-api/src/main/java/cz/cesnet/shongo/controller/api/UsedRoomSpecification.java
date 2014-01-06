@@ -71,7 +71,6 @@ public class UsedRoomSpecification extends AbstractRoomSpecification
         serviceSpecifications.add(serviceSpecification);
     }
 
-    public static final String REUSED_ROOM_EXECUTABLE_ID = "reusedRoomExecutableId";
     public static final String PARTICIPANT_COUNT = "participantCount";
     public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 

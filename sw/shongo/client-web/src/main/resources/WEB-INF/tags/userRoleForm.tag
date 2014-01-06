@@ -183,7 +183,7 @@
                     <span><spring:message code="views.userRole.identityType.USER"/></span>
                 </label>
                 <label class="radio inline" for="identityTypeGroup">
-                    <form:radiobutton id="identityTypeGroup" path="identityType" value="GROUP" ng-model="identityType" disabled="true"/>
+                    <form:radiobutton id="identityTypeGroup" path="identityType" value="GROUP" ng-model="identityType"/>
                     <span><spring:message code="views.userRole.identityType.GROUP"/></span>
                 </label>
             </div>

@@ -226,6 +226,18 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
+    protected Set<String> onListUserGroupIds(String userId)
+    {
+        Set<String> groupIds = new HashSet<String>();
+        for (Map.Entry<String, Set<String>> entry : userIdsInGroup.entrySet()) {
+            if (entry.getValue().contains(userId)) {
+                groupIds.add(entry.getKey());
+            }
+        }
+        return groupIds;
+    }
+
+    @Override
     public String onCreateGroup(Group group)
     {
         int groupId = groups.size();

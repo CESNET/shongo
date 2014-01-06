@@ -388,6 +388,32 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
+    protected Set<String> onListUserGroupIds(String userId)
+    {
+        return performGetRequest(authorizationServer + USER_SERVICE_PATH  + "/" + userId + "/groups",
+                "Retrieving group-ids for user " + userId + " failed",
+                new RequestHandler<Set<String>>()
+                {
+                    @Override
+                    public Set<String> success(JsonNode data)
+                    {
+                        Set<String> groupIds = new HashSet<String>();
+                        if (data != null) {
+                            Iterator<JsonNode> userIterator = data.get("_embedded").get("groups").getElements();
+                            while (userIterator.hasNext()) {
+                                JsonNode groupNode = userIterator.next();
+                                if (!groupNode.has("id")) {
+                                    throw new IllegalStateException("Group must have identifier.");
+                                }
+                                groupIds.add(groupNode.get("id").asText());
+                            }
+                        }
+                        return groupIds;
+                    }
+                });
+    }
+
+    @Override
     public String onCreateGroup(final Group group)
     {
         ObjectNode content = jsonMapper.createObjectNode();

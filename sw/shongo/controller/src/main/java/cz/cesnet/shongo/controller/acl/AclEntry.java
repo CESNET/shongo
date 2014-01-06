@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"acl_identity_id", "acl_object_identity_id", "role"}))
 @NamedQueries({
         @NamedQuery(name="AclEntry.find", query="SELECT e FROM AclEntry e WHERE e.identity = :identity AND e.objectIdentity = :objectIdentity AND e.role = :role"),
-        @NamedQuery(name="AclEntry.findByIdentity", query="SELECT e FROM AclEntry e WHERE e.identity = :identity"),
+        @NamedQuery(name="AclEntry.findByIdentity", query="SELECT e FROM AclEntry e WHERE e.identity IN(:identities)"),
         @NamedQuery(name="AclEntry.findByObjectIdentity", query="SELECT e FROM AclEntry e WHERE e.objectIdentity = :objectIdentity"),
         @NamedQuery(name="AclEntry.findByObjectIdentityAndRole", query="SELECT e FROM AclEntry e WHERE e.objectIdentity = :objectIdentity AND e.role = :role")
 })

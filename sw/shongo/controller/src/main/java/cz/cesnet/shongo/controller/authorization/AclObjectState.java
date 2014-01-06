@@ -48,10 +48,17 @@ public class AclObjectState
     {
         Long aclEntryId = aclEntry.getId();
         if (aclEntries.remove(aclEntryId) != null) {
-            ObjectRole role = ObjectRole.valueOf(aclEntry.getRole());
+            String aclEntryRole = aclEntry.getRole();
+            ObjectRole role = ObjectRole.valueOf(aclEntryRole);
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds != null) {
-                userIds.removeAll(authorization.getUserIds(aclEntry.getIdentity()));
+                // Update user-ids
+                userIds.clear();
+                for (AclEntry existingAclEntry : aclEntries.values()) {
+                    if (existingAclEntry.getRole().equals(aclEntryRole)) {
+                        userIds.addAll(authorization.getUserIds(existingAclEntry.getIdentity()));
+                    }
+                }
                 if (userIds.size() == 0) {
                     userIdsByRole.remove(role);
                 }

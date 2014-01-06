@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a service for managing {@link cz.cesnet.shongo.controller.acl.AclEntry}s.
@@ -128,16 +129,13 @@ public abstract class AclEntryManager extends AbstractManager
     }
 
     /**
-     * @param identity
+     * @param identities
      * @return list of {@link cz.cesnet.shongo.controller.acl.AclEntry} for given {@code identity}
      */
-    public List<AclEntry> listAclEntries(AclIdentity identity)
+    public List<AclEntry> listAclEntries(Set<AclIdentity> identities)
     {
-        if (identity == null) {
-            return Collections.emptyList();
-        }
         return entityManager.createNamedQuery("AclEntry.findByIdentity", AclEntry.class)
-                    .setParameter("identity", identity)
+                    .setParameter("identities", identities)
                     .getResultList();
     }
 
