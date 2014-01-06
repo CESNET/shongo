@@ -135,6 +135,7 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
      *
      * @param data to be set
      */
+    $scope.onSetData = null;
     var setData = function (data) {
         $scope.setReady(true);
         $scope.error = false;
@@ -170,6 +171,10 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
                 $scope.pageIndex = pageIndex;
             }
             $scope.pages.push({start: pageStart, active: pageActive});
+        }
+
+        if ( $scope.onSetData != null ) {
+            $scope.onSetData($scope.items);
         }
     };
 

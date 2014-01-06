@@ -10,7 +10,28 @@
 <%@attribute name="detailUrl" required="true" %>
 
 <script type="text/javascript">
-    angular.provideModule('tag:reservationRequestChildren', ['ngPagination', 'ngSanitize']);
+    var module = angular.provideModule('tag:reservationRequestChildren', ['ngPagination', 'ngSanitize']);
+    function RefreshController($scope, $timeout) {
+        // Period for refreshing empty list
+        $scope.refreshTimeout = 5;
+        // Number of refreshes for empty list
+        $scope.refreshCount = 5;
+        // After data is set
+        $scope.$parent.onSetData = function(data) {
+            if (data.length == 0 && $scope.refreshCount-- > 0) {
+                if ($scope.timeout != null) {
+                    $timeout.cancel($scope.timeout);
+                }
+                $scope.timeout = $timeout(function() {
+                    $scope.timeout = null;
+                    $scope.$parent.refresh();
+                }, $scope.refreshTimeout * 1000);
+            }
+            else {
+                $scope.$parent.onSetData = null;
+            }
+        };
+    }
 </script>
 
 <tag:url var="childListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_CHILDREN %>">
@@ -25,13 +46,13 @@
 
 <div ng-controller="PaginationController"
      ng-init="init('reservationRequestDetail.children', '${childListUrl}', {id: '${reservationRequest.id}'})">
+    <div ng-controller="RefreshController"></div>
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.children"/></h2>
-
     <div class="spinner" ng-hide="ready || errorContent"></div>
     <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
     <table class="table table-striped table-hover" ng-show="ready">

@@ -100,7 +100,9 @@
                     <th><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.type"/></th>
-                    <th><spring:message code="views.reservationRequest.state"/></th>
+                    <c:if test="${reservationRequest.state != null}">
+                        <th><spring:message code="views.reservationRequest.state"/></th>
+                    </c:if>
                     <th><spring:message code="views.list.action"/></th>
                 </tr>
                 </thead>
@@ -118,18 +120,20 @@
                     <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                     <td>${historyItem.user}</td>
                     <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
-                    <td class="reservation-request-state">
-                        <c:choose>
-                            <c:when test="${historyItem.selected}">
-                                <span class="{{$child.state.code}}">{{$child.state.label}}</span>
-                            </c:when>
-                            <c:otherwise>
-                                <c:if test="${historyItem.state != null}">
-                                    <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
-                                </c:if>
-                            </c:otherwise>
-                        </c:choose>
-                    </td>
+                    <c:if test="${reservationRequest.state != null}">
+                        <td class="reservation-request-state">
+                            <c:choose>
+                                <c:when test="${historyItem.selected}">
+                                    <span class="{{$child.state.code}}">{{$child.state.label}}</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:if test="${historyItem.state != null}">
+                                        <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
+                                    </c:if>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                    </c:if>
                     <td>
                         <c:choose>
                             <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
