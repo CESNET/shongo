@@ -43,7 +43,7 @@ case $MODE in
         MCU_CESNET_LICENSE_COUNT=10
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=090:099
-        CONNECT_CESNET=https://tconn.cesnet.cz
+        CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
         RESOURCE_ADMIN_EMAIL=srom.martin@gmail.com
         ;;
@@ -208,6 +208,27 @@ $RUN_CLIENT_CLI <<EOF
         capabilities: [{
             class: 'StandaloneTerminalCapability'
         }]
+    }
+
+    create-resource {
+        class : "DeviceResource",
+        technologies: [
+            "SIP",
+            "H323"
+        ],
+        mode: {
+            "class" : "ManagedMode",
+            "connectorAgentName" : "tcs"
+        },
+        name: "tcs",
+        allocatable: "1",
+        capabilities: [{
+            class: "RecordingCapability",
+            licenseCount: "3"
+        }],
+        administrators: [
+            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
+        ]
     }
 
 EOF
