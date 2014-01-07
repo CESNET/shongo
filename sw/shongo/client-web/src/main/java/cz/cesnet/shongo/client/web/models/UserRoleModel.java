@@ -39,6 +39,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     public UserRoleModel(UserInformation userInformation)
     {
         this.identityType = AclIdentityType.USER;
+        this.identityId = userInformation.getUserId();
         this.user = userInformation;
     }
 

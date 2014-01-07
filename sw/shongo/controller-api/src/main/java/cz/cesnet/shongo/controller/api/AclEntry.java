@@ -178,8 +178,8 @@ public class AclEntry extends IdentifiedComplexType
         if (role != record.role) {
             return false;
         }
-        if (identityPrincipalId != null ? !identityPrincipalId
-                .equals(record.identityPrincipalId) : record.identityPrincipalId != null) {
+        if (identityPrincipalId != null ?
+                !identityPrincipalId.equals(record.identityPrincipalId) : record.identityPrincipalId != null) {
             return false;
         }
 

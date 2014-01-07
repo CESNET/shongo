@@ -46,10 +46,10 @@
                     <td>${userRole.identityName}
                         <c:choose>
                             <c:when test="${userRole.identityType == 'USER'}">
-                                (<spring:message code="views.userRoleList.group"/>)
+                                (${userRole.user.organization})
                             </c:when>
                             <c:when test="${userRole.identityType == 'GROUP'}">
-                                (${userRole.user.organization})
+                                (<spring:message code="views.userRoleList.group"/>)
                             </c:when>
                         </c:choose>
                     </td>

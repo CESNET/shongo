@@ -9,6 +9,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
+import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -253,7 +254,7 @@ public class WizardRoomController extends WizardParticipantsController
         reservationRequest.addUserRole(userRole);
 
         // Add admin participant for owner
-        if (userRole.getRole().equals(ObjectRole.OWNER)) {
+        if (userRole.getIdentityType().equals(AclIdentityType.USER) && userRole.getRole().equals(ObjectRole.OWNER)) {
             boolean administratorExists = false;
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
@@ -427,6 +428,7 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
+            userRole.setObjectId(reservationRequestId);
             authorizationService.createAclEntry(securityToken, userRole.toApi());
         }
 
