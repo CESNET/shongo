@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.api;
 
+import java.awt.datatransfer.DataFlavor;
+
 /**
  * Meeting access mode in Adobe Connect.
  *
@@ -37,4 +39,5 @@ public enum AdobeConnectAccessMode
     public String getPermissionId() {
         return this.code;
     }
+
 }

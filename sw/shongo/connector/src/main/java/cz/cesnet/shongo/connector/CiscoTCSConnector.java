@@ -1,6 +1,7 @@
  package cz.cesnet.shongo.connector;
 
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
@@ -12,31 +13,32 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.http.*;
+import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.apache.commons.net.ftp.FTPClient;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.namespace.QName;
-import javax.xml.soap.*;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.net.URL;
+import java.io.StringReader;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,7 +48,7 @@ import java.util.Map;
  */
 public class CiscoTCSConnector extends AbstractConnector implements RecordingService
 {
-     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
+    private static Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
 
     /**
      * This is the user log in name, typically the user email address.
@@ -59,9 +61,24 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     private String password;
 
     /**
-     *
+     * FTP Client for storing movies
      */
-    private SOAPConnection soapConnection;
+    private FTPClient ftpClient;
+
+    /**
+     * Namespace constant for Cisco TCS
+     */
+    private String NS_ENVELOPE = "SOAP-ENV";
+
+    /**
+     * Namespace constant for Cisco TCS
+     */
+    private String NS_NS1 = "ns1";
+
+    /**
+     * Default bitrate for recordings.
+     */
+    private final String DEFAULT_BITRATE = "768";
 
 
     @Override
@@ -71,25 +88,17 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         this.login = username;
         this.password = password;
 
-        //TODO: check if accessable
+        Command command = new Command("GetSystemInformation");
+        Element result = exec(command);
+        Namespace ns = result.getNamespace(NS_NS1);
+        if (!"true".equals(result.getChild("GetSystemInformationResponse",ns).getChild("GetSystemInformationResult",ns).getChildText("EngineOK",ns)))
+        {
+            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+
+            throw new CommandException("Server " + this.info.getDeviceAddress().getHost() + " is not working. Check it's status.");
+        }
+
         this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
-
-
-        // Setup options
-        //TODO: what needed
-
-        try {
-            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-            this.soapConnection = soapConnectionFactory.createConnection();
-
-            String url = "https://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress().getPort() + "/tcs/Helium.wsdl";
-        }
-        catch (SOAPException e) {
-            //TODO: process
-            throw new CommandException("TODO: process request exceptions", e);
-        }
-
-        this.info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
     }
 
     @Override
@@ -107,6 +116,13 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
+        FTPClient ftp = new FTPClient();
+        /*ftp.connect();
+        ftp.login();
+
+        ftp.makeDirectory("" + recordingFolder.getName());
+
+        ftp.disconnect();*/
         throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
     }
 
@@ -131,7 +147,25 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException
     {
-        throw new TodoImplementException("CiscoTCSConnector.getRecording");
+        Command command = new Command("GetConference");
+        command.setParameter("ConferenceID",recordingId);
+
+        Element result = exec(command);
+        Namespace ns = result.getNamespace(NS_NS1);
+        Element recordingData = result.getChild("GetConferenceResponse",ns).getChild("GetConferenceResult",ns);
+
+        Recording recording = new Recording();
+        recording.setId(recordingData.getChildText("ConferenceID", ns));
+        recording.setName(recordingData.getChildText("Title", ns));
+        recording.setBeginDate(new DateTime(Long.decode(recordingData.getChildText("DateTime", ns))*1000));
+        recording.setDuration(new Period(Long.decode(recordingData.getChildText("Duration",ns)).longValue()));
+        //TODO: recording.setDescription(recordingData.getChildText("Description",ns));
+        recording.setUrl(recordingData.getChildText("URL",ns));
+        if ("true".equals(recordingData.getChildText("HasDownloadableMovie", ns))) {
+            recording.setDownloadableUrl(recordingData.getChild("DownloadableMovies",ns).getChildText("URL",ns));
+        }
+
+        return recording;
     }
 
     @Override
@@ -141,21 +175,44 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException
+    public String startRecording(String folderId, Alias alias) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.startRecording");
+        Command command = new Command("Dial");
+        command.setParameter("Number", alias.getValue());
+        command.setParameter("Bitrate", DEFAULT_BITRATE);
+        //TODO: set aliasis
+        command.setParameter("Alias", "999");
+        //TODO: set technology
+        command.setParameter("CallType", "h323");
+        command.setParameter("SetMetadata", true);
+
+        Element result = exec(command);
+
+        Namespace ns = result.getNamespace(NS_NS1);
+        return result.getChild("DialResponse", ns).getChild("DialResult",ns).getChildText("ConferenceID",ns);
     }
 
     @Override
-    public void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    public void stopRecording(String recordingId) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.stopRecording");
+        Command command = new Command("DisconnectCall");
+        command.setParameter("ConferenceID",recordingId);
+
+        exec(command);
+    }
+
+    private void moveRecording(String recordingId, String recordingFolderId) throws CommandException
+    {
+        //TODO:
     }
 
     @Override
-    public void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    public void deleteRecording(String recordingId) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.deleteRecording");
+        Command command = new Command("DeleteRecording");
+        command.setParameter("conferenceID",recordingId);
+
+        exec(command);
     }
 
     protected String buildXmlTag(String unpairTag)
@@ -167,9 +224,9 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         StringBuilder tag = new StringBuilder();
 
-        tag.append("<" + pairTag.getKey() + " >");
+        tag.append("<" + pairTag.getKey() + ">");
         tag.append(pairTag.getValue());
-        tag.append("</" + pairTag.getKey() + " >");
+        tag.append("</" + pairTag.getKey() + ">");
 
         return tag.toString();
     }
@@ -197,69 +254,60 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 throw new CommandException("Command arguments must be String and not empty.");
             }
 
-            xml.append((String) argument);
+            xml.append(buildXmlTag((String) argument));
         }
 
         for (Map.Entry<String,Object> entry : command.getParameters().entrySet()) {
-            xml.append(entry);
+            xml.append(buildXmlTag(entry));
         }
 
         // Footers
         xml.append("</" + command.getCommand() + ">");
 
         xml.append("</soap:Body>\n" +
-                "</soap:Envelope>)");
+                "</soap:Envelope>");
 
         return xml.toString();
     }
 
-    protected HttpEntity exec(Command command) throws CommandException{
+    protected Element exec(Command command) throws CommandException{
         try {
             while (true) {
 
                 logger.debug(String.format("%s issuing command '%s' on %s",
-                        CiscoTCSConnector.class, command, this.info.getDeviceAddress()));
+                        CiscoTCSConnector.class, command.getCommand(), this.info.getDeviceAddress()));
 
-
-                //CloseableHttpClient httpclient = HttpClients.createDefault();
                 HttpClient lHttpClient = new DefaultHttpClient();
-                //lHttpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
 
-                // A org.apache.http.impl.auth.DigestScheme instance is
-// what will process the challenge from the web-server
-                final DigestScheme md5Auth = new DigestScheme();
+                final ContextAwareAuthScheme md5Auth = new DigestScheme();
 
 
                 // Setup POST request
                 HttpPost lHttpPost = new HttpPost("http://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress()
                         .getPort() + "/tcs/SoapServer.php");
-//        HttpPost lHttpPost = new HttpPost("http://195.113.151.188/tcs/SoapServer.php");
 
                 ConfiguredSSLContext.getInstance().addAdditionalCertificates(lHttpPost.getURI().getHost());
 
-// Set SOAPAction header
+                // Set SOAPAction header
                 lHttpPost.addHeader("SOAPAction", "http://www.tandberg.net/XML/Streaming/1.0/GetSystemInformation");
 
-                // Add XML to request, direct in the body - no parameter name tcs.getSoapMessage().toString()
-                // String xml = builExecdXml(command);
-                String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-                        "<soap:Body>\n" +
-                        "<GetSystemInformation xmlns=\"http://www.tandberg.net/XML/Streaming/1.0\"/>\n" +
-                        "</soap:Body>\n" +
-                        "</soap:Envelope>";
-                StringEntity lEntity = new StringEntity(xml, "text/xml", "utf-8");
+                // Add XML to request, direct in the body - no parameter name
+                String xml = builExecdXml(command);
+
+                System.out.println("===================");
+                System.out.println("INPUT");
+                System.out.println("===================");
+                System.out.println(xml);
+
+
+                StringEntity lEntity = new StringEntity(xml, ContentType.create("text/xml", "utf-8"));
                 lHttpPost.setEntity(lEntity);
 
                 // Protocol version should be 1.0 because of compatibility with TCS
                 lHttpPost.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
-// Execute POST
                 HttpResponse authResponse = lHttpClient.execute(lHttpPost);
 
-// This should return an HTTP 401 Unauthorized with
-// a challenge to solve.
-                //final HttpResponse authResponse = lHttpResponse;
-
-// Validate that we got an HTTP 401 back
+                // Validate that we got an HTTP 401 back
                 if(authResponse.getStatusLine().getStatusCode() ==
                         HttpStatus.SC_UNAUTHORIZED) {
                     if(authResponse.containsHeader("WWW-Authenticate")) {
@@ -273,14 +321,15 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                         // Do another POST, but this time include the solution
                         final Header solution = md5Auth.authenticate(
                                 new UsernamePasswordCredentials(this.login, this.password),
-//                        new UsernamePasswordCredentials("admin", "nahr8vadloHesl94ko1AP1"),
-                                new BasicHttpRequest(HttpPost.METHOD_NAME,"/tcs/SoapServer.php"));
+                                new BasicHttpRequest(HttpPost.METHOD_NAME,"/tcs/SoapServer.php"),
+                                new BasicHttpContext());
 
                         // Authentication header as generated by HttpClient.
                         lHttpPost.setHeader(solution);
 
                         lHttpPost.releaseConnection();
 
+                        /*
                         System.out.println("===================");
                         System.out.println(lHttpPost.getURI());
                         System.out.println("===================");
@@ -288,11 +337,28 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             System.out.println(header.toString() + " : " + header.getName() + " --- " + header.getValue());
                         }
                         System.out.println("===================");
+                        */
 
                         final HttpResponse goodResponse =  lHttpClient.execute(lHttpPost);
-                        //doPost(url, postBody, contentType, solution);
 
-                        EntityUtils.toString(goodResponse.getEntity());
+                        if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                            throw new CommandException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
+                        }
+
+                        String resultString = EntityUtils.toString(goodResponse.getEntity());
+
+                        System.out.println("==========");
+                        System.out.println("OUTPUT");
+                        System.out.println("==========");
+                        System.out.println(resultString);
+
+                        Document resultDocument = new SAXBuilder().build(new StringReader(resultString));
+                        Element rootElement = resultDocument.getRootElement();
+
+                        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+
+                        Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
+                        return rootElement.getChild("Body",envelopeNS);
                     } else {
                         throw new Error("Web-service responded with Http 401, " +
                                 "but didn't send us a usable WWW-Authenticate header.");
@@ -301,17 +367,9 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                     throw new Error("Didn't get an Http 401 " +
                             "like we were expecting.");
                 }
-
-                if (authResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
-                {
-                    throw new RuntimeException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
-                }
-
-// Get hold of response XML
-                String lResponseXml = EntityUtils.toString(authResponse.getEntity());
-
             }
         } catch (Exception ex) {
+            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
             throw new RuntimeException("Command issuing error", ex);
         }
     }
@@ -320,26 +378,20 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         Address address = new Address("195.113.151.188",80);
 
-
-
         CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address, "admin", "nahr8vadloHesl94ko1AP1");
+        tcs.connect(address, "login", "password");
 
-        Command command = new Command("");
+        String id = tcs.startRecording(null, new Alias(AliasType.H323_E164,"950087999"));
 
-        tcs.exec(command);
+        Thread.sleep(10000);
+
+        tcs.stopRecording(id);
+
+        Thread.sleep(10000);
+
+        tcs.deleteRecording(id);
 
         tcs.disconnect();
 
     }
-
-    private static void printSOAPResponse(SOAPMessage soapResponse) throws Exception {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        Source sourceContent = soapResponse.getSOAPPart().getContent();
-        System.out.print("\nResponse SOAP Message = ");
-        StreamResult result = new StreamResult(System.out);
-        transformer.transform(sourceContent, result);
-    }
-
 }

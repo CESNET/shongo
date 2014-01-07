@@ -77,6 +77,13 @@
             <version>2.0.3</version>
         </dependency>
 
+        <!-- FTP Client for storing recordings -->
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
