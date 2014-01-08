@@ -12,6 +12,7 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.RecordingService;
+import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.http.*;
@@ -175,7 +176,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public String startRecording(String folderId, Alias alias) throws CommandException
+    public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
+            throws CommandException
     {
         Command command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
@@ -381,7 +383,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         CiscoTCSConnector tcs = new CiscoTCSConnector();
         tcs.connect(address, "login", "password");
 
-        String id = tcs.startRecording(null, new Alias(AliasType.H323_E164,"950087999"));
+        String id = tcs.startRecording(null, new Alias(AliasType.H323_E164,"950087999"), null);
 
         Thread.sleep(10000);
 

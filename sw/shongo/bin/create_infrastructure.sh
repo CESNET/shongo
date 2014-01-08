@@ -23,6 +23,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=200:399
         CONNECT_CESNET=https://connect.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=100
+        TCS_LICENSE_COUNT=5
         RESOURCE_ADMIN_EMAIL=meetings-announce@cesnet.cz
         ;;
     shongo-dev )
@@ -34,6 +35,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=050:099
         CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
+        TCS_LICENSE_COUNT=3
         RESOURCE_ADMIN_EMAIL=srom.martin@gmail.cz
         ;;
     * )
@@ -45,6 +47,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=090:099
         CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
+        TCS_LICENSE_COUNT=2
         RESOURCE_ADMIN_EMAIL=srom.martin@gmail.com
         ;;
 esac
@@ -53,7 +56,8 @@ esac
 echo "Configuration:"
 echo "  Controller:     $CONTROLLER"
 echo "  MCU CESNET:     $MCU_CESNET_LICENSE_COUNT licenses, $MCU_CESNET_NUMBER_PREFIX$MCU_CESNET_NUMBER_RANGE"
-echo "  Connect:        $CONNECT_CESNET, $CONNECT_CESNET_LICENSE_COUNT licenses"
+echo "  Adobe Connect:  $CONNECT_CESNET, $CONNECT_CESNET_LICENSE_COUNT licenses"
+echo "  TCS:            $TCS_LICENSE_COUNT licenses"
 echo "  Resource admin: $RESOURCE_ADMIN_EMAIL"
 echo -n "Presse enter to continue..."; read line
 
@@ -224,7 +228,7 @@ $RUN_CLIENT_CLI <<EOF
         allocatable: "1",
         capabilities: [{
             class: "RecordingCapability",
-            licenseCount: "3"
+            licenseCount: $TCS_LICENSE_COUNT
         }],
         administrators: [
             { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}

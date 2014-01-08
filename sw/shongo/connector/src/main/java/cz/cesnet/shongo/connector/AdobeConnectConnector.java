@@ -644,7 +644,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
-    public String startRecording(String folderId, Alias alias)
+    public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {
         String recordingName;

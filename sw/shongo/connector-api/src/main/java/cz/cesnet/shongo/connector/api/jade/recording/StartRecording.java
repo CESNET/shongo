@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
@@ -15,6 +16,8 @@ public class StartRecording extends ConnectorCommand
     private String recordingFolderId;
 
     private Alias alias;
+
+    private RecordingSettings recordingSettings;
 
     public StartRecording()
     {
@@ -46,16 +49,26 @@ public class StartRecording extends ConnectorCommand
         this.alias = alias;
     }
 
+    public RecordingSettings getRecordingSettings()
+    {
+        return recordingSettings;
+    }
+
+    public void setRecordingSettings(RecordingSettings recordingSettings)
+    {
+        this.recordingSettings = recordingSettings;
+    }
+
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getRecording(connector).startRecording(recordingFolderId, alias);
+        return getRecording(connector).startRecording(recordingFolderId, alias, recordingSettings);
     }
 
     @Override
     public String toString()
     {
-        return String.format(StartRecording.class.getSimpleName() + " (recordingFolderId: %s, alias: %s)",
-                recordingFolderId, alias);
+        return String.format(StartRecording.class.getSimpleName() + " (recordingFolderId: %s, alias: %s, settings: %s)",
+                recordingFolderId, alias, recordingSettings);
     }
 }
