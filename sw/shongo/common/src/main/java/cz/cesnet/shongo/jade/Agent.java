@@ -36,6 +36,11 @@ public class Agent extends jade.core.Agent
     private DFAgentDescription agentDescription;
 
     /**
+     * Timeout for {@link SendLocalCommand}s.
+     */
+    private Integer commandTimeout;
+
+    /**
      * Constructor.
      */
     public Agent()
@@ -65,6 +70,14 @@ public class Agent extends jade.core.Agent
     {
         // Register ontology used by Shongo
         getContentManager().registerOntology(ontology);
+    }
+
+    /**
+     * @param commandTimeout sets the {@link #commandTimeout}
+     */
+    public void setCommandTimeout(Integer commandTimeout)
+    {
+        this.commandTimeout = commandTimeout;
     }
 
     /**
@@ -103,7 +116,7 @@ public class Agent extends jade.core.Agent
             return sendLocalCommand;
         }
         performLocalCommand(sendLocalCommand);
-        sendLocalCommand.waitForProcessed();
+        sendLocalCommand.waitForProcessed(commandTimeout);
         return sendLocalCommand;
     }
 

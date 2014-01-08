@@ -14,6 +14,8 @@
     <jade>
         <host>127.0.0.1</host>
         <port>8383</port>
+        <!-- Timeout to receive response when performing commands from agents -->
+        <command-timeout>PT10S</command-timeout>
     </jade>
 
     <!-- Connector instances (agents) to automatically start -->

@@ -14,13 +14,6 @@ import jade.core.AID;
 public class SendLocalCommand extends LocalCommand
 {
     /**
-     * How long to wait for command result. Unit: milliseconds
-     * <p/>
-     * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
-     */
-    public static final int COMMAND_TIMEOUT = 33000;
-
-    /**
      * {@link AID} of the receiver agent.
      */
     private AID receiverAgentId;
@@ -151,13 +144,18 @@ public class SendLocalCommand extends LocalCommand
 
     /**
      * Wait for the command to be processed
+     *
+     * @param timeout how long to wait in milliseconds for command result ({@code null} means default timeout)
      */
-    public void waitForProcessed()
+    public void waitForProcessed(Integer timeout)
     {
+        if (timeout == null) {
+            timeout = 30000;
+        }
         final int waitingTime = 50;
 
         // FIXME: use some kind of IPC instead of busy waiting
-        int count = COMMAND_TIMEOUT / waitingTime;
+        int count = timeout / waitingTime;
         while (!isProcessed() && count > 0) {
             count--;
             try {

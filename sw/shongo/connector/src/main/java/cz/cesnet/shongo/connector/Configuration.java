@@ -43,4 +43,12 @@ public class Configuration extends CombinedConfiguration
         }
         return Period.parse(value).toStandardDuration();
     }
+
+    /**
+     * @return timeout to receive response when performing commands from agent
+     */
+    public Duration getJadeCommandTimeout()
+    {
+        return getDuration("jade.command-timeout");
+    }
 }

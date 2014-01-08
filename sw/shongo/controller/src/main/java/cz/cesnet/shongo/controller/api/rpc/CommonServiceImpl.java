@@ -116,7 +116,7 @@ public class CommonServiceImpl extends AbstractServiceImpl
 
             SendLocalCommand sendLocalCommand = new SendLocalCommand(agentName, new PingCommand());
             controllerAgent.performLocalCommand(sendLocalCommand);
-            sendLocalCommand.waitForProcessed();
+            sendLocalCommand.waitForProcessed(null);
             if (sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
                 connector.setStatus(Status.AVAILABLE);
             }

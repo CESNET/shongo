@@ -77,6 +77,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     private String password;
 
     /**
+     * Timeout for {@link #request}.
+     */
+    private int requestTimeout;
+
+    /**
      * The Java session ID that is generated upon successful login.  All calls
      * except login must provide this ID for authentication.
      */
@@ -120,7 +125,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.password = password;
 
         // Setup options
-        this.urlPathExtractionFromUri = options.getPattern(URL_PATH_EXTRACTION_FROM_URI);
+        this.requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
+        this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
 
         this.login();
 
@@ -1582,6 +1588,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             while (true) {
                 // Send request
                 URLConnection conn = url.openConnection();
+                conn.setConnectTimeout(requestTimeout);
                 conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
                 conn.connect();
 

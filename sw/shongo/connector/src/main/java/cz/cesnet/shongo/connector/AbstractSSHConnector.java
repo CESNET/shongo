@@ -93,12 +93,16 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         this.username = username;
         this.password = password;
 
+        // Determine timeout
+        int requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
+
         try {
             JSch jsch = new JSch();
             Session session = jsch.getSession(username, address.getHost(), address.getPort());
             session.setPassword(password);
             // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
             session.setConfig("StrictHostKeyChecking", "no");
+            session.setTimeout(requestTimeout);
             session.connect();
             channel = (ChannelShell) session.openChannel("shell");
             commandStreamWriter = new OutputStreamWriter(channel.getOutputStream());

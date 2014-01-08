@@ -35,6 +35,7 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,9 +183,14 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         info.setDeviceAddress(address);
 
-        initOptions();
+        // Load options
+        roomNumberFromH323Number = getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        roomNumberFromSIPURI = getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
 
         try {
+            // Determine timeout
+            int requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
+
             // not standard basic auth - credentials are to be passed together with command parameters
             authUsername = username;
             authPassword = password;
@@ -195,13 +201,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             // Create XmlRpcClient for XML-RPC API communication
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(getDeviceApiUrl());
+            config.setConnectionTimeout(requestTimeout);
             xmlRpcClient = new XmlRpcClient();
             xmlRpcClient.setConfig(config);
             xmlRpcClient.setTransportFactory(new KeepAliveTransportFactory(xmlRpcClient));
 
+
             // Create HttpClient for Http communication
             httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
-            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), 5000);
+            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), requestTimeout);
 
             initDeviceInfo();
         }
@@ -809,25 +817,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         di.setSerialNumber((String) device.get("serial"));
 
         info.setDeviceInfo(di);
-    }
-
-    private void initOptions()
-    {
-        roomNumberFromH323Number = null;
-        roomNumberFromSIPURI = null;
-
-        if (options == null) {
-            return;
-        }
-
-        String h323Number = options.getString(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
-        if (h323Number != null) {
-            roomNumberFromH323Number = Pattern.compile(h323Number);
-        }
-        String sipNumber = options.getString(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
-        if (sipNumber != null) {
-            roomNumberFromSIPURI = Pattern.compile(sipNumber);
-        }
     }
 
     /**

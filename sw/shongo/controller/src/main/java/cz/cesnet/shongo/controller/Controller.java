@@ -104,7 +104,7 @@ public class Controller
     /**
      * Jade agent.
      */
-    protected ControllerAgent jadeAgent = new ControllerAgent();
+    protected ControllerAgent jadeAgent;
 
     /**
      * @see EmailSender
@@ -172,7 +172,7 @@ public class Controller
     /**
      * @param configuration configuration to be set to the controller
      */
-    public void setConfiguration(org.apache.commons.configuration.AbstractConfiguration configuration)
+    private void setConfiguration(org.apache.commons.configuration.AbstractConfiguration configuration)
     {
         this.configuration = new Configuration();
         // System properties has the highest priority
@@ -212,8 +212,11 @@ public class Controller
         localDomain.setOrganization(this.configuration.getString(Configuration.DOMAIN_ORGANIZATION));
         Domain.setLocalDomain(localDomain);
 
-        // Initialize email sender
+        // Create email sender
         this.emailSender = new EmailSender(this.configuration);
+
+        // Create jade agent
+        this.jadeAgent = new ControllerAgent(this.configuration);
     }
 
     /**

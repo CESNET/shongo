@@ -30,9 +30,12 @@ public class ControllerAgent extends Agent
 
     /**
      * Constructor.
+     *
+     * @param configuration to initialize from
      */
-    public ControllerAgent()
+    public ControllerAgent(Configuration configuration)
     {
+        setCommandTimeout((int) configuration.getJadeCommandTimeout().getMillis());
     }
 
     /**

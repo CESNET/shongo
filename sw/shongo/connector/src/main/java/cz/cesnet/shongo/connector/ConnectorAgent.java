@@ -41,6 +41,13 @@ public class ConnectorAgent extends Agent
     @Override
     protected void setup()
     {
+        Object[] arguments = getArguments();
+        if (arguments.length == 0 || !(arguments[0] instanceof Configuration)) {
+            throw new IllegalArgumentException("Configuration is required as first argument.");
+        }
+        Configuration configuration = (Configuration) arguments[0];
+        setCommandTimeout((int) configuration.getJadeCommandTimeout().getMillis());
+
         addOntology(ConnectorOntology.getInstance());
         addOntology(ControllerOntology.getInstance());
 

@@ -33,6 +33,8 @@
         <port>8282</port>
         <agent-name>Controller</agent-name>
         <platform-id>Shongo</platform-id>
+        <!-- Timeout to receive response when performing commands from agents -->
+        <command-timeout>PT33S</command-timeout>
     </jade>
 
     <!-- Security settings -->

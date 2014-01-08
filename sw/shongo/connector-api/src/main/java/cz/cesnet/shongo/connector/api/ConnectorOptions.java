@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -91,4 +94,12 @@ public class ConnectorOptions
         return null;
     }
 
+    public Duration getDuration(String key, Duration defaultValue)
+    {
+        String duration = getString(key);
+        if (duration != null) {
+            return Duration.parse(duration);
+        }
+        return defaultValue;
+    }
 }

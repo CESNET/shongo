@@ -8,6 +8,8 @@ import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
 import cz.cesnet.shongo.jade.*;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -23,6 +25,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * A common functionality for connectors.
@@ -34,6 +37,13 @@ abstract public class AbstractConnector implements CommonService
     private static Logger logger = LoggerFactory.getLogger(AbstractConnector.class);
 
     /**
+     * Timeout option.
+     */
+    public static final String OPTION_TIMEOUT = "timeout";
+    public static final Duration DEFAULT_TIMEOUT = Duration.standardSeconds(30);
+
+
+    /**
      * {@link ConnectorAgent} which can be used for performing {@link cz.cesnet.shongo.api.jade.Command}s.
      */
     private ConnectorAgent connectorAgent;
@@ -41,7 +51,7 @@ abstract public class AbstractConnector implements CommonService
     /**
      * {@link ConnectorOptions}.
      */
-    protected ConnectorOptions options = new ConnectorOptions();
+    private ConnectorOptions options = new ConnectorOptions();
 
     /**
      * Info about the connector and the device.
@@ -72,6 +82,34 @@ abstract public class AbstractConnector implements CommonService
     public void setOptions(ConnectorOptions options)
     {
         this.options = options;
+    }
+
+    /**
+     * @param name
+     * @return value of options with given {@code name}
+     */
+    protected String getOption(String name)
+    {
+        return options.getString(name);
+    }
+
+    /**
+     * @param name
+     * @return value of option with given {@code name}
+     */
+    protected Pattern getOptionPattern(String name)
+    {
+        return options.getPattern(name);
+    }
+
+    /**
+     * @param name
+     * @param defaultValue
+     * @return {@link Duration} of option with given {@code name} or given {@code defaultValue}
+     */
+    protected Duration getOptionDuration(String name, Duration defaultValue)
+    {
+        return options.getDuration(name, defaultValue);
     }
 
     /**
