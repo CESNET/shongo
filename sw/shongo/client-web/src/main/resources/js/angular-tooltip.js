@@ -13,16 +13,36 @@ tooltipModule.directive('tooltip', function($compile) {
     return {
         restrict: 'A',
         link: function(scope, element) {
-            var title = element.attr('title');
-            if (title == null) {
-                title = element.next().html();
+            var content = element.attr('content');
+            if (content != null) {
+                var callback = function(event, api){
+                    if (callback.value == null) {
+                        callback.value = scope.$eval(callback.expression, {
+                            event: {
+                                setResult: function(result) {
+                                    api.set('content.text', result);
+                                }
+                            }
+                        });
+                    }
+                    return callback.value;
+                };
+                callback.expression = content;
+                callback.value = null;
+                content = callback;
             }
-            if (title.indexOf("{{") != -1 || title.indexOf(" ng-") != -1) {
-                title = $compile(title)(scope);
+            else {
+                content = element.attr('title');
+                if (content == null) {
+                    content = element.next().html();
+                }
+                if (content.indexOf("{{") != -1 || content.indexOf(" ng-") != -1) {
+                    content = $compile(content)(scope);
+                }
             }
             var options = {
                 content: {
-                    text: title
+                    text: content
                 },
                 position: {
                     my: 'top left',

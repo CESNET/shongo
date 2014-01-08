@@ -98,17 +98,21 @@ public class UserRoleController
         for (AclEntry aclEntry : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclEntry.getId());
+            AclIdentityType identityType = aclEntry.getIdentityType();
+            item.put("identityType", identityType);
             String identityPrincipalId = aclEntry.getIdentityPrincipalId();
-            switch (aclEntry.getIdentityType()) {
+            item.put("identityPrincipalId", identityPrincipalId);
+            switch (identityType) {
                 case USER:
                     UserInformation user = cache.getUserInformation(securityToken, identityPrincipalId);
-                    item.put("identityName", user.getFullName() + " (" + user.getOrganization() + ")");
+                    item.put("identityName", user.getFullName());
+                    item.put("identityDescription", user.getOrganization());
                     item.put("email", user.getPrimaryEmail());
                     break;
                 case GROUP:
                     Group group = cache.getGroup(securityToken, identityPrincipalId);
-                    item.put("identityName", group.getName() + " (" +
-                            messageSource.getMessage("views.userRoleList.group", null, locale) + ")");
+                    item.put("identityName", group.getName());
+                    item.put("identityDescription", group.getDescription());
                     break;
                 default:
                     throw new UnsupportedApiException(aclEntry.getIdentityType());

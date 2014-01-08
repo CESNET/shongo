@@ -20,6 +20,7 @@
             <add-attribute value="jquery.min.js"/>
             <add-attribute value="jquery-qtip.min.js"/>
             <add-attribute value="bootstrap.min.js"/>
+            <add-attribute value="application.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n">
         </put-list-attribute>

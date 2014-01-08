@@ -22,7 +22,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
 
     private AclIdentityType identityType;
 
-    private String identityId;
+    private String identityPrincipalId;
 
     private UserInformation user;
 
@@ -39,7 +39,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     public UserRoleModel(UserInformation userInformation)
     {
         this.identityType = AclIdentityType.USER;
-        this.identityId = userInformation.getUserId();
+        this.identityPrincipalId = userInformation.getUserId();
         this.user = userInformation;
     }
 
@@ -84,18 +84,18 @@ public class UserRoleModel implements ReportModel.ContextSerializable
         this.identityType = identityType;
     }
 
-    public String getIdentityId()
+    public String getIdentityPrincipalId()
     {
-        return identityId;
+        return identityPrincipalId;
     }
 
-    public void setIdentityId(String identityId)
+    public void setIdentityPrincipalId(String identityPrincipalId)
     {
-        if (!identityId.equals(this.identityId)) {
+        if (!identityPrincipalId.equals(this.identityPrincipalId)) {
             user = null;
             group = null;
         }
-        this.identityId = identityId;
+        this.identityPrincipalId = identityPrincipalId;
     }
 
     public String getIdentityName()
@@ -116,7 +116,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
             if (cacheProvider == null) {
                 throw new IllegalStateException("CacheProvider isn't set.");
             }
-            user = cacheProvider.getUserInformation(identityId);
+            user = cacheProvider.getUserInformation(identityPrincipalId);
 
         }
         return user;
@@ -128,7 +128,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
             if (cacheProvider == null) {
                 throw new IllegalStateException("CacheProvider isn't set.");
             }
-            group = cacheProvider.getGroup(identityId);
+            group = cacheProvider.getGroup(identityPrincipalId);
         }
         return group;
     }
@@ -167,7 +167,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
     {
         this.id = aclEntry.getId();
         setIdentityType(aclEntry.getIdentityType());
-        setIdentityId(aclEntry.getIdentityPrincipalId());
+        setIdentityPrincipalId(aclEntry.getIdentityPrincipalId());
         setObjectId(aclEntry.getObjectId());
         setRole(aclEntry.getRole());
         setDeletable(aclEntry.isDeletable());
@@ -180,7 +180,7 @@ public class UserRoleModel implements ReportModel.ContextSerializable
             aclEntry.setId(id);
         }
         aclEntry.setIdentityType(identityType);
-        aclEntry.setIdentityPrincipalId(identityId);
+        aclEntry.setIdentityPrincipalId(identityPrincipalId);
         aclEntry.setObjectId(objectId);
         aclEntry.setRole(role);
         return aclEntry;

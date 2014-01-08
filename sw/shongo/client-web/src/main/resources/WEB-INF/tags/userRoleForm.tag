@@ -1,8 +1,8 @@
-<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%--
   -- Reservation request form.
   --%>
 <%@ tag body-content="empty" %>
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -36,7 +36,7 @@
         $scope.identityType = $scope.value('${userRole.identityType}', null);
         $scope.$watch('identityType', function(newValue, oldValue){
             if (newValue != oldValue) {
-                $("#identityId").val(null);
+                $("#identityPrincipalId").val(null);
             }
             $scope.initIdentitySelect();
         });
@@ -46,34 +46,21 @@
          */
         $scope.groupDescription = null;
         $scope.refreshGroupDescription = function() {
-            var identityId = $(this).val();
-            if ($scope.identityType == 'GROUP' && identityId != null && identityId != $scope.identityId) {
-                $scope.identityId = identityId;
+            var identityPrincipalId = $(this).val();
+            if ($scope.identityType == 'GROUP' && identityPrincipalId != null && identityPrincipalId != $scope.identityPrincipalId) {
+                $scope.identityPrincipalId = identityPrincipalId;
                 $scope.groupDescription = '';
                 $scope.$apply();
-                $.ajax("${userListUrl}?groupId=" + identityId, {
+                $.ajax("${userListUrl}?groupId=" + identityPrincipalId, {
                     dataType: "json"
                 }).done(function (data) {
                     $timeout(function(){
-                        for (var index = 0; index < data.length; index++) {
-                            var user = data[index];
-                            if ($scope.groupDescription != '') {
-                                $scope.groupDescription += ', ';
-                            }
-                            $scope.groupDescription += user.fullName;
-                            if (index > 5) {
-                                $scope.groupDescription += ', ...';
-                                break;
-                            }
-                        }
-                        if ($scope.groupDescription == '') {
-                            $scope.groupDescription = "<spring:message code="views.userRole.groupMembers.none"/>";
-                        }
+                        $scope.groupDescription = formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>", 5);
                     }, 0);
                 });
             }
             else {
-                $scope.identityId = null;
+                $scope.identityPrincipalId = null;
                 $scope.groupDescription = null;
             }
         };
@@ -115,7 +102,7 @@
                     identityField = "id";
                     break;
             }
-            $("#identityId").select2({
+            $("#identityPrincipalId").select2({
                 placeholder: placeholder,
                 width: 'resolve',
                 minimumInputLength: 2,
@@ -147,8 +134,8 @@
                     });
                 }
             });
-            $("#identityId").off("change", $scope.refreshGroupDescription);
-            $("#identityId").on("change", $scope.refreshGroupDescription);
+            $("#identityPrincipalId").off("change", $scope.refreshGroupDescription);
+            $("#identityPrincipalId").on("change", $scope.refreshGroupDescription);
         };
     }
 </script>
@@ -190,13 +177,13 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="identityId">
+            <form:label class="control-label" path="identityPrincipalId">
                 <span ng-show="identityType == 'USER'"><spring:message code="views.userRole.user"/>:</span>
                 <span ng-show="identityType == 'GROUP'"><spring:message code="views.userRole.group"/>:</span>
             </form:label>
             <div class="controls double-width">
-                <form:input path="identityId" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="identityId" cssClass="error"/>
+                <form:input path="identityPrincipalId" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <form:errors path="identityPrincipalId" cssClass="error"/>
                 <div ng-show="groupDescription" style="margin-top: 5px;">
                     <i><b><spring:message code="views.userRole.groupMembers"/>:</b> {{groupDescription}}</i>
                 </div>

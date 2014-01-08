@@ -11,7 +11,6 @@ import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -260,7 +258,7 @@ public class WizardRoomController extends WizardParticipantsController
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
                         ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
-                        userRole.getIdentityId().equals(participant.getUserId())) {
+                        userRole.getIdentityPrincipalId().equals(participant.getUserId())) {
                     administratorExists = true;
                 }
             }
@@ -294,7 +292,7 @@ public class WizardRoomController extends WizardParticipantsController
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
                         ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
-                        userRole.getIdentityId().equals(participant.getUserId())) {
+                        userRole.getIdentityPrincipalId().equals(participant.getUserId())) {
                     reservationRequest.deleteParticipant(participant.getId());
                     break;
                 }

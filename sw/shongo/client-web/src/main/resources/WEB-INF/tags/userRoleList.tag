@@ -1,7 +1,10 @@
+
 <%--
   -- List of user roles
   --%>
 <%@ tag body-content="empty" %>
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
@@ -32,6 +35,23 @@
     <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
 </c:set>
 
+<tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
+
+<script type="text/javascript">
+   function UserRoleController($scope){
+       $scope.formatGroup = function(groupId, event) {
+           $.ajax("${userListUrl}?groupId=" + groupId, {
+               dataType: "json"
+           }).done(function (data) {
+                content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
+                content += formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
+                event.setResult(content);
+            });
+           return "<spring:message code="views.loading"/>";
+       };
+   }
+</script>
+
 <c:choose>
     <%-- Static list of user roles --%>
     <c:when test="${data != null}">
@@ -42,14 +62,20 @@
                 <tag:url var="userRoleDeleteUrl" value="${deleteUrl}">
                     <tag:param name="roleId" value="${userRole.id}"/>
                 </tag:url>
-                <tr>
-                    <td>${userRole.identityName}
+                <tr ng-controller="UserRoleController">
+                    <td>
+                        <c:choose>
+                            <c:when test="${userRole.identityType == 'GROUP'}">
+                                <tag:help label="${userRole.identityName}" content="formatGroup('${userRole.identityPrincipalId}', event)"/>
+                            </c:when>
+                            <c:otherwise>${userRole.identityName}</c:otherwise>
+                        </c:choose>
                         <c:choose>
                             <c:when test="${userRole.identityType == 'USER'}">
                                 (${userRole.user.organization})
                             </c:when>
                             <c:when test="${userRole.identityType == 'GROUP'}">
-                                (<spring:message code="views.userRoleList.group"/>)
+                                (${userRole.group.description})
                             </c:when>
                         </c:choose>
                     </td>
@@ -96,8 +122,14 @@
             <table class="table table-striped table-hover" ng-show="ready">
                     ${tableHead}
                 <tbody>
-                <tr ng-repeat="userRole in items">
-                    <td>{{userRole.identityName}}</td>
+                <tr ng-repeat="userRole in items" class="user-role" ng-controller="UserRoleController">
+                    <td>
+                        <span ng-show="userRole.identityType == 'GROUP'">
+                            <tag:help label="{{userRole.identityName}}" content="formatGroup(userRole.identityPrincipalId, event)"/>
+                        </span>
+                        <span ng-hide="userRole.identityType == 'GROUP'">{{userRole.identityName}}</span>
+                        ({{userRole.identityDescription}})
+                    </td>
                     <td>{{userRole.role}}</td>
                     <td>{{userRole.email}}</td>
                     <c:if test="${isWritable && not empty userRoleDeleteUrl}">

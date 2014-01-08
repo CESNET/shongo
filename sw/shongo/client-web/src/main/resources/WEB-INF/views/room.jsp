@@ -16,6 +16,7 @@
     <tag:param name="reservationRequestId" value="${reservationRequestId}"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
+<tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:room', ['jsp:roomParticipantDialog', 'ngTooltip', 'ngPagination']);
@@ -35,6 +36,17 @@
                 }
             });
         </c:if>
+
+        $scope.formatGroup = function(groupId, event) {
+            $.ajax("${userListUrl}?groupId=" + groupId, {
+                dataType: "json"
+            }).done(function (data) {
+                        content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
+                        content += formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
+                        event.setResult(content);
+                    });
+            return "<spring:message code="views.loading"/>";
+        };
     });
     module.controller('RoomDetailController', function($scope) {
         $scope.show = false;
@@ -211,7 +223,13 @@
             <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
             <dd>
                 <c:forEach items="${userRoles}" var="userRole" varStatus="status">
-                    ${userRole.identityName} (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
+                    <c:choose>
+                        <c:when test="${userRole.identityType == 'GROUP'}">
+                            <tag:help label="${userRole.identityName}" content="formatGroup('${userRole.identityPrincipalId}', event)"/>
+                        </c:when>
+                        <c:otherwise>${userRole.identityName}</c:otherwise>
+                    </c:choose>
+                    (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
                 </c:forEach>
                 <c:if test="${isWritable}">
                     <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
