@@ -27,6 +27,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -234,7 +235,7 @@ public class WizardRoomController extends WizardParticipantsController
      * @param userRole    to be stored
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_CREATE, method = RequestMethod.POST)
-    public ModelAndView handleRoleCreateProcess(
+    public Object handleRoleCreateProcess(
             HttpSession httpSession,
             @ModelAttribute("userRole") UserRoleModel userRole,
             BindingResult bindingResult)
@@ -268,7 +269,7 @@ public class WizardRoomController extends WizardParticipantsController
             }
         }
 
-        return handleRoles(reservationRequest);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
     }
 
     /**
@@ -278,7 +279,7 @@ public class WizardRoomController extends WizardParticipantsController
      * @param userRoleId         of user role to be deleted
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_DELETE, method = RequestMethod.GET)
-    public ModelAndView handleRoleDelete(
+    public Object handleRoleDelete(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             @PathVariable("roleId") String userRoleId)
     {
@@ -300,7 +301,7 @@ public class WizardRoomController extends WizardParticipantsController
             }
         }
 
-        return handleRoles(reservationRequest);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
     }
 
     /**
@@ -332,14 +333,14 @@ public class WizardRoomController extends WizardParticipantsController
      * Store new {@code participant} to given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_PARTICIPANT_CREATE, method = RequestMethod.POST)
-    public ModelAndView handleParticipantCreateProcess(
+    public Object handleParticipantCreateProcess(
             HttpSession httpSession,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
         if (reservationRequest.createParticipant(participant, bindingResult)) {
-            return handleParticipants(reservationRequest);
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
             return handleParticipantView(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
@@ -361,7 +362,7 @@ public class WizardRoomController extends WizardParticipantsController
      * Store changes for existing {@code participant} to given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
-    public ModelAndView handleParticipantModifyProcess(
+    public Object handleParticipantModifyProcess(
             HttpSession httpSession,
             @PathVariable("participantId") String participantId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
@@ -369,7 +370,7 @@ public class WizardRoomController extends WizardParticipantsController
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
         if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
-            return handleParticipants(reservationRequest);
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
             return handleParticipantModify(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
@@ -380,12 +381,12 @@ public class WizardRoomController extends WizardParticipantsController
      * Delete existing {@code participant} from given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE, method = RequestMethod.GET)
-    public ModelAndView handleParticipantDelete(
+    public Object handleParticipantDelete(
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         reservationRequest.deleteParticipant(participantId);
-        return handleParticipants(reservationRequest);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
     }
 
     /**

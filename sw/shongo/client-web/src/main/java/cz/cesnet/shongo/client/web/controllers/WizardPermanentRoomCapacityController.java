@@ -200,14 +200,14 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
      * Store new {@code participant} to given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.POST)
-    public ModelAndView handleParticipantCreateProcess(
+    public Object handleParticipantCreateProcess(
             HttpSession httpSession,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
         if (reservationRequest.createParticipant(participant, bindingResult)) {
-            return handleParticipants(reservationRequest);
+            return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
         else {
             return handleParticipantView(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
@@ -229,7 +229,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
      * Store changes for existing {@code participant} to given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.POST)
-    public ModelAndView handleParticipantModifyProcess(
+    public Object handleParticipantModifyProcess(
             HttpSession httpSession,
             @PathVariable("participantId") String participantId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
@@ -237,7 +237,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
         if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
-            return handleParticipants(reservationRequest);
+            return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
         else {
             return handleParticipantModify(Page.CREATE_PARTICIPANTS, reservationRequest, participant);
@@ -248,12 +248,12 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
      * Delete existing {@code participant} from given {@code reservationRequest}.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE, method = RequestMethod.GET)
-    public ModelAndView handleParticipantDelete(
+    public Object handleParticipantDelete(
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         reservationRequest.deleteParticipant(participantId);
-        return handleParticipants(reservationRequest);
+        return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
     }
 
     /**
