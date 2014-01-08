@@ -42,10 +42,10 @@ public class ConnectorAgent extends Agent
     protected void setup()
     {
         Object[] arguments = getArguments();
-        if (arguments.length == 0 || !(arguments[0] instanceof Configuration)) {
-            throw new IllegalArgumentException("Configuration is required as first argument.");
+        if (arguments.length == 0 || !(arguments[0] instanceof ConnectorConfiguration)) {
+            throw new IllegalArgumentException("ConnectorConfiguration is required as first argument.");
         }
-        Configuration configuration = (Configuration) arguments[0];
+        ConnectorConfiguration configuration = (ConnectorConfiguration) arguments[0];
         setCommandTimeout((int) configuration.getJadeCommandTimeout().getMillis());
 
         addOntology(ConnectorOntology.getInstance());

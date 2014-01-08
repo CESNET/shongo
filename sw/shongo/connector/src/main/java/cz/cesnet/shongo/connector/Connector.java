@@ -50,7 +50,7 @@ public class Connector
     /**
      * Connector configuration.
      */
-    private Configuration configuration = new Configuration();
+    private ConnectorConfiguration configuration = new ConnectorConfiguration();
 
     /**
      * Jade container.
@@ -68,7 +68,7 @@ public class Connector
      */
     public Connector()
     {
-        configuration = new Configuration();
+        configuration = new ConnectorConfiguration();
         // System properties has the highest priority
         configuration.addConfiguration(new SystemConfiguration());
     }
@@ -78,7 +78,7 @@ public class Connector
      */
     public String getControllerHost()
     {
-        return configuration.getString(Configuration.CONTROLLER_HOST);
+        return configuration.getString(ConnectorConfiguration.CONTROLLER_HOST);
     }
 
     /**
@@ -86,7 +86,7 @@ public class Connector
      */
     public int getControllerPort()
     {
-        return configuration.getInt(Configuration.CONTROLLER_PORT);
+        return configuration.getInt(ConnectorConfiguration.CONTROLLER_PORT);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Connector
      */
     public Duration getControllerConnectionCheckPeriod()
     {
-        return configuration.getDuration(Configuration.CONTROLLER_CONNECTION_CHECK_PERIOD);
+        return configuration.getDuration(ConnectorConfiguration.CONTROLLER_CONNECTION_CHECK_PERIOD);
     }
 
     /**
@@ -102,7 +102,7 @@ public class Connector
      */
     public String getJadeHost()
     {
-        return configuration.getString(Configuration.JADE_HOST);
+        return configuration.getString(ConnectorConfiguration.JADE_HOST);
     }
 
     /**
@@ -110,7 +110,7 @@ public class Connector
      */
     public int getJadePort()
     {
-        return configuration.getInt(Configuration.JADE_PORT);
+        return configuration.getInt(ConnectorConfiguration.JADE_PORT);
     }
 
     /**
@@ -306,7 +306,7 @@ public class Connector
      *
      * @param name
      */
-    private void addAgent(String name, Configuration configuration)
+    private void addAgent(String name, ConnectorConfiguration configuration)
     {
         jadeContainer.addAgent(name, ConnectorAgent.class, new Object[]{configuration});
         jadeAgents.add(name);
@@ -417,20 +417,20 @@ public class Connector
 
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
-            System.setProperty(Configuration.JADE_HOST, commandLine.getOptionValue(optionHost.getOpt()));
+            System.setProperty(ConnectorConfiguration.JADE_HOST, commandLine.getOptionValue(optionHost.getOpt()));
         }
         if (commandLine.hasOption(optionPort.getOpt())) {
-            System.setProperty(Configuration.JADE_PORT, commandLine.getOptionValue(optionPort.getOpt()));
+            System.setProperty(ConnectorConfiguration.JADE_PORT, commandLine.getOptionValue(optionPort.getOpt()));
         }
         if (commandLine.hasOption(optionController.getOpt())) {
             String url = commandLine.getOptionValue(optionController.getOpt());
             String[] urlParts = url.split(":");
             if (urlParts.length == 1) {
-                System.setProperty(Configuration.CONTROLLER_HOST, urlParts[0]);
+                System.setProperty(ConnectorConfiguration.CONTROLLER_HOST, urlParts[0]);
             }
             else if (urlParts.length == 2) {
-                System.setProperty(Configuration.CONTROLLER_HOST, urlParts[0]);
-                System.setProperty(Configuration.CONTROLLER_PORT, urlParts[1]);
+                System.setProperty(ConnectorConfiguration.CONTROLLER_HOST, urlParts[0]);
+                System.setProperty(ConnectorConfiguration.CONTROLLER_PORT, urlParts[1]);
             }
             else {
                 System.err.println("Failed to parse controller url. It should be in <HOST:URL> format.");

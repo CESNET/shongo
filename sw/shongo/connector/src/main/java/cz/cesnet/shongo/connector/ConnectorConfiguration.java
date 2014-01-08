@@ -11,7 +11,7 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Configuration extends CombinedConfiguration
+public class ConnectorConfiguration extends CombinedConfiguration
 {
     /**
      * Configuration parameters names.
@@ -25,7 +25,7 @@ public class Configuration extends CombinedConfiguration
     /**
      * Constructor.
      */
-    public Configuration()
+    public ConnectorConfiguration()
     {
         NodeCombiner nodeCombiner = new UnionCombiner();
         nodeCombiner.addListNode("instance");
