@@ -264,6 +264,14 @@ public class ControllerConfiguration extends CombinedConfiguration
 
 
     /**
+     * @return timeout to receive response when performing commands from agent
+     */
+    public Duration getJadeCommandTimeout()
+    {
+        return getDuration("jade.command-timeout");
+    }
+
+    /**
      * @param reservationRequestId
      * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL} for given {@code reservationRequestId}
      */
