@@ -34,6 +34,8 @@
 <c:set var="tableEmptyRow">
     <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
 </c:set>
+<spring:message code="views.userRoleList.group" var="groupTitle"/>
+<spring:message code="views.userRoleList.user" var="userTitle"/>
 
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
@@ -52,6 +54,7 @@
    }
 </script>
 
+<div class="tagUserRoleList">
 <c:choose>
     <%-- Static list of user roles --%>
     <c:when test="${data != null}">
@@ -66,9 +69,13 @@
                     <td>
                         <c:choose>
                             <c:when test="${userRole.identityType == 'GROUP'}">
+                                <b class="icon-group" title="${groupTitle}"></b>
                                 <tag:help label="${userRole.identityName}" content="formatGroup('${userRole.identityPrincipalId}', event)"/>
                             </c:when>
-                            <c:otherwise>${userRole.identityName}</c:otherwise>
+                            <c:otherwise>
+                                <b class="icon-user" title="${userTitle}"></b>
+                                ${userRole.identityName}
+                            </c:otherwise>
                         </c:choose>
                         <c:choose>
                             <c:when test="${userRole.identityType == 'USER'}">
@@ -125,9 +132,13 @@
                 <tr ng-repeat="userRole in items" class="user-role" ng-controller="UserRoleController">
                     <td>
                         <span ng-show="userRole.identityType == 'GROUP'">
+                            <b class="icon-group" title="${groupTitle}"></b>
                             <tag:help label="{{userRole.identityName}}" content="formatGroup(userRole.identityPrincipalId, event)"/>
                         </span>
-                        <span ng-hide="userRole.identityType == 'GROUP'">{{userRole.identityName}}</span>
+                        <span ng-hide="userRole.identityType == 'GROUP'">
+                            <b class="icon-user" title="${userTitle}"></b>
+                            {{userRole.identityName}}
+                        </span>
                         ({{userRole.identityDescription}})
                     </td>
                     <td>{{userRole.role}}</td>
@@ -166,5 +177,7 @@
         has been specified.
     </c:otherwise>
 </c:choose>
+
+</div>
 
 

@@ -725,6 +725,12 @@ div.not-available {
     margin-top: 5px;
 }
 
+/* tags/userRoleList.tag */
+.tagUserRoleList .icon-user {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
 /* vies/error.jsp */
 .jspError pre {
     margin: 10px;

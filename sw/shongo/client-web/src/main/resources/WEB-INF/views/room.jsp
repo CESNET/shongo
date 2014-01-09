@@ -222,12 +222,18 @@
         <c:if test="${not empty userRoles}">
             <dt><spring:message code="views.reservationRequest.userRoles"/>:</dt>
             <dd>
+                <spring:message code="views.userRoleList.group" var="groupTitle"/>
+                <spring:message code="views.userRoleList.user" var="userTitle"/>
                 <c:forEach items="${userRoles}" var="userRole" varStatus="status">
                     <c:choose>
                         <c:when test="${userRole.identityType == 'GROUP'}">
+                            <b class="icon-group" title="${groupTitle}"></b>
                             <tag:help label="${userRole.identityName}" content="formatGroup('${userRole.identityPrincipalId}', event)"/>
                         </c:when>
-                        <c:otherwise>${userRole.identityName}</c:otherwise>
+                        <c:otherwise>
+                            <b class="icon-user" title="${userTitle}"></b>
+                            ${userRole.identityName}
+                        </c:otherwise>
                     </c:choose>
                     (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
                 </c:forEach>
