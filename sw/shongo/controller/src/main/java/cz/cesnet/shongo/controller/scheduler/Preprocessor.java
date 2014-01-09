@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.*;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -207,14 +209,19 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
             }
 
             // All child reservation requests that remains in list must be deleted
+            List<Reservation> detachedReservations = new LinkedList<Reservation>();
             for (ReservationRequest reservationRequest : childReservationRequests) {
                 // Remove child reservation request from allocation
                 allocation.removeChildReservationRequest(reservationRequest);
 
                 // Delete child reservation request and all it's ACL entries
-                reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
+                detachedReservations.addAll(
+                        reservationRequestManager.hardDelete(reservationRequest, authorizationManager));
 
                 result.deletedReservationRequests++;
+            }
+            for (Reservation reservation : detachedReservations) {
+                allocation.addReservation(reservation);
             }
 
             // Update reservation request

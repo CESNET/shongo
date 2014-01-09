@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -325,6 +326,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
     @Test
     public void testPeriodic() throws Exception
     {
+        ReservationService reservationService = getReservationService();
+
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
@@ -337,16 +340,27 @@ public class ReservationNotificationTest extends AbstractControllerTest
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("Alias Reservation Request");
         reservationRequest.addSlot("2012-01-01T12:00", "P1D");
+        reservationRequest.addSlot("2012-01-30T12:00", "P1D");
         reservationRequest.addSlot("2012-02-01T12:00", "P1D");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
-        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String reservationRequestId = reservationService.createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
 
         // 1x system-admin: allocation-failed
-        // 1x resource-admin: new
+        // 2x resource-admin: new
+        // 1x user: changes (allocation-failed, new, new)
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount());
+
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
+        reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
+        reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
+
+        // 1x system-admin: allocation-failed
+        // 3x resource-admin: deleted, deleted, new
         // 1x user: changes (allocation-failed, new)
-        Assert.assertEquals(3, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(9, notificationExecutor.getNotificationCount());
     }
 
     /**

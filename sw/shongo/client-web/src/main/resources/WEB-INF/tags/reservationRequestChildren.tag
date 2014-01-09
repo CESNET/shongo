@@ -85,7 +85,7 @@
                         <c:set var="executableAliases">
                             <span ng-bind-html="html(childReservationRequest.roomAliases)"></span>
                         </c:set>
-                        <tag:help label="${executableAliases}">
+                        <tag:help label="${executableAliases}" selectable="true">
                             <span ng-bind-html="html(childReservationRequest.roomAliasesDescription)"></span>
                         </tag:help>
                     </div>
