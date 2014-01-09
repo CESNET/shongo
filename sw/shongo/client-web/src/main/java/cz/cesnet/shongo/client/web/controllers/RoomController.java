@@ -357,7 +357,7 @@ public class RoomController
             String errorCode = "views.room.recording.error.startingFailed";
             if (result instanceof ExecutionReport) {
                 ExecutionReport executionReport = (ExecutionReport) result;
-                logger.warn("Stop recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
+                logger.warn("Start recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
 
                 // Detect further error
                 Map<String, Object> report = executionReport.getLastReport();
