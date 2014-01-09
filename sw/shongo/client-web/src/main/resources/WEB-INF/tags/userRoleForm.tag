@@ -74,6 +74,7 @@
             var identityListUrl;
             var identityUrl;
             var identityField;
+            var minimumInputLength;
             switch ($scope.identityType) {
                 case "USER":
                     placeholder = "<spring:message code="views.select.user"/>";
@@ -91,6 +92,7 @@
                     identityListUrl = "${userListUrl}";
                     identityUrl = "${userListUrl}?userId=";
                     identityField = "userId";
+                    minimumInputLength = 2;
                     break;
                 case "GROUP":
                     placeholder = "<spring:message code="views.select.group"/>";
@@ -100,12 +102,13 @@
                     identityListUrl = "${groupListUrl}";
                     identityUrl = "${groupListUrl}?groupId=";
                     identityField = "id";
+                    minimumInputLength = 0;
                     break;
             }
             $("#identityPrincipalId").select2({
                 placeholder: placeholder,
                 width: 'resolve',
-                minimumInputLength: 2,
+                minimumInputLength: minimumInputLength,
                 ajax: {
                     url: identityListUrl,
                     dataType: 'json',

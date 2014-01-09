@@ -14,6 +14,10 @@
 
 <script type="text/javascript">
     angular.module('jsp:userSettings', ['ngTooltip']);
+
+    $(function(){
+        $("#homeTimeZone,#currentTimeZone").select2();
+    });
 </script>
 
 <c:set var="currentTimeZone" value="${userSettings.currentTimeZone}"/>
@@ -108,7 +112,8 @@
             </form:label>
             <div class="controls">
                 <form:checkbox id="currentTimeZoneEnabled" path="currentTimeZoneEnabled" tabindex="${tabIndex}" ng-model="currentTimeZoneEnabled"/>&nbsp;
-                <form:select path="currentTimeZone" cssStyle="width: 340px;" tabindex="${tabIndex}" ng-disabled="!currentTimeZoneEnabled" ng-model="currentTimeZone">
+                <form:select path="currentTimeZone" cssStyle="width: 340px;" tabindex="${tabIndex}"
+                             ng-disabled="!currentTimeZoneEnabled" ng-model="currentTimeZone">
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                     </c:forEach>
@@ -117,27 +122,27 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="advancedUserInterface">
+            <form:label class="control-label" path="advancedUserInterface" for="advancedUserInterface">
                 <spring:message code="views.userSettings.advancedUserInterface" var="advancedUserInterfaceLabel"/>
                 <tag:help label="${advancedUserInterfaceLabel}:">
                     <spring:message code="views.userSettings.advancedUserInterface.help"/>
                 </tag:help>
             </form:label>
             <div class="controls">
-                <form:checkbox path="advancedUserInterface" tabindex="${tabIndex}"/>&nbsp;
+                <form:checkbox id="advancedUserInterface" path="advancedUserInterface" tabindex="${tabIndex}"/>&nbsp;
             </div>
         </div>
 
         <security:authorize access="hasPermission(ADMINISTRATION)">
             <div class="control-group">
-                <form:label class="control-label" path="administratorMode">
+                <form:label class="control-label" path="administratorMode" for="administratorMode">
                     <spring:message code="views.userSettings.administratorMode" var="adminModeLabel"/>
                     <tag:help label="${adminModeLabel}:">
                         <spring:message code="views.userSettings.administratorMode.help"/>
                     </tag:help>
                 </form:label>
                 <div class="controls">
-                    <form:checkbox path="administratorMode" tabindex="${tabIndex}"/>&nbsp;
+                    <form:checkbox id="administratorMode" path="administratorMode" tabindex="${tabIndex}"/>&nbsp;
                 </div>
             </div>
         </security:authorize>
