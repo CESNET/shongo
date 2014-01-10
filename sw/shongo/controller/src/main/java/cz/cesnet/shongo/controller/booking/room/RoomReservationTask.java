@@ -275,6 +275,20 @@ public class RoomReservationTask extends ReservationTask
         for (RoomProviderCapability roomProviderCapability : roomProviderCapabilities) {
             DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
 
+            // Check technology
+            List<Set<Technology>> technologyVariants = new LinkedList<Set<Technology>>(this.technologyVariants);
+            if (technologyVariants.size() == 0) {
+                technologyVariants.add(deviceResource.getTechnologies());
+            }
+            for (Iterator<Set<Technology>> iterator  = technologyVariants.iterator(); iterator.hasNext(); ) {
+                if (!deviceResource.hasTechnologies(iterator.next())) {
+                    iterator.remove();
+                }
+            }
+            if (technologyVariants.size() == 0) {
+                continue;
+            }
+
             // Check whether room provider can be allocated
             try {
                 getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
@@ -284,10 +298,6 @@ public class RoomReservationTask extends ReservationTask
                 continue;
             }
 
-            List<Set<Technology>> technologyVariants = this.technologyVariants;
-            if (technologyVariants.size() == 0) {
-                technologyVariants.add(deviceResource.getTechnologies());
-            }
             // Add matching technology variants
             RoomProvider roomProvider = null;
             for (Set<Technology> technologies : technologyVariants) {

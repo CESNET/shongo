@@ -13,7 +13,7 @@
 <c:url var="webServiceUrl" value="https://einfra.cesnet.cz/"/>
 
 <script type="text/javascript">
-    angular.module('jsp:userSettings', ['ngTooltip']);
+    var module = angular.module('jsp:userSettings', ['ngApplication', 'ngTooltip']);
 
     $(function(){
         $("#homeTimeZone,#currentTimeZone").select2();

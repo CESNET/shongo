@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -50,6 +51,9 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         this.adminReport = reservationRequest.getAllocationStateReport(Report.UserType.DOMAIN_ADMIN);
         for (PersonInformation administrator : configuration.getAdministrators()) {
             addRecipient(administrator, true);
+        }
+        for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER)) {
+            addReplyTo(authorizationManager.getUserInformation(userId));
         }
     }
 

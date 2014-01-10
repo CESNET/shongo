@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <script type="text/javascript">
-    angular.module('jsp:userRoleList', ['ngTooltip', 'ngPagination']);
+    var module = angular.module('jsp:userRoleList', ['ngApplication', 'ngTooltip', 'ngPagination']);
 </script>
 
 <h1>

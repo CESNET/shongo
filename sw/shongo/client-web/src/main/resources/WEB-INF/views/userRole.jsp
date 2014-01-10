@@ -10,7 +10,7 @@
 <c:set var="objectType"><%= ObjectType.RESERVATION_REQUEST %></c:set>
 
 <script type="text/javascript">
-    angular.module('jsp:userRole', ['tag:userRoleForm']);
+    var module = angular.module('jsp:userRole', ['ngApplication', 'tag:userRoleForm']);
 </script>
 
 <div ng-app="jsp:userRole">

@@ -14,9 +14,8 @@
 </tag:url>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:roomList', ['ngPagination', 'ngTooltip', 'ngSanitize']);
-
-    function RoomController($scope, $resource) {
+    var module = angular.module('jsp:roomList', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngSanitize']);
+    module.controller("RoomController", function ($scope, $resource) {
         $scope.toggleRoom = function (room) {
             room.showUsages = !room.showUsages;
             if (room.showUsages && room.usages == null) {
@@ -28,7 +27,7 @@
                 });
             }
         }
-    }
+    });
 </script>
 
 <div ng-app="jsp:roomList">

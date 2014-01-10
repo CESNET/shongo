@@ -11,7 +11,7 @@
 </tag:url>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestParticipant', ['tag:participantForm']);
+    var module = angular.module('jsp:reservationRequestParticipant', ['ngApplication', 'tag:participantForm']);
 </script>
 
 <div ng-app="jsp:reservationRequestParticipant">

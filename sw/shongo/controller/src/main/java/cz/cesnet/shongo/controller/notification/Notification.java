@@ -39,4 +39,9 @@ public interface Notification
      * @return {@link NotificationMessage} for given {@code recipient}
      */
     public NotificationMessage getRecipientMessage(PersonInformation recipient);
+
+    /**
+     * @return collection of reply-to who should be contacted when replying to this {@link Notification}
+     */
+    public Collection<PersonInformation> getReplyTo();
 }

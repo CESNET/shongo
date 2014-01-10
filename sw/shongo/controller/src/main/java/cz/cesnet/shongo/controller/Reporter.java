@@ -250,7 +250,7 @@ public class Reporter
 
         // Send error email to administrators
         try {
-            emailSender.sendEmail(recipients, title, content);
+            emailSender.sendEmail(recipients, null, title, content);
         }
         catch (MessagingException messagingException) {
             logger.error("Failed sending report email.", messagingException);

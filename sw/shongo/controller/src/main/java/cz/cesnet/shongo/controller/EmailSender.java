@@ -93,11 +93,11 @@ public class EmailSender
      * @param content
      * @throws MessagingException
      */
-    public void sendEmail(String recipient, String subject, String content) throws MessagingException
+    public void sendEmail(String recipient, Collection<String> replyTo, String subject, String content) throws MessagingException
     {
         List<String> recipients = new LinkedList<String>();
         recipients.add(recipient);
-        sendEmail(recipients, subject, content);
+        sendEmail(recipients, replyTo, subject, content);
     }
 
     /**
@@ -108,7 +108,8 @@ public class EmailSender
      * @param content
      * @throws MessagingException
      */
-    public void sendEmail(Collection<String> recipients, String subject, String content) throws MessagingException
+    public void sendEmail(Collection<String> recipients, Collection<String> replyTo, String subject, String content)
+            throws MessagingException
     {
         if (session == null) {
             throw new IllegalStateException("Email sender is not initialized.");
@@ -129,7 +130,7 @@ public class EmailSender
         multipart.addBodyPart(textPart);
         multipart.addBodyPart(htmlPart);
 
-        sendEmail(recipients, subject, multipart);
+        sendEmail(recipients, replyTo, subject, multipart);
     }
 
     /**
@@ -140,7 +141,8 @@ public class EmailSender
      * @param content
      * @throws MessagingException
      */
-    public void sendEmail(Collection<String> recipients, String subject, Multipart content) throws MessagingException
+    public void sendEmail(Collection<String> recipients, Collection<String> replyTo, String subject, Multipart content)
+            throws MessagingException
     {
         if (session == null) {
             return;
@@ -149,6 +151,13 @@ public class EmailSender
         message.setFrom(new InternetAddress(sender));
         for (String recipient : recipients) {
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+        }
+        if (replyTo != null && replyTo.size() > 0) {
+            List<Address> replyToAddresses = new LinkedList<Address>();
+            for (String replyToAddress : replyTo) {
+                replyToAddresses.add(new InternetAddress(replyToAddress));
+            }
+            message.setReplyTo(replyToAddresses.toArray(new Address[replyToAddresses.size()]));
         }
         message.setSubject(subjectPrefix + subject);
         message.setContent(content);

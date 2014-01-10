@@ -34,7 +34,7 @@
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestList', ['tag:reservationRequestList', 'ngTooltip', 'ngCookies', 'ngSanitize']);
+    var module = angular.module('jsp:reservationRequestList', ['ngApplication', 'tag:reservationRequestList', 'ngTooltip', 'ngCookies', 'ngSanitize']);
 </script>
 
 <div ng-app="jsp:reservationRequestList" ng-controller="ReadyController">

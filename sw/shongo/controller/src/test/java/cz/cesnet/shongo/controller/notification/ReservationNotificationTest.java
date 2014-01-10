@@ -386,8 +386,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         {
             for (PersonInformation recipient : notification.getRecipients()) {
                 NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
-                logger.debug("Notification for {}...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
-                        recipient, recipientMessage.getTitle(), recipientMessage.getContent()
+                logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
+                        recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
                 });
             }
             notificationCount++;

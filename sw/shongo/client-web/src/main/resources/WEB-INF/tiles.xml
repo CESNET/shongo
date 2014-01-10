@@ -20,7 +20,6 @@
             <add-attribute value="jquery.min.js"/>
             <add-attribute value="jquery-qtip.min.js"/>
             <add-attribute value="bootstrap.min.js"/>
-            <add-attribute value="application.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n">
         </put-list-attribute>
@@ -29,6 +28,7 @@
     <definition name="layoutAngular" extends="layout">
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-application.js"/>
             <add-attribute value="angular-cookies.min.js"/>
             <add-attribute value="angular-datetime.js"/>
             <add-attribute value="angular-extension.js"/>

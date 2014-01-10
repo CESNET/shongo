@@ -37,7 +37,7 @@
 </c:if>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestDetail', ['tag:expandableBlock', 'tag:reservationRequestDetail', 'ngPagination']);
+    var module = angular.module('jsp:reservationRequestDetail', ['ngApplication', 'tag:expandableBlock', 'tag:reservationRequestDetail', 'ngPagination']);
 </script>
 
 <%-- Page title --%>

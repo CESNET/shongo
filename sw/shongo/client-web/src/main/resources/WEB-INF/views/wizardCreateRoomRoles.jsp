@@ -11,7 +11,7 @@
 <tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_DELETE %>"/>
 
 <script type="text/javascript">
-    angular.module('jsp:wizardCreateRoomRoles', ['ngTooltip']);
+    var module = angular.module('jsp:wizardCreateRoomRoles', ['ngApplication', 'ngTooltip']);
 </script>
 
 <div ng-app="jsp:wizardCreateRoomRoles">

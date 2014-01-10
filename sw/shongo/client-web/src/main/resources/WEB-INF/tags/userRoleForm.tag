@@ -24,9 +24,8 @@
 </c:if>
 
 <script type="text/javascript">
-    angular.module('tag:userRoleForm', ['ngTooltip']);
-
-    function UserRoleFormController($scope, $timeout) {
+    var module = angular.module('tag:userRoleForm', ['ngTooltip']);
+    module.controller("UserRoleFormController", function($scope, $application, $timeout) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
@@ -55,9 +54,9 @@
                     dataType: "json"
                 }).done(function (data) {
                     $timeout(function(){
-                        $scope.groupDescription = formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>", 5);
+                        $scope.groupDescription = $application.formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>", 5);
                     }, 0);
-                });
+                }).fail($application.handleAjaxFailure);
             }
             else {
                 $scope.identityPrincipalId = null;
@@ -124,6 +123,9 @@
                             results.push({id: dataItem[identityField], text: formatIdentity(dataItem)});
                         }
                         return {results: results};
+                    },
+                    transport: function (options) {
+                        return $.ajax(options).fail($application.handleAjaxFailure);
                     }
                 },
                 escapeMarkup: function (markup) { return markup; },
@@ -134,13 +136,13 @@
                         dataType: "json"
                     }).done(function (data) {
                         callback({id: id, text: formatIdentity(data[0])});
-                    });
+                    }).fail($application.handleAjaxFailure);
                 }
             });
             $("#identityPrincipalId").off("change", $scope.refreshGroupDescription);
             $("#identityPrincipalId").on("change", $scope.refreshGroupDescription);
         };
-    }
+    });
 </script>
 
 <form:form class="form-horizontal"

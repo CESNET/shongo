@@ -19,8 +19,8 @@
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:room', ['jsp:roomParticipantDialog', 'ngTooltip', 'ngPagination']);
-    module.controller('RoomController', function($scope) {
+    var module = angular.module('jsp:room', ['ngApplication', 'jsp:roomParticipantDialog', 'ngTooltip', 'ngPagination']);
+    module.controller('RoomController', function($scope, $application) {
         <c:if test="${roomRuntime != null}">
             $scope.layout = "${roomRuntime.layout != null ? roomRuntime.layout : 'OTHER'}";
             <tag:url var="modifyRoomUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT_MODIFY %>">
@@ -41,10 +41,10 @@
             $.ajax("${userListUrl}?groupId=" + groupId, {
                 dataType: "json"
             }).done(function (data) {
-                        content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
-                        content += formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
-                        event.setResult(content);
-                    });
+                content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
+                content += $application.formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
+                event.setResult(content);
+            }).fail($application.handleAjaxFailure);
             return "<spring:message code="views.loading"/>";
         };
     });

@@ -1,18 +1,17 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import com.google.common.base.Strings;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.controllers.UserController;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -28,7 +27,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -68,7 +68,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     /**
      * Constructor.
      *
-     * @param configuration sets the {@link #configuration}
+     * @param configuration        sets the {@link #configuration}
      * @param authorizationService sets the {@link #authorizationService}
      */
     protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration,
@@ -77,6 +77,29 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         super(ClientWebUrl.LOGIN);
         this.configuration = configuration;
         this.authorizationService = authorizationService;
+    }
+
+    /**
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+    private boolean isAjaxRequest(HttpServletRequest request, HttpServletResponse response)
+    {
+        HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
+        SavedRequest savedRequest = httpSessionRequestCache.getRequest(request, response);
+        if (savedRequest != null) {
+            List<String> ajaxHeaderValues = savedRequest.getHeaderValues("x-requested-with");
+            for (String value : ajaxHeaderValues) {
+                if (StringUtils.equalsIgnoreCase("XMLHttpRequest", value)) {
+                    // Remove ajax request from cache
+                    httpSessionRequestCache.removeRequest(request, response);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -111,8 +134,11 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             return null;
         }
         else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
-            Authentication authentication = handleAuthorizationCodeResponse(request, response);
-            return authentication;
+            return handleAuthorizationCodeResponse(request, response);
+        }
+        else if (isAjaxRequest(request, response)) {
+            response.setStatus(HttpStatus.SC_UNAUTHORIZED);
+            return null;
         }
         else {
             handleAuthorizationRequest(request, response);
@@ -220,14 +246,14 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
 
         OpenIDConnectAuthenticationToken authenticationToken = new OpenIDConnectAuthenticationToken(accessToken);
         AuthenticationManager authenticationManager = this.getAuthenticationManager();
-        Authentication authentication =  authenticationManager.authenticate(authenticationToken);
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
         SecurityToken securityToken = authenticationToken.getSecurityToken();
         UserSettingsModel userSettings;
         try {
             userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
         }
         catch (ControllerConnectException exception) {
-                throw new AuthenticationServiceException("Cannot load user settings.", exception);
+            throw new AuthenticationServiceException("Cannot load user settings.", exception);
         }
         UserSession userSession = UserSession.getInstance(request);
         userSession.loadUserSettings(userSettings, request, securityToken);

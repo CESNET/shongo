@@ -12,7 +12,7 @@
 <tag:url var="cancelUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestUpdate', ['tag:reservationRequestForm']);
+    var module = angular.module('jsp:reservationRequestUpdate', ['ngApplication', 'tag:reservationRequestForm']);
 
     /**
      * Store reservation request form and redirect to given {@code url}.

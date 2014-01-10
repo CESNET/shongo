@@ -4,9 +4,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO:
@@ -55,7 +53,7 @@ public class Synchronization
         for (T existingObject : objects) {
             existingObjects.put(existingObject.getId(), existingObject);
         }
-        objects.clear();
+        List<T> newObjects = new LinkedList<T>();
         for (A apiObject : apiObjects) {
             T object = null;
             if (apiObject.hasId()) {
@@ -69,7 +67,11 @@ public class Synchronization
             if (object == null) {
                 object = handler.createFromApi(apiObject);
             }
-            handler.addToCollection(objects, object);
+            newObjects.add(object);
+        }
+        objects.clear();
+        for (T newObject : newObjects) {
+            handler.addToCollection(objects, newObject);
         }
         return true;
     }
@@ -77,6 +79,9 @@ public class Synchronization
     public static <T extends SimplePersistentObject>
     boolean synchronizeCollectionPartial(Collection<T> objects, Collection<Object> apiObjects, Handler<T, Object> handler)
     {
+        if (apiObjects == null) {
+            return false;
+        }
         Map<Long, T> existingObjects = new HashMap<Long, T>();
         for (T existingObject : objects) {
             existingObjects.put(existingObject.getId(), existingObject);

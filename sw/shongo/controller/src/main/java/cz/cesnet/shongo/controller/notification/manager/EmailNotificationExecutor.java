@@ -9,7 +9,12 @@ import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.Address;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +55,13 @@ public class EmailNotificationExecutor extends NotificationExecutor
         if (!emailSender.isInitialized()) {
             return;
         }
+        List<String> replyTo = new LinkedList<String>();
+        for (PersonInformation replyToPerson : notification.getReplyTo()) {
+            String email = replyToPerson.getPrimaryEmail();
+            if (email != null) {
+                replyTo.add(email);
+            }
+        }
         for (PersonInformation recipient : notification.getRecipients()) {
             NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
             String recipientEmail = recipient.getPrimaryEmail();
@@ -89,7 +101,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 emailContent.append(recipientMessage.getContent());
 
                 // Send email
-                emailSender.sendEmail(recipientEmail, recipientMessage.getTitle(), emailContent.toString());
+                emailSender.sendEmail(recipientEmail, replyTo, recipientMessage.getTitle(), emailContent.toString());
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);

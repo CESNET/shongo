@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <script type="text/javascript">
-    angular.module('jsp:roomParticipantList', ['ngTooltip']);
+    var module = angular.module('jsp:roomParticipantList', ['ngApplication', 'ngTooltip']);
 </script>
 
 <h1>

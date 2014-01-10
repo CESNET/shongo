@@ -35,7 +35,7 @@ paginationModule.controller('ReadyController', function ($scope) {
  * $scope.ready        - can be used to determine whether data can be shown
  * $scope.errorContent - can be used to show an error
  */
-paginationModule.controller('PaginationController', function ($scope, $element, $resource, $window, $cookieStore) {
+paginationModule.controller('PaginationController', function ($scope, $application, $element, $resource, $window, $cookieStore) {
     // Resource used for fetching items
     $scope.resource = null;
     // Current page index
@@ -314,7 +314,12 @@ paginationModule.controller('PaginationController', function ($scope, $element, 
         }
 
         $scope.setReady(false);
-        return $scope.resource.list(listParameters, callback, function(response){
+        return $scope.resource.list(listParameters, function(response) {
+            callback(response);
+        }, function(response){
+            if ($application.handleAjaxFailure(response)) {
+                return;
+            }
             $scope.setError(response);
         });
     };

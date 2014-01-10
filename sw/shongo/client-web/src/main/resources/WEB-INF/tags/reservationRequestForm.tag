@@ -18,9 +18,8 @@
 <c:set var="tabIndex" value="1"/>
 
 <script type="text/javascript">
-    angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
-
-    function ReservationRequestFormController($scope) {
+    var module = angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
+    module.controller("ReservationRequestFormController", function($scope) {
         // Setup child scope
         if ( $scope.$parent != null ) {
             $scope.$parent.$child = $scope;
@@ -121,7 +120,7 @@
         // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
     </c:if>
-    }
+    });
 </script>
 
 <form:form class="form-horizontal"

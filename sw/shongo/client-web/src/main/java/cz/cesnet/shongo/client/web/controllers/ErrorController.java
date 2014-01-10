@@ -225,9 +225,10 @@ public class ErrorController
      */
     private boolean sendReport(ReportModel reportModel, HttpServletRequest request)
     {
+        String emailReplyTo = reportModel.getEmail();
         String emailSubject = reportModel.getEmailSubject();
         String emailContent = reportModel.getEmailContent(request);
-        return sendEmailToAdministrator(emailSubject, emailContent, configuration);
+        return sendEmailToAdministrator(emailReplyTo, emailSubject, emailContent, configuration);
     }
 
     /**
@@ -243,17 +244,19 @@ public class ErrorController
     public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration,
             ReCaptcha reCaptcha, CommonService commonService)
     {
+        ReportModel reportModel = new ReportModel(errorModel, reCaptcha, commonService);
+        String emailReplyTo = reportModel.getEmail();
         String emailSubject = errorModel.getEmailSubject();
         logger.error(emailSubject, errorModel.getThrowable());
-        sendEmailToAdministrator(emailSubject, errorModel.getEmailContent(), configuration);
+        sendEmailToAdministrator(emailReplyTo, emailSubject, errorModel.getEmailContent(), configuration);
 
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", new ReportModel(errorModel, reCaptcha, commonService));
+        modelAndView.addObject("report", reportModel);
         return modelAndView;
     }
 
-    private static boolean sendEmailToAdministrator(String subject, String content, ClientWebConfiguration configuration)
+    private static boolean sendEmailToAdministrator(String replyTo, String subject, String content, ClientWebConfiguration configuration)
     {
         Collection<String> administratorEmails = configuration.getAdministratorEmails();
         if (administratorEmails.size() == 0) {
@@ -303,6 +306,9 @@ public class ErrorController
 
             MimeMessage mimeMessage = new MimeMessage(session);
             mimeMessage.setFrom(new InternetAddress(sender));
+            if (replyTo != null) {
+                mimeMessage.setReplyTo(new Address[]{new InternetAddress(replyTo)});
+            }
             for (String administratorEmail : administratorEmails) {
                 mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
             }

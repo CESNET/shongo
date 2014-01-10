@@ -39,6 +39,11 @@ public abstract class AbstractNotification implements Notification
      */
     private Set<PersonInformation> recipients = new HashSet<PersonInformation>();
 
+    /**
+     * List of reply-to {@link PersonInformation}s.
+     */
+    private Set<PersonInformation> replyTo = new HashSet<PersonInformation>();
+
     @Override
     public boolean addRecipient(PersonInformation recipient)
     {
@@ -77,6 +82,20 @@ public abstract class AbstractNotification implements Notification
     public final NotificationMessage getRecipientMessage(PersonInformation recipient)
     {
         return renderMessageForRecipient(recipient);
+    }
+
+    /**
+     * @param replyTo to be added to the {@link #replyTo}
+     */
+    public boolean addReplyTo(PersonInformation replyTo)
+    {
+        return this.replyTo.add(replyTo);
+    }
+
+    @Override
+    public Collection<PersonInformation> getReplyTo()
+    {
+        return replyTo;
     }
 
     /**

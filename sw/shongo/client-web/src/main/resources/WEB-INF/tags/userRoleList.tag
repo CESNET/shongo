@@ -40,15 +40,15 @@
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
-   function UserRoleController($scope){
+   function UserRoleController($scope, $application){
        $scope.formatGroup = function(groupId, event) {
            $.ajax("${userListUrl}?groupId=" + groupId, {
                dataType: "json"
            }).done(function (data) {
                 content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
-                content += formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
+                content += $application.formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
                 event.setResult(content);
-            });
+            }).fail($application.handleAjaxFailure);
            return "<spring:message code="views.loading"/>";
        };
    }

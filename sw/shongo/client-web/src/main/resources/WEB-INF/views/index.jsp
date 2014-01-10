@@ -70,18 +70,16 @@
     <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
     <script type="text/javascript">
-        var module = angular.module('jsp:indexDashboard', ['ui.bootstrap', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
-
-        function TabController($scope, $element) {
+        var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
+        module.controller("TabController", function($scope, $element) {
             $scope.$watch("active", function(active) {
                 if (active) {
                     var refreshEvent = 'refresh-' + $element.attr('id');
                     $scope.$parent.$broadcast(refreshEvent);
                 }
             });
-        }
-
-        function PermanentRoomCapacitiesController($scope, $resource) {
+        });
+        module.controller("PermanentRoomCapacitiesController", function($scope, $resource) {
             $scope.items = null;
             if ($scope.reservationRequest.type != 'PERMANENT_ROOM') {
                 return;
@@ -96,9 +94,8 @@
                 $scope.count = result.count;
                 $scope.items = result.items;
             });
-        }
-
-        function ParticipantRoomController($scope, $resource, $timeout) {
+        });
+        module.controller("ParticipantRoomController", function($scope, $resource, $timeout) {
             $scope.content = null;
             $scope.show = function(event, executableId){
                 var element = $(event.target);
@@ -107,7 +104,6 @@
                         get: {method: 'GET'}
                     });
                     resource.get({'roomId': executableId}, function (result) {
-                        console.debug("Fetched", result);
                         $scope.content = result.aliases;
                         $scope.showTooltip(element, $scope.content);
                     });
@@ -136,7 +132,7 @@
                     }
                 });
             };
-        }
+        });
     </script>
 
     <div ng-app="jsp:indexDashboard">

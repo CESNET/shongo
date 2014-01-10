@@ -26,7 +26,7 @@
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestDetail', ['ngTooltip', 'ngResource', 'ngSanitize']);
 
-    function DynamicStateController($scope, $resource, $sce, $timeout) {
+    function DynamicStateController($scope, $application, $resource, $sce, $timeout) {
         // Setup child scope
         if ( $scope.$parent != null ) {
             $scope.$parent.$child = $scope;
@@ -144,10 +144,10 @@
             $.ajax("${userListUrl}?groupId=" + groupId, {
                 dataType: "json"
             }).done(function (data) {
-                        content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
-                        content += formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
-                        event.setResult(content);
-                    });
+                content = "<b><spring:message code="views.userRole.groupMembers"/>:</b><br/>";
+                content += $application.formatUsers(data, "<spring:message code="views.userRole.groupMembers.none"/>");
+                event.setResult(content);
+            }).fail($application.handleAjaxFailure);
             return "<spring:message code="views.loading"/>";
         };
     }

@@ -31,9 +31,9 @@
 </c:if>
 
 <script type="text/javascript">
-    angular.module('tag:participantForm', ['ngTooltip']);
+    var module = angular.module('tag:participantForm', ['ngTooltip']);
 
-    function ParticipantFormController($scope) {
+    module.controller("ParticipantFormController", function($scope) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
@@ -41,19 +41,20 @@
 
         // Get dynamic participant attributes
         $scope.type = $scope.value('${participant.type}', null);
-    }
+    });
 
-    window.formatUser = function(user) {
-        var text = user.firstName;
-        if ( user.lastName != null ) {
-            text += " " + user.lastName;
-        }
-        if ( user.organization != null ) {
-            text += " (" + user.organization + ")";
-        }
-        return text;
-    };
     $(function () {
+        var formatUser = function(user) {
+            var text = "<b>" + user.firstName;
+            if ( user.lastName != null ) {
+                text += " " + user.lastName;
+            }
+            text += "</b>";
+            if ( user.organization != null ) {
+                text += " (" + user.organization + ")";
+            }
+            return text;
+        };
         $("#userId").select2({
             placeholder: "<spring:message code="views.select.user"/>",
             width: 'resolve',
@@ -70,19 +71,23 @@
                     var results = [];
                     for (var index = 0; index < data.length; index++) {
                         var dataItem = data[index];
-                        results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
+                        results.push({id: dataItem.userId, text: formatUser(dataItem)});
                     }
                     return {results: results};
+                },
+                transport: function (options) {
+                    return $.ajax(options).fail($application.handleAjaxFailure);
                 }
             },
+            escapeMarkup: function (markup) { return markup; },
             initSelection: function (element, callback) {
                 var id = $(element).val();
                 callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
                 $.ajax("${userListUrl}?userId=" + id, {
                     dataType: "json"
                 }).done(function (data) {
-                    callback({id: id, text: window.formatUser(data[0])});
-                });
+                    callback({id: id, text: formatUser(data[0])});
+                }).fail($application.handleAjaxFailure);
             }
         });
     });
