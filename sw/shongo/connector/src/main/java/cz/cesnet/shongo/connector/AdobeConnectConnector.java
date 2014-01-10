@@ -734,6 +734,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Move recording
         moveRecording(recordingId,recordingFolderId);
+        cachedMovedRecordings.add(recordingId);
     }
 
     @Override
@@ -742,14 +743,17 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         deleteSCO(recordingId);
     }
 
-    private void moveRecording(String recordingId, String recordingFolderId) throws CommandException
+    private synchronized void moveRecording(String recordingId, String recordingFolderId) throws CommandException
     {
+        if (isRecordingStored(recordingId,recordingFolderId)) {
+            return;
+        }
+
         RequestAttributeList moveAttributes = new RequestAttributeList();
         moveAttributes.add("sco-id", recordingId);
         moveAttributes.add("folder-id", recordingFolderId);
 
         request("sco-move", moveAttributes);
-        //TODO: vyresit opravneni
     }
 
     /**
@@ -757,14 +761,19 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     private List<String> cachedMovedRecordings = new ArrayList<String>();
 
+    public boolean isRecordingStored(String recordingId) throws CommandException
+    {
+        return isRecordingStored(recordingId, null);
+    }
+
     /**
-     * Check if recording is stored in folder, or still in room. Logs warning, if recording is stored in another folder, then it is supposed to.
+     * Check if recording is stored in dedicated folder (given or system if null), or still in room. Logs warning, if recording is stored in another folder, then it is supposed to.
      *
      * @param recordingId
      * @return
      * @throws CommandException
      */
-    public boolean isRecordingStored(String recordingId) throws CommandException
+    public boolean isRecordingStored(String recordingId, String recordingFolderId) throws CommandException
     {
         if (cachedMovedRecordings.contains(recordingId)) {
             return true;
@@ -772,6 +781,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         Element recording = getScoInfo(recordingId);
         String folderId = recording.getAttributeValue("folder-id");
+
+        if (folderId.equals(recordingFolderId)) {
+            return true;
+        } else if (recordingFolderId != null) {
+            return false;
+        }
+
 
         RequestAttributeList recFoldersAttributes = new RequestAttributeList();
         recFoldersAttributes.add("sco-id", getRecordingsFolderID());
@@ -1925,7 +1941,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             String recordingId = recording.getAttributeValue("sco-id");
             String folderId = getScoInfo(recordingId).getAttributeValue("folder-id");
 
-            // If recording is not for shongo room
+            // Get all shongo meetings
             RequestAttributeList attributes = new RequestAttributeList();
             attributes.add("sco-id",getMeetingsFolderID());
             attributes.add("type", "meeting");
