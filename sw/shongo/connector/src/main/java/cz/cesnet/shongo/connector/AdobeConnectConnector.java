@@ -753,6 +753,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         moveAttributes.add("sco-id", recordingId);
         moveAttributes.add("folder-id", recordingFolderId);
 
+        logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
         request("sco-move", moveAttributes);
     }
 
@@ -1765,7 +1766,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setCapacityChecking(true);
-                logger.debug("Checking of rooms capacity is starting.");
+                logger.debug("Checking of rooms capacity - starting...");
 
                 while (isConnected()) {
                     try {
@@ -1793,7 +1794,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setRecordingChecking(true);
-                logger.debug("Checking of recordings is starting.");
+                logger.debug("Checking of recordings - starting...");
 
                 while (isConnected()) {
                     try {
@@ -1983,7 +1984,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     if (destinationId == null) {
                         throw new CommandException("FolderId from GetRecordingFolderId was null.");
                     }
-                    logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + destinationId + ")");
 
                     moveRecording(recordingId, destinationId);
                     cachedMovedRecordings.add(recordingId);
