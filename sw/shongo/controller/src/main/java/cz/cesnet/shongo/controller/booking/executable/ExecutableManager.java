@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -484,6 +485,33 @@ public class ExecutableManager extends AbstractManager
             recordingFolderIds.add((String) result[1]);
         }
         return recordingFolders;
+    }
+
+    /**
+     * @param executable
+     * @return map of recording folder identifiers by {@link RecordingCapability}s for given {@code executable}
+     */
+    public boolean isUserParticipantInExecutable(String userId, Executable executable)
+    {
+        List<PersonParticipant> results = entityManager.createQuery(
+                "SELECT participant FROM PersonParticipant participant"
+                        + " WHERE participant.person.userId = :userId"
+                        + " AND ("
+                        + "   participant IN("
+                        + "     SELECT participant FROM RoomEndpoint roomEndpoint"
+                        + "     LEFT JOIN roomEndpoint.participants participant"
+                        + "     WHERE roomEndpoint = :executable OR roomEndpoint.reusedRoomEndpoint = :executable"
+                        + "   ) OR participant IN("
+                        + "     SELECT participant FROM UsedRoomEndpoint roomEndpoint"
+                        + "     LEFT JOIN roomEndpoint.reusedRoomEndpoint reusedRoomEndpoint"
+                        + "     LEFT JOIN reusedRoomEndpoint.participants participant"
+                        + "     WHERE roomEndpoint = :executable"
+                        + "   )"
+                        + ")", PersonParticipant.class)
+                .setParameter("userId", userId)
+                .setParameter("executable", executable)
+                .getResultList();
+        return results.size() > 0;
     }
 
     /**

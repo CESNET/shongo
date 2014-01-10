@@ -30,6 +30,16 @@ public class PersonParticipant extends AbstractParticipant
     /**
      * Constructor.
      *
+     * @param person sets the {@link #person}
+     */
+    public PersonParticipant(AbstractPerson person)
+    {
+        setPerson(person);
+    }
+
+    /**
+     * Constructor.
+     *
      * @param name  sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#name} for the {@link #PERSON}
      * @param email sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#email} for the {@link #PERSON}
      */

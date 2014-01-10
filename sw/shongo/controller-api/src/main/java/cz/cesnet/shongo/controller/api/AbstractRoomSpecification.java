@@ -71,8 +71,6 @@ public abstract class AbstractRoomSpecification extends Specification
         participants.add(participant);
     }
 
-
-
     public static final String ROOM_SETTINGS = "roomSettings";
     public static final String PARTICIPANTS = "participants";
 

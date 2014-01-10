@@ -902,4 +902,38 @@ public class ExecutableTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
+
+    /**
+     * Test participants in room.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomParticipants() throws Exception
+    {
+        String userId2 = getUserId(SECURITY_TOKEN_USER2);
+
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10));
+        connect.setAllocatable(true);
+        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, connect);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification =
+                new cz.cesnet.shongo.controller.api.RoomSpecification();
+        roomSpecification.addTechnology(Technology.ADOBE_CONNECT);
+        roomSpecification.setParticipantCount(5);
+        roomSpecification.addParticipant(new PersonParticipant(new UserPerson(userId2)));
+        reservationRequest.setSpecification(roomSpecification);
+
+        Reservation reservation = allocateAndCheck(reservationRequest);
+        RoomExecutable roomExecutable = (RoomExecutable) reservation.getExecutable();
+        String roomExecutableId = roomExecutable.getId();
+
+        getExecutableService().getExecutable(SECURITY_TOKEN_USER2, roomExecutableId);
+    }
 }

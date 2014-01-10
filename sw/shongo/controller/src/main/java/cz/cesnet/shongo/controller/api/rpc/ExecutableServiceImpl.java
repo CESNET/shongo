@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
@@ -23,6 +24,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.executor.ExecutionPlan;
@@ -292,7 +294,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     @Override
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken securityToken, String executableId)
     {
-        authorization.validate(securityToken);
+        UserInformation userInformation = authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -302,7 +304,11 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     executableManager.get(objectId.getPersistenceId());
 
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
+                // Participants can also read the executable
+                // TODO: consider to cache whether participant is in executable
+                if (!executableManager.isUserParticipantInExecutable(userInformation.getUserId(), executable)) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
+                }
             }
 
             Executable executableApi = executable.toApi(authorization.isAdministrator(securityToken));
