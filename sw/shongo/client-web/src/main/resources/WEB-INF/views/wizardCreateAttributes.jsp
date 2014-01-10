@@ -9,7 +9,11 @@
 
 <hr/>
 
-<div ng-app="tag:reservationRequestForm">
+<script type="text/javascript">
+    var module = angular.module('jsp:wizardCreateAttributes', ['ngApplication', 'tag:reservationRequestForm']);
+</script>
+
+<div ng-app="jsp:wizardCreateAttributes">
 
     <tag:reservationRequestForm permanentRooms="${permanentRooms}"/>
 

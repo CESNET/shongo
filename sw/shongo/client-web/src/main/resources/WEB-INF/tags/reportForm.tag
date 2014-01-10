@@ -12,7 +12,7 @@
 <c:set var="tabIndex" value="1"/>
 
 <script type="text/javascript">
-    var module = angular.module('tag:reportForm', ['tag:expandableBlock']);
+    var module = angular.module('tag:reportForm', ['ngApplication', 'tag:expandableBlock']);
 </script>
 
 <p><spring:message code="views.report.help"/></p>

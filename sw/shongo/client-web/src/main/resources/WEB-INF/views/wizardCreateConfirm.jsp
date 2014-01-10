@@ -9,7 +9,11 @@
 
 <hr/>
 
-<div ng-app="tag:reservationRequestDetail">
+<script type="text/javascript">
+    var module = angular.module('jsp:wizardCreateConfirm', ['ngApplication', 'tag:reservationRequestDetail']);
+</script>
+
+<div ng-app="jsp:wizardCreateConfirm">
 
     <h2><spring:message code="views.wizard.confirmation.question"/></h2>
 
