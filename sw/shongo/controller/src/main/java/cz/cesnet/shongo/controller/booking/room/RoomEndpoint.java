@@ -4,8 +4,6 @@ import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
-import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ObjectRole;
@@ -14,25 +12,24 @@ import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.controller.booking.executable.*;
+import cz.cesnet.shongo.controller.booking.executable.Endpoint;
+import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
-import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents an room {@link cz.cesnet.shongo.controller.booking.executable.Endpoint} in which multiple other {@link cz.cesnet.shongo.controller.booking.executable.Endpoint}s can be interconnected.

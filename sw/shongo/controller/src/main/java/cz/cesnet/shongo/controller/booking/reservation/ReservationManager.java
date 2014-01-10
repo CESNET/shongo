@@ -5,6 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
@@ -101,6 +102,11 @@ public class ReservationManager extends AbstractManager
         if (executable != null) {
             if (executable.getSlot().contains(dateTimeNow)) {
                 executable.setSlotEnd(dateTimeNow);
+                for (ExecutableService service : executable.getServices()) {
+                    if (service.getSlotEnd().isAfter(dateTimeNow)) {
+                        service.setSlotEnd(dateTimeNow);
+                    }
+                }
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 executableManager.update(executable);
             }

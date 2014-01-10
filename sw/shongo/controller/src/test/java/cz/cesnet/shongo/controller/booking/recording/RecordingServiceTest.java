@@ -379,6 +379,78 @@ public class RecordingServiceTest extends AbstractExecutorTest
     }
 
     /**
+     * Test stopping of {@link RecordingService} when {@link ReservationRequest} for {@link RoomExecutable}
+     * is deleted before end of time slot.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testStoppingRecordingWhenReservationRequestDeleted() throws Exception
+    {
+        ConnectTestAgent connectAgent = getController().addJadeAgent("connect", new ConnectTestAgent());
+
+        DateTime dateTime = DateTime.now().minusMinutes(30);
+
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
+        connect.addCapability(new AliasProviderCapability("{hash}@cesnet.cz", AliasType.ADOBE_CONNECT_URI));
+        connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
+        connect.setAllocatable(true);
+        connect.setMode(new ManagedMode(connectAgent.getName()));
+        getResourceService().createResource(SECURITY_TOKEN, connect);
+
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot(dateTime, Period.minutes(120));
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        roomReservationRequest.setSpecification(new RoomSpecification(5, Technology.ADOBE_CONNECT));
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
+        RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        String roomExecutableId = roomExecutable.getId();
+        String recordingServiceId = getExecutableService(roomExecutableId, RecordingService.class).getId();
+
+        // Check execution
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("None executable service should be activated.",
+                0, result.getActivatedExecutableServices().size());
+
+        // Start recording
+        getExecutableService().activateExecutableService(SECURITY_TOKEN, roomExecutableId, recordingServiceId);
+
+        // Delete reservation request
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
+        runScheduler();
+
+        // Stop recording and delete room
+        result = runExecutor(dateTime.plusMinutes(60));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable service should be stopped.",
+                1, result.getDeactivatedExecutableServices().size());
+
+        // Finalize
+        runExecutor(dateTime.plusMinutes(60));
+
+        // Check performed actions on TCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
+            }}, connectAgent.getPerformedCommandClasses());
+    }
+
+    /**
      * Testing MCU agent.
      */
     public class TcsTestAgent extends RecordableTestAgent
