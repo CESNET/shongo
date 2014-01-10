@@ -95,42 +95,14 @@
                 $scope.items = result.items;
             });
         });
-        module.controller("ParticipantRoomController", function($scope, $resource, $timeout) {
-            $scope.content = null;
-            $scope.show = function(event, executableId){
-                var element = $(event.target);
-                if ($scope.content == null) {
-                    var resource = $resource('${participantRoomUrl}', null, {
-                        get: {method: 'GET'}
-                    });
-                    resource.get({'roomId': executableId}, function (result) {
-                        $scope.content = result.aliases;
-                        $scope.showTooltip(element, $scope.content);
-                    });
-                }
-                else {
-                    $scope.showTooltip(element, $scope.content);
-                }
-            };
-            $scope.showTooltip = function(element, content) {
-                element.qtip({
-                    content: content,
-                    show: {
-                        event: false,
-                        ready: true
-                    },
-                    hide: {
-                        fixed: true,
-                        delay: 300
-                    },
-                    position: {
-                        my: 'top left',
-                        at: 'bottom right'
-                    },
-                    style: {
-                        classes: 'qtip-app'
-                    }
-                });
+        module.controller("ParticipantRoomController", function($scope, $application) {
+            $scope.formatAliases = function(executableId, event){
+                $.ajax("${participantRoomUrl}".replace(":roomId", executableId), {
+                    dataType: "json"
+                }).done(function (data) {
+                    event.setResult(data.aliases);
+                }).fail($application.handleAjaxFailure);
+                return "<spring:message code="views.loading"/>";
             };
         });
     </script>
@@ -386,7 +358,7 @@
                         <tbody>
                         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
                             <td ng-controller="ParticipantRoomController">
-                                <a href="" ng-click="show($event, room.id)">{{room.name}}</a>
+                                <tag:help label="{{room.name}}" content="formatAliases(room.id, event)" selectable="true"/>
                             </td>
                             <td>{{room.technology}}</td>
                             <td><span ng-bind-html="room.slot"></span></td>
