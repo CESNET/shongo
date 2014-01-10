@@ -357,10 +357,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
 
-        // 1x system-admin: allocation-failed
-        // 3x resource-admin: deleted, deleted, new
-        // 1x user: changes (allocation-failed, new)
-        Assert.assertEquals(9, notificationExecutor.getNotificationCount());
+        // 1x resource-admin: deleted
+        // 1x user: changes (deleted)
+        Assert.assertEquals(6, notificationExecutor.getNotificationCount());
     }
 
     /**
