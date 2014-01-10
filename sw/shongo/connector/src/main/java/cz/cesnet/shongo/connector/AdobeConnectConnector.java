@@ -606,32 +606,32 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("filter-icon", "archive");
+        attributes.add("filter-date-end","null");
 
         Element response = request("sco-contents", attributes);
 
-        for (Element resultRecording : response.getChild("scos").getChildren()) {
-            if (resultRecording.getChild("date-end") == null) {
-                Recording recording = new Recording();
-
-                recording.setId(resultRecording.getAttributeValue("sco-id"));
-                recording.setName(resultRecording.getChildText("name"));
-
-                String description = resultRecording.getChildText("description");
-                recording.setDescription(description == null ? "" : description);
-
-                String dateBegin = resultRecording.getChildText("date-begin");
-                recording.setBeginDate(DateTime.parse(dateBegin));
-
-                String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
-                        + resultRecording.getChildText("url-path");
-
-                recording.setUrl(baseUrl);
-
-                return recording;
-            }
+        Element resultRecording = response.getChild("scos").getChild("sco");
+        if (resultRecording == null) {
+            return null;
         }
 
-        return null;
+        Recording recording = new Recording();
+
+        recording.setId(resultRecording.getAttributeValue("sco-id"));
+        recording.setName(resultRecording.getChildText("name"));
+
+        String description = resultRecording.getChildText("description");
+        recording.setDescription(description == null ? "" : description);
+
+        String dateBegin = resultRecording.getChildText("date-begin");
+        recording.setBeginDate(DateTime.parse(dateBegin));
+
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
+                + resultRecording.getChildText("url-path");
+
+        recording.setUrl(baseUrl);
+
+        return recording;
     }
 
     @Override
@@ -782,10 +782,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         Element recording = getScoInfo(recordingId);
         String folderId = recording.getAttributeValue("folder-id");
 
-        if (folderId.equals(recordingFolderId)) {
-            return true;
-        } else if (recordingFolderId != null) {
-            return false;
+        if (recordingFolderId != null) {
+            if (folderId.equals(recordingFolderId)) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
 
@@ -1262,6 +1264,18 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public void deleteRoom(String roomId) throws CommandException
     {
         endMeeting(roomId);
+
+        // Backup content
+        // Recordings
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id", roomId);
+        attributes.add("filter-icon", "archive");
+        List<Element> recordings = request("sco-contents", attributes).getChild("scos").getChildren();
+
+        for(Element recording : recordings) {
+            String recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
+            moveRecording(recording.getAttributeValue("sco-id"),recordingFolderId);
+        }
 
         deleteSCO(roomId);
     }
@@ -1954,7 +1968,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
             // Skip all non-shongo rooms
             if (!shongoRooms.contains(folderId)) {
-                logger.debug("There is recording for non-shongo room");
+                //logger.debug("There is recording for non-shongo room");
                 continue;
             }
 
@@ -2134,22 +2148,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logger.error("Cannot initialize adobe connect", exception);
         }
     }
-
-    /*public static void printInputStream(InputStream inputStream) throws IOException
-    {
-        System.out.println();
-        System.out.println("-- SOURCE DATA --");
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-        String line = new String();
-
-        while (bufferedReader.ready()) {
-            line = bufferedReader.readLine();
-            System.out.println(line);
-        }
-        System.out.println("-- SOURCE DATA --");
-        System.out.println();
-    }*/
 
     public static class RequestFailedCommandException extends CommandException
     {

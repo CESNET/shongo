@@ -124,7 +124,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         ftp.makeDirectory("" + recordingFolder.getName());
 
         ftp.disconnect();*/
-        throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
+        // throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
+        return "";
     }
 
     @Override
@@ -145,16 +146,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         throw new TodoImplementException("CiscoTCSConnector.listRecordings");
     }
 
-    @Override
-    public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    protected Recording parseRecording(Element recordingData, Namespace ns)
     {
-        Command command = new Command("GetConference");
-        command.setParameter("ConferenceID",recordingId);
-
-        Element result = exec(command);
-        Namespace ns = result.getNamespace(NS_NS1);
-        Element recordingData = result.getChild("GetConferenceResponse",ns).getChild("GetConferenceResult",ns);
-
         Recording recording = new Recording();
         recording.setId(recordingData.getChildText("ConferenceID", ns));
         recording.setName(recordingData.getChildText("Title", ns));
@@ -163,16 +156,50 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         //TODO: recording.setDescription(recordingData.getChildText("Description",ns));
         recording.setUrl(recordingData.getChildText("URL",ns));
         if ("true".equals(recordingData.getChildText("HasDownloadableMovie", ns))) {
-            recording.setDownloadableUrl(recordingData.getChild("DownloadableMovies",ns).getChildText("URL",ns));
+            recording.setDownloadableUrl(recordingData.getChild("DownloadableMovies",ns).getChild("DownloadableMovie",ns).getChildText(
+                    "URL", ns));
         }
 
         return recording;
     }
 
     @Override
-    public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
+    public Recording getRecording(String recordingId) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.getActiveRecording");
+        Command command = new Command("GetConference");
+        command.setParameter("ConferenceID",recordingId);
+
+        Element result = exec(command);
+        Namespace ns = result.getNamespace(NS_NS1);
+        Element recordingData = result.getChild("GetConferenceResponse",ns).getChild("GetConferenceResult",ns);
+
+        return parseRecording(recordingData, ns);
+    }
+
+    @Override
+    public Recording getActiveRecording(Alias alias) throws CommandException
+    {
+        Command command = new Command("GetConferences");
+        command.setParameter("SearchExpression","999");
+        command.setParameter("ResultRange",null);
+        command.setParameter("DateTime",null);
+        command.setParameter("UpdateTime",null);
+        command.setParameter("Owner",null);
+        command.setParameter("Category",null);
+        command.setParameter("Sort","DateTime");
+
+        Element result = exec(command,true);
+        Namespace ns = result.getNamespace(NS_NS1);
+        for (Element recordingData : result.getChild("GetConferencesResponse",ns).getChild("GetConferencesResult",ns).getChildren("Conference",ns)) {
+            System.out.println(parseRecording(recordingData,ns));
+        }
+
+        System.out.println(
+                result.getChild("GetConferencesResponse", ns).getChild("GetConferencesResult", ns).getChildren().size());
+        System.out.println(exec(new Command("GetConferenceCount"),true));
+
+        Recording recording = new Recording();
+        return recording;
     }
 
     @Override
@@ -227,7 +254,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         StringBuilder tag = new StringBuilder();
 
         tag.append("<" + pairTag.getKey() + ">");
-        tag.append(pairTag.getValue());
+        tag.append(pairTag.getValue() == null ? "" : pairTag.getValue());
         tag.append("</" + pairTag.getKey() + ">");
 
         return tag.toString();
@@ -272,7 +299,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         return xml.toString();
     }
 
-    protected Element exec(Command command) throws CommandException{
+
+    protected Element exec(Command command, boolean debug) throws CommandException{
         try {
             while (true) {
 
@@ -296,10 +324,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 // Add XML to request, direct in the body - no parameter name
                 String xml = builExecdXml(command);
 
-                System.out.println("===================");
-                System.out.println("INPUT");
-                System.out.println("===================");
-                System.out.println(xml);
+                if (debug) {
+                    System.out.println("===================");
+                    System.out.println("INPUT");
+                    System.out.println("===================");
+                    System.out.println(xml);
+                }
 
 
                 StringEntity lEntity = new StringEntity(xml, ContentType.create("text/xml", "utf-8"));
@@ -349,10 +379,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                         String resultString = EntityUtils.toString(goodResponse.getEntity());
 
-                        System.out.println("==========");
-                        System.out.println("OUTPUT");
-                        System.out.println("==========");
-                        System.out.println(resultString);
+                        if (debug) {
+                            System.out.println("==========");
+                            System.out.println("OUTPUT");
+                            System.out.println("==========");
+                            System.out.println(resultString);
+                        }
 
                         Document resultDocument = new SAXBuilder().build(new StringReader(resultString));
                         Element rootElement = resultDocument.getRootElement();
@@ -376,22 +408,28 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         }
     }
 
+    protected Element exec(Command command) throws CommandException{
+        return exec(command,false);
+    }
+
     public static void main(String[] args) throws Exception
     {
         Address address = new Address("195.113.151.188",80);
 
         CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address, "login", "password");
+        tcs.connect(address, "admin", "nahr8vadloHesl94ko1AP1");
 
-        String id = tcs.startRecording(null, new Alias(AliasType.H323_E164,"950087999"), null);
+        Alias alias = new Alias(AliasType.H323_E164,"950087999");
 
-        Thread.sleep(10000);
+        //String id = tcs.startRecording(null, alias, null);
+        //Thread.sleep(20000);
 
-        tcs.stopRecording(id);
+        tcs.getActiveRecording(alias);
 
-        Thread.sleep(10000);
-
-        tcs.deleteRecording(id);
+        //Thread.sleep(10000);
+        //tcs.stopRecording(id);
+        //Thread.sleep(10000);
+        //tcsording(id);
 
         tcs.disconnect();
 
