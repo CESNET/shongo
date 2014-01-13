@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.Recording;
+import jade.content.Concept;
 
 /**
  * Settings for starting new {@link Recording}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RecordingSettings
+public class RecordingSettings implements Concept
 {
     /**
      * PIN which should be used when dialing from the recording endpoint.

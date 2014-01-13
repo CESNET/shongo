@@ -23,10 +23,11 @@ public class StartRecording extends ConnectorCommand
     {
     }
 
-    public StartRecording(String recordingFolderId, Alias alias)
+    public StartRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
     {
         this.recordingFolderId = recordingFolderId;
         this.alias = alias;
+        this.recordingSettings = recordingSettings;
     }
 
     public String getRecordingFolderId()

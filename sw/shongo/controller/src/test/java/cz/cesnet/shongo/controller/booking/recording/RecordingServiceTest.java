@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.recording;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -55,7 +56,11 @@ public class RecordingServiceTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomReservationRequest.setSpecification(new RoomSpecification(5, Technology.ADOBE_CONNECT));
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.ADOBE_CONNECT);
+        AdobeConnectRoomSetting roomSetting = new AdobeConnectRoomSetting();
+        roomSetting.setPin("1234");
+        roomSpecification.addRoomSetting(roomSetting);
+        roomReservationRequest.setSpecification(roomSpecification);
         String roomReservationRequestId = allocate(roomReservationRequest);
         RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
@@ -81,7 +86,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
 
         // Request starting of the service
         roomReservationRequest = getReservationRequest(roomReservationRequestId, ReservationRequest.class);
-        RoomSpecification roomSpecification = (RoomSpecification) roomReservationRequest.getSpecification();
+        roomSpecification = (RoomSpecification) roomReservationRequest.getSpecification();
         roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequestId = allocate(roomReservationRequest, dateTime.plusHours(1));
         roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
@@ -136,6 +141,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
+
+        cz.cesnet.shongo.connector.api.jade.recording.StartRecording startRecording =
+                connectAgent.getPerformedCommand(5, cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+        Assert.assertEquals("1234", startRecording.getRecordingSettings().getPin());
     }
 
     /**

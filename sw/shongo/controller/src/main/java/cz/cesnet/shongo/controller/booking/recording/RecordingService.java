@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
@@ -13,6 +15,11 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
+import cz.cesnet.shongo.controller.booking.room.RoomConfiguration;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -162,8 +169,9 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         }
         // Start new recording
         if (recordingId == null) {
+            RecordingSettings recordingSettings = getRecordingSettings(recordableEndpoint, alias);
             sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new StartRecording(recordingFolderId, alias.toApi()));
+                    new StartRecording(recordingFolderId, alias.toApi(), recordingSettings));
             if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
                 executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
@@ -246,5 +254,33 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                 recordingId = recording.getId();
             }
         }
+    }
+
+    @Transient
+    private RecordingSettings getRecordingSettings(RecordableEndpoint recordableEndpoint, Alias alias)
+    {
+        RecordingSettings recordingSettings = new RecordingSettings();
+        if (recordableEndpoint instanceof RoomEndpoint) {
+            RoomEndpoint roomEndpoint = (RoomEndpoint) recordableEndpoint;
+            RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+                Technology technology = alias.getTechnology();
+                if (roomSetting instanceof AdobeConnectRoomSetting && technology.equals(Technology.ADOBE_CONNECT)) {
+                    AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
+                    String pin = adobeConnectRoomSetting.getPin();
+                    if (pin != null) {
+                        recordingSettings.setPin(pin);
+                    }
+                }
+                else if (roomSetting instanceof H323RoomSetting && technology.equals(Technology.H323)) {
+                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                    String pin = h323RoomSetting.getPin();
+                    if (pin != null) {
+                        recordingSettings.setPin(pin);
+                    }
+                }
+            }
+        }
+        return recordingSettings;
     }
 }
