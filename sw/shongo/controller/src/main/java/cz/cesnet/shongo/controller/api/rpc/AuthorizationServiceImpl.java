@@ -617,7 +617,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             }
             else if (object instanceof AbstractReservationRequest) {
                 // Change user to reservation request
-                ReservationRequest reservationRequest = (ReservationRequest) object;
+                AbstractReservationRequest reservationRequest = (AbstractReservationRequest) object;
                 for (cz.cesnet.shongo.controller.acl.AclEntry aclEntry :
                         authorizationManager.listAclEntries(
                                 reservationRequest.getCreatedBy(), reservationRequest, ObjectRole.OWNER)) {

@@ -2,7 +2,6 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
@@ -193,6 +192,35 @@ public class Cache
             userInformationByUserId.put(userId, userInformation);
         }
         return userInformation;
+    }
+
+    /**
+     * @param securityToken to be used for fetching the {@link UserInformation}s
+     * @param userIds       user-ids of the requested users
+     */
+    public synchronized void fetchUserInformation(SecurityToken securityToken, Set<String> userIds)
+    {
+        Set<String> missingUserIds = null;
+        for (String userId : userIds) {
+            if (!userInformationByUserId.contains(userId)) {
+                if (missingUserIds == null) {
+                    missingUserIds = new HashSet<String>();
+                }
+                missingUserIds.add(userId);
+            }
+        }
+        if (missingUserIds != null) {
+            ListResponse<UserInformation> response = authorizationService.listUsers(
+                    new UserListRequest(securityToken, missingUserIds));
+            for (UserInformation userInformation : response.getItems()) {
+                String userId = userInformation.getUserId();
+                userInformationByUserId.put(userId, userInformation);
+                missingUserIds.remove(userId);
+            }
+            if (missingUserIds.size() > 0) {
+                throw new RuntimeException("User with id '" + missingUserIds.iterator().next() + "' doesn't exist.");
+            }
+        }
     }
 
     /**

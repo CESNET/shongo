@@ -101,13 +101,16 @@ public class ReservationRequestController
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
+        Set<String> userIds = new HashSet<String>();
         Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
+            userIds.add(reservationRequest.getUserId());
             String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
                 reusedReservationRequestIds.add(reusedReservationRequestId);
             }
         }
+        cache.fetchUserInformation(securityToken, userIds);
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Get permissions for reservation requests

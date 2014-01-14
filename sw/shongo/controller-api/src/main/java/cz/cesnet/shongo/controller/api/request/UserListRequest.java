@@ -62,6 +62,18 @@ public class UserListRequest extends ListRequest
         userIds.add(userId);
     }
 
+    /**
+     * Constructor.
+     *
+     * @param securityToken sets the {@link #securityToken}
+     * @param userIds        to be added to the {@link #userIds}
+     */
+    public UserListRequest(SecurityToken securityToken, Set<String> userIds)
+    {
+        super(securityToken);
+        this.userIds.addAll(userIds);
+    }
+
     public Set<String> getUserIds()
     {
         return userIds;
