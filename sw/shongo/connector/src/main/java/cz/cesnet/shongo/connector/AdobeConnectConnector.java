@@ -340,7 +340,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void makeRoomPublic(String roomId) throws CommandException
     {
-        setRoomAccessMode(roomId,AdobeConnectAccessMode.PUBLIC);
+        setRoomAccessMode(roomId, AdobeConnectAccessMode.PUBLIC);
     }
 
     /**
@@ -606,7 +606,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("filter-icon", "archive");
-        attributes.add("filter-date-end","null");
+        attributes.add("filter-date-end", "null");
 
         Element response = request("sco-contents", attributes);
 
@@ -644,9 +644,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
-    public boolean isRecordingActive(String recordingId) throws CommandException, CommandUnsupportedException
+    public boolean isRecordingActive(String recordingId) throws CommandException
     {
-        throw new TodoImplementException("AdobeConnectConnector.isRecordingActive");
+        return getScoInfo(recordingId).getChild("date-end") == null;
     }
 
     @Override
@@ -1529,10 +1529,18 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
     protected Element getScoInfo(String scoId) throws CommandException
     {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", scoId);
+        try {
+            RequestAttributeList attributes = new RequestAttributeList();
+            attributes.add("sco-id", scoId);
 
-        return request("sco-info", attributes).getChild("sco");
+            return request("sco-info", attributes).getChild("sco");
+        } catch (RequestFailedCommandException ex) {
+            if ("no-access".equals(ex.getCode()) && "denied".equals(ex.getSubCode())) {
+                throw new CommandException("SCO-ID '" + scoId + "' doesn't exist.",ex);
+            } else {
+                throw ex;
+            }
+        }
     }
 
     protected String getScoByUrl(String url) throws CommandException

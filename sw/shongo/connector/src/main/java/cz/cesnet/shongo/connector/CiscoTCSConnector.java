@@ -167,7 +167,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public Recording getRecording(String recordingId) throws CommandException
     {
         Command command = new Command("GetConference");
-        command.setParameter("ConferenceID",recordingId);
+        command.setParameter("ConferenceID", recordingId);
 
         Element result = exec(command);
         Namespace ns = result.getNamespace(NS_NS1);
@@ -177,35 +177,38 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public Recording getActiveRecording(Alias alias) throws CommandException
+    public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
     {
-        Command command = new Command("GetConferences");
-        command.setParameter("SearchExpression","999");
-        command.setParameter("ResultRange",null);
-        command.setParameter("DateTime",null);
-        command.setParameter("UpdateTime",null);
-        command.setParameter("Owner",null);
-        command.setParameter("Category",null);
-        command.setParameter("Sort","DateTime");
-
-        Element result = exec(command,true);
-        Namespace ns = result.getNamespace(NS_NS1);
-        for (Element recordingData : result.getChild("GetConferencesResponse",ns).getChild("GetConferencesResult",ns).getChildren("Conference",ns)) {
-            System.out.println(parseRecording(recordingData,ns));
-        }
-
-        System.out.println(
-                result.getChild("GetConferencesResponse", ns).getChild("GetConferencesResult", ns).getChildren().size());
-        System.out.println(exec(new Command("GetConferenceCount"),true));
-
-        Recording recording = new Recording();
-        return recording;
+        throw new CommandUnsupportedException("Cisco TCS cannot find active recordings by alias.");
     }
 
     @Override
-    public boolean isRecordingActive(String recordingId) throws CommandException, CommandUnsupportedException
+    public boolean isRecordingActive(String recordingId) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.isRecordingActive");
+        Command command = new Command("GetCallInfo");
+        command.setParameter("ConferenceID",recordingId);
+
+        Element result = exec(command);
+
+        Namespace ns = result.getNamespace(NS_NS1);
+        return result.getChild("GetCallInfoResponse",ns).getChild("GetCallInfoResult",ns).getChildText("CallState",ns).equals("IN_CALL");
+    }
+
+    private String createAdHocAlias() throws CommandException
+    {
+        Command command = new Command("AddRecordingAlias");
+        command.setParameter("SourceAlias","999");
+        command.setParameter("Data","<Name>123</Name<E164Alias>123</E164Alias>");
+        exec(command,true);
+        return null;
+    }
+
+    private void deleteAlias(String aliasId) throws CommandException
+    {
+        Command command = new Command("DeleteRecordingAlias");
+        command.setParameter("Alias",aliasId);
+
+        exec(command);
     }
 
     @Override
@@ -215,7 +218,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         Command command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
         command.setParameter("Bitrate", DEFAULT_BITRATE);
-        //TODO: set aliasis
+        //TODO: create alias for adhoc recording
         command.setParameter("Alias", "999");
         //TODO: set technology
         command.setParameter("CallType", "h323");
@@ -239,6 +242,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     private void moveRecording(String recordingId, String recordingFolderId) throws CommandException
     {
         //TODO:
+        throw new TodoImplementException("TODO: TCS moveRecording");
     }
 
     @Override
@@ -306,7 +310,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
 
-    protected Element exec(Command command, boolean debug) throws CommandException{
+    protected Element exec(Command command, boolean debug) throws CommandException
+    {
         try {
             while (true) {
 
@@ -379,10 +384,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                         final HttpResponse goodResponse =  lHttpClient.execute(lHttpPost);
 
-                        if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                            throw new CommandException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
-                        }
-
                         String resultString = EntityUtils.toString(goodResponse.getEntity());
 
                         if (debug) {
@@ -390,6 +391,10 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             System.out.println("OUTPUT");
                             System.out.println("==========");
                             System.out.println(resultString);
+                        }
+
+                        if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                            throw new CommandException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
                         }
 
                         Document resultDocument = new SAXBuilder().build(new StringReader(resultString));
@@ -410,7 +415,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             }
         } catch (Exception ex) {
             this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
-            throw new RuntimeException("Command issuing error", ex);
+            throw new CommandException("Command issuing error", ex);
         }
     }
 
@@ -423,19 +428,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         Address address = new Address("195.113.151.188",80);
 
         CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address, "admin", "nahr8vadloHesl94ko1AP1");
+        tcs.connect(address, "user", "pass");
 
-        Alias alias = new Alias(AliasType.H323_E164,"950087999");
-
-        //String id = tcs.startRecording(null, alias, null);
-        //Thread.sleep(20000);
-
-        tcs.getActiveRecording(alias);
-
-        //Thread.sleep(10000);
-        //tcs.stopRecording(id);
-        //Thread.sleep(10000);
-        //tcsording(id);
 
         tcs.disconnect();
 
