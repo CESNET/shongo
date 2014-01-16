@@ -69,6 +69,17 @@ public interface RecordingService
      */
     public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException;
 
+
+    /**
+     * Check whether recording with given {@code recordingId} is currently active (is being recorded).
+     *
+     * @param recordingId of the recording to be checked
+     * @return true when the recording is currently being recorded, false otherwise
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    public boolean isRecordingActive(String recordingId) throws CommandException, CommandUnsupportedException;
+
     /**
      * Immediately starts recording a meeting specified by given {@code alias}.
      *

@@ -644,6 +644,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
+    public boolean isRecordingActive(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        throw new TodoImplementException("AdobeConnectConnector.isRecordingActive");
+    }
+
+    @Override
     public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {

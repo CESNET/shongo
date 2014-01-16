@@ -361,6 +361,11 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
                 recording.setId(recordingId);
                 return recording;
             }
+            else if (command instanceof IsRecordingActive) {
+                IsRecordingActive isRecordingActive = (IsRecordingActive) command;
+                String recordingId = isRecordingActive.getRecordingId();
+                return activeRecordingIdByAlias.containsValue(recordingId);
+            }
             else if (command instanceof StartRecording) {
                 StartRecording startRecording = (StartRecording) command;
                 Alias alias = startRecording.getAlias();

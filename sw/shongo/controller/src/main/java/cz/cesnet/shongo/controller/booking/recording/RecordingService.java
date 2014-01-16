@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording;
+import cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -198,17 +199,11 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         // Stop recording
         if (recordingId != null) {
             // Check if recording is started
-            Alias alias = recordableEndpoint.getRecordingAlias();
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new GetActiveRecording(alias.toApi()));
+                    new IsRecordingActive(recordingId));
             if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                Recording recording = (Recording) sendLocalCommand.getResult();
-                if (recording != null) {
-                    if (!recordingId.equals(recording.getId())) {
-                        executor.getLogger().warn("Started recording is {} instead of {}.",
-                                recording.getId(), recordingId);
-                        recordingId = recording.getId();
-                    }
+                Boolean result = (Boolean) sendLocalCommand.getResult();
+                if (result != null && result.equals(Boolean.TRUE)) {
                     sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
                     if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
                         executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
@@ -217,7 +212,28 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                     }
                 }
                 else {
-                    executor.getLogger().warn("Recording {} is not started.", recordingId);
+                    // Check if another recording is started
+                    Alias alias = recordableEndpoint.getRecordingAlias();
+                    sendLocalCommand = controllerAgent.sendCommand(agentName, new GetActiveRecording(alias.toApi()));
+                    if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                        Recording recording = (Recording) sendLocalCommand.getResult();
+                        if (recording != null) {
+                            if (!recordingId.equals(recording.getId())) {
+                                executor.getLogger().warn("Started recording is {} instead of {}.",
+                                        recording.getId(), recordingId);
+                                recordingId = recording.getId();
+                            }
+                            sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
+                            if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
+                                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                                return State.DEACTIVATION_FAILED;
+                            }
+                        }
+                        else {
+                            executor.getLogger().warn("Recording {} is not started.", recordingId);
+                        }
+                    }
                 }
             }
             recordingId = null;
@@ -236,22 +252,33 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         ControllerAgent controllerAgent = executor.getControllerAgent();
         RecordableEndpoint recordableEndpoint = getRecordableEndpoint();
 
-        // Check active recording
-        Alias alias = recordableEndpoint.getRecordingAlias();
-        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
-                new GetActiveRecording(alias.toApi()));
-        if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-            Recording recording = (Recording) sendLocalCommand.getResult();
-            State state = getState();
-            if (recording == null && isActive()) {
-                executor.getLogger().warn("Deactivating, because recording {} is not started anymore.", recordingId);
-                setState(State.NOT_ACTIVE);
-                recordingId = null;
+        if (isActive()) {
+            if (recordingId == null) {
+                throw new IllegalStateException("When recording is active recordingId must not be null.");
             }
-            else if (recording != null && !isActive()) {
-                executor.getLogger().warn("Activating, because recording {} is started.", recording.getId());
-                setState(State.ACTIVE);
-                recordingId = recording.getId();
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new IsRecordingActive(recordingId));
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                Boolean result = (Boolean) sendLocalCommand.getResult();
+                if (result == null || result.equals(Boolean.FALSE)) {
+                    executor.getLogger().warn("Deactivating, because recording {} is not started anymore.", recordingId);
+                    setState(State.NOT_ACTIVE);
+                    recordingId = null;
+                }
+            }
+        }
+        else {
+            // Check active recording
+            Alias alias = recordableEndpoint.getRecordingAlias();
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
+                    new GetActiveRecording(alias.toApi()));
+            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+                Recording recording = (Recording) sendLocalCommand.getResult();
+                if (recording != null && !isActive()) {
+                    executor.getLogger().warn("Activating, because recording {} is started.", recording.getId());
+                    setState(State.ACTIVE);
+                    recordingId = recording.getId();
+                }
             }
         }
     }

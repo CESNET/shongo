@@ -135,7 +135,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
@@ -239,7 +239,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
     }
@@ -364,11 +364,11 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
             }}, tcsAgent.getPerformedCommandClasses());
 
@@ -452,7 +452,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
