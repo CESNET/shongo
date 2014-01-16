@@ -179,7 +179,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException("Cisco TCS cannot find active recordings by alias.");
+        return null;
     }
 
     @Override
