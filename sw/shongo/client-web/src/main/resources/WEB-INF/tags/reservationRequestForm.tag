@@ -356,7 +356,6 @@
             </div>
         </div>
 
-        <%--
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
                 <form:label class="control-label" path="roomRecorded">
@@ -369,7 +368,6 @@
                 </div>
             </div>
         </c:if>
-        --%>
 
     </fieldset>
 
