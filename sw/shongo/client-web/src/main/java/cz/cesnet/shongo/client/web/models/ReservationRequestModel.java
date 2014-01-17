@@ -411,10 +411,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public void fromSpecificationApi(Specification specification, CacheProvider cacheProvider)
     {
-        if (specification instanceof AbstractRoomSpecification) {
-            AbstractRoomSpecification abstractRoomSpecification = (AbstractRoomSpecification) specification;
+        if (specification instanceof RoomSpecification) {
+            RoomSpecification roomSpecification = (RoomSpecification) specification;
 
-            for (RoomSetting roomSetting : abstractRoomSpecification.getRoomSettings()) {
+            for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     try {
@@ -436,52 +436,48 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
             }
             roomParticipants.clear();
-            for (AbstractParticipant participant : abstractRoomSpecification.getParticipants()) {
+            for (AbstractParticipant participant : roomSpecification.getParticipants()) {
                 roomParticipants.add(new ParticipantModel(participant, cacheProvider));
             }
-        }
 
-        if (specification instanceof StandaloneRoomSpecification) {
-            StandaloneRoomSpecification standaloneRoomSpecification = (StandaloneRoomSpecification) specification;
+            RoomEstablishment roomEstablishment = roomSpecification.getEstablishment();
+            if (roomEstablishment != null) {
+                technology = TechnologyModel.find(roomEstablishment.getTechnologies());
 
-            technology = TechnologyModel.find(standaloneRoomSpecification.getTechnologies());
-
-            AliasSpecification aliasSpecification = standaloneRoomSpecification.getAliasSpecificationByType(AliasType.ROOM_NAME);
-            if (aliasSpecification != null) {
-                roomName = aliasSpecification.getValue();
+                AliasSpecification aliasSpecification =
+                        roomEstablishment.getAliasSpecificationByType(AliasType.ROOM_NAME);
+                if (aliasSpecification != null) {
+                    roomName = aliasSpecification.getValue();
+                }
             }
-        }
 
-        List<ExecutableServiceSpecification> serviceSpecifications = null;
-        if (specification instanceof PermanentRoomSpecification) {
-            specificationType = SpecificationType.PERMANENT_ROOM;
-        }
-        else if (specification instanceof UsedRoomSpecification) {
-            UsedRoomSpecification usedRoomSpecification = (UsedRoomSpecification) specification;
-            serviceSpecifications = usedRoomSpecification.getServiceSpecifications();
+            RoomAvailability roomAvailability = roomSpecification.getAvailability();
+            if (roomAvailability != null) {
+                roomParticipantCount = roomAvailability.getParticipantCount();
 
-            specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
-            roomParticipantCount = usedRoomSpecification.getParticipantCount();
-        }
-        else if (specification instanceof RoomSpecification) {
-            RoomSpecification roomSpecification = (RoomSpecification) specification;
-            serviceSpecifications = roomSpecification.getServiceSpecifications();
+                for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
+                    switch (service.getType()) {
+                        case RECORDING:
+                            roomRecorded = service.isEnabled();
+                            break;
+                    }
+                }
+            }
 
-            specificationType = SpecificationType.ADHOC_ROOM;
-            roomParticipantCount = roomSpecification.getParticipantCount();
+            if (roomEstablishment != null) {
+                if (roomAvailability != null) {
+                    specificationType = SpecificationType.ADHOC_ROOM;
+                }
+                else {
+                    specificationType = SpecificationType.PERMANENT_ROOM;
+                }
+            }
+            else {
+                specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
+            }
         }
         else {
             throw new UnsupportedApiException(specification);
-        }
-
-        if (serviceSpecifications != null) {
-            for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
-                switch (serviceSpecification.getType()) {
-                    case RECORDING:
-                        roomRecorded = serviceSpecification.isEnabled();
-                        break;
-                }
-            }
         }
     }
 
@@ -608,57 +604,56 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public Specification toSpecificationApi()
     {
-        AbstractRoomSpecification abstractRoomSpecification;
+        RoomSpecification roomSpecification = new RoomSpecification();
         switch (specificationType) {
             case ADHOC_ROOM: {
-                RoomSpecification roomSpecification = new RoomSpecification();
-                roomSpecification.setParticipantCount(roomParticipantCount);
+                // Room establishment
+                RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+                roomEstablishment.setTechnologies(technology.getTechnologies());
+                // Room availability
+                RoomAvailability roomAvailability = roomSpecification.createAvailability();
+                roomAvailability.setParticipantCount(roomParticipantCount);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+                    roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
-                abstractRoomSpecification = roomSpecification;
                 break;
             }
             case PERMANENT_ROOM: {
-                PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification();
+                // Room establishment
+                RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+                roomEstablishment.setTechnologies(technology.getTechnologies());
                 AliasSpecification roomNameSpecification = new AliasSpecification();
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
                 roomNameSpecification.setValue(roomName);
-                permanentRoomSpecification.addAliasSpecification(roomNameSpecification);
+                roomEstablishment.addAliasSpecification(roomNameSpecification);
                 if (technology.equals(TechnologyModel.H323_SIP)) {
-                    permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.H323_E164));
+                    roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_E164));
                 }
-                abstractRoomSpecification = permanentRoomSpecification;
                 break;
             }
             case PERMANENT_ROOM_CAPACITY: {
-                UsedRoomSpecification usedRoomSpecification = new UsedRoomSpecification();
-                usedRoomSpecification.setParticipantCount(roomParticipantCount);
+                // Room availability
+                RoomAvailability roomAvailability = roomSpecification.createAvailability();
+                roomAvailability.setParticipantCount(roomParticipantCount);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
-                    usedRoomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+                    roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
-                abstractRoomSpecification = usedRoomSpecification;
                 break;
             }
             default:
                 throw new TodoImplementException(specificationType);
         }
-        if (abstractRoomSpecification instanceof StandaloneRoomSpecification) {
-            StandaloneRoomSpecification standaloneRoomSpecification =
-                    (StandaloneRoomSpecification) abstractRoomSpecification;
-            standaloneRoomSpecification.setTechnologies(technology.getTechnologies());
-        }
         for (ParticipantModel participant : roomParticipants) {
             if (participant.getId() == null) {
                 continue;
             }
-            abstractRoomSpecification.addParticipant(participant.toApi());
+            roomSpecification.addParticipant(participant.toApi());
         }
         if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
             H323RoomSetting h323RoomSetting = new H323RoomSetting();
             h323RoomSetting.setPin(roomPin.toString());
-            abstractRoomSpecification.addRoomSetting(h323RoomSetting);
+            roomSpecification.addRoomSetting(h323RoomSetting);
         }
         if (technology.equals(TechnologyModel.ADOBE_CONNECT)) {
             AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
@@ -666,9 +661,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 adobeConnectRoomSetting.setPin(roomPin.toString());
             }
             adobeConnectRoomSetting.setAccessMode(roomAccessMode);
-            abstractRoomSpecification.addRoomSetting(adobeConnectRoomSetting);
+            roomSpecification.addRoomSetting(adobeConnectRoomSetting);
         }
-        return abstractRoomSpecification;
+        return roomSpecification;
     }
 
     /**

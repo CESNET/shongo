@@ -110,12 +110,12 @@ public class ReservationNotificationTest extends AbstractControllerTest
         checkAllocationFailed(reservationRequestId);
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(3);
+        ((RoomSpecification) reservationRequest.getSpecification()).getAvailability().setParticipantCount(3);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(6);
+        ((RoomSpecification) reservationRequest.getSpecification()).getAvailability().setParticipantCount(6);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
@@ -153,16 +153,16 @@ public class ReservationNotificationTest extends AbstractControllerTest
         permanentRoomReservationRequest.setDescription("Alias Reservation Request");
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(AliasType.ADOBE_CONNECT_URI));
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(AliasType.ADOBE_CONNECT_URI));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocationFailed(permanentRoomReservationRequestId);
 
         permanentRoomReservationRequest =
                 getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
-        PermanentRoomSpecification permanentRoomSpecification =
-                (PermanentRoomSpecification) permanentRoomReservationRequest.getSpecification();
-        permanentRoomSpecification.getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
+        RoomSpecification roomSpecification =
+                (RoomSpecification) permanentRoomReservationRequest.getSpecification();
+        roomSpecification.getEstablishment().getAliasSpecifications().get(0).setAliasTypes(new HashSet<AliasType>()
         {{
                 add(AliasType.SIP_URI);
             }});
@@ -173,7 +173,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         capacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 

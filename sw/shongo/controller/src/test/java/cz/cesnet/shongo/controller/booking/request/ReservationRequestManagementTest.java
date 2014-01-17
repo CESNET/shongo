@@ -325,10 +325,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         checkAllocated(id);
 
         reservationRequest = getReservationRequest(id, ReservationRequestSet.class);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(roomSpecification);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
         id = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
@@ -372,16 +369,16 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
         Assert.assertEquals("description1", reservationRequest.getDescription());
         RoomSpecification roomSpecification = ((RoomSpecification) reservationRequest.getSpecification());
-        Assert.assertEquals(Integer.valueOf(9), roomSpecification.getParticipantCount());
-        Assert.assertEquals(1, roomSpecification.getTechnologies().size());
+        Assert.assertEquals(9, roomSpecification.getAvailability().getParticipantCount());
+        Assert.assertEquals(1, roomSpecification.getEstablishment().getTechnologies().size());
 
         reservationRequestSet = (ReservationRequestSet) service.getReservationRequest(SECURITY_TOKEN, id2);
         Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequestSet.getPurpose());
         Assert.assertEquals("description2", reservationRequestSet.getDescription());
         Assert.assertEquals(RoomSpecification.class, reservationRequestSet.getSpecification().getClass());
         roomSpecification = ((RoomSpecification) reservationRequestSet.getSpecification());
-        Assert.assertEquals(Integer.valueOf(10), roomSpecification.getParticipantCount());
-        Assert.assertEquals(1, roomSpecification.getTechnologies().size());
+        Assert.assertEquals(10, roomSpecification.getAvailability().getParticipantCount());
+        Assert.assertEquals(1, roomSpecification.getEstablishment().getTechnologies().size());
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id2);
 
@@ -733,7 +730,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);
@@ -742,7 +739,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId = service.createReservationRequest(
                 SECURITY_TOKEN_USER1, capacityReservationRequest);
 
@@ -764,7 +761,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         capacityReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest.setSpecification(new RoomSpecification(5));
         capacityReservationRequestId = service.createReservationRequest(SECURITY_TOKEN_USER1, capacityReservationRequest);
 
         getAuthorizationService().createAclEntry(

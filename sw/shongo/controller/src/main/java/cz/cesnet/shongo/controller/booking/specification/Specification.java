@@ -237,10 +237,6 @@ public abstract class Specification extends SimplePersistentObject implements Re
                 ResourceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomSpecification.class,
                 RoomSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.PermanentRoomSpecification.class,
-                RoomSpecification.class);
-        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.UsedRoomSpecification.class,
-                RoomSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExecutableServiceSpecification.class,
                 ExecutableServiceSpecification.class);
         CLASS_BY_API.put(cz.cesnet.shongo.controller.api.CompartmentSpecification.class,

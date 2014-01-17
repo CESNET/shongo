@@ -246,10 +246,7 @@ public class ReusementTest extends AbstractControllerTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(10);
-        roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setSpecification(new RoomSpecification(10, Technology.H323));
         roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
         checkAllocated(roomReservationRequestId);
@@ -377,7 +374,7 @@ public class ReusementTest extends AbstractControllerTest
         permanentRoomReservationRequest.setSlot("2013-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         permanentRoomReservationRequest.setSpecification(
-                new PermanentRoomSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+                new RoomSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
@@ -388,14 +385,14 @@ public class ReusementTest extends AbstractControllerTest
         reservationRequest1.setSlot("2013-07-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        reservationRequest1.setSpecification(new UsedRoomSpecification(5));
+        reservationRequest1.setSpecification(new RoomSpecification(5));
         String reservationRequest1Id = allocate(reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
         reservationRequest2.setSlot("2013-07-02T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        reservationRequest2.setSpecification(new UsedRoomSpecification(5));
+        reservationRequest2.setSpecification(new RoomSpecification(5));
         String reservationRequest2Id = allocate(reservationRequest2);
 
         // Check allocated capacities for permanent room
@@ -409,9 +406,9 @@ public class ReusementTest extends AbstractControllerTest
         // Modify permanent room alias value
         ReservationRequest reservationRequest =
                 getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
-        PermanentRoomSpecification permanentRoomSpecification =
-                (PermanentRoomSpecification) reservationRequest.getSpecification();
-        permanentRoomSpecification.getAliasSpecificationByType(AliasType.H323_E164).setValue("555");
+        RoomSpecification roomSpecification =
+                (RoomSpecification) reservationRequest.getSpecification();
+        roomSpecification.getEstablishment().getAliasSpecificationByType(AliasType.H323_E164).setValue("555");
         permanentRoomReservationRequestId = allocate(reservationRequest, new DateTime("2013-07-01T13:00"));
 
         // Check allocated permanent room alias value
@@ -440,7 +437,7 @@ public class ReusementTest extends AbstractControllerTest
         reservationRequestSet.addSlot("2013-07-04T12:00", "PT2H");
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        reservationRequestSet.setSpecification(new UsedRoomSpecification(5));
+        reservationRequestSet.setSpecification(new RoomSpecification(5));
         String reservationRequestSetId = allocate(reservationRequestSet);
         checkAllocated(reservationRequestSetId);
 
@@ -472,7 +469,7 @@ public class ReusementTest extends AbstractControllerTest
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         permanentRoomReservationRequest.setSpecification(
-                new PermanentRoomSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
+                new RoomSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);
@@ -481,7 +478,7 @@ public class ReusementTest extends AbstractControllerTest
         capacityReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 

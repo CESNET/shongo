@@ -34,7 +34,7 @@ public class XmlRpcTest extends AbstractControllerTest
         Assert.assertEquals(new HashSet<Technology>()
         {{
                 add(Technology.H323);
-            }}, roomSpecification.getTechnologies());
+            }}, roomSpecification.getEstablishment().getTechnologies());
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -58,10 +58,16 @@ public class XmlRpcTest extends AbstractControllerTest
         attributes.put("specification", new HashMap<String, Object>()
         {{
                 put("class", "RoomSpecification");
-                put("participantCount", 5);
-                put("technologies", new ArrayList<Object>()
+                put("establishment", new HashMap<String, Object>()
                 {{
-                        add("H323");
+                    put("technologies", new ArrayList<Object>()
+                    {{
+                            add("H323");
+                        }});
+                    }});
+                put("availability", new HashMap<String, Object>()
+                {{
+                        put("participantCount", 5);
                     }});
             }});
         List<Object> params = new ArrayList<Object>();
@@ -76,7 +82,7 @@ public class XmlRpcTest extends AbstractControllerTest
         Assert.assertEquals(new HashSet<Technology>()
         {{
                 add(Technology.H323);
-            }}, roomSpecification.getTechnologies());
+            }}, roomSpecification.getEstablishment().getTechnologies());
 
         attributes = new HashMap<String, Object>();
         attributes.put("class", "ReservationRequestSet");

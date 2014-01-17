@@ -51,11 +51,11 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.setResourceId(secondMcuId);
+        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        roomEstablishment.setResourceId(secondMcuId);
         firstReservationRequest.setSpecification(roomSpecification);
 
         cz.cesnet.shongo.controller.api.RoomReservation firstReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(firstReservationRequest);
@@ -65,11 +65,11 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(3);
-        roomSpecification.setResourceId(firstMcuId);
+        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(3);
+        roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        roomEstablishment.setResourceId(firstMcuId);
         secondReservationRequest.setSpecification(roomSpecification);
 
         cz.cesnet.shongo.controller.api.RoomReservation secondReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(secondReservationRequest);
@@ -79,10 +79,10 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest thirdReservationRequest = new ReservationRequest();
         thirdReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         thirdReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
+        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
         thirdReservationRequest.setSpecification(roomSpecification);
 
         cz.cesnet.shongo.controller.api.RoomReservation thirdReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(thirdReservationRequest);
@@ -146,11 +146,11 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.setResourceId(firstMcuId);
+        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        roomEstablishment.setResourceId(firstMcuId);
         reservationRequest.setSpecification(roomSpecification);
         cz.cesnet.shongo.controller.api.RoomReservation reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
         RoomExecutable reservationRoom = (RoomExecutable) reservation.getExecutable();
@@ -159,11 +159,11 @@ public class RoomTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.setResourceId(secondMcuId);
+        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        roomEstablishment.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
         reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
@@ -177,10 +177,10 @@ public class RoomTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.setResourceId(secondMcuId);
+        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
         reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
@@ -232,8 +232,11 @@ public class RoomTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new cz.cesnet.shongo.controller.api.RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "2-5"));
+        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_URI, "2-5"));
+        reservationRequest.setSpecification(roomSpecification);
         reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.H323_E164, AliasType.H323_URI}, reservationRoom.getAliases());
@@ -241,8 +244,11 @@ public class RoomTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "1-5"));
+        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_URI, "1-5"));
+        reservationRequest.setSpecification(roomSpecification);
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());

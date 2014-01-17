@@ -174,6 +174,15 @@ public class DataMap
         return Converter.convertToInteger(getRequired(property));
     }
 
+    public int getInt(String property, int defaultValue)
+    {
+        Object value = data.get(property);
+        if (value == null) {
+            return defaultValue;
+        }
+        return Converter.convertToInteger(value);
+    }
+
     public Integer getInteger(String property)
     {
         return Converter.convertToInteger(data.get(property));

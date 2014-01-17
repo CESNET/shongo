@@ -51,14 +51,15 @@ public class MigrationTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T12:00", "2012-01-01T14:00");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
-        roomSpecification.setResourceId(mcu1Id);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.setResourceId(mcu1Id);
+        roomEstablishment.addTechnology(Technology.H323);
         reservationRequest.setSpecification(roomSpecification);
         String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(Interval.parse("2012-01-01T12:00/2012-02-01T12:00"));
         Reservation reservation = checkAllocated(requestId);
-
 
         // Set the allocated room as started, because a migration is allocated only for started rooms
         EntityManager entityManager = createEntityManager();
@@ -74,8 +75,8 @@ public class MigrationTest extends AbstractExecutorTest
         // Modify room
         reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         roomSpecification = ((RoomSpecification) reservationRequest.getSpecification());
-        roomSpecification.setParticipantCount(10);
-        roomSpecification.setResourceId(null);
+        roomSpecification.getEstablishment().setResourceId(null);
+        roomSpecification.getAvailability().setParticipantCount(10);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(Interval.parse("2012-01-01T13:00/2012-02-01T13:00"));
@@ -149,7 +150,7 @@ public class MigrationTest extends AbstractExecutorTest
 
         // Modify room
         reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(7);
+        ((RoomSpecification) reservationRequest.getSpecification()).getAvailability().setParticipantCount(7);
         reservationRequestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(new Interval(dateTimeMiddle, Period.months(1)));
@@ -217,10 +218,10 @@ public class MigrationTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTimeStart, dateTimeEnd);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setResourceId(mcu1Id);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.setResourceId(mcu1Id);
+        roomEstablishment.addTechnology(Technology.H323);
         reservationRequest.setSpecification(roomSpecification);
         String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
@@ -244,8 +245,8 @@ public class MigrationTest extends AbstractExecutorTest
         // Modify room
         reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
         roomSpecification = ((RoomSpecification) reservationRequest.getSpecification());
-        roomSpecification.setParticipantCount(7);
-        roomSpecification.setResourceId(null);
+        roomSpecification.getEstablishment().setResourceId(null);
+        roomSpecification.getAvailability().setParticipantCount(7);
         requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(new Interval(dateTimeMiddle, Period.months(1)));

@@ -15,7 +15,6 @@ import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
@@ -87,7 +86,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Request starting of the service
         roomReservationRequest = getReservationRequest(roomReservationRequestId, ReservationRequest.class);
         roomSpecification = (RoomSpecification) roomReservationRequest.getSpecification();
-        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomSpecification.getAvailability().addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequestId = allocate(roomReservationRequest, dateTime.plusHours(1));
         roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
         roomExecutable = (RoomExecutable) roomReservation.getExecutable();
@@ -183,10 +182,12 @@ public class RecordingServiceTest extends AbstractExecutorTest
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
-        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
@@ -279,10 +280,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.addTechnology(Technology.SIP);
-        roomSpecification.setParticipantCount(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
         roomReservationRequest.setSpecification(roomSpecification);
         RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
         RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();

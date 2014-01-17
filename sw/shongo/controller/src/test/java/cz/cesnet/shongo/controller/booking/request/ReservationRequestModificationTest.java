@@ -10,12 +10,10 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -284,10 +282,11 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification();
-        permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
-        permanentRoomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        permanentRoomReservationRequest.setSpecification(roomSpecification);
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);
@@ -297,13 +296,13 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        reservationRequest.setSpecification(new UsedRoomSpecification(5));
+        reservationRequest.setSpecification(new RoomSpecification(5));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         // Increase room capacity
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        ((UsedRoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
+        ((RoomSpecification) reservationRequest.getSpecification()).getAvailability().setParticipantCount(10);
         allocateAndCheck(reservationRequest);
     }
 
@@ -335,7 +334,8 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
-        roomSpecification.addAliasSpecification(new AliasSpecification(AliasType.ROOM_NAME, roomName));
+        roomSpecification.getEstablishment().addAliasSpecification(
+                new AliasSpecification(AliasType.ROOM_NAME, roomName));
         allocateAndCheck(reservationRequest);
     }
 

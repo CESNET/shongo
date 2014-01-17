@@ -60,10 +60,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(roomSpecification);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
 
         // Allocate reservation request
         allocateAndCheck(reservationRequest);
@@ -184,7 +181,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new PermanentRoomSpecification(Technology.ADOBE_CONNECT));
+        reservationRequest.setSpecification(new RoomSpecification(Technology.ADOBE_CONNECT));
 
         // Allocate reservation request
         allocateAndCheck(reservationRequest);
@@ -230,9 +227,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
 
@@ -288,10 +283,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, duration);
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(10);
-        roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setSpecification(new RoomSpecification(10, Technology.H323));
         roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
         String roomReservationId = checkAllocated(roomReservationRequestId).getId();
@@ -358,10 +350,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, duration);
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(10);
-        roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setSpecification(new RoomSpecification(10, Technology.H323));
         roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
         String roomReservationId = checkAllocated(roomReservationRequestId).getId();
@@ -422,10 +411,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(roomSpecification);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
 
         // Allocate reservation request
         String reservationRequestId = allocate(SECURITY_TOKEN_USER1, reservationRequest);
@@ -489,8 +475,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot(dateTime.minusDays(1), dateTime.plusDays(1));
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification();
-        permanentRoomSpecification.addTechnology(Technology.ADOBE_CONNECT);
+        RoomSpecification permanentRoomSpecification = new RoomSpecification(Technology.ADOBE_CONNECT);
         AdobeConnectRoomSetting permanentRoomSetting = new AdobeConnectRoomSetting();
         permanentRoomSetting.setPin("1234");
         permanentRoomSetting.setAccessMode(AdobeConnectAccessMode.PRIVATE);
@@ -506,7 +491,7 @@ public class ExecutableTest extends AbstractExecutorTest
         capacityReservationRequest.setSlot(dateTime, capacityDuration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        UsedRoomSpecification capacitySpecification = new UsedRoomSpecification(10);
+        RoomSpecification capacitySpecification = new RoomSpecification(10);
         AdobeConnectRoomSetting capacitySetting = new AdobeConnectRoomSetting();
         capacitySetting.setPin("abcd");
         capacitySetting.setAccessMode(AdobeConnectAccessMode.PUBLIC);
@@ -610,7 +595,7 @@ public class ExecutableTest extends AbstractExecutorTest
         permanentRoomReservationRequest.setSlot(dateTime, duration);
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         permanentRoomReservationRequest.setSpecification(
-                new PermanentRoomSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
+                new RoomSpecification(Technology.ADOBE_CONNECT, connectServerId));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(SECURITY_TOKEN_USER1, permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
@@ -623,7 +608,7 @@ public class ExecutableTest extends AbstractExecutorTest
         capacityReservationRequest.setSlot(dateTime, duration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(10));
+        capacityReservationRequest.setSpecification(new RoomSpecification(10));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 
@@ -717,7 +702,7 @@ public class ExecutableTest extends AbstractExecutorTest
         permanentRoomReservationRequest.setSlot(dateTime, duration);
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         permanentRoomReservationRequest.setSpecification(
-                new PermanentRoomSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
+                new RoomSpecification(Technology.ADOBE_CONNECT, connectServerId));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
@@ -729,7 +714,7 @@ public class ExecutableTest extends AbstractExecutorTest
         capacityReservationRequest.setSlot(dateTime, duration);
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(10));
+        capacityReservationRequest.setSpecification(new RoomSpecification(10));
         allocateAndCheck(capacityReservationRequest);
 
         // Start virtual rooms
@@ -782,8 +767,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        PermanentRoomSpecification permanentRoomSpecification = new PermanentRoomSpecification(Technology.H323);
-        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
@@ -795,7 +779,7 @@ public class ExecutableTest extends AbstractExecutorTest
         capacityReservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId);
-        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest1.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
         checkAllocated(capacityReservationRequestId1);
 
@@ -804,7 +788,7 @@ public class ExecutableTest extends AbstractExecutorTest
         capacityReservationRequest2.setSlot("2012-02-01T12:00", "PT2H");
         capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId);
-        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest2.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
         checkAllocated(capacityReservationRequestId2);
 
@@ -819,8 +803,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Increase room capacity
         permanentRoomReservationRequest =
                 getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
-        permanentRoomSpecification = ((PermanentRoomSpecification) permanentRoomReservationRequest.getSpecification());
-        permanentRoomSpecification.setTechnology(Technology.ADOBE_CONNECT);
+        RoomSpecification roomSpecification = ((RoomSpecification) permanentRoomReservationRequest.getSpecification());
+        roomSpecification.getEstablishment().setTechnology(Technology.ADOBE_CONNECT);
         permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest, new DateTime("2012-02-01T00:00"));
         checkAllocated(permanentRoomReservationRequestId);
 
@@ -870,9 +854,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, duration);
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(10);
+        RoomSpecification roomSpecification = new RoomSpecification(10, Technology.H323);
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         roomReservationRequest.setSpecification(roomSpecification);
         String roomReservationRequestId = allocate(roomReservationRequest);
@@ -923,10 +905,7 @@ public class ExecutableTest extends AbstractExecutorTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification =
-                new cz.cesnet.shongo.controller.api.RoomSpecification();
-        roomSpecification.addTechnology(Technology.ADOBE_CONNECT);
-        roomSpecification.setParticipantCount(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.ADOBE_CONNECT);
         roomSpecification.addParticipant(new PersonParticipant(new UserPerson(userId2)));
         reservationRequest.setSpecification(roomSpecification);
 

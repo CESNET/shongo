@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.RoomSetting;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,17 +13,27 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RoomSpecification extends StandaloneRoomSpecification
+public class RoomSpecification extends Specification
 {
     /**
-     * Number of ports which must be allocated for the virtual room.
+     * If {@link RoomEstablishment} is set a new room shall be created, else existing room shall be reused.
      */
-    private Integer participantCount;
+    private RoomEstablishment establishment;
 
     /**
-     * {@link ExecutableServiceSpecification}s for the virtual room.
+     * If {@link RoomAvailability} is set the room shall be available for joining, else it shall be inaccessible.
      */
-    private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
+    private RoomAvailability availability;
+
+    /**
+     * {@link cz.cesnet.shongo.api.RoomSetting}s for the virtual room.
+     */
+    private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
+
+    /**
+     * Collection of {@link AbstractParticipant}s for the virtual room.
+     */
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * Constructor.
@@ -32,107 +43,215 @@ public class RoomSpecification extends StandaloneRoomSpecification
     }
 
     /**
-     * Constructor.
+     * Constructor for ad-hoc room.
      *
-     * @param participantCount sets the {@link #participantCount}
-     * @param technology       to be added to the {@link #technologies}
+     * @param participantCount sets the {@link RoomAvailability#participantCount}
+     * @param technology       to be added to the {@link RoomEstablishment#technologies}
      */
     public RoomSpecification(int participantCount, Technology technology)
     {
-        setParticipantCount(participantCount);
-        addTechnology(technology);
+        setEstablishment(new RoomEstablishment(technology));
+        setAvailability(new RoomAvailability(participantCount));
     }
 
     /**
-     * Constructor.
+     * Constructor for ad-hoc room.
      *
-     * @param participantCount sets the {@link #participantCount}
-     * @param technology       to be added to the {@link #technologies}
-     * @param resourceId       sets the {@link #resourceId}
+     * @param participantCount sets the {@link RoomAvailability#participantCount}
+     * @param technology       to be added to the {@link RoomEstablishment#technologies}
+     * @param resourceId       sets the {@link RoomEstablishment#resourceId}
      */
     public RoomSpecification(int participantCount, Technology technology, String resourceId)
     {
-        setParticipantCount(participantCount);
-        addTechnology(technology);
-        setResourceId(resourceId);
+        setEstablishment(new RoomEstablishment(technology, resourceId));
+        setAvailability(new RoomAvailability(participantCount));
     }
 
     /**
-     * Constructor.
+     * Constructor for ad-hoc room.
      *
-     * @param participantCount sets the {@link #participantCount}
-     * @param technologies     to be added to the {@link #technologies}
+     * @param participantCount sets the {@link RoomAvailability#participantCount}
+     * @param technologies     sets the {@link RoomEstablishment#technologies}
      */
     public RoomSpecification(int participantCount, Technology[] technologies)
     {
-        setParticipantCount(participantCount);
-        for (Technology technology : technologies) {
-            addTechnology(technology);
-        }
+        setEstablishment(new RoomEstablishment(technologies));
+        setAvailability(new RoomAvailability(participantCount));
     }
 
     /**
-     * @param resourceId sets the {@link #resourceId}
-     * @return this {@link RoomSpecification} with {@link #resourceId} set to {@code resourceId}
+     * Constructor for permanent room.
+     *
+     * @param technology to be added to the {@link RoomEstablishment#technologies}
      */
-    public RoomSpecification withResourceId(String resourceId)
+    public RoomSpecification(Technology technology)
     {
-        setResourceId(resourceId);
-        return this;
+        setEstablishment(new RoomEstablishment(technology));
     }
 
     /**
-     * @param aliasType for the new {@link AliasSpecification}
-     * @param value     for the new {@link AliasSpecification}
-     * @return this {@link RoomSpecification}
+     * Constructor for permanent room.
+     *
+     * @param technology to be added to the {@link RoomEstablishment#technologies}
+     * @param resourceId sets the {@link RoomEstablishment#resourceId}
      */
-    public RoomSpecification withAlias(AliasType aliasType, String value)
+    public RoomSpecification(Technology technology, String resourceId)
     {
-        addAliasSpecification(new AliasSpecification(aliasType).withValue(value));
-        return this;
+        setEstablishment(new RoomEstablishment(technology, resourceId));
     }
 
     /**
-     * @return {@link #participantCount}
+     * Constructor for permanent room.
+     *
+     * @param technologies sets the {@link RoomEstablishment#technologies}
      */
-    public Integer getParticipantCount()
+    public RoomSpecification(Technology[] technologies)
     {
-        return participantCount;
+        setEstablishment(new RoomEstablishment(technologies));
     }
 
     /**
-     * @param participantCount sets the {@link #participantCount}
+     * Constructor for permanent room.
+     *
+     * @param aliasType to be added to the {@link RoomEstablishment#aliasSpecifications}
      */
-    public void setParticipantCount(Integer participantCount)
+    public RoomSpecification(AliasType aliasType)
     {
-        this.participantCount = participantCount;
+        setEstablishment(new RoomEstablishment(aliasType));
     }
 
     /**
-     * @return {@link #serviceSpecifications}
+     * Constructor for permanent room.
+     *
+     * @param aliasTypes sets the {@link RoomEstablishment#aliasSpecifications}
      */
-    public List<ExecutableServiceSpecification> getServiceSpecifications()
+    public RoomSpecification(AliasType[] aliasTypes)
     {
-        return serviceSpecifications;
+        setEstablishment(new RoomEstablishment(aliasTypes));
     }
 
     /**
-     * @param serviceSpecification to be added to the {@link #serviceSpecifications}
+     * Constructor for reused room.
+     *
+     * @param participantCount sets the {@link RoomAvailability#participantCount}
      */
-    public void addServiceSpecification(ExecutableServiceSpecification serviceSpecification)
+    public RoomSpecification(int participantCount)
     {
-        serviceSpecifications.add(serviceSpecification);
+        setAvailability(new RoomAvailability(participantCount));
     }
 
-    public static final String PARTICIPANT_COUNT = "participantCount";
-    public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
+    /**
+     * @return {@link #establishment}
+     */
+    public RoomEstablishment getEstablishment()
+    {
+        return establishment;
+    }
+
+    /**
+     * @param establishment sets the {@link #establishment}
+     */
+    public void setEstablishment(RoomEstablishment establishment)
+    {
+        this.establishment = establishment;
+    }
+
+    /**
+     * @return newly created {@link #establishment}
+     */
+    public RoomEstablishment createEstablishment()
+    {
+        this.establishment = new RoomEstablishment();
+        return this.establishment;
+    }
+
+    /**
+     * @return {@link #availability}
+     */
+    public RoomAvailability getAvailability()
+    {
+        return availability;
+    }
+
+    /**
+     * @param availability sets the {@link #availability}
+     */
+    public void setAvailability(RoomAvailability availability)
+    {
+        this.availability = availability;
+    }
+
+    /**
+     * @return newly created {@link #availability}
+     */
+    public RoomAvailability createAvailability()
+    {
+        this.availability = new RoomAvailability();
+        return this.availability;
+    }
+
+    /**
+     * @return {@link #roomSettings}
+     */
+    public List<RoomSetting> getRoomSettings()
+    {
+        return roomSettings;
+    }
+
+    /**
+     * @param roomSettings sets the {@link #roomSettings}
+     */
+    public void setRoomSettings(List<RoomSetting> roomSettings)
+    {
+        this.roomSettings = roomSettings;
+    }
+
+    /**
+     * @param roomSetting to be added to the {@link #roomSettings}
+     */
+    public void addRoomSetting(RoomSetting roomSetting)
+    {
+        roomSettings.add(roomSetting);
+    }
+
+    /**
+     * @param roomSetting to be removed from the {@link #roomSettings}
+     */
+    public void removeRoomSetting(RoomSetting roomSetting)
+    {
+        roomSettings.remove(roomSetting);
+    }
+
+    /**
+     * @return {@link #participants}
+     */
+    public List<AbstractParticipant> getParticipants()
+    {
+        return participants;
+    }
+
+    /**
+     * @param participant to be added to the {@link #participants}
+     */
+    public void addParticipant(AbstractParticipant participant)
+    {
+        participants.add(participant);
+    }
+
+    public static final String ESTABLISHMENT = "establishment";
+    public static final String AVAILABILITY = "availability";
+    public static final String ROOM_SETTINGS = "roomSettings";
+    public static final String PARTICIPANTS = "participants";
+
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(PARTICIPANT_COUNT, participantCount);
-        dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
+        dataMap.set(ESTABLISHMENT, establishment);
+        dataMap.set(AVAILABILITY, availability);
+        dataMap.set(ROOM_SETTINGS, roomSettings);
+        dataMap.set(PARTICIPANTS, participants);
         return dataMap;
     }
 
@@ -140,8 +259,10 @@ public class RoomSpecification extends StandaloneRoomSpecification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
-        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
-        serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
+        establishment = dataMap.getComplexType(ESTABLISHMENT, RoomEstablishment.class);
+        availability = dataMap.getComplexType(AVAILABILITY, RoomAvailability.class);
+        roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
+        participants = dataMap.getList(PARTICIPANTS, AbstractParticipant.class);
     }
+
 }

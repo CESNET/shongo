@@ -64,7 +64,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);
@@ -73,7 +73,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         capacityReservationRequest.setSlot("2013-01-01T00:00", "PT2H");
         capacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocationFailed(capacityReservationRequestId);
 
@@ -133,7 +133,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);
@@ -142,7 +142,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         capacityReservationRequest1.setSlot("2012-03-01T14:00", "PT2H");
         capacityReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest1.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest1.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest1.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId1 = allocate(capacityReservationRequest1);
         checkAllocated(capacityReservationRequestId1);
 
@@ -150,7 +150,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         capacityReservationRequest2.setSlot("2012-03-01T14:00", "PT2H");
         capacityReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         capacityReservationRequest2.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        capacityReservationRequest2.setSpecification(new UsedRoomSpecification(5));
+        capacityReservationRequest2.setSpecification(new RoomSpecification(5));
         String capacityReservationRequestId2 = allocate(capacityReservationRequest2);
         checkAllocationFailed(capacityReservationRequestId2);
 
@@ -363,8 +363,10 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1D");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
-        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
@@ -392,16 +394,20 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1D");
         reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecificationFirst = new RoomSpecification(5, Technology.H323);
-        roomSpecificationFirst.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomSpecification roomSpecificationFirst = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailabilityFirst = roomSpecificationFirst.createAvailability();
+        roomAvailabilityFirst.setParticipantCount(5);
+        roomAvailabilityFirst.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         reservationRequestFirst.setSpecification(roomSpecificationFirst);
         allocateAndCheck(reservationRequestFirst);
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1D");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecificationSecond = new RoomSpecification(5, Technology.H323);
-        roomSpecificationSecond.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomSpecification roomSpecificationSecond = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailabilitySecond = roomSpecificationSecond.createAvailability();
+        roomAvailabilitySecond.setParticipantCount(5);
+        roomAvailabilitySecond.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         reservationRequestSecond.setSpecification(roomSpecificationSecond);
         String reservationRequestSecondId = allocate(reservationRequestSecond);
         checkAllocationFailed(reservationRequestSecondId);
@@ -433,8 +439,10 @@ public class AllocationStateReportTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1D");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
-        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestSecondId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestSecondId);

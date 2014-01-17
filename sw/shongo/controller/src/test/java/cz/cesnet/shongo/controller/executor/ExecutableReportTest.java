@@ -83,10 +83,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(roomSpecification);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
 
         // Allocate reservation request
         Reservation reservation = allocateAndCheck(reservationRequest);
