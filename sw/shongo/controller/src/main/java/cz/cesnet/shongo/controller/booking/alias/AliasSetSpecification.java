@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -91,9 +92,10 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot)
+            throws SchedulerException
     {
-        AliasSetReservationTask aliasSetReservationTask = new AliasSetReservationTask(schedulerContext);
+        AliasSetReservationTask aliasSetReservationTask = new AliasSetReservationTask(schedulerContext, slot);
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             aliasSetReservationTask.addAliasSpecification(aliasSpecification);
         }

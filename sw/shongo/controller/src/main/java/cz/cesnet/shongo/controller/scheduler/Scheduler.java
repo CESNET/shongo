@@ -317,32 +317,43 @@ public class Scheduler extends SwitchableComponent
         // Initialize scheduler context
         schedulerContext.setReservationRequest(reservationRequest);
 
+        // Get slot
+        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
+        Interval slot = reservationRequest.getSlot();
+        if (slot.isBefore(minimumDateTime)) {
+            throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
+        }
+        // Update slot to not allocate reservation before minimum date/time
+        if (slot.contains(minimumDateTime)) {
+            slot = new Interval(minimumDateTime, slot.getEnd());
+        }
+        DateTime slotStart = slot.getStart();
+
         // Find reservation requests which should be reallocated
-        DateTime requestedSlotStart = schedulerContext.getRequestedSlotStart();
         List<ReservationRequest> reservationRequestUsages = reservationRequestManager.listAllocationActiveUsages(
-                reservationRequest.getAllocation(), schedulerContext.getRequestedSlot());
+                reservationRequest.getAllocation(), slot);
         for (ReservationRequest reservationRequestUsage : reservationRequestUsages) {
             Interval usageSlot = reservationRequestUsage.getSlot();
             DateTime usageSlotEnd = usageSlot.getEnd();
             // If usage is active (it starts before currently being allocate requested slot)
-            if (usageSlot.getStart().isBefore(requestedSlotStart) && requestedSlotStart.isBefore(usageSlotEnd)) {
+            if (usageSlot.getStart().isBefore(slotStart) && slotStart.isBefore(usageSlotEnd)) {
                 // Move currently being allocated requested slot after the usage
-                requestedSlotStart = usageSlotEnd;
+                slotStart = usageSlotEnd;
             }
             else {
                 schedulerContext.addReservationRequestToReallocate(reservationRequestUsage);
             }
         }
         // Update requested slot start to be after active usages
-        schedulerContext.setRequestedSlotStart(requestedSlotStart);
-
-        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
-        Interval requestedSlot = schedulerContext.getRequestedSlot();
+        if (slotStart.isBefore(minimumDateTime)) {
+            throw new IllegalArgumentException("Requested slot can't start before minimum date/time.");
+        }
+        slot = new Interval(slotStart, slot.getEnd());
 
         // Fill already allocated reservations as reallocatable
         Allocation allocation = reservationRequest.getAllocation();
         for (Reservation allocatedReservation : allocation.getReservations()) {
-            if (!requestedSlot.overlaps(allocatedReservation.getSlot())) {
+            if (!slot.overlaps(allocatedReservation.getSlot())) {
                 continue;
             }
             schedulerContext.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
@@ -352,7 +363,7 @@ public class Scheduler extends SwitchableComponent
         Allocation reusedAllocation = reservationRequest.getReusedAllocation();
         Reservation reusableReservation = null;
         if (reusedAllocation != null) {
-            reusableReservation = schedulerContext.setReusableAllocation(reusedAllocation);
+            reusableReservation = schedulerContext.setReusableAllocation(reusedAllocation, slot);
         }
 
         // Get reservation task
@@ -360,7 +371,8 @@ public class Scheduler extends SwitchableComponent
         ReservationTask reservationTask;
         if (specification instanceof ReservationTaskProvider) {
             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
-            reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
+            reservationTask = reservationTaskProvider.createReservationTask(
+                    schedulerContext, slot);
         }
         else {
             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
@@ -435,7 +447,7 @@ public class Scheduler extends SwitchableComponent
             // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
             if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
                 // If old reservation time slot intersects the new reservation time slot
-                if (oldReservation.getSlotEnd().isAfter(requestedSlotStart)) {
+                if (oldReservation.getSlotEnd().isAfter(slotStart)) {
                     // Set preceding reservation
                     if (precedingReservation != null) {
                         throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
@@ -443,7 +455,7 @@ public class Scheduler extends SwitchableComponent
                     precedingReservation = oldReservation;
 
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
-                    oldReservation.setSlotEnd(requestedSlotStart);
+                    oldReservation.setSlotEnd(slotStart);
                 }
                 // Old reservation which takes place in the past should not be deleted
                 continue;

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
@@ -54,11 +53,6 @@ public class SchedulerContext
      * Represents a minimum date/time before which the {@link cz.cesnet.shongo.controller.booking.reservation.Reservation}s cannot be allocated.
      */
     private final DateTime minimumDateTime;
-
-    /**
-     * Requested slot for which the {@link cz.cesnet.shongo.controller.booking.reservation.Reservation}s should be allocated.
-     */
-    private Interval requestedSlot;
 
     /**
      * Description for allocated reservations or executables.
@@ -144,51 +138,6 @@ public class SchedulerContext
     }
 
     /**
-     * Constructor.
-     *
-     * @param cache         sets the {@link #cache}
-     * @param entityManager which can be used or null
-     * @param authorization which can be used or null
-     * @param requestedSlot sets the {@link #requestedSlot}
-     */
-    public SchedulerContext(Cache cache, EntityManager entityManager, Authorization authorization,
-            Interval requestedSlot)
-    {
-        this(requestedSlot.getStart(), cache, entityManager, new AuthorizationManager(entityManager, authorization));
-        setRequestedSlot(requestedSlot);
-    }
-
-    /**
-     * @param requestedSlot sets the {@link #requestedSlot}
-     */
-    public void setRequestedSlot(Interval requestedSlot)
-    {
-        if (requestedSlot.isBefore(minimumDateTime)) {
-            throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
-        }
-        this.requestedSlot = requestedSlot;
-
-        // Update requested slot to not allocate before minimum date/time
-        if (this.requestedSlot.contains(minimumDateTime)) {
-            this.requestedSlot = new Interval(minimumDateTime, this.requestedSlot.getEnd());
-        }
-    }
-
-    /**
-     * @param requestSlotStart sets the start of the {@link #requestedSlot}
-     */
-    public void setRequestedSlotStart(DateTime requestSlotStart)
-    {
-        if (requestedSlot == null) {
-            throw new IllegalStateException("Requested slot hasn't been set yet.");
-        }
-        if (requestSlotStart.isBefore(minimumDateTime)) {
-            throw new IllegalArgumentException("Requested slot can't start before minimum date/time.");
-        }
-        requestedSlot = new Interval(requestSlotStart, requestedSlot.getEnd());
-    }
-
-    /**
      * @param purpose sets the {@link #purpose}
      */
     public void setPurpose(ReservationRequestPurpose purpose)
@@ -203,8 +152,6 @@ public class SchedulerContext
      */
     public void setReservationRequest(ReservationRequest reservationRequest)
     {
-        setRequestedSlot(reservationRequest.getSlot());
-
         this.description = reservationRequest.getDescription();
         this.purpose = reservationRequest.getPurpose();
 
@@ -220,9 +167,9 @@ public class SchedulerContext
      * @return reusable {@link Reservation}
      * @throws SchedulerException
      */
-    public Reservation setReusableAllocation(Allocation reusedAllocation) throws SchedulerException
+    public Reservation setReusableAllocation(Allocation reusedAllocation, Interval slot) throws SchedulerException
     {
-        Reservation reusableReservation = getReusableReservation(reusedAllocation);
+        Reservation reusableReservation = getReusableReservation(reusedAllocation, slot);
         addAvailableReservation(reusableReservation, AvailableReservation.Type.REUSABLE);
         return reusableReservation;
     }
@@ -257,22 +204,6 @@ public class SchedulerContext
     public DateTime getMinimumDateTime()
     {
         return minimumDateTime;
-    }
-
-    /**
-     * @return {@link #requestedSlot}
-     */
-    public Interval getRequestedSlot()
-    {
-        return requestedSlot;
-    }
-
-    /**
-     * @return {@link #requestedSlot} start
-     */
-    public DateTime getRequestedSlotStart()
-    {
-        return requestedSlot.getStart();
     }
 
     /**
@@ -400,11 +331,13 @@ public class SchedulerContext
     }
 
     /**
-     * @param objectId for which the {@link AvailableReservation}s should be returned
+     * @param objectId        for which the {@link AvailableReservation}s should be returned
+     * @param slot
+     * @param reservationType
      * @return {@link AvailableReservation}s ({@link ResourceReservation}s) for given {@code resource}
      */
     public <T extends TargetedReservation> Set<AvailableReservation<T>> getAvailableReservations(Long objectId,
-            Class<T> reservationType)
+            Interval slot, Class<T> reservationType)
     {
         @SuppressWarnings("unchecked")
         ReservationTransaction<T> reservationTransaction = (ReservationTransaction<T>)
@@ -412,44 +345,40 @@ public class SchedulerContext
         if (reservationTransaction == null) {
             return Collections.emptySet();
         }
-        return reservationTransaction.getAvailableReservations(objectId);
+        return reservationTransaction.getAvailableReservations(objectId, slot);
     }
 
     /**
      * @param aliasProvider
+     * @param slot
      * @return collection of {@link AvailableReservation}s ({@link AliasReservation}s) for given {@code aliasProvider}
      */
     public Collection<AvailableReservation<AliasReservation>> getAvailableAliasReservations(
-            AliasProviderCapability aliasProvider)
+            AliasProviderCapability aliasProvider, Interval slot)
     {
-        return getAvailableReservations(aliasProvider.getId(), AliasReservation.class);
+        return getAvailableReservations(aliasProvider.getId(), slot, AliasReservation.class);
     }
 
     /**
      * @param resource for which the {@link AvailableReservation}s should be returned
+     *                 @param slot
      * @return {@link AvailableReservation}s ({@link ResourceReservation}s) for given {@code resource}
      */
-    public Set<AvailableReservation<ResourceReservation>> getAvailableResourceReservations(Resource resource)
+    public Set<AvailableReservation<ResourceReservation>> getAvailableResourceReservations(
+            Resource resource, Interval slot)
     {
-        return getAvailableReservations(resource.getId(), ResourceReservation.class);
+        return getAvailableReservations(resource.getId(), slot, ResourceReservation.class);
     }
 
     /**
      * @param valueProvider for which the {@link AvailableReservation}s should be returned
+     *                      @param slot
      * @return {@link AvailableReservation}s ({@link ValueReservation}s) for given {@code valueProvider}
      */
-    public Set<AvailableReservation<ValueReservation>> getAvailableValueReservations(ValueProvider valueProvider)
+    public Set<AvailableReservation<ValueReservation>> getAvailableValueReservations(
+            ValueProvider valueProvider, Interval slot)
     {
-        return getAvailableReservations(valueProvider.getId(), ValueReservation.class);
-    }
-
-    /**
-     * @param roomProvider for which the {@link AvailableReservation}s should be returned
-     * @return {@link AvailableReservation}s ({@link RoomReservation}s) for given {@code roomProvider}
-     */
-    public Set<AvailableReservation<RoomReservation>> getAvailableRoomReservations(RoomProviderCapability roomProvider)
-    {
-        return getAvailableReservations(roomProvider.getId(), RoomReservation.class);
+        return getAvailableReservations(valueProvider.getId(), slot, ValueReservation.class);
     }
 
     /**
@@ -463,7 +392,7 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.ADDED);
 
-        if (reservation.getSlot().contains(getRequestedSlot()) && reservation instanceof TargetedReservation) {
+        if (reservation instanceof TargetedReservation) {
             TargetedReservation targetedReservation = (TargetedReservation) reservation;
             Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
             ReservationTransaction<TargetedReservation> reservationTransaction =
@@ -488,8 +417,7 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.REMOVED);
 
-        if (reservation.getSlot().contains(getRequestedSlot()) && reservation instanceof TargetedReservation) {
-
+        if (reservation instanceof TargetedReservation) {
             TargetedReservation targetedReservation = (TargetedReservation) reservation;
             Class<? extends TargetedReservation> reservationType = getReservationTransactionType(targetedReservation);
             ReservationTransaction<TargetedReservation> reservationTransaction =
@@ -711,14 +639,14 @@ public class SchedulerContext
      * @param resourceId
      * @param reservations
      */
-    public <T extends TargetedReservation> void applyReservations(Long resourceId, List<T> reservations,
+    public <T extends TargetedReservation> void applyReservations(Long resourceId, Interval slot, List<T> reservations,
             Class<T> reservationType)
     {
         @SuppressWarnings("unchecked")
         ReservationTransaction<T> reservationTransaction = (ReservationTransaction<T>)
                 reservationTransactionByType.get(getReservationTransactionType(reservationType));
         if (reservationTransaction != null) {
-            reservationTransaction.applyReservations(resourceId, reservations);
+            reservationTransaction.applyReservations(resourceId, slot, reservations);
         }
     }
 
@@ -726,14 +654,14 @@ public class SchedulerContext
      * @param roomProviderCapability
      * @return {@link cz.cesnet.shongo.controller.booking.room.AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
      */
-    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability)
+    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability, Interval slot)
     {
         int usedLicenseCount = 0;
-        if (cache.getResourceCache().isResourceAvailable(roomProviderCapability.getResource(), this)) {
+        if (cache.getResourceCache().isResourceAvailable(roomProviderCapability.getResource(), this, slot)) {
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
-                    reservationManager.getRoomReservations(roomProviderCapability, requestedSlot);
-            applyReservations(roomProviderCapability.getId(), roomReservations, RoomReservation.class);
+                    reservationManager.getRoomReservations(roomProviderCapability, slot);
+            applyReservations(roomProviderCapability.getId(), slot, roomReservations, RoomReservation.class);
             RangeSet<RoomReservation, DateTime> rangeSet = new RangeSet<RoomReservation, DateTime>()
             {
                 @Override
@@ -747,7 +675,7 @@ public class SchedulerContext
             }
 
             List<RoomBucket> roomBuckets = new LinkedList<RoomBucket>();
-            roomBuckets.addAll(rangeSet.getBuckets(requestedSlot.getStart(), requestedSlot.getEnd(), RoomBucket.class));
+            roomBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd(), RoomBucket.class));
             Collections.sort(roomBuckets, new Comparator<RoomBucket>()
             {
                 @Override
@@ -947,10 +875,11 @@ public class SchedulerContext
 
     /**
      * @param allocation
-     * @return {@link Reservation} which can be reused from given {@code allocation} for {@link #requestedSlot}
+     * @param slot
+     * @return {@link Reservation} which can be reused from given {@code allocation} for {@code slot}
      * @throws SchedulerException
      */
-    public Reservation getReusableReservation(Allocation allocation)
+    public Reservation getReusableReservation(Allocation allocation, Interval slot)
             throws SchedulerException
     {
         AbstractReservationRequest reservationRequest = allocation.getReservationRequest();
@@ -960,19 +889,20 @@ public class SchedulerContext
         Interval reservationInterval = null;
         for (Reservation reservation : allocation.getReservations()) {
             reservationInterval = reservation.getSlot();
-            if (reservationInterval.contains(requestedSlot)) {
+            if (reservationInterval.contains(slot)) {
                 reusableReservation = reservation;
                 break;
             }
         }
         if (reusableReservation == null) {
-            throw new SchedulerReportSet.ReservationRequestInvalidSlotException(reservationRequest, reservationInterval);
+            throw new SchedulerReportSet.ReservationRequestInvalidSlotException(reservationRequest,
+                    reservationInterval);
         }
 
         // Check the reusable reservation
         ReservationManager reservationManager = new ReservationManager(entityManager);
         List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(reusableReservation, requestedSlot);
+                reservationManager.getExistingReservations(reusableReservation, slot);
         applyAvailableReservations(existingReservations, ExistingReservation.class);
         if (existingReservations.size() > 0) {
             ExistingReservation existingReservation = existingReservations.get(0);

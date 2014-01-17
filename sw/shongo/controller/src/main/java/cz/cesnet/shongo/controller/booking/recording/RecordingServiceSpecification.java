@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecif
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import org.joda.time.Interval;
 
 import javax.persistence.Entity;
 
@@ -22,11 +23,11 @@ public class RecordingServiceSpecification extends ExecutableServiceSpecificatio
     }
 
     @Override
-    public RecordingServiceReservationTask createReservationTask(SchedulerContext schedulerContext)
+    public RecordingServiceReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot)
             throws SchedulerException
     {
         RecordingServiceReservationTask recordingServiceReservationTask =
-                new RecordingServiceReservationTask(schedulerContext);
+                new RecordingServiceReservationTask(schedulerContext, slot);
         recordingServiceReservationTask.setExecutable(getExecutable());
         recordingServiceReservationTask.setEnabled(isEnabled());
         return recordingServiceReservationTask;

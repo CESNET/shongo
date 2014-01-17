@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.compartment;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.CallInitiation;
@@ -17,6 +18,7 @@ import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetPartic
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.*;
+import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,10 +37,11 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
     @Test
     public void testFailures() throws Exception
     {
+        Interval slot = Temporal.INTERVAL_INFINITE;
         SchedulerContext schedulerContext = createSchedulerContext();
         CompartmentReservationTask compartmentReservationTask;
 
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointParticipant(new Technology[]{Technology.H323}));
         try {
@@ -48,7 +51,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         catch (SchedulerException exception) {
         }
 
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointParticipant(new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
@@ -60,7 +63,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         catch (SchedulerException exception) {
         }
 
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointParticipant(true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
@@ -79,7 +82,8 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         deviceResource.addCapability(new RoomProviderCapability(100));
         createResource(deviceResource);
 
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.VIRTUAL_ROOM);
+        compartmentReservationTask = new CompartmentReservationTask(
+                schedulerContext, slot, CallInitiation.VIRTUAL_ROOM);
         compartmentReservationTask.addParticipant(
                 new ExternalEndpointSetParticipant(Technology.H323, 3));
         try {
@@ -93,8 +97,9 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
     @Test
     public void testNoRoom() throws Exception
     {
+        Interval slot = Temporal.INTERVAL_INFINITE;
         SchedulerContext schedulerContext = createSchedulerContext();
-        CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(new SimpleEndpointParticipant(
                 new Alias(AliasType.H323_E164, "950000001"), true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
@@ -121,8 +126,9 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         CompartmentReservationTask compartmentReservationTask;
         Reservation reservation;
 
+        Interval slot = Temporal.INTERVAL_INFINITE;
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointParticipant(false, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
@@ -133,7 +139,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointParticipant(true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
@@ -160,9 +166,10 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         terminal.addCapability(new StandaloneTerminalCapability());
         createResource(terminal);
 
+        Interval slot = Temporal.INTERVAL_INFINITE;
         SchedulerContext schedulerContext = createSchedulerContext();
 
-        CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addParticipant(new ExternalEndpointSetParticipant(Technology.H323, 50));
         compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(terminal));
         Reservation reservation = compartmentReservationTask.perform();
@@ -187,12 +194,13 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         resource.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         createResource(resource);
 
+        Interval slot = Temporal.INTERVAL_INFINITE;
         SchedulerContext schedulerContext;
         CompartmentReservationTask compartmentReservationTask;
         Reservation reservation;
 
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.TERMINAL);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot, CallInitiation.TERMINAL);
         compartmentReservationTask.addParticipant(
                 new SimpleEndpointParticipant(new Technology[]{Technology.H323}));
         compartmentReservationTask.addParticipant(
@@ -203,7 +211,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.VIRTUAL_ROOM);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot, CallInitiation.VIRTUAL_ROOM);
         compartmentReservationTask.addParticipant(
                 new SimpleEndpointParticipant(new Technology[]{Technology.H323}));
         compartmentReservationTask.addParticipant(
@@ -215,8 +223,8 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
 
         try {
             schedulerContext = createSchedulerContext();
-            compartmentReservationTask = new CompartmentReservationTask(schedulerContext,
-                    CallInitiation.VIRTUAL_ROOM);
+            compartmentReservationTask = new CompartmentReservationTask(
+                    schedulerContext, slot, CallInitiation.VIRTUAL_ROOM);
             compartmentReservationTask.addParticipant(
                     new SimpleEndpointParticipant(new Technology[]{Technology.SIP}));
             compartmentReservationTask.addParticipant(
@@ -251,12 +259,13 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         terminal2.addCapability(new StandaloneTerminalCapability());
         createResource(terminal2);
 
+        Interval slot = Temporal.INTERVAL_INFINITE;
         SchedulerContext schedulerContext;
         CompartmentReservationTask compartmentReservationTask;
         Reservation reservation;
 
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(terminal1));
         reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
@@ -264,7 +273,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         Assert.assertEquals(0, ((Compartment) reservation.getExecutable()).getConnections().size());
 
         schedulerContext = createSchedulerContext();
-        compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
+        compartmentReservationTask = new CompartmentReservationTask(schedulerContext, slot);
         compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(terminal1));
         compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(terminal2));
         reservation = compartmentReservationTask.perform();
@@ -283,9 +292,10 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         createResource(endpoint);
 
         try {
+            Interval slot = Temporal.INTERVAL_INFINITE;
             SchedulerContext schedulerContext = createSchedulerContext();
             CompartmentReservationTask compartmentReservationTask =
-                    new CompartmentReservationTask(schedulerContext);
+                    new CompartmentReservationTask(schedulerContext, slot);
             compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(endpoint));
             compartmentReservationTask.addParticipant(new ExistingEndpointParticipant(endpoint));
             compartmentReservationTask.perform();
@@ -327,9 +337,9 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
 
 
         @Override
-        public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+        public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
         {
-            return new ReservationTask(schedulerContext)
+            return new ReservationTask(schedulerContext, slot)
             {
                 class SimpleEndpointReservation extends Reservation implements EndpointProvider
                 {

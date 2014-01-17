@@ -170,20 +170,19 @@ public class AvailableRoomTest extends AbstractSchedulerTest
      * Find {@link AvailableRoom}s in given {@code interval} which have
      * at least {@code requiredLicenseCount} available licenses and which supports given {@code technologies}.
      *
-     * @param interval
-     * @param requiredLicenseCount
+     * @param slot
+     * @param licenseCount
      * @param technologies
      * @return list of {@link AvailableRoom}
      */
-    private List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
-            Set<Technology> technologies)
+    private List<AvailableRoom> findAvailableRooms(Interval slot, int licenseCount, Set<Technology> technologies)
     {
         Cache cache = getCache();
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         for (RoomProviderCapability roomProviderCapability : cache.getRoomProviders(technologies)) {
-            SchedulerContext schedulerContext = createSchedulerContext(interval);
-            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
-            if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
+            SchedulerContext schedulerContext = createSchedulerContext(slot);
+            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot);
+            if (availableRoom.getAvailableLicenseCount() >= licenseCount) {
                 availableRooms.add(availableRoom);
             }
         }

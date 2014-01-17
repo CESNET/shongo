@@ -54,10 +54,11 @@ public class AliasReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot sets the {@link #slot}
      */
-    public AliasReservationTask(SchedulerContext schedulerContext)
+    public AliasReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
     }
 
     /**
@@ -127,7 +128,6 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation() throws SchedulerException
     {
-        Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
 
@@ -170,7 +170,7 @@ public class AliasReservationTask extends ReservationTask
 
             // Get available alias reservations for alias provider
             for (AvailableReservation<AliasReservation> availableAliasReservation :
-                    schedulerContext.getAvailableAliasReservations(aliasProviderCapability)) {
+                    schedulerContext.getAvailableAliasReservations(aliasProviderCapability, this.slot)) {
                 aliasProvider.addAvailableAliasReservation(availableAliasReservation);
             }
             sortAvailableReservations(aliasProvider.getAvailableAliasReservations());
@@ -227,7 +227,7 @@ public class AliasReservationTask extends ReservationTask
                 }
 
                 // Original reservation slot must contain requested slot
-                if (!originalReservation.getSlot().contains(interval)) {
+                if (!originalReservation.getSlot().contains(slot)) {
                     continue;
                 }
 
@@ -242,14 +242,14 @@ public class AliasReservationTask extends ReservationTask
                 // Create new existing alias reservation
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
                 ExistingReservation existingValueReservation = new ExistingReservation();
-                existingValueReservation.setSlot(interval);
+                existingValueReservation.setSlot(slot);
                 existingValueReservation.setReusedReservation(originalReservation);
                 return existingValueReservation;
             }
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(aliasProviderCapability, schedulerContext);
+                resourceCache.checkCapabilityAvailable(aliasProviderCapability, schedulerContext, this.slot);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());
@@ -259,13 +259,13 @@ public class AliasReservationTask extends ReservationTask
             // Get new available value
             SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
-                ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext,
+                ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext, this.slot,
                         aliasProviderCapability.getValueProvider(), aliasProvider.getRequestedValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
                 // Create new alias reservation
                 AliasReservation aliasReservation = new AliasReservation();
-                aliasReservation.setSlot(interval);
+                aliasReservation.setSlot(slot);
                 aliasReservation.setAliasProviderCapability(aliasProviderCapability);
                 aliasReservation.setValueReservation(valueReservation);
 

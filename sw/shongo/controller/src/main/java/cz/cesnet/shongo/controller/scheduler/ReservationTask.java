@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -21,6 +22,11 @@ public abstract class ReservationTask
      * Context.
      */
     protected SchedulerContext schedulerContext;
+
+    /**
+     * Slot for which we should allocate.
+     */
+    protected Interval slot;
 
     /**
      * List of child {@link Reservation}s.
@@ -40,17 +46,18 @@ public abstract class ReservationTask
     /**
      * Constructor.
      */
-    public ReservationTask(SchedulerContext schedulerContext)
+    public ReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
         this.schedulerContext = schedulerContext;
+        this.slot = slot;
     }
 
     /**
-     * @return {@link SchedulerContext#getRequestedSlot()}
+     * @return {@link #slot}
      */
-    public Interval getInterval()
+    public Interval getSlot()
     {
-        return schedulerContext.getRequestedSlot();
+        return slot;
     }
 
     /**
@@ -164,7 +171,7 @@ public abstract class ReservationTask
     public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
             throws SchedulerException
     {
-        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
+        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(schedulerContext, slot);
         return addChildReservation(reservationTask);
     }
 
@@ -439,9 +446,8 @@ public abstract class ReservationTask
     public int compareAvailableReservations(AvailableReservation first, AvailableReservation second)
     {
         // Prefer reservations for the whole interval
-        Interval interval = getInterval();
-        boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(interval);
-        boolean secondContainsInterval = second.getOriginalReservation().getSlot().contains(interval);
+        boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(slot);
+        boolean secondContainsInterval = second.getOriginalReservation().getSlot().contains(slot);
         if (secondContainsInterval && !firstContainsInterval) {
             return 1;
         }

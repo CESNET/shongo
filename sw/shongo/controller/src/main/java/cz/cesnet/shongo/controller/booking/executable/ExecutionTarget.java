@@ -33,12 +33,12 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
     }
 
     /**
-     * Interval start date/time.
+     * Specifies when the {@link ExecutionTarget} becomes valid for execution.
      */
     private DateTime slotStart;
 
     /**
-     * Interval end date/time.
+     * Specifies when the {@link ExecutionTarget} become invalid fro execution.
      */
     private DateTime slotEnd;
 

@@ -313,12 +313,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ResourceAllocation getResourceAllocation(SecurityToken securityToken, String resourceId, Interval interval)
+    public ResourceAllocation getResourceAllocation(SecurityToken securityToken, String resourceId, Interval slot)
     {
         authorization.validate(securityToken);
 
-        if (interval == null) {
-            interval = new Interval(DateMidnight.now(), Period.days(31));
+        if (slot == null) {
+            slot = new Interval(DateMidnight.now(), Period.days(31));
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -338,8 +338,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, authorization, interval);
-                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
+                SchedulerContext schedulerContext = new SchedulerContext(slot.getStart(), cache, entityManager,
+                        new AuthorizationManager(entityManager, authorization));
+                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot);
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
@@ -350,11 +351,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             }
             resourceAllocation.setId(ObjectIdentifier.formatId(resourceImpl));
             resourceAllocation.setName(resourceImpl.getName());
-            resourceAllocation.setInterval(interval);
+            resourceAllocation.setInterval(slot);
 
             // Fill resource allocations
             Collection<cz.cesnet.shongo.controller.booking.resource.ResourceReservation> resourceReservations =
-                    resourceManager.listResourceReservationsInInterval(objectId.getPersistenceId(), interval);
+                    resourceManager.listResourceReservationsInInterval(objectId.getPersistenceId(), slot);
             for (ResourceReservation resourceReservation : resourceReservations) {
                 resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdministrator(securityToken)));
             }
@@ -364,7 +365,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     resourceImpl.getCapabilities(AliasProviderCapability.class);
             for (AliasProviderCapability aliasProvider : aliasProviders) {
                 List<cz.cesnet.shongo.controller.booking.alias.AliasReservation> aliasReservations =
-                        resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
+                        resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), slot);
                 for (AliasReservation aliasReservation : aliasReservations) {
                     resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdministrator(
                             securityToken)));

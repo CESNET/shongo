@@ -20,12 +20,12 @@ public class Executable extends IdentifiedComplexType
     private String reservationId;
 
     /**
-     * Slot of the {@link cz.cesnet.shongo.controller.api.Executable}.
+     * Slot when the {@link Executable} is valid (e.g., when it should be made available).
      */
     private Interval slot;
 
     /**
-     * Current state of the {@link cz.cesnet.shongo.controller.api.Executable}.
+     * Current state of the {@link Executable}.
      */
     private ExecutableState state;
 

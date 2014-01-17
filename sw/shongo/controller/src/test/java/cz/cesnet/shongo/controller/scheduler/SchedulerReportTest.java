@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractSchedulerTest;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -98,7 +99,8 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     {
         SchedulerContext schedulerContext = createSchedulerContext();
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
-            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
+            ReservationTask reservationTask =
+                    reservationTaskProvider.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
             print(userType, reservationTask);
         }
     }
@@ -108,12 +110,14 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     {
         SchedulerContext schedulerContext = createSchedulerContext();
 
-        ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(schedulerContext);
+        ReservationTask reservationTask =
+                reservationTaskProvider1.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
         Reservation reservation = print(userType, reservationTask);
         reservation.generateTestingId();
         schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
 
-        reservationTask = reservationTaskProvider2.createReservationTask(schedulerContext);
+        reservationTask =
+                reservationTaskProvider2.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
         print(userType, reservationTask);
     }
 

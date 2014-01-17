@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -86,24 +87,33 @@ public class ReservationTransaction<R extends Reservation>
 
     /**
      * @param objectId for object
+     * @param slot
      * @return set of {@link AvailableReservation}s for object with given {@code objectId}
      */
-    public Set<AvailableReservation<R>> getAvailableReservations(Long objectId)
+    public Set<AvailableReservation<R>> getAvailableReservations(Long objectId, Interval slot)
     {
-        Set<AvailableReservation<R>> reservations = availableReservationsByObjectId.get(objectId);
-        if (reservations == null) {
-            reservations = Collections.emptySet();
+        Set<AvailableReservation<R>> possibleAvailableReservations = availableReservationsByObjectId.get(objectId);
+        if (possibleAvailableReservations == null) {
+            possibleAvailableReservations = Collections.emptySet();
         }
-        return reservations;
+        Set<AvailableReservation<R>> availableReservations = new HashSet<AvailableReservation<R>>();
+        for (AvailableReservation<R> availableReservation : possibleAvailableReservations) {
+            if (!availableReservation.getOriginalReservation().getSlot().overlaps(slot)) {
+                continue;
+            }
+            availableReservations.add(availableReservation);
+        }
+        return availableReservations;
     }
 
     /**
      * Apply {@link ReservationTransaction} to given {@code reservations} for given object with given {@code objectId}.
      *
      * @param objectId     for which the {@link ReservationTransaction} should apply
+     * @param slot
      * @param reservations to which the {@link ReservationTransaction} should apply
      */
-    <T extends Reservation> void applyReservations(Long objectId, Collection<T> reservations)
+    <T extends Reservation> void applyReservations(Long objectId, Interval slot, Collection<T> reservations)
     {
         Set<AvailableReservation<R>> availableReservationsToApply = availableReservationsByObjectId.get(objectId);
         if (availableReservationsToApply != null) {
@@ -112,6 +122,9 @@ public class ReservationTransaction<R extends Reservation>
                 reservationById.put(reservation.getId(), reservation);
             }
             for (AvailableReservation<R> availableReservation : availableReservationsToApply) {
+                if (!availableReservation.getOriginalReservation().getSlot().overlaps(slot)) {
+                    continue;
+                }
                 Reservation reservation = reservationById.get(availableReservation.getTargetReservation().getId());
                 if (reservation != null) {
                     @SuppressWarnings("unchecked")
@@ -123,6 +136,9 @@ public class ReservationTransaction<R extends Reservation>
         Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
         if (allocatedReservationsToApply != null) {
             for (R reservation : allocatedReservationsToApply) {
+                if (!reservation.getSlot().overlaps(slot)) {
+                    continue;
+                }
                 @SuppressWarnings("unchecked")
                 T typedReservation = (T) reservation;
                 reservations.add(typedReservation);

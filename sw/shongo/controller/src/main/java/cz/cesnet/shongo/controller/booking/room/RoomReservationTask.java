@@ -38,6 +38,16 @@ import java.util.*;
 public class RoomReservationTask extends ReservationTask
 {
     /**
+     * Number of minutes which the room shall be available before requested time slot.
+     */
+    private int slotMinutesBefore;
+
+    /**
+     * Number of minutes which the room shall be available after requested time slot.
+     */
+    private int slotMinutesAfter;
+
+    /**
      * Specifies whether {@link RoomEndpoint} should be allocated.
      */
     private boolean allocateRoomEndpoint = true;
@@ -50,7 +60,7 @@ public class RoomReservationTask extends ReservationTask
     /**
      * Number of participants in the virtual room.
      */
-    private final Integer participantCount;
+    private Integer participantCount;
 
     /**
      * Collection of {@link Technology} set variants where at least one must be supported by
@@ -89,25 +99,36 @@ public class RoomReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot             sets the {@link #slot}
      */
-    public RoomReservationTask(SchedulerContext schedulerContext, Integer participantCount)
+    public RoomReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
-        super(schedulerContext);
-        this.participantCount = participantCount;
+        super(schedulerContext, slot);
     }
 
     /**
      * Constructor.
      *
-     * @param schedulerContext     sets the {@link #schedulerContext}
-     * @param participantCount     sets the {@link #participantCount}
-     * @param allocateRoomEndpoint sets the {@link #allocateRoomEndpoint}
+     * @param schedulerContext  sets the {@link #schedulerContext}
+     * @param slot              sets the {@link #slot}
+     * @param slotMinutesBefore sets the {@link #slotMinutesBefore}
+     * @param slotMinutesAfter  sets the {@link #slotMinutesAfter}
      */
-    public RoomReservationTask(SchedulerContext schedulerContext, int participantCount, boolean allocateRoomEndpoint)
+    public RoomReservationTask(SchedulerContext schedulerContext, Interval slot, int slotMinutesBefore,
+            int slotMinutesAfter)
     {
-        super(schedulerContext);
+        super(schedulerContext, new Interval(
+                slot.getStart().minusMinutes(slotMinutesBefore), slot.getEnd().plusMinutes(slotMinutesAfter)));
+        this.slotMinutesBefore = slotMinutesBefore;
+        this.slotMinutesAfter = slotMinutesAfter;
+    }
+
+    /**
+     * @param participantCount sets the {@link #participantCount}
+     */
+    public void setParticipantCount(Integer participantCount)
+    {
         this.participantCount = participantCount;
-        this.allocateRoomEndpoint = allocateRoomEndpoint;
     }
 
     /**
@@ -203,7 +224,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Check maximum duration
         if (participantCount != null && schedulerContext.isMaximumFutureAndDurationRestricted()) {
-            checkMaximumDuration(getInterval(), getCache().getRoomReservationMaximumDuration());
+            checkMaximumDuration(slot, getCache().getRoomReservationMaximumDuration());
         }
 
         // Find room provider variants
@@ -280,7 +301,7 @@ public class RoomReservationTask extends ReservationTask
             if (technologyVariants.size() == 0) {
                 technologyVariants.add(deviceResource.getTechnologies());
             }
-            for (Iterator<Set<Technology>> iterator  = technologyVariants.iterator(); iterator.hasNext(); ) {
+            for (Iterator<Set<Technology>> iterator = technologyVariants.iterator(); iterator.hasNext(); ) {
                 if (!deviceResource.hasTechnologies(iterator.next())) {
                     iterator.remove();
                 }
@@ -291,7 +312,7 @@ public class RoomReservationTask extends ReservationTask
 
             // Check whether room provider can be allocated
             try {
-                getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
+                getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext, slot);
             }
             catch (SchedulerException exception) {
                 addReport(exception.getReport());
@@ -307,7 +328,7 @@ public class RoomReservationTask extends ReservationTask
                 // Lazy initialization of room provider (only when some technology variant matches)
                 if (roomProvider == null) {
                     roomProvider = new RoomProvider(roomProviderCapability,
-                            schedulerContext.getAvailableRoom(roomProviderCapability));
+                            schedulerContext.getAvailableRoom(roomProviderCapability, slot));
                 }
 
                 RoomProviderVariant roomProviderVariant;
@@ -425,7 +446,6 @@ public class RoomReservationTask extends ReservationTask
     private Reservation allocateVariant(RoomProviderVariant roomProviderVariant)
             throws SchedulerException
     {
-        Interval interval = getInterval();
         RoomProvider roomProvider = roomProviderVariant.getRoomProvider();
         RoomProviderCapability roomProviderCapability = roomProvider.getRoomProviderCapability();
         DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
@@ -446,7 +466,7 @@ public class RoomReservationTask extends ReservationTask
                 }
 
                 // Original reservation slot must contain requested slot
-                if (!originalReservation.getSlot().contains(interval)) {
+                if (!originalReservation.getSlot().contains(slot)) {
                     continue;
                 }
 
@@ -484,7 +504,7 @@ public class RoomReservationTask extends ReservationTask
                 // Create new existing room reservation
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
                 ExistingReservation existingValueReservation = new ExistingReservation();
-                existingValueReservation.setSlot(interval);
+                existingValueReservation.setSlot(slot);
                 existingValueReservation.setReusedReservation(originalReservation);
                 return existingValueReservation;
             }
@@ -503,7 +523,7 @@ public class RoomReservationTask extends ReservationTask
                 // For zero license count we can create just normal Reservation
                 reservation = new Reservation();
             }
-            reservation.setSlot(interval);
+            reservation.setSlot(slot);
 
             // Allocated room endpoint
             RoomEndpoint oldRoomEndpoint = null;
@@ -511,7 +531,9 @@ public class RoomReservationTask extends ReservationTask
             if (allocateRoomEndpoint && schedulerContext.isExecutableAllowed()) {
                 // Allocate room endpoint
                 roomEndpoint = allocateRoomEndpoint(roomProviderVariant, oldRoomEndpoint);
-                roomEndpoint.setSlot(interval);
+                roomEndpoint.setSlot(slot);
+                roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
+                roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
 
@@ -535,7 +557,7 @@ public class RoomReservationTask extends ReservationTask
                         RecordingCapability recordingCapability =
                                 deviceResource.getCapabilityRequired(RecordingCapability.class);
                         automaticRecordingService.setRecordingCapability(recordingCapability);
-                        automaticRecordingService.setSlot(interval);
+                        automaticRecordingService.setSlot(slot);
                         automaticRecordingService.setState(ExecutableService.State.NOT_ACTIVE);
                         roomEndpoint.addService(automaticRecordingService);
                     }
@@ -558,7 +580,8 @@ public class RoomReservationTask extends ReservationTask
                                 else {
                                     // Recording must be allocated
                                     RecordingServiceReservationTask recordingServiceReservationTask =
-                                            recordingServiceSpecification.createReservationTask(schedulerContext);
+                                            recordingServiceSpecification.createReservationTask(schedulerContext,
+                                                    this.slot);
                                     recordingServiceReservationTask.setExecutable(roomEndpoint);
                                     addChildReservation(recordingServiceReservationTask);
                                 }
@@ -566,8 +589,8 @@ public class RoomReservationTask extends ReservationTask
                             else if (serviceSpecification instanceof ReservationTaskProvider) {
                                 ReservationTaskProvider reservationTaskProvider =
                                         (ReservationTaskProvider) serviceSpecification;
-                                ReservationTask serviceReservationTask = reservationTaskProvider
-                                        .createReservationTask(schedulerContext);
+                                ReservationTask serviceReservationTask =
+                                        reservationTaskProvider.createReservationTask(schedulerContext, this.slot);
                                 addChildReservation(serviceReservationTask);
                             }
                             else {
@@ -633,7 +656,7 @@ public class RoomReservationTask extends ReservationTask
 
             // Reuse available reservation which allocates the reusable room
             ExistingReservation existingReservation = new ExistingReservation();
-            existingReservation.setSlot(getInterval());
+            existingReservation.setSlot(slot);
             existingReservation.setReusedReservation(originalReservation);
             addChildReservation(existingReservation);
             schedulerContext.removeAvailableReservation(availableRoomEndpoint.getAvailableReservation());
@@ -670,8 +693,7 @@ public class RoomReservationTask extends ReservationTask
             Interval reusedRoomEndpointSlot = reusedRoomEndpoint.getSlot();
 
             // Check slot
-            Interval requestedSlot = getInterval();
-            if (!reusedRoomEndpointSlot.contains(requestedSlot)) {
+            if (!reusedRoomEndpointSlot.contains(slot)) {
                 throw new SchedulerReportSet.ExecutableInvalidSlotException(reusedRoomEndpoint, reusedRoomEndpointSlot);
             }
 
@@ -679,7 +701,7 @@ public class RoomReservationTask extends ReservationTask
             EntityManager entityManager = schedulerContext.getEntityManager();
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> reusedRoomEndpointReservations =
-                    reservationManager.getRoomReservationsByReusedRoomEndpoint(reusedRoomEndpoint, requestedSlot);
+                    reservationManager.getRoomReservationsByReusedRoomEndpoint(reusedRoomEndpoint, slot);
             schedulerContext.applyAvailableReservations(reusedRoomEndpointReservations, RoomReservation.class);
             if (reusedRoomEndpointReservations.size() > 0) {
                 RoomReservation roomReservation = reusedRoomEndpointReservations.get(0);
@@ -741,7 +763,8 @@ public class RoomReservationTask extends ReservationTask
 
         // Allocate aliases from alias specifications
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
+            AliasReservationTask aliasReservationTask =
+                    aliasSpecification.createReservationTask(schedulerContext, slot);
             aliasReservationTask.setTargetResource(deviceResource);
             AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
             // Assign allocated aliases to the room
@@ -777,7 +800,7 @@ public class RoomReservationTask extends ReservationTask
         while (missingAliasTypes.size() > 0) {
             // Allocate missing alias
             AliasType missingAliasType = missingAliasTypes.iterator().next();
-            AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
+            AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext, slot);
             aliasReservationTask.addAliasType(missingAliasType);
             aliasReservationTask.setTargetResource(deviceResource);
             AliasReservation aliasReservation =

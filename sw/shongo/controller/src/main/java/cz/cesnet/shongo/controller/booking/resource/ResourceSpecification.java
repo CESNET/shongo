@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -71,14 +72,15 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot)
+            throws SchedulerException
     {
-        return new ReservationTask(schedulerContext)
+        return new ReservationTask(schedulerContext, slot)
         {
             @Override
             protected Reservation allocateReservation() throws SchedulerException
             {
-                ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, resource);
+                ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, slot, resource);
                 Reservation reservation = reservationTask.perform();
                 addReports(reservationTask);
                 return reservation;

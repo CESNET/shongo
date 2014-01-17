@@ -34,12 +34,13 @@ public class ValueReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext
+     * @param slot
      * @param valueProvider
      * @param requestedValue
      */
-    public ValueReservationTask(SchedulerContext schedulerContext, ValueProvider valueProvider, String requestedValue)
+    public ValueReservationTask(SchedulerContext schedulerContext, Interval slot, ValueProvider valueProvider, String requestedValue)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
         this.valueProvider = valueProvider;
         this.requestedValue = requestedValue;
     }
@@ -56,20 +57,19 @@ public class ValueReservationTask extends ReservationTask
     {
         validateReservationSlot(ValueReservation.class);
 
-        final Interval slot = getInterval();
         final Cache cache = getCache();
         final ResourceCache resourceCache = cache.getResourceCache();
 
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
-        resourceCache.checkCapabilityAvailable(capability, schedulerContext);
+        resourceCache.checkCapabilityAvailable(capability, schedulerContext, slot);
 
         // Check target value provider
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
         if (targetValueProvider != valueProvider) {
             // Check whether target value provider can be allocated
             capability = targetValueProvider.getCapability();
-            resourceCache.checkCapabilityAvailable(capability, schedulerContext);
+            resourceCache.checkCapabilityAvailable(capability, schedulerContext, slot);
         }
 
         // Already used values for targetValueProvider in the interval
@@ -78,7 +78,7 @@ public class ValueReservationTask extends ReservationTask
         // Get available value reservations
         List<AvailableReservation<ValueReservation>> availableValueReservations =
                 new LinkedList<AvailableReservation<ValueReservation>>();
-        availableValueReservations.addAll(schedulerContext.getAvailableValueReservations(targetValueProvider));
+        availableValueReservations.addAll(schedulerContext.getAvailableValueReservations(targetValueProvider, slot));
         sortAvailableReservations(availableValueReservations);
 
         // Find matching available value reservation
@@ -164,7 +164,7 @@ public class ValueReservationTask extends ReservationTask
         List<ValueReservation> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
 
-        schedulerContext.applyReservations(valueProviderId, allocatedValues, ValueReservation.class);
+        schedulerContext.applyReservations(valueProviderId, slot, allocatedValues, ValueReservation.class);
         for (ValueReservation allocatedValue : allocatedValues) {
             usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
         }

@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -103,15 +104,15 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
     {
-        return new ReservationTask(schedulerContext)
+        return new ReservationTask(schedulerContext, slot)
         {
             @Override
             protected Reservation allocateReservation() throws SchedulerException
             {
                 Reservation multiCompartmentReservation = new Reservation();
-                multiCompartmentReservation.setSlot(getInterval());
+                multiCompartmentReservation.setSlot(slot);
                 for (CompartmentSpecification compartmentSpecification : getCompartmentSpecifications()) {
                     multiCompartmentReservation.addChildReservation(addChildReservation(compartmentSpecification));
                 }

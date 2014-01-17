@@ -32,11 +32,12 @@ public class ResourceReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot sets the {@link #slot}
      * @param resource         sets the {@link #resource}
      */
-    public ResourceReservationTask(SchedulerContext schedulerContext, Resource resource)
+    public ResourceReservationTask(SchedulerContext schedulerContext, Interval slot, Resource resource)
     {
-        super(schedulerContext);
+        super(schedulerContext,slot);
         this.resource = resource;
     }
 
@@ -51,8 +52,6 @@ public class ResourceReservationTask extends ReservationTask
     {
         validateReservationSlot(ResourceReservation.class);
 
-        Interval interval = schedulerContext.getRequestedSlot();
-
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
 
@@ -62,12 +61,12 @@ public class ResourceReservationTask extends ReservationTask
         }
 
         // Check resource and parent resources availability
-        resourceCache.checkResourceAvailableByParent(resource, schedulerContext);
+        resourceCache.checkResourceAvailableByParent(resource, schedulerContext, slot);
 
         // Get available resource reservations
         List<AvailableReservation<ResourceReservation>> availableResourceReservations =
                 new LinkedList<AvailableReservation<ResourceReservation>>();
-        availableResourceReservations.addAll(schedulerContext.getAvailableResourceReservations(resource));
+        availableResourceReservations.addAll(schedulerContext.getAvailableResourceReservations(resource, slot));
         sortAvailableReservations(availableResourceReservations);
 
         // Find matching resource value reservation
@@ -81,7 +80,7 @@ public class ResourceReservationTask extends ReservationTask
             }
 
             // Original reservation slot must contain requested slot
-            if (!originalReservation.getSlot().contains(interval)) {
+            if (!originalReservation.getSlot().contains(slot)) {
                 continue;
             }
 
@@ -91,7 +90,7 @@ public class ResourceReservationTask extends ReservationTask
             // Create new existing resource reservation
             addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
             ExistingReservation existingValueReservation = new ExistingReservation();
-            existingValueReservation.setSlot(interval);
+            existingValueReservation.setSlot(slot);
             existingValueReservation.setReusedReservation(originalReservation);
             return existingValueReservation;
         }
@@ -107,8 +106,8 @@ public class ResourceReservationTask extends ReservationTask
             if (roomProviderCapability != null) {
                 ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
                 List<RoomReservation> roomReservations =
-                        reservationManager.getRoomReservations(roomProviderCapability, interval);
-                schedulerContext.applyReservations(roomProviderCapability.getId(),
+                        reservationManager.getRoomReservations(roomProviderCapability, slot);
+                schedulerContext.applyReservations(roomProviderCapability.getId(), slot,
                         roomReservations, RoomReservation.class);
                 if (roomReservations.size() > 0) {
                     // Requested resource is not available in the requested slot
@@ -129,7 +128,7 @@ public class ResourceReservationTask extends ReservationTask
         }
 
         // Set attributes to resource reservation
-        resourceReservation.setSlot(interval);
+        resourceReservation.setSlot(slot);
         resourceReservation.setResource(resource);
 
         // Add resource as referenced to the cache to prevent from multiple checking of the same parent
@@ -138,8 +137,8 @@ public class ResourceReservationTask extends ReservationTask
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
         if (parentResource != null && !schedulerContext.containsReferencedResource(parentResource)) {
-            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(schedulerContext,
-                    parentResource);
+            ResourceReservationTask resourceReservationTask =
+                    new ResourceReservationTask(schedulerContext, slot, parentResource);
             addChildReservation(resourceReservationTask);
         }
 

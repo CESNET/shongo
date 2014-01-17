@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -44,9 +45,9 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
     {
-        return new ReservationTask(schedulerContext)
+        return new ReservationTask(schedulerContext, slot)
         {
             @Override
             protected Reservation allocateReservation() throws SchedulerException
@@ -63,7 +64,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
                     if (deviceResource == null) {
                         throw new RuntimeException("Device resource should be added to the cache.");
                     }
-                    if (resourceCache.isResourceAvailableByParent(deviceResource, schedulerContext)) {
+                    if (resourceCache.isResourceAvailableByParent(deviceResource, schedulerContext, slot)) {
                         deviceResources.add(deviceResource);
                     }
                 }
@@ -79,7 +80,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
                 // If some was found
                 if (deviceResource != null) {
                     // Create reservation for the device resource
-                    ResourceReservationTask task = new ResourceReservationTask(schedulerContext, deviceResource);
+                    ResourceReservationTask task = new ResourceReservationTask(schedulerContext, slot, deviceResource);
                     Reservation reservation = task.perform();
                     addReports(task);
                     return reservation;

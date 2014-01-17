@@ -5,27 +5,28 @@ import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
-import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointProvider;
 import cz.cesnet.shongo.controller.booking.executable.ResourceEndpoint;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.EndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
-import cz.cesnet.shongo.controller.booking.specification.Specification;
-import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.graph.SimpleGraph;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +65,11 @@ public class CompartmentReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot             sets the {@link #slot}
      */
-    public CompartmentReservationTask(SchedulerContext schedulerContext)
+    public CompartmentReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
         this.compartmentSpecification = new CompartmentSpecification();
         initCompartment();
     }
@@ -76,11 +78,12 @@ public class CompartmentReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot             sets the {@link #slot}
      * @param callInitiation   sets the default {@link cz.cesnet.shongo.controller.CallInitiation}
      */
-    public CompartmentReservationTask(SchedulerContext schedulerContext, CallInitiation callInitiation)
+    public CompartmentReservationTask(SchedulerContext schedulerContext, Interval slot, CallInitiation callInitiation)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
         this.compartmentSpecification = new CompartmentSpecification(callInitiation);
         initCompartment();
     }
@@ -88,12 +91,14 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param specification sets the {@link #compartmentSpecification}
-     * @param schedulerContext       sets the {@link #schedulerContext}
+     * @param specification    sets the {@link #compartmentSpecification}
+     * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot sets the {@link #slot}
      */
-    public CompartmentReservationTask(CompartmentSpecification specification, SchedulerContext schedulerContext)
+    public CompartmentReservationTask(CompartmentSpecification specification, SchedulerContext schedulerContext,
+            Interval slot)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
         this.compartmentSpecification = specification;
         initCompartment();
     }
@@ -104,7 +109,7 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
-        compartment.setSlot(getInterval());
+        compartment.setSlot(slot);
     }
 
     /**
@@ -124,6 +129,7 @@ public class CompartmentReservationTask extends ReservationTask
      *
      * @param participant
      * @throws cz.cesnet.shongo.controller.scheduler.SchedulerException
+     *
      */
     public void addParticipant(AbstractParticipant participant) throws SchedulerException
     {
@@ -168,7 +174,7 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        endpoint.setSlot(getInterval());
+        endpoint.setSlot(slot);
         compartment.addChildExecutable(endpoint);
 
         if (!(endpoint instanceof RoomEndpoint)) {
@@ -321,7 +327,7 @@ public class CompartmentReservationTask extends ReservationTask
                     RoomEndpoint roomEndpoint = (RoomEndpoint) endpointTo;
                     deviceResource = roomEndpoint.getResource();
                 }
-                AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
+                AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext, slot);
                 aliasReservationTask.addTechnology(technology);
                 aliasReservationTask.setTargetResource(deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
@@ -347,7 +353,7 @@ public class CompartmentReservationTask extends ReservationTask
                 connection.setAlias(alias.clone());
             }
 
-            connection.setSlot(getInterval());
+            connection.setSlot(slot);
             connection.setEndpointFrom(endpointFrom);
             connection.setEndpointTo(endpointTo);
             compartment.addChildExecutable(connection);
@@ -468,8 +474,8 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void createSingleRoomReservation() throws SchedulerException
     {
-        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext,
-                compartment.getTotalEndpointCount());
+        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, slot);
+        roomReservationTask.setParticipantCount(compartment.getTotalEndpointCount());
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
             roomReservationTask.addTechnologyVariant(technologies);
         }
@@ -577,7 +583,7 @@ public class CompartmentReservationTask extends ReservationTask
 
         // Create compartment reservation for allocated compartment
         Reservation compartmentReservation = new Reservation();
-        compartmentReservation.setSlot(getInterval());
+        compartmentReservation.setSlot(slot);
         compartmentReservation.setExecutable(compartment);
         return compartmentReservation;
     }

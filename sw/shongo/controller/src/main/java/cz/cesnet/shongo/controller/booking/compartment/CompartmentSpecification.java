@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -200,9 +201,9 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public CompartmentReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public CompartmentReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
     {
-        return new CompartmentReservationTask(this, schedulerContext);
+        return new CompartmentReservationTask(this, schedulerContext, slot);
     }
 
     @Override

@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.RoomProviderCapability;
 import cz.cesnet.shongo.controller.api.RoomReservation;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
+import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,8 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Tests for allocation of {@link cz.cesnet.shongo.controller.api.RoomReservation}
- * by {@link cz.cesnet.shongo.controller.api.RoomSpecification}.
+ * Tests for allocation of {@link RoomReservation} by {@link RoomSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -51,47 +51,47 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
         RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addTechnology(Technology.SIP);
         roomEstablishment.setResourceId(secondMcuId);
         firstReservationRequest.setSpecification(roomSpecification);
 
-        cz.cesnet.shongo.controller.api.RoomReservation firstReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(firstReservationRequest);
+        RoomReservation firstReservation = (RoomReservation) allocateAndCheck(firstReservationRequest);
         Assert.assertEquals("Virtual room should be allocated on second mcu, because it was specified as preferred",
                 secondMcuId, firstReservation.getResourceId());
 
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(3);
+        roomSpecification = new RoomSpecification(3);
         roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addTechnology(Technology.SIP);
         roomEstablishment.setResourceId(firstMcuId);
         secondReservationRequest.setSpecification(roomSpecification);
 
-        cz.cesnet.shongo.controller.api.RoomReservation secondReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(secondReservationRequest);
+        RoomReservation secondReservation = (RoomReservation) allocateAndCheck(secondReservationRequest);
         Assert.assertEquals("Virtual room should be allocated on first mcu, because it was specified as preferred",
                 firstMcuId, secondReservation.getResourceId());
 
         ReservationRequest thirdReservationRequest = new ReservationRequest();
         thirdReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         thirdReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomSpecification = new RoomSpecification(5);
         roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addTechnology(Technology.SIP);
         thirdReservationRequest.setSpecification(roomSpecification);
 
-        cz.cesnet.shongo.controller.api.RoomReservation thirdReservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(thirdReservationRequest);
+        RoomReservation thirdReservation = (RoomReservation) allocateAndCheck(thirdReservationRequest);
         Assert.assertEquals("Virtual room should be allocated on second mcu, because it was the most filled",
                 secondMcuId, thirdReservation.getResourceId());
     }
 
     /**
-     * Test allocation of aliases for a room.
+     * Test allocation of virtual room with aliases.
      */
     @Test
     public void testAliases() throws Exception
@@ -125,6 +125,7 @@ public class RoomTest extends AbstractControllerTest
         thirdAliasProvider.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, thirdAliasProvider);
 
+        // Rooms in first MCU require H323_URI and SIP_URI
         DeviceResource firstMcu = new DeviceResource();
         firstMcu.setName("firstMcu");
         firstMcu.addTechnology(Technology.H323);
@@ -134,6 +135,7 @@ public class RoomTest extends AbstractControllerTest
         firstMcu.setAllocatable(true);
         String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
 
+        // Rooms in second MCU require ROOM_NAME and H323_E164
         DeviceResource secondMcu = new DeviceResource();
         secondMcu.setName("secondMcu");
         secondMcu.addTechnology(Technology.H323);
@@ -146,27 +148,30 @@ public class RoomTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
         RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addTechnology(Technology.SIP);
         roomEstablishment.setResourceId(firstMcuId);
         reservationRequest.setSpecification(roomSpecification);
-        cz.cesnet.shongo.controller.api.RoomReservation reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
+        RoomReservation reservation =
+                (RoomReservation) allocateAndCheck(reservationRequest);
         RoomExecutable reservationRoom = (RoomExecutable) reservation.getExecutable();
+        // Only aliases from first alias provider should be allocated
         checkAliasTypes(new AliasType[]{AliasType.H323_URI, AliasType.SIP_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomSpecification = new RoomSpecification(5);
         roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addTechnology(Technology.SIP);
         roomEstablishment.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
-        reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
+        reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
+        // Aliases from second and third alias provider should be allocated
         checkAliasTypes(
                 new AliasType[]{
                         AliasType.ROOM_NAME, AliasType.H323_URI, AliasType.SIP_URI,
@@ -177,20 +182,21 @@ public class RoomTest extends AbstractControllerTest
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomSpecification = new RoomSpecification(5);
         roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
-        reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
+        reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
+        // Only H323 aliases from second and third alias provider should be allocated
         checkAliasTypes(
                 new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI, AliasType.H323_E164, AliasType.H323_URI},
                 reservationRoom.getAliases());
     }
 
     /**
-     * Test allocation of aliases for a room.
+     * Test allocation of virtual room with specific aliases.
      */
     @Test
     public void testRequestAlias() throws Exception
@@ -219,32 +225,32 @@ public class RoomTest extends AbstractControllerTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(15, new AliasType[]{AliasType.H323_URI}));
         mcu.setAllocatable(true);
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.RoomSpecification(5, Technology.H323));
-        cz.cesnet.shongo.controller.api.RoomReservation reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         RoomExecutable reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        RoomSpecification roomSpecification = new RoomSpecification(5);
         RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_URI, "2-5"));
         reservationRequest.setSpecification(roomSpecification);
-        reservation = (cz.cesnet.shongo.controller.api.RoomReservation) allocateAndCheck(reservationRequest);
+        reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.H323_E164, AliasType.H323_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification(5);
+        roomSpecification = new RoomSpecification(5);
         roomEstablishment = roomSpecification.createEstablishment();
         roomEstablishment.addTechnology(Technology.H323);
         roomEstablishment.addAliasSpecification(new AliasSpecification(AliasType.H323_URI, "1-5"));
@@ -252,6 +258,42 @@ public class RoomTest extends AbstractControllerTest
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
         reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
+    }
+
+    /**
+     * Test allocation of virtual room which starts/ends specific amount of minutes before/after.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomBeforeAndAfter() throws Exception
+    {
+        Interval slot = Interval.parse("2014-01-01T14:00/2014-01-01T16:00");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(slot);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setSlotMinutesBefore(10);
+        roomAvailability.setSlotMinutesAfter(5);
+        roomAvailability.setParticipantCount(5);
+        reservationRequest.setSpecification(roomSpecification);
+        RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
+        RoomExecutable room = (RoomExecutable) reservation.getExecutable();
+        Assert.assertEquals(new Interval(
+                slot.getStart().minusMinutes(roomAvailability.getSlotMinutesBefore()),
+                slot.getEnd().plusMinutes(roomAvailability.getSlotMinutesAfter())),
+                room.getSlot());
+        Assert.assertEquals(slot, room.getOriginalSlot());
     }
 
     private void checkAliasTypes(AliasType[] requiredAliasTypes, Collection<Alias> givenAliases)

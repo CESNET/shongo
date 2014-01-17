@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -34,9 +35,24 @@ import java.util.*;
 public class RoomSpecification extends Specification implements ReservationTaskProvider
 {
     /**
+     * Number of minutes which the room shall be available before requested time slot.
+     */
+    private int slotMinutesBefore;
+
+    /**
+     * Number of minutes which the room shall be available after requested time slot.
+     */
+    private int slotMinutesAfter;
+
+    /**
      * {@link DeviceResource} with {@link RoomProviderCapability} in which the {@link RoomConfiguration} should be allocated.
      */
     private DeviceResource deviceResource;
+
+    /**
+     * Specifies whether some reusable {@link RoomEndpoint} should be reused.
+     */
+    private boolean reusedRoom;
 
     /**
      * Number of participants which shall be able to join to the virtual room. Zero means that the room shall be permanent.
@@ -46,9 +62,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     private Integer participantCount;
 
     /**
-     * Specifies whether some reusable {@link RoomEndpoint} should be reused.
+     * List of {@link AbstractParticipant}s for the room.
      */
-    private boolean reusedRoom;
+    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
      * List of {@link cz.cesnet.shongo.controller.booking.room.settting.RoomSetting}s for the {@link RoomConfiguration}
@@ -62,11 +78,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
-     * List of {@link AbstractParticipant}s for the room.
-     */
-    private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
-
-    /**
      * List of {@link cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification}s for the room.
      */
     private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
@@ -76,6 +87,40 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      */
     public RoomSpecification()
     {
+    }
+
+    /**
+     * @return {@link #slotMinutesBefore}
+     */
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    public int getSlotMinutesBefore()
+    {
+        return slotMinutesBefore;
+    }
+
+    /**
+     * @param slotMinutesBefore sets the {@link #slotMinutesBefore}
+     */
+    public void setSlotMinutesBefore(int slotMinutesBefore)
+    {
+        this.slotMinutesBefore = slotMinutesBefore;
+    }
+
+    /**
+     * @return {@link #slotMinutesAfter}
+     */
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    public int getSlotMinutesAfter()
+    {
+        return slotMinutesAfter;
+    }
+
+    /**
+     * @param slotMinutesAfter sets the {@link #slotMinutesAfter}
+     */
+    public void setSlotMinutesAfter(int slotMinutesAfter)
+    {
+        this.slotMinutesAfter = slotMinutesAfter;
     }
 
     /**
@@ -96,6 +141,23 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
+     * @return {@link #reusedRoom}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isReusedRoom()
+    {
+        return reusedRoom;
+    }
+
+    /**
+     * @param reusedRoom sets the {@link #reusedRoom}
+     */
+    public void setReusedRoom(boolean reusedRoom)
+    {
+        this.reusedRoom = reusedRoom;
+    }
+
+    /**
      * @return {@link #participantCount}
      */
     @Column
@@ -113,20 +175,24 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @return {@link #reusedRoom}
+     * @return {@link #participants}
      */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isReusedRoom()
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<AbstractParticipant> getParticipants()
     {
-        return reusedRoom;
+        return Collections.unmodifiableList(participants);
     }
 
     /**
-     * @param reusedRoom sets the {@link #reusedRoom}
+     * @param participants sets the {@link #participants}
      */
-    public void setReusedRoom(boolean reusedRoom)
+    public void setParticipants(List<AbstractParticipant> participants)
     {
-        this.reusedRoom = reusedRoom;
+        this.participants.clear();
+        for (AbstractParticipant participant : participants) {
+            this.participants.add(participant.clone());
+        }
     }
 
     /**
@@ -212,27 +278,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @return {@link #participants}
-     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public List<AbstractParticipant> getParticipants()
-    {
-        return Collections.unmodifiableList(participants);
-    }
-
-    /**
-     * @param participants sets the {@link #participants}
-     */
-    public void setParticipants(List<AbstractParticipant> participants)
-    {
-        this.participants.clear();
-        for (AbstractParticipant participant : participants) {
-            this.participants.add(participant.clone());
-        }
-    }
-
-    /**
      * @return {@link #serviceSpecifications}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -270,13 +315,17 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         RoomSpecification roomSpecification = (RoomSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
-        modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
-        modified |= !ObjectHelper.isSame(isReusedRoom(), roomSpecification.isReusedRoom());
+        modified |= !ObjectHelper.isSame(getSlotMinutesBefore(), roomSpecification.getSlotMinutesBefore());
+        modified |= !ObjectHelper.isSame(getSlotMinutesAfter(), roomSpecification.getSlotMinutesAfter());
         modified |= !ObjectHelper.isSamePersistent(getDeviceResource(), roomSpecification.getDeviceResource());
+        modified |= !ObjectHelper.isSame(isReusedRoom(), roomSpecification.isReusedRoom());
+        modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
 
-        setParticipantCount(roomSpecification.getParticipantCount());
-        setReusedRoom(roomSpecification.isReusedRoom());
+        setSlotMinutesBefore(roomSpecification.getSlotMinutesBefore());
+        setSlotMinutesAfter(roomSpecification.getSlotMinutesAfter());
         setDeviceResource(roomSpecification.getDeviceResource());
+        setReusedRoom(roomSpecification.isReusedRoom());
+        setParticipantCount(roomSpecification.getParticipantCount());
 
         if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
@@ -302,14 +351,16 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
     {
         RoomProviderCapability roomProviderCapability = null;
         if (deviceResource != null) {
             roomProviderCapability = deviceResource.getCapabilityRequired(RoomProviderCapability.class);
         }
 
-        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, getParticipantCount());
+        RoomReservationTask roomReservationTask =
+                new RoomReservationTask(schedulerContext, slot, slotMinutesBefore, slotMinutesAfter);
+        roomReservationTask.setParticipantCount(getParticipantCount());
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
         roomReservationTask.setRoomProviderCapability(roomProviderCapability);
@@ -374,6 +425,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         if (!isPermanent()) {
             RoomAvailability availabilityApi =
                     new RoomAvailability();
+            availabilityApi.setSlotMinutesBefore(slotMinutesBefore);
+            availabilityApi.setSlotMinutesAfter(slotMinutesAfter);
             availabilityApi.setParticipantCount(participantCount != null ? participantCount : 0);
             for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
                 availabilityApi.addServiceSpecification(serviceSpecification.toApi());
@@ -480,6 +533,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         RoomAvailability availabilityApi =
                 roomSpecificationApi.getAvailability();
         if (availabilityApi != null) {
+            setSlotMinutesBefore(availabilityApi.getSlotMinutesBefore());
+            setSlotMinutesAfter(availabilityApi.getSlotMinutesAfter());
             setParticipantCount(availabilityApi.getParticipantCount());
 
             Synchronization.synchronizeCollection(this.serviceSpecifications, availabilityApi.getServiceSpecifications(),

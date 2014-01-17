@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,18 +25,14 @@ public class AliasSetReservationTask extends ReservationTask
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
-     * Share created executable.
-     */
-    private boolean sharedExecutable = false;
-
-    /**
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
+     *                         @param slot sets the {@link #slot}
      */
-    public AliasSetReservationTask(SchedulerContext schedulerContext)
+    public AliasSetReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
     }
 
     /**
@@ -46,14 +43,6 @@ public class AliasSetReservationTask extends ReservationTask
         aliasSpecifications.add(aliasSpecification);
     }
 
-    /**
-     * @param sharedExecutable sets the {@link #sharedExecutable}
-     */
-    public void setSharedExecutable(boolean sharedExecutable)
-    {
-        this.sharedExecutable = sharedExecutable;
-    }
-
     @Override
     protected Reservation allocateReservation() throws SchedulerException
     {
@@ -61,7 +50,8 @@ public class AliasSetReservationTask extends ReservationTask
 
         if (aliasSpecifications.size() == 1) {
             AliasSpecification aliasSpecification = aliasSpecifications.get(0);
-            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
+            AliasReservationTask aliasReservationTask =
+                    aliasSpecification.createReservationTask(schedulerContext, slot);
             Reservation reservation = aliasReservationTask.perform();
             addReports(aliasReservationTask);
             return reservation;
@@ -72,7 +62,8 @@ public class AliasSetReservationTask extends ReservationTask
             List<Reservation> createdReservations = new ArrayList<Reservation>();
             for (AliasSpecification aliasSpecification : aliasSpecifications) {
                 // Allocate alias
-                AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
+                AliasReservationTask aliasReservationTask =
+                        aliasSpecification.createReservationTask(schedulerContext, slot);
                 Reservation reservation = aliasReservationTask.perform();
                 addReports(aliasReservationTask);
                 createdReservations.add(reservation);
@@ -80,7 +71,7 @@ public class AliasSetReservationTask extends ReservationTask
 
             // Allocate compound reservation
             Reservation reservation = new Reservation();
-            reservation.setSlot(getInterval());
+            reservation.setSlot(slot);
             for (Reservation createdReservation : createdReservations) {
                 addChildReservation(createdReservation);
             }

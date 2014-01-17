@@ -107,7 +107,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // Create scheduler context
-            SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, authorization, interval);
+            SchedulerContext schedulerContext = new SchedulerContext(interval.getStart(), cache, entityManager,
+                    new AuthorizationManager(entityManager, authorization));
             schedulerContext.setPurpose(request.getPurpose());
 
             // Ignore reservations for already allocated reservation request
@@ -144,7 +145,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             reservationRequestId, ObjectType.RESERVATION_REQUEST);
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                             reservationRequestManager.get(objectId.getPersistenceId());
-                    schedulerContext.setReusableAllocation(reservationRequest.getAllocation());
+                    schedulerContext.setReusableAllocation(reservationRequest.getAllocation(), interval);
                 }
 
                 // Check specification availability
@@ -157,8 +158,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         try {
                             entityManager.getTransaction().begin();
                             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
-                            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(
-                                    schedulerContext);
+                            ReservationTask reservationTask =
+                                    reservationTaskProvider.createReservationTask(schedulerContext, interval);
                             reservationTask.perform();
                         }
                         finally {

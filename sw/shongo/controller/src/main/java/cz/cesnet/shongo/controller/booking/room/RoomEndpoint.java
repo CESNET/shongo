@@ -25,6 +25,7 @@ import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.LinkedList;
@@ -40,6 +41,16 @@ import java.util.Set;
 public abstract class RoomEndpoint extends Endpoint
 {
     /**
+     * Number of minutes which the room is be available before requested time slot.
+     */
+    private int slotMinutesBefore;
+
+    /**
+     * Number of minutes which the room is be available after requested time slot.
+     */
+    private int slotMinutesAfter;
+
+    /**
      * @see RoomConfiguration
      */
     private RoomConfiguration roomConfiguration;
@@ -53,6 +64,40 @@ public abstract class RoomEndpoint extends Endpoint
      * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the {@link RoomEndpoint}.
      */
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * @return {@link #slotMinutesBefore}
+     */
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    public int getSlotMinutesBefore()
+    {
+        return slotMinutesBefore;
+    }
+
+    /**
+     * @param slotMinutesBefore sets the {@link #slotMinutesBefore}
+     */
+    public void setSlotMinutesBefore(int slotMinutesBefore)
+    {
+        this.slotMinutesBefore = slotMinutesBefore;
+    }
+
+    /**
+     * @return {@link #slotMinutesAfter}
+     */
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    public int getSlotMinutesAfter()
+    {
+        return slotMinutesAfter;
+    }
+
+    /**
+     * @param slotMinutesAfter sets the {@link #slotMinutesAfter}
+     */
+    public void setSlotMinutesAfter(int slotMinutesAfter)
+    {
+        this.slotMinutesAfter = slotMinutesAfter;
+    }
 
     /**
      * @return {@link #roomConfiguration}
@@ -230,6 +275,10 @@ public abstract class RoomEndpoint extends Endpoint
         }
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
         abstractRoomExecutableApi.setDescription(roomDescription);
+
+        Interval slot = executableApi.getSlot();
+        abstractRoomExecutableApi.setOriginalSlot(new Interval(
+                slot.getStart().plusMinutes(slotMinutesBefore), slot.getEnd().minusMinutes(slotMinutesAfter)));
     }
 
     @Override

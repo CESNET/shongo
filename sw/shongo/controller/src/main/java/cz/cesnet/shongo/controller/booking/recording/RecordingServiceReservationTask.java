@@ -8,7 +8,9 @@ import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
-import cz.cesnet.shongo.controller.booking.room.*;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.room.RoomReservationTask;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -32,10 +34,13 @@ public class RecordingServiceReservationTask extends ReservationTask
 
     /**
      * Constructor.
+     *
+     * @param schedulerContext sets the {@link #schedulerContext}
+     * @param slot             sets the {@link #slot}
      */
-    public RecordingServiceReservationTask(SchedulerContext schedulerContext)
+    public RecordingServiceReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
-        super(schedulerContext);
+        super(schedulerContext, slot);
     }
 
     public void setExecutable(Executable executable)
@@ -61,14 +66,13 @@ public class RecordingServiceReservationTask extends ReservationTask
             throw new IllegalStateException("Executable must be set.");
         }
 
-        Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
         Interval executableSlot = executable.getSlot();
 
         // Check interval
-        if (!executableSlot.contains(interval)) {
-            throw new SchedulerReportSet.ExecutableServiceInvalidSlotException(executableSlot, interval);
+        if (!executableSlot.contains(slot)) {
+            throw new SchedulerReportSet.ExecutableServiceInvalidSlotException(executableSlot, slot);
         }
 
         // Check executable
@@ -89,8 +93,10 @@ public class RecordingServiceReservationTask extends ReservationTask
                     // Allocate one room license for recording
                     RoomProviderCapability roomProviderCapability =
                             deviceResource.getCapabilityRequired(RoomProviderCapability.class);
-                    RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, 1, false);
+                    RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, this.slot);
                     roomReservationTask.setRoomProviderCapability(roomProviderCapability);
+                    roomReservationTask.setParticipantCount(1);
+                    roomReservationTask.setAllocateRoomEndpoint(false);
                     addChildReservation(roomReservationTask);
                 }
             }
@@ -121,16 +127,16 @@ public class RecordingServiceReservationTask extends ReservationTask
             EntityManager entityManager = schedulerContext.getEntityManager();
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RecordingServiceReservation> roomReservations =
-                    reservationManager.getRecordingServiceReservations(recordingCapability, interval);
-            schedulerContext.applyReservations(recordingCapability.getId(),
-                    roomReservations, RecordingServiceReservation.class);
+                    reservationManager.getRecordingServiceReservations(recordingCapability, slot);
+            schedulerContext.applyReservations(
+                    recordingCapability.getId(), this.slot, roomReservations, RecordingServiceReservation.class);
             RangeSet<RecordingServiceReservation, DateTime> rangeSet =
                     new RangeSet<RecordingServiceReservation, DateTime>();
             for (RecordingServiceReservation roomReservation : roomReservations) {
                 rangeSet.add(roomReservation, roomReservation.getSlotStart(), roomReservation.getSlotEnd());
             }
             List<RangeSet.Bucket> roomBuckets = new LinkedList<RangeSet.Bucket>();
-            roomBuckets.addAll(rangeSet.getBuckets(interval.getStart(), interval.getEnd()));
+            roomBuckets.addAll(rangeSet.getBuckets(slot.getStart(), slot.getEnd()));
             Collections.sort(roomBuckets, new Comparator<RangeSet.Bucket>()
             {
                 @Override
@@ -180,7 +186,7 @@ public class RecordingServiceReservationTask extends ReservationTask
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(recordingCapability, schedulerContext);
+                resourceCache.checkCapabilityAvailable(recordingCapability, schedulerContext, this.slot);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());
@@ -191,7 +197,7 @@ public class RecordingServiceReservationTask extends ReservationTask
             RecordingService recordingService = new RecordingService();
             recordingService.setRecordingCapability(recordingCapability);
             recordingService.setExecutable(executable);
-            recordingService.setSlot(interval);
+            recordingService.setSlot(slot);
             if (enabled) {
                 recordingService.setState(ExecutableService.State.PREPARED);
             }
@@ -202,7 +208,7 @@ public class RecordingServiceReservationTask extends ReservationTask
             // Allocate recording reservation
             RecordingServiceReservation recordingServiceReservation = new RecordingServiceReservation();
             recordingServiceReservation.setRecordingCapability(recordingCapability);
-            recordingServiceReservation.setSlot(interval);
+            recordingServiceReservation.setSlot(slot);
             recordingServiceReservation.setExecutableService(recordingService);
             return recordingServiceReservation;
         }
@@ -228,7 +234,7 @@ public class RecordingServiceReservationTask extends ReservationTask
          * Constructor.
          *
          * @param recordingCapability sets the {@link #recordingCapability}
-         * @param usedLicenseCount to be used for computing {@link #availableLicenseCount}
+         * @param usedLicenseCount    to be used for computing {@link #availableLicenseCount}
          */
         private AvailableRecorder(RecordingCapability recordingCapability, int usedLicenseCount)
         {

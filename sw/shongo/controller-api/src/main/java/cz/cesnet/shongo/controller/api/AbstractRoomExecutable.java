@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.RoomSetting;
+import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,6 +19,14 @@ import java.util.Set;
  */
 public abstract class AbstractRoomExecutable extends Executable
 {
+    /**
+     * Specifies the original slot which was requested by {@link RoomAvailability}.
+     * Unlike the {@link #slot}, the {@link #originalSlot} does not reflect the
+     * {@link RoomAvailability#slotMinutesBefore} and {@link RoomAvailability#slotMinutesAfter}.
+     * The {@link #originalSlot} must be contained in the {@link #slot}.
+     */
+    private Interval originalSlot;
+
     /**
      * Set of technologies which the room supports.
      */
@@ -47,6 +56,22 @@ public abstract class AbstractRoomExecutable extends Executable
      * @see RoomExecutableParticipantConfiguration
      */
     private RoomExecutableParticipantConfiguration participantConfiguration;
+
+    /**
+     * @return {@link #originalSlot}
+     */
+    public Interval getOriginalSlot()
+    {
+        return originalSlot;
+    }
+
+    /**
+     * @param originalSlot sets the {@link #originalSlot}
+     */
+    public void setOriginalSlot(Interval originalSlot)
+    {
+        this.originalSlot = originalSlot;
+    }
 
     /**
      * @return {@link #technologies}
@@ -218,6 +243,7 @@ public abstract class AbstractRoomExecutable extends Executable
         this.participantConfiguration = participantConfiguration;
     }
 
+    private static final String ORIGINAL_SLOT = "originalSlot";
     private static final String TECHNOLOGIES = "technologies";
     private static final String LICENSE_COUNT = "licenseCount";
     private static final String DESCRIPTION = "description";
@@ -229,6 +255,7 @@ public abstract class AbstractRoomExecutable extends Executable
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(ORIGINAL_SLOT, originalSlot);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(LICENSE_COUNT, licenseCount);
         dataMap.set(DESCRIPTION, description);
@@ -242,6 +269,7 @@ public abstract class AbstractRoomExecutable extends Executable
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        originalSlot = dataMap.getInterval(ORIGINAL_SLOT);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         licenseCount = dataMap.getInt(LICENSE_COUNT);
         description = dataMap.getString(DESCRIPTION);

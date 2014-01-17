@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -111,27 +112,27 @@ public class ValueSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(SchedulerContext schedulerContext) throws SchedulerException
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext, Interval slot) throws SchedulerException
     {
         int valuesCount = values.size();
         if (valuesCount == 0) {
-            return new ValueReservationTask(schedulerContext, valueProvider, null);
+            return new ValueReservationTask(schedulerContext, slot, valueProvider, null);
         }
         else if (valuesCount == 1) {
-            return new ValueReservationTask(schedulerContext, valueProvider, values.iterator().next());
+            return new ValueReservationTask(schedulerContext, slot, valueProvider, values.iterator().next());
         }
         else {
-            return new ReservationTask(schedulerContext)
+            return new ReservationTask(schedulerContext, slot)
             {
                 @Override
                 protected Reservation allocateReservation() throws SchedulerException
                 {
                     for (String value : values) {
-                        addChildReservation(new ValueReservationTask(schedulerContext, valueProvider, value));
+                        addChildReservation(new ValueReservationTask(schedulerContext, slot, valueProvider, value));
                     }
                     // Create compound reservation request
                     Reservation reservation = new Reservation();
-                    reservation.setSlot(getInterval());
+                    reservation.setSlot(slot);
                     return reservation;
                 }
             };
