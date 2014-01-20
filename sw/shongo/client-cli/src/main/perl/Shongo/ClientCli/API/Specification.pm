@@ -17,6 +17,8 @@ use Shongo::ClientCli::API::DeviceResource;
 use Shongo::ClientCli::API::Person;
 use Shongo::ClientCli::API::CompartmentSpecification;
 use Shongo::ClientCli::API::Participant;
+use Shongo::ClientCli::API::RoomAvailability;
+use Shongo::ClientCli::API::RoomEstablishment;
 use Shongo::ClientCli::API::RoomSettings;
 
 #
@@ -29,9 +31,7 @@ our $Type = ordered_hash(
     'ValueSpecification' => 'Value',
     'AliasSpecification' => 'Alias',
     'AliasSetSpecification' => 'Alias Set',
-    'RoomSpecification' => 'One-time Room',
-    'PermanentRoomSpecification' => 'Permanent Room',
-    'UsedRoomSpecification' => 'Used Room'
+    'RoomSpecification' => 'Room'
 );
 
 #
@@ -195,40 +195,18 @@ sub on_init()
                 'required' => 1
             });
         }
-        case 'UsedRoomSpecification' {
-            $self->add_attribute('participantCount', {
-                'title' => 'Participant Count',
-                'type' => 'int',
-                'required' => 1
+        case 'RoomSpecification' {
+            $self->add_attribute('establishment', {
+                'title' => 'Establishment',
+                'type' => 'class',
+                'class' => 'Shongo::ClientCli::API::RoomEstablishment',
+                'complex' => 1,
             });
-        }
-        case ['RoomSpecification', 'PermanentRoomSpecification'] {
-            $self->add_attribute('technologies', {
-                'type' => 'collection',
-                'item' => {
-                    'title' => 'Technology',
-                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
-                },
-                'complex' => 0,
-                'required' => 1
-            });
-            $self->add_attribute('participantCount', {
-                'title' => 'Participant Count',
-                'type' => 'int',
-                'required' => 1
-            });
-            $self->add_attribute('resourceId', {
-                'title' => 'Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdPattern
-            });
-            $self->add_attribute('aliasSpecifications', {
-                'title' => 'Aliases',
-                'type' => 'collection',
-                'item' => {
-                    'title' => 'alias',
-                    'class' => 'AliasSpecification',
-                },
-                'complex' => 1
+            $self->add_attribute('availability', {
+                'title' => 'Availability',
+                'type' => 'class',
+                'class' => 'Shongo::ClientCli::API::RoomAvailability',
+                'complex' => 1,
             });
             $self->add_attribute('roomSettings', {
                 'title' => 'Room Settings',
@@ -236,12 +214,21 @@ sub on_init()
                 'complex' => 1,
                 'format' => sub() {
                     my ($room_settings) = @_;
-                    Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, $self->get('technologies'));
+                    Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings);
                 },
                 'modify' => sub() {
                     my ($room_settings) = @_;
                     return Shongo::ClientCli::API::RoomSettings::modify_room_settings($room_settings);
                 }
+            });
+            $self->add_attribute('participants', {
+                'title' => 'Participants',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'participant',
+                    'class' => 'Participant',
+                },
+                'complex' => 1
             });
         }
     }

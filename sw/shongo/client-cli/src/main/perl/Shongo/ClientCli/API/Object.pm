@@ -23,9 +23,12 @@ our $COLLECTION_EMPTY = "-- None --";
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::ClientCli::API::Reservation',
     '^.*Specification$' => 'Shongo::ClientCli::API::Specification',
+    '^RoomAvailability$' => 'Shongo::ClientCli::API::RoomAvailability',
+    '^RoomEstablishment$' => 'Shongo::ClientCli::API::RoomEstablishment',
     '^.*Participant$' => 'Shongo::ClientCli::API::Participant',
     '^.*Person$' => 'Shongo::ClientCli::API::Person',
     '^.*Executable$' => 'Shongo::ClientCli::API::Executable',
+    '^ExecutableServiceSpecification$' => 'Shongo::ClientCli::API::ExecutableServiceSpecification',
     '^ValueProvider\.(Pattern|Filtered)$' => 'Shongo::ClientCli::API::ValueProvider'
 };
 
@@ -174,7 +177,7 @@ sub set_default_value
 #   'period'            attribute value is ISO8601 period
 #   'datetime'          attribute value is ISO8601 date/time
 #   'datetime-partial'  attribute value is partial ISO8601 date/time (components can be omitted from the end)
-#   'class'             attribute value is collection of items
+#   'class'             attribute value is complex object
 #   'collection'        attribute value is collection of items
 #   'map'               attribute value is map of item keys and values
 #

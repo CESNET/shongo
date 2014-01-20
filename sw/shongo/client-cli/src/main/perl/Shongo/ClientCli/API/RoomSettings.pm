@@ -46,7 +46,7 @@ sub format_room_settings
         if ( !defined($room_setting_definition) ) {
             next;
         }
-        if ( defined($technologies) &&  !array_value_exists($room_setting_definition->{'technology'}, @{$technologies}) ) {
+        if ( defined($technologies) && !array_value_exists($room_setting_definition->{'technology'}, @{$technologies}) ) {
             next;
         }
         my $options = $room_setting_definition->{'options'};
