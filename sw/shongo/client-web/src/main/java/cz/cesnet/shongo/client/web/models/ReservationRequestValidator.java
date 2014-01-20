@@ -64,6 +64,8 @@ public class ReservationRequestValidator implements Validator
             switch (specificationType) {
                 case ADHOC_ROOM:
                 case PERMANENT_ROOM_CAPACITY:
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotBeforeMinutes", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotAfterMinutes", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(
                             errors, "roomParticipantCount", "validation.field.required");

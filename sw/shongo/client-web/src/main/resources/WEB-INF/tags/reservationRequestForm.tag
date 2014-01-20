@@ -193,7 +193,7 @@
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
                 <tag:help><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
-                <form:errors path="description" cssClass="error"/>&nbsp;
+                <form:errors path="description" cssClass="error"/>
             </div>
         </div>
 
@@ -256,6 +256,25 @@
                     </c:otherwise>
                 </c:choose>
                 <form:errors path="start" cssClass="error"/>
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+                    &nbsp;
+                    <div class="input-append">
+                        <form:select path="slotBeforeMinutes" cssStyle="width: 75px;" tabindex="${tabIndex}">
+                            <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
+                            <form:option value="5">5</form:option>
+                            <form:option value="10">10</form:option>
+                            <form:option value="15">15</form:option>
+                            <form:option value="20">20</form:option>
+                            <form:option value="30">30</form:option>
+                            <form:option value="45">45</form:option>
+                        </form:select>
+                        <span class="add-on">
+                            <spring:message code="views.reservationRequest.slotBeforeMinutes"/>
+                            <tag:help><spring:message code="views.reservationRequest.slotBeforeMinutes.help"/></tag:help>
+                        </span>
+                    </div>
+                    <form:errors path="slotBeforeMinutes" cssClass="error"/>
+                </c:if>
             </div>
         </div>
 
@@ -288,6 +307,23 @@
                                 code="views.reservationRequest.duration.days"/></form:option>
                     </form:select>
                     <form:errors path="durationCount" cssClass="error"/>
+                    &nbsp;
+                    <div class="input-append">
+                        <form:select path="slotAfterMinutes" cssStyle="width: 75px;" tabindex="${tabIndex}">
+                            <form:option value="0"><spring:message code="views.reservationRequest.slotMinutesNone"/></form:option>
+                            <form:option value="5">5</form:option>
+                            <form:option value="10">10</form:option>
+                            <form:option value="15">15</form:option>
+                            <form:option value="20">20</form:option>
+                            <form:option value="30">30</form:option>
+                            <form:option value="45">45</form:option>
+                        </form:select>
+                        <span class="add-on">
+                            <spring:message code="views.reservationRequest.slotAfterMinutes"/>
+                            <tag:help><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
+                        </span>
+                    </div>
+                    <form:errors path="slotAfterMinutes" cssClass="error"/>
                 </div>
             </div>
 

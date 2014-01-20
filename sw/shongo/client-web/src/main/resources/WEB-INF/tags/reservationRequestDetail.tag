@@ -33,7 +33,7 @@
         }
 
         // Default requested slot
-        $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"/>";
+        $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/>";
         $scope.roomParticipants = [<c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
             { name: "${participant.name}", role: "<spring:message code="views.participant.role.${participant.role}"/>" }<c:if test="${!status.last}">,</c:if>
             </c:forEach>
@@ -62,7 +62,7 @@
             <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.stateReport)" var="roomStateReport"/>
             // Default room id and slot
             $scope.roomId = "${reservationRequestDetail.room.id}";
-            $scope.roomSlot = "<tag:format value="${reservationRequestDetail.room.slot}" multiline="true"/>";
+            $scope.roomSlot = "<tag:format value="${reservationRequestDetail.room.slot}" multiline="true" pre="${reservationRequestDetail.room.slotBefore}" post="${reservationRequestDetail.room.slotAfter}"/>";
             $scope.roomName = "${reservationRequestDetail.room.name}";
             $scope.roomLicenseCount = "${reservationRequestDetail.room.licenseCount}";
             $scope.roomAliases = "${roomAliases}";

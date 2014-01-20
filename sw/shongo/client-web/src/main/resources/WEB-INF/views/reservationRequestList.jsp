@@ -63,7 +63,7 @@
                                     detailed="true" createUrl="${createPermanentRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
-                <spring:message code="views.reservationRequestList.permanentRooms"/>&nbsp;
+                <spring:message code="views.reservationRequestList.permanentRooms"/>
                 <tag:help selectable="true">
                     <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
                     <a class="btn btn-success" href="${helpUrl}#permanent-room" target="_blank">
@@ -79,7 +79,7 @@
                                     detailed="true" createUrl="${createAdhocRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
-                <spring:message code="views.reservationRequestList.adhocRooms"/>&nbsp;
+                <spring:message code="views.reservationRequestList.adhocRooms"/>
                 <tag:help selectable="true">
                     <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
                     <a class="btn btn-success" href="${helpUrl}#adhoc-room" target="_blank">

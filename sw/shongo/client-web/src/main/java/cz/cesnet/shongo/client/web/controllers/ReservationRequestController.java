@@ -153,7 +153,7 @@ public class ReservationRequestController
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
                 item.put("earliestSlot", formatter.formatInterval(earliestSlot));
-                item.put("earliestSlotMultiLine", formatter.formatIntervalMultiLine(earliestSlot));
+                item.put("earliestSlotMultiLine", formatter.formatIntervalMultiLine(earliestSlot, null, null));
             }
             Integer futureSlotCount = reservationRequest.getFutureSlotCount();
             if (futureSlotCount != null) {

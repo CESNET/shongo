@@ -10,6 +10,7 @@ use strict;
 use warnings;
 
 use Shongo::Common;
+use Shongo::ClientCli::API::ExecutableServiceSpecification;
 
 #
 # Create a new instance
@@ -49,10 +50,10 @@ sub new()
         'type' => 'string'
     });
     $self->add_attribute('serviceSpecifications', {
-        'title' => 'Aliases',
+        'title' => 'Services',
         'type' => 'collection',
         'item' => {
-            'title' => 'alias',
+            'title' => 'service',
             'class' => 'ExecutableServiceSpecification',
         },
         'complex' => 1

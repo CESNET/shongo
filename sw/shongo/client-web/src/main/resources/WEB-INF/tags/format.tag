@@ -8,6 +8,8 @@
 <%@ attribute name="style" required="false" type="java.lang.String" %>
 <%@ attribute name="styleShort" required="false" type="java.lang.Boolean" %>
 <%@ attribute name="multiline" required="false" type="java.lang.Boolean" %>
+<%@ attribute name="pre" required="false" type="org.joda.time.Period" %>
+<%@ attribute name="post" required="false" type="org.joda.time.Period" %>
 
 <%
     if (styleShort == null) {
@@ -41,7 +43,7 @@
             value = dateTimeFormatter.formatIntervalDate((Interval) value);
         }
         else if (multiline) {
-            value = dateTimeFormatter.formatIntervalMultiLine((Interval) value);
+            value = dateTimeFormatter.formatIntervalMultiLine((Interval) value, pre, post);
         }
         else {
             value = dateTimeFormatter.formatInterval((Interval) value);

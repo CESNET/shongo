@@ -59,6 +59,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected DurationType durationType;
 
+    protected int slotBeforeMinutes;
+
+    protected int slotAfterMinutes;
+
     protected PeriodicityType periodicityType;
 
     protected LocalDate periodicityEnd;
@@ -214,6 +218,46 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setDurationType(DurationType durationType)
     {
         this.durationType = durationType;
+    }
+
+    public int getSlotBeforeMinutes()
+    {
+        return slotBeforeMinutes;
+    }
+
+    public Period getSlotBefore()
+    {
+        if (slotBeforeMinutes != 0) {
+            return Period.minutes(slotBeforeMinutes);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public void setSlotBeforeMinutes(int slotBeforeMinutes)
+    {
+        this.slotBeforeMinutes = slotBeforeMinutes;
+    }
+
+    public int getSlotAfterMinutes()
+    {
+        return slotAfterMinutes;
+    }
+
+    public Period getSlotAfter()
+    {
+        if (slotAfterMinutes != 0) {
+            return Period.minutes(slotAfterMinutes);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public void setSlotAfterMinutes(int slotAfterMinutes)
+    {
+        this.slotAfterMinutes = slotAfterMinutes;
     }
 
     public PeriodicityType getPeriodicityType()
@@ -453,6 +497,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
             RoomAvailability roomAvailability = roomSpecification.getAvailability();
             if (roomAvailability != null) {
+                slotBeforeMinutes = roomAvailability.getSlotMinutesBefore();
+                slotAfterMinutes = roomAvailability.getSlotMinutesAfter();
                 roomParticipantCount = roomAvailability.getParticipantCount();
 
                 for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
@@ -662,6 +708,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
             adobeConnectRoomSetting.setAccessMode(roomAccessMode);
             roomSpecification.addRoomSetting(adobeConnectRoomSetting);
+        }
+        RoomAvailability roomAvailability = roomSpecification.getAvailability();
+        if (roomAvailability != null) {
+            roomAvailability.setSlotMinutesBefore(slotBeforeMinutes);
+            roomAvailability.setSlotMinutesAfter(slotAfterMinutes);
         }
         return roomSpecification;
     }

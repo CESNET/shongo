@@ -161,7 +161,6 @@
                     </c:forEach>
                 </form:select>
                 <form:errors path="role" cssClass="error"/>
-                &nbsp;
                 <tag:help>
                     <c:forEach items="${roles}" var="role">
                         <strong><spring:message code="views.participant.role.${role}"/></strong>

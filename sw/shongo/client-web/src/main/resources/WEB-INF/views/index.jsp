@@ -197,8 +197,8 @@
                         <thead>
                         <tr>
                             <th>
-                                <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort>
-                                <tag:help selectable="true" width="800px">
+                                <pagination-sort column="REUSED_RESERVATION_REQUEST"><spring:message code="views.reservationRequest.type"/></pagination-sort><%--
+                                --%><tag:help selectable="true" width="800px">
                                     <h1><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></h1>
                                     <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
                                     <h1><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></h1>
@@ -220,8 +220,7 @@
                                 <pagination-sort column="SLOT"><spring:message code="views.reservationRequestList.slot"/></pagination-sort>
                             </th>
                             <th width="200px">
-                                <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort>
-                                <tag:helpReservationRequestState/>
+                                <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
                             </th>
                             <th style="min-width: 85px; width: 85px;">
                                 <spring:message code="views.list.action"/>

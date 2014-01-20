@@ -242,7 +242,7 @@ public class DateTimeFormatter
      * @param interval
      * @return formatted given {@code interval} as two lines
      */
-    public String formatIntervalMultiLine(Interval interval)
+    public String formatIntervalMultiLine(Interval interval, Period pre, Period post)
     {
         if (interval == null) {
             return "";
@@ -255,14 +255,34 @@ public class DateTimeFormatter
             stringBuilder.append(dateFormatter.print(start));
             stringBuilder.append("</td><td>");
             stringBuilder.append(timeFormatter.print(start));
+            if (pre != null) {
+                stringBuilder.append(" (-");
+                stringBuilder.append(periodFormatter.print(pre));
+                stringBuilder.append(")");
+            }
             stringBuilder.append("</td></tr><tr><td></td><td>");
             stringBuilder.append(timeFormatter.print(end));
+            if (post != null) {
+                stringBuilder.append(" (+");
+                stringBuilder.append(periodFormatter.print(post));
+                stringBuilder.append(")");
+            }
             stringBuilder.append("</td></tr></table></div>");
         }
         else {
             stringBuilder.append(dateTimeFormatter.print(start));
+            if (pre != null) {
+                stringBuilder.append(" (-");
+                stringBuilder.append(periodFormatter.print(pre));
+                stringBuilder.append(")");
+            }
             stringBuilder.append("<br/>");
             stringBuilder.append(dateTimeFormatter.print(end));
+            if (post != null) {
+                stringBuilder.append(" (+");
+                stringBuilder.append(periodFormatter.print(post));
+                stringBuilder.append(")");
+            }
         }
         return stringBuilder.toString();
     }

@@ -249,7 +249,7 @@ form textarea.error {
 form span.error {
     color: red;
     font-weight: bold;
-    margin: 0px 8px;
+    margin: 0px 0px 0px 8px;
     padding: 5px 0px;
     vertical-align: top;
     display: inline-block;
@@ -536,6 +536,14 @@ b[class^="icon-"]:before {
 /**********************************************************************************************************************
  ** APPLICATION COMMONS ***********************************************************************************************
  **********************************************************************************************************************/
+
+img.help-icon {
+    margin-left: 8px;
+}
+.add-on img.help-icon {
+    margin-left: 4px;
+    padding-bottom: 2px;
+}
 
 /* AllocationState */
 .allocation-state .NOT_ALLOCATED {

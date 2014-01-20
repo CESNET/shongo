@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -221,7 +222,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         if (roomModel != null) {
             DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.LONG, locale, timeZone);
             data.put("roomId", roomModel.getId());
-            data.put("roomSlot", formatter.formatIntervalMultiLine(roomModel.getSlot()));
+            data.put("roomSlot", formatter.formatIntervalMultiLine(
+                    roomModel.getSlot(), roomModel.getSlotBefore(), roomModel.getSlotAfter()));
             data.put("roomName", roomModel.getName());
             data.put("roomLicenseCount", roomModel.getLicenseCount());
             data.put("roomAliases", roomModel.getAliases());

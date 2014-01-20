@@ -89,8 +89,14 @@ SELECT
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
         ELSE 'OTHER'
     END AS type,
-    execution_target.slot_start AS slot_start,
-    execution_target.slot_end AS slot_end,
+    CASE
+        WHEN room_endpoint.id IS NOT NULL THEN execution_target.slot_start - room_endpoint.slot_minutes_before MINUTE
+        ELSE execution_target.slot_start
+    END AS slot_start,
+    CASE
+        WHEN room_endpoint.id IS NOT NULL THEN execution_target.slot_end + room_endpoint.slot_minutes_after MINUTE
+        ELSE execution_target.slot_end
+    END AS slot_end,
     executable.state AS state,
     NULL AS room_name,
     GROUP_CONCAT(DISTINCT room_configuration_technologies.technologies SEPARATOR ',') AS room_technologies,

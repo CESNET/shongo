@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import java.util.List;
 
@@ -43,6 +44,16 @@ public class RoomModel extends ParticipantConfigurationModel
      * Time slot of the {@link AbstractRoomExecutable}.
      */
     private Interval slot;
+
+    /**
+     * Slot before.
+     */
+    private Period slotBefore;
+
+    /**
+     * Slot after.
+     */
+    private Period slotAfter;
 
     /**
      * {@link TechnologyModel} of the {@link RoomModel}.
@@ -123,7 +134,16 @@ public class RoomModel extends ParticipantConfigurationModel
         // Setup room
         this.messageProvider = messageProvider;
         this.id = roomExecutable.getId();
-        this.slot = roomExecutable.getSlot();
+        this.slot = roomExecutable.getOriginalSlot();
+        Interval slot = roomExecutable.getSlot();
+        this.slotBefore = null;
+        if (!slot.getStart().equals(this.slot.getStart())) {
+            this.slotBefore = new Period(slot.getStart(), this.slot.getStart());
+        }
+        this.slotAfter = null;
+        if (!slot.getEnd().equals(this.slot.getEnd())) {
+            this.slotAfter = new Period(slot.getEnd(), this.slot.getEnd());
+        }
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();
         for (Alias alias : roomExecutable.getAliases()) {
@@ -293,6 +313,22 @@ public class RoomModel extends ParticipantConfigurationModel
     public Interval getSlot()
     {
         return slot;
+    }
+
+    /**
+     * @return {@link #slotBefore}
+     */
+    public Period getSlotBefore()
+    {
+        return slotBefore;
+    }
+
+    /**
+     * @return {@link #slotAfter}
+     */
+    public Period getSlotAfter()
+    {
+        return slotAfter;
     }
 
     /**
