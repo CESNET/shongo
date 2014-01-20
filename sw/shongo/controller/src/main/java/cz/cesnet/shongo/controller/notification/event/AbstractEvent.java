@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.event;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
@@ -24,27 +24,31 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
- * Represents an abstract {@link Notification} for a simple list of recipients. The {@link NotificationMessage} must
- * be rendered in {@link #renderMessageForRecipient} abstract method. You can use {@link #renderMessageFromTemplate} method for the
- * rendering based on templates.
+ * Represents an abstract event  about which a simple list of recipients should be notified.
+ * The {@link NotificationMessage} must be rendered in {@link #renderMessageForRecipient} abstract method.
+ * You can use {@link #renderMessageFromTemplate} method for the rendering based on templates.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractNotification implements Notification
+public abstract class AbstractEvent
 {
-    protected static Logger logger = LoggerFactory.getLogger(Notification.class);
+    protected static Logger logger = LoggerFactory.getLogger(AbstractEvent.class);
 
     /**
-     * List of recipient {@link PersonInformation}s.
+     * List of recipients who should be notified about this {@link AbstractEvent}.
      */
     private Set<PersonInformation> recipients = new HashSet<PersonInformation>();
 
     /**
-     * List of reply-to {@link PersonInformation}s.
+     * List of reply-to who should be contacted when replying to notification about this {@link AbstractEvent}.
      */
     private Set<PersonInformation> replyTo = new HashSet<PersonInformation>();
 
-    @Override
+    /**
+     * @param recipient who should be notified by the {@link AbstractEvent}
+     * @return true whether given {@code recipient} has been added,
+     *         false whether given {@code recipient} already exists
+     */
     public boolean addRecipient(PersonInformation recipient)
     {
         return recipients.add(recipient);
@@ -60,25 +64,18 @@ public abstract class AbstractNotification implements Notification
         }
     }
 
-    @Override
-    public void clearRecipients()
-    {
-        recipients.clear();
-    }
-
-    @Override
+    /**
+     * @return {@link #recipients}
+     */
     public final Collection<PersonInformation> getRecipients()
     {
         return Collections.unmodifiableCollection(recipients);
     }
 
-    @Override
-    public final boolean hasRecipients()
-    {
-        return recipients.size() > 0;
-    }
-
-    @Override
+    /**
+     * @param recipient for who the {@link NotificationMessage} should be returned
+     * @return {@link NotificationMessage} for given {@code recipient}
+     */
     public final NotificationMessage getRecipientMessage(PersonInformation recipient)
     {
         return renderMessageForRecipient(recipient);
@@ -92,7 +89,9 @@ public abstract class AbstractNotification implements Notification
         return this.replyTo.add(replyTo);
     }
 
-    @Override
+    /**
+     * @return {@link #replyTo}
+     */
     public Collection<PersonInformation> getReplyTo()
     {
         return replyTo;
@@ -166,13 +165,13 @@ public abstract class AbstractNotification implements Notification
         if (templateConfiguration == null) {
             templateConfiguration = new Configuration();
             templateConfiguration.setObjectWrapper(new DefaultObjectWrapper());
-            templateConfiguration.setClassForTemplateLoading(AbstractNotification.class, "/");
+            templateConfiguration.setClassForTemplateLoading(AbstractEvent.class, "/");
         }
         return templateConfiguration;
     }
 
     /**
-     * Context for rendering of {@link AbstractNotification}.
+     * Context for rendering of {@link AbstractEvent}.
      */
     public static class RenderContext
     {
@@ -498,7 +497,7 @@ public abstract class AbstractNotification implements Notification
                 return PersonInformation.Formatter.format(userInformation);
             }
             catch (ControllerReportSet.UserNotExistsException exception) {
-                AbstractNotification.logger.warn("User '{}' doesn't exist.", userId);
+                AbstractEvent.logger.warn("User '{}' doesn't exist.", userId);
                 return "<not-exist> (" + userId + ")";
             }
         }

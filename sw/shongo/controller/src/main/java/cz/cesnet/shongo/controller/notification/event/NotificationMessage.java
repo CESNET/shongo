@@ -1,10 +1,9 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.event;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
-import cz.cesnet.shongo.util.ParametrizedString;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;

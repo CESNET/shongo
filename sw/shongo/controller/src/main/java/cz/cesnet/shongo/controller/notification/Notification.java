@@ -1,47 +1,222 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.SimplePersistentObject;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
 
-import java.util.Collection;
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Represents a notification for some recipients.
+ * Represents a notification (e.g., email notification).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface Notification
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public class Notification extends SimplePersistentObject
 {
     /**
-     * @param recipient who should be notified by the {@link Notification}
-     * @return true whether given {@code recipient} has been added,
-     *         false whether given {@code recipient} already exists
+     * Date/time when the {@link Notification} was created.
      */
-    public boolean addRecipient(PersonInformation recipient);
+    private DateTime createdAt;
 
     /**
-     * Remove all added recipients.
+     * Recipient user-id (if available).
      */
-    public void clearRecipients();
+    private String userId;
 
     /**
-     * @return collection of recipients who should be notified by this {@link Notification}
+     * Recipient email address (if available).
      */
-    public Collection<PersonInformation> getRecipients();
+    private String recipientEmail;
 
     /**
-     * @return true whether {@link Notification} has at least one recipient,
-     *         false otherwise
+     * Reply-to user-ids.
      */
-    public boolean hasRecipients();
+    private Set<String> replyToUserIds = new HashSet<String>();
 
     /**
-     * @param recipient for who the {@link NotificationMessage} should be returned
-     * @return {@link NotificationMessage} for given {@code recipient}
+     * Languages which are used in the notification.
      */
-    public NotificationMessage getRecipientMessage(PersonInformation recipient);
+    private Set<String> languages = new HashSet<String>();
 
     /**
-     * @return collection of reply-to who should be contacted when replying to this {@link Notification}
+     * Notification title (e.g., it can be used as email subject).
      */
-    public Collection<PersonInformation> getReplyTo();
+    private String title;
+
+    /**
+     * Notification content (e.g., it can be used as email content).
+     */
+    private String message;
+
+    /**
+     * @return {@link #createdAt}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.FIELD)
+    public DateTime getCreatedAt()
+    {
+        return createdAt;
+    }
+
+    /**
+     * @param createdAt sets the {@link #createdAt}
+     */
+    public void setCreatedAt(DateTime createdAt)
+    {
+        this.createdAt = createdAt;
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
+     * @return {@link #recipientEmail}
+     */
+    @Column
+    public String getRecipientEmail()
+    {
+        return recipientEmail;
+    }
+
+    /**
+     * @param recipientEmail sets the {@link #recipientEmail}
+     */
+    public void setRecipientEmail(String recipientEmail)
+    {
+        this.recipientEmail = recipientEmail;
+    }
+
+    /**
+     * @return {@link #replyToUserIds}
+     */
+    @ElementCollection
+    @Access(AccessType.FIELD)
+    public Set<String> getReplyToUserIds()
+    {
+        return replyToUserIds;
+    }
+
+    /**
+     * @param replyToUserIds sets the {@link #replyToUserIds}
+     */
+    public void setReplyToUserIds(Set<String> replyToUserIds)
+    {
+        this.replyToUserIds.clear();
+        this.replyToUserIds.addAll(replyToUserIds);
+    }
+
+    /**
+     * @param replyToUserId to be added to the {@link #replyToUserIds}
+     */
+    public void addReplyToUserId(String replyToUserId)
+    {
+        replyToUserIds.add(replyToUserId);
+    }
+
+    /**
+     * @return {@link #languages}
+     */
+    @ElementCollection
+    @Access(AccessType.FIELD)
+    public Set<String> getLanguages()
+    {
+        return languages;
+    }
+
+    /**
+     * @param languages sets the {@link #languages}
+     */
+    public void setLanguages(Set<String> languages)
+    {
+        this.languages.clear();
+        this.languages.addAll(languages);
+    }
+
+    /**
+     * @param language to be added to the {@link #languages}
+     */
+    public void addLanguage(String language)
+    {
+        languages.add(language);
+    }
+
+    /**
+     * @return {@link #title}
+     */
+    @Column(nullable = false)
+    public String getTitle()
+    {
+        return title;
+    }
+
+    /**
+     * @param title sets the {@link #title}
+     */
+    public void setTitle(String title)
+    {
+        this.title = title;
+    }
+
+    /**
+     * @return {@link #message}
+     */
+    @Column(nullable = false)
+    public String getMessage()
+    {
+        return message;
+    }
+
+    /**
+     * @param message sets the {@link #message}
+     */
+    public void setMessage(String message)
+    {
+        this.message = message;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format(Notification.class.getSimpleName() + " (id: %d, title: %s)", id, title);
+    }
+
+    /**
+     * Available states of {@link Notification}s.
+     */
+    public static enum State
+    {
+        /**
+         * {@link Notification} hasn't been performed yet.
+         */
+        PREPARED,
+
+        /**
+         * {@link Notification} has been performed.
+         */
+        PERFORMED,
+
+        /**
+         * Performing of the {@link Notification} has failed.
+         */
+        FAILED
+    }
 }

@@ -459,11 +459,6 @@ public class Controller
                 Component.AuthorizationAware authorizationAware = (Component.AuthorizationAware) component;
                 authorizationAware.setAuthorization(authorization);
             }
-            if (component instanceof Component.NotificationManagerAware) {
-                Component.NotificationManagerAware notificationManagerAware =
-                        (Component.NotificationManagerAware) component;
-                notificationManagerAware.setNotificationManager(notificationManager);
-            }
             component.init(configuration);
         }
     }
@@ -582,7 +577,7 @@ public class Controller
     public void startWorkerThread()
     {
         WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
-                authorization, entityManagerFactory);
+                authorization, notificationManager, entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(ControllerConfiguration.WORKER_PERIOD));
         workerThread.setLookahead(configuration.getPeriod(ControllerConfiguration.WORKER_LOOKAHEAD));
         addThread(workerThread);

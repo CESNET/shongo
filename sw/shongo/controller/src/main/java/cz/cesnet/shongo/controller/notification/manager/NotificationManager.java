@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
 import cz.cesnet.shongo.controller.notification.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +81,41 @@ public class NotificationManager extends Component
     }
 
     /**
+     * @param notification
+     * @return {@link NotificationExecutor.Recipient} for given {@code notification}
+     */
+    public NotificationExecutor.Recipient getRecipient(Notification notification)
+    {
+        if (redirectTo != null) {
+            logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
+                    notification,
+                    redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
+            });
+            return new NotificationExecutor.Recipient(redirectTo.getPrimaryEmail());
+        }
+        String recipientEmail = notification.getRecipientEmail();
+        if (recipientEmail == null) {
+            throw new IllegalStateException(notification + " doesn't have email recipient.");
+        }
+        return new NotificationExecutor.Recipient(recipientEmail);
+    }
+
+    /**
+     * Execute not-executed notifications.
+     *
+     * @param entityManager to be used
+     */
+    public void executeNotifications(EntityManager entityManager)
+    {
+        if (!hasExecutors()) {
+            return;
+        }
+
+        logger.debug("Executing notifications...");
+        throw new TodoImplementException("load and perform notifications");
+    }
+
+    /**
      * @param notification to be executed
      */
     public void executeNotification(Notification notification)
@@ -88,27 +124,11 @@ public class NotificationManager extends Component
             logger.warn("Notification '{}' cannot be executed because notifications are disabled.", notification);
             return;
         }
-        if (redirectTo != null) {
-            logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
-                    notification,
-                    redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
-            });
-            notification.clearRecipients();
-            if (notification instanceof ConfigurableNotification) {
-                ConfigurableNotification configurableNotification = (ConfigurableNotification) notification;
-                configurableNotification.addRecipient(redirectTo, true);
-            }
-            else {
-                notification.addRecipient(redirectTo);
-            }
-        }
-        if (!notification.hasRecipients()) {
-            logger.warn("Notification '{}' doesn't have any recipients.", notification);
-            return;
-        }
+
         // Execute notification in all executors
+        NotificationExecutor.Recipient recipient = getRecipient(notification);
         for (NotificationExecutor notificationExecutor : notificationExecutors) {
-            notificationExecutor.executeNotification(notification);
+            notificationExecutor.executeNotification(recipient, notification);
         }
     }
 }

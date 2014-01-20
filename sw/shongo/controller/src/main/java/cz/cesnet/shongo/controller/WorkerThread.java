@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.joda.time.*;
@@ -47,6 +48,11 @@ public class WorkerThread extends Thread
     private Authorization authorization;
 
     /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
+
+    /**
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -60,7 +66,7 @@ public class WorkerThread extends Thread
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
     public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, Authorization authorization,
-            EntityManagerFactory entityManagerFactory)
+            NotificationManager notificationManager, EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
         if (preprocessor == null || scheduler == null) {
@@ -69,6 +75,7 @@ public class WorkerThread extends Thread
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
         this.authorization = authorization;
+        this.notificationManager = notificationManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -139,6 +146,9 @@ public class WorkerThread extends Thread
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
+
+                // Run notifications
+                notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

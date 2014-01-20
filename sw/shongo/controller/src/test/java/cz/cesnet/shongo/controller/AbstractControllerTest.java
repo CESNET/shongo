@@ -185,7 +185,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         scheduler = new Scheduler();
         scheduler.setCache(cache);
         scheduler.setAuthorization(authorization);
-        scheduler.setNotificationManager(controller.getNotificationManager());
         scheduler.init(controller.getConfiguration());
 
         controller.addRpcService(new AuthorizationServiceImpl());
@@ -387,6 +386,20 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         runPreprocessor(interval);
         runScheduler(interval);
+    }
+
+    /**
+     * Perform notifications.
+     */
+    protected void performNotifications()
+    {
+        EntityManager entityManager = createEntityManager();
+        try {
+            controller.getNotificationManager().executeNotifications(entityManager);
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**

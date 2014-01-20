@@ -98,7 +98,6 @@ public class DatabasePerformanceTest
         Scheduler scheduler = new Scheduler();
         scheduler.setCache(cache);
         scheduler.setAuthorization(authorization);
-        scheduler.setNotificationManager(controller.getNotificationManager());
         scheduler.init();
 
         controller.addRpcService(new AuthorizationServiceImpl());

@@ -1,17 +1,14 @@
 package cz.cesnet.shongo.controller.notification.manager;
 
-import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,10 +26,11 @@ public class EmailNotificationExecutor extends NotificationExecutor
     /**
      * Header for email notifications.
      */
-    private static final Map<String, String> EMAIL_HEADER = new HashMap<String, String>() {{
-        put(UserSettings.LOCALE_ENGLISH.getLanguage(), "Automatic notification from the reservation system");
-        put(UserSettings.LOCALE_CZECH.getLanguage(), "Automatická zpráva z rezervačního systému");
-    }};
+    private static final Map<String, String> EMAIL_HEADER = new HashMap<String, String>()
+    {{
+            put(UserSettings.LOCALE_ENGLISH.getLanguage(), "Automatic notification from the reservation system");
+            put(UserSettings.LOCALE_CZECH.getLanguage(), "Automatická zpráva z rezervačního systému");
+        }};
 
     /**
      * @see EmailSender
@@ -50,62 +48,60 @@ public class EmailNotificationExecutor extends NotificationExecutor
     }
 
     @Override
-    public void executeNotification(Notification notification)
+    public void executeNotification(Recipient recipient, Notification notification)
     {
         if (!emailSender.isInitialized()) {
             return;
         }
-        List<String> replyTo = new LinkedList<String>();
-        for (PersonInformation replyToPerson : notification.getReplyTo()) {
-            String email = replyToPerson.getPrimaryEmail();
-            if (email != null) {
-                replyTo.add(email);
-            }
-        }
-        for (PersonInformation recipient : notification.getRecipients()) {
-            NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
-            String recipientEmail = recipient.getPrimaryEmail();
+        try {
+            String recipientEmail = recipient.getEmail();
             if (recipientEmail == null) {
-                logger.warn("Recipient '{}' for notification '{}' has empty email address.",
-                        recipient, recipientMessage.getTitle());
+                logger.warn("Notification '{}' has empty email address.", notification);
                 return;
             }
-            try {
-                // Build email header
-                StringBuilder emailHeaderBuilder = new StringBuilder();
-                for (String language : recipientMessage.getLanguages()) {
-                    String emailHeader = EMAIL_HEADER.get(language);
-                    if (emailHeader != null) {
-                        if (emailHeaderBuilder.length() > 0) {
-                            emailHeaderBuilder.append(" / ");
-                        }
-                        emailHeaderBuilder.append(emailHeader);
-                    }
+            List<String> replyToEmails = new LinkedList<String>();
+            for (String replyToUserId : notification.getReplyToUserIds()) {
+                UserInformation replyToUserInformation = Authorization.getInstance().getUserInformation(replyToUserId);
+                String replyToEmail = replyToUserInformation.getPrimaryEmail();
+                if (replyToEmail != null) {
+                    replyToEmails.add(replyToEmail);
                 }
-                emailHeaderBuilder.insert(0, " ");
-                emailHeaderBuilder.append(" ");
-                String emailHeader = emailHeaderBuilder.toString();
-                String emailHeaderLine = emailHeader.replaceAll(".", "=");
-
-                emailHeaderBuilder = new StringBuilder();
-                emailHeaderBuilder.append(emailHeaderLine);
-                emailHeaderBuilder.append("\n");
-                emailHeaderBuilder.append(emailHeader);
-                emailHeaderBuilder.append("\n");
-                emailHeaderBuilder.append(emailHeaderLine);
-                emailHeaderBuilder.append("\n\n");
-
-                // Build email content
-                StringBuilder emailContent = new StringBuilder();
-                emailContent.append(emailHeaderBuilder.toString());
-                emailContent.append(recipientMessage.getContent());
-
-                // Send email
-                emailSender.sendEmail(recipientEmail, replyTo, recipientMessage.getTitle(), emailContent.toString());
             }
-            catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
+
+            // Build email header
+            StringBuilder emailHeaderBuilder = new StringBuilder();
+            for (String language : notification.getLanguages()) {
+                String emailHeader = EMAIL_HEADER.get(language);
+                if (emailHeader != null) {
+                    if (emailHeaderBuilder.length() > 0) {
+                        emailHeaderBuilder.append(" / ");
+                    }
+                    emailHeaderBuilder.append(emailHeader);
+                }
             }
+            emailHeaderBuilder.insert(0, " ");
+            emailHeaderBuilder.append(" ");
+            String emailHeader = emailHeaderBuilder.toString();
+            String emailHeaderLine = emailHeader.replaceAll(".", "=");
+
+            emailHeaderBuilder = new StringBuilder();
+            emailHeaderBuilder.append(emailHeaderLine);
+            emailHeaderBuilder.append("\n");
+            emailHeaderBuilder.append(emailHeader);
+            emailHeaderBuilder.append("\n");
+            emailHeaderBuilder.append(emailHeaderLine);
+            emailHeaderBuilder.append("\n\n");
+
+            // Build email content
+            StringBuilder emailContent = new StringBuilder();
+            emailContent.append(emailHeaderBuilder.toString());
+            emailContent.append(notification.getMessage());
+
+            // Send email
+            emailSender.sendEmail(recipientEmail, replyToEmails, notification.getTitle(), emailContent.toString());
+        }
+        catch (Exception exception) {
+            Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
         }
     }
 }

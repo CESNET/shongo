@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.event;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.notification.Target;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -15,11 +16,11 @@ import javax.persistence.EntityManager;
 import java.util.Locale;
 
 /**
- * {@link cz.cesnet.shongo.controller.notification.ConfigurableNotification} for changes in allocation of {@link cz.cesnet.shongo.controller.booking.request.ReservationRequest}.
+ * {@link ConfigurableEvent} for changes in allocation of {@link cz.cesnet.shongo.controller.booking.request.ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocationFailedNotification extends AbstractReservationRequestNotification
+public class AllocationFailedEvent extends AbstractReservationRequestEvent
 {
     private UserInformation user;
 
@@ -37,7 +38,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
      * @param reservationRequest
      * @param configuration
      */
-    public AllocationFailedNotification(ReservationRequest reservationRequest,
+    public AllocationFailedEvent(ReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
         super(reservationRequest, configuration, authorizationManager.getUserSettingsManager());

@@ -21,9 +21,9 @@ import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
-import cz.cesnet.shongo.controller.notification.NotificationMessage;
+import cz.cesnet.shongo.controller.notification.event.AbstractEvent;
+import cz.cesnet.shongo.controller.notification.event.ConfigurableEvent;
+import cz.cesnet.shongo.controller.notification.event.NotificationMessage;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
@@ -162,7 +162,7 @@ public class ServiceImpl implements Service
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
-            AbstractNotification notification = new ConfigurableNotification(userSettingsManager, configuration)
+            AbstractEvent event = new ConfigurableEvent(userSettingsManager, configuration)
             {
                 @Override
                 protected Collection<Locale> getAvailableLocals()
@@ -208,8 +208,10 @@ public class ServiceImpl implements Service
                     return new NotificationMessage(language, title, message);
                 }
             };
-            notification.addRecipients(recipients);
-            notificationManager.executeNotification(notification);
+            event.addRecipients(recipients);
+
+            //notificationManager.executeNotification(notification);
+            throw new TodoImplementException("Create Notification and execute it or store it for execution.");
         }
         finally {
             entityManager.close();

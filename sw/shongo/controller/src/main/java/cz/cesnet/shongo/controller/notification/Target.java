@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.notification.event.AbstractEvent;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -30,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents an target in {@link Notification}s which is requested by a reservation request (e.g., it's specification )
+ * Represents an target in {@link AbstractEvent}s which is requested by a reservation request (e.g., it's specification)
  * or which is allocated by a reservation.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>

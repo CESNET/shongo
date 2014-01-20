@@ -12,14 +12,11 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Mute;
 import cz.cesnet.shongo.connector.api.jade.endpoint.SetMicrophoneLevel;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
-import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
@@ -97,11 +94,13 @@ public class JadeServiceTest extends AbstractExecutorTest
         // Test notifyTarget single-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Unmute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+        performNotifications();
         Assert.assertEquals(1, notificationExecutor.getNotificationCount());
 
         // Test notifyTarget multi-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new SetMicrophoneLevel());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+        performNotifications();
         Assert.assertEquals(2, notificationExecutor.getNotificationCount());
     }
 
@@ -177,20 +176,10 @@ public class JadeServiceTest extends AbstractExecutorTest
         }
 
         @Override
-        public void executeNotification(Notification notification)
+        public void executeNotification(Recipient recipient, Notification notification)
         {
-            StringBuilder recipientString = new StringBuilder();
-            for (PersonInformation recipient : notification.getRecipients()) {
-                if (recipientString.length() > 0) {
-                    recipientString.append(", ");
-                }
-                recipientString.append(String.format("%s (%s)", recipient.getFullName(),
-                        recipient.getPrimaryEmail()));
-            }
-            PersonInformation firstRecipient = notification.getRecipients().iterator().next();
-            NotificationMessage message = notification.getRecipientMessage(firstRecipient);
-            logger.debug("Notification '{}' for {}...\n{}", new Object[]{message.getTitle(),
-                    recipientString.toString(), message.getContent()
+            logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
+                    recipient, notification.getReplyToUserIds(), notification.getTitle(), notification.getMessage()
             });
             notificationCount++;
         }

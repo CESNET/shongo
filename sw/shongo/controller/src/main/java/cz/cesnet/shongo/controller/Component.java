@@ -99,17 +99,6 @@ public abstract class Component
     }
 
     /**
-     * {@link Component} which contains reference to current {@link NotificationManager}.
-     */
-    public static interface NotificationManagerAware
-    {
-        /**
-         * @param notificationManager sets the {@link NotificationManager} to the component
-         */
-        public void setNotificationManager(NotificationManager notificationManager);
-    }
-
-    /**
      * Class extending {@link Component} can implement this interface and the thread returned from
      * the {@link #getThread()} method will be automatically started after the controller is started.
      */
