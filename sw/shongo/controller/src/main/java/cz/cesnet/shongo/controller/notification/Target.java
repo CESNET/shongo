@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
@@ -203,6 +204,10 @@ public abstract class Target
 
     public static class Room extends Target
     {
+        private Period slotBefore;
+
+        private Period slotAfter;
+
         private Room reusedRoom;
 
         private Set<Technology> technologies = new HashSet<Technology>();
@@ -220,6 +225,9 @@ public abstract class Target
 
         public Room(RoomSpecification roomSpecification, Target reusedTarget, EntityManager entityManager)
         {
+            slotBefore = Period.minutes(roomSpecification.getSlotMinutesBefore());
+            slotAfter = Period.minutes(roomSpecification.getSlotMinutesAfter());
+
             Integer participantCount = roomSpecification.getParticipantCount();
             if (participantCount != null) {
                 licenseCount = participantCount;
@@ -281,32 +289,11 @@ public abstract class Target
             setResource(deviceResource);
         }
 
-        private void initFrom(final Interval slot, final RoomProviderCapability roomProviderCapability,
-                final EntityManager entityManager)
-        {
-            if (licenseCount > 0) {
-                availableLicenseCountHandler = new AvailableLicenseCountHandler()
-                {
-                    @Override
-                    public int getAvailableLicenseCount()
-                    {
-                        int availableLicenseCount = roomProviderCapability.getLicenseCount();
-
-                        ReservationManager reservationManager = new ReservationManager(entityManager);
-                        List<RoomReservation> roomReservations =
-                                reservationManager.getRoomReservations(roomProviderCapability, slot);
-                        for (RoomReservation roomReservation : roomReservations) {
-                            availableLicenseCount -= roomReservation.getLicenseCount();
-                        }
-                        return availableLicenseCount;
-                    }
-                };
-            }
-        }
-
         private DeviceResource initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
             RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+            slotBefore = Period.minutes(roomEndpoint.getSlotMinutesBefore());
+            slotAfter = Period.minutes(roomEndpoint.getSlotMinutesAfter());
             licenseCount = roomConfiguration.getLicenseCount();
             technologies.addAll(roomConfiguration.getTechnologies());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
@@ -343,6 +330,39 @@ public abstract class Target
             else {
                 throw new TodoImplementException(roomEndpoint.getClass());
             }
+        }
+
+        private void initFrom(final Interval slot, final RoomProviderCapability roomProviderCapability,
+                final EntityManager entityManager)
+        {
+            if (licenseCount > 0) {
+                availableLicenseCountHandler = new AvailableLicenseCountHandler()
+                {
+                    @Override
+                    public int getAvailableLicenseCount()
+                    {
+                        int availableLicenseCount = roomProviderCapability.getLicenseCount();
+
+                        ReservationManager reservationManager = new ReservationManager(entityManager);
+                        List<RoomReservation> roomReservations =
+                                reservationManager.getRoomReservations(roomProviderCapability, slot);
+                        for (RoomReservation roomReservation : roomReservations) {
+                            availableLicenseCount -= roomReservation.getLicenseCount();
+                        }
+                        return availableLicenseCount;
+                    }
+                };
+            }
+        }
+
+        public Period getSlotBefore()
+        {
+            return slotBefore;
+        }
+
+        public Period getSlotAfter()
+        {
+            return slotAfter;
         }
 
         public boolean isPermanent()

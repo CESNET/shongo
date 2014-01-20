@@ -102,15 +102,19 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(4000,
-                new Technology[]{Technology.H323, Technology.SIP});
+        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(4000);
+        roomAvailability.setSlotMinutesBefore(10);
+        roomAvailability.setSlotMinutesAfter(5);
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        ((RoomSpecification) reservationRequest.getSpecification()).getAvailability().setParticipantCount(3);
+        roomAvailability = ((RoomSpecification) reservationRequest.getSpecification()).getAvailability();
+        roomAvailability.setParticipantCount(3);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

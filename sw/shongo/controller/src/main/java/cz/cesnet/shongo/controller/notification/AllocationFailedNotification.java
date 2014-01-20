@@ -47,6 +47,12 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         this.user = authorizationManager.getUserInformation(getReservationRequestUpdatedBy());
         this.requestedSlot = reservationRequest.getSlot();
         this.target = Target.createInstance(reservationRequest, entityManager);
+        if (this.target instanceof Target.Room) {
+            // We must compute the final time slot
+            Target.Room room = (Target.Room) this.target;
+            this.requestedSlot = new Interval(this.requestedSlot.getStart().minus(room.getSlotBefore()),
+                    this.requestedSlot.getEnd().plus(room.getSlotAfter()));
+        }
         this.userError = reservationRequest.getAllocationStateReport(Report.UserType.USER).toUserError();
         this.adminReport = reservationRequest.getAllocationStateReport(Report.UserType.DOMAIN_ADMIN);
         for (PersonInformation administrator : configuration.getAdministrators()) {

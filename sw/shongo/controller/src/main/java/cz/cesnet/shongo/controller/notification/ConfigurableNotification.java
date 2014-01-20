@@ -241,9 +241,9 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
 
         @Override
-        public String getLanguage()
+        public Locale getLocale()
         {
-            return configuration.getLocale().getLanguage();
+            return configuration.getLocale();
         }
 
         @Override

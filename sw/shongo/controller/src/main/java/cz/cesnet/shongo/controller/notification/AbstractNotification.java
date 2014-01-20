@@ -197,11 +197,19 @@ public abstract class AbstractNotification implements Notification
         }
 
         /**
+         * @return {@link Locale}
+         */
+        public Locale getLocale()
+        {
+            return Locale.getDefault();
+        }
+
+        /**
          * @return {@link Locale#language}
          */
-        public String getLanguage()
+        public final String getLanguage()
         {
-            return Locale.getDefault().getLanguage();
+            return getLocale().getLanguage();
         }
 
         /**
@@ -448,7 +456,8 @@ public abstract class AbstractNotification implements Notification
             if (duration.equals(Temporal.PERIOD_INFINITY)) {
                 return "(infinity)";
             }
-            return PeriodFormat.getDefault().print(DateTimeFormatter.roundDuration(duration));
+            return DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT).with(getLocale()).formatDuration(
+                    DateTimeFormatter.roundDuration(duration));
         }
 
         /**

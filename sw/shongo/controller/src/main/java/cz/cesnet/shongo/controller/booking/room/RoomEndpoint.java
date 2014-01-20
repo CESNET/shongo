@@ -276,9 +276,11 @@ public abstract class RoomEndpoint extends Endpoint
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
         abstractRoomExecutableApi.setDescription(roomDescription);
 
+        // We must compute the original time slot
         Interval slot = executableApi.getSlot();
-        abstractRoomExecutableApi.setOriginalSlot(new Interval(
-                slot.getStart().plusMinutes(slotMinutesBefore), slot.getEnd().minusMinutes(slotMinutesAfter)));
+        slot = new Interval(slot.getStart().plusMinutes(slotMinutesBefore),
+                slot.getEnd().minusMinutes(slotMinutesAfter));
+        abstractRoomExecutableApi.setOriginalSlot(slot);
     }
 
     @Override

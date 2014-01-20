@@ -136,6 +136,14 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
 
         String templateFileName;
         if (configuration instanceof ParentConfiguration) {
+            Interval slot = getSlot();
+            if (this.target instanceof Target.Room) {
+                // We must compute the original time slot
+                Target.Room room = (Target.Room) this.target;
+                slot = new Interval(slot.getStart().plus(room.getSlotBefore()),
+                        slot.getEnd().minus(room.getSlotAfter()));
+            }
+            renderContext.addParameter("slot", slot);
             templateFileName = "reservation-request-reservation.ftl";
         }
         else {
