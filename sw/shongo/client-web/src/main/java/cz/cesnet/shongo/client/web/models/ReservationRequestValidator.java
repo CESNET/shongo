@@ -142,6 +142,9 @@ public class ReservationRequestValidator implements Validator
                     errors.rejectValue(
                             "start", "validation.field.permanentRoomNotAvailable");
                 }
+                else if (userError instanceof AllocationStateReport.RecordingRoomCapacityExceed) {
+                    errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
+                }
                 else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
                     errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
                 }
