@@ -501,7 +501,6 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("None executable service should be activated.",
                 1, result.getActivatedExecutableServices().size());
 
-
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
         runScheduler();
@@ -521,11 +520,13 @@ public class RecordingServiceTest extends AbstractExecutorTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());

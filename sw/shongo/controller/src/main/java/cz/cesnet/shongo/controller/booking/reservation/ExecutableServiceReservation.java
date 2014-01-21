@@ -27,7 +27,7 @@ public abstract class ExecutableServiceReservation extends TargetedReservation
     /**
      * @return {@link #executableService}
      */
-    @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.PERSIST, optional = false, fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public ExecutableService getExecutableService()
     {
