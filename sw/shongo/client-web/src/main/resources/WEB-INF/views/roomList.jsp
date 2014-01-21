@@ -79,7 +79,7 @@
                     <a href="${roomManagementUrl}" tabindex="2">{{room.name}}</a>
                     <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
                 </td>
-                <td>{{room.technology}}</td>
+                <td>{{room.technologyTitle}}</td>
                 <td style="text-align: right; padding-right: 30px;">{{room.licenseCount}}</td>
                 <td><span ng-bind-html="room.slot"></span></td>
                 <td class="room-state">

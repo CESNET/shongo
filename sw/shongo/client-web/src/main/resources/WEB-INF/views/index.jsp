@@ -360,7 +360,7 @@
                             <td ng-controller="ParticipantRoomController">
                                 <tag:help label="{{room.name}}" content="formatAliases(room.id, event)" selectable="true"/>
                             </td>
-                            <td>{{room.technology}}</td>
+                            <td>{{room.technologyTitle}}</td>
                             <td><span ng-bind-html="room.slot"></span></td>
                             <td class="room-state">
                                 <tag:help label="{{room.stateMessage}}" cssClass="{{room.state}}">
@@ -372,7 +372,7 @@
                                 <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.ROOM_ENTER %>">
                                     <tag:param name="roomId" value="{{room.id}}" escape="false"/>
                                 </tag:url>
-                                <span ng-show="room.stateAvailable">
+                                <span ng-show="room.stateAvailable && room.technology == 'ADOBE_CONNECT'">
                                     <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/>
                                 </span>
                             </td>
