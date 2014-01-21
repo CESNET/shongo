@@ -58,6 +58,14 @@ public class AuthorizationManager extends AclEntryManager
     }
 
     /**
+     * @return {@link #authorization}
+     */
+    public Authorization getAuthorization()
+    {
+        return authorization;
+    }
+
+    /**
      * @return {@link #userSettingsManager}
      */
     public UserSettingsManager getUserSettingsManager()

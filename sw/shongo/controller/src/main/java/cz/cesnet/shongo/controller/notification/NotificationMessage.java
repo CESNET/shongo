@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.notification.event;
+package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
@@ -9,14 +9,14 @@ import org.apache.commons.lang.StringUtils;
 import java.util.*;
 
 /**
- * Rendered message from {@link Notification} for a single recipient.
+ * Rendered message from {@link AbstractNotification} for a single recipient.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class NotificationMessage
 {
     /**
-     * Available {@link java.util.Locale}s for {@link Notification}s.
+     * Available {@link java.util.Locale}s for {@link AbstractNotification}s.
      */
     public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
         add(UserSettings.LOCALE_ENGLISH);

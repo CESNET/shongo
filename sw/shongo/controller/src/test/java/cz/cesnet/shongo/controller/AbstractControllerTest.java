@@ -152,6 +152,19 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @param userIds for which the {@link UserInformation} should be returned
+     * @return {@link UserInformation} for given {@code userIds}
+     */
+    public List<UserInformation> getUserInformation(Set<String> userIds)
+    {
+        List<UserInformation> userInformation = new LinkedList<UserInformation>();
+        for (String userId : userIds) {
+            userInformation.add(authorization.getUserInformation(userId));
+        }
+        return userInformation;
+    }
+
+    /**
      * @param securityToken for which the user-id should be returned
      * @return user-id for given {@code securityToken}
      */
@@ -182,8 +195,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         preprocessor.setAuthorization(authorization);
         preprocessor.init(controller.getConfiguration());
 
-        scheduler = new Scheduler();
-        scheduler.setCache(cache);
+        scheduler = new Scheduler(cache, controller.getNotificationManager());
         scheduler.setAuthorization(authorization);
         scheduler.init(controller.getConfiguration());
 
@@ -336,7 +348,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param dateTime representing now
      */
-    protected void runScheduler(DateTime dateTime)
+    protected final void runScheduler(DateTime dateTime)
     {
         runScheduler(new Interval(dateTime, workingInterval.getEnd()));
     }
@@ -346,7 +358,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param interval
      */
-    protected void runWorker(Interval interval)
+    protected final void runWorker(Interval interval)
     {
         runPreprocessor(interval);
         runScheduler(interval);
@@ -355,6 +367,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Run {@link Preprocessor}.
      */
+
     protected Preprocessor.Result runPreprocessor()
     {
         return runPreprocessor(workingInterval);
@@ -371,7 +384,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Run {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} and {@link Scheduler}.
      */
-    protected void runPreprocessorAndScheduler()
+    protected final void runPreprocessorAndScheduler()
     {
         runPreprocessor();
         runScheduler();
@@ -382,24 +395,10 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param interval
      */
-    protected void runPreprocessorAndScheduler(Interval interval)
+    protected final void runPreprocessorAndScheduler(Interval interval)
     {
         runPreprocessor(interval);
         runScheduler(interval);
-    }
-
-    /**
-     * Perform notifications.
-     */
-    protected void performNotifications()
-    {
-        EntityManager entityManager = createEntityManager();
-        try {
-            controller.getNotificationManager().executeNotifications(entityManager);
-        }
-        finally {
-            entityManager.close();
-        }
     }
 
     /**

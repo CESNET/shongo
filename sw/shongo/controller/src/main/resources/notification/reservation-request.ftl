@@ -3,16 +3,16 @@
   -->
 <#assign indent = 24>
 <#---->
-<#if notification.url??>
-${context.message(indent, 'reservationRequest.url')}: ${notification.url}
+<#if notification.reservationRequestUrl??>
+${context.message(indent, 'reservationRequest.url')}: ${notification.reservationRequestUrl}
 <#else>
-${context.message(indent, 'reservationRequest.id')}: ${notification.id}
+${context.message(indent, 'reservationRequest.id')}: ${notification.reservationRequestId}
 </#if>
-${context.message(indent, 'reservationRequest.updatedAt')}: ${context.formatDateTime(notification.updatedAt)}
+${context.message(indent, 'reservationRequest.updatedAt')}: ${context.formatDateTime(notification.reservationRequestUpdatedAt)}
 <#if context.timeZoneDefault && context.userSettingsUrl??>
 ${context.width(indent)}  (${context.message('reservationRequest.configureTimeZone', context.userSettingsUrl)})
 </#if>
-${context.message(indent, 'reservationRequest.updatedBy')}: ${context.formatUser(notification.updatedBy)}
-<#if notification.description??>
-${context.message(indent, 'reservationRequest.description')}: ${notification.description}
+${context.message(indent, 'reservationRequest.updatedBy')}: ${context.formatUser(notification.reservationRequestUpdatedBy)}
+<#if notification.reservationRequestDescription??>
+${context.message(indent, 'reservationRequest.description')}: ${notification.reservationRequestDescription}
 </#if>

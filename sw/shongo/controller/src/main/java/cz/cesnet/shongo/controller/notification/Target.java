@@ -20,7 +20,6 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.notification.event.AbstractEvent;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents an target in {@link AbstractEvent}s which is requested by a reservation request (e.g., it's specification)
+ * Represents an target in {@link AbstractNotification}s which is requested by a reservation request (e.g., it's specification)
  * or which is allocated by a reservation.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -226,8 +225,10 @@ public abstract class Target
 
         public Room(RoomSpecification roomSpecification, Target reusedTarget, EntityManager entityManager)
         {
-            slotBefore = Period.minutes(roomSpecification.getSlotMinutesBefore());
-            slotAfter = Period.minutes(roomSpecification.getSlotMinutesAfter());
+            slotBefore = (roomSpecification.getSlotMinutesBefore() > 0 ?
+                                  Period.minutes(roomSpecification.getSlotMinutesBefore()) : null);
+            slotAfter = (roomSpecification.getSlotMinutesAfter() > 0 ?
+                                 Period.minutes(roomSpecification.getSlotMinutesAfter()) : null);
 
             Integer participantCount = roomSpecification.getParticipantCount();
             if (participantCount != null) {
@@ -293,8 +294,10 @@ public abstract class Target
         private DeviceResource initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
             RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
-            slotBefore = Period.minutes(roomEndpoint.getSlotMinutesBefore());
-            slotAfter = Period.minutes(roomEndpoint.getSlotMinutesAfter());
+            slotBefore = (roomEndpoint.getSlotMinutesBefore() > 0 ?
+                                  Period.minutes(roomEndpoint.getSlotMinutesBefore()) : null);
+            slotAfter = (roomEndpoint.getSlotMinutesAfter() > 0 ?
+                                 Period.minutes(roomEndpoint.getSlotMinutesAfter()) : null);
             licenseCount = roomConfiguration.getLicenseCount();
             technologies.addAll(roomConfiguration.getTechnologies());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {

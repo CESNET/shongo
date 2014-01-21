@@ -1,7 +1,8 @@
-package cz.cesnet.shongo.controller.notification.event;
+package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
@@ -16,40 +17,62 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.PeriodFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.io.StringWriter;
 import java.util.*;
 
 /**
- * Represents an abstract event  about which a simple list of recipients should be notified.
- * The {@link NotificationMessage} must be rendered in {@link #renderMessageForRecipient} abstract method.
- * You can use {@link #renderMessageFromTemplate} method for the rendering based on templates.
+ * Represents a notification for a list of recipients.
+ * <p/>
+ * The {@link #renderMessageForRecipient} abstract method must be implemented to render {@link NotificationMessage}
+ * for each recipient. You can use {@link #renderMessageFromTemplate} method for the rendering based on templates.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractEvent
+public abstract class AbstractNotification
 {
-    protected static Logger logger = LoggerFactory.getLogger(AbstractEvent.class);
+    protected static Logger logger = LoggerFactory.getLogger(AbstractNotification.class);
 
     /**
-     * List of recipients who should be notified about this {@link AbstractEvent}.
+     * Date/time when the {@link AbstractNotification} was created.
      */
-    private Set<PersonInformation> recipients = new HashSet<PersonInformation>();
+    private final DateTime createdAt;
 
     /**
-     * List of reply-to who should be contacted when replying to notification about this {@link AbstractEvent}.
+     * List of recipients who should be notified about this {@link AbstractNotification}.
      */
-    private Set<PersonInformation> replyTo = new HashSet<PersonInformation>();
+    private final Set<PersonInformation> recipients = new HashSet<PersonInformation>();
 
     /**
-     * @param recipient who should be notified by the {@link AbstractEvent}
+     * List of reply-to who should be contacted when replying to notification about this {@link AbstractNotification}.
+     */
+    private final Set<PersonInformation> replyTo = new HashSet<PersonInformation>();
+
+    /**
+     * Constructor.
+     */
+    protected AbstractNotification()
+    {
+        this.createdAt = DateTime.now();
+    }
+
+    /**
+     * @return {@link #createdAt}
+     */
+    public DateTime getCreatedAt()
+    {
+        return createdAt;
+    }
+
+    /**
+     * @param recipient who should be notified by the {@link AbstractNotification}
      * @return true whether given {@code recipient} has been added,
      *         false whether given {@code recipient} already exists
      */
-    public boolean addRecipient(PersonInformation recipient)
+    protected boolean addRecipient(PersonInformation recipient)
     {
         return recipients.add(recipient);
     }
@@ -57,7 +80,7 @@ public abstract class AbstractEvent
     /**
      * @param recipients to be added by {@link #addRecipient}
      */
-    public final void addRecipients(Collection<PersonInformation> recipients)
+    protected final void addRecipients(Collection<PersonInformation> recipients)
     {
         for (PersonInformation recipient : recipients) {
             addRecipient(recipient);
@@ -67,24 +90,15 @@ public abstract class AbstractEvent
     /**
      * @return {@link #recipients}
      */
-    public final Collection<PersonInformation> getRecipients()
+    public final Set<PersonInformation> getRecipients()
     {
-        return Collections.unmodifiableCollection(recipients);
-    }
-
-    /**
-     * @param recipient for who the {@link NotificationMessage} should be returned
-     * @return {@link NotificationMessage} for given {@code recipient}
-     */
-    public final NotificationMessage getRecipientMessage(PersonInformation recipient)
-    {
-        return renderMessageForRecipient(recipient);
+        return Collections.unmodifiableSet(recipients);
     }
 
     /**
      * @param replyTo to be added to the {@link #replyTo}
      */
-    public boolean addReplyTo(PersonInformation replyTo)
+    protected boolean addReplyTo(PersonInformation replyTo)
     {
         return this.replyTo.add(replyTo);
     }
@@ -92,9 +106,30 @@ public abstract class AbstractEvent
     /**
      * @return {@link #replyTo}
      */
-    public Collection<PersonInformation> getReplyTo()
+    public Set<PersonInformation> getReplyTo()
     {
-        return replyTo;
+        return Collections.unmodifiableSet(replyTo);
+    }
+
+    /**
+     * @param recipient for who the message should be retrieved
+     * @return {@link NotificationMessage} for given {@code recipient}
+     */
+    public final NotificationMessage getMessageForRecipient(PersonInformation recipient)
+    {
+        return renderMessageForRecipient(recipient);
+    }
+
+    /**
+     * Create {@link NotificationRecord} if needed for given {@code recipient}.
+     *
+     * @param recipient for who the {@link NotificationRecord} should be created
+     * @param entityManager to be used
+     * @return new {@link NotificationRecord} or null
+     */
+    public NotificationRecord createRecordForRecipient(PersonInformation recipient, EntityManager entityManager)
+    {
+        return null;
     }
 
     /**
@@ -165,13 +200,13 @@ public abstract class AbstractEvent
         if (templateConfiguration == null) {
             templateConfiguration = new Configuration();
             templateConfiguration.setObjectWrapper(new DefaultObjectWrapper());
-            templateConfiguration.setClassForTemplateLoading(AbstractEvent.class, "/");
+            templateConfiguration.setClassForTemplateLoading(AbstractNotification.class, "/");
         }
         return templateConfiguration;
     }
 
     /**
-     * Context for rendering of {@link AbstractEvent}.
+     * Context for rendering of {@link AbstractNotification}.
      */
     public static class RenderContext
     {
@@ -497,7 +532,7 @@ public abstract class AbstractEvent
                 return PersonInformation.Formatter.format(userInformation);
             }
             catch (ControllerReportSet.UserNotExistsException exception) {
-                AbstractEvent.logger.warn("User '{}' doesn't exist.", userId);
+                AbstractNotification.logger.warn("User '{}' doesn't exist.", userId);
                 return "<not-exist> (" + userId + ")";
             }
         }

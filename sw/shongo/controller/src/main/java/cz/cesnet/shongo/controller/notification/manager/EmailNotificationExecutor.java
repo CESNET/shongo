@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.notification.manager;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
+import cz.cesnet.shongo.controller.notification.NotificationRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,29 +51,29 @@ public class EmailNotificationExecutor extends NotificationExecutor
     }
 
     @Override
-    public void executeNotification(Recipient recipient, Notification notification)
+    public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
     {
         if (!emailSender.isInitialized()) {
-            return;
+            return false;
         }
         try {
-            String recipientEmail = recipient.getEmail();
+            String recipientEmail = recipient.getPrimaryEmail();
             if (recipientEmail == null) {
                 logger.warn("Notification '{}' has empty email address.", notification);
-                return;
+                return false;
             }
             List<String> replyToEmails = new LinkedList<String>();
-            for (String replyToUserId : notification.getReplyToUserIds()) {
-                UserInformation replyToUserInformation = Authorization.getInstance().getUserInformation(replyToUserId);
-                String replyToEmail = replyToUserInformation.getPrimaryEmail();
+            for (PersonInformation replyTo : notification.getReplyTo()) {
+                String replyToEmail = replyTo.getPrimaryEmail();
                 if (replyToEmail != null) {
                     replyToEmails.add(replyToEmail);
                 }
             }
+            NotificationMessage message = notification.getMessageForRecipient(recipient);
 
             // Build email header
             StringBuilder emailHeaderBuilder = new StringBuilder();
-            for (String language : notification.getLanguages()) {
+            for (String language : message.getLanguages()) {
                 String emailHeader = EMAIL_HEADER.get(language);
                 if (emailHeader != null) {
                     if (emailHeaderBuilder.length() > 0) {
@@ -83,7 +86,6 @@ public class EmailNotificationExecutor extends NotificationExecutor
             emailHeaderBuilder.append(" ");
             String emailHeader = emailHeaderBuilder.toString();
             String emailHeaderLine = emailHeader.replaceAll(".", "=");
-
             emailHeaderBuilder = new StringBuilder();
             emailHeaderBuilder.append(emailHeaderLine);
             emailHeaderBuilder.append("\n");
@@ -95,13 +97,15 @@ public class EmailNotificationExecutor extends NotificationExecutor
             // Build email content
             StringBuilder emailContent = new StringBuilder();
             emailContent.append(emailHeaderBuilder.toString());
-            emailContent.append(notification.getMessage());
+            emailContent.append(message.getContent());
 
             // Send email
-            emailSender.sendEmail(recipientEmail, replyToEmails, notification.getTitle(), emailContent.toString());
+            emailSender.sendEmail(recipientEmail, replyToEmails, message.getTitle(), emailContent.toString());
+            return true;
         }
         catch (Exception exception) {
             Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
+            return false;
         }
     }
 }

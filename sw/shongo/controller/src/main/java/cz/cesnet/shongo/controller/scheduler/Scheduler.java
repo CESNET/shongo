@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Reporter;
@@ -9,7 +7,6 @@ import cz.cesnet.shongo.controller.SwitchableComponent;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
@@ -18,10 +15,14 @@ import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.notification.event.*;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.AllocationFailedNotification;
+import cz.cesnet.shongo.controller.notification.NotificationList;
+import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -32,7 +33,7 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents a component of a domain controller that is responsible for allocating {@link cz.cesnet.shongo.controller.booking.request.ReservationRequest}
+ * Represents a component of a domain controller that is responsible for allocating {@link ReservationRequest}
  * to the {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -42,9 +43,14 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
     /**
-     * @see cz.cesnet.shongo.controller.cache.Cache
+     * @see Cache
      */
     private Cache cache;
+
+    /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
 
     /**
      * @see Authorization
@@ -52,11 +58,15 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     private Authorization authorization;
 
     /**
+     * Constructor.
+     *
      * @param cache sets the {@link #cache}
+     * @param notificationManager sets the {@link #notificationManager}
      */
-    public void setCache(Cache cache)
+    public Scheduler(Cache cache, NotificationManager notificationManager)
     {
         this.cache = cache;
+        this.notificationManager = notificationManager;
     }
 
     @Override
@@ -68,8 +78,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     @Override
     public void init(ControllerConfiguration configuration)
     {
-        this.
-                checkDependency(cache, Cache.class);
+        this.checkDependency(cache, Cache.class);
         super.init(configuration);
     }
 
@@ -99,7 +108,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            EventSet events = new EventSet();
+            NotificationList notifications = new NotificationList(getConfiguration());
 
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -120,7 +129,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             for (Reservation reservation : reservationsForDeletion) {
-                events.addReservationEvent(reservation, ReservationEvent.Type.DELETED, authorizationManager);
+                notifications.addReservationEvent(reservation, ReservationNotification.Type.DELETED, authorizationManager);
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
                 result.deletedReservations++;
@@ -172,13 +181,13 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     // Allocate reservation request
                     SchedulerContext schedulerContext = new SchedulerContext(
                             interval.getStart(), cache, entityManager, authorizationManager);
-                    allocateReservationRequest(reservationRequest, schedulerContext, events);
+                    allocateReservationRequest(reservationRequest, schedulerContext, notifications);
 
                     // Reallocate dependent reservation requests
                     Iterator<ReservationRequest> iterator = schedulerContext.getReservationRequestsToReallocate();
                     while (iterator.hasNext()) {
                         ReservationRequest reservationRequestToReallocate = iterator.next();
-                        allocateReservationRequest(reservationRequestToReallocate, schedulerContext, events);
+                        allocateReservationRequest(reservationRequestToReallocate, schedulerContext, notifications);
                         reservationRequestToReallocate.getSpecification().updateTechnologies(entityManager);
                     }
 
@@ -219,7 +228,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        events.addReservationRequestEvent(new AllocationFailedEvent(
+                        notifications.addReservationRequestEvent(new AllocationFailedNotification(
                                 reservationRequest, authorizationManager, getConfiguration()),
                                 reservationRequest, authorizationManager);
                     }
@@ -236,7 +245,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             // Delete all executables which should be deleted
             executableManager.deleteAllNotReferenced(authorizationManager);
 
-            events.storeNotifications(entityManager);
+            // Execute notifications
+            for (AbstractNotification notification : notifications) {
+                notificationManager.executeNotification(notification, entityManager);
+            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -284,10 +296,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
      *
      * @param reservationRequest to be allocated
      * @param schedulerContext
-     * @param eventSet
+     * @param notificationList
      */
     private static void allocateReservationRequest(ReservationRequest reservationRequest,
-            SchedulerContext schedulerContext, EventSet eventSet) throws SchedulerException
+            SchedulerContext schedulerContext, NotificationList notificationList) throws SchedulerException
     {
         logger.debug("Allocating reservation request '{}'...", reservationRequest.getId());
 
@@ -444,7 +456,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
 
             // Create notification
-            eventSet.addReservationEvent(oldReservation, ReservationEvent.Type.DELETED, authorizationManager);
+            notificationList.addReservationEvent(oldReservation, ReservationNotification.Type.DELETED, authorizationManager);
 
             // Remove the old reservation from allocation
             allocation.removeReservation(oldReservation);
@@ -461,118 +473,14 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create notification
-        eventSet.addReservationEvent(allocatedReservation,
-                (isNew ? ReservationEvent.Type.NEW : ReservationEvent.Type.MODIFIED),
+        notificationList.addReservationEvent(allocatedReservation,
+                (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
                 authorizationManager);
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);
-    }
-
-    /**
-     * Set of {@link AbstractEvent}s for execution.
-     */
-    private class EventSet
-    {
-        /**
-         * List of {@link EventSet}.
-         */
-        private List<AbstractEvent> events = new LinkedList<AbstractEvent>();
-
-        /**
-         * Map of {@link cz.cesnet.shongo.controller.notification.event.ReservationRequestEvent} by {@link cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest}.
-         */
-        private Map<Long, ReservationRequestEvent> reservationRequestNotifications =
-                new HashMap<Long, ReservationRequestEvent>();
-
-        /**
-         * @param notification to be added to the {@link #events}
-         */
-        public void addNotification(AbstractEvent notification)
-        {
-            events.add(notification);
-        }
-
-        /**
-         * Add new {@link cz.cesnet.shongo.controller.notification.event.ReservationEvent} to the {@link #events}.
-         *
-         * @param reservation
-         * @param type
-         * @param authorizationManager
-         */
-        public void addReservationEvent(Reservation reservation, ReservationEvent.Type type,
-                AuthorizationManager authorizationManager)
-        {
-            // Get reservation request for reservation
-            Allocation allocation = reservation.getAllocation();
-            AbstractReservationRequest abstractReservationRequest =
-                    (allocation != null ? allocation.getReservationRequest() : null);
-
-            // Create reservation notification
-            ReservationEvent notification = new ReservationEvent(
-                    type, reservation, abstractReservationRequest, authorizationManager, getConfiguration());
-
-            // Get reservation request notification
-            if (abstractReservationRequest != null) {
-                // Add reservation notification as normal and add it also to reservation request notification
-                addReservationRequestEvent(notification, abstractReservationRequest, authorizationManager);
-            }
-            else {
-                // Add reservation notification as normal
-                addNotification(notification);
-            }
-        }
-
-        private void addReservationRequestEvent(AbstractEvent notification,
-                AbstractReservationRequest abstractReservationRequest, AuthorizationManager authorizationManager)
-        {
-            addNotification(notification);
-
-            // Get top reservation request
-            if (abstractReservationRequest instanceof ReservationRequest) {
-                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                Allocation parentAllocation = reservationRequest.getParentAllocation();
-                if (parentAllocation != null) {
-                    AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
-                    if (parentReservationRequest != null) {
-                        abstractReservationRequest = parentReservationRequest;
-                    }
-                }
-            }
-
-            // Create or reuse reservation request notification
-            Long abstractReservationRequestId = abstractReservationRequest.getId();
-            ReservationRequestEvent reservationRequestNotification =
-                    reservationRequestNotifications.get(abstractReservationRequestId);
-            if (reservationRequestNotification == null) {
-                reservationRequestNotification = new ReservationRequestEvent(
-                        abstractReservationRequest, authorizationManager, getConfiguration());
-                events.add(reservationRequestNotification);
-                reservationRequestNotifications.put(abstractReservationRequestId, reservationRequestNotification);
-            }
-
-            // Add reservation notification to reservation request notification
-            reservationRequestNotification.addEvent(notification);
-        }
-
-        /**
-         * Execute {@link #events}.
-         *
-         * @param entityManager to be used
-         */
-        public void storeNotifications(EntityManager entityManager)
-        {
-            for (AbstractEvent event : events) {
-                for (PersonInformation recipient : event.getRecipients()) {
-                    NotificationMessage recipientMessage = event.getRecipientMessage(recipient);
-
-                    throw new TodoImplementException("store notification for execution");
-                }
-                //notificationManager.executeNotification(notification);
-            }
-        }
     }
 
     public static class Result
@@ -603,5 +511,4 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             return deletedReservations;
         }
     }
-
 }

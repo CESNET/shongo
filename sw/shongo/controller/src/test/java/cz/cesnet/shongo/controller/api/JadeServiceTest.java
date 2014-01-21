@@ -15,7 +15,9 @@ import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
+import cz.cesnet.shongo.controller.notification.NotificationRecord;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -94,13 +96,11 @@ public class JadeServiceTest extends AbstractExecutorTest
         // Test notifyTarget single-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Unmute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
-        performNotifications();
         Assert.assertEquals(1, notificationExecutor.getNotificationCount());
 
         // Test notifyTarget multi-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new SetMicrophoneLevel());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
-        performNotifications();
         Assert.assertEquals(2, notificationExecutor.getNotificationCount());
     }
 
@@ -160,7 +160,7 @@ public class JadeServiceTest extends AbstractExecutorTest
     /**
      * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
      */
-    private static class TestingNotificationExecutor extends NotificationExecutor
+    private class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
          * Number of executed notifications.
@@ -176,12 +176,14 @@ public class JadeServiceTest extends AbstractExecutorTest
         }
 
         @Override
-        public void executeNotification(Recipient recipient, Notification notification)
+        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
         {
+            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
-                    recipient, notification.getReplyToUserIds(), notification.getTitle(), notification.getMessage()
+                    recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
             notificationCount++;
+            return true;
         }
     }
 }

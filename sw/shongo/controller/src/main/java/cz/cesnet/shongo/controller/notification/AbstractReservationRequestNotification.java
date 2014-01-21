@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.notification.event;
+package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.controller.ControllerConfiguration;
@@ -11,11 +11,11 @@ import java.util.Collection;
 import java.util.Locale;
 
 /**
- * {@link ConfigurableEvent} with {@link AbstractReservationRequest}.
+ * {@link ConfigurableNotification} with {@link AbstractReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractReservationRequestEvent extends ConfigurableEvent
+public abstract class AbstractReservationRequestNotification extends ConfigurableNotification
 {
     private String reservationRequestId;
 
@@ -31,11 +31,11 @@ public abstract class AbstractReservationRequestEvent extends ConfigurableEvent
      * Constructor.
      *
      * @param reservationRequest
-     * @param configuration
      * @param userSettingsManager
+     * @param configuration
      */
-    public AbstractReservationRequestEvent(AbstractReservationRequest reservationRequest,
-            ControllerConfiguration configuration, UserSettingsManager userSettingsManager)
+    public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest,
+            UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
     {
         super(userSettingsManager, configuration);
 

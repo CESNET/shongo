@@ -1,30 +1,24 @@
-package cz.cesnet.shongo.controller.notification.event;
+package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
-import cz.cesnet.shongo.util.MessageSource;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
+import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 /**
- * Represents an abstract {@link AbstractEvent} which can render {@link NotificationMessage}
- * in multiple {@link Configuration}s (e.g., in all available languages for users which doesn't prefer any language
- * or with/without administrator information).
+ * {@link AbstractNotification} which can render {@link NotificationMessage} in multiple {@link Configuration}s
+ * (e.g., in all available languages for users who doesn't prefer any language or
+ * with/without administrator information).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ConfigurableEvent extends AbstractEvent
+public abstract class ConfigurableNotification extends AbstractNotification
 {
-    protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
     /**
      * @see cz.cesnet.shongo.controller.ControllerConfiguration
      */
@@ -36,7 +30,7 @@ public abstract class ConfigurableEvent extends AbstractEvent
     private UserSettingsManager userSettingsManager;
 
     /**
-     * List of {@link ConfigurableEvent.Configuration}s for each recipient.
+     * List of {@link ConfigurableNotification.Configuration}s for each recipient.
      */
     private Map<PersonInformation, List<Configuration>> recipientConfigurations =
             new HashMap<PersonInformation, List<Configuration>>();
@@ -51,15 +45,31 @@ public abstract class ConfigurableEvent extends AbstractEvent
      * Constructor.
      *
      * @param userSettingsManager sets the {@link #userSettingsManager}
+     * @param configuration       sets the {@link #configuration}
      */
-    public ConfigurableEvent(UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
+    public ConfigurableNotification(UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
     {
         this.userSettingsManager = userSettingsManager;
         this.configuration = configuration;
     }
 
     /**
-     * @return list of available {@link Locale}s for this {@link ConfigurableEvent}
+     * Constructor.
+     *
+     * @param recipients          sets the {@link #recipients}
+     * @param userSettingsManager sets the {@link #userSettingsManager}
+     * @param configuration       sets the {@link #configuration}
+     */
+    public ConfigurableNotification(Collection<PersonInformation> recipients, UserSettingsManager userSettingsManager,
+            ControllerConfiguration configuration)
+    {
+        this.userSettingsManager = userSettingsManager;
+        this.configuration = configuration;
+        addRecipients(recipients);
+    }
+
+    /**
+     * @return list of available {@link Locale}s for this {@link ConfigurableNotification}
      */
     protected abstract Collection<Locale> getAvailableLocals();
 
@@ -75,12 +85,12 @@ public abstract class ConfigurableEvent extends AbstractEvent
     }
 
     /**
-     * @param recipient     who should be notified by the {@link ConfigurableEvent}
+     * @param recipient     who should be notified by the {@link ConfigurableNotification}
      * @param administrator specifies whether {@code recipient} should be notified as administrator
      * @return true whether given {@code recipient} has been added,
      *         false whether given {@code recipient} already exists
      */
-    public boolean addRecipient(PersonInformation recipient, boolean administrator)
+    protected boolean addRecipient(PersonInformation recipient, boolean administrator)
     {
         if (!super.addRecipient(recipient)) {
             return false;
@@ -123,7 +133,7 @@ public abstract class ConfigurableEvent extends AbstractEvent
     }
 
     /**
-     * @param recipients    who should be notified by the {@link ConfigurableEvent}
+     * @param recipients    who should be notified by the {@link ConfigurableNotification}
      * @param administrator specifies whether {@code recipients} should be notified as administrators
      */
     public final void addRecipients(Collection<PersonInformation> recipients, boolean administrator)
@@ -187,7 +197,7 @@ public abstract class ConfigurableEvent extends AbstractEvent
     protected abstract NotificationMessage renderMessageForConfiguration(Configuration configuration);
 
     /**
-     * {@link RenderContext} for rendering of {@link ConfigurableEvent}.
+     * {@link RenderContext} for rendering of {@link ConfigurableNotification}.
      */
     public static class ConfiguredRenderContext extends RenderContext
     {
@@ -197,18 +207,19 @@ public abstract class ConfigurableEvent extends AbstractEvent
         private String userSettingsUrl;
 
         /**
-         * @see ConfigurableEvent.Configuration
+         * @see ConfigurableNotification.Configuration
          */
         private Configuration configuration;
 
         /**
          * Constructor.
          *
-         * @param configuration sets the {@link #configuration}
-         *                      @param messageSourceFileName
-         *                      @param userSettingsUrl
+         * @param configuration         sets the {@link #configuration}
+         * @param messageSourceFileName
+         * @param userSettingsUrl
          */
-        public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName, String userSettingsUrl)
+        public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName,
+                String userSettingsUrl)
         {
             super(new MessageSource("notification/" + messageSourceFileName, configuration.getLocale()));
 
@@ -263,8 +274,8 @@ public abstract class ConfigurableEvent extends AbstractEvent
     }
 
     /**
-     * Represents a single configuration for rendering of a {@link ConfigurableEvent}.
-     * {@link ConfigurableEvent} can be rendered for one or more {@link Configuration}s for each recipient.
+     * Represents a single configuration for rendering of a {@link ConfigurableNotification}.
+     * {@link ConfigurableNotification} can be rendered for one or more {@link Configuration}s for each recipient.
      */
     public static class Configuration
     {
@@ -279,7 +290,7 @@ public abstract class ConfigurableEvent extends AbstractEvent
         private final DateTimeZone timeZone;
 
         /**
-         * Specifies whether {@link ConfigurableEvent} should render administrator information.
+         * Specifies whether {@link ConfigurableNotification} should render administrator information.
          */
         private final boolean administrator;
 
@@ -354,12 +365,12 @@ public abstract class ConfigurableEvent extends AbstractEvent
     }
 
     /**
-     * {@link Configuration} for parent {@link ConfigurableEvent}s which have child {@link ConfigurableEvent}s
-     * which should be able to detect whether they are rendering as standalone or inside parent notification.
+     * {@link Configuration} for parent {@link ConfigurableNotification}s which have child {@link ConfigurableNotification}s
+     * which should be able to detect whether they are rendering as standalone or inside parent event.
      * <p/>
-     * We need a new class of {@link ConfigurableEvent.Configuration} because we want
-     * the child {@link ConfigurableEvent}s to render in a different way when they are rendered from parent notification class
-     * (rendered content is cached by equal {@link ConfigurableEvent.Configuration}s).
+     * We need a new class of {@link ConfigurableNotification.Configuration} because we want
+     * the child {@link ConfigurableNotification}s to render in a different way when they are rendered from parent event class
+     * (rendered content is cached by equal {@link ConfigurableNotification.Configuration}s).
      */
     public static class ParentConfiguration extends Configuration
     {

@@ -43,16 +43,6 @@ public class WorkerThread extends Thread
     private Scheduler scheduler;
 
     /**
-     * @see Authorization
-     */
-    private Authorization authorization;
-
-    /**
-     * @see NotificationManager
-     */
-    private NotificationManager notificationManager;
-
-    /**
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -62,11 +52,9 @@ public class WorkerThread extends Thread
      *
      * @param preprocessor         sets the {@link #preprocessor}
      * @param scheduler            sets the {@link #scheduler}
-     * @param authorization
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, Authorization authorization,
-            NotificationManager notificationManager, EntityManagerFactory entityManagerFactory)
+    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
         if (preprocessor == null || scheduler == null) {
@@ -74,8 +62,6 @@ public class WorkerThread extends Thread
         }
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
-        this.authorization = authorization;
-        this.notificationManager = notificationManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -141,14 +127,10 @@ public class WorkerThread extends Thread
             Interval interval = new Interval(Temporal.nowRounded(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
             try {
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
-
-                // Run notifications
-                notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

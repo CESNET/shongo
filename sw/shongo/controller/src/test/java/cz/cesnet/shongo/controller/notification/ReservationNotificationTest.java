@@ -5,7 +5,9 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
@@ -14,8 +16,10 @@ import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
@@ -42,34 +46,35 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         getController().addNotificationExecutor(notificationExecutor);
 
-        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>(){{
-            add(new PersonInformation()
-            {
-                @Override
-                public String getFullName()
+        getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>()
+        {{
+                add(new PersonInformation()
                 {
-                    return "admin";
-                }
+                    @Override
+                    public String getFullName()
+                    {
+                        return "admin";
+                    }
 
-                @Override
-                public String getRootOrganization()
-                {
-                    return null;
-                }
+                    @Override
+                    public String getRootOrganization()
+                    {
+                        return null;
+                    }
 
-                @Override
-                public String getPrimaryEmail()
-                {
-                    return "martin.srom@cesnet.cz";
-                }
+                    @Override
+                    public String getPrimaryEmail()
+                    {
+                        return "martin.srom@cesnet.cz";
+                    }
 
-                @Override
-                public String toString()
-                {
-                    return getFullName();
-                }
-            });
-        }});
+                    @Override
+                    public String toString()
+                    {
+                        return getFullName();
+                    }
+                });
+            }});
     }
 
     /**
@@ -129,7 +134,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
         // 1x system-admin: allocation-failed
         // 4x resource-admin: new, deleted, new, deleted
         // 4x user: changes(allocation-failed), changes (new), changes (deleted, new), changes (deleted)
-        performNotifications();
         Assert.assertEquals(9, notificationExecutor.getNotificationCount());
     }
 
@@ -191,7 +195,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
         // 3x user: changes (allocation-failed), changes (new), changes (deleted)
         // 2x resource-admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        performNotifications();
         Assert.assertEquals(10, notificationExecutor.getNotificationCount());
     }
 
@@ -205,7 +208,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
     {
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
-        aliasProvider.addCapability(new AliasProviderCapability("001", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
+        aliasProvider
+                .addCapability(new AliasProviderCapability("001", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
         aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
@@ -234,7 +238,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         // 4x admin: new, deleted, new, deleted
         // 3x user: changes (new), changes (deleted, new), changes (deleted)
-        performNotifications();
         Assert.assertEquals(7, notificationExecutor.getNotificationCount());
     }
 
@@ -283,7 +286,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        performNotifications();
         Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
@@ -323,7 +325,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        performNotifications();
         Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
@@ -359,7 +360,6 @@ public class ReservationNotificationTest extends AbstractControllerTest
         // 1x system-admin: allocation-failed
         // 2x resource-admin: new
         // 1x user: changes (allocation-failed, new, new)
-        performNotifications();
         Assert.assertEquals(4, notificationExecutor.getNotificationCount());
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
@@ -367,17 +367,28 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationService.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessorAndScheduler(new Interval("2012-01-01T00:00/2012-03-01T00:00"));
 
-
         // 1x resource-admin: deleted
         // 1x user: changes (deleted)
-        performNotifications();
         Assert.assertEquals(6, notificationExecutor.getNotificationCount());
+    }
+
+    @Test
+    public void testParticipants()
+    {
+        EntityManager entityManager = createEntityManager();
+        List<NotificationRecord> notificationRecords = entityManager.createNamedQuery(
+                "NotificationRecord.findByRecipient", NotificationRecord.class)
+                .setParameter("recipientType", NotificationRecord.RecipientType.USER)
+                .setParameter("recipientId", 0l)
+                .getResultList();
+        System.err.println(notificationRecords);
+        entityManager.close();
     }
 
     /**
      * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
      */
-    private static class TestingNotificationExecutor extends NotificationExecutor
+    private class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
          * Number of executed notifications.
@@ -393,12 +404,14 @@ public class ReservationNotificationTest extends AbstractControllerTest
         }
 
         @Override
-        public void executeNotification(Recipient recipient, Notification notification)
+        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
         {
+            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
-                    recipient, notification.getReplyToUserIds(), notification.getTitle(), notification.getMessage()
+                    recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
             notificationCount++;
+            return true;
         }
     }
 }

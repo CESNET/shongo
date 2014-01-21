@@ -576,8 +576,8 @@ public class Controller
      */
     public void startWorkerThread()
     {
-        WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
-                authorization, notificationManager, entityManagerFactory);
+        WorkerThread workerThread = new WorkerThread(
+                getComponent(Preprocessor.class), getComponent(Scheduler.class), entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(ControllerConfiguration.WORKER_PERIOD));
         workerThread.setLookahead(configuration.getPeriod(ControllerConfiguration.WORKER_LOOKAHEAD));
         addThread(workerThread);
@@ -824,6 +824,7 @@ public class Controller
         }
         // Create controller
         Controller controller = new Controller(configurationFileName);
+        NotificationManager notificationManager = controller.getNotificationManager();
 
         // Configure SSL host verification mappings
         ControllerConfiguration configuration = controller.getConfiguration();
@@ -862,8 +863,7 @@ public class Controller
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(cache);
         controller.addComponent(preprocessor);
-        Scheduler scheduler = new Scheduler();
-        scheduler.setCache(cache);
+        Scheduler scheduler = new Scheduler(cache, notificationManager);
         controller.addComponent(scheduler);
         Executor executor = new Executor();
         controller.addComponent(executor);
@@ -881,9 +881,8 @@ public class Controller
         controller.addRpcService(new ExecutableServiceImpl(executor, recordingsCache));
 
         // Add JADE service
-        NotificationManager notificationManager = controller.getNotificationManager();
-        controller.setJadeService(new ServiceImpl(
-                entityManagerFactory, configuration, notificationManager, executor, authorization));
+        controller.setJadeService(
+                new ServiceImpl(entityManagerFactory, configuration, notificationManager, executor, authorization));
 
         // Start, run and stop the controller
         controller.startAll();

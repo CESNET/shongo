@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.joda.time.Interval;
@@ -67,8 +68,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             preprocessor.setAuthorization(authorization);
             preprocessor.init();
 
-            scheduler = new Scheduler();
-            scheduler.setCache(getCache());
+            scheduler = new Scheduler(getCache(), new NotificationManager());
             scheduler.setAuthorization(authorization);
             scheduler.init();
 
