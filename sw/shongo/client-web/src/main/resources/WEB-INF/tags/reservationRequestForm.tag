@@ -192,8 +192,8 @@
             </form:label>
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="description" cssClass="error"/>&nbsp;
                 <tag:help><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
+                <form:errors path="description" cssClass="error"/>&nbsp;
             </div>
         </div>
 
@@ -340,8 +340,8 @@
                             <spring:message code="views.reservationRequest.specification.roomAccessMode.${accessMode}"/>
                         </label>
                     </c:forEach>
-                    <form:errors path="roomAccessMode" cssClass="error"/>
                     <tag:help><spring:message code="views.reservationRequest.specification.roomAccessMode.help"/></tag:help>
+                    <form:errors path="roomAccessMode" cssClass="error"/>
                 </div>
             </div>
         </c:if>
@@ -363,8 +363,8 @@
                 </form:label>
                 <div class="controls">
                     <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" value="xx"/>
-                    <form:errors path="roomRecorded" cssClass="error"/>
                     <tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
+                    <form:errors path="roomRecorded" cssClass="error"/>
                 </div>
             </div>
         </c:if>
