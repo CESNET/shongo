@@ -333,7 +333,7 @@
                         <thead>
                         <tr>
                             <th>
-                                <pagination-sort column="ROOM_NAME"><spring:message code="views.room.name"/></pagination-sort>
+                                <pagination-sort column="ROOM_NAME"><spring:message code="views.reservationRequestList.roomName"/></pagination-sort>
                             </th>
                             <th>
                                 <pagination-sort column="ROOM_TECHNOLOGY">
@@ -358,7 +358,8 @@
                         <tbody>
                         <tr ng-repeat="room in items" ng-class="{'deprecated': room.isDeprecated}">
                             <td ng-controller="ParticipantRoomController">
-                                <tag:help label="{{room.name}}" content="formatAliases(room.id, event)" selectable="true"/>
+                                <spring:message code="views.room.name.adhoc" var="roomNameAdhoc"/>
+                                <tag:help label="{{room.type == 'ROOM' ? '${roomNameAdhoc}' : room.name}}" content="formatAliases(room.id, event)" selectable="true"/>
                             </td>
                             <td>{{room.technologyTitle}}</td>
                             <td><span ng-bind-html="room.slot"></span></td>

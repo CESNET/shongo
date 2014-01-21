@@ -131,6 +131,7 @@ public class RoomController
         for (ExecutableSummary executableSummary : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", executableSummary.getId());
+            item.put("type", executableSummary.getType());
             item.put("name", executableSummary.getRoomName());
             item.put("description", executableSummary.getRoomDescription());
 
