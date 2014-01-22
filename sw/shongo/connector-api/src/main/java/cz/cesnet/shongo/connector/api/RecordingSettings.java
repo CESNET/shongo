@@ -16,6 +16,11 @@ public class RecordingSettings implements Concept
     private String pin;
 
     /**
+     * Bitrate for recording.
+     */
+    private String bitrate;
+
+    /**
      * @return {@link #pin}
      */
     public String getPin()
@@ -29,6 +34,24 @@ public class RecordingSettings implements Concept
     public void setPin(String pin)
     {
         this.pin = pin;
+    }
+
+    /**
+     *
+     * @return {@link #bitrate}
+     */
+    public String getBitrate()
+    {
+        return bitrate;
+    }
+
+    /**
+     *
+     * @param bitrate sets the {@link #bitrate}
+     */
+    public void setBitrate(String bitrate)
+    {
+        this.bitrate = bitrate;
     }
 
     @Override

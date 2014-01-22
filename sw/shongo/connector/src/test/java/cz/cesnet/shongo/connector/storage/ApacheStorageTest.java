@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.storage;
 
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import junit.framework.Assert;
 import org.junit.After;
@@ -71,8 +72,8 @@ public class ApacheStorageTest
         Assert.assertTrue(fileExists("folder/recording"));
         Assert.assertEquals("<data>", getFileContent("folder/recording"));
 
-        storage.setFolderPermissions(folderId, new HashMap<String, Storage.UserPermission>(){{
-            put("srom", Storage.UserPermission.READ);
+        storage.setFolderPermissions(folderId, new HashMap<String, RecordingFolder.UserPermission>(){{
+            put("srom", RecordingFolder.UserPermission.READ);
         }});
         Assert.assertTrue(fileExists("folder/.htaccess"));
         Assert.assertEquals("require user 208213@muni.cz srom@cesnet.cz", getFileContent("folder/.htaccess"));

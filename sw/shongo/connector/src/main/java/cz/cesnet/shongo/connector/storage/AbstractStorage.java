@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector.storage;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.jade.CommandException;
 
 /**
  * Abstract {@link Storage} implementation.
@@ -44,7 +45,7 @@ public abstract class AbstractStorage implements Storage
      * @param userId of user
      * @return {@link UserInformation} for user with given {@code userId}
      */
-    protected UserInformation getUserInformation(String userId)
+    protected UserInformation getUserInformation(String userId) throws CommandException
     {
         return userInformationProvider.getUserInformation(userId);
     }
@@ -58,6 +59,6 @@ public abstract class AbstractStorage implements Storage
          * @param userId of user
          * @return {@link UserInformation} for user with given {@code userId}
          */
-        public UserInformation getUserInformation(String userId);
+        public UserInformation getUserInformation(String userId) throws CommandException;
     }
 }

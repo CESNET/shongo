@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.connector.storage;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.jade.CommandException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
@@ -20,7 +22,7 @@ public class ApacheStorage extends AbstractStorage
      * @param url                     sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    protected ApacheStorage(String url, UserInformationProvider userInformationProvider)
+    public ApacheStorage(String url, UserInformationProvider userInformationProvider)
     {
         super(url, userInformationProvider);
     }
@@ -75,7 +77,8 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public void setFolderPermissions(String folderId, Map<String, UserPermission> userPermissions)
+    public void setFolderPermissions(String folderId, Map<String, RecordingFolder.UserPermission> userPermissions)
+            throws CommandException
     {
         String folderUrl = getUrlFromId(folderId);
         String permissionFileUrl = getChildUrl(folderUrl, ".htaccess");
@@ -171,6 +174,12 @@ public class ApacheStorage extends AbstractStorage
     public InputStream getFileContent(String folderId, String fileId)
     {
         throw new TodoImplementException("ApacheStorage.getFileContent");
+    }
+
+    @Override
+    public String getFileDownloadableUrl(String folderId, String fileId)
+    {
+        throw new TodoImplementException("TODO: implement ApacheStorage.getFileDownloadableUrl()");
     }
 
     private String getUrlFromId(String id)

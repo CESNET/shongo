@@ -1330,24 +1330,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Cache of user-principal-name (EPPN) by user principal-id.
-     */
-    private ExpirationMap<String, String> cachedPrincipalNameByPrincipalId =
-            new ExpirationMap<String, String>(Duration.standardHours(1));
-
-    /**
-     * Cache of {@link UserInformation} by user-principal-name (EPPN).
-     */
-    private ExpirationMap<String, UserInformation> cachedUserInformationByPrincipalName =
-            new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
-
-    /**
-     * Cache of {@link UserInformation} by shongo-user-id.
-     */
-    private ExpirationMap<String, UserInformation> cachedUserInformationById =
-            new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
-
-    /**
      * @param userPrincipalId principal-id of an user
      * @return user-original-id (EPPN) for given {@code userPrincipalId} or null when user was not found
      * @throws CommandException
@@ -1374,42 +1356,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             cachedPrincipalNameByPrincipalId.put(userPrincipalId, userPrincipalName);
         }
         return userPrincipalName;
-    }
-
-    /**
-     * @param userPrincipalName principal-name of an user (EPPN)
-     * @return {@link UserInformation} for given {@code userPrincipalName}
-     * @throws CommandException
-     */
-    public UserInformation getUserInformationByPrincipalName(String userPrincipalName) throws CommandException
-    {
-        UserInformation userInformation;
-        if (cachedUserInformationByPrincipalName.contains(userPrincipalName)) {
-            userInformation = cachedUserInformationByPrincipalName.get(userPrincipalName);
-        }
-        else {
-            userInformation = (UserInformation) performControllerAction(
-                    GetUserInformation.byPrincipalName(userPrincipalName));
-            cachedUserInformationByPrincipalName.put(userPrincipalName, userInformation);
-        }
-        return userInformation;
-    }
-
-    /**
-     * @param userId shongo-user-id
-     * @return {@link UserInformation} for given {@code userId} or null when user doesn't exist
-     */
-    public UserInformation getUserInformationById(String userId) throws CommandException
-    {
-        UserInformation userInformation;
-        if (cachedUserInformationById.contains(userId)) {
-            userInformation = cachedUserInformationById.get(userId);
-        }
-        else {
-            userInformation = (UserInformation) performControllerAction(GetUserInformation.byUserId(userId));
-            cachedUserInformationById.put(userId, userInformation);
-        }
-        return userInformation;
     }
 
     @java.lang.Override

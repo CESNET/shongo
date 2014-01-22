@@ -3,17 +3,19 @@
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.DeviceLoadInfo;
-import cz.cesnet.shongo.api.Recording;
-import cz.cesnet.shongo.api.RecordingFolder;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
+import cz.cesnet.shongo.connector.storage.AbstractStorage;
+import cz.cesnet.shongo.connector.storage.ApacheStorage;
+import cz.cesnet.shongo.connector.storage.Storage;
+import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.http.*;
 import org.apache.http.auth.ContextAwareAuthScheme;
@@ -38,15 +40,17 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collection;
-import java.util.Map;
+import java.net.URI;
+import java.net.URL;
+import java.util.*;
 
-/**
- * {@link AbstractConnector} for Cisco TelePresence Content Server
- *
- * @author Ondrej Pavelka <pavelka@cesnet.cz>
- */
+ /**
+  * {@link AbstractConnector} for Cisco TelePresence Content Server
+  *
+  * @author Ondrej Pavelka <pavelka@cesnet.cz>
+  */
 public class CiscoTCSConnector extends AbstractConnector implements RecordingService
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
@@ -79,7 +83,18 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Default bitrate for recordings.
      */
-    private final String DEFAULT_BITRATE = "768";
+    private String DEFAULT_BITRATE = "768";
+
+
+    /**
+     * TCS Alias for shongo recordings.
+     */
+    private String ALIAS;
+
+    /**
+     *
+     */
+    private Storage storage;
 
 
     @Override
@@ -89,15 +104,30 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         this.login = username;
         this.password = password;
 
-        Command command = new Command("GetSystemInformation");
-        Element result = exec(command);
-        Namespace ns = result.getNamespace(NS_NS1);
-        if (!"true".equals(result.getChild("GetSystemInformationResponse",ns).getChild("GetSystemInformationResult",ns).getChildText("EngineOK",ns)))
-        {
-            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
-
-            throw new CommandException("Server " + this.info.getDeviceAddress().getHost() + " is not working. Check it's status.");
+        if (getOption("default-bitrate") != null) {
+            this.DEFAULT_BITRATE = getOption("default-bitrate");
         }
+
+        if (getOption("alias") != null) {
+            this.ALIAS = getOption("alias");
+        } else {
+            throw new RuntimeException("Option alias must be set in connector config file.");
+        }
+
+        if (getOption("storage-url") == null) {
+            throw new RuntimeException("Option storage-url must be set in connector config file.");
+        }
+
+            storage = new ApacheStorage(getOption("storage-url"),new AbstractStorage.UserInformationProvider()
+        {
+            @Override
+            public UserInformation getUserInformation(String userId) throws CommandException
+            {
+                return getUserInformationById(userId);
+            }
+        } );
+
+        checkServerVitality();
 
         this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
@@ -106,6 +136,24 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public void disconnect() throws CommandException
     {
         this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+    }
+
+    /**
+     * Check if TCS server is online and engine status is OK, otherwise throws CommandException.
+     *
+     * @throws CommandException thrown if something is wrong
+     */
+    public void checkServerVitality() throws CommandException
+    {
+        Command command = new Command("GetSystemInformation");
+        Element result = exec(command);
+        Namespace ns = result.getNamespace(NS_NS1);
+        if (!"true".equals(result.getChild("GetSystemInformationResponse",ns).getChild("GetSystemInformationResult",ns).getChildText("EngineOK",ns)))
+        {
+            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+
+            throw new CommandException("Server " + this.info.getDeviceAddress().getHost() + " is not working. Check its status.");
+        }
     }
 
     @Override
@@ -117,33 +165,43 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        FTPClient ftp = new FTPClient();
-        /*ftp.connect();
-        ftp.login();
+        //TODO: return id even if storage not accessible, info saved in alias
+        Storage.Folder folder = new Storage.Folder(null,recordingFolder.getName());
+        String folderId = storage.createFolder(folder);
+        storage.setFolderPermissions(folderId,recordingFolder.getUserPermissions());
 
-        ftp.makeDirectory("" + recordingFolder.getName());
-
-        ftp.disconnect();*/
-        // throw new TodoImplementException("CiscoTCSConnector.createRecordingFolder");
-        return "";
+        return folderId;
     }
 
     @Override
     public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.modifyRecordingFolder");
+        storage.setFolderPermissions(recordingFolder.getId(),recordingFolder.getUserPermissions());
     }
 
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        throw new TodoImplementException("CiscoTCSConnector.deleteRecordingFolder");
+        storage.deleteFolder(recordingFolderId);
     }
 
     @Override
     public Collection<Recording> listRecordings(String folderId) throws CommandException, CommandUnsupportedException
     {
-        throw new TodoImplementException("CiscoTCSConnector.listRecordings");
+        List<Recording> recordings = new ArrayList<Recording>();
+        for (Storage.File file : storage.listFiles(folderId,null))
+        {
+            System.out.println("FILE: " + file.getFileName());
+            if (!file.getFileName().startsWith(".")) {
+                Recording recording = new Recording();
+                recording.setName(file.getFileName());
+                //TODO: read metadata
+                //recording.setDownloadableUrl(storage.);
+                recordings.add(recording);
+            }
+        }
+
+        return Collections.unmodifiableList(recordings);
     }
 
     protected Recording parseRecording(Element recordingData, Namespace ns)
@@ -166,16 +224,38 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
+        //TODO: get metadata
+        //recordingId: folderid:20140122T133001:tcsid
+
+        throw new TodoImplementException("TODO: implement CiscoTCSConnector.getRecording()");
+    }
+
+    /**
+     * Returns recordings info from TCS server.
+     * @param recordingId
+     * @return
+     * @throws CommandException
+     */
+    public Recording getOriginalRecording(String recordingId) throws CommandException
+    {
         Command command = new Command("GetConference");
         command.setParameter("ConferenceID", recordingId);
 
-        Element result = exec(command);
+        Element result = exec(command,true);
         Namespace ns = result.getNamespace(NS_NS1);
         Element recordingData = result.getChild("GetConferenceResponse",ns).getChild("GetConferenceResult",ns);
 
         return parseRecording(recordingData, ns);
     }
 
+    /**
+     * Not supported for Cisco TCS connector, returns null every time.
+     *
+     * @param alias alias for room
+     * @return
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
     @Override
     public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException
     {
@@ -194,7 +274,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         return result.getChild("GetCallInfoResponse",ns).getChild("GetCallInfoResult",ns).getChildText("CallState",ns).equals("IN_CALL");
     }
 
-    private String createAdHocAlias() throws CommandException
+/*    private String createAdHocAlias() throws CommandException
     {
         Command command = new Command("AddRecordingAlias");
         command.setParameter("SourceAlias","999");
@@ -209,7 +289,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         command.setParameter("Alias",aliasId);
 
         exec(command);
-    }
+    } */
 
     @Override
     public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
@@ -217,12 +297,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         Command command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
-        command.setParameter("Bitrate", DEFAULT_BITRATE);
-        //TODO: create alias for adhoc recording
-        command.setParameter("Alias", "999");
-        //TODO: set technology
+        String bitrate = recordingSettings.getBitrate() == null ? DEFAULT_BITRATE : recordingSettings.getBitrate();
+        command.setParameter("Bitrate", bitrate);
+        //TODO: create alias for adhoc recording, find out if necessary
+        command.setParameter("Alias", ALIAS);
+        //TODO: set technology if SIP
         command.setParameter("CallType", "h323");
         command.setParameter("SetMetadata", true);
+        command.setParameter("PIN",recordingSettings.getPin());
 
         Element result = exec(command);
 
@@ -239,14 +321,30 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         exec(command);
     }
 
-    private void moveRecording(String recordingId, String recordingFolderId) throws CommandException
+    protected void moveRecording(String recordingId, String recordingFolderId) throws CommandException
     {
-        //TODO:
-        throw new TodoImplementException("TODO: TCS moveRecording");
+        try {
+            Recording recording = getRecording(recordingId);
+            Storage.File file = new Storage.File();
+            file.setFileName(recording.getName());
+            file.setFolderId(recordingFolderId);
+
+            storage.createFile(file,new URL(recording.getDownloadableUrl()).openStream());
+            //TODO: metadata file
+        }
+        catch (IOException e) {
+            throw new CommandException("I/O Exception while downloading recording from TCS server.",e);
+        }
     }
 
     @Override
     public void deleteRecording(String recordingId) throws CommandException
+    {
+        //TODO: mazat z uloziste
+        deleteOriginalRecording(recordingId);
+    }
+
+    protected void deleteOriginalRecording(String recordingId) throws CommandException
     {
         Command command = new Command("DeleteRecording");
         command.setParameter("conferenceID",recordingId);
@@ -344,15 +442,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
 
                 StringEntity lEntity = new StringEntity(xml, ContentType.create("text/xml", "utf-8"));
-                lHttpPost.setEntity(lEntity);
+                    lHttpPost.setEntity(lEntity);
 
                 // Protocol version should be 1.0 because of compatibility with TCS
                 lHttpPost.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
                 HttpResponse authResponse = lHttpClient.execute(lHttpPost);
 
                 // Validate that we got an HTTP 401 back
-                if(authResponse.getStatusLine().getStatusCode() ==
-                        HttpStatus.SC_UNAUTHORIZED) {
+                if(authResponse.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
                     if(authResponse.containsHeader("WWW-Authenticate")) {
                         // Get the challenge.
                         final Header challenge =
@@ -409,8 +506,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                                 "but didn't send us a usable WWW-Authenticate header.");
                     }
                 } else {
-                    throw new Error("Didn't get an Http 401 " +
-                            "like we were expecting.");
+                    throw new Error("Didn't get an Http 401 like we were expecting, but (" + authResponse.getStatusLine().getStatusCode() + ").");
                 }
             }
         } catch (Exception ex) {

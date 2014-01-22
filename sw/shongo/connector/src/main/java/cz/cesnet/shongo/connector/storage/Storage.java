@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.connector.storage;
 
+import cz.cesnet.shongo.api.RecordingFolder;
+import cz.cesnet.shongo.api.jade.CommandException;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +17,7 @@ public interface Storage
     /**
      * Create a new folder in the storage.
      *
-     * @param folder information about the new folder
+     * @param folder information about the new folder, if parentFolderId is {@coe null}, folder is created in /
      * @return id of the new folder
      */
     String createFolder(Folder folder);
@@ -39,9 +42,10 @@ public interface Storage
      * Set user permissions for existing folder and all its' files in the storage.
      *
      * @param folderId        id of existing folder for which the user permissions should be set
-     * @param userPermissions map of {@link UserPermission} by user-id
+     * @param userPermissions map of {@link RecordingFolder.UserPermission} by user-id
      */
-    void setFolderPermissions(String folderId, Map<String, UserPermission> userPermissions);
+    void setFolderPermissions(String folderId, Map<String, RecordingFolder.UserPermission> userPermissions)
+            throws CommandException;
 
     /**
      * Create a new file in existing folder in the storage.
@@ -77,6 +81,13 @@ public interface Storage
      * @return {@link InputStream} with the file content
      */
     InputStream getFileContent(String folderId, String fileId);
+
+    /**
+     * Returns downloadable url of file
+     *
+     * @return file downloadableUrl
+     */
+    String getFileDownloadableUrl(String folderId, String fileId);
 
     /**
      * Represents information about a single folder in the storage.
@@ -256,17 +267,17 @@ public interface Storage
 
     /**
      * Available permissions which the user can have to a folder and all its' files.
-     */
+     *
     enum UserPermission
     {
         /**
          * User can list files in folder and read the files.
-         */
+         *
         READ,
 
         /**
          * User can do everything like {@link #READ} and modify and delete the files.
-         */
+         *
         WRITE
-    }
+    }    */
 }
