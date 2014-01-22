@@ -55,7 +55,7 @@ public class ResourceReservationTask extends ReservationTask
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
 
-        if (schedulerContext.containsReferencedResource(resource)) {
+        if (schedulerContextState.containsReferencedResource(resource)) {
             // Same resource is requested multiple times
             throw new SchedulerReportSet.ResourceMultipleRequestedException(resource);
         }
@@ -66,7 +66,7 @@ public class ResourceReservationTask extends ReservationTask
         // Get available resource reservations
         List<AvailableReservation<ResourceReservation>> availableResourceReservations =
                 new LinkedList<AvailableReservation<ResourceReservation>>();
-        availableResourceReservations.addAll(schedulerContext.getAvailableResourceReservations(resource, slot));
+        availableResourceReservations.addAll(schedulerContextState.getAvailableResourceReservations(resource, slot));
         sortAvailableReservations(availableResourceReservations);
 
         // Find matching resource value reservation
@@ -85,7 +85,7 @@ public class ResourceReservationTask extends ReservationTask
             }
 
             // Available reservation will be returned so remove it from context (to not be used again)
-            schedulerContext.removeAvailableReservation(availableResourceReservation);
+            schedulerContextState.removeAvailableReservation(availableResourceReservation);
 
             // Create new existing resource reservation
             addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
@@ -107,7 +107,7 @@ public class ResourceReservationTask extends ReservationTask
                 ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
                 List<RoomReservation> roomReservations =
                         reservationManager.getRoomReservations(roomProviderCapability, slot);
-                schedulerContext.applyReservations(roomProviderCapability.getId(), slot,
+                schedulerContextState.applyReservations(roomProviderCapability.getId(), slot,
                         roomReservations, RoomReservation.class);
                 if (roomReservations.size() > 0) {
                     // Requested resource is not available in the requested slot
@@ -132,11 +132,11 @@ public class ResourceReservationTask extends ReservationTask
         resourceReservation.setResource(resource);
 
         // Add resource as referenced to the cache to prevent from multiple checking of the same parent
-        schedulerContext.addReferencedResource(resource);
+        schedulerContext.getState().addReferencedResource(resource);
 
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !schedulerContext.containsReferencedResource(parentResource)) {
+        if (parentResource != null && !schedulerContextState.containsReferencedResource(parentResource)) {
             ResourceReservationTask resourceReservationTask =
                     new ResourceReservationTask(schedulerContext, slot, parentResource);
             addChildReservation(resourceReservationTask);

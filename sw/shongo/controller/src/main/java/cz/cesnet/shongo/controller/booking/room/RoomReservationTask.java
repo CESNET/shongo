@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -235,7 +236,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Try to allocate room reservation in room provider variants
         for (RoomProviderVariant roomProviderVariant : roomProviderVariants) {
-            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
+            SchedulerContextState.Savepoint schedulerContextSavepoint = schedulerContextState.createSavepoint();
             try {
                 Reservation reservation = allocateVariant(roomProviderVariant);
                 if (reservation != null) {
@@ -288,7 +289,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Available room endpoints
         Collection<AvailableExecutable<RoomEndpoint>> availableRoomEndpoints =
-                schedulerContext.getAvailableExecutables(RoomEndpoint.class);
+                schedulerContextState.getAvailableExecutables(RoomEndpoint.class);
 
         // Find all matching room provider variants
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
@@ -499,7 +500,7 @@ public class RoomReservationTask extends ReservationTask
                 // TODO: check room settings
 
                 // Available reservation will be returned so remove it from context (to not be used again)
-                schedulerContext.removeAvailableReservation(availableReservation);
+                schedulerContextState.removeAvailableReservation(availableReservation);
 
                 // Create new existing room reservation
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
@@ -537,6 +538,10 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
 
+                // Notify participants
+                schedulerContextState.addNotification(new RoomParticipationNotification(
+                        roomEndpoint, schedulerContext.getAuthorizationManager()));
+
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);
 
@@ -563,7 +568,7 @@ public class RoomReservationTask extends ReservationTask
                     }
 
                     // For allocating services we must add the room reservation as allocated
-                    schedulerContext.addAllocatedReservation(reservation);
+                    schedulerContext.getState().addAllocatedReservation(reservation);
                     try {
                         // Allocate requested services
                         for (ExecutableServiceSpecification serviceSpecification : serviceSpecifications) {
@@ -600,7 +605,7 @@ public class RoomReservationTask extends ReservationTask
                     }
                     finally {
                         // Remove the room reservation as allocated
-                        schedulerContext.removeAllocatedReservation(reservation);
+                        schedulerContextState.removeAllocatedReservation(reservation);
                     }
                 }
             }
@@ -659,7 +664,7 @@ public class RoomReservationTask extends ReservationTask
             existingReservation.setSlot(slot);
             existingReservation.setReusedReservation(originalReservation);
             addChildReservation(existingReservation);
-            schedulerContext.removeAvailableReservation(availableRoomEndpoint.getAvailableReservation());
+            schedulerContextState.removeAvailableReservation(availableRoomEndpoint.getAvailableReservation());
 
             // Reserve only the remaining capacity
             int allocatedLicenseCount = reusedRoomEndpoint.getRoomConfiguration().getLicenseCount();
@@ -702,7 +707,7 @@ public class RoomReservationTask extends ReservationTask
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> reusedRoomEndpointReservations =
                     reservationManager.getRoomReservationsByReusedRoomEndpoint(reusedRoomEndpoint, slot);
-            schedulerContext.applyAvailableReservations(reusedRoomEndpointReservations, RoomReservation.class);
+            schedulerContextState.applyAvailableReservations(reusedRoomEndpointReservations, RoomReservation.class);
             if (reusedRoomEndpointReservations.size() > 0) {
                 RoomReservation roomReservation = reusedRoomEndpointReservations.get(0);
                 Interval usageSlot = roomReservation.getSlot();

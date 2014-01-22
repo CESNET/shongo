@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTimeZone;
@@ -19,11 +20,6 @@ import java.util.*;
  */
 public abstract class ConfigurableNotification extends AbstractNotification
 {
-    /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration
-     */
-    protected ControllerConfiguration configuration;
-
     /**
      * @see cz.cesnet.shongo.controller.settings.UserSettingsManager
      */
@@ -45,12 +41,10 @@ public abstract class ConfigurableNotification extends AbstractNotification
      * Constructor.
      *
      * @param userSettingsManager sets the {@link #userSettingsManager}
-     * @param configuration       sets the {@link #configuration}
      */
-    public ConfigurableNotification(UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
+    public ConfigurableNotification(UserSettingsManager userSettingsManager)
     {
         this.userSettingsManager = userSettingsManager;
-        this.configuration = configuration;
     }
 
     /**
@@ -58,13 +52,10 @@ public abstract class ConfigurableNotification extends AbstractNotification
      *
      * @param recipients          sets the {@link #recipients}
      * @param userSettingsManager sets the {@link #userSettingsManager}
-     * @param configuration       sets the {@link #configuration}
      */
-    public ConfigurableNotification(Collection<PersonInformation> recipients, UserSettingsManager userSettingsManager,
-            ControllerConfiguration configuration)
+    public ConfigurableNotification(Collection<PersonInformation> recipients, UserSettingsManager userSettingsManager)
     {
         this.userSettingsManager = userSettingsManager;
-        this.configuration = configuration;
         addRecipients(recipients);
     }
 
@@ -151,7 +142,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient, NotificationManager manager)
     {
         List<Configuration> configurations = recipientConfigurations.get(recipient);
         if (configurations == null || configurations.size() == 0) {
@@ -159,13 +150,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
         else if (configurations.size() == 1) {
             // Single message
-            return getRenderedMessageForConfiguration(configurations.get(0)).clone();
+            return getRenderedMessageForConfiguration(configurations.get(0), manager).clone();
         }
         else {
             // Multiple messages
-            NotificationMessage notificationMessage = new NotificationMessage(recipient, configuration);
+            NotificationMessage notificationMessage = new NotificationMessage(recipient, manager);
             for (Configuration configuration : configurations) {
-                NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration);
+                NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration, manager);
                 notificationMessage.appendMessage(configurationMessage);
             }
             return notificationMessage;
@@ -175,14 +166,17 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Render or return already rendered {@link NotificationMessage} for given {@code configuration}.
      *
+     *
      * @param configuration to be rendered
+     * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    private NotificationMessage getRenderedMessageForConfiguration(Configuration configuration)
+    private NotificationMessage getRenderedMessageForConfiguration(Configuration configuration,
+            NotificationManager manager)
     {
         NotificationMessage notificationMessage = configurationMessage.get(configuration);
         if (notificationMessage == null) {
-            notificationMessage = renderMessageForConfiguration(configuration);
+            notificationMessage = renderMessageForConfiguration(configuration, manager);
             configurationMessage.put(configuration, notificationMessage);
         }
         return notificationMessage;
@@ -191,10 +185,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Render {@link NotificationMessage} for given {@code configuration}.
      *
+     *
      * @param configuration to be rendered
+     * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    protected abstract NotificationMessage renderMessageForConfiguration(Configuration configuration);
+    protected abstract NotificationMessage renderMessageForConfiguration(Configuration configuration,
+            NotificationManager manager);
 
     /**
      * {@link RenderContext} for rendering of {@link ConfigurableNotification}.
@@ -202,29 +199,29 @@ public abstract class ConfigurableNotification extends AbstractNotification
     public static class ConfiguredRenderContext extends RenderContext
     {
         /**
-         * @see cz.cesnet.shongo.controller.ControllerConfiguration#NOTIFICATION_USER_SETTINGS_URL
+         * @see ConfigurableNotification.Configuration
          */
-        private String userSettingsUrl;
+        private Configuration configuration;
 
         /**
          * @see ConfigurableNotification.Configuration
          */
-        private Configuration configuration;
+        private ControllerConfiguration controllerConfiguration;
 
         /**
          * Constructor.
          *
          * @param configuration         sets the {@link #configuration}
          * @param messageSourceFileName
-         * @param userSettingsUrl
+         * @param controllerConfiguration
          */
         public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName,
-                String userSettingsUrl)
+                ControllerConfiguration controllerConfiguration)
         {
             super(new MessageSource("notification/" + messageSourceFileName, configuration.getLocale()));
 
             this.configuration = configuration;
-            this.userSettingsUrl = userSettingsUrl;
+            this.controllerConfiguration = controllerConfiguration;
         }
 
         /**
@@ -265,11 +262,20 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
 
         /**
-         * @return {@link #userSettingsUrl}
+         * @return {@link ControllerConfiguration#NOTIFICATION_USER_SETTINGS_URL}
          */
         public String getUserSettingsUrl()
         {
-            return userSettingsUrl;
+            return controllerConfiguration.getNotificationUserSettingsUrl();
+        }
+
+        /**
+         * @param reservationRequestId
+         * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
+         */
+        public String getReservationRequestUrl(String reservationRequestId)
+        {
+            return controllerConfiguration.getNotificationReservationRequestUrl(reservationRequestId);
         }
     }
 

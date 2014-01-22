@@ -2,14 +2,11 @@ package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.acl.AclIdentity;
-import cz.cesnet.shongo.controller.acl.AclProvider;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
@@ -18,7 +15,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import org.hibernate.metamodel.binding.EntityIdentifier;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -34,8 +31,6 @@ import java.util.Set;
  */
 public class ReservationNotification extends AbstractReservationRequestNotification
 {
-    private AclProvider aclProvider;
-
     private UserInformation user;
 
     private ReservationNotification.Type type;
@@ -50,21 +45,10 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
 
     private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
 
-    /**
-     * Constructor.
-     *
-     * @param type
-     * @param reservation
-     * @param reservationRequest
-     * @param configuration
-     */
     public ReservationNotification(ReservationNotification.Type type, Reservation reservation,
-            AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager,
-            ControllerConfiguration configuration)
+            AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
-        super(reservationRequest, authorizationManager.getUserSettingsManager(), configuration);
-
-        this.aclProvider = authorizationManager.getAuthorization().getAclProvider();
+        super(reservationRequest, authorizationManager.getUserSettingsManager());
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
@@ -85,6 +69,12 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         for (Reservation childReservation : reservation.getChildReservations()) {
             addChildTargets(childReservation, entityManager);
         }
+    }
+
+    public ReservationNotification(ReservationNotification.Type type, Reservation reservation,
+            AuthorizationManager authorizationManager)
+    {
+        this(type, reservation, getReservationRequest(reservation), authorizationManager);
     }
 
     public ReservationNotification.Type getType()
@@ -118,10 +108,11 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+            NotificationManager manager)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                this.configuration.getNotificationUserSettingsUrl());
+                manager.getConfiguration());
         renderContext.addParameter("target", target);
 
         StringBuilder titleBuilder = new StringBuilder();
@@ -166,30 +157,14 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient,
+            NotificationManager manager)
     {
-        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
+        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient, manager);
         if (user != null) {
             notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         }
         return notificationMessage;
-    }
-
-    @Override
-    public NotificationRecord createRecordForRecipient(PersonInformation recipient, EntityManager entityManager)
-    {
-        NotificationRecord notificationRecord = new NotificationRecord();
-        notificationRecord.setCreatedAt(getCreatedAt());
-        notificationRecord.setRecipientType(NotificationRecord.RecipientType.USER);
-        notificationRecord.setRecipientId(0l);
-        if (type.equals(Type.NEW)) {
-            notificationRecord.setNotificationType(NotificationRecord.NotificationType.ROOM_CREATED);
-        }
-        else {
-            notificationRecord.setNotificationType(NotificationRecord.NotificationType.ROOM_DELETED);
-        }
-        notificationRecord.setTargetId(ObjectIdentifier.parseId(Reservation.class, id));
-        return notificationRecord;
     }
 
     /**
@@ -243,6 +218,16 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         for (Reservation childReservation : reservation.getChildReservations()) {
             addChildTargets(childReservation, entityManager);
         }
+    }
+
+    /**
+     * @param reservation for which the {@link AbstractReservationRequest} should be returned
+     * @return {@link AbstractReservationRequest} for given {@code reservation}
+     */
+    private static AbstractReservationRequest getReservationRequest(Reservation reservation)
+    {
+        Allocation allocation = reservation.getAllocation();
+        return (allocation != null ? allocation.getReservationRequest() : null);
     }
 
     public static enum Type

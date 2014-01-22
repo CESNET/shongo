@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -31,16 +32,10 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
 
     private AllocationStateReport adminReport;
 
-    /**
-     * Constructor.
-     *
-     * @param reservationRequest
-     * @param configuration
-     */
     public AllocationFailedNotification(ReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
-        super(reservationRequest, authorizationManager.getUserSettingsManager(), configuration);
+        super(reservationRequest, authorizationManager.getUserSettingsManager());
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
@@ -74,12 +69,13 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+            NotificationManager manager)
     {
         Locale locale = configuration.getLocale();
         DateTimeZone timeZone = configuration.getTimeZone();
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                this.configuration.getNotificationUserSettingsUrl());
+                manager.getConfiguration());
         renderContext.addParameter("target", target);
         renderContext.addParameter("userError", this.userError.getMessage(locale, timeZone));
         if (configuration.isAdministrator()) {
@@ -109,9 +105,10 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient,
+            NotificationManager manager)
     {
-        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient);
+        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient, manager);
         notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         return notificationMessage;
     }

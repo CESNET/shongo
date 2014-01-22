@@ -33,104 +33,105 @@ public class SchedulerContextTest
 
         // Init cache transaction
         SchedulerContext schedulerContext = new SchedulerContext(interval.getStart(), null, null, null);
-        schedulerContext.addReferencedResource(resource1);
-        schedulerContext.addAllocatedReservation(allocatedReservation1);
-        schedulerContext.addAvailableReservation(reusableReservation1);
+        SchedulerContextState schedulerContextState = schedulerContext.getState();
+        schedulerContextState.addReferencedResource(resource1);
+        schedulerContextState.addAllocatedReservation(allocatedReservation1);
+        schedulerContextState.addAvailableReservation(reusableReservation1);
 
         ////////////////////////////////////////////////////////////////////////////////
 
         // Add objects by savepoint
-        SchedulerContext.Savepoint savepoint1 = schedulerContext.createSavepoint();
-        schedulerContext.addReferencedResource(resource2);
-        schedulerContext.addAllocatedReservation(allocatedReservation2);
-        schedulerContext.addAvailableReservation(reusableReservation2);
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        SchedulerContextState.Savepoint savepoint1 = schedulerContextState.createSavepoint();
+        schedulerContextState.addReferencedResource(resource2);
+        schedulerContextState.addAllocatedReservation(allocatedReservation2);
+        schedulerContextState.addAvailableReservation(reusableReservation2);
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
 
         // Add objects by another savepoint
-        SchedulerContext.Savepoint savepoint2 = schedulerContext.createSavepoint();
-        schedulerContext.addReferencedResource(resource3);
-        schedulerContext.addAllocatedReservation(allocatedReservation3);
-        schedulerContext.addAvailableReservation(reusableReservation3);
-        Assert.assertEquals(savepoint2, schedulerContext.getCurrentSavepoint());
+        SchedulerContextState.Savepoint savepoint2 = schedulerContextState.createSavepoint();
+        schedulerContextState.addReferencedResource(resource3);
+        schedulerContextState.addAllocatedReservation(allocatedReservation3);
+        schedulerContextState.addAvailableReservation(reusableReservation3);
+        Assert.assertEquals(savepoint2, schedulerContextState.getCurrentSavepoint());
 
         // Test that cache transaction contains all added objects
         Assert.assertEquals(buildSet(resource1, resource2, resource3),
-                schedulerContext.getReferencedResources());
+                schedulerContextState.getReferencedResources());
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation2, allocatedReservation3),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation2, reusableReservation3),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
 
         // Revert second savepoint and check the state of the transaction
         savepoint2.revert();
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
         Assert.assertEquals(buildSet(resource1, resource2),
-                schedulerContext.getReferencedResources());
+                schedulerContextState.getReferencedResources());
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation2),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation2),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
 
         // Revert first savepoint and check the state of the transaction
         savepoint1.revert();
-        Assert.assertEquals(null, schedulerContext.getCurrentSavepoint());
-        Assert.assertEquals(buildSet(resource1), schedulerContext.getReferencedResources());
-        Assert.assertEquals(buildSet(allocatedReservation1), schedulerContext.getAllocatedReservations());
-        Assert.assertEquals(buildSet(reusableReservation1), schedulerContext.getAvailableReservations());
+        Assert.assertEquals(null, schedulerContextState.getCurrentSavepoint());
+        Assert.assertEquals(buildSet(resource1), schedulerContextState.getReferencedResources());
+        Assert.assertEquals(buildSet(allocatedReservation1), schedulerContextState.getAllocatedReservations());
+        Assert.assertEquals(buildSet(reusableReservation1), schedulerContextState.getAvailableReservations());
 
         ////////////////////////////////////////////////////////////////////////////////
 
         // Create new savepoint and add some objects
-        savepoint1 = schedulerContext.createSavepoint();
-        schedulerContext.addReferencedResource(resource2);
-        schedulerContext.addReferencedResource(resource3);
-        schedulerContext.addAllocatedReservation(allocatedReservation2);
-        schedulerContext.addAllocatedReservation(allocatedReservation3);
-        schedulerContext.addAvailableReservation(reusableReservation2);
-        schedulerContext.addAvailableReservation(reusableReservation3);
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        savepoint1 = schedulerContextState.createSavepoint();
+        schedulerContextState.addReferencedResource(resource2);
+        schedulerContextState.addReferencedResource(resource3);
+        schedulerContextState.addAllocatedReservation(allocatedReservation2);
+        schedulerContextState.addAllocatedReservation(allocatedReservation3);
+        schedulerContextState.addAvailableReservation(reusableReservation2);
+        schedulerContextState.addAvailableReservation(reusableReservation3);
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
 
         // Create another savepoint and remove some added objects
-        savepoint2 = schedulerContext.createSavepoint();
-        schedulerContext.removeReferencedResource(resource2);
-        schedulerContext.removeAllocatedReservation(allocatedReservation2);
-        schedulerContext.removeAvailableReservation(reusableReservation2);
-        Assert.assertEquals(savepoint2, schedulerContext.getCurrentSavepoint());
+        savepoint2 = schedulerContextState.createSavepoint();
+        schedulerContextState.removeReferencedResource(resource2);
+        schedulerContextState.removeAllocatedReservation(allocatedReservation2);
+        schedulerContextState.removeAvailableReservation(reusableReservation2);
+        Assert.assertEquals(savepoint2, schedulerContextState.getCurrentSavepoint());
 
         // Check proper state of cache transaction
         Assert.assertEquals(buildSet(resource1, resource3),
-                schedulerContext.getReferencedResources());
+                schedulerContextState.getReferencedResources());
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation3),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation3),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
 
         // Revert savepoint which removed some objects and check that objects were restored
         savepoint2.revert();
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
         Assert.assertEquals(buildSet(resource1, resource2, resource3),
-                schedulerContext.getReferencedResources());
+                schedulerContextState.getReferencedResources());
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation2, allocatedReservation3),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation2, reusableReservation3),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
 
         // Revert first savepoint and check the starting state of cache transaction
         savepoint1.revert();
-        Assert.assertEquals(null, schedulerContext.getCurrentSavepoint());
-        Assert.assertEquals(buildSet(resource1), schedulerContext.getReferencedResources());
-        Assert.assertEquals(buildSet(allocatedReservation1), schedulerContext.getAllocatedReservations());
-        Assert.assertEquals(buildSet(reusableReservation1), schedulerContext.getAvailableReservations());
+        Assert.assertEquals(null, schedulerContextState.getCurrentSavepoint());
+        Assert.assertEquals(buildSet(resource1), schedulerContextState.getReferencedResources());
+        Assert.assertEquals(buildSet(allocatedReservation1), schedulerContextState.getAllocatedReservations());
+        Assert.assertEquals(buildSet(reusableReservation1), schedulerContextState.getAvailableReservations());
 
         ////////////////////////////////////////////////////////////////////////////////
 
         // Create new savepoint and add the rest of reservations
-        savepoint1 = schedulerContext.createSavepoint();
-        schedulerContext.addAllocatedReservation(allocatedReservation2);
-        schedulerContext.addAllocatedReservation(allocatedReservation3);
-        schedulerContext.addAvailableReservation(reusableReservation2);
-        schedulerContext.addAvailableReservation(reusableReservation3);
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        savepoint1 = schedulerContextState.createSavepoint();
+        schedulerContextState.addAllocatedReservation(allocatedReservation2);
+        schedulerContextState.addAllocatedReservation(allocatedReservation3);
+        schedulerContextState.addAvailableReservation(reusableReservation2);
+        schedulerContextState.addAvailableReservation(reusableReservation3);
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
 
         // Create parent reservations with child which is already added
         Reservation allocatedReservationParent1 = new Reservation();
@@ -150,30 +151,30 @@ public class SchedulerContextTest
                 reusableReservation3.getOriginalReservation());
 
         // Add parent reservations to the cache transaction
-        savepoint2 = schedulerContext.createSavepoint();
-        schedulerContext.addAllocatedReservation(allocatedReservationParent1);
-        schedulerContext.addAllocatedReservation(allocatedReservationParent2);
-        schedulerContext.addAllocatedReservation(allocatedReservationParent3);
-        schedulerContext.addAvailableReservation(reusableReservationParent1);
-        schedulerContext.addAvailableReservation(reusableReservationParent2);
-        schedulerContext.addAvailableReservation(reusableReservationParent3);
-        Assert.assertEquals(savepoint2, schedulerContext.getCurrentSavepoint());
+        savepoint2 = schedulerContextState.createSavepoint();
+        schedulerContextState.addAllocatedReservation(allocatedReservationParent1);
+        schedulerContextState.addAllocatedReservation(allocatedReservationParent2);
+        schedulerContextState.addAllocatedReservation(allocatedReservationParent3);
+        schedulerContextState.addAvailableReservation(reusableReservationParent1);
+        schedulerContextState.addAvailableReservation(reusableReservationParent2);
+        schedulerContextState.addAvailableReservation(reusableReservationParent3);
+        Assert.assertEquals(savepoint2, schedulerContextState.getCurrentSavepoint());
 
         // Check proper state of cache transaction
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation2, allocatedReservation3,
                 allocatedReservationParent1, allocatedReservationParent2, allocatedReservationParent3),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation2, reusableReservation3,
                 reusableReservationParent1, reusableReservationParent2, reusableReservationParent3),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
 
         // Revert savepoint which added parent reservations and check that children are retained
         savepoint2.revert();
-        Assert.assertEquals(savepoint1, schedulerContext.getCurrentSavepoint());
+        Assert.assertEquals(savepoint1, schedulerContextState.getCurrentSavepoint());
         Assert.assertEquals(buildSet(allocatedReservation1, allocatedReservation2, allocatedReservation3),
-                schedulerContext.getAllocatedReservations());
+                schedulerContextState.getAllocatedReservations());
         Assert.assertEquals(buildSet(reusableReservation1, reusableReservation2, reusableReservation3),
-                schedulerContext.getAvailableReservations());
+                schedulerContextState.getAvailableReservations());
     }
 
     /**

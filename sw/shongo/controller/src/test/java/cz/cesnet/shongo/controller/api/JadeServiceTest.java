@@ -17,8 +17,8 @@ import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
-import cz.cesnet.shongo.controller.notification.NotificationRecord;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
@@ -176,9 +176,10 @@ public class JadeServiceTest extends AbstractExecutorTest
         }
 
         @Override
-        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
+        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+                NotificationManager manager)
         {
-            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient);
+            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient, manager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

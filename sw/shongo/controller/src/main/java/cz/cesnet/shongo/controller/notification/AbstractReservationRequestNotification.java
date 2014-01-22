@@ -19,8 +19,6 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
 {
     private String reservationRequestId;
 
-    private String reservationRequestUrl;
-
     private String reservationRequestDescription;
 
     private DateTime reservationRequestUpdatedAt;
@@ -32,16 +30,14 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
      *
      * @param reservationRequest
      * @param userSettingsManager
-     * @param configuration
      */
     public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            UserSettingsManager userSettingsManager, ControllerConfiguration configuration)
+            UserSettingsManager userSettingsManager)
     {
-        super(userSettingsManager, configuration);
+        super(userSettingsManager);
 
         if (reservationRequest != null) {
             this.reservationRequestId = ObjectIdentifier.formatId(reservationRequest);
-            this.reservationRequestUrl = configuration.getNotificationReservationRequestUrl(this.reservationRequestId);
             this.reservationRequestDescription = reservationRequest.getDescription();
             this.reservationRequestUpdatedAt = reservationRequest.getUpdatedAt();
             this.reservationRequestUpdatedBy = reservationRequest.getUpdatedBy();
@@ -51,11 +47,6 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     public String getReservationRequestId()
     {
         return reservationRequestId;
-    }
-
-    public String getReservationRequestUrl()
-    {
-        return reservationRequestUrl;
     }
 
     public String getReservationRequestDescription()

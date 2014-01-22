@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContextState;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import org.joda.time.DateTime;
@@ -241,7 +242,8 @@ public class ResourceCache extends AbstractCache<Resource>
                 resourceManager.listResourceReservationsInInterval(resourceId, slot);
 
         // Apply transaction
-        schedulerContext.applyReservations(resourceId, slot, resourceReservations, ResourceReservation.class);
+        SchedulerContextState schedulerContextState = schedulerContext.getState();
+        schedulerContextState.applyReservations(resourceId, slot, resourceReservations, ResourceReservation.class);
 
         // Perform check
         if (resourceReservations.size() > 0) {
@@ -357,7 +359,8 @@ public class ResourceCache extends AbstractCache<Resource>
             return;
         }
         // If the resource is already contained in the transaction, it is available
-        if (schedulerContext.containsReferencedResource(resource)) {
+        SchedulerContextState schedulerContextState = schedulerContext.getState();
+        if (schedulerContextState.containsReferencedResource(resource)) {
             return;
         }
         // Check resource availability

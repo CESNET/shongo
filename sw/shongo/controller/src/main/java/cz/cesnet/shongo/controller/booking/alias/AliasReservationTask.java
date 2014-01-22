@@ -170,7 +170,7 @@ public class AliasReservationTask extends ReservationTask
 
             // Get available alias reservations for alias provider
             for (AvailableReservation<AliasReservation> availableAliasReservation :
-                    schedulerContext.getAvailableAliasReservations(aliasProviderCapability, this.slot)) {
+                    schedulerContextState.getAvailableAliasReservations(aliasProviderCapability, this.slot)) {
                 aliasProvider.addAvailableAliasReservation(availableAliasReservation);
             }
             sortAvailableReservations(aliasProvider.getAvailableAliasReservations());
@@ -237,7 +237,7 @@ public class AliasReservationTask extends ReservationTask
                 }
 
                 // Available reservation will be returned so remove it from context (to not be used again)
-                schedulerContext.removeAvailableReservation(availableAliasReservation);
+                schedulerContextState.removeAvailableReservation(availableAliasReservation);
 
                 // Create new existing alias reservation
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
@@ -257,7 +257,7 @@ public class AliasReservationTask extends ReservationTask
             }
 
             // Get new available value
-            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
+            SchedulerContextState.Savepoint schedulerContextSavepoint = schedulerContextState.createSavepoint();
             try {
                 ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext, this.slot,
                         aliasProviderCapability.getValueProvider(), aliasProvider.getRequestedValue());

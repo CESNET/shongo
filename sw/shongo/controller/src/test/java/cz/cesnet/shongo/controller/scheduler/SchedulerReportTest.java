@@ -79,19 +79,19 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     @Test
     public void testRoomWithAliases() throws Exception
     {
-            DeviceResource deviceResource1 = new DeviceResource();
-            deviceResource1.setAllocatable(true);
-            deviceResource1.addTechnology(Technology.H323);
-            deviceResource1.addCapability(
-                    new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
-            deviceResource1.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME, true));
-            deviceResource1.addCapability(new AliasProviderCapability("1", AliasType.H323_E164, true));
-            createResource(deviceResource1);
+        DeviceResource deviceResource1 = new DeviceResource();
+        deviceResource1.setAllocatable(true);
+        deviceResource1.addTechnology(Technology.H323);
+        deviceResource1.addCapability(
+                new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
+        deviceResource1.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME, true));
+        deviceResource1.addCapability(new AliasProviderCapability("1", AliasType.H323_E164, true));
+        createResource(deviceResource1);
 
-            RoomSpecification roomSpecification1 = new RoomSpecification();
-            roomSpecification1.addTechnology(Technology.H323);
-            roomSpecification1.setParticipantCount(5);
-            print(Report.UserType.USER, roomSpecification1);
+        RoomSpecification roomSpecification1 = new RoomSpecification();
+        roomSpecification1.addTechnology(Technology.H323);
+        roomSpecification1.setParticipantCount(5);
+        print(Report.UserType.USER, roomSpecification1);
     }
 
     private void print(Report.UserType userType, ReservationTaskProvider... reservationTaskProviders)
@@ -109,12 +109,13 @@ public class SchedulerReportTest extends AbstractSchedulerTest
             ReservationTaskProvider reservationTaskProvider2) throws SchedulerException
     {
         SchedulerContext schedulerContext = createSchedulerContext();
+        SchedulerContextState schedulerContextState = schedulerContext.getState();
 
         ReservationTask reservationTask =
                 reservationTaskProvider1.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);
         Reservation reservation = print(userType, reservationTask);
         reservation.generateTestingId();
-        schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
+        schedulerContextState.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
 
         reservationTask =
                 reservationTaskProvider2.createReservationTask(schedulerContext, Temporal.INTERVAL_INFINITE);

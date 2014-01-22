@@ -128,7 +128,7 @@ public class RecordingServiceReservationTask extends ReservationTask
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RecordingServiceReservation> roomReservations =
                     reservationManager.getRecordingServiceReservations(recordingCapability, slot);
-            schedulerContext.applyReservations(
+            schedulerContextState.applyReservations(
                     recordingCapability.getId(), this.slot, roomReservations, RecordingServiceReservation.class);
             RangeSet<RecordingServiceReservation, DateTime> rangeSet =
                     new RangeSet<RecordingServiceReservation, DateTime>();

@@ -391,6 +391,9 @@ public class ObjectIdentifier
                    ControllerReportSet.IdentifierInvalidDomainException,
                    ControllerReportSet.IdentifierInvalidTypeException
     {
+        if (objectId == null) {
+            return null;
+        }
         if (LOCAL_IDENTIFIER_PATTERN.matcher(objectId).matches()) {
             return parsePersistenceId(objectId);
         }

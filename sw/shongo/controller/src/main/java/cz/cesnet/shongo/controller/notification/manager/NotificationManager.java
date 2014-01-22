@@ -104,7 +104,7 @@ public class NotificationManager extends Component
             if (enabled) {
                 // Perform notification in every notification executor
                 for (NotificationExecutor notificationExecutor : notificationExecutors) {
-                    if (notificationExecutor.executeNotification(recipient, notification)) {
+                    if (notificationExecutor.executeNotification(recipient, notification, this)) {
                         result = true;
                     }
                 }

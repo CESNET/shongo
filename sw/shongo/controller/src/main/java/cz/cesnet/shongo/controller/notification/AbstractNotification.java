@@ -2,11 +2,11 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
@@ -113,17 +113,19 @@ public abstract class AbstractNotification
 
     /**
      * @param recipient for who the message should be retrieved
+     * @param manager   to be used
      * @return {@link NotificationMessage} for given {@code recipient}
      */
-    public final NotificationMessage getMessageForRecipient(PersonInformation recipient)
+    public final NotificationMessage getMessageForRecipient(PersonInformation recipient,
+            NotificationManager manager)
     {
-        return renderMessageForRecipient(recipient);
+        return renderMessageForRecipient(recipient, manager);
     }
 
     /**
      * Create {@link NotificationRecord} if needed for given {@code recipient}.
      *
-     * @param recipient for who the {@link NotificationRecord} should be created
+     * @param recipient     for who the {@link NotificationRecord} should be created
      * @param entityManager to be used
      * @return new {@link NotificationRecord} or null
      */
@@ -136,9 +138,11 @@ public abstract class AbstractNotification
      * Render {@link NotificationMessage} for given {@code recipient}.
      *
      * @param recipient for who the message should be rendered
+     * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    protected abstract NotificationMessage renderMessageForRecipient(PersonInformation recipient);
+    protected abstract NotificationMessage renderMessageForRecipient(PersonInformation recipient,
+            NotificationManager manager);
 
     /**
      * Render {@link NotificationMessage} from template with given {@code fileName}.

@@ -532,7 +532,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 executablesToUpdate.add(migration.getTargetExecutable());
             }
 
-            int maxAttemptCount = getConfiguration().getInt(ControllerConfiguration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
+            int maxAttemptCount = configuration.getInt(ControllerConfiguration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
             DateTime dateTimeNow = DateTime.now();
             for (cz.cesnet.shongo.controller.booking.executable.Executable executableToUpdate : executablesToUpdate) {
                 if (executableToUpdate.getSlot().contains(dateTimeNow)) {

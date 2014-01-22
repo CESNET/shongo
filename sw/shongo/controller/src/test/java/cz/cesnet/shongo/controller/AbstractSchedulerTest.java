@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
@@ -65,12 +66,13 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
 
     public SchedulerContext createSchedulerContext(Interval interval)
     {
-        return new SchedulerContext(interval.getStart(), cache, entityManager, null);
+        return new SchedulerContext(interval.getStart(), cache, entityManager,
+                new AuthorizationManager(entityManager, null));
     }
 
     public SchedulerContext createSchedulerContext()
     {
-        return new SchedulerContext(Temporal.DATETIME_INFINITY_START, cache, entityManager, null);
+        return createSchedulerContext(Temporal.INTERVAL_INFINITE);
     }
 
     protected void createResource(Resource resource)

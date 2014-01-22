@@ -91,6 +91,7 @@ public class NotificationRecord extends SimplePersistentObject
     /**
      * @return {@link #recipientId}
      */
+    @Column(nullable = false)
     public Long getRecipientId()
     {
         return recipientId;
@@ -125,6 +126,7 @@ public class NotificationRecord extends SimplePersistentObject
     /**
      * @return {@link #targetId}
      */
+    @Column(nullable = false)
     public Long getTargetId()
     {
         return targetId;

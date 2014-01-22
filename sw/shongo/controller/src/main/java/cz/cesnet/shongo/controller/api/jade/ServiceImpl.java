@@ -162,7 +162,7 @@ public class ServiceImpl implements Service
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
-            AbstractNotification notification = new ConfigurableNotification(recipients, userSettingsManager, configuration)
+            AbstractNotification notification = new ConfigurableNotification(recipients, userSettingsManager)
             {
                 @Override
                 protected Collection<Locale> getAvailableLocals()
@@ -177,7 +177,8 @@ public class ServiceImpl implements Service
                 }
 
                 @Override
-                protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+                protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+                        NotificationManager manager)
                 {
                     Locale locale = configuration.getLocale();
                     String language = locale.getLanguage();

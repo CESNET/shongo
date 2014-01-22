@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -373,8 +374,35 @@ public class ReservationNotificationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testParticipants()
+    public void testParticipants() throws Exception
     {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10,
+                new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164, AliasType.SIP_URI}));
+        mcu.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
+        mcu.setAllocatable(true);
+        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Room Reservation Request");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
+        roomSpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
         EntityManager entityManager = createEntityManager();
         List<NotificationRecord> notificationRecords = entityManager.createNamedQuery(
                 "NotificationRecord.findByRecipient", NotificationRecord.class)
@@ -404,9 +432,10 @@ public class ReservationNotificationTest extends AbstractControllerTest
         }
 
         @Override
-        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
+        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+                NotificationManager manager)
         {
-            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient);
+            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient, manager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

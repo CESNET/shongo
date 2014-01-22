@@ -1,14 +1,12 @@
 package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UserSettings;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
-import cz.cesnet.shongo.controller.notification.NotificationRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,17 +39,24 @@ public class EmailNotificationExecutor extends NotificationExecutor
     private EmailSender emailSender;
 
     /**
+     * @see ControllerConfiguration
+     */
+    private ControllerConfiguration configuration;
+
+    /**
      * Constructor.
      *
      * @param emailSender sets the {@link #emailSender}
      */
-    public EmailNotificationExecutor(EmailSender emailSender)
+    public EmailNotificationExecutor(EmailSender emailSender, ControllerConfiguration configuration)
     {
         this.emailSender = emailSender;
+        this.configuration = configuration;
     }
 
     @Override
-    public boolean executeNotification(PersonInformation recipient, AbstractNotification notification)
+    public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+            NotificationManager manager)
     {
         if (!emailSender.isInitialized()) {
             return false;
@@ -69,7 +74,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                     replyToEmails.add(replyToEmail);
                 }
             }
-            NotificationMessage message = notification.getMessageForRecipient(recipient);
+            NotificationMessage message = notification.getMessageForRecipient(recipient, manager);
 
             // Build email header
             StringBuilder emailHeaderBuilder = new StringBuilder();

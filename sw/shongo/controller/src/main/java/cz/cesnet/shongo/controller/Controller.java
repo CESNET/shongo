@@ -869,7 +869,7 @@ public class Controller
         controller.addComponent(executor);
 
         // Add mail notification executor
-        controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender()));
+        controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender(), configuration));
 
         // Add XML-RPC services
         RecordingsCache recordingsCache = new RecordingsCache();

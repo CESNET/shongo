@@ -26,6 +26,8 @@ public abstract class NotificationExecutor
 
     /**
      * @param notification to be executed
+     * @param manager
      */
-    public abstract boolean executeNotification(PersonInformation recipient, AbstractNotification notification);
+    public abstract boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+            NotificationManager manager);
 }

@@ -112,6 +112,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             schedulerContext.setPurpose(request.getPurpose());
 
             // Ignore reservations for already allocated reservation request
+            SchedulerContextState schedulerContextState = schedulerContext.getState();
             String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
             if (ignoredReservationRequestId != null) {
                 ObjectIdentifier objectId = ObjectIdentifier.parse(
@@ -121,7 +122,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                         ignoredReservationRequest.getAllocation().getReservations()) {
                     if (reservation.getSlot().overlaps(interval)) {
-                        schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REALLOCATABLE);
+                        schedulerContextState.addAvailableReservation(
+                                reservation, AvailableReservation.Type.REALLOCATABLE);
                     }
                 }
 
@@ -130,8 +132,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                             childReservationRequest.getAllocation().getReservations()) {
                         if (reservation.getSlot().overlaps(interval)) {
-                            schedulerContext.addAvailableReservation(reservation,
-                                    AvailableReservation.Type.REALLOCATABLE);
+                            schedulerContextState.addAvailableReservation(
+                                    reservation, AvailableReservation.Type.REALLOCATABLE);
                         }
                     }
                 }

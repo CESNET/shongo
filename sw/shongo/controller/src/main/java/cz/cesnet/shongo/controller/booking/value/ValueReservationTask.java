@@ -76,13 +76,13 @@ public class ValueReservationTask extends ReservationTask
         Map<String, Interval> usedValues = getUsedValues(targetValueProvider, slot);
 
         // Get available value reservations
-        List<AvailableReservation<ValueReservation>> availableValueReservations =
+        List<AvailableReservation<ValueReservation>> availableReservations =
                 new LinkedList<AvailableReservation<ValueReservation>>();
-        availableValueReservations.addAll(schedulerContext.getAvailableValueReservations(targetValueProvider, slot));
-        sortAvailableReservations(availableValueReservations);
+        availableReservations.addAll(schedulerContextState.getAvailableValueReservations(targetValueProvider, slot));
+        sortAvailableReservations(availableReservations);
 
         // Find matching available value reservation
-        for (AvailableReservation<ValueReservation> availableValueReservation : availableValueReservations) {
+        for (AvailableReservation<ValueReservation> availableValueReservation : availableReservations) {
             // Check available value reservation
             Reservation originalReservation = availableValueReservation.getOriginalReservation();
             ValueReservation valueReservation = availableValueReservation.getTargetReservation();
@@ -103,7 +103,7 @@ public class ValueReservationTask extends ReservationTask
             }
 
             // Available reservation will be returned so remove it from context (to not be used again)
-            schedulerContext.removeAvailableReservation(availableValueReservation);
+            schedulerContextState.removeAvailableReservation(availableValueReservation);
 
             // Create new existing value reservation
             addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
@@ -164,7 +164,7 @@ public class ValueReservationTask extends ReservationTask
         List<ValueReservation> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
 
-        schedulerContext.applyReservations(valueProviderId, slot, allocatedValues, ValueReservation.class);
+        schedulerContextState.applyReservations(valueProviderId, slot, allocatedValues, ValueReservation.class);
         for (ValueReservation allocatedValue : allocatedValues) {
             usedValues.put(allocatedValue.getValue(), allocatedValue.getSlot());
         }

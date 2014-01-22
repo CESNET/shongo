@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import org.joda.time.DateTimeZone;
 
 import javax.persistence.EntityManager;
@@ -24,7 +25,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
      */
-    private List<AbstractNotification> events = new LinkedList<AbstractNotification>();
+    private List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
 
     /**
      * Constructor.
@@ -33,9 +34,9 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
      * @param authorizationManager
      */
     public ReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            AuthorizationManager authorizationManager, ControllerConfiguration configuration)
+            AuthorizationManager authorizationManager)
     {
-        super(reservationRequest, authorizationManager.getUserSettingsManager(), configuration);
+        super(reservationRequest, authorizationManager.getUserSettingsManager());
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 
@@ -47,11 +48,11 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     /**
-     * @param event to be added to the {@link #events}
+     * @param notification to be added to the {@link #notifications}
      */
-    public void addEvent(AbstractNotification event)
+    public void addNotification(AbstractNotification notification)
     {
-        events.add(event);
+        notifications.add(notification);
     }
 
     @Override
@@ -68,17 +69,18 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(ConfigurableNotification.Configuration configuration)
+    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+            NotificationManager manager)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                this.configuration.getNotificationUserSettingsUrl());
+                manager.getConfiguration());
 
         // Number of child events of each type
         int allocationFailedNotifications = 0;
         int newReservationNotifications = 0;
         int modifiedReservationNotifications = 0;
         int deletedReservationNotifications = 0;
-        for (AbstractNotification event : events) {
+        for (AbstractNotification event : notifications) {
             if (event instanceof AllocationFailedNotification) {
                 allocationFailedNotifications++;
             }
@@ -125,7 +127,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
 
         // Description of the reservation request result
         StringBuilder resultDescriptionBuilder = new StringBuilder();
-        int totalNotifications = events.size();
+        int totalNotifications = notifications.size();
         if (totalNotifications == allocationFailedNotifications) {
             resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.failed"));
         }
@@ -174,11 +176,11 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
 
         NotificationMessage message = renderMessageFromTemplate(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
-        for (AbstractNotification event : events) {
+        for (AbstractNotification event : notifications) {
             NotificationMessage childMessage;
             if (event instanceof ConfigurableNotification) {
                 ConfigurableNotification configurableEvent = (ConfigurableNotification) event;
-                childMessage = configurableEvent.renderMessageForConfiguration(configuration);
+                childMessage = configurableEvent.renderMessageForConfiguration(configuration, manager);
             }
             else {
                 throw new TodoImplementException(event.getClass());

@@ -101,6 +101,13 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         return controller;
     }
+    /**
+     * @return {@link ControllerConfiguration} from the {@link #controller}
+     */
+    public ControllerConfiguration getConfiguration()
+    {
+        return controller.getConfiguration();
+    }
 
     /**
      * @return {@link #authorization}

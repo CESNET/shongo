@@ -15,7 +15,7 @@ public abstract class Component
     /**
      * @see ControllerConfiguration
      */
-    private ControllerConfiguration configuration;
+    protected ControllerConfiguration configuration;
 
     /**
      * @return {@link #configuration}

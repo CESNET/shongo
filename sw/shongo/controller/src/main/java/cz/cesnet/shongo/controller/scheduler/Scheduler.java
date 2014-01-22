@@ -17,7 +17,7 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.AllocationFailedNotification;
-import cz.cesnet.shongo.controller.notification.NotificationList;
+import cz.cesnet.shongo.controller.notification.NotificationBuilder;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -108,7 +108,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            NotificationList notifications = new NotificationList(getConfiguration());
+            NotificationBuilder notificationBuilder = new NotificationBuilder(authorizationManager, configuration);
 
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -129,7 +129,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             for (Reservation reservation : reservationsForDeletion) {
-                notifications.addReservationEvent(reservation, ReservationNotification.Type.DELETED, authorizationManager);
+                notificationBuilder.addNotification(new ReservationNotification(
+                        ReservationNotification.Type.DELETED, reservation, authorizationManager));
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
                 result.deletedReservations++;
@@ -179,20 +180,24 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
-                    SchedulerContext schedulerContext = new SchedulerContext(
-                            interval.getStart(), cache, entityManager, authorizationManager);
-                    allocateReservationRequest(reservationRequest, schedulerContext, notifications);
+                    DateTime start = interval.getStart();
+                    SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager);
+                    SchedulerContextState contextState = context.getState();
+                    allocateReservationRequest(reservationRequest, context);
 
                     // Reallocate dependent reservation requests
-                    Iterator<ReservationRequest> iterator = schedulerContext.getReservationRequestsToReallocate();
+                    Iterator<ReservationRequest> iterator = contextState.getReservationRequestsToReallocate();
                     while (iterator.hasNext()) {
                         ReservationRequest reservationRequestToReallocate = iterator.next();
-                        allocateReservationRequest(reservationRequestToReallocate, schedulerContext, notifications);
+                        allocateReservationRequest(reservationRequestToReallocate, context);
                         reservationRequestToReallocate.getSpecification().updateTechnologies(entityManager);
                     }
 
                     // Finalize (delete old reservations, etc)
-                    schedulerContext.finish();
+                    List<AbstractNotification> notifications = context.finish();
+                    for (AbstractNotification notification : notifications) {
+                        notificationBuilder.addNotification(notification);
+                    }
 
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
@@ -228,9 +233,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        notifications.addReservationRequestEvent(new AllocationFailedNotification(
-                                reservationRequest, authorizationManager, getConfiguration()),
-                                reservationRequest, authorizationManager);
+                        notificationBuilder.addNotification(new AllocationFailedNotification(
+                                reservationRequest, authorizationManager, configuration));
                     }
                     else {
                         // Report allocation failure internal error
@@ -246,7 +250,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             executableManager.deleteAllNotReferenced(authorizationManager);
 
             // Execute notifications
-            for (AbstractNotification notification : notifications) {
+            for (AbstractNotification notification : notificationBuilder.getNotifications()) {
                 notificationManager.executeNotification(notification, entityManager);
             }
 
@@ -295,24 +299,24 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
-     * @param schedulerContext
-     * @param notificationList
+     * @param context
      */
-    private static void allocateReservationRequest(ReservationRequest reservationRequest,
-            SchedulerContext schedulerContext, NotificationList notificationList) throws SchedulerException
+    private void allocateReservationRequest(ReservationRequest reservationRequest, SchedulerContext context)
+            throws SchedulerException
     {
         logger.debug("Allocating reservation request '{}'...", reservationRequest.getId());
 
-        EntityManager entityManager = schedulerContext.getEntityManager();
+        EntityManager entityManager = context.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
-        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+        AuthorizationManager authorizationManager = context.getAuthorizationManager();
 
         // Initialize scheduler context
-        schedulerContext.setReservationRequest(reservationRequest);
+        SchedulerContextState contextState = context.getState();
+        context.setReservationRequest(reservationRequest);
 
         // Get slot
-        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
+        DateTime minimumDateTime = context.getMinimumDateTime();
         Interval slot = reservationRequest.getSlot();
         if (slot.isBefore(minimumDateTime)) {
             throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
@@ -335,7 +339,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 slotStart = usageSlotEnd;
             }
             else {
-                schedulerContext.addReservationRequestToReallocate(reservationRequestUsage);
+                contextState.addReservationRequestToReallocate(reservationRequestUsage);
             }
         }
         // Update requested slot start to be after active usages
@@ -350,14 +354,14 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             if (!slot.overlaps(allocatedReservation.getSlot())) {
                 continue;
             }
-            schedulerContext.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
+            contextState.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
         }
 
         // Fill allocated reservation from reused reservation request as reusable
         Allocation reusedAllocation = reservationRequest.getReusedAllocation();
         Reservation reusableReservation = null;
         if (reusedAllocation != null) {
-            reusableReservation = schedulerContext.setReusableAllocation(reusedAllocation, slot);
+            reusableReservation = context.setReusableAllocation(reusedAllocation, slot);
         }
 
         // Get reservation task
@@ -366,7 +370,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         if (specification instanceof ReservationTaskProvider) {
             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
             reservationTask = reservationTaskProvider.createReservationTask(
-                    schedulerContext, slot);
+                    context, slot);
         }
         else {
             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
@@ -379,7 +383,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         if (reusableReservation != null && reservationRequest.isReusedAllocationMandatory()) {
             boolean reused = false;
             Executable reusableExecutable = reusableReservation.getExecutable();
-            for (Reservation reservation : schedulerContext.getAllocatedReservations()) {
+            for (Reservation reservation : contextState.getAllocatedReservations()) {
                 if (reservation instanceof ExistingReservation) {
                     ExistingReservation existingReservation = (ExistingReservation) reservation;
                     if (existingReservation.getReusedReservation().equals(reusableReservation)) {
@@ -389,7 +393,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             if (!reused && reusableExecutable instanceof RoomEndpoint) {
-                for (Reservation reservation : schedulerContext.getAllocatedReservations()) {
+                for (Reservation reservation : contextState.getAllocatedReservations()) {
                     Executable executable = reservation.getExecutable();
                     if (executable instanceof UsedRoomEndpoint) {
                         UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
@@ -456,12 +460,13 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
 
             // Create notification
-            notificationList.addReservationEvent(oldReservation, ReservationNotification.Type.DELETED, authorizationManager);
+            contextState.addNotification(new ReservationNotification(
+                    ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
 
             // Remove the old reservation from allocation
             allocation.removeReservation(oldReservation);
             // Delete the old reservation
-            schedulerContext.addReservationToDelete(oldReservation);
+            contextState.addReservationToDelete(oldReservation);
         }
 
         // Add new allocated reservation
@@ -473,9 +478,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create notification
-        notificationList.addReservationEvent(allocatedReservation,
+        contextState.addNotification(new ReservationNotification(
                 (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
-                authorizationManager);
+                allocatedReservation, authorizationManager));
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);

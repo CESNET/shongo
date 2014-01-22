@@ -227,7 +227,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         // Determine technology by which the resources will connect
-        Technology technology = null;
+        Technology technology;
         Set<Technology> technologies = new HashSet<Technology>(endpointFrom.getTechnologies());
         technologies.retainAll(endpointTo.getTechnologies());
         switch (technologies.size()) {
@@ -260,7 +260,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology));
-        SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
+        SchedulerContextState.Savepoint schedulerContextSavepoint = schedulerContextState.createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }

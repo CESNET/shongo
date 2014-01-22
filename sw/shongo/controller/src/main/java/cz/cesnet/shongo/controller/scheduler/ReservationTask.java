@@ -19,9 +19,14 @@ import java.util.*;
 public abstract class ReservationTask
 {
     /**
-     * Context.
+     * @see SchedulerContext
      */
     protected SchedulerContext schedulerContext;
+
+    /**
+     * @see SchedulerContextState
+     */
+    protected SchedulerContextState schedulerContextState;
 
     /**
      * Slot for which we should allocate.
@@ -49,6 +54,7 @@ public abstract class ReservationTask
     public ReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
         this.schedulerContext = schedulerContext;
+        this.schedulerContextState = schedulerContext.getState();
         this.slot = slot;
     }
 
@@ -83,7 +89,7 @@ public abstract class ReservationTask
     public Reservation addChildReservation(Reservation reservation)
     {
         childReservations.add(reservation);
-        schedulerContext.addAllocatedReservation(reservation);
+        schedulerContextState.addAllocatedReservation(reservation);
         return reservation.getTargetReservation();
     }
 
@@ -94,7 +100,7 @@ public abstract class ReservationTask
     public final <R extends Reservation> R addChildReservation(Reservation reservation, Class<R> reservationClass)
     {
         childReservations.add(reservation);
-        schedulerContext.addAllocatedReservation(reservation);
+        schedulerContextState.addAllocatedReservation(reservation);
         return reservationClass.cast(reservation.getTargetReservation());
     }
 
@@ -322,7 +328,7 @@ public abstract class ReservationTask
         }
 
         // Add reservation to the context
-        schedulerContext.addAllocatedReservation(reservation);
+        schedulerContextState.addAllocatedReservation(reservation);
 
         return reservation;
     }
