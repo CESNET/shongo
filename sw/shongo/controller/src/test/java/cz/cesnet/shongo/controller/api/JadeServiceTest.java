@@ -179,7 +179,7 @@ public class JadeServiceTest extends AbstractExecutorTest
         public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
                 NotificationManager manager)
         {
-            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient, manager);
+            NotificationMessage recipientMessage = notification.getMessage(recipient, manager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

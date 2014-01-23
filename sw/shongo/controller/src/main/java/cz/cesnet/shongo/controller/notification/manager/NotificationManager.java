@@ -115,11 +115,21 @@ public class NotificationManager extends Component
             }
             if (result && entityManager != null) {
                 // Create persistent notification record
-                NotificationRecord notificationRecord = notification.createRecordForRecipient(recipient, entityManager);
+                NotificationRecord notificationRecord = notification.createRecord(recipient, entityManager);
                 if (notificationRecord != null) {
                     entityManager.persist(notificationRecord);
                 }
             }
+        }
+    }
+
+    /**
+     * @param notifications to be executed
+     */
+    public void executeNotifications(List<AbstractNotification> notifications, EntityManager entityManager)
+    {
+        for (AbstractNotification notification : notifications) {
+            executeNotification(notification, entityManager);
         }
     }
 }

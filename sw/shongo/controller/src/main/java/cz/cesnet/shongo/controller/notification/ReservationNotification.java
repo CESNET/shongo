@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -29,11 +28,9 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationNotification extends AbstractReservationRequestNotification
+public abstract class ReservationNotification extends AbstractReservationRequestNotification
 {
     private UserInformation user;
-
-    private ReservationNotification.Type type;
 
     private String id;
 
@@ -45,7 +42,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
 
     private Map<String, Target> childTargetByReservation = new LinkedHashMap<String, Target>();
 
-    public ReservationNotification(ReservationNotification.Type type, Reservation reservation,
+    private ReservationNotification(Reservation reservation,
             AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
         super(reservationRequest, authorizationManager.getUserSettingsManager());
@@ -56,7 +53,6 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         if (updatedBy != null) {
             this.user = authorizationManager.getUserInformation(updatedBy);
         }
-        this.type = type;
         this.id = ObjectIdentifier.formatId(reservation);
         this.slot = reservation.getSlot();
         this.target = Target.createInstance(reservation, entityManager);
@@ -69,17 +65,6 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         for (Reservation childReservation : reservation.getChildReservations()) {
             addChildTargets(childReservation, entityManager);
         }
-    }
-
-    public ReservationNotification(ReservationNotification.Type type, Reservation reservation,
-            AuthorizationManager authorizationManager)
-    {
-        this(type, reservation, getReservationRequest(reservation), authorizationManager);
-    }
-
-    public ReservationNotification.Type getType()
-    {
-        return type;
     }
 
     public String getId()
@@ -107,12 +92,13 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         return childTargetByReservation;
     }
 
+    public abstract String getType();
+
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+    protected NotificationMessage renderMessage(Configuration configuration,
             NotificationManager manager)
     {
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                manager.getConfiguration());
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
         renderContext.addParameter("target", target);
 
         StringBuilder titleBuilder = new StringBuilder();
@@ -122,7 +108,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
             titleBuilder.append("] [");
             titleBuilder.append(renderContext.message("target.type." + target.getType()));
             titleBuilder.append("] ");
-            titleBuilder.append(renderContext.message("reservation.type." + type));
+            titleBuilder.append(renderContext.message("reservation.type." + getType()));
             titleBuilder.append(" ");
             titleBuilder.append(renderContext.message("reservation"));
             titleBuilder.append(" (rsv:");
@@ -131,7 +117,7 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
             titleBuilder.append(renderContext.formatInterval(slot));
         }
         else {
-            titleBuilder.append(renderContext.message("reservation.type." + type));
+            titleBuilder.append(renderContext.message("reservation.type." + getType()));
             titleBuilder.append(" ");
             titleBuilder.append(renderContext.message("reservation"));
             titleBuilder.append(" - ");
@@ -153,14 +139,14 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         else {
             templateFileName = "reservation.ftl";
         }
-        return renderMessageFromTemplate(renderContext, titleBuilder.toString(), templateFileName);
+        return renderTemplateMessage(renderContext, titleBuilder.toString(), templateFileName);
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient,
+    protected NotificationMessage renderMessage(PersonInformation recipient,
             NotificationManager manager)
     {
-        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient, manager);
+        NotificationMessage notificationMessage = super.renderMessage(recipient, manager);
         if (user != null) {
             notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         }
@@ -235,5 +221,33 @@ public class ReservationNotification extends AbstractReservationRequestNotificat
         NEW,
         MODIFIED,
         DELETED
+    }
+
+    public static class New extends ReservationNotification
+    {
+        public New(Reservation reservation, AuthorizationManager authorizationManager)
+        {
+            super(reservation, getReservationRequest(reservation), authorizationManager);
+        }
+
+        @Override
+        public String getType()
+        {
+            return "NEW";
+        }
+    }
+
+    public static class Deleted extends ReservationNotification
+    {
+        public Deleted(Reservation reservation, AuthorizationManager authorizationManager)
+        {
+            super(reservation, getReservationRequest(reservation), authorizationManager);
+        }
+
+        @Override
+        public String getType()
+        {
+            return "DELETED";
+        }
     }
 }

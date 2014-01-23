@@ -74,7 +74,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                     replyToEmails.add(replyToEmail);
                 }
             }
-            NotificationMessage message = notification.getMessageForRecipient(recipient, manager);
+            NotificationMessage message = notification.getMessage(recipient, manager);
 
             // Build email header
             StringBuilder emailHeaderBuilder = new StringBuilder();

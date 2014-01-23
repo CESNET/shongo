@@ -69,13 +69,12 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+    protected NotificationMessage renderMessage(Configuration configuration,
             NotificationManager manager)
     {
         Locale locale = configuration.getLocale();
         DateTimeZone timeZone = configuration.getTimeZone();
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                manager.getConfiguration());
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
         renderContext.addParameter("target", target);
         renderContext.addParameter("userError", this.userError.getMessage(locale, timeZone));
         if (configuration.isAdministrator()) {
@@ -99,16 +98,15 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
             titleBuilder.append(")");
         }
 
-        NotificationMessage message = renderMessageFromTemplate(
+        NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "allocation-failed.ftl");
         return message;
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient,
-            NotificationManager manager)
+    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager)
     {
-        NotificationMessage notificationMessage = super.renderMessageForRecipient(recipient, manager);
+        NotificationMessage notificationMessage = super.renderMessage(recipient, manager);
         notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         return notificationMessage;
     }

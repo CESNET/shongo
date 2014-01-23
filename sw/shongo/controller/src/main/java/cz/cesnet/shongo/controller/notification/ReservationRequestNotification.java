@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
@@ -69,36 +68,24 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+    protected NotificationMessage renderMessage(Configuration configuration,
             NotificationManager manager)
     {
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                manager.getConfiguration());
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
 
         // Number of child events of each type
         int allocationFailedNotifications = 0;
         int newReservationNotifications = 0;
-        int modifiedReservationNotifications = 0;
         int deletedReservationNotifications = 0;
         for (AbstractNotification event : notifications) {
             if (event instanceof AllocationFailedNotification) {
                 allocationFailedNotifications++;
             }
-            else if (event instanceof ReservationNotification) {
-                ReservationNotification reservationNotification = (ReservationNotification) event;
-                switch (reservationNotification.getType()) {
-                    case NEW:
-                        newReservationNotifications++;
-                        break;
-                    case MODIFIED:
-                        modifiedReservationNotifications++;
-                        break;
-                    case DELETED:
-                        deletedReservationNotifications++;
-                        break;
-                    default:
-                        throw new TodoImplementException(reservationNotification.getType());
-                }
+            else if (event instanceof ReservationNotification.New) {
+                newReservationNotifications++;
+            }
+            else if (event instanceof ReservationNotification.Deleted) {
+                deletedReservationNotifications++;
             }
             else {
                 throw new TodoImplementException(event.getClass());
@@ -132,7 +119,6 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.failed"));
         }
         else if (totalNotifications == newReservationNotifications
-                || totalNotifications == modifiedReservationNotifications
                 || totalNotifications == deletedReservationNotifications) {
             resultDescriptionBuilder.append(renderContext.message("reservationRequest.result.success"));
         }
@@ -140,7 +126,6 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             Map<String, Integer> childrenTypes = new HashMap<String, Integer>();
             childrenTypes.put("reservationRequest.child.failed", allocationFailedNotifications);
             childrenTypes.put("reservationRequest.child.new", newReservationNotifications);
-            childrenTypes.put("reservationRequest.child.modified", modifiedReservationNotifications);
             childrenTypes.put("reservationRequest.child.deleted", deletedReservationNotifications);
 
             if (allocationFailedNotifications > 0) {
@@ -174,13 +159,13 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         titleBuilder.append(" ");
         titleBuilder.append(resultDescriptionBuilder);
 
-        NotificationMessage message = renderMessageFromTemplate(
+        NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
         for (AbstractNotification event : notifications) {
             NotificationMessage childMessage;
             if (event instanceof ConfigurableNotification) {
                 ConfigurableNotification configurableEvent = (ConfigurableNotification) event;
-                childMessage = configurableEvent.renderMessageForConfiguration(configuration, manager);
+                childMessage = configurableEvent.renderMessage(configuration, manager);
             }
             else {
                 throw new TodoImplementException(event.getClass());

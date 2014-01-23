@@ -4,69 +4,69 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * {@link ConfigurableNotification} for {@link RoomEndpoint} participants.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RoomParticipationNotification extends ConfigurableNotification
+public abstract class RoomParticipationNotification extends ConfigurableNotification
 {
-    private Interval slot;
+    protected Map<PersonInformation, PersonParticipant> participantByPerson =
+            new HashMap<PersonInformation, PersonParticipant>();
 
-    private Map<PersonInformation, AbstractParticipant> participantByPerson = new HashMap<PersonInformation, AbstractParticipant>();
-
-    public RoomParticipationNotification(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
+    public RoomParticipationNotification(AuthorizationManager authorizationManager)
     {
         super(authorizationManager.getUserSettingsManager());
+    }
 
-        slot = roomEndpoint.getSlot();
+    protected abstract NotificationRecord.NotificationType getNotificationType();
 
-        for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
-            if (participant instanceof PersonParticipant) {
-                PersonParticipant personParticipant = (PersonParticipant) participant;
-                PersonInformation personInformation = personParticipant.getPersonInformation();
-                addRecipient(personInformation);
-                participantByPerson.put(personInformation, participant);
-            }
-        }
+    protected abstract Long getTargetId();
+
+    protected void addRecipient(PersonParticipant personParticipant)
+    {
+        PersonInformation personInformation = personParticipant.getPersonInformation();
+        addRecipient(personInformation);
+        this.participantByPerson.put(personInformation, personParticipant);
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
-            NotificationManager manager)
+    public boolean removeRecipient(PersonInformation recipient)
     {
-        Locale locale = configuration.getLocale();
-        DateTimeZone timeZone = configuration.getTimeZone();
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification",
-                manager.getConfiguration());
-        renderContext.addParameter("slot", slot);
+        participantByPerson.remove(recipient);
+        return super.removeRecipient(recipient);
+    }
+
+    @Override
+    protected NotificationMessage renderMessage(Configuration configuration, NotificationManager manager)
+    {
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
 
         StringBuilder titleBuilder = new StringBuilder();
-        titleBuilder.append("Participant Notification Title");
+        titleBuilder.append("Participant Notification - ");
+        titleBuilder.append(getNotificationType());
 
-        return renderMessageFromTemplate(renderContext, titleBuilder.toString(), "room-participation.ftl");
+        return renderTemplateMessage(renderContext, titleBuilder.toString(), "room-participation.ftl");
     }
 
     @Override
-    public NotificationRecord createRecordForRecipient(PersonInformation recipient, EntityManager entityManager)
+    public NotificationRecord createRecord(PersonInformation recipient, EntityManager entityManager)
     {
         NotificationRecord notificationRecord = new NotificationRecord();
         notificationRecord.setCreatedAt(getCreatedAt());
-        notificationRecord.setRecipientType(NotificationRecord.RecipientType.USER);
-        notificationRecord.setRecipientId(0l);
-        notificationRecord.setNotificationType(NotificationRecord.NotificationType.ROOM_CREATED);
-        notificationRecord.setTargetId(participantByPerson.get(recipient).getId());
+        notificationRecord.setRecipientType(NotificationRecord.RecipientType.PARTICIPANT);
+        notificationRecord.setRecipientId(participantByPerson.get(recipient).getId());
+        notificationRecord.setNotificationType(getNotificationType());
+        notificationRecord.setTargetId(getTargetId());
         return notificationRecord;
     }
 
@@ -75,4 +75,120 @@ public class RoomParticipationNotification extends ConfigurableNotification
     {
         return NotificationMessage.AVAILABLE_LOCALES;
     }
+
+    public static abstract class Simple extends RoomParticipationNotification
+    {
+        private RoomEndpoint roomEndpoint;
+
+        private Simple(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
+        {
+            super(authorizationManager);
+
+            this.roomEndpoint = roomEndpoint;
+
+            for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
+                if (participant instanceof PersonParticipant) {
+                    PersonParticipant personParticipant = (PersonParticipant) participant;
+                    addRecipient(personParticipant);
+                }
+            }
+        }
+
+        public RoomEndpoint getRoomEndpoint()
+        {
+            return roomEndpoint;
+        }
+
+        @Override
+        protected Long getTargetId()
+        {
+            return roomEndpoint.getId();
+        }
+
+        public abstract Long getReservationRequestId();
+    }
+
+    public static class Created extends Simple
+    {
+        private RoomReservation roomReservation;
+
+        public Created(RoomReservation roomReservation, AuthorizationManager authorizationManager)
+        {
+            super((RoomEndpoint) roomReservation.getExecutable(), authorizationManager);
+
+            this.roomReservation = roomReservation;
+        }
+
+        @Override
+        protected NotificationRecord.NotificationType getNotificationType()
+        {
+            return NotificationRecord.NotificationType.ROOM_CREATED;
+        }
+
+        @Override
+        public Long getReservationRequestId()
+        {
+            return roomReservation.getTopReservation().getReservationRequest().getId();
+        }
+    }
+
+    public static class Deleted extends Simple
+    {
+        private Long reservationRequestId;
+
+        public Deleted(RoomEndpoint roomEndpoint, ReservationRequest reservationRequest,
+                AuthorizationManager authorizationManager)
+        {
+            super(roomEndpoint, authorizationManager);
+
+            this.reservationRequestId = (reservationRequest != null ? reservationRequest.getId() : null);
+        }
+
+        @Override
+        protected NotificationRecord.NotificationType getNotificationType()
+        {
+            return NotificationRecord.NotificationType.ROOM_DELETED;
+        }
+
+        @Override
+        public Long getReservationRequestId()
+        {
+            return reservationRequestId;
+        }
+    }
+
+    public static class Modified extends RoomParticipationNotification
+    {
+        private Deleted deleted;
+
+        private Created created;
+
+        public Modified(Deleted deleted, Created created, AuthorizationManager authorizationManager)
+        {
+            super(authorizationManager);
+            this.deleted = deleted;
+            this.created = created;
+
+            Set<PersonInformation> recipients = new HashSet<PersonInformation>(deleted.getRecipients());
+            recipients.retainAll(created.getRecipients());
+            for (PersonInformation recipient : recipients) {
+                addRecipient(this.created.participantByPerson.get(recipient));
+            }
+            deleted.removeRecipients(recipients);
+            created.removeRecipients(recipients);
+        }
+
+        @Override
+        protected NotificationRecord.NotificationType getNotificationType()
+        {
+            return NotificationRecord.NotificationType.ROOM_MODIFIED;
+        }
+
+        @Override
+        protected Long getTargetId()
+        {
+            return created.getTargetId();
+        }
+    }
 }
+

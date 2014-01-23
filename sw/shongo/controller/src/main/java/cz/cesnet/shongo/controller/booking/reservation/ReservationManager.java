@@ -5,21 +5,24 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
-import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
-import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.NotificationRecord;
+import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -60,20 +63,22 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param reservation to be deleted in the database
+     * @return collection of {@link AbstractNotification}s
      */
-    public synchronized void delete(Reservation reservation, AuthorizationManager authorizationManager)
+    public synchronized void delete(Reservation reservation,
+            AuthorizationManager authorizationManager)
     {
         // Get all reservations
-        Collection<Reservation> reservations = new LinkedList<Reservation>();
-        getAllReservations(reservation, reservations);
+        Collection<Reservation> reservationsToDelete = new LinkedList<Reservation>();
+        getAllReservations(reservation, reservationsToDelete);
         // Disconnect reservations from parents (this operation is required because value reservations should be
         // deleted in the end and not automatically by cascade)
-        for (Reservation reservationItem : reservations) {
+        for (Reservation reservationItem : reservationsToDelete) {
             reservationItem.setParentReservation(null);
         }
 
-        // Get ACL entries for deletion
-        for (Reservation reservationToDelete : reservations) {
+        // Delete ACL entries
+        for (Reservation reservationToDelete : reservationsToDelete) {
             authorizationManager.deleteAclEntriesForEntity(reservationToDelete);
         }
 
@@ -83,7 +88,7 @@ public class ReservationManager extends AbstractManager
         stopReservationExecutables(reservation, dateTimeNow);
 
         // Delete all reservations
-        for (Reservation reservationToDelete : reservations) {
+        for (Reservation reservationToDelete : reservationsToDelete) {
             // Delete reservation
             super.delete(reservationToDelete);
         }
@@ -344,8 +349,10 @@ public class ReservationManager extends AbstractManager
                     .getResultList();
             for (ExistingReservation reservation : existingReservations) {
                 AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
-                if (reservationRequest != null && !reservationRequest.getState().equals(AbstractReservationRequest.State.DELETED)) {
-                    reservationRequests.add(reservationRequest);
+                if (reservationRequest != null) {
+                    if (!reservationRequest.getState().equals(AbstractReservationRequest.State.DELETED)) {
+                        reservationRequests.add(reservationRequest);
+                    }
                 }
             }
         }
@@ -359,10 +366,9 @@ public class ReservationManager extends AbstractManager
      * @param reservation  current reservation
      * @param reservations collection of all {@link Reservation}s with children
      */
-    private static void getAllReservations(Reservation reservation, Collection<Reservation> reservations)
+    public static void getAllReservations(Reservation reservation, Collection<Reservation> reservations)
     {
         reservations.add(reservation);
-
         for (Reservation childReservation : reservation.getChildReservations()) {
             getAllReservations(childReservation, reservations);
         }

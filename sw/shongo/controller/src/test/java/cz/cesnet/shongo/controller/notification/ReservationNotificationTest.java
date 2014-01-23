@@ -6,18 +6,21 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +30,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationNotificationTest extends AbstractControllerTest
+public class ReservationNotificationTest extends AbstractExecutorTest
 {
     /**
      * @see TestingNotificationExecutor
@@ -373,8 +376,13 @@ public class ReservationNotificationTest extends AbstractControllerTest
         Assert.assertEquals(6, notificationExecutor.getNotificationCount());
     }
 
+    /**
+     * Test participant notification for future room.
+     *
+     * @throws Exception
+     */
     @Test
-    public void testParticipants() throws Exception
+    public void testFutureRoomParticipation() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -403,14 +411,111 @@ public class ReservationNotificationTest extends AbstractControllerTest
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+
+        // Check performed actions on connector agents
+        for (NotificationRecord notificationRecord : getNotificationRecords()) {
+            System.err.println(notificationRecord);
+        }
+        Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
+        {{
+                add(NotificationRecord.NotificationType.ROOM_CREATED);
+                add(NotificationRecord.NotificationType.ROOM_CREATED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_DELETED);
+                add(NotificationRecord.NotificationType.ROOM_DELETED);
+            }}, getNotificationRecordTypes());
+    }
+
+    /**
+     * Test participant notification for started room.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testStartedRoomParticipation() throws Exception
+    {
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Room Reservation Request");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
+        roomSpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        runExecutor(DateTime.parse("2012-06-22T14:10"));
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:20"));
+        checkAllocated(reservationRequestId);
+
+        runExecutor(DateTime.parse("2012-06-22T14:30"));
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:40"));
+        checkAllocated(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler(DateTime.parse("2012-06-22T14:50"));
+
+        // Check performed actions on connector agents
+        for (NotificationRecord notificationRecord : getNotificationRecords()) {
+            System.err.println(notificationRecord);
+        }
+        Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
+        {{
+                add(NotificationRecord.NotificationType.ROOM_CREATED);
+                add(NotificationRecord.NotificationType.ROOM_CREATED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
+                add(NotificationRecord.NotificationType.ROOM_DELETED);
+                add(NotificationRecord.NotificationType.ROOM_DELETED);
+            }}, getNotificationRecordTypes());
+    }
+
+    private List<NotificationRecord> getNotificationRecords()
+    {
         EntityManager entityManager = createEntityManager();
-        List<NotificationRecord> notificationRecords = entityManager.createNamedQuery(
-                "NotificationRecord.findByRecipient", NotificationRecord.class)
-                .setParameter("recipientType", NotificationRecord.RecipientType.USER)
-                .setParameter("recipientId", 0l)
-                .getResultList();
-        System.err.println(notificationRecords);
-        entityManager.close();
+        try {
+            return entityManager.createNamedQuery("NotificationRecord.list", NotificationRecord.class).getResultList();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    private List<NotificationRecord.NotificationType> getNotificationRecordTypes()
+    {
+        List<NotificationRecord.NotificationType> notificationTypes =
+                new LinkedList<NotificationRecord.NotificationType>();
+        for (NotificationRecord notificationRecord : getNotificationRecords()) {
+            notificationTypes.add(notificationRecord.getNotificationType());
+        }
+        return notificationTypes;
     }
 
     /**
@@ -435,7 +540,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
                 NotificationManager manager)
         {
-            NotificationMessage recipientMessage = notification.getMessageForRecipient(recipient, manager);
+            NotificationMessage recipientMessage = notification.getMessage(recipient, manager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

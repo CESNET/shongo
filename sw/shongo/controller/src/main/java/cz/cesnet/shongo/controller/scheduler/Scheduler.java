@@ -11,14 +11,12 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.AllocationFailedNotification;
-import cz.cesnet.shongo.controller.notification.NotificationBuilder;
-import cz.cesnet.shongo.controller.notification.ReservationNotification;
+import cz.cesnet.shongo.controller.notification.*;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
@@ -108,7 +106,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
-            NotificationBuilder notificationBuilder = new NotificationBuilder(authorizationManager, configuration);
+            NotificationBuilder notifyBuilder = new NotificationBuilder(authorizationManager);
 
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -129,9 +127,11 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             for (Reservation reservation : reservationsForDeletion) {
-                notificationBuilder.addNotification(new ReservationNotification(
-                        ReservationNotification.Type.DELETED, reservation, authorizationManager));
+                notifyBuilder.addNotification(new ReservationNotification.Deleted(reservation, authorizationManager));
                 reservation.setAllocation(null);
+                if (reservation.getSlotEnd().isAfter(interval.getStart())) {
+                    notifyBuilder.addNotifications(finalizeActiveReservation(reservation, null, authorizationManager));
+                }
                 reservationManager.delete(reservation, authorizationManager);
                 result.deletedReservations++;
             }
@@ -195,12 +195,12 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
                     // Finalize (delete old reservations, etc)
                     List<AbstractNotification> notifications = context.finish();
-                    for (AbstractNotification notification : notifications) {
-                        notificationBuilder.addNotification(notification);
-                    }
 
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
+
+                    // Add notifications
+                    notifyBuilder.addNotifications(notifications);
 
                     result.allocatedReservationRequests++;
                 }
@@ -233,7 +233,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
 
                     if (exception instanceof SchedulerException) {
-                        notificationBuilder.addNotification(new AllocationFailedNotification(
+                        notifyBuilder.addNotification(new AllocationFailedNotification(
                                 reservationRequest, authorizationManager, configuration));
                     }
                     else {
@@ -249,13 +249,15 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             // Delete all executables which should be deleted
             executableManager.deleteAllNotReferenced(authorizationManager);
 
-            // Execute notifications
-            for (AbstractNotification notification : notificationBuilder.getNotifications()) {
-                notificationManager.executeNotification(notification, entityManager);
-            }
-
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+
+            entityManager.getTransaction().begin();
+
+            // Execute notifications
+            notificationManager.executeNotifications(notifyBuilder.getNotifications(), entityManager);
+
+            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
             if (authorizationManager.isTransactionActive()) {
@@ -411,18 +413,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create allocated reservation
-        boolean isNew = !allocatedReservation.isPersisted();
-        if (isNew) {
-            // Persist reservation
-            reservationManager.create(allocatedReservation);
+        reservationManager.create(allocatedReservation);
 
-            // Create ACL entries for new reservation
-            authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
-        }
-        else {
-            // Update ACL entries for modified reservation
-            authorizationManager.updateAclEntriesForChildEntities(allocatedReservation);
-        }
+        // Create ACL entries for new reservation
+        authorizationManager.createAclEntriesForChildEntity(reservationRequest, allocatedReservation);
 
         // Get set of all new reservations
         Set<Reservation> newReservations = allocatedReservation.getSetOfAllReservations();
@@ -454,19 +448,26 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
                     oldReservation.setSlotEnd(slotStart);
+
+                    // Finalize reservation
+                    contextState.addNotifications(
+                            finalizeActiveReservation(oldReservation, reservationRequest, authorizationManager));
                 }
-                // Old reservation which takes place in the past should not be deleted
-                continue;
             }
+            // Old reservation which takes place in the future should be deleted
+            else {
+                // Finalize reservation
+                contextState.addNotifications(
+                        finalizeActiveReservation(oldReservation, reservationRequest, authorizationManager));
 
-            // Create notification
-            contextState.addNotification(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
+                // Create notification
+                contextState.addNotification(new ReservationNotification.Deleted(oldReservation, authorizationManager));
 
-            // Remove the old reservation from allocation
-            allocation.removeReservation(oldReservation);
-            // Delete the old reservation
-            contextState.addReservationToDelete(oldReservation);
+                // Remove the old reservation from allocation
+                allocation.removeReservation(oldReservation);
+                // Delete the old reservation
+                contextState.addReservationToDelete(oldReservation);
+            }
         }
 
         // Add new allocated reservation
@@ -478,14 +479,28 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create notification
-        contextState.addNotification(new ReservationNotification(
-                (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
-                allocatedReservation, authorizationManager));
+        contextState.addNotification(new ReservationNotification.New(allocatedReservation, authorizationManager));
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);
+    }
+
+    private List<AbstractNotification> finalizeActiveReservation(Reservation topReservation,
+            ReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+    {
+        Collection<Reservation> reservations = new LinkedList<Reservation>();
+        ReservationManager.getAllReservations(topReservation, reservations);
+        List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
+        for (Reservation reservation : reservations) {
+            if (reservation instanceof RoomReservation) {
+                RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
+                notifications.add(new RoomParticipationNotification.Deleted(
+                        roomEndpoint, reservationRequest, authorizationManager));
+            }
+        }
+        return notifications;
     }
 
     public static class Result

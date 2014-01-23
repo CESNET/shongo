@@ -116,6 +116,16 @@ public class SchedulerContextState
     }
 
     /**
+     * @param notifications to be added to the {@link #notifications}
+     */
+    public void addNotifications(List<AbstractNotification> notifications)
+    {
+        for (AbstractNotification notification : notifications) {
+            addNotification(notification);
+        }
+    }
+
+    /**
      * @param notification to be removed from the {@link #notifications}
      */
     public void removeNotification(AbstractNotification notification)

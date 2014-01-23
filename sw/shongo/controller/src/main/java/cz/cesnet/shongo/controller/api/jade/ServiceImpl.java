@@ -177,7 +177,7 @@ public class ServiceImpl implements Service
                 }
 
                 @Override
-                protected NotificationMessage renderMessageForConfiguration(Configuration configuration,
+                protected NotificationMessage renderMessage(Configuration configuration,
                         NotificationManager manager)
                 {
                     Locale locale = configuration.getLocale();

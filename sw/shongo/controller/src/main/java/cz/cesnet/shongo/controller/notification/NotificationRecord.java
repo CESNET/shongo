@@ -21,8 +21,8 @@ import javax.persistence.*;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"recipient_type", "recipient_id", "notification_type", "target_id"}))
 @NamedQueries({
-        @NamedQuery(name="NotificationRecord.find", query="SELECT r FROM NotificationRecord r WHERE r.recipientType = :recipientType AND r.recipientId = :recipientId AND r.notificationType = :notificationType AND r.targetId = :targetId ORDER BY createdAt"),
-        @NamedQuery(name="NotificationRecord.findByRecipient", query="SELECT r FROM NotificationRecord r WHERE r.recipientType = :recipientType AND r.recipientId = :recipientId ORDER BY createdAt")
+        @NamedQuery(name="NotificationRecord.list", query="SELECT r FROM NotificationRecord r"),
+        @NamedQuery(name="NotificationRecord.find", query="SELECT r FROM NotificationRecord r WHERE r.recipientType = :recipientType AND r.recipientId = :recipientId AND r.notificationType = :notificationType AND r.targetId = :targetId ORDER BY createdAt")
 })
 public class NotificationRecord extends SimplePersistentObject
 {

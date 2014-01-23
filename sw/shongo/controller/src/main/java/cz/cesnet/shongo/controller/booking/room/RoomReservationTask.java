@@ -538,10 +538,6 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
 
-                // Notify participants
-                schedulerContextState.addNotification(new RoomParticipationNotification(
-                        roomEndpoint, schedulerContext.getAuthorizationManager()));
-
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);
 
@@ -617,6 +613,12 @@ public class RoomReservationTask extends ReservationTask
 
             // Set executable to room reservation
             reservation.setExecutable(roomEndpoint);
+
+            // Notify participants
+            if (roomEndpoint != null && reservation instanceof RoomReservation) {
+                schedulerContextState.addNotification(new RoomParticipationNotification.Created(
+                        (RoomReservation) reservation, schedulerContext.getAuthorizationManager()));
+            }
 
             endReport();
 

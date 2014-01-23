@@ -142,7 +142,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     @Override
-    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient, NotificationManager manager)
+    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager)
     {
         List<Configuration> configurations = recipientConfigurations.get(recipient);
         if (configurations == null || configurations.size() == 0) {
@@ -150,13 +150,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
         else if (configurations.size() == 1) {
             // Single message
-            return getRenderedMessageForConfiguration(configurations.get(0), manager).clone();
+            return getRenderedMessage(configurations.get(0), manager).clone();
         }
         else {
             // Multiple messages
             NotificationMessage notificationMessage = new NotificationMessage(recipient, manager);
             for (Configuration configuration : configurations) {
-                NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration, manager);
+                NotificationMessage configurationMessage = getRenderedMessage(configuration, manager);
                 notificationMessage.appendMessage(configurationMessage);
             }
             return notificationMessage;
@@ -166,17 +166,15 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Render or return already rendered {@link NotificationMessage} for given {@code configuration}.
      *
-     *
      * @param configuration to be rendered
      * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    private NotificationMessage getRenderedMessageForConfiguration(Configuration configuration,
-            NotificationManager manager)
+    private NotificationMessage getRenderedMessage(Configuration configuration, NotificationManager manager)
     {
         NotificationMessage notificationMessage = configurationMessage.get(configuration);
         if (notificationMessage == null) {
-            notificationMessage = renderMessageForConfiguration(configuration, manager);
+            notificationMessage = renderMessage(configuration, manager);
             configurationMessage.put(configuration, notificationMessage);
         }
         return notificationMessage;
@@ -185,13 +183,11 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Render {@link NotificationMessage} for given {@code configuration}.
      *
-     *
      * @param configuration to be rendered
      * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    protected abstract NotificationMessage renderMessageForConfiguration(Configuration configuration,
-            NotificationManager manager);
+    protected abstract NotificationMessage renderMessage(Configuration configuration, NotificationManager manager);
 
     /**
      * {@link RenderContext} for rendering of {@link ConfigurableNotification}.
@@ -211,17 +207,17 @@ public abstract class ConfigurableNotification extends AbstractNotification
         /**
          * Constructor.
          *
-         * @param configuration         sets the {@link #configuration}
+         * @param configuration           sets the {@link #configuration}
          * @param messageSourceFileName
-         * @param controllerConfiguration
+         * @param notificationManager
          */
         public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName,
-                ControllerConfiguration controllerConfiguration)
+                NotificationManager notificationManager)
         {
             super(new MessageSource("notification/" + messageSourceFileName, configuration.getLocale()));
 
             this.configuration = configuration;
-            this.controllerConfiguration = controllerConfiguration;
+            this.controllerConfiguration = notificationManager.getConfiguration();
         }
 
         /**

@@ -27,8 +27,8 @@ import java.util.*;
 /**
  * Represents a notification for a list of recipients.
  * <p/>
- * The {@link #renderMessageForRecipient} abstract method must be implemented to render {@link NotificationMessage}
- * for each recipient. You can use {@link #renderMessageFromTemplate} method for the rendering based on templates.
+ * The {@link #renderMessage} abstract method must be implemented to render {@link NotificationMessage}
+ * for each recipient. You can use {@link #renderTemplateMessage} method for the rendering based on templates.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -88,11 +88,39 @@ public abstract class AbstractNotification
     }
 
     /**
+     * @param recipient who should not be notified by the {@link AbstractNotification}
+     * @return true whether given {@code recipient} has been removed,
+     *         false whether given {@code recipient} didn't exist
+     */
+    public boolean removeRecipient(PersonInformation recipient)
+    {
+        return recipients.remove(recipient);
+    }
+
+    /**
+     * @param recipients to be removed by the {@link #removeRecipient}
+     */
+    public final void removeRecipients(Set<PersonInformation> recipients)
+    {
+        for (PersonInformation recipient : recipients) {
+            removeRecipient(recipient);
+        }
+    }
+
+    /**
      * @return {@link #recipients}
      */
     public final Set<PersonInformation> getRecipients()
     {
         return Collections.unmodifiableSet(recipients);
+    }
+
+    /**
+     * @return true whether {@link #recipients} is not empty, false otherwise
+     */
+    public final boolean hasRecipients()
+    {
+        return !recipients.isEmpty();
     }
 
     /**
@@ -116,10 +144,9 @@ public abstract class AbstractNotification
      * @param manager   to be used
      * @return {@link NotificationMessage} for given {@code recipient}
      */
-    public final NotificationMessage getMessageForRecipient(PersonInformation recipient,
-            NotificationManager manager)
+    public final NotificationMessage getMessage(PersonInformation recipient, NotificationManager manager)
     {
-        return renderMessageForRecipient(recipient, manager);
+        return renderMessage(recipient, manager);
     }
 
     /**
@@ -129,7 +156,7 @@ public abstract class AbstractNotification
      * @param entityManager to be used
      * @return new {@link NotificationRecord} or null
      */
-    public NotificationRecord createRecordForRecipient(PersonInformation recipient, EntityManager entityManager)
+    public NotificationRecord createRecord(PersonInformation recipient, EntityManager entityManager)
     {
         return null;
     }
@@ -141,28 +168,26 @@ public abstract class AbstractNotification
      * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    protected abstract NotificationMessage renderMessageForRecipient(PersonInformation recipient,
-            NotificationManager manager);
+    protected abstract NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager);
 
     /**
      * Render {@link NotificationMessage} from template with given {@code fileName}.
      *
-     * @param renderContext to be used for rendering
+     * @param context to be used for rendering
      * @param title         message title
      * @param fileName      message template filename
      * @return rendered {@link NotificationMessage}
      */
-    protected final NotificationMessage renderMessageFromTemplate(RenderContext renderContext, String title,
-            String fileName)
+    protected final NotificationMessage renderTemplateMessage(RenderContext context, String title, String fileName)
     {
         Map<String, Object> templateParameters = new HashMap<String, Object>();
-        templateParameters.put("context", renderContext);
+        templateParameters.put("context", context);
         templateParameters.put("notification", this);
-        for (Map.Entry<String, Object> parameter : renderContext.getParameters().entrySet()) {
+        for (Map.Entry<String, Object> parameter : context.getParameters().entrySet()) {
             templateParameters.put(parameter.getKey(), parameter.getValue());
         }
         String content = renderTemplate(fileName, templateParameters);
-        return new NotificationMessage(renderContext.getLanguage(), title, content);
+        return new NotificationMessage(context.getLanguage(), title, content);
     }
 
     @Override
