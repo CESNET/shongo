@@ -419,9 +419,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler();
 
         // Check performed actions on connector agents
-        for (NotificationRecord notificationRecord : getNotificationRecords()) {
-            System.err.println(notificationRecord);
-        }
         Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
         {{
                 add(NotificationRecord.NotificationType.ROOM_CREATED);
@@ -481,13 +478,12 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
         // Check performed actions on connector agents
-        for (NotificationRecord notificationRecord : getNotificationRecords()) {
-            System.err.println(notificationRecord);
-        }
         Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
         {{
                 add(NotificationRecord.NotificationType.ROOM_CREATED);
                 add(NotificationRecord.NotificationType.ROOM_CREATED);
+                add(NotificationRecord.NotificationType.ROOM_AVAILABLE);
+                add(NotificationRecord.NotificationType.ROOM_AVAILABLE);
                 add(NotificationRecord.NotificationType.ROOM_MODIFIED);
                 add(NotificationRecord.NotificationType.ROOM_MODIFIED);
                 add(NotificationRecord.NotificationType.ROOM_MODIFIED);
@@ -501,7 +497,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     {
         EntityManager entityManager = createEntityManager();
         try {
-            return entityManager.createNamedQuery("NotificationRecord.list", NotificationRecord.class).getResultList();
+
+            List<NotificationRecord> notificationRecords =
+                    entityManager.createNamedQuery("NotificationRecord.list", NotificationRecord.class).getResultList();
+            /*for (NotificationRecord notificationRecord : notificationRecords) {
+                System.err.println(notificationRecord);
+            }*/
+            return notificationRecords;
         }
         finally {
             entityManager.close();

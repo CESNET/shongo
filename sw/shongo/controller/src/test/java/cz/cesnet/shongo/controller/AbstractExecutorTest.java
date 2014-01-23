@@ -84,16 +84,18 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
     {
         super.onInit();
 
-        executor = new Executor();
-
         Controller controller = getController();
+
+        executor = new Executor(controller.getNotificationManager());
+
         RecordingsCache recordingsCache = new RecordingsCache();
         getController().addRpcService(new ResourceControlServiceImpl(recordingsCache));
         getController().addRpcService(new ExecutableServiceImpl(executor, recordingsCache));
 
         executor.setEntityManagerFactory(getEntityManagerFactory());
-        executor.init(controller.getConfiguration());
         executor.setControllerAgent(controller.getAgent());
+        executor.setAuthorization(controller.getAuthorization());
+        executor.init(controller.getConfiguration());
     }
 
     @Override

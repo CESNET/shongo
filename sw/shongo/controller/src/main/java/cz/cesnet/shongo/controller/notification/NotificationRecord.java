@@ -176,9 +176,9 @@ public class NotificationRecord extends SimplePersistentObject
 
         /**
          * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}
-         * is configured will start soon.
+         * is configured will be available soon.
          */
-        ROOM_START,
+        ROOM_AVAILABLE,
 
         /**
          * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}

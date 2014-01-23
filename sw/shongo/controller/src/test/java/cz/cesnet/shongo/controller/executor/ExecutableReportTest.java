@@ -44,10 +44,11 @@ public class ExecutableReportTest extends AbstractControllerTest
         super.onInit();
 
         Controller controller = getController();
-        executor = new Executor();
+        executor = new Executor(controller.getNotificationManager());
         executor.setEntityManagerFactory(getEntityManagerFactory());
-        executor.init(controller.getConfiguration());
         executor.setControllerAgent(controller.getAgent());
+        executor.setAuthorization(controller.getAuthorization());
+        executor.init(controller.getConfiguration());
     }
 
     @Override

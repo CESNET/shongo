@@ -4,7 +4,6 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
@@ -76,11 +75,11 @@ public abstract class RoomParticipationNotification extends ConfigurableNotifica
         return NotificationMessage.AVAILABLE_LOCALES;
     }
 
-    public static abstract class Simple extends RoomParticipationNotification
+    public static abstract class Abstract extends RoomParticipationNotification
     {
         private RoomEndpoint roomEndpoint;
 
-        private Simple(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
+        private Abstract(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
         {
             super(authorizationManager);
 
@@ -103,6 +102,14 @@ public abstract class RoomParticipationNotification extends ConfigurableNotifica
         protected Long getTargetId()
         {
             return roomEndpoint.getId();
+        }
+    }
+
+    public static abstract class Simple extends Abstract
+    {
+        private Simple(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
+        {
+            super(roomEndpoint, authorizationManager);
         }
 
         public abstract Long getReservationRequestId();
@@ -188,6 +195,20 @@ public abstract class RoomParticipationNotification extends ConfigurableNotifica
         protected Long getTargetId()
         {
             return created.getTargetId();
+        }
+    }
+
+    public static class Available extends Abstract
+    {
+        public Available(RoomEndpoint roomEndpoint, AuthorizationManager authorizationManager)
+        {
+            super(roomEndpoint, authorizationManager);
+        }
+
+        @Override
+        protected NotificationRecord.NotificationType getNotificationType()
+        {
+            return NotificationRecord.NotificationType.ROOM_AVAILABLE;
         }
     }
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.ExpirationSet;
 import cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
@@ -12,6 +13,9 @@ import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
@@ -21,9 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -32,7 +34,8 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Executor extends SwitchableComponent
-        implements Component.WithThread, Component.EntityManagerFactoryAware, Component.ControllerAgentAware, Runnable
+        implements Component.WithThread, Component.EntityManagerFactoryAware, Component.ControllerAgentAware,
+                   Component.AuthorizationAware, Runnable
 {
     /**
      * {@link Logger} for {@link Executor}
@@ -40,42 +43,52 @@ public class Executor extends SwitchableComponent
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
     /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
+
+    /**
      * {@link EntityManagerFactory} used for loading {@link Executable}s for execution.
      */
     public EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerAgent
+     * @see ControllerAgent
      */
     private ControllerAgent controllerAgent;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_PERIOD
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
+     * @see ControllerConfiguration#EXECUTOR_PERIOD
      */
     private Duration period;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_EXECUTABLE_START
+     * @see ControllerConfiguration#EXECUTOR_EXECUTABLE_START
      */
     private Duration executableStart;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_EXECUTABLE_END
+     * @see ControllerConfiguration#EXECUTOR_EXECUTABLE_END
      */
     private Duration executableEnd;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_STARTING_DURATION_ROOM
+     * @see ControllerConfiguration#EXECUTOR_STARTING_DURATION_ROOM
      */
     private Duration startingDurationRoom;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_EXECUTABLE_NEXT_ATTEMPT
+     * @see ControllerConfiguration#EXECUTOR_EXECUTABLE_NEXT_ATTEMPT
      */
     private Duration nextAttempt;
 
     /**
-     * @see cz.cesnet.shongo.controller.ControllerConfiguration#EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT
+     * @see ControllerConfiguration#EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT
      */
     private int maxAttemptCount;
 
@@ -90,10 +103,17 @@ public class Executor extends SwitchableComponent
     private ExpirationSet<Long> checkedExecutableServiceIds = new ExpirationSet<Long>();
 
     /**
-     * Constructor.
+     * List of {@link AbstractNotification}s to be executed.
      */
-    public Executor()
+    private final List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
+
+    /**
+     * Constructor.
+     * @param notificationManager
+     */
+    public Executor(NotificationManager notificationManager)
     {
+        this.notificationManager = notificationManager;
         this.checkedExecutableServiceIds.setExpiration(Duration.standardSeconds(10));
     }
 
@@ -165,10 +185,26 @@ public class Executor extends SwitchableComponent
         this.controllerAgent = controllerAgent;
     }
 
+    /**
+     * @return {@link #authorization}
+     */
+    public Authorization getAuthorization()
+    {
+        return authorization;
+    }
+
+    @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
     @Override
     public void init(ControllerConfiguration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
+        checkDependency(controllerAgent, ControllerAgent.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
 
         period = configuration.getDuration(ControllerConfiguration.EXECUTOR_PERIOD);
@@ -266,9 +302,7 @@ public class Executor extends SwitchableComponent
 
                 // Finish execution plan
                 entityManager.getTransaction().begin();
-
                 ExecutionResult executionResult = executionPlan.finish(entityManager, dateTime);
-
                 entityManager.getTransaction().commit();
 
                 // Set all activated and deactivated services as checked
@@ -278,6 +312,14 @@ public class Executor extends SwitchableComponent
                 for (ExecutableService executableService : executionResult.getDeactivatedExecutableServices()) {
                     addCheckedExecutableService(executableService);
                 }
+
+                // Execute notifications
+                entityManager.getTransaction().begin();
+                synchronized (notifications) {
+                    notificationManager.executeNotifications(notifications, entityManager);
+                    notifications.clear();
+                }
+                entityManager.getTransaction().commit();
 
                 return executionResult;
             }
@@ -359,5 +401,15 @@ public class Executor extends SwitchableComponent
     public boolean isExecutableServiceCheckable(ExecutableService executableService)
     {
         return !checkedExecutableServiceIds.contains(executableService.getId());
+    }
+
+    /**
+     * @param notification to be added to the {@link #notifications}
+     */
+    public void addNotification(RoomParticipationNotification notification)
+    {
+        synchronized (notifications) {
+            notifications.add(notification);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.acl.AclProvider;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
@@ -865,7 +864,7 @@ public class Controller
         controller.addComponent(preprocessor);
         Scheduler scheduler = new Scheduler(cache, notificationManager);
         controller.addComponent(scheduler);
-        Executor executor = new Executor();
+        Executor executor = new Executor(notificationManager);
         controller.addComponent(executor);
 
         // Add mail notification executor

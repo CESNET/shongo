@@ -333,6 +333,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
+        State state = super.onStart(executor, executableManager);
+        if (!state.equals(State.STARTED)) {
+            return state;
+        }
+
         DeviceResource deviceResource = getResource();
         ManagedMode managedMode = deviceResource.requireManaged();
         String agentName = managedMode.getConnectorAgentName();

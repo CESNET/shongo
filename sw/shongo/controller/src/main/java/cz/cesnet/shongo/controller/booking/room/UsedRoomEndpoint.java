@@ -301,6 +301,10 @@ public class UsedRoomEndpoint extends RoomEndpoint
     @Override
     protected Executable.State onStart(Executor executor, ExecutableManager executableManager)
     {
+        State state = super.onStart(executor, executableManager);
+        if (!state.equals(State.STARTED)) {
+            return state;
+        }
         try {
             modifyRoom(getRoomApi(executableManager), executor);
             return Executable.State.STARTED;

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -12,10 +13,8 @@ import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.executable.Endpoint;
-import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
@@ -23,6 +22,7 @@ import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.Interval;
@@ -324,6 +324,18 @@ public abstract class RoomEndpoint extends Endpoint
      */
     public abstract void modifyRoom(Room roomApi, Executor executor)
             throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException;
+
+    @Override
+    protected State onStart(Executor executor, ExecutableManager executableManager)
+    {
+        // Notify participants
+        if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
+            AuthorizationManager authorizationManager = new AuthorizationManager(
+                    executableManager.getEntityManager(), executor.getAuthorization());
+            executor.addNotification(new RoomParticipationNotification.Available(this, authorizationManager));
+        }
+        return State.STARTED;
+    }
 
     @Override
     protected void onServiceActivation(ExecutableService service, Executor executor,
