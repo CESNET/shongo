@@ -54,28 +54,15 @@ public class UserSession implements Serializable
     private boolean timeZoneDefaultWarning = true;
 
     /**
-     * @see UserSettingsModel#administratorMode
+     * @see UserSettingsModel
      */
-    private boolean administratorMode = false;
-
-    /**
-     * @see UserSettingsModel.UserInterface
-     */
-    private UserSettingsModel.UserInterface userInterface;
-
-    /**
-     * @see UserSettingsModel#userInterfaceSelected
-     */
-    private boolean userInterfaceSelected;
+    private UserSettingsModel userSettings;
 
     /**
      * Constructor.
      */
     public UserSession()
     {
-        this.locale = null;
-        this.timeZone = null;
-        this.userInterface = UserSettingsModel.DEFAULT_USER_INTERFACE;
     }
 
     /**
@@ -157,36 +144,49 @@ public class UserSession implements Serializable
     }
 
     /**
-     * @return {@link #administratorMode}
+     * @return {@link #userSettings}
+     */
+    public UserSettingsModel getUserSettings()
+    {
+        return userSettings;
+    }
+
+    /**
+     * @return {@link UserSettingsModel#isAdministratorMode()}
      */
     public boolean isAdministratorMode()
     {
-        return administratorMode;
+        return userSettings != null && userSettings.isAdministratorMode();
     }
 
     /**
-     * @return {@link #userInterface}
+     * @return {@link UserSettingsModel#getUserInterface()}
      */
     public UserSettingsModel.UserInterface getUserInterface()
     {
-        return userInterface;
+        if (userSettings != null) {
+            return userSettings.getUserInterface();
+        }
+        else {
+            return UserSettingsModel.DEFAULT_USER_INTERFACE;
+        }
     }
 
     /**
-     * @return {@link #userInterfaceSelected}
+     * @return {@link UserSettingsModel#isUserInterfaceSelected()}
      */
     public boolean isUserInterfaceSelected()
     {
-        return userInterfaceSelected;
+        return userSettings != null && userSettings.isUserInterfaceSelected();
     }
 
     /**
-     * @return true whether {@link #userInterface} is {@link UserSettingsModel.UserInterface#ADVANCED},
+     * @return true whether {@link #getUserInterface()} is {@link UserSettingsModel.UserInterface#ADVANCED},
      *         false otherwise
      */
     public boolean isAdvancedUserInterface()
     {
-        return userInterface.equals(UserSettingsModel.UserInterface.ADVANCED);
+        return getUserInterface().equals(UserSettingsModel.UserInterface.ADVANCED);
     }
 
     /**
@@ -206,13 +206,14 @@ public class UserSession implements Serializable
     /**
      * Load {@link UserSettings} to this {@link UserSession}.
      *
-     * @param userSettings  to be loaded
-     * @param request       to be used for loading
-     * @param securityToken to be used for loading
+     * @param userSettings to be loaded
+     * @param request      to be used for loading
+     * @param token        to be used for loading
      */
-    public void loadUserSettings(UserSettingsModel userSettings, HttpServletRequest request,
-            SecurityToken securityToken)
+    public void loadUserSettings(UserSettingsModel userSettings, HttpServletRequest request, SecurityToken token)
     {
+        this.userSettings = userSettings;
+
         Locale locale = userSettings.getLocale();
         if (locale != null) {
             setLocale(locale);
@@ -236,11 +237,7 @@ public class UserSession implements Serializable
             timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
         }
 
-        administratorMode = userSettings.isAdministratorMode();
-        userInterface = userSettings.getUserInterface();
-        userInterfaceSelected = userSettings.isUserInterfaceSelected();
-
-        update(request, securityToken.getUserInformation());
+        update(request, token.getUserInformation());
     }
 
     /**
@@ -259,7 +256,8 @@ public class UserSession implements Serializable
         }
 
         logger.debug("Setting (locale: {}, timezone: {}, admin: {}, ui: {}) for {}...", new Object[]{
-                locale, timeZone, administratorMode, userInterface, (userInformation != null ? userInformation : "anonymous")
+                locale, timeZone, isAdministratorMode(), getUserInterface(),
+                (userInformation != null ? userInformation : "anonymous")
         });
 
         WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);

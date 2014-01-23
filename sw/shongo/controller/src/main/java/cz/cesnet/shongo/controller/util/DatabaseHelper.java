@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.util;
 
-import cz.cesnet.shongo.controller.Controller;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;

@@ -166,6 +166,19 @@ public class UserSettings extends AbstractComplexType
      * @param name
      * @return value of attribute with given {@code name}
      */
+    public Integer getAttributeInteger(String name)
+    {
+        String value = attributes.get(name);
+        if (value == null) {
+            return null;
+        }
+        return Integer.parseInt(value);
+    }
+
+    /**
+     * @param name
+     * @return value of attribute with given {@code name}
+     */
     public <T extends Enum<T>> T getAttribute(String name, Class<T> enumClass)
     {
         String value = getAttribute(name);

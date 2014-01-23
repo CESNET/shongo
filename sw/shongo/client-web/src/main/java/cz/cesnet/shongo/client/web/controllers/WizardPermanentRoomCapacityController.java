@@ -103,6 +103,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY, method = RequestMethod.GET)
     public ModelAndView handleAttributes(
             SecurityToken securityToken,
+            UserSession userSession,
             HttpSession httpSession,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
             @RequestParam(value = "force", required = false) boolean force)
@@ -118,7 +119,8 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) httpSession.getAttribute(RESERVATION_REQUEST_ATTRIBUTE);
         if (reservationRequest == null || force) {
-            reservationRequest = new ReservationRequestModel(new CacheProvider(cache, securityToken));
+            reservationRequest = new ReservationRequestModel(
+                    new CacheProvider(cache, securityToken), userSession.getUserSettings());
             wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setTechnology(null);
@@ -293,6 +295,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         // Create reservation request
         String reservationRequestId = reservationService.createReservationRequest(
                 securityToken, reservationRequest.toApi());
+        UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {

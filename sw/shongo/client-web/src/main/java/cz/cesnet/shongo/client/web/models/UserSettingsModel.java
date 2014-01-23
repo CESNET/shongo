@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.joda.time.DateTimeZone;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -20,6 +23,8 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public final static String USER_INTERFACE_SELECTED_ATTRIBUTE = "client-web.userInterfaceSelected";
     public final static String IGNORE_DEFAULT_LOCALE_ATTRIBUTE = "client-web.ignoreDefault.locale";
     public final static String IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE = "client-web.ignoreDefault.homeTimeZone";
+    public final static String SLOT_BEFORE_ATTRIBUTE = "client-web.slot.before";
+    public final static String SLOT_AFTER_ATTRIBUTE = "client-web.slot.after";
 
     /**
      * @see UserSettings#useWebService
@@ -70,6 +75,16 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      * Specifies whether {@link #userInterface} has been selected (and thus question should not be displayed).
      */
     private boolean userInterfaceSelected;
+
+    /**
+     * Specifies {@link ReservationRequestModel#slotBeforeMinutes}.
+     */
+    private Integer slotBefore;
+
+    /**
+     * Specifies {@link ReservationRequestModel#slotAfterMinutes}.
+     */
+    private Integer slotAfter;
 
     /**
      * Constructor.
@@ -260,6 +275,38 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     }
 
     /**
+     * @return {@link #slotBefore}
+     */
+    public Integer getSlotBefore()
+    {
+        return slotBefore;
+    }
+
+    /**
+     * @param slotBefore sets the {@link #slotBefore}
+     */
+    public void setSlotBefore(Integer slotBefore)
+    {
+        this.slotBefore = slotBefore;
+    }
+
+    /**
+     * @return {@link #slotAfter}
+     */
+    public Integer getSlotAfter()
+    {
+        return slotAfter;
+    }
+
+    /**
+     * @param slotAfter sets the {@link #slotAfter}
+     */
+    public void setSlotAfter(Integer slotAfter)
+    {
+        this.slotAfter = slotAfter;
+    }
+
+    /**
      * @param userSettings to load this {@link UserSettingsModel} from
      */
     public void fromApi(UserSettings userSettings)
@@ -281,6 +328,8 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
             this.userInterface = DEFAULT_USER_INTERFACE;
         }
         this.userInterfaceSelected = userSettings.getAttributeBool(USER_INTERFACE_SELECTED_ATTRIBUTE);
+        this.slotBefore = userSettings.getAttributeInteger(SLOT_BEFORE_ATTRIBUTE);
+        this.slotAfter = userSettings.getAttributeInteger(SLOT_AFTER_ATTRIBUTE);
     }
 
     /**
@@ -312,6 +361,12 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         if (!isTimeZoneDefaultWarning()) {
             userSettings.setAttribute(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE, Boolean.TRUE.toString());
         }
+        if (slotBefore != null) {
+            userSettings.setAttribute(SLOT_BEFORE_ATTRIBUTE, slotBefore.toString());
+        }
+        if (slotAfter != null) {
+            userSettings.setAttribute(SLOT_AFTER_ATTRIBUTE, slotAfter.toString());
+        }
         return userSettings;
     }
 
@@ -327,7 +382,34 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         attributes.put("CurrentTimeZone", currentTimeZone);
         attributes.put("AdminMode", administratorMode);
         attributes.put("UserInterface", userInterface);
+        attributes.put("SlotBefore", slotBefore);
+        attributes.put("SlotAfter", slotAfter);
         return ReportModel.formatAttributes(attributes);
+    }
+
+    /**
+     * Update {@link UserSettings} when {@link UserSettingsModel#slotBefore} or
+     * {@link UserSettingsModel#slotAfter} changed.
+     *
+     * @param securityToken
+     * @param reservationRequest
+     * @param request
+     * @param authorizationService
+     */
+    public static void updateSlotSettings(SecurityToken securityToken, ReservationRequestModel reservationRequest,
+            HttpServletRequest request, AuthorizationService authorizationService)
+    {
+        UserSession userSession = UserSession.getInstance(request);
+        UserSettingsModel userSettings = userSession.getUserSettings();
+        Integer slotBefore = reservationRequest.getSlotBeforeMinutes();
+        Integer slotAfter = reservationRequest.getSlotAfterMinutes();
+        if (!slotBefore.equals(userSettings.getSlotBefore()) || !slotAfter.equals(userSettings.getSlotAfter())) {
+            userSettings = new UserSettingsModel(authorizationService.getUserSettings(securityToken));
+            userSettings.setSlotBefore(slotBefore);
+            userSettings.setSlotAfter(slotAfter);
+            authorizationService.updateUserSettings(securityToken, userSettings.toApi());
+            userSession.loadUserSettings(userSettings, request, securityToken);
+        }
     }
 
     /**

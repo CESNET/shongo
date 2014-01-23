@@ -90,11 +90,18 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
-    public ReservationRequestModel(CacheProvider cacheProvider)
+    public ReservationRequestModel(CacheProvider cacheProvider, UserSettingsModel userSettingsModel)
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
         setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+
+        if (userSettingsModel.getSlotBefore() != null) {
+            setSlotBeforeMinutes(userSettingsModel.getSlotBefore());
+        }
+        if (userSettingsModel.getSlotAfter() != null) {
+            setSlotAfterMinutes(userSettingsModel.getSlotAfter());
+        }
     }
 
     /**

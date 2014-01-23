@@ -29,6 +29,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -111,11 +112,11 @@ public class WizardRoomController extends WizardParticipantsController
      * Book new virtual room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
-    public ModelAndView handleRoomType(SecurityToken securityToken)
+    public ModelAndView handleRoomType(UserSession userSession, SecurityToken securityToken)
     {
         WizardView wizardView = getWizardView(Page.ROOM_TYPE, "wizardCreateRoom.jsp");
-        ReservationRequestModel reservationRequest =
-                new ReservationRequestModel(new CacheProvider(cache, securityToken));
+        ReservationRequestModel reservationRequest = new ReservationRequestModel(
+                new CacheProvider(cache, securityToken), userSession.getUserSettings());
         reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
         reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
@@ -424,6 +425,7 @@ public class WizardRoomController extends WizardParticipantsController
         // Create reservation request
         String reservationRequestId = reservationService.createReservationRequest(
                 securityToken, reservationRequest.toApi());
+        UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {

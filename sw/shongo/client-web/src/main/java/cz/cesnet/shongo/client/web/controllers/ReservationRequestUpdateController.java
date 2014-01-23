@@ -15,6 +15,7 @@ import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -61,6 +62,9 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     @Resource
     private ReservationService reservationService;
 
+    @Resource
+    private AuthorizationService authorizationService;
+
     /**
      * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleModify}
      */
@@ -93,16 +97,17 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_CREATE, method = {RequestMethod.GET})
     public String handleCreate(
             HttpServletRequest request,
+            UserSession userSession,
             SecurityToken securityToken,
             @PathVariable(value = "specificationType") SpecificationType specificationType,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoomId,
             @RequestParam(value = "reuse", required = false, defaultValue = "false") boolean reuse,
             Model model)
     {
-
         ReservationRequestModel reservationRequestModel = getReservationRequest(reuse, null, request);
         if (reservationRequestModel == null) {
-            reservationRequestModel = new ReservationRequestModel(new CacheProvider(cache, securityToken));
+            reservationRequestModel = new ReservationRequestModel(
+                    new CacheProvider(cache, securityToken), userSession.getUserSettings());
         }
         reservationRequestModel.setSpecificationType(specificationType);
         model.addAttribute(RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
@@ -164,6 +169,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
+            UserSettingsModel.updateSlotSettings(token, reservationRequestModel, request, authorizationService);
             sessionStatus.setComplete();
             return "redirect:" + BackUrl.getInstance(request).applyToUrl(
                     ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
@@ -223,6 +229,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
+            UserSettingsModel.updateSlotSettings(token, reservationRequestModel, request, authorizationService);
             sessionStatus.setComplete();
             return "redirect:" + BackUrl.getInstance(request).applyToUrl(
                     ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
