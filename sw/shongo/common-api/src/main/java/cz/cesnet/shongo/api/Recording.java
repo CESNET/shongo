@@ -22,6 +22,11 @@ public class Recording extends IdentifiedComplexType
     private String name;
 
     /**
+     * Name of the recording file.
+     */
+    private String fileName;
+
+    /**
      * Description.
      */
     private  String description;
@@ -81,6 +86,22 @@ public class Recording extends IdentifiedComplexType
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #fileName}
+     */
+    public String getFileName()
+    {
+        return fileName;
+    }
+
+    /**
+     * @param fileName sets the {@link #fileName}
+     */
+    public void setFileName(String fileName)
+    {
+        this.fileName = fileName;
     }
 
     /**
