@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 
 /**

@@ -24,7 +24,7 @@ import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
@@ -209,7 +209,7 @@ public class ServiceImpl implements Service
                     return new NotificationMessage(language, title, message);
                 }
             };
-            notificationManager.executeNotification(notification, null);
+            notificationManager.addNotification(notification, entityManager);
         }
         finally {
             entityManager.close();

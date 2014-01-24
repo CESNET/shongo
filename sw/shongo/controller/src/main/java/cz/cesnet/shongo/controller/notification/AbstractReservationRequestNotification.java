@@ -2,11 +2,16 @@ package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.controller.ControllerConfiguration;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import org.joda.time.DateTime;
 
+import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.Locale;
 
@@ -68,5 +73,43 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     protected Collection<Locale> getAvailableLocals()
     {
         return NotificationMessage.AVAILABLE_LOCALES;
+    }
+
+    @Override
+    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        Long reservationRequestId = ObjectIdentifier.parseId(
+                AbstractReservationRequest.class, this.reservationRequestId);
+        if (reservationRequestId != null) {
+            // Get top reservation request
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            AbstractReservationRequest abstractReservationRequest =
+                    reservationRequestManager.get(reservationRequestId);
+            if (abstractReservationRequest instanceof ReservationRequest) {
+                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                Allocation parentAllocation = reservationRequest.getParentAllocation();
+                if (parentAllocation != null) {
+                    AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
+                    if (parentReservationRequest != null) {
+                        abstractReservationRequest = parentReservationRequest;
+                    }
+                }
+            }
+
+            // Create or reuse reservation request notification
+            Long abstractReservationRequestId = abstractReservationRequest.getId();
+            ReservationRequestNotification reservationRequestNotification =
+                    notificationManager.reservationRequestNotifications.get(abstractReservationRequestId);
+            if (reservationRequestNotification == null) {
+                AuthorizationManager authorizationManager = new AuthorizationManager(
+                        entityManager, notificationManager.getAuthorization());
+                reservationRequestNotification =
+                        new ReservationRequestNotification(abstractReservationRequest, authorizationManager);
+                notificationManager.addNotification(reservationRequestNotification, entityManager);
+            }
+
+            // Add reservation notification to reservation request notification
+            reservationRequestNotification.addNotification(this);
+        }
     }
 }

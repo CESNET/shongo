@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
@@ -313,10 +313,10 @@ public class Executor extends SwitchableComponent
                     addCheckedExecutableService(executableService);
                 }
 
-                // Execute notifications
+                // Add notifications
                 entityManager.getTransaction().begin();
                 synchronized (notifications) {
-                    notificationManager.executeNotifications(notifications, entityManager);
+                    notificationManager.addNotifications(notifications, entityManager);
                     notifications.clear();
                 }
                 entityManager.getTransaction().commit();

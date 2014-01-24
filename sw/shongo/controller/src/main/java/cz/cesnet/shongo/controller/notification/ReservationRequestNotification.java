@@ -3,9 +3,9 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import org.joda.time.DateTimeZone;
 
 import javax.persistence.EntityManager;
@@ -173,5 +173,21 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
             message.appendChildMessage(childMessage);
         }
         return message;
+    }
+
+    @Override
+    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        Long reservationRequestId = ObjectIdentifier.parseId(
+                AbstractReservationRequest.class, getReservationRequestId());
+        notificationManager.reservationRequestNotifications.put(reservationRequestId, this);
+    }
+
+    @Override
+    protected void onRemoved(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        Long reservationRequestId = ObjectIdentifier.parseId(
+                AbstractReservationRequest.class, getReservationRequestId());
+        notificationManager.reservationRequestNotifications.remove(reservationRequestId);
     }
 }

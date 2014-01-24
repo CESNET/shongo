@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.notification.manager;
+package cz.cesnet.shongo.controller.notification.executor;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

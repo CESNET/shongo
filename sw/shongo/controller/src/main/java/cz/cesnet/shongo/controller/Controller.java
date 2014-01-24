@@ -8,9 +8,9 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.ServerAuthorization;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.manager.EmailNotificationExecutor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.executor.EmailNotificationExecutor;
+import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.util.NativeQuery;
@@ -575,8 +575,8 @@ public class Controller
      */
     public void startWorkerThread()
     {
-        WorkerThread workerThread = new WorkerThread(
-                getComponent(Preprocessor.class), getComponent(Scheduler.class), entityManagerFactory);
+        WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
+                notificationManager, entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(ControllerConfiguration.WORKER_PERIOD));
         workerThread.setLookahead(configuration.getPeriod(ControllerConfiguration.WORKER_LOOKAHEAD));
         addThread(workerThread);

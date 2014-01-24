@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -113,6 +112,51 @@ public abstract class RoomParticipationNotification extends ConfigurableNotifica
         }
 
         public abstract Long getReservationRequestId();
+
+        @Override
+        protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+        {
+            Long reservationRequestId = getReservationRequestId();
+            if (reservationRequestId == null) {
+                return;
+            }
+            RoomParticipationNotification existingNotification =
+                    notificationManager.roomParticipationNotifications.get(reservationRequestId);
+            if (existingNotification != null) {
+                RoomParticipationNotification.Deleted deletedNotification = null;
+                RoomParticipationNotification.Created createdNotification = null;
+                if (existingNotification instanceof RoomParticipationNotification.Deleted) {
+                    deletedNotification = (RoomParticipationNotification.Deleted) existingNotification;
+                }
+                else if (existingNotification instanceof RoomParticipationNotification.Created) {
+                    createdNotification = (RoomParticipationNotification.Created) existingNotification;
+                }
+                if (this instanceof RoomParticipationNotification.Deleted) {
+                    deletedNotification = (RoomParticipationNotification.Deleted) this;
+                }
+                else if (this instanceof RoomParticipationNotification.Created) {
+                    createdNotification = (RoomParticipationNotification.Created) this;
+                }
+                if (createdNotification != null && deletedNotification != null) {
+                    AuthorizationManager authorizationManager = new AuthorizationManager(
+                            entityManager, notificationManager.getAuthorization());
+                    RoomParticipationNotification modifiedNotification = new RoomParticipationNotification.Modified(
+                            deletedNotification, createdNotification, authorizationManager);
+                    if (modifiedNotification.hasRecipients()) {
+                        notificationManager.addNotification(modifiedNotification, entityManager);
+                    }
+                }
+            }
+            else {
+                notificationManager.roomParticipationNotifications.put(reservationRequestId, this);
+            }
+        }
+
+        @Override
+        protected void onRemoved(NotificationManager notificationManager, EntityManager entityManager)
+        {
+            notificationManager.roomParticipationNotifications.remove(getReservationRequestId());
+        }
     }
 
     public static class Created extends Simple

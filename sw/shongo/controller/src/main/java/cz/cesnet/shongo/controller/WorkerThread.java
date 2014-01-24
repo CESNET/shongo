@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
-import org.joda.time.*;
+import org.joda.time.Duration;
+import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,11 @@ public class WorkerThread extends Thread
     private Scheduler scheduler;
 
     /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
+
+    /**
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -52,9 +57,11 @@ public class WorkerThread extends Thread
      *
      * @param preprocessor         sets the {@link #preprocessor}
      * @param scheduler            sets the {@link #scheduler}
+     * @param notificationManager  sets the {@link #notificationManager}
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, EntityManagerFactory entityManagerFactory)
+    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, NotificationManager notificationManager,
+            EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
         if (preprocessor == null || scheduler == null) {
@@ -131,6 +138,8 @@ public class WorkerThread extends Thread
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
+                notificationManager.executeNotifications(entityManager);
+                entityManager.getTransaction().commit();
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

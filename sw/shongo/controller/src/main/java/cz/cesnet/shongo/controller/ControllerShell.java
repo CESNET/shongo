@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.api.rpc.RpcServerRequestLogger;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.jade.Container;

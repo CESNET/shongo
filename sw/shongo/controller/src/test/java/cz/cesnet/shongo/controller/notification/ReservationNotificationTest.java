@@ -5,14 +5,12 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -521,7 +519,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     }
 
     /**
-     * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
+     * {@link NotificationExecutor} for testing.
      */
     private class TestingNotificationExecutor extends NotificationExecutor
     {

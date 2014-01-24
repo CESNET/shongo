@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.jade.Container;
@@ -346,8 +347,30 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         EntityManager entityManager = createEntityManager();
         Scheduler.Result result = scheduler.run(interval, entityManager);
+        executeNotifications(entityManager);
         entityManager.close();
         return result;
+    }
+
+    /**
+     * Invoke {@link NotificationManager#executeNotifications}
+     *
+     * @param entityManager to be used
+     */
+    protected void executeNotifications(EntityManager entityManager)
+    {
+        NotificationManager notificationManager = controller.getNotificationManager();
+        notificationManager.executeNotifications(entityManager);
+    }
+
+    /**
+     * Invoke {@link NotificationManager#executeNotifications}
+     */
+    protected final void executeNotifications()
+    {
+        EntityManager entityManager = createEntityManager();
+        executeNotifications(entityManager);
+        entityManager.close();
     }
 
     /**

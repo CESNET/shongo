@@ -17,8 +17,8 @@ import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
-import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
@@ -96,11 +96,13 @@ public class JadeServiceTest extends AbstractExecutorTest
         // Test notifyTarget single-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Unmute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+        executeNotifications();
         Assert.assertEquals(1, notificationExecutor.getNotificationCount());
 
         // Test notifyTarget multi-lingual
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new SetMicrophoneLevel());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
+        executeNotifications();
         Assert.assertEquals(2, notificationExecutor.getNotificationCount());
     }
 
@@ -158,7 +160,7 @@ public class JadeServiceTest extends AbstractExecutorTest
     }
 
     /**
-     * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
+     * {@link cz.cesnet.shongo.controller.notification.executor.NotificationExecutor} for testing.
      */
     private class TestingNotificationExecutor extends NotificationExecutor
     {

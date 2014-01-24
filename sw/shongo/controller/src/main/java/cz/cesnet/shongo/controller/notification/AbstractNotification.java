@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.AbstractPerson;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
@@ -188,6 +187,26 @@ public abstract class AbstractNotification
         }
         String content = renderTemplate(fileName, templateParameters);
         return new NotificationMessage(context.getLanguage(), title, content);
+    }
+
+    /**
+     * Event called after this {@link AbstractNotification} is added to the {@link NotificationManager}.
+     *
+     * @param notificationManager
+     * @param entityManager
+     */
+    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+    }
+
+    /**
+     * Event called before this {@link AbstractNotification} is removed from the {@link NotificationManager}.
+     *
+     * @param notificationManager
+     * @param entityManager
+     */
+    protected void onRemoved(NotificationManager notificationManager, EntityManager entityManager)
+    {
     }
 
     @Override

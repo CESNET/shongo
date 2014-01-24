@@ -2,25 +2,24 @@ package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.AbstractSchedulerTest;
+import cz.cesnet.shongo.controller.DummyAuthorization;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.compartment.CompartmentSpecification;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointParticipant;
 import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.controller.booking.participant.InvitedPersonParticipant;
-import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.AnonymousPerson;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.booking.alias.Alias;
-import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
-import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.joda.time.Interval;
@@ -31,7 +30,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Test for processing {@link cz.cesnet.shongo.controller.booking.request.ReservationRequestSet} by {@link cz.cesnet.shongo.controller.scheduler.Preprocessor} and {@link cz.cesnet.shongo.controller.scheduler.Scheduler}.
+ * Test for processing {@link ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -68,7 +67,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             preprocessor.setAuthorization(authorization);
             preprocessor.init();
 
-            scheduler = new Scheduler(getCache(), new NotificationManager());
+            scheduler = new Scheduler(getCache(), null);
             scheduler.setAuthorization(authorization);
             scheduler.init();
 
@@ -108,7 +107,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             reservationRequestManager.create(reservationRequestSet);
 
             reservationRequestSetId = reservationRequestSet.getId();
-            Assert.assertNotNull("The reservation request set should have assigned identifier", reservationRequestSetId);
+            Assert.assertNotNull("The reservation request set should have assigned identifier",
+                    reservationRequestSetId);
 
             entityManager.getTransaction().commit();
             entityManager.close();
@@ -172,7 +172,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             // Second person accepts and fails because he must select an endpoint first
             try {
                 reservationRequestManager.acceptInvitedPersonParticipant(reservationRequestId, personId2);
-                Assert.fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
+                Assert.fail(
+                        "Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
             catch (RuntimeException exception) {
             }
