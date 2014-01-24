@@ -11,6 +11,7 @@ import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
+import org.hsqldb.lib.OrderedHashSet;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -43,7 +44,7 @@ public abstract class AbstractNotification
     /**
      * List of recipients who should be notified about this {@link AbstractNotification}.
      */
-    private final Set<PersonInformation> recipients = new HashSet<PersonInformation>();
+    private final Set<PersonInformation> recipients = new LinkedHashSet<PersonInformation>();
 
     /**
      * List of reply-to who should be contacted when replying to notification about this {@link AbstractNotification}.
@@ -64,6 +65,16 @@ public abstract class AbstractNotification
     public DateTime getCreatedAt()
     {
         return createdAt;
+    }
+
+    /**
+     * @param dateTime which specifies date/time in which this {@link AbstractNotification} should be checked
+     * @return true whether this {@link AbstractNotification} is ready for execution in given {@code dateTime},
+     *         false otherwise
+     */
+    public boolean isReady(DateTime dateTime)
+    {
+        return createdAt.isAfter(dateTime);
     }
 
     /**
@@ -172,9 +183,9 @@ public abstract class AbstractNotification
     /**
      * Render {@link NotificationMessage} from template with given {@code fileName}.
      *
-     * @param context to be used for rendering
-     * @param title         message title
-     * @param fileName      message template filename
+     * @param context  to be used for rendering
+     * @param title    message title
+     * @param fileName message template filename
      * @return rendered {@link NotificationMessage}
      */
     protected final NotificationMessage renderTemplateMessage(RenderContext context, String title, String fileName)

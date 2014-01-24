@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -8,6 +9,7 @@ import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.util.MessageSource;
 import org.joda.time.DateTimeZone;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -20,9 +22,9 @@ import java.util.*;
 public abstract class ConfigurableNotification extends AbstractNotification
 {
     /**
-     * @see cz.cesnet.shongo.controller.settings.UserSettingsManager
+     * Administrator recipients.
      */
-    private UserSettingsManager userSettingsManager;
+    private Set<PersonInformation> administratorRecipients = new HashSet<PersonInformation>();
 
     /**
      * List of {@link ConfigurableNotification.Configuration}s for each recipient.
@@ -38,23 +40,18 @@ public abstract class ConfigurableNotification extends AbstractNotification
 
     /**
      * Constructor.
-     *
-     * @param userSettingsManager sets the {@link #userSettingsManager}
      */
-    public ConfigurableNotification(UserSettingsManager userSettingsManager)
+    public ConfigurableNotification()
     {
-        this.userSettingsManager = userSettingsManager;
     }
 
     /**
      * Constructor.
      *
      * @param recipients          sets the {@link #recipients}
-     * @param userSettingsManager sets the {@link #userSettingsManager}
      */
-    public ConfigurableNotification(Collection<PersonInformation> recipients, UserSettingsManager userSettingsManager)
+    public ConfigurableNotification(Collection<PersonInformation> recipients)
     {
-        this.userSettingsManager = userSettingsManager;
         addRecipients(recipients);
     }
 
@@ -86,39 +83,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
             return false;
         }
 
-        // Determine recipient locale and timezone
-        Locale locale = null;
-        DateTimeZone timeZone = null;
-        if (recipient instanceof UserInformation && userSettingsManager != null) {
-            UserInformation userInformation = (UserInformation) recipient;
-            UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId());
-            if (userSettings != null) {
-                locale = userSettings.getLocale();
-                timeZone = userSettings.getCurrentTimeZone();
-                if (timeZone == null) {
-                    timeZone = userSettings.getHomeTimeZone();
-                }
-            }
-        }
-
-        // Get default timezone
-        if (timeZone == null) {
-            timeZone = DateTimeZone.getDefault();
-        }
-
-        // Get single or multiple configurations
-        List<Configuration> configurations = new LinkedList<Configuration>();
-        if (locale == null) {
-            for (Locale defaultLocale : getAvailableLocals()) {
-                configurations.add(createConfiguration(defaultLocale, timeZone, administrator));
-            }
+        if (administrator) {
+            administratorRecipients.add(recipient);
         }
         else {
-            configurations.add(createConfiguration(locale, timeZone, administrator));
+            administratorRecipients.remove(recipient);
         }
 
-        // Add configurations for the recipient
-        recipientConfigurations.put(recipient, configurations);
         return true;
     }
 
@@ -141,6 +112,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     @Override
+    public boolean removeRecipient(PersonInformation recipient)
+    {
+        administratorRecipients.remove(recipient);
+        return super.removeRecipient(recipient);
+    }
+
+    @Override
     protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager)
     {
         List<Configuration> configurations = recipientConfigurations.get(recipient);
@@ -159,6 +137,53 @@ public abstract class ConfigurableNotification extends AbstractNotification
                 notificationMessage.appendMessage(configurationMessage);
             }
             return notificationMessage;
+        }
+    }
+
+    @Override
+    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        super.onAdded(notificationManager, entityManager);
+
+        UserSettingsManager userSettingsManager = new UserSettingsManager(
+                entityManager, notificationManager.getAuthorization());
+        for (PersonInformation recipient : getRecipients()) {
+            // Determine whether recipient is administrator
+            boolean administrator = administratorRecipients.contains(recipient);
+
+            // Determine recipient locale and timezone
+            Locale locale = null;
+            DateTimeZone timeZone = null;
+            if (recipient instanceof UserInformation) {
+                UserInformation userInformation = (UserInformation) recipient;
+                UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId());
+                if (userSettings != null) {
+                    locale = userSettings.getLocale();
+                    timeZone = userSettings.getCurrentTimeZone();
+                    if (timeZone == null) {
+                        timeZone = userSettings.getHomeTimeZone();
+                    }
+                }
+            }
+
+            // Get default timezone
+            if (timeZone == null) {
+                timeZone = DateTimeZone.getDefault();
+            }
+
+            // Get single or multiple configurations
+            List<Configuration> configurations = new LinkedList<Configuration>();
+            if (locale == null) {
+                for (Locale defaultLocale : getAvailableLocals()) {
+                    configurations.add(createConfiguration(defaultLocale, timeZone, administrator));
+                }
+            }
+            else {
+                configurations.add(createConfiguration(locale, timeZone, administrator));
+            }
+
+            // Add configurations for the recipient
+            recipientConfigurations.put(recipient, configurations);
         }
     }
 

@@ -9,7 +9,9 @@ import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -22,6 +24,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+
+import static cz.cesnet.shongo.controller.notification.NotificationRecord.NotificationType;
+import static cz.cesnet.shongo.controller.notification.NotificationRecord.RecipientType;
 
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
@@ -385,12 +390,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new RoomProviderCapability(10,
-                new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164, AliasType.SIP_URI}));
-        mcu.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME).withRestrictedToResource());
-        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
-        mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -399,7 +399,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
         roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
@@ -417,15 +417,150 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler();
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
+        Assert.assertEquals(new ArrayList<NotificationType>()
         {{
-                add(NotificationRecord.NotificationType.ROOM_CREATED);
-                add(NotificationRecord.NotificationType.ROOM_CREATED);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_DELETED);
-                add(NotificationRecord.NotificationType.ROOM_DELETED);
+                add(NotificationType.ROOM_CREATED);
+                add(NotificationType.ROOM_CREATED);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_DELETED);
+                add(NotificationType.ROOM_DELETED);
             }}, getNotificationRecordTypes());
+    }
+
+    /**
+     * Test participant notifications for permanent room with capacities.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testPermanentRoomParticipation() throws Exception
+    {
+        ExecutableService executableService = getExecutableService();
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Create Permanent Room with Permanent Participant 1
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setDescription("Alias Reservation Request");
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification permanentRoomSpecification = new RoomSpecification(Technology.H323);
+        permanentRoomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
+        permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        Reservation permanentRoomReservation = checkAllocated(permanentRoomReservationRequestId);
+        AbstractRoomExecutable permanentRoom = (AbstractRoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomId = permanentRoom.getId();
+
+        // Create Capacity 1 with Capacity Participant 1
+        ReservationRequest firstCapacityReservationRequest = new ReservationRequest();
+        firstCapacityReservationRequest.setDescription("Capacity Reservation Request");
+        firstCapacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
+        firstCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        firstCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        RoomSpecification firstCapacitySpecification = new RoomSpecification(5);
+        firstCapacitySpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
+        firstCapacityReservationRequest.setSpecification(firstCapacitySpecification);
+        String firstCapacityReservationRequestId = allocate(firstCapacityReservationRequest);
+        Reservation firstCapacityReservation = checkAllocated(firstCapacityReservationRequestId);
+        AbstractRoomExecutable firstCapacity = (AbstractRoomExecutable) firstCapacityReservation.getExecutable();
+        String firstCapacityId = firstCapacity.getId();
+
+        // Create Capacity 2 without participants
+        ReservationRequest secondCapacityReservationRequest = new ReservationRequest();
+        secondCapacityReservationRequest.setDescription("Capacity Reservation Request");
+        secondCapacityReservationRequest.setSlot("2012-01-01T14:00", "PT1H");
+        secondCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        secondCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
+        RoomSpecification secondCapacitySpecification = new RoomSpecification(5);
+        secondCapacityReservationRequest.setSpecification(secondCapacitySpecification);
+        String secondCapacityReservationRequestId = allocate(secondCapacityReservationRequest);
+        Reservation secondCapacityReservation = checkAllocated(secondCapacityReservationRequestId);
+        AbstractRoomExecutable secondCapacity = (AbstractRoomExecutable) secondCapacityReservation.getExecutable();
+        String secondCapacityId = secondCapacity.getId();
+
+        // Add Permanent Participant 2 (should be notified about both capacities)
+        RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();
+        permanentRoomParticipants.addParticipant(new PersonParticipant("Jan Ruzicka", "janru@cesnet.cz"));
+        executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
+
+        // Add Capacity Participant 2 for Capacity 1 (should be notified about the single capacity)
+        RoomExecutableParticipantConfiguration firstCapacityParticipants = firstCapacity.getParticipantConfiguration();
+        firstCapacityParticipants.addParticipant(new PersonParticipant("Petr Holub", "holub@cesnet.cz"));
+        executableService.modifyExecutableConfiguration(SECURITY_TOKEN, firstCapacityId, firstCapacityParticipants);
+
+        // Remove Permanent Participant 2 (should be notified about both capacities)
+        permanentRoomParticipants.removeParticipant(permanentRoomParticipants.getParticipants().get(1));
+        executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
+
+        // Delete all
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstCapacityReservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, secondCapacityReservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
+        runScheduler();
+
+        // Check notification records
+        List<NotificationRecord> notificationRecords = getNotificationRecords();
+        // Check created
+        Long permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+        Long capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, permanentParticipant1, secondCapacityId);
+        Long permanentParticipant2 = checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+        checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 2",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, permanentParticipant2, secondCapacityId);
+        Long capacityParticipant2 = checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+        // Check deleted
+        checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, firstCapacityId);
+        checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 2",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, secondCapacityId);
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, firstCapacityId);
+        checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant1, firstCapacityId);
+        checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant2, firstCapacityId);
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, secondCapacityId);
+    }
+
+    private NotificationRecord checkNotification(List<NotificationRecord> notificationRecords,
+            String message, RecipientType recipientType, NotificationType notificationType,
+            Long recipientId, String targetId)
+    {
+        NotificationRecord notificationRecord = notificationRecords.get(0);
+        notificationRecords.remove(0);
+        if (notificationType != null) {
+            Assert.assertEquals(message + " - NotificationType",
+                    notificationType, notificationRecord.getNotificationType());
+        }
+        if (targetId != null) {
+            Long executableId = ObjectIdentifier.parseId(
+                    cz.cesnet.shongo.controller.booking.executable.Executable.class, targetId);
+            Assert.assertEquals(message + " - TargetId",
+                    executableId, notificationRecord.getTargetId());
+        }
+        if (recipientType != null) {
+            Assert.assertEquals(message + " - RecipientType",
+                    recipientType, notificationRecord.getRecipientType());
+        }
+        if (recipientId != null) {
+            Assert.assertEquals(message + " - RecipientId",
+                    recipientId, notificationRecord.getRecipientId());
+        }
+        return notificationRecord;
     }
 
     /**
@@ -441,18 +576,16 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(new Technology[]{Technology.H323, Technology.SIP});
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
         roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
@@ -476,18 +609,18 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<NotificationRecord.NotificationType>()
+        Assert.assertEquals(new ArrayList<NotificationType>()
         {{
-                add(NotificationRecord.NotificationType.ROOM_CREATED);
-                add(NotificationRecord.NotificationType.ROOM_CREATED);
-                add(NotificationRecord.NotificationType.ROOM_AVAILABLE);
-                add(NotificationRecord.NotificationType.ROOM_AVAILABLE);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_MODIFIED);
-                add(NotificationRecord.NotificationType.ROOM_DELETED);
-                add(NotificationRecord.NotificationType.ROOM_DELETED);
+                add(NotificationType.ROOM_CREATED);
+                add(NotificationType.ROOM_CREATED);
+                add(NotificationType.ROOM_AVAILABLE);
+                add(NotificationType.ROOM_AVAILABLE);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_MODIFIED);
+                add(NotificationType.ROOM_DELETED);
+                add(NotificationType.ROOM_DELETED);
             }}, getNotificationRecordTypes());
     }
 
@@ -498,9 +631,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
             List<NotificationRecord> notificationRecords =
                     entityManager.createNamedQuery("NotificationRecord.list", NotificationRecord.class).getResultList();
-            /*for (NotificationRecord notificationRecord : notificationRecords) {
+            System.err.println();
+            for (NotificationRecord notificationRecord : notificationRecords) {
                 System.err.println(notificationRecord);
-            }*/
+            }
             return notificationRecords;
         }
         finally {
@@ -508,10 +642,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         }
     }
 
-    private List<NotificationRecord.NotificationType> getNotificationRecordTypes()
+    private List<NotificationType> getNotificationRecordTypes()
     {
-        List<NotificationRecord.NotificationType> notificationTypes =
-                new LinkedList<NotificationRecord.NotificationType>();
+        List<NotificationType> notificationTypes =
+                new LinkedList<NotificationType>();
         for (NotificationRecord notificationRecord : getNotificationRecords()) {
             notificationTypes.add(notificationRecord.getNotificationType());
         }

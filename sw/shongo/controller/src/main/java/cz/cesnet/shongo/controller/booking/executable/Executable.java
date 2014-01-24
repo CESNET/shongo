@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
@@ -513,18 +514,21 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Update this {@link Executable} from given {@code executableConfiguration}.
      *
-     * @param executableConfiguration
+     *
+     *
+     *
+     * @param configuration
      * @param entityManager
      * @return true whether same change was made, false otherwise
      * @throws ControllerReportSet.ExecutableInvalidConfigurationException
      *          when this {@link Executable} cannot be updated from given {@code executableConfiguration}
      */
-    public boolean updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
+    public boolean updateFromExecutableConfigurationApi(ExecutableConfiguration configuration,
             EntityManager entityManager)
             throws ControllerReportSet.ExecutableInvalidConfigurationException
     {
         throw new ControllerReportSet.ExecutableInvalidConfigurationException(
-                ObjectIdentifier.formatId(this), ClassHelper.getClassShortName(executableConfiguration.getClass()));
+                ObjectIdentifier.formatId(this), ClassHelper.getClassShortName(configuration.getClass()));
     }
 
     /**

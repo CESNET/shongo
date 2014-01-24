@@ -129,7 +129,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 reservationNotifications.add(new ReservationNotification.Deleted(reservation, authorizationManager));
                 reservation.setAllocation(null);
                 if (reservation.getSlotEnd().isAfter(interval.getStart())) {
-                    reservationNotifications.addAll(finalizeActiveReservation(reservation, null, authorizationManager));
+                    reservationNotifications.addAll(finalizeActiveReservation(reservation, null));
                 }
                 reservationManager.delete(reservation, authorizationManager);
                 result.deletedReservations++;
@@ -452,14 +452,14 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
                     // Finalize reservation
                     contextState.addNotifications(
-                            finalizeActiveReservation(oldReservation, reservationRequest, authorizationManager));
+                            finalizeActiveReservation(oldReservation, reservationRequest));
                 }
             }
             // Old reservation which takes place in the future should be deleted
             else {
                 // Finalize reservation
                 contextState.addNotifications(
-                        finalizeActiveReservation(oldReservation, reservationRequest, authorizationManager));
+                        finalizeActiveReservation(oldReservation, reservationRequest));
 
                 // Create notification
                 contextState.addNotification(new ReservationNotification.Deleted(oldReservation, authorizationManager));
@@ -489,7 +489,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     }
 
     private List<AbstractNotification> finalizeActiveReservation(Reservation topReservation,
-            ReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+            ReservationRequest reservationRequest)
     {
         Collection<Reservation> reservations = new LinkedList<Reservation>();
         ReservationManager.getAllReservations(topReservation, reservations);
@@ -497,8 +497,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         for (Reservation reservation : reservations) {
             if (reservation instanceof RoomReservation) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
-                notifications.add(new RoomParticipationNotification.Deleted(
-                        roomEndpoint, reservationRequest, authorizationManager));
+                notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, reservationRequest));
             }
         }
         return notifications;

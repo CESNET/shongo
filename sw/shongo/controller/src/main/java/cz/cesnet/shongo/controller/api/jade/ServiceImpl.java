@@ -44,11 +44,6 @@ public class ServiceImpl implements Service
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see ControllerConfiguration
-     */
-    private ControllerConfiguration configuration;
-
-    /**
      * @see NotificationManager
      */
     private NotificationManager notificationManager;
@@ -66,11 +61,10 @@ public class ServiceImpl implements Service
     /**
      * Constructor.
      */
-    public ServiceImpl(EntityManagerFactory entityManagerFactory, ControllerConfiguration configuration,
-            NotificationManager notificationManager, Executor executor, Authorization authorization)
+    public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager,
+            Executor executor, Authorization authorization)
     {
         this.entityManagerFactory = entityManagerFactory;
-        this.configuration = configuration;
         this.notificationManager = notificationManager;
         this.executor = executor;
         this.authorization = authorization;
@@ -161,8 +155,7 @@ public class ServiceImpl implements Service
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
-            AbstractNotification notification = new ConfigurableNotification(recipients, userSettingsManager)
+            AbstractNotification notification = new ConfigurableNotification(recipients)
             {
                 @Override
                 protected Collection<Locale> getAvailableLocals()

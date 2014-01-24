@@ -23,7 +23,7 @@ import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
-import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
+import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -615,9 +615,8 @@ public class RoomReservationTask extends ReservationTask
             reservation.setExecutable(roomEndpoint);
 
             // Notify participants
-            if (roomEndpoint != null && reservation instanceof RoomReservation) {
-                schedulerContextState.addNotification(new RoomParticipationNotification.Created(
-                        (RoomReservation) reservation, schedulerContext.getAuthorizationManager()));
+            if (roomEndpoint != null && roomEndpoint.getRoomConfiguration().getLicenseCount() > 0) {
+                schedulerContextState.addNotification(new RoomNotification.RoomCreated(roomEndpoint));
             }
 
             endReport();

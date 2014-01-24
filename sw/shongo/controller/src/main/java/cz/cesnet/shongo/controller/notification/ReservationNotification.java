@@ -44,7 +44,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
     private ReservationNotification(Reservation reservation,
             AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
-        super(reservationRequest, authorizationManager.getUserSettingsManager());
+        super(reservationRequest);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 

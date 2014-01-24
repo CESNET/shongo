@@ -21,8 +21,6 @@ import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.NotificationRecord;
-import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

@@ -34,7 +34,7 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     public AllocationFailedNotification(ReservationRequest reservationRequest,
             AuthorizationManager authorizationManager, ControllerConfiguration configuration)
     {
-        super(reservationRequest, authorizationManager.getUserSettingsManager());
+        super(reservationRequest);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
 

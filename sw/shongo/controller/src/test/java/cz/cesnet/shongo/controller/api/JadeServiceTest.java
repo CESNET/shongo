@@ -53,9 +53,8 @@ public class JadeServiceTest extends AbstractExecutorTest
 
         cz.cesnet.shongo.controller.Controller controller = getController();
         controller.addNotificationExecutor(notificationExecutor);
-        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(),
-                controller.getConfiguration(), controller.getNotificationManager(), getExecutor(),
-                controller.getAuthorization())
+        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(), controller.getNotificationManager(),
+                getExecutor(), controller.getAuthorization())
         {
             @Override
             public Room getRoom(String agentName, String roomId) throws CommandException

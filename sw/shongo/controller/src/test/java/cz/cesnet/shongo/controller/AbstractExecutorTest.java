@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.joda.time.DateTime;

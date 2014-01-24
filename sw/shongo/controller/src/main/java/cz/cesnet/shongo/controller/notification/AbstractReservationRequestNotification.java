@@ -1,14 +1,12 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -34,13 +32,9 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
      * Constructor.
      *
      * @param reservationRequest
-     * @param userSettingsManager
      */
-    public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            UserSettingsManager userSettingsManager)
+    public AbstractReservationRequestNotification(AbstractReservationRequest reservationRequest)
     {
-        super(userSettingsManager);
-
         if (reservationRequest != null) {
             this.reservationRequestId = ObjectIdentifier.formatId(reservationRequest);
             this.reservationRequestDescription = reservationRequest.getDescription();
@@ -78,6 +72,12 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     @Override
     protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
+        super.onAdded(notificationManager, entityManager);
+
+        if (this instanceof ReservationRequestNotification) {
+            return;
+        }
+
         Long reservationRequestId = ObjectIdentifier.parseId(
                 AbstractReservationRequest.class, this.reservationRequestId);
         if (reservationRequestId != null) {
@@ -99,7 +99,7 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
             // Create or reuse reservation request notification
             Long abstractReservationRequestId = abstractReservationRequest.getId();
             ReservationRequestNotification reservationRequestNotification =
-                    notificationManager.reservationRequestNotifications.get(abstractReservationRequestId);
+                    notificationManager.reservationRequestNotificationsById.get(abstractReservationRequestId);
             if (reservationRequestNotification == null) {
                 AuthorizationManager authorizationManager = new AuthorizationManager(
                         entityManager, notificationManager.getAuthorization());

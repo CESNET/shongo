@@ -35,6 +35,10 @@ public class Synchronization
         public abstract T createFromApi(A objectApi);
 
         public abstract void updateFromApi(T object, A objectApi);
+
+        public void remove(T object)
+        {
+        }
     }
 
     public static <T> void synchronizeCollection(Collection<T> objects, Collection<T> apiObjects)
@@ -59,12 +63,12 @@ public class Synchronization
             if (apiObject.hasId()) {
                 Long objectId = apiObject.notNullIdAsLong();
                 object = existingObjects.get(objectId);
-                if (object != null) {
-                    handler.updateFromApi(object, apiObject);
-                }
-
             }
-            if (object == null) {
+            if (object != null) {
+                handler.updateFromApi(object, apiObject);
+                existingObjects.remove(object.getId());
+            }
+            else {
                 object = handler.createFromApi(apiObject);
             }
             newObjects.add(object);
@@ -72,6 +76,9 @@ public class Synchronization
         objects.clear();
         for (T newObject : newObjects) {
             handler.addToCollection(objects, newObject);
+        }
+        for (T removedObject : existingObjects.values()) {
+            handler.remove(removedObject);
         }
         return true;
     }
@@ -98,13 +105,19 @@ public class Synchronization
                         ControllerReportSetHelper.throwObjectNotExistFault(handler.getObjectClass(), objectId);
                         return false;
                     }
-                    handler.updateFromApi(object, apiObject);
                 }
             }
-            if (object == null) {
+            if (object != null) {
+                handler.updateFromApi(object, apiObject);
+                existingObjects.remove(object.getId());
+            }
+            else {
                 object = handler.createFromApi(apiObject);
             }
             handler.addToCollection(objects, object);
+        }
+        for (T removedObject : existingObjects.values()) {
+            handler.remove(removedObject);
         }
         return true;
     }

@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -13,7 +12,6 @@ import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
@@ -22,12 +20,13 @@ import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
+import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +62,8 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the {@link RoomEndpoint}.
      */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
@@ -146,18 +147,17 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     /**
-     * @return {@link #participants}
+     * @return list of all {@link AbstractParticipant}s which are able to join this {@link RoomEndpoint}
      */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
     public List<AbstractParticipant> getParticipants()
     {
-        return participants;
+        return Collections.unmodifiableList(participants);
     }
 
     /**
      * @param participants sets the {@link #participants}
      */
+
     public void setParticipants(List<AbstractParticipant> participants)
     {
         this.participants.clear();
@@ -249,7 +249,7 @@ public abstract class RoomEndpoint extends Endpoint
     public void fillRoomApi(Room roomApi, ExecutableManager executableManager)
     {
         roomApi.setDescription(getRoomDescriptionApi());
-        for (AbstractParticipant participant : getParticipants()) {
+        for (AbstractParticipant participant : participants) {
             if (participant instanceof PersonParticipant) {
                 PersonParticipant personParticipant = (PersonParticipant) participant;
                 AbstractPerson person = personParticipant.getPerson();
@@ -284,13 +284,13 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     @Override
-    public boolean updateFromExecutableConfigurationApi(ExecutableConfiguration executableConfiguration,
+    public boolean updateFromExecutableConfigurationApi(ExecutableConfiguration configuration,
             final EntityManager entityManager)
             throws ControllerReportSet.ExecutableInvalidConfigurationException
     {
-        if (executableConfiguration instanceof RoomExecutableParticipantConfiguration) {
+        if (configuration instanceof RoomExecutableParticipantConfiguration) {
             RoomExecutableParticipantConfiguration participantConfiguration =
-                    (RoomExecutableParticipantConfiguration) executableConfiguration;
+                    (RoomExecutableParticipantConfiguration) configuration;
 
             return Synchronization.synchronizeCollection(participants, participantConfiguration.getParticipants(),
                     new Synchronization.Handler<AbstractParticipant, cz.cesnet.shongo.controller.api.AbstractParticipant>(
@@ -312,7 +312,8 @@ public abstract class RoomEndpoint extends Endpoint
                     });
         }
         else {
-            return super.updateFromExecutableConfigurationApi(executableConfiguration, entityManager);
+            return super.updateFromExecutableConfigurationApi(
+                    configuration, entityManager);
         }
     }
 
@@ -330,9 +331,7 @@ public abstract class RoomEndpoint extends Endpoint
     {
         // Notify participants
         if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
-            AuthorizationManager authorizationManager = new AuthorizationManager(
-                    executableManager.getEntityManager(), executor.getAuthorization());
-            executor.addNotification(new RoomParticipationNotification.Available(this, authorizationManager));
+            executor.addNotification(new RoomNotification.Available(this));
         }
         return State.STARTED;
     }

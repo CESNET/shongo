@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,14 +50,14 @@ public class NotificationManager extends Component implements Component.Authoriz
     /**
      * Map of {@link ReservationRequestNotification} by {@link AbstractReservationRequest#id}.
      */
-    protected Map<Long, ReservationRequestNotification> reservationRequestNotifications =
+    protected Map<Long, ReservationRequestNotification> reservationRequestNotificationsById =
             new HashMap<Long, ReservationRequestNotification>();
 
     /**
      * Map of {@link ReservationRequestNotification} by {@link AbstractReservationRequest#id}.
      */
-    protected Map<Long, RoomParticipationNotification> roomParticipationNotifications =
-            new HashMap<Long, RoomParticipationNotification>();
+    protected Map<Long, List<RoomNotification>> roomNotificationsByReservationRequestId =
+            new HashMap<Long, List<RoomNotification>>();
 
     /**
      * @return {@link #authorization}
@@ -78,6 +79,15 @@ public class NotificationManager extends Component implements Component.Authoriz
     public synchronized void addNotificationExecutor(NotificationExecutor notificationExecutor)
     {
         notificationExecutors.add(notificationExecutor);
+    }
+
+    /**
+     * @return true whether {@link #notifications} is not empty,
+     *         false otherwise
+     */
+    public boolean hasNotifications()
+    {
+        return !notifications.isEmpty();
     }
 
     @Override
@@ -119,7 +129,6 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     /**
-     *
      * @param notifications to be added to the {@link #notifications}
      */
     public synchronized void addNotifications(List<AbstractNotification> notifications, EntityManager entityManager)
@@ -130,13 +139,31 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     /**
+     * @param reservationRequestId
+     * @return list of {@link RoomNotification} for given {@code reservationRequestId}
+     */
+    protected synchronized List<RoomNotification> getRoomNotificationsByReservationRequestId(Long reservationRequestId)
+    {
+        List<RoomNotification> roomNotifications = roomNotificationsByReservationRequestId.get(reservationRequestId);
+        if (roomNotifications == null) {
+            roomNotifications = new LinkedList<RoomNotification>();
+            roomNotificationsByReservationRequestId.put(reservationRequestId, roomNotifications);
+        }
+        return roomNotifications;
+    }
+
+    /**
+     * @param dateTime
      * @param entityManager to be used
      */
-    public synchronized void executeNotifications(EntityManager entityManager)
+    public synchronized void executeNotifications(DateTime dateTime, EntityManager entityManager)
     {
         entityManager.getTransaction().begin();
-        for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext();) {
+        for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
             AbstractNotification notification = iterator.next();
+            if (dateTime != null && !notification.isReady(dateTime)) {
+                continue;
+            }
             executeNotification(notification, entityManager);
             notification.onRemoved(this, entityManager);
             iterator.remove();

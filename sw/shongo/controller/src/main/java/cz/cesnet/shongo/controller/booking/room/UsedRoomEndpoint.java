@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -88,6 +89,22 @@ public class UsedRoomEndpoint extends RoomEndpoint
             mergedRoomConfiguration.addRoomSetting(roomSetting);
         }
         return mergedRoomConfiguration;
+    }
+
+    @Override
+    @Transient
+    public List<AbstractParticipant> getParticipants()
+    {
+        List<AbstractParticipant> reusedParticipants = reusedRoomEndpoint.getParticipants();
+        if (reusedParticipants.isEmpty()) {
+            return super.getParticipants();
+        }
+        else {
+            List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+            participants.addAll(reusedParticipants);
+            participants.addAll(super.getParticipants());
+            return participants;
+        }
     }
 
     @Override

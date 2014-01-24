@@ -400,16 +400,16 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @return started {@link UsedRoomEndpoint} for given {@code ResourceRoomEndpoint} or null if none exists
+     * @return started {@link UsedRoomEndpoint} for given {@code roomEndpoint} or null if none exists
      */
-    public UsedRoomEndpoint getStartedUsedRoomEndpoint(ResourceRoomEndpoint resourceRoomEndpoint)
+    public UsedRoomEndpoint getStartedUsedRoomEndpoint(RoomEndpoint roomEndpoint)
     {
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
                         + " WHERE room.reusedRoomEndpoint = :roomEndpoint"
                         + " AND room.state = :startedState",
                 UsedRoomEndpoint.class)
-                .setParameter("roomEndpoint", resourceRoomEndpoint)
+                .setParameter("roomEndpoint", roomEndpoint)
                 .setParameter("startedState", Executable.State.STARTED)
                 .getResultList();
         if (usedRoomEndpoints.size() == 0) {
@@ -419,7 +419,23 @@ public class ExecutableManager extends AbstractManager
             return usedRoomEndpoints.get(0);
         }
         throw new RuntimeException("Found multiple started " + UsedRoomEndpoint.class.getSimpleName()
-                + "s for " + ResourceRoomEndpoint.class + " with id " + resourceRoomEndpoint.getId() + ".");
+                + "s for " + ResourceRoomEndpoint.class + " with id " + roomEndpoint.getId() + ".");
+    }
+
+    /**
+     * @return list of future {@link UsedRoomEndpoint}s for given {@code roomEndpoint}
+     */
+    public List<UsedRoomEndpoint> getFutureUsedRoomEndpoint(RoomEndpoint roomEndpoint)
+    {
+        return entityManager.createQuery(
+                "SELECT room FROM UsedRoomEndpoint room"
+                        + " WHERE room.reusedRoomEndpoint = :roomEndpoint"
+                        + " AND room.state IN(:futureStates)",
+                UsedRoomEndpoint.class)
+                .setParameter("roomEndpoint", roomEndpoint)
+                .setParameter("futureStates", EnumSet.of(
+                        Executable.State.STARTED, Executable.State.NOT_STARTED))
+                .getResultList();
     }
 
     /**

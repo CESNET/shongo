@@ -176,6 +176,12 @@ public class NotificationRecord extends SimplePersistentObject
 
         /**
          * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}
+         * is configured was deleted.
+         */
+        ROOM_DELETED,
+
+        /**
+         * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}
          * is configured will be available soon.
          */
         ROOM_AVAILABLE,
@@ -184,12 +190,6 @@ public class NotificationRecord extends SimplePersistentObject
          * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}
          * is configured was modified.
          */
-        ROOM_MODIFIED,
-
-        /**
-         * {@link NotificationRecord} that a {@link RoomEndpoint} in which {@link AbstractParticipant}
-         * is configured was deleted.
-         */
-        ROOM_DELETED,
+        ROOM_MODIFIED
     }
 }

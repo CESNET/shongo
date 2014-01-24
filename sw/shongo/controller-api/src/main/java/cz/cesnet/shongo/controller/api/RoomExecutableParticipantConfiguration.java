@@ -56,6 +56,14 @@ public class RoomExecutableParticipantConfiguration extends ExecutableConfigurat
     }
 
     /**
+     * @param participant to be removed from the {@link #participants}
+     */
+    public void removeParticipant(AbstractParticipant participant)
+    {
+        participants.remove(participant);
+    }
+
+    /**
      * @param participantId to be removed from the {@link #participants}
      */
     public void removeParticipantById(String participantId)

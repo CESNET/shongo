@@ -14,7 +14,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.RoomParticipationNotification;
+import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -123,6 +123,14 @@ public class Executor extends SwitchableComponent
     public Logger getLogger()
     {
         return logger;
+    }
+
+    /**
+     * @return {@link #notificationManager}
+     */
+    public NotificationManager getNotificationManager()
+    {
+        return notificationManager;
     }
 
     /**
@@ -406,7 +414,7 @@ public class Executor extends SwitchableComponent
     /**
      * @param notification to be added to the {@link #notifications}
      */
-    public void addNotification(RoomParticipationNotification notification)
+    public void addNotification(RoomNotification notification)
     {
         synchronized (notifications) {
             notifications.add(notification);

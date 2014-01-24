@@ -69,6 +69,7 @@ public class WorkerThread extends Thread
         }
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
+        this.notificationManager = notificationManager;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -117,6 +118,20 @@ public class WorkerThread extends Thread
             }
         }
 
+        if (notificationManager.hasNotifications()) {
+            logger.info("Executing remaining notifications...");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                notificationManager.executeNotifications(null, entityManager);
+            }
+            catch (Exception exception) {
+                Reporter.reportInternalError(Reporter.WORKER, exception);
+            }
+            finally {
+                entityManager.close();
+            }
+        }
+
         logger.debug("Worker stopped!");
     }
 
@@ -130,7 +145,7 @@ public class WorkerThread extends Thread
         synchronized (ThreadLock.class) {
             //logger.debug("Worker lock acquired...   [[[[[")
 
-            // We want to pre-process and schedule only reservation requests
+            // We want to pre-process and schedule only reservation requests in specific interval
             Interval interval = new Interval(Temporal.nowRounded(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -138,8 +153,7 @@ public class WorkerThread extends Thread
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
-                notificationManager.executeNotifications(entityManager);
-                entityManager.getTransaction().commit();
+                notificationManager.executeNotifications(interval.getStart(), entityManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

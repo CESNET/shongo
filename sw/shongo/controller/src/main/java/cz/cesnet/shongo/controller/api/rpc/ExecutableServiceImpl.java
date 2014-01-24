@@ -11,7 +11,6 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
@@ -19,7 +18,9 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.executable.*;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
@@ -30,6 +31,9 @@ import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.executor.ExecutionPlan;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.notification.AbstractNotification;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
@@ -362,10 +366,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             String query = "SELECT executableService FROM ExecutableService executableService"
                     + " WHERE (executableService.executable = :executable "
-                    +"    OR executableService.executable IN("
+                    + "    OR executableService.executable IN("
                     + "     SELECT usedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
                     + "     WHERE usedRoomEndpoint.reusedRoomEndpoint = :executable"
-                    +"    ) OR executableService.executable IN("
+                    + "    ) OR executableService.executable IN("
                     + "     SELECT usedRoomEndpoint.reusedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
                     + "     WHERE usedRoomEndpoint = :executable"
                     + " ))"
@@ -448,17 +452,53 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             cz.cesnet.shongo.controller.booking.executable.Executable executable =
                     executableManager.get(objectId.getPersistenceId());
-
             if (!authorization.hasObjectPermission(securityToken, executable, ObjectPermission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
+
+            // Get participation
+            Set<AbstractParticipant> participants = new HashSet<AbstractParticipant>();
+            if (executable instanceof RoomEndpoint) {
+                RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
+                participants.addAll(roomEndpoint.getParticipants());
+            }
+
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
                 if (executable.canBeModified()) {
                     executable.setModified(true);
                 }
             }
 
+            // Create participation notifications
+            List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
+            if (executable instanceof RoomEndpoint) {
+                RoomEndpoint executableRoomEndpoint = (RoomEndpoint) executable;
+                List<RoomEndpoint> roomEndpoints = new LinkedList<RoomEndpoint>();
+                if (executableRoomEndpoint.getRoomConfiguration().getLicenseCount() == 0) {
+                    roomEndpoints.addAll(executableManager.getFutureUsedRoomEndpoint(executableRoomEndpoint));
+                }
+                else {
+                    roomEndpoints.add(executableRoomEndpoint);
+                }
+                for (AbstractParticipant participant : executableRoomEndpoint.getParticipants()) {
+                    if (!participants.contains(participant)) {
+                        for (RoomEndpoint roomEndpoint : roomEndpoints) {
+                            notifications.add(new RoomNotification.RoomCreated(roomEndpoint, participant));
+                        }
+                    }
+                    participants.remove(participant);
+                }
+                for (AbstractParticipant participant : participants) {
+                    for (RoomEndpoint roomEndpoint : roomEndpoints) {
+                        notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, participant));
+                    }
+                }
+            }
+
             entityManager.getTransaction().commit();
+
+            NotificationManager notificationManager = executor.getNotificationManager();
+            notificationManager.addNotifications(notifications, entityManager);
         }
         finally {
             entityManager.close();
@@ -544,10 +584,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 }
                 else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
                     // Set executable as stopped
-                    cz.cesnet.shongo.controller.booking.executable.Executable.State state = executableToUpdate.getState();
+                    cz.cesnet.shongo.controller.booking.executable.Executable.State state = executableToUpdate
+                            .getState();
                     if (state.isStarted() ||
-                            state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
-                        executableToUpdate.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                            state.equals(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                        executableToUpdate
+                                .setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                     }
                 }
             }
@@ -660,8 +703,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (!executableService.isActive()) {
                 ExecutionReport executionReport = executableService.getLastReport();
                 cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
-                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdministrator(securityToken) ?
-                                Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(
+                                authorization.isAdministrator(securityToken) ?
+                                        Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
                 executionReportApi.addReport(new StateReportSerializer(executionReport));
                 return executionReportApi;
             }
@@ -714,8 +758,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (executableService.isActive()) {
                 ExecutionReport executionReport = executableService.getLastReport();
                 cz.cesnet.shongo.controller.api.ExecutionReport executionReportApi =
-                        new cz.cesnet.shongo.controller.api.ExecutionReport(authorization.isAdministrator(securityToken) ?
-                                Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+                        new cz.cesnet.shongo.controller.api.ExecutionReport(
+                                authorization.isAdministrator(securityToken) ?
+                                        Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
                 executionReportApi.addReport(new StateReportSerializer(executionReport));
                 return executionReportApi;
             }
@@ -814,7 +859,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             @Override
                             public int compare(ResourceRecording o1, ResourceRecording o2)
                             {
-                                return o1.getDuration().toStandardDuration().compareTo(o2.getDuration().toStandardDuration());
+                                return o1.getDuration().toStandardDuration()
+                                        .compareTo(o2.getDuration().toStandardDuration());
                             }
                         };
                         break;
