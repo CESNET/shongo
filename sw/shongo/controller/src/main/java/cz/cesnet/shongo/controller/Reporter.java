@@ -111,8 +111,8 @@ public class Reporter
                         getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
             }
 
-            Set<String> resourceAdministratorEmails = new HashSet<String>();
             if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
+                Set<String> resourceAdministratorEmails = new HashSet<String>();
                 for (AbstractPerson resourceAdministrator : resource.getAdministrators()) {
                     String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
                     if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {

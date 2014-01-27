@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.common.AbstractPerson;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
@@ -65,7 +66,7 @@ public class ServiceImpl implements Service
     @Override
     public Room getRoom(String agentName, String roomId) throws CommandException
     {
-        Long deviceResourceId = getDeviceResourceIdByAgentName(agentName);
+        Long deviceResourceId = getDeviceResourceByAgentName(agentName).getId();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -96,7 +97,8 @@ public class ServiceImpl implements Service
                 }
                 break;
             case ROOM_OWNERS:
-                Long deviceResourceId = getDeviceResourceIdByAgentName(agentName);
+                DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
+                Long deviceResourceId = deviceResource.getId();
                 EntityManager entityManager = entityManagerFactory.createEntityManager();
                 try {
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -109,6 +111,9 @@ public class ServiceImpl implements Service
                     Authorization authorization = Authorization.getInstance();
                     for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER)) {
                         recipients.add(user);
+                    }
+                    for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {
+                        recipients.add(resourceAdministrator.getInformation());
                     }
                 }
                 finally {
@@ -130,14 +135,14 @@ public class ServiceImpl implements Service
      * @param agentName of the managed device resource
      * @return device resource identifier
      */
-    private Long getDeviceResourceIdByAgentName(String agentName) throws CommandException
+    private DeviceResource getDeviceResourceByAgentName(String agentName) throws CommandException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             ResourceManager resourceManager = new ResourceManager(entityManager);
             DeviceResource deviceResource = resourceManager.getManagedDeviceByAgent(agentName);
             if (deviceResource != null) {
-                return deviceResource.getId();
+                return deviceResource;
             }
             throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
         }
