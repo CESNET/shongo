@@ -98,8 +98,10 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
             interval = new Interval(intervalStart, intervalEnd);
         }
         List<Interval> slots = new ArrayList<Interval>();
-        for (DateTime dateTime : periodicDateTime.enumerate(intervalStart, intervalEnd, maxCount - slots.size())) {
-            Interval slot = new Interval(dateTime, getDuration());
+        Period duration = getDuration();
+        for (DateTime dateTime : periodicDateTime.enumerate(
+                (intervalStart != null ? intervalStart.minus(duration) : null), intervalEnd, maxCount - slots.size())) {
+            Interval slot = new Interval(dateTime, duration);
             if ((intervalStart == null && intervalEnd == null)
                     || (interval != null && slot.overlaps(interval))
                     || (intervalStart != null && intervalEnd == null && slot.getEnd().isAfter(intervalStart))

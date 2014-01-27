@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.List;
 
 /**
  * Represents a {@link Component} that is responsible for enumerating {@link ReservationRequestSet}s
@@ -60,12 +60,16 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
      *
      * @param interval
      */
-    public synchronized void run(Interval interval, EntityManager entityManager)
+    public synchronized Result run(Interval interval, EntityManager entityManager)
     {
+        Result result = new Result();
         if (!isEnabled()) {
             logger.warn("Skipping preprocessor because it is disabled...");
-            return;
+            return result;
         }
+
+        cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
+        timer.start();
 
         // Round interval start to whole hours (otherwise the reservation requests with future date/time slots
         // would be always processed, because the interval would keep changing all the time)
@@ -78,26 +82,35 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
         logger.debug("Running preprocessor for interval '{}'...", dateTimeFormatter.formatInterval(interval));
 
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             // Process all not-preprocessed reservation request sets
             List<ReservationRequestSet> reservationRequestSets =
                     reservationRequestManager.listNotPreprocessedReservationRequestSets(interval);
             for (ReservationRequestSet reservationRequestSet : reservationRequestSets) {
-                processReservationRequestSet(reservationRequestSet, interval, entityManager);
+                processReservationRequestSet(reservationRequestSet, interval, entityManager, result);
             }
+
+            if (!result.isEmpty()) {
+                logger.info("Pre-processing done in {} ms (created: {}, modified: {}, deleted: {}).", new Object[]{
+                        timer.stop(), result.createdReservationRequests, result.modifiedReservationRequests,
+                        result.deletedReservationRequests
+                });
+            }
+
         }
         catch (Exception exception) {
             Reporter.reportInternalError(Reporter.PREPROCESSOR, exception);
         }
+        return result;
     }
 
     /**
      * Synchronize (create/modify/delete) {@link ReservationRequest}s from a single {@link ReservationRequestSet}.
      */
     private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
-            EntityManager entityManager) throws Exception
+            EntityManager entityManager, Result result) throws Exception
     {
         reservationRequestSet.checkPersisted();
 
@@ -108,7 +121,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
 
-            logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
+            logger.debug("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
 
             // Get allocation for the reservation request set
             Allocation allocation = reservationRequestSet.getAllocation();
@@ -157,9 +170,11 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                         }
 
                         // When the child reservation request was modified it should be (re)allocated
-                        if (modified ) {
+                        if (modified) {
                             // We must reallocate child reservation request, so clear it's state
                             childReservationRequest.clearState();
+
+                            result.modifiedReservationRequests++;
                         }
                     }
 
@@ -178,6 +193,8 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
 
                     // Create ACL records for the new reservation request
                     authorizationManager.createAclRecordsForChildEntity(reservationRequestSet, childReservationRequest);
+
+                    result.createdReservationRequests++;
                 }
 
                 // Update state for modified/new reservation request
@@ -191,6 +208,8 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
 
                 // Delete child reservation request and all it's ACL records
                 reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
+
+                result.deletedReservationRequests++;
             }
 
             // Update reservation request
@@ -216,6 +235,35 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
                 entityManager.getTransaction().rollback();
             }
             throw exception;
+        }
+    }
+
+    public static class Result
+    {
+        private int createdReservationRequests = 0;
+        private int modifiedReservationRequests = 0;
+        private int deletedReservationRequests = 0;
+
+        public boolean isEmpty()
+        {
+            return createdReservationRequests == 0 &&
+                    modifiedReservationRequests == 0 &&
+                    deletedReservationRequests == 0;
+        }
+
+        public int getCreatedReservationRequests()
+        {
+            return createdReservationRequests;
+        }
+
+        public int getModifiedReservationRequests()
+        {
+            return modifiedReservationRequests;
+        }
+
+        public int getDeletedReservationRequests()
+        {
+            return deletedReservationRequests;
         }
     }
 }

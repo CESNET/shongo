@@ -406,15 +406,16 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         setReusedAllocation(reservationRequest.getReusedAllocation());
         setReusement(reservationRequest.getReusement());
 
-        Specification specification = reservationRequest.getSpecification();
-        if (this.specification == null || this.specification.getClass() != specification.getClass()) {
+        Specification oldSpecification = getSpecification();
+        Specification newSpecification = reservationRequest.getSpecification();
+        if (oldSpecification == null || !oldSpecification.getClass().equals(newSpecification.getClass())) {
             // Setup new specification
-            setSpecification(specification.clone());
+            setSpecification(newSpecification.clone());
             modified = true;
         }
         else {
             // Check specification for modifications
-            modified |= this.specification.synchronizeFrom(specification);
+            modified |= oldSpecification.synchronizeFrom(newSpecification);
         }
 
         return modified;

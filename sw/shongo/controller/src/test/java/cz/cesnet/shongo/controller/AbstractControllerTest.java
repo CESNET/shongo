@@ -292,11 +292,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param interval
      */
-    protected void runPreprocessor(Interval interval)
+    protected Preprocessor.Result runPreprocessor(Interval interval)
     {
         EntityManager entityManager = createEntityManager();
-        preprocessor.run(interval, entityManager);
+        Preprocessor.Result result = preprocessor.run(interval, entityManager);
         entityManager.close();
+        return result;
     }
 
     /**
@@ -304,11 +305,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      *
      * @param interval
      */
-    protected void runScheduler(Interval interval)
+    protected Scheduler.Result runScheduler(Interval interval)
     {
         EntityManager entityManager = createEntityManager();
-        scheduler.run(interval, entityManager);
+        Scheduler.Result result = scheduler.run(interval, entityManager);
         entityManager.close();
+        return result;
     }
 
     /**
@@ -335,17 +337,17 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Run {@link Preprocessor}.
      */
-    protected void runPreprocessor()
+    protected Preprocessor.Result runPreprocessor()
     {
-        runPreprocessor(workingInterval);
+        return runPreprocessor(workingInterval);
     }
 
     /**
      * Run {@link Scheduler}.
      */
-    protected void runScheduler()
+    protected Scheduler.Result runScheduler()
     {
-        runScheduler(workingInterval);
+        return runScheduler(workingInterval);
     }
 
     /**

@@ -29,7 +29,8 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Scheduler extends SwitchableComponent implements Component.AuthorizationAware, Component.NotificationManagerAware
+public class Scheduler extends SwitchableComponent
+        implements Component.AuthorizationAware, Component.NotificationManagerAware
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
@@ -83,11 +84,12 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
      * @param interval      only reservation requests which intersects this interval should be allocated
      * @param entityManager to be used
      */
-    public void run(Interval interval, EntityManager entityManager)
+    public Result run(Interval interval, EntityManager entityManager)
     {
+        Result result = new Result();
         if (!isEnabled()) {
             logger.warn("Skipping scheduler because it is disabled...");
-            return;
+            return result;
         }
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG);
@@ -95,10 +97,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
         cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
         timer.start();
-
-        int reservationRequestsFailed = 0;
-        int reservationRequestsAllocated = 0;
-        int reservationsDeleted = 0;
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -130,7 +128,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 notifications.addNotification(reservation, ReservationNotification.Type.DELETED, authorizationManager);
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
-                reservationsDeleted++;
+                result.deletedReservations++;
             }
 
             // Delete all allocations which should be deleted
@@ -195,10 +193,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
 
-                    reservationRequestsAllocated++;
+                    result.allocatedReservationRequests++;
                 }
                 catch (Exception exception) {
-                    reservationRequestsFailed++;
+                    result.failedReservationRequests++;
 
                     // Allocation of reservation request has failed and thus rollback transaction
                     if (authorizationManager.isTransactionActive()) {
@@ -261,11 +259,13 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             Reporter.reportInternalError(Reporter.SCHEDULER, exception);
         }
 
-        if (reservationsDeleted > 0 || reservationRequestsAllocated > 0) {
+        if (!result.isEmpty()) {
             logger.info("Scheduling done in {} ms (failed: {}, allocated: {}, deleted: {}).", new Object[]{
-                    timer.stop(), reservationRequestsFailed, reservationRequestsAllocated, reservationsDeleted
+                    timer.stop(), result.failedReservationRequests, result.allocatedReservationRequests,
+                    result.deletedReservations
             });
         }
+        return result;
     }
 
     /**
@@ -539,4 +539,34 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             }
         }
     }
+
+    public static class Result
+    {
+        private int failedReservationRequests = 0;
+        private int allocatedReservationRequests = 0;
+        private int deletedReservations = 0;
+
+        public boolean isEmpty()
+        {
+            return failedReservationRequests == 0 &&
+                    allocatedReservationRequests == 0 &&
+                    deletedReservations == 0;
+        }
+
+        public int getFailedReservationRequests()
+        {
+            return failedReservationRequests;
+        }
+
+        public int getAllocatedReservationRequests()
+        {
+            return allocatedReservationRequests;
+        }
+
+        public int getDeletedReservations()
+        {
+            return deletedReservations;
+        }
+    }
+
 }
