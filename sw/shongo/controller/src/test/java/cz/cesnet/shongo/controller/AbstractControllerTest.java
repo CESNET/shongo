@@ -398,7 +398,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Run {@link Preprocessor}.
      */
-
     protected Preprocessor.Result runPreprocessor()
     {
         return runPreprocessor(workingInterval);
