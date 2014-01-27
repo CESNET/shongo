@@ -25,7 +25,6 @@ import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
-import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
