@@ -117,6 +117,7 @@ public class ServiceImpl implements Service
         List<PersonInformation> recipients = new LinkedList<PersonInformation>();
         switch (targetType) {
             case USER:
+            {
                 try {
                     recipients.add(Authorization.getInstance().getUserInformation(targetId));
                 }
@@ -124,7 +125,9 @@ public class ServiceImpl implements Service
                     throw new CommandException(String.format("Cannot notify user with id '%s'.", targetId), exception);
                 }
                 break;
+            }
             case ROOM_OWNERS:
+            {
                 DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
                 Long deviceResourceId = deviceResource.getId();
                 EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -148,6 +151,18 @@ public class ServiceImpl implements Service
                     entityManager.close();
                 }
                 break;
+            }
+            case RESOURCE_ADMINS:
+            {
+                if (targetId != null) {
+                    throw new IllegalArgumentException("The targetId argument must be null.");
+                }
+                DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
+                for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {
+                    recipients.add(resourceAdministrator.getInformation());
+                }
+                break;
+            }
             default:
                 throw new TodoImplementException(targetType);
         }

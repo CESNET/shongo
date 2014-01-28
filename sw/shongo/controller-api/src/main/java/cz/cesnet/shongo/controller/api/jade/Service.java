@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api.jade;
 
-import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.jade.CommandException;
 
 import java.util.Map;
 
@@ -40,8 +40,8 @@ public interface Service
      *
      * @param targetType {@link NotifyTargetType} defining who should be notified
      * @param targetId   identifier defining the identity of {@link NotifyTargetType} who should be notified
-     * @param titles      titles of the message by languages
-     * @param messages    which should be used for notification
+     * @param titles     titles of the message by languages ({@code null} can be used as default language)
+     * @param messages   which should be used for notification ({@code null} can be used as default language)
      */
     public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
             Map<String, String> titles, Map<String, String> messages) throws CommandException;
@@ -66,6 +66,11 @@ public interface Service
         /**
          * All owners of a single {@link Room} should be notified. The {@code targetId} must contain {@link Room#id}.
          */
-        ROOM_OWNERS
+        ROOM_OWNERS,
+
+        /**
+         * Resource administrators. The {@code targetId} must be {@code null}.
+         */
+        RESOURCE_ADMINS,
     }
 }
