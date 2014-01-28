@@ -1636,8 +1636,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
         }
 
-        // Check if permission for this folder is manage, or sets it  - temporary function
-        //TODO: deal with permissions and delete
+        // Check if permission for this folder is denied, or sets it
         RequestAttributeList permissionsInfoAttributes = new RequestAttributeList();
         permissionsInfoAttributes.add("acl-id",recordingsFolderID);
         permissionsInfoAttributes.add("filter-principal-id","public-access");
@@ -1896,7 +1895,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Check if all recordings are stored, otherwise move them to appropriete folder (asks controller for folder name)
+     * Check if all recordings are stored, otherwise move them to appropriate folder (asks controller for folder name)
      *
      * @throws CommandException
      */

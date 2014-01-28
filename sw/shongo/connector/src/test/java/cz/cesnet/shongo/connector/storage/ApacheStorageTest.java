@@ -19,6 +19,7 @@ public class ApacheStorageTest
 {
     private static final String URL = "TMP";
     //private static final String URL = "/media/shongo_storage";
+    private static final String DOWNLOADABL_URL_BASE = "https://shongo-auth-dev.cesnet.cz/tcs/";
 
     private AbstractStorage storage;
 
@@ -34,7 +35,7 @@ public class ApacheStorageTest
         }
         ApacheStorage.deleteContentRecursive(new File(rootFolderUrl));
 
-        storage = new ApacheStorage(rootFolderUrl, new AbstractStorage.UserInformationProvider()
+        storage = new ApacheStorage(rootFolderUrl, DOWNLOADABL_URL_BASE, new AbstractStorage.UserInformationProvider()
         {
             @Override
             public UserInformation getUserInformation(String userId)
@@ -68,7 +69,7 @@ public class ApacheStorageTest
         String folderId = storage.createFolder(new Storage.Folder(null, "folder"));
         Assert.assertTrue(dirExists("folder"));
 
-        String recordingId = storage.createFile(new Storage.File(folderId, "recording"), getInputStream("<data>"));
+        storage.createFile(new Storage.File(folderId, "recording"), getInputStream("<data>"));
         Assert.assertTrue(fileExists("folder/recording"));
         Assert.assertEquals("<data>", getFileContent("folder/recording"));
 

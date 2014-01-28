@@ -22,9 +22,9 @@ public class ApacheStorage extends AbstractStorage
      * @param url                     sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    public ApacheStorage(String url, UserInformationProvider userInformationProvider)
+    public ApacheStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider)
     {
-        super(url, userInformationProvider);
+        super(url, downloadableUrlBase, userInformationProvider);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public String createFile(File file, InputStream fileContent)
+    public void createFile(File file, InputStream fileContent)
     {
         String folderUrl = getUrlFromId(file.getFolderId());
         String fileUrl = getChildUrl(folderUrl, file.getFileName());
@@ -128,14 +128,13 @@ public class ApacheStorage extends AbstractStorage
         catch (IOException exception) {
             throw new RuntimeException("File '" + fileUrl + "' couldn't be written.", exception);
         }
-        return file.getFileName();
     }
 
     @Override
-    public void deleteFile(String folderId, String fileId)
+    public void deleteFile(String folderId, String fileName)
     {
         String folderUrl = getUrlFromId(folderId);
-        String fileUrl = getChildUrl(folderUrl, fileId);
+        String fileUrl = getChildUrl(folderUrl, fileName);
         java.io.File file = new java.io.File(fileUrl);
         if (!file.delete()) {
             throw new RuntimeException("File'" + fileUrl + "' couldn't be deleted.");
@@ -156,13 +155,12 @@ public class ApacheStorage extends AbstractStorage
                 if (!file.isFile()) {
                     return false;
                 }
-                return fileName == null || StringUtils.containsIgnoreCase(fileName, fileName);
+                return fileName == null || StringUtils.containsIgnoreCase(file.getName(), fileName);
             }
         });
         List<File> files = new LinkedList<File>();
         for (String ioFile : ioFiles) {
             File file = new File();
-            file.setFileId(ioFile);
             file.setFolderId(folderId);
             file.setFileName(ioFile);
             files.add(file);
@@ -171,15 +169,28 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public InputStream getFileContent(String folderId, String fileId)
+    public InputStream getFileContent(String folderId, String fileName)
     {
-        throw new TodoImplementException("ApacheStorage.getFileContent");
+        String folderUrl = getUrlFromId(folderId);
+        String fileUrl = getChildUrl(folderUrl, fileName);
+
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(fileUrl);
+        }
+        catch (FileNotFoundException e) {
+            throw new RuntimeException("File " + fileUrl + " doesn't exist.");
+        }
+
+        return inputStream;
     }
 
     @Override
-    public String getFileDownloadableUrl(String folderId, String fileId)
+    public String getFileDownloadableUrl(String folderId, String fileName)
     {
-        throw new TodoImplementException("TODO: implement ApacheStorage.getFileDownloadableUrl()");
+        String fileUrl = getChildUrl(folderId, fileName);
+        String downloadableUrl = this.getDownloadableUrlBase() + fileUrl;
+        return downloadableUrl;
     }
 
     private String getUrlFromId(String id)

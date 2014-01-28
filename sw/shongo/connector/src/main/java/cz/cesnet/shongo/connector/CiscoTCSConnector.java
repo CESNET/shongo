@@ -2,6 +2,7 @@
 
 
 import com.sun.prism.impl.Disposer;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -32,6 +33,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.tika.io.IOUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
@@ -44,6 +46,10 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
  /**
   * {@link AbstractConnector} for Cisco TelePresence Content Server
@@ -72,12 +78,22 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Namespace constant for Cisco TCS
      */
-    private String NS_ENVELOPE = "SOAP-ENV";
+    private final String NS_ENVELOPE = "SOAP-ENV";
 
     /**
      * Namespace constant for Cisco TCS
      */
-    private String NS_NS1 = "ns1";
+    private final String NS_NS1 = "ns1";
+
+    /**
+     * Maximal number of threads for mooving recordings to storage.
+     */
+    private final int NUM_OF_THREADS = 10;
+
+    /**
+     * Namespace
+     */
+    private Namespace ns1;
 
     /**
      * Default bitrate for recordings.
@@ -111,19 +127,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             this.DEFAULT_BITRATE = getOption("default-bitrate");
         }
 
-
-        this.ALIAS = "999";
-        storage = new ApacheStorage("/tmp/shongo",new AbstractStorage.UserInformationProvider()
-        {
-            @Override
-            public UserInformation getUserInformation(String userId) throws CommandException
-            {
-                return getUserInformationById(userId);
-            }
-        } );
-
-
-/*        if (getOption("alias") != null) {
+        if (getOption("alias") != null) {
             this.ALIAS = getOption("alias");
         } else {
             throw new RuntimeException("Option alias must be set in connector config file.");
@@ -133,8 +137,11 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             throw new RuntimeException("Option storage-url must be set in connector config file.");
         }
 
+        if (getOption("downloadable-url-base") == null) {
+            throw new RuntimeException("Option storage-url must be set in connector config file.");
+        }
 
-            storage = new ApacheStorage(getOption("storage-url"),new AbstractStorage.UserInformationProvider()
+            storage = new ApacheStorage(getOption("storage-url"), getOption("downloadable-url-base"), new AbstractStorage.UserInformationProvider()
         {
             @Override
             public UserInformation getUserInformation(String userId) throws CommandException
@@ -142,7 +149,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 return getUserInformationById(userId);
             }
         } );
-        */
 
         checkServerVitality();
 
@@ -164,8 +170,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         Command command = new Command("GetSystemInformation");
         Element result = exec(command);
-        Namespace ns = result.getNamespace(NS_NS1);
-        if (!"true".equals(result.getChild("GetSystemInformationResponse",ns).getChild("GetSystemInformationResult",ns).getChildText("EngineOK",ns)))
+        if (!"true".equals(result.getChild("GetSystemInformationResponse").getChild("GetSystemInformationResult").getChildText("EngineOK")))
         {
             this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
 
@@ -229,28 +234,26 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         command.setParameter("ConferenceID", recordingTCSId);
 
         Element result = exec(command);
-        Namespace ns = result.getNamespace(NS_NS1);
         return result;
     }
 
     /**
      * Convers from recording info from source {@link org.jdom2.Element} to {@link cz.cesnet.shongo.api.Recording}
      * @param recordingData raw xml data in {@link org.jdom2.Element}
-     * @param ns namespace
      * @return recording info
      */
-    protected Recording parseRecording(Element recordingData, Namespace ns)
+    protected Recording parseRecording(Element recordingData)
     {
         Recording recording = new Recording();
-        recording.setId(recordingData.getChildText("ConferenceID", ns));
-        recording.setName(recordingData.getChildText("Title", ns));
-        recording.setBeginDate(new DateTime(Long.decode(recordingData.getChildText("DateTime", ns))*1000));
-        recording.setDuration(new Period(Long.decode(recordingData.getChildText("Duration",ns)).longValue()));
-        //TODO: recording.setDescription(recordingData.getChildText("Description",ns));
-        recording.setUrl(recordingData.getChildText("URL",ns));
-        if ("true".equals(recordingData.getChildText("HasDownloadableMovie", ns))) {
-            recording.setDownloadableUrl(recordingData.getChild("DownloadableMovies",ns).getChild("DownloadableMovie",ns).getChildText(
-                    "URL", ns));
+        recording.setId(recordingData.getChildText("ConferenceID"));
+        recording.setName(recordingData.getChildText("Title"));
+        recording.setBeginDate(new DateTime(Long.decode(recordingData.getChildText("DateTime"))*1000));
+        recording.setDuration(new Period(Long.decode(recordingData.getChildText("Duration")).longValue()));
+        //TODO: recording.setDescription(recordingData.getChildText("Description"));
+        recording.setUrl(recordingData.getChildText("URL"));
+        if ("true".equals(recordingData.getChildText("HasDownloadableMovie"))) {
+            recording.setDownloadableUrl(recordingData.getChild("DownloadableMovies").getChild("DownloadableMovie").getChildText(
+                    "URL"));
             String extension = recording.getDownloadableUrl().split("\\.")[recording.getDownloadableUrl().split("\\.").length - 1];
             recording.setFileName(DateTimeFormat.forPattern("YYYYMMddHHmmss").print(recording.getBeginDate()) + "." + extension);
         }
@@ -261,14 +264,37 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
-        String folderId = selectFolderId(recordingId);
-        String fileId = selectFileId(recordingId);
+        try {
+            String folderId = selectFolderId(recordingId);
+            String fileId = selectFileId(recordingId);
 
-        storage.getFileContent(folderId,"." + fileId + ".data");
-        Recording recording = new Recording();
+            InputStream inputStream = storage.getFileContent(folderId,"." + fileId + ".xml");
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
-        //recording.setDownloadableUrl(storage.getFileDownloadableUrl(folderId, fileId));
-        throw new TodoImplementException("TODO: implement CiscoTCSConnector.getRecording()");
+            StringBuilder inputStringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while(line != null){
+                inputStringBuilder.append(line);
+                inputStringBuilder.append('\n');
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            String recordingXml = inputStringBuilder.toString();
+            Document resultDocument = saxBuilder.build(new StringReader(recordingXml));
+            Element rootElement = resultDocument.getRootElement();
+
+            Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
+
+            Recording recording = parseRecording(rootElement.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+            recording.setDownloadableUrl(storage.getFileDownloadableUrl(folderId, fileId));
+
+            return recording;
+        } catch (IOException e) {
+            throw new RuntimeException("Error while reading file " + selectFolderId(recordingId) + "/." + selectFileId(recordingId) + ".xml".replaceAll("//","/"));
+        } catch (JDOMException e) {
+            throw new RuntimeException("Error while parsing file " + selectFolderId(recordingId) + "/." + selectFileId(recordingId) + ".xml".replaceAll("//","/"));
+        }
     }
 
     /**
@@ -280,8 +306,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public Recording getOriginalRecording(String recordingTCSId) throws CommandException
     {
         Element result = getRecordingRawData(recordingTCSId);
-        Namespace ns = result.getNamespace(NS_NS1);
-        return parseRecording(result.getChild("GetConferenceResponse", ns).getChild("GetConferenceResult", ns), ns);
+        return parseRecording(result.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
     }
 
     /**
@@ -306,8 +331,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         Element result = exec(command);
 
-        Namespace ns = result.getNamespace(NS_NS1);
-        return result.getChild("GetCallInfoResponse",ns).getChild("GetCallInfoResult",ns).getChildText("CallState",ns).equals("IN_CALL");
+        return "IN_CALL".endsWith(
+                result.getChild("GetCallInfoResponse").getChild("GetCallInfoResult").getChildText("CallState"));
     }
 
 /*    private String createAdHocAlias() throws CommandException
@@ -339,12 +364,30 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {
-        Command command = new Command("Dial");
+        if (!alias.getType().equals(AliasType.H323_E164)) {
+            throw new TodoImplementException("TODO: implement recording for other aliases than H.323_164.");
+        }
+
+        Command command = new Command("RequestConferenceID");
+        command.setParameter("owner","admin");
+        command.setParameter("password","");
+        command.setParameter("startDateTime","0");
+        command.setParameter("duration","0");
+        command.setParameter("title","[flr:"+folderId+";alias:"+alias.getValue()+";created:"+DateTimeFormat.forStyle("SM").print(DateTime.now())+"]");
+        command.setParameter("groupId","");
+        command.setParameter("isRecurring","false");
+
+        String conferenceID = exec(command).getChild("RequestConferenceIDResponse").getChildText(
+                "RequestConferenceIDResult");
+
+
+        command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
         String bitrate = recordingSettings.getBitrate() == null ? DEFAULT_BITRATE : recordingSettings.getBitrate();
         command.setParameter("Bitrate", bitrate);
         //TODO: create alias for adhoc recording, find out if necessary
         command.setParameter("Alias", ALIAS);
+        command.setParameter("ConferenceID",conferenceID);
         //TODO: set technology if SIP
         command.setParameter("CallType", "h323");
         command.setParameter("SetMetadata", true);
@@ -352,8 +395,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         Element result = exec(command);
 
-        Namespace ns = result.getNamespace(NS_NS1);
-        String recordingTCSId = result.getChild("DialResponse", ns).getChild("DialResult",ns).getChildText("ConferenceID",ns);
+        String recordingTCSId = result.getChild("DialResponse").getChild("DialResult").getChildText("ConferenceID");
         String fileId = DateTimeFormat.forPattern("YYYYMMddHHmmss").print(getOriginalRecording(recordingTCSId).getBeginDate());
         return folderId + ":" + fileId + ":" + recordingTCSId;
     }
@@ -397,30 +439,40 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         exec(command);
     }
 
+    protected void createMetadataFile(String recordingId, String recordingFolderId, Element recordingXmlData) throws CommandException
+    {
+        Recording recording = parseRecording(recordingXmlData.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+
+        Storage.File metadataFile = new Storage.File();
+        metadataFile.setFileName("." + selectFileId(recordingId) + ".xml");
+        metadataFile.setFolderId(recordingFolderId);
+
+        // metadataFile file
+        storage.createFile(metadataFile, new ByteArrayInputStream(xmlOutputter.outputString(recordingXmlData).getBytes()));
+    }
+
     protected void moveRecording(String recordingId, String recordingFolderId) throws CommandException
     {
         try {
-            Element result = getRecordingRawData(selectRecordingTCSId(recordingId));
-            Namespace ns = result.getNamespace(NS_NS1);
+            logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
+
+            Element recordingXmlData = getRecordingRawData(selectRecordingTCSId(recordingId));
             Recording recording = parseRecording(
-                    result.getChild("GetConferenceResponse", ns).getChild("GetConferenceResult", ns), ns);
+                    recordingXmlData.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
 
             Storage.File file = new Storage.File();
             file.setFileName(recording.getFileName());
             file.setFolderId(recordingFolderId);
 
-            Storage.File metadata = new Storage.File();
-            metadata.setFileName("." + selectFileId(recordingId) + ".data");
-            metadata.setFolderId(recordingFolderId);
-
-            // metadata file
-            storage.createFile(metadata, new ByteArrayInputStream(xmlOutputter.outputString(result).getBytes()));
+            // create metadata file
+            createMetadataFile(recordingId,recordingFolderId, recordingXmlData);
             // recording
-            storage.createFile(file,new URL(recording.getDownloadableUrl()).openStream());
+            storage.createFile(file, new URL(recording.getDownloadableUrl()).openStream());
         }
         catch (IOException e) {
             throw new CommandException("I/O Exception while downloading recording from TCS server.",e);
-        }
+        } 
+        deleteOriginalRecording(recordingId);
     }
 
     @Override
@@ -429,14 +481,19 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         String folderId = selectFolderId(recordingId);
         String fileId = selectFileId(recordingId);
         String recordingTCSId = selectRecordingTCSId(recordingId);
-        //TODO: delete all files storage.deleteFile(folderId,fileId);
         for(Storage.File file:storage.listFiles(folderId,fileId)) {
-            System.out.println(file.getFileName());
-            //storage.deleteFile(folderId,fileId);
+            if (file.getFileName().contains(fileId)) {
+                storage.deleteFile(folderId,file.getFileName());
+            }
         }
-        //deleteOriginalRecording(tcsId);
     }
 
+    /**
+     * Delete recording from Cisco TCS server
+     *
+     * @param recordingId identifier of the recording to delete
+     * @throws CommandException
+     */
     protected void deleteOriginalRecording(String recordingId) throws CommandException
     {
         Command command = new Command("DeleteRecording");
@@ -587,11 +644,16 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             throw new CommandException("HTTP problems posting method " + authResponse.getStatusLine().getReasonPhrase());
                         }
 
-                        Document resultDocument = saxBuilder.build(new StringReader(resultString));
+                        // Remove namespace NS_NS1
+                        if (this.ns1 == null) {
+                            Document resultDocumentTmp = saxBuilder.build(new StringReader(resultString));
+                            Element rootElementTmp = resultDocumentTmp.getRootElement();
+                            this.ns1 = rootElementTmp.getNamespace(NS_NS1);
+                        }
+                        Document resultDocument = saxBuilder.build(new StringReader(removeNamespace(resultString)));
                         Element rootElement = resultDocument.getRootElement();
 
                         this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
-
                         Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
                         return rootElement.getChild("Body",envelopeNS);
                     } else {
@@ -608,19 +670,76 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         }
     }
 
+    /**
+     * Exec without debug std out.
+     * @param command
+     * @return
+     * @throws CommandException
+     */
     protected Element exec(Command command) throws CommandException{
         return exec(command,false);
     }
 
-    public static void main(String[] args) throws Exception
+    /**
+     * Remove {@link org.jdom2.Namespace} {@link #NS_NS1}
+     * @param xmlData
+     * @return xmlData without {@link org.jdom2.Namespace} {@link #NS_NS1}
+     */
+    private String removeNamespace(String xmlData)
     {
-        Address address = new Address("195.113.151.188",80);
-
-        CiscoTCSConnector tcs = new CiscoTCSConnector();
-        tcs.connect(address, "user", "pass");
+        return xmlData.replaceAll("<"+ns1.getPrefix()+":","<").replaceAll("</"+ns1.getPrefix()+":","</");
+    }
 
 
-        tcs.disconnect();
+    /**
+     * Check if all recordings are stored, otherwise move them to appropriate folder (asks controller for folder name)
+     *
+     * @throws CommandException
+     */
+    protected void checkRecordings() throws CommandException
+    {
+        Command command = new Command("GetConferences");
+        command.setParameter("SearchExpression","flr:");
+        command.setParameter("ResultRange","");
+        command.setParameter("DateTime","");
+        command.setParameter("UpdateTime","");
+        command.setParameter("Owner","");
+        command.setParameter("Category","");
+        command.setParameter("Sort","DateTime");
+        Element result = exec(command);
+
+        final Pattern  pattern = Pattern.compile("^\\[flr:(.*);alias:.*;created:.*\\]$");
+        ExecutorService exec = Executors.newFixedThreadPool(NUM_OF_THREADS);
+        try {
+            for (final Element rec : result.getChild("GetConferencesResponse").getChild("GetConferencesResult").getChildren("Conference")) {
+                exec.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        Recording recording = parseRecording(rec);
+
+                        // has prepared movie for download
+                        if (recording.getDownloadableUrl() != null) {
+                            Matcher matcher = pattern.matcher(recording.getName());
+                            if (matcher.find()) {
+                                String folderId = matcher.group(1);
+                                String recordingId = folderId + ":" + recording.getFileName().split("\\.")[0] + ":" + recording.getId();
+
+                                try {
+
+                                    moveRecording(recordingId, folderId);
+                                }
+                                catch (Exception e) {
+                                    logger.error("Error while mooving recording (recordingId: " + recordingId + ").");
+                                    //TODO: send mail to resource admins
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } finally {
+            exec.shutdown();
+        }
 
     }
 }

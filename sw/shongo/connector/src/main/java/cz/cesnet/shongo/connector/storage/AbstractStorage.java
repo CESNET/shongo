@@ -17,6 +17,11 @@ public abstract class AbstractStorage implements Storage
     private String url;
 
     /**
+     *
+     */
+    private String downloadableUrlBase;
+
+    /**
      * @see UserInformationProvider
      */
     private UserInformationProvider userInformationProvider;
@@ -27,10 +32,16 @@ public abstract class AbstractStorage implements Storage
      * @param url sets the {@link #url}
      * @param userInformationProvider sets the {@link #userInformationProvider}
      */
-    protected AbstractStorage(String url, UserInformationProvider userInformationProvider)
+    protected AbstractStorage(String url, String downloadableUrlBase, UserInformationProvider userInformationProvider)
     {
         this.url = url;
         this.userInformationProvider = userInformationProvider;
+
+        if (downloadableUrlBase.endsWith("/")) {
+            downloadableUrlBase = downloadableUrlBase.substring(0,downloadableUrlBase.length() - 1);
+        }
+        this.downloadableUrlBase = downloadableUrlBase;
+
     }
 
     /**
@@ -39,6 +50,14 @@ public abstract class AbstractStorage implements Storage
     public String getUrl()
     {
         return url;
+    }
+
+    /**
+     * @return {@link #downloadableUrlBase}
+     */
+    public String getDownloadableUrlBase()
+    {
+        return downloadableUrlBase;
     }
 
     /**

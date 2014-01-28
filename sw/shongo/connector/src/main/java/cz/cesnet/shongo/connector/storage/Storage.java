@@ -52,17 +52,16 @@ public interface Storage
      *
      * @param file        information about the new file
      * @param fileContent input stream from which the file content can be read
-     * @return id of the new file
      */
-    String createFile(File file, InputStream fileContent);
+    void createFile(File file, InputStream fileContent);
 
     /**
      * Delete existing file in the storage.
      *
      * @param folderId
-     * @param fileId
+     * @param fileName
      */
-    void deleteFile(String folderId, String fileId);
+    void deleteFile(String folderId, String fileName);
 
     /**
      * List files in specified folder in the storage.
@@ -77,17 +76,17 @@ public interface Storage
      * Download content of existing file in the storage.
      *
      * @param folderId id of the folder in which the file is located
-     * @param fileId   id of the file in the folder
+     * @param fileName   id of the file in the folder
      * @return {@link InputStream} with the file content
      */
-    InputStream getFileContent(String folderId, String fileId);
+    InputStream getFileContent(String folderId, String fileName);
 
     /**
      * Returns downloadable url of file
      *
      * @return file downloadableUrl
      */
-    String getFileDownloadableUrl(String folderId, String fileId);
+    String getFileDownloadableUrl(String folderId, String fileName);
 
     /**
      * Represents information about a single folder in the storage.
@@ -183,17 +182,12 @@ public interface Storage
     class File
     {
         /**
-         * Id of the file or {@code null} if the id doesn't exist yet.
-         */
-        private String fileId;
-
-        /**
          * Id of the folder in which the file is located.
          */
         private String folderId;
 
         /**
-         * Name of the file.
+         * Name of the file, which is unique in folder.
          */
         private String fileName;
 
@@ -217,19 +211,19 @@ public interface Storage
         }
 
         /**
-         * @return {@link #fileId}
+         * @return {@link #fileName}
          */
-        public String getFileId()
+        public String getFileName()
         {
-            return fileId;
+            return fileName;
         }
 
         /**
-         * @param fileId sets the {@link #fileId}
+         * @param fileName sets the {@link #fileName}
          */
-        public void setFileId(String fileId)
+        public void setFileName(String fileName)
         {
-            this.fileId = fileId;
+            this.fileName = fileName;
         }
 
         /**
@@ -246,22 +240,6 @@ public interface Storage
         public void setFolderId(String folderId)
         {
             this.folderId = folderId;
-        }
-
-        /**
-         * @return {@link #fileName}
-         */
-        public String getFileName()
-        {
-            return fileName;
-        }
-
-        /**
-         * @param fileName sets the {@link #fileName}
-         */
-        public void setFileName(String fileName)
-        {
-            this.fileName = fileName;
         }
     }
 
