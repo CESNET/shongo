@@ -6,6 +6,9 @@
 <#if context.administrator>
 ${context.message(indent, "reservation.id")}: ${notification.id}
 </#if>
+<#if context.administrator && target.executableId??>
+${context.message(indent, "target.executable")}: ${target.executableId}
+</#if>
 <@formatTarget target=target/><#t>
 <#---->
 ${context.message(indent, "reservation.slot")}: ${context.formatInterval(notification.slot)}
@@ -71,6 +74,8 @@ ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
 </#if>
 </#if>
+<#elseif target.class.simpleName == "Reused">
+${context.message(indent, "target.reused.reservation")}: ${target.reusedReservationId}
 </#if>
 </#macro>
 <#-------------------------------->

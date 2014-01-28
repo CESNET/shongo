@@ -31,6 +31,8 @@ ${context.message(indent, "target.room.pin")}: ${target.pin}
 ${context.message(indent, "target.room.aliases")}:
 <@formatAliases aliases=target.aliases/>
 </#if>
+<#elseif target.class.simpleName == "Reused">
+${context.message(indent, "target.reused.reservation")}: ${target.reusedReservationId}
 </#if>
 <#---->
 <#---------------------------------->

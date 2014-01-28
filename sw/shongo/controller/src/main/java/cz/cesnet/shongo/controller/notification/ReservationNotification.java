@@ -58,7 +58,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         this.owners.addAll(authorizationManager.getUserIdsWithRole(reservation, ObjectRole.OWNER));
 
         // Add administrators as recipients
-        addAdministratorRecipientsForReservation(reservation);
+        addAdministratorRecipientsForReservation(reservation.getTargetReservation());
 
         // Add child targets
         for (Reservation childReservation : reservation.getChildReservations()) {

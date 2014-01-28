@@ -1,7 +1,6 @@
  package cz.cesnet.shongo.connector;
 
 
-import com.sun.prism.impl.Disposer;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -14,7 +13,6 @@ import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.storage.AbstractStorage;
 import cz.cesnet.shongo.connector.storage.ApacheStorage;
 import cz.cesnet.shongo.connector.storage.Storage;
-import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.*;
 import org.apache.http.auth.ContextAwareAuthScheme;

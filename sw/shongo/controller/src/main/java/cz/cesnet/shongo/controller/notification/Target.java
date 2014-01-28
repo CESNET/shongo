@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -37,7 +38,9 @@ import java.util.Set;
  */
 public abstract class Target
 {
-    private String type;
+    protected String executableId;
+
+    protected String type;
 
     protected String resourceId;
 
@@ -50,6 +53,11 @@ public abstract class Target
     private Target(cz.cesnet.shongo.controller.booking.resource.Resource resource)
     {
         setResource(resource);
+    }
+
+    public String getExecutableId()
+    {
+        return executableId;
     }
 
     public String getType()
@@ -294,6 +302,7 @@ public abstract class Target
         private DeviceResource initFrom(RoomEndpoint roomEndpoint, EntityManager entityManager)
         {
             RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+            executableId = ObjectIdentifier.formatId(roomEndpoint);
             slotBefore = (roomEndpoint.getSlotMinutesBefore() > 0 ?
                                   Period.minutes(roomEndpoint.getSlotMinutesBefore()) : null);
             slotAfter = (roomEndpoint.getSlotMinutesAfter() > 0 ?
@@ -429,6 +438,21 @@ public abstract class Target
         }
     }
 
+    public static class Reused extends Target
+    {
+        private String reusedReservationId;
+
+        private Reused(ExistingReservation existingReservation)
+        {
+            reusedReservationId = ObjectIdentifier.formatId(existingReservation.getReusedReservation());
+        }
+
+        public String getReusedReservationId()
+        {
+            return reusedReservationId;
+        }
+    }
+
     public static class Other extends Target
     {
         private String description;
@@ -494,6 +518,9 @@ public abstract class Target
         }
         else if (reservation instanceof ResourceReservation) {
             return new Resource((ResourceReservation) reservation);
+        }
+        else if (reservation instanceof ExistingReservation) {
+            return new Reused((ExistingReservation) reservation);
         }
         else {
             Executable executable = reservation.getExecutable();

@@ -332,7 +332,46 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount());
+    }
+
+    @Test
+    public void testReusedAlias() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
+        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(Technology.H323));
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
+
+        String reservationRequestId = allocate(reservationRequest);
+        Reservation reservation = checkAllocated(reservationRequestId);
+        Assert.assertEquals(ExistingReservation.class, reservation.getClass());
+        ExistingReservation existingReservation = (ExistingReservation) reservation;
+        Assert.assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
+        runScheduler();
+
+        // 4x admin: new, new, deleted, deleted
+        // 4x user: changes (new), changes (new), changes (deleted), changes (deleted)
+        Assert.assertEquals(8, notificationExecutor.getNotificationCount());
     }
 
     /**
