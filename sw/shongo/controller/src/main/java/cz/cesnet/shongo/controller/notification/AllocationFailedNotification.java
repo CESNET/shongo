@@ -103,9 +103,10 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
     }
 
     @Override
-    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager)
+    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager notificationManager,
+            EntityManager entityManager)
     {
-        NotificationMessage notificationMessage = super.renderMessage(recipient, manager);
+        NotificationMessage notificationMessage = super.renderMessage(recipient, notificationManager, entityManager);
         notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         return notificationMessage;
     }

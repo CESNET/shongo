@@ -129,7 +129,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 reservationNotifications.add(new ReservationNotification.Deleted(reservation, authorizationManager));
                 reservation.setAllocation(null);
                 if (reservation.getSlotEnd().isAfter(interval.getStart())) {
-                    reservationNotifications.addAll(finalizeActiveReservation(reservation, null));
+                    reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
                 }
                 reservationManager.delete(reservation, authorizationManager);
                 result.deletedReservations++;
@@ -191,11 +191,13 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
 
                     // Reallocate dependent reservation requests
                     Iterator<ReservationRequest> iterator = contextState.getReservationRequestsToReallocate();
+                    contextState.enableNotifications(false);
                     while (iterator.hasNext()) {
                         ReservationRequest reservationRequestToReallocate = iterator.next();
                         allocateReservationRequest(reservationRequestToReallocate, context);
                         reservationRequestToReallocate.getSpecification().updateTechnologies(entityManager);
                     }
+                    contextState.enableNotifications(true);
 
                     // Finalize (delete old reservations, etc)
                     List<AbstractNotification> contextNotifications = context.finish();
@@ -451,15 +453,13 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     oldReservation.setSlotEnd(slotStart);
 
                     // Finalize reservation
-                    contextState.addNotifications(
-                            finalizeActiveReservation(oldReservation, reservationRequest));
+                    contextState.addNotifications(finalizeActiveReservation(oldReservation, entityManager));
                 }
             }
             // Old reservation which takes place in the future should be deleted
             else {
                 // Finalize reservation
-                contextState.addNotifications(
-                        finalizeActiveReservation(oldReservation, reservationRequest));
+                contextState.addNotifications(finalizeActiveReservation(oldReservation, entityManager));
 
                 // Create notification
                 contextState.addNotification(new ReservationNotification.Deleted(oldReservation, authorizationManager));
@@ -488,16 +488,21 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         reservationRequestManager.update(reservationRequest);
     }
 
-    private List<AbstractNotification> finalizeActiveReservation(Reservation topReservation,
-            ReservationRequest reservationRequest)
+    /**
+     * @param reservation to be finalized
+     * @param entityManager which can be used
+     * @return list of {@link AbstractNotification}
+     */
+    private List<AbstractNotification> finalizeActiveReservation(Reservation reservation, EntityManager entityManager)
     {
-        Collection<Reservation> reservations = new LinkedList<Reservation>();
-        ReservationManager.getAllReservations(topReservation, reservations);
+        Collection<Reservation> reservationItems = new LinkedList<Reservation>();
+        ReservationManager.getAllReservations(reservation, reservationItems);
         List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
-        for (Reservation reservation : reservations) {
-            if (reservation instanceof RoomReservation) {
-                RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
-                notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, reservationRequest));
+        for (Reservation reservationItem : reservationItems) {
+            Executable executable = reservationItem.getExecutable();
+            if (executable instanceof RoomEndpoint) {
+                RoomEndpoint roomEndpoint = (RoomEndpoint) reservationItem.getExecutable();
+                notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, entityManager));
             }
         }
         return notifications;

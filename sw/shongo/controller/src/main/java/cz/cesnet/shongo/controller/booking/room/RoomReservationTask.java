@@ -615,7 +615,7 @@ public class RoomReservationTask extends ReservationTask
             reservation.setExecutable(roomEndpoint);
 
             // Notify participants
-            if (roomEndpoint != null && roomEndpoint.getRoomConfiguration().getLicenseCount() > 0) {
+            if (roomEndpoint != null) {
                 schedulerContextState.addNotification(new RoomNotification.RoomCreated(roomEndpoint));
             }
 

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -119,35 +118,12 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     @Override
-    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager)
+    protected NotificationMessage renderMessage(PersonInformation recipient, NotificationManager notificationManager,
+            EntityManager entityManager)
     {
+        // Get configurations
         List<Configuration> configurations = recipientConfigurations.get(recipient);
-        if (configurations == null || configurations.size() == 0) {
-            throw new IllegalArgumentException("No configurations defined for recipient " + recipient + ".");
-        }
-        else if (configurations.size() == 1) {
-            // Single message
-            return getRenderedMessage(configurations.get(0), manager).clone();
-        }
-        else {
-            // Multiple messages
-            NotificationMessage notificationMessage = new NotificationMessage(recipient, manager);
-            for (Configuration configuration : configurations) {
-                NotificationMessage configurationMessage = getRenderedMessage(configuration, manager);
-                notificationMessage.appendMessage(configurationMessage);
-            }
-            return notificationMessage;
-        }
-    }
-
-    @Override
-    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
-    {
-        super.onAdded(notificationManager, entityManager);
-
-        UserSettingsManager userSettingsManager = new UserSettingsManager(
-                entityManager, notificationManager.getAuthorization());
-        for (PersonInformation recipient : getRecipients()) {
+        if (configurations == null) {
             // Determine whether recipient is administrator
             boolean administrator = administratorRecipients.contains(recipient);
 
@@ -156,6 +132,8 @@ public abstract class ConfigurableNotification extends AbstractNotification
             DateTimeZone timeZone = null;
             if (recipient instanceof UserInformation) {
                 UserInformation userInformation = (UserInformation) recipient;
+                UserSettingsManager userSettingsManager = new UserSettingsManager(
+                        entityManager, notificationManager.getAuthorization());
                 UserSettings userSettings = userSettingsManager.getUserSettings(userInformation.getUserId());
                 if (userSettings != null) {
                     locale = userSettings.getLocale();
@@ -172,7 +150,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
             }
 
             // Get single or multiple configurations
-            List<Configuration> configurations = new LinkedList<Configuration>();
+            configurations = new LinkedList<Configuration>();
             if (locale == null) {
                 for (Locale defaultLocale : getAvailableLocals()) {
                     configurations.add(createConfiguration(defaultLocale, timeZone, administrator));
@@ -184,6 +162,21 @@ public abstract class ConfigurableNotification extends AbstractNotification
 
             // Add configurations for the recipient
             recipientConfigurations.put(recipient, configurations);
+        }
+
+        // Render message for each configuration
+        if (configurations.size() == 1) {
+            // Single message
+            return getRenderedMessage(configurations.get(0), notificationManager).clone();
+        }
+        else {
+            // Multiple messages
+            NotificationMessage notificationMessage = new NotificationMessage(recipient, notificationManager);
+            for (Configuration configuration : configurations) {
+                NotificationMessage configurationMessage = getRenderedMessage(configuration, notificationManager);
+                notificationMessage.appendMessage(configurationMessage);
+            }
+            return notificationMessage;
         }
     }
 
@@ -290,12 +283,21 @@ public abstract class ConfigurableNotification extends AbstractNotification
         }
 
         /**
+         * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL}
+         */
+        public String getReservationRequestUrl()
+        {
+            return controllerConfiguration.getNotificationReservationRequestUrl();
+        }
+
+        /**
          * @param reservationRequestId
          * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
          */
         public String getReservationRequestUrl(String reservationRequestId)
         {
-            return controllerConfiguration.getNotificationReservationRequestUrl(reservationRequestId);
+            String reservationRequestUrl = getReservationRequestUrl();
+            return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
         }
     }
 

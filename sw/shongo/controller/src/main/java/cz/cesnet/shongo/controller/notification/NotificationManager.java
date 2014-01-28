@@ -60,6 +60,12 @@ public class NotificationManager extends Component implements Component.Authoriz
             new HashMap<Long, List<RoomNotification>>();
 
     /**
+     * Map of {@link AbstractNotification}s by class by target-id.
+     */
+    protected Map<Long, Map<Class<? extends AbstractNotification>, AbstractNotification>> notificationsByTargetId =
+            new HashMap<Long, Map<Class<? extends AbstractNotification>, AbstractNotification>>();
+
+    /**
      * @return {@link #authorization}
      */
     public Authorization getAuthorization()
@@ -123,9 +129,10 @@ public class NotificationManager extends Component implements Component.Authoriz
      */
     public synchronized void addNotification(AbstractNotification notification, EntityManager entityManager)
     {
-        notifications.add(notification);
-
-        notification.onAdded(this, entityManager);
+        if (notification.onBeforeAdded(this, entityManager)) {
+            notifications.add(notification);
+            notification.onAfterAdded(this, entityManager);
+        }
     }
 
     /**
@@ -139,17 +146,14 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     /**
-     * @param reservationRequestId
-     * @return list of {@link RoomNotification} for given {@code reservationRequestId}
+     * @param notification to be removed from the {@link #notifications}
+     * @param entityManager
      */
-    protected synchronized List<RoomNotification> getRoomNotificationsByReservationRequestId(Long reservationRequestId)
+    public void removeNotification(AbstractNotification notification, EntityManager entityManager)
     {
-        List<RoomNotification> roomNotifications = roomNotificationsByReservationRequestId.get(reservationRequestId);
-        if (roomNotifications == null) {
-            roomNotifications = new LinkedList<RoomNotification>();
-            roomNotificationsByReservationRequestId.put(reservationRequestId, roomNotifications);
+        if(notifications.remove(notification)) {
+            notification.onAfterRemoved(this, entityManager);
         }
-        return roomNotifications;
     }
 
     /**
@@ -165,8 +169,8 @@ public class NotificationManager extends Component implements Component.Authoriz
                 continue;
             }
             executeNotification(notification, entityManager);
-            notification.onRemoved(this, entityManager);
             iterator.remove();
+            notification.onAfterRemoved(this, entityManager);
         }
         entityManager.getTransaction().commit();
     }
@@ -196,7 +200,7 @@ public class NotificationManager extends Component implements Component.Authoriz
             if (enabled) {
                 // Perform notification in every notification executor
                 for (NotificationExecutor notificationExecutor : notificationExecutors) {
-                    if (notificationExecutor.executeNotification(recipient, notification, this)) {
+                    if (notificationExecutor.executeNotification(recipient, notification, this, entityManager)) {
                         result = true;
                     }
                 }
@@ -209,9 +213,41 @@ public class NotificationManager extends Component implements Component.Authoriz
                 // Create persistent notification record
                 NotificationRecord notificationRecord = notification.createRecord(recipient, entityManager);
                 if (notificationRecord != null) {
+                    logger.debug("{}", notificationRecord);
                     entityManager.persist(notificationRecord);
                 }
             }
+        }
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return list of {@link RoomNotification} for given {@code reservationRequestId}
+     */
+    protected synchronized List<RoomNotification> getRoomNotificationsByReservationRequestId(Long reservationRequestId)
+    {
+        List<RoomNotification> roomNotifications = roomNotificationsByReservationRequestId.get(reservationRequestId);
+        if (roomNotifications == null) {
+            roomNotifications = new LinkedList<RoomNotification>();
+            roomNotificationsByReservationRequestId.put(reservationRequestId, roomNotifications);
+        }
+        return roomNotifications;
+    }
+
+    /**
+     * @param targetId
+     * @param notificationType
+     * @return {@link AbstractNotification} of given {@code notificationType} for given {@code targetId}
+     */
+    protected synchronized <T extends AbstractNotification> T getNotification(Long targetId, Class<T> notificationType)
+    {
+        Map<Class<? extends AbstractNotification>, AbstractNotification> notifications =
+                notificationsByTargetId.get(targetId);
+        if (notifications != null) {
+            return notificationType.cast(notifications.get(notificationType));
+        }
+        else {
+            return null;
         }
     }
 }

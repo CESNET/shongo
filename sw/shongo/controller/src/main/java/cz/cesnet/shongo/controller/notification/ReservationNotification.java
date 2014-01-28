@@ -143,9 +143,9 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
     @Override
     protected NotificationMessage renderMessage(PersonInformation recipient,
-            NotificationManager manager)
+            NotificationManager notificationManager, EntityManager entityManager)
     {
-        NotificationMessage notificationMessage = super.renderMessage(recipient, manager);
+        NotificationMessage notificationMessage = super.renderMessage(recipient, notificationManager, entityManager);
         if (user != null) {
             notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         }

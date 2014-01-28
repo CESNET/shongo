@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,7 +58,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
 
     @Override
     public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
-            NotificationManager manager)
+            NotificationManager manager, EntityManager entityManager)
     {
         if (!emailSender.isInitialized()) {
             return false;
@@ -75,7 +76,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                     replyToEmails.add(replyToEmail);
                 }
             }
-            NotificationMessage message = notification.getMessage(recipient, manager);
+            NotificationMessage message = notification.getMessage(recipient, manager, entityManager);
 
             // Build email header
             StringBuilder emailHeaderBuilder = new StringBuilder();

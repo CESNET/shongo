@@ -490,25 +490,16 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();
         permanentRoomParticipants.addParticipant(new PersonParticipant("Jan Ruzicka", "janru@cesnet.cz"));
         executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
+        executeNotifications();
 
         // Add Capacity Participant 2 for Capacity 1 (should be notified about the single capacity)
         RoomExecutableParticipantConfiguration firstCapacityParticipants = firstCapacity.getParticipantConfiguration();
         firstCapacityParticipants.addParticipant(new PersonParticipant("Petr Holub", "holub@cesnet.cz"));
         executableService.modifyExecutableConfiguration(SECURITY_TOKEN, firstCapacityId, firstCapacityParticipants);
+        executeNotifications();
 
-        // Remove Permanent Participant 2 (should be notified about both capacities)
-        permanentRoomParticipants.removeParticipant(permanentRoomParticipants.getParticipants().get(1));
-        executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
-
-        // Delete all
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstCapacityReservationRequestId);
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, secondCapacityReservationRequestId);
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
-        runScheduler();
-
-        // Check notification records
+        // Check created notifications
         List<NotificationRecord> notificationRecords = getNotificationRecords();
-        // Check created
         Long permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
                 RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
         Long capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
@@ -521,46 +512,66 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, permanentParticipant2, secondCapacityId);
         Long capacityParticipant2 = checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
                 RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
-        // Check deleted
+        clearNotificationRecords();
+
+        // Remove Permanent Participant 2 (should be notified about both capacities)
+        permanentRoomParticipants.removeParticipant(permanentRoomParticipants.getParticipants().get(1));
+        executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
+        executeNotifications();
+
+        // Check deleted notifications
+        notificationRecords = getNotificationRecords();
         checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
                 RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, firstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 2",
                 RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, secondCapacityId);
-        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, firstCapacityId);
-        checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant1, firstCapacityId);
+        clearNotificationRecords();
+
+        // Modify permanent room
+        permanentRoomReservationRequest =
+                getReservationRequest(permanentRoomReservationRequestId, ReservationRequest.class);
+        permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        checkAllocated(permanentRoomReservationRequestId);
+        firstCapacityReservationRequest = getReservationRequest(
+                firstCapacityReservationRequestId, ReservationRequest.class);
+        firstCapacityReservation =
+                firstCapacityReservationRequest.getLastReservation(getReservationService(), SECURITY_TOKEN);
+        firstCapacity = (AbstractRoomExecutable) firstCapacityReservation.getExecutable();
+        String newFirstCapacityId = firstCapacity.getId();
+        secondCapacityReservationRequest = getReservationRequest(
+                secondCapacityReservationRequestId, ReservationRequest.class);
+        secondCapacityReservation =
+                secondCapacityReservationRequest.getLastReservation(getReservationService(), SECURITY_TOKEN);
+        secondCapacity = (AbstractRoomExecutable) secondCapacityReservation.getExecutable();
+        String newSecondCapacityId = secondCapacity.getId();
+
+        // Check modified and deleted notifications
+        notificationRecords = getNotificationRecords();
+        permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, null, newFirstCapacityId).getRecipientId();
+        capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, null, newFirstCapacityId).getRecipientId();
         checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
                 RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant2, firstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, secondCapacityId);
-    }
+                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, permanentParticipant1, newSecondCapacityId);
+        clearNotificationRecords();
 
-    private NotificationRecord checkNotification(List<NotificationRecord> notificationRecords,
-            String message, RecipientType recipientType, NotificationType notificationType,
-            Long recipientId, String targetId)
-    {
-        NotificationRecord notificationRecord = notificationRecords.get(0);
-        notificationRecords.remove(0);
-        if (notificationType != null) {
-            Assert.assertEquals(message + " - NotificationType",
-                    notificationType, notificationRecord.getNotificationType());
-        }
-        if (targetId != null) {
-            Long executableId = ObjectIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.executable.Executable.class, targetId);
-            Assert.assertEquals(message + " - TargetId",
-                    executableId, notificationRecord.getTargetId());
-        }
-        if (recipientType != null) {
-            Assert.assertEquals(message + " - RecipientType",
-                    recipientType, notificationRecord.getRecipientType());
-        }
-        if (recipientId != null) {
-            Assert.assertEquals(message + " - RecipientId",
-                    recipientId, notificationRecord.getRecipientId());
-        }
-        return notificationRecord;
+        // Delete all
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstCapacityReservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, secondCapacityReservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
+        runScheduler();
+
+        // Check deleted reservation requests
+        notificationRecords = getNotificationRecords();
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, newFirstCapacityId);
+        checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant1, newFirstCapacityId);
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
+                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, newSecondCapacityId);
+        clearNotificationRecords();
     }
 
     /**
@@ -581,6 +592,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
+        // Create room
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
@@ -596,15 +608,18 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         checkAllocated(reservationRequestId);
 
         runExecutor(DateTime.parse("2012-06-22T14:10"));
+        // Modify room
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:20"));
         checkAllocated(reservationRequestId);
 
         runExecutor(DateTime.parse("2012-06-22T14:30"));
+        // Modify room
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:40"));
         checkAllocated(reservationRequestId);
 
+        // Delete room
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
@@ -622,6 +637,19 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(NotificationType.ROOM_DELETED);
                 add(NotificationType.ROOM_DELETED);
             }}, getNotificationRecordTypes());
+    }
+
+    private void clearNotificationRecords()
+    {
+        EntityManager entityManager = createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+            entityManager.createQuery("DELETE FROM NotificationRecord").executeUpdate();
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     private List<NotificationRecord> getNotificationRecords()
@@ -652,6 +680,33 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         return notificationTypes;
     }
 
+    private NotificationRecord checkNotification(List<NotificationRecord> notificationRecords,
+            String message, RecipientType recipientType, NotificationType notificationType,
+            Long recipientId, String targetId)
+    {
+        NotificationRecord notificationRecord = notificationRecords.get(0);
+        notificationRecords.remove(0);
+        if (notificationType != null) {
+            Assert.assertEquals(message + " - NotificationType",
+                    notificationType, notificationRecord.getNotificationType());
+        }
+        if (targetId != null) {
+            Long executableId = ObjectIdentifier.parseId(
+                    cz.cesnet.shongo.controller.booking.executable.Executable.class, targetId);
+            Assert.assertEquals(message + " - TargetId",
+                    executableId, notificationRecord.getTargetId());
+        }
+        if (recipientType != null) {
+            Assert.assertEquals(message + " - RecipientType",
+                    recipientType, notificationRecord.getRecipientType());
+        }
+        if (recipientId != null) {
+            Assert.assertEquals(message + " - RecipientId",
+                    recipientId, notificationRecord.getRecipientId());
+        }
+        return notificationRecord;
+    }
+
     /**
      * {@link NotificationExecutor} for testing.
      */
@@ -672,9 +727,9 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         @Override
         public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
-                NotificationManager manager)
+                NotificationManager manager, EntityManager entityManager)
         {
-            NotificationMessage recipientMessage = notification.getMessage(recipient, manager);
+            NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

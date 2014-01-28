@@ -7,6 +7,8 @@ import cz.cesnet.shongo.controller.notification.NotificationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+
 /**
  * Represent an abstract executor of {@link cz.cesnet.shongo.controller.notification.NotificationRecord}s.
  *
@@ -26,9 +28,11 @@ public abstract class NotificationExecutor
     }
 
     /**
+     * @param recipient
      * @param notification to be executed
      * @param manager
+     * @param entityManager
      */
     public abstract boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
-            NotificationManager manager);
+            NotificationManager manager, EntityManager entityManager);
 }

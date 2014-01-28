@@ -375,4 +375,11 @@ public class UsedRoomEndpoint extends RoomEndpoint
         }
         return Executable.State.STOPPING_FAILED;
     }
+
+    @Override
+    public String toString()
+    {
+        return String.format(UsedRoomEndpoint.class.getSimpleName() + " (id: %d, reusedId: %d)",
+                id, reusedRoomEndpoint.getId());
+    }
 }

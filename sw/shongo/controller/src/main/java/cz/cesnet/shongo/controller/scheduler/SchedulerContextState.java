@@ -41,6 +41,11 @@ public class SchedulerContextState
     private Savepoint currentSavepoint;
 
     /**
+     * Specifies whether new {@link #notifications} can be added.
+     */
+    private boolean notificationsEnabled = true;
+
+    /**
      * List of created {@link AbstractNotification}s.
      */
     private List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
@@ -98,6 +103,14 @@ public class SchedulerContextState
     }
 
     /**
+     * @param notificationsEnabled sets the {@link #notificationsEnabled}
+     */
+    public void enableNotifications(boolean notificationsEnabled)
+    {
+        this.notificationsEnabled = notificationsEnabled;
+    }
+
+    /**
      * @return {@link #notifications}
      */
     public List<AbstractNotification> getNotifications()
@@ -110,6 +123,9 @@ public class SchedulerContextState
      */
     public void addNotification(AbstractNotification notification)
     {
+        if (!notificationsEnabled) {
+            return;
+        }
         if (notifications.add(notification)) {
             onChange(ObjectType.NOTIFICATION, notification, ObjectState.ADDED);
         }
@@ -120,6 +136,9 @@ public class SchedulerContextState
      */
     public void addNotifications(List<AbstractNotification> notifications)
     {
+        if (!notificationsEnabled) {
+            return;
+        }
         for (AbstractNotification notification : notifications) {
             addNotification(notification);
         }

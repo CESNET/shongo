@@ -176,9 +176,9 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
-        super.onAdded(notificationManager, entityManager);
+        super.onAfterAdded(notificationManager, entityManager);
 
         Long reservationRequestId = ObjectIdentifier.parseId(
                 AbstractReservationRequest.class, getReservationRequestId());
@@ -186,9 +186,9 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    protected void onRemoved(NotificationManager notificationManager, EntityManager entityManager)
+    protected void onAfterRemoved(NotificationManager notificationManager, EntityManager entityManager)
     {
-        super.onRemoved(notificationManager, entityManager);
+        super.onAfterRemoved(notificationManager, entityManager);
 
         Long reservationRequestId = ObjectIdentifier.parseId(
                 AbstractReservationRequest.class, getReservationRequestId());

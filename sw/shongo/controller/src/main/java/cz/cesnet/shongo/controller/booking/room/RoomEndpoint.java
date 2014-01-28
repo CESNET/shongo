@@ -331,7 +331,7 @@ public abstract class RoomEndpoint extends Endpoint
     {
         // Notify participants
         if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
-            executor.addNotification(new RoomNotification.Available(this));
+            executor.addNotification(new RoomNotification.RoomAvailable(this));
         }
         return State.STARTED;
     }

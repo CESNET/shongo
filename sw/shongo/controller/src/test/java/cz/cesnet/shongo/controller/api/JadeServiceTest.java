@@ -25,6 +25,8 @@ import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
+
 /**
  * Tests for serializing API classes for JADE.
  *
@@ -178,9 +180,9 @@ public class JadeServiceTest extends AbstractExecutorTest
 
         @Override
         public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
-                NotificationManager manager)
+                NotificationManager manager, EntityManager entityManager)
         {
-            NotificationMessage recipientMessage = notification.getMessage(recipient, manager);
+            NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });

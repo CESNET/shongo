@@ -11,7 +11,6 @@ import cz.cesnet.shongo.util.MessageSource;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
-import org.hsqldb.lib.OrderedHashSet;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -118,6 +117,14 @@ public abstract class AbstractNotification
     }
 
     /**
+     * Remove all recipients from the {@link #recipients}.
+     */
+    public void clearRecipients()
+    {
+        recipients.clear();
+    }
+
+    /**
      * @return {@link #recipients}
      */
     public final Set<PersonInformation> getRecipients()
@@ -150,13 +157,16 @@ public abstract class AbstractNotification
     }
 
     /**
+     *
      * @param recipient for who the message should be retrieved
      * @param manager   to be used
+     * @param entityManager
      * @return {@link NotificationMessage} for given {@code recipient}
      */
-    public final NotificationMessage getMessage(PersonInformation recipient, NotificationManager manager)
+    public final NotificationMessage getMessage(PersonInformation recipient, NotificationManager manager,
+            EntityManager entityManager)
     {
-        return renderMessage(recipient, manager);
+        return renderMessage(recipient, manager, entityManager);
     }
 
     /**
@@ -174,11 +184,14 @@ public abstract class AbstractNotification
     /**
      * Render {@link NotificationMessage} for given {@code recipient}.
      *
+     *
      * @param recipient for who the message should be rendered
      * @param manager
+     * @param entityManager
      * @return rendered {@link NotificationMessage}
      */
-    protected abstract NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager);
+    protected abstract NotificationMessage renderMessage(PersonInformation recipient, NotificationManager manager,
+            EntityManager entityManager);
 
     /**
      * Render {@link NotificationMessage} from template with given {@code fileName}.
@@ -201,27 +214,40 @@ public abstract class AbstractNotification
     }
 
     /**
-     * Event called after this {@link AbstractNotification} is added to the {@link NotificationManager}.
+     * Event called before this {@link AbstractNotification} is added to the {@link NotificationManager}.
+     *
+     * @param notificationManager
+     * @param entityManager
+     * @return true whether this {@link AbstractNotification} should be added to the {@code notificationManager},
+     *         false otherwise
+     */
+    protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        return true;
+    }
+
+    /**
+     * Event called after this {@link AbstractNotification} has been added to the {@link NotificationManager}.
      *
      * @param notificationManager
      * @param entityManager
      */
-    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
     }
 
     /**
-     * Event called before this {@link AbstractNotification} is removed from the {@link NotificationManager}.
+     * Event called right after this {@link AbstractNotification} has been removed from the {@link NotificationManager}.
      *
      * @param notificationManager
      * @param entityManager
      */
-    protected void onRemoved(NotificationManager notificationManager, EntityManager entityManager)
+    protected void onAfterRemoved(NotificationManager notificationManager, EntityManager entityManager)
     {
     }
 
     @Override
-    public final String toString()
+    public String toString()
     {
         return getClass().getSimpleName();
     }

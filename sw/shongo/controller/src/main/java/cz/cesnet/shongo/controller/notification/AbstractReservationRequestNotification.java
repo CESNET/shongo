@@ -70,46 +70,55 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
     }
 
     @Override
-    protected void onAdded(NotificationManager notificationManager, EntityManager entityManager)
+    protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
-        super.onAdded(notificationManager, entityManager);
-
-        if (this instanceof ReservationRequestNotification) {
-            return;
+        if(!super.onBeforeAdded(notificationManager, entityManager)) {
+            return false;
         }
 
-        Long reservationRequestId = ObjectIdentifier.parseId(
-                AbstractReservationRequest.class, this.reservationRequestId);
-        if (reservationRequestId != null) {
-            // Get top reservation request
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            AbstractReservationRequest abstractReservationRequest =
-                    reservationRequestManager.get(reservationRequestId);
-            if (abstractReservationRequest instanceof ReservationRequest) {
-                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                Allocation parentAllocation = reservationRequest.getParentAllocation();
-                if (parentAllocation != null) {
-                    AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
-                    if (parentReservationRequest != null) {
-                        abstractReservationRequest = parentReservationRequest;
+        return true;
+    }
+
+    @Override
+    protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        super.onAfterAdded(notificationManager, entityManager);
+
+        // Group notifications for reservation request
+        if (!(this instanceof ReservationRequestNotification)) {
+            Long reservationRequestId = ObjectIdentifier.parseId(
+                    AbstractReservationRequest.class, this.reservationRequestId);
+            if (reservationRequestId != null) {
+                // Get top reservation request
+                ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+                AbstractReservationRequest abstractReservationRequest =
+                        reservationRequestManager.get(reservationRequestId);
+                if (abstractReservationRequest instanceof ReservationRequest) {
+                    ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                    Allocation parentAllocation = reservationRequest.getParentAllocation();
+                    if (parentAllocation != null) {
+                        AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
+                        if (parentReservationRequest != null) {
+                            abstractReservationRequest = parentReservationRequest;
+                        }
                     }
                 }
-            }
 
-            // Create or reuse reservation request notification
-            Long abstractReservationRequestId = abstractReservationRequest.getId();
-            ReservationRequestNotification reservationRequestNotification =
-                    notificationManager.reservationRequestNotificationsById.get(abstractReservationRequestId);
-            if (reservationRequestNotification == null) {
-                AuthorizationManager authorizationManager = new AuthorizationManager(
-                        entityManager, notificationManager.getAuthorization());
-                reservationRequestNotification =
-                        new ReservationRequestNotification(abstractReservationRequest, authorizationManager);
-                notificationManager.addNotification(reservationRequestNotification, entityManager);
-            }
+                // Create or reuse reservation request notification
+                Long abstractReservationRequestId = abstractReservationRequest.getId();
+                ReservationRequestNotification reservationRequestNotification =
+                        notificationManager.reservationRequestNotificationsById.get(abstractReservationRequestId);
+                if (reservationRequestNotification == null) {
+                    AuthorizationManager authorizationManager = new AuthorizationManager(
+                            entityManager, notificationManager.getAuthorization());
+                    reservationRequestNotification =
+                            new ReservationRequestNotification(abstractReservationRequest, authorizationManager);
+                    notificationManager.addNotification(reservationRequestNotification, entityManager);
+                }
 
-            // Add reservation notification to reservation request notification
-            reservationRequestNotification.addNotification(this);
+                // Add reservation notification to reservation request notification
+                reservationRequestNotification.addNotification(this);
+            }
         }
     }
 }

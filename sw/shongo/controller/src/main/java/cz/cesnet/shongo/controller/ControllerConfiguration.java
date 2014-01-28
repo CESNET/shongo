@@ -263,16 +263,15 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @param reservationRequestId
-     * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL} for given {@code reservationRequestId}
+     * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL}
      */
-    public String getNotificationReservationRequestUrl(String reservationRequestId)
+    public String getNotificationReservationRequestUrl()
     {
         String reservationRequestUrl = getString(NOTIFICATION_RESERVATION_REQUEST_URL);
         if (reservationRequestUrl == null || reservationRequestUrl.isEmpty()) {
             return null;
         }
-        return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
+        return reservationRequestUrl;
     }
 
     /**

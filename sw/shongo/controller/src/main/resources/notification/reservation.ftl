@@ -13,8 +13,8 @@ ${context.message(indent, "reservation.slot")}: ${context.formatInterval(notific
 ${context.width(indent)}  ${context.formatInterval(notification.slot, "UTC")}
 </#if>
 ${context.message(indent, "reservation.owners")}: <#list notification.owners as owner>${context.formatUser(owner)}<#if owner_has_next>, </#if></#list>
-<#if notification.reservationRequestUrl??>
-${context.message(indent, "reservationRequest.url")}: ${context.userSettingsUrl(notification.reservationRequestId)}
+<#if context.reservationRequestUrl??>
+${context.message(indent, "reservationRequest.url")}: ${context.reservationRequestUrl(notification.reservationRequestId)}
 <#elseif notification.reservationRequestId??>
 ${context.message(indent, "reservationRequest.id")}: ${notification.reservationRequestId}
 </#if>

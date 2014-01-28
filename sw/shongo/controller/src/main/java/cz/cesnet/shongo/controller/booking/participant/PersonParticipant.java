@@ -146,4 +146,10 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
 
         return true;
     }
+
+    @Override
+    public String toString()
+    {
+        return String.format(PersonParticipant.class.getSimpleName() + " (id: %d, person: %s)", id, person);
+    }
 }
