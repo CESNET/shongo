@@ -502,7 +502,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             Executable executable = reservationItem.getExecutable();
             if (executable instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) reservationItem.getExecutable();
-                notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, entityManager));
+                if (roomEndpoint.isParticipantNotificationEnabled()) {
+                    notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, entityManager));
+                }
             }
         }
         return notifications;

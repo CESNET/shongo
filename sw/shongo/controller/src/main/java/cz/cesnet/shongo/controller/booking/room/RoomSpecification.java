@@ -67,6 +67,16 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
+     * Specifies whether configured participants should  be notified about the room.
+     */
+    private boolean participantNotificationEnabled;
+
+    /**
+     * Specifies message by which the participants should be notified.
+     */
+    private String participantNotification;
+
+    /**
      * List of {@link cz.cesnet.shongo.controller.booking.room.settting.RoomSetting}s for the {@link RoomConfiguration}
      * (e.g., {@link Technology} specific).
      */
@@ -196,6 +206,40 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
+     * @return {@link #participantNotificationEnabled}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isParticipantNotificationEnabled()
+    {
+        return participantNotificationEnabled;
+    }
+
+    /**
+     * @param notifyParticipants sets the {@link #participantNotificationEnabled}
+     */
+    public void setParticipantNotificationEnabled(boolean notifyParticipants)
+    {
+        this.participantNotificationEnabled = notifyParticipants;
+    }
+
+    /**
+     * @return {@link #participantNotification}
+     */
+    public String getParticipantNotification()
+    {
+        return participantNotification;
+    }
+
+    /**
+     * @param notifyParticipantsMessage sets the {@link #participantNotification}
+     */
+    @Column
+    public void setParticipantNotification(String notifyParticipantsMessage)
+    {
+        this.participantNotification = notifyParticipantsMessage;
+    }
+
+    /**
      * @return {@link #roomSettings}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -320,12 +364,17 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         modified |= !ObjectHelper.isSamePersistent(getDeviceResource(), roomSpecification.getDeviceResource());
         modified |= !ObjectHelper.isSame(isReusedRoom(), roomSpecification.isReusedRoom());
         modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
+        modified |= !ObjectHelper.isSame(isParticipantNotificationEnabled(),
+                roomSpecification.isParticipantNotificationEnabled());
+        modified |= !ObjectHelper.isSame(getParticipantNotification(), roomSpecification.getParticipantNotification());
 
         setSlotMinutesBefore(roomSpecification.getSlotMinutesBefore());
         setSlotMinutesAfter(roomSpecification.getSlotMinutesAfter());
         setDeviceResource(roomSpecification.getDeviceResource());
         setReusedRoom(roomSpecification.isReusedRoom());
         setParticipantCount(roomSpecification.getParticipantCount());
+        setParticipantNotificationEnabled(roomSpecification.isParticipantNotificationEnabled());
+        setParticipantNotification(roomSpecification.getParticipantNotification());
 
         if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
@@ -366,6 +415,16 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.setRoomProviderCapability(roomProviderCapability);
         roomReservationTask.addParticipants(getParticipants());
         roomReservationTask.addServiceSpecifications(getServiceSpecifications());
+        if (isParticipantNotificationEnabled()) {
+            String participantNotification = getParticipantNotification();
+            if (participantNotification == null) {
+                participantNotification = schedulerContext.getDescription();
+            }
+            if (participantNotification == null) {
+                participantNotification = "";
+            }
+            roomReservationTask.setParticipantNotification(participantNotification);
+        }
 
         if (reusedRoom) {
             SchedulerContextState schedulerContextState = schedulerContext.getState();
@@ -429,6 +488,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             availabilityApi.setSlotMinutesBefore(slotMinutesBefore);
             availabilityApi.setSlotMinutesAfter(slotMinutesAfter);
             availabilityApi.setParticipantCount(participantCount != null ? participantCount : 0);
+            availabilityApi.setParticipantNotificationEnabled(participantNotificationEnabled);
+            availabilityApi.setParticipantNotification(participantNotification);
             for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
                 availabilityApi.addServiceSpecification(serviceSpecification.toApi());
             }
@@ -537,6 +598,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             setSlotMinutesBefore(availabilityApi.getSlotMinutesBefore());
             setSlotMinutesAfter(availabilityApi.getSlotMinutesAfter());
             setParticipantCount(availabilityApi.getParticipantCount());
+            setParticipantNotificationEnabled(availabilityApi.isParticipantNotificationEnabled());
+            setParticipantNotification(availabilityApi.getParticipantNotification());
 
             Synchronization.synchronizeCollection(this.serviceSpecifications, availabilityApi.getServiceSpecifications(),
                     new Synchronization.Handler<ExecutableServiceSpecification, cz.cesnet.shongo.controller.api.ExecutableServiceSpecification>(
@@ -563,6 +626,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
         else {
             setParticipantCount(null);
+            setParticipantNotificationEnabled(false);
+            setParticipantNotification(null);
             serviceSpecifications.clear();
         }
 

@@ -497,7 +497,7 @@ public abstract class RoomNotification extends ConfigurableNotification
 
         private RoomCreated roomCreated;
 
-        public RoomModified(RoomDeleted roomDeleted, RoomCreated roomCreated)
+        private RoomModified(RoomDeleted roomDeleted, RoomCreated roomCreated)
         {
             this.roomDeleted = roomDeleted;
             this.roomCreated = roomCreated;

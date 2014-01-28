@@ -473,14 +473,16 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
             if (executable instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
-                for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
-                    if (!participants.contains(participant)) {
-                        notifications.add(new RoomNotification.RoomCreated(roomEndpoint, participant));
+                if (roomEndpoint.isParticipantNotificationEnabled()) {
+                    for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
+                        if (!participants.contains(participant)) {
+                            notifications.add(new RoomNotification.RoomCreated(roomEndpoint, participant));
+                        }
+                        participants.remove(participant);
                     }
-                    participants.remove(participant);
-                }
-                for (AbstractParticipant participant : participants) {
-                    notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, participant));
+                    for (AbstractParticipant participant : participants) {
+                        notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, participant));
+                    }
                 }
             }
 

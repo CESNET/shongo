@@ -31,12 +31,12 @@ public class RoomAvailability extends AbstractComplexType
     /**
      * Specifies whether configured participants should  be notified about the room.
      */
-    private boolean notifyParticipants = false;
+    private boolean participantNotificationEnabled = false;
 
     /**
      * Specifies message by which the participants should be notified.
      */
-    private String notifyParticipantsMessage;
+    private String participantNotification;
 
     /**
      * {@link cz.cesnet.shongo.controller.api.ExecutableServiceSpecification}s for the virtual room.
@@ -109,35 +109,35 @@ public class RoomAvailability extends AbstractComplexType
     }
 
     /**
-     * @return {@link #notifyParticipants}
+     * @return {@link #participantNotificationEnabled}
      */
-    public boolean isNotifyParticipants()
+    public boolean isParticipantNotificationEnabled()
     {
-        return notifyParticipants;
+        return participantNotificationEnabled;
     }
 
     /**
-     * @param notifyParticipants sets the {@link #notifyParticipants}
+     * @param participantNotificationEnabled sets the {@link #participantNotificationEnabled}
      */
-    public void setNotifyParticipants(boolean notifyParticipants)
+    public void setParticipantNotificationEnabled(boolean participantNotificationEnabled)
     {
-        this.notifyParticipants = notifyParticipants;
+        this.participantNotificationEnabled = participantNotificationEnabled;
     }
 
     /**
-     * @return {@link #notifyParticipantsMessage}
+     * @return {@link #participantNotification}
      */
-    public String getNotifyParticipantsMessage()
+    public String getParticipantNotification()
     {
-        return notifyParticipantsMessage;
+        return participantNotification;
     }
 
     /**
-     * @param notifyParticipantsMessage sets the {@link #notifyParticipantsMessage}
+     * @param participantNotification sets the {@link #participantNotification}
      */
-    public void setNotifyParticipantsMessage(String notifyParticipantsMessage)
+    public void setParticipantNotification(String participantNotification)
     {
-        this.notifyParticipantsMessage = notifyParticipantsMessage;
+        this.participantNotification = participantNotification;
     }
 
     /**
@@ -159,8 +159,8 @@ public class RoomAvailability extends AbstractComplexType
     public static final String SLOT_MINUTES_BEFORE = "slotMinutesBefore";
     public static final String SLOT_MINUTES_AFTER = "slotMinutesAfter";
     public static final String PARTICIPANT_COUNT = "participantCount";
-    public static final String NOTIFY_PARTICIPANTS = "notifyParticipants";
-    public static final String NOTIFY_PARTICIPANTS_MESSAGE = "notifyParticipantsMessage";
+    public static final String PARTICIPANT_NOTIFICATION_ENABLED = "participantNotificationEnabled";
+    public static final String PARTICIPANT_NOTIFICATION = "participantNotification";
     public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 
     @Override
@@ -170,8 +170,8 @@ public class RoomAvailability extends AbstractComplexType
         dataMap.set(SLOT_MINUTES_BEFORE, slotMinutesBefore);
         dataMap.set(SLOT_MINUTES_AFTER, slotMinutesAfter);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
-        dataMap.set(NOTIFY_PARTICIPANTS, notifyParticipants);
-        dataMap.set(NOTIFY_PARTICIPANTS_MESSAGE, notifyParticipantsMessage);
+        dataMap.set(PARTICIPANT_NOTIFICATION_ENABLED, participantNotificationEnabled);
+        dataMap.set(PARTICIPANT_NOTIFICATION, participantNotification);
         dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
@@ -183,8 +183,8 @@ public class RoomAvailability extends AbstractComplexType
         slotMinutesBefore = dataMap.getInt(SLOT_MINUTES_BEFORE, 0);
         slotMinutesAfter = dataMap.getInt(SLOT_MINUTES_AFTER, 0);
         participantCount = dataMap.getInt(PARTICIPANT_COUNT);
-        notifyParticipants = dataMap.getBool(NOTIFY_PARTICIPANTS);
-        notifyParticipantsMessage = dataMap.getString(NOTIFY_PARTICIPANTS_MESSAGE);
+        participantNotificationEnabled = dataMap.getBool(PARTICIPANT_NOTIFICATION_ENABLED);
+        participantNotification = dataMap.getString(PARTICIPANT_NOTIFICATION);
         serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

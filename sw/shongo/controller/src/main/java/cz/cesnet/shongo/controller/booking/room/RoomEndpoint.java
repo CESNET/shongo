@@ -12,7 +12,10 @@ import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
 import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.executable.*;
+import cz.cesnet.shongo.controller.booking.executable.Endpoint;
+import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
+import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
@@ -65,6 +68,11 @@ public abstract class RoomEndpoint extends Endpoint
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
+
+    /**
+     * Specifies message by which the participants should be notified. If not set participants should not be notified.
+     */
+    private String participantNotification;
 
     /**
      * @return {@link #slotMinutesBefore}
@@ -172,6 +180,35 @@ public abstract class RoomEndpoint extends Endpoint
     public void addParticipant(AbstractParticipant participant)
     {
         participants.add(participant);
+    }
+
+    /**
+     * @return {@link #participantNotification}
+     */
+    @Column
+    public String getParticipantNotification()
+    {
+        return participantNotification;
+    }
+
+    /**
+     * @param participantNotification sets the {@link #participantNotification}
+     */
+    public void setParticipantNotification(String participantNotification)
+    {
+        this.participantNotification = participantNotification;
+    }
+
+    /**
+     * @return true whether {@link #getParticipants()} should be notified about {@link RoomEndpoint},
+     *         false otherwise
+     */
+    @Transient
+    public boolean isParticipantNotificationEnabled()
+    {
+        // Participation is enabled for the room or the room is permanent room and thus we must create
+        // notifications to allow active usages notifications
+        return participantNotification != null || roomConfiguration.getLicenseCount() == 0;
     }
 
     /**
@@ -331,7 +368,9 @@ public abstract class RoomEndpoint extends Endpoint
     {
         // Notify participants
         if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
-            executor.addNotification(new RoomNotification.RoomAvailable(this));
+            if (isParticipantNotificationEnabled()) {
+                executor.addNotification(new RoomNotification.RoomAvailable(this));
+            }
         }
         return State.STARTED;
     }

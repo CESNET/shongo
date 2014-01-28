@@ -64,6 +64,11 @@ public class RoomReservationTask extends ReservationTask
     private Integer participantCount;
 
     /**
+     * Specifies message by which the participants should be notified. If not set participants should not be notified.
+     */
+    private String participantNotification;
+
+    /**
      * Collection of {@link Technology} set variants where at least one must be supported by
      * allocated {@link RoomReservation}. If empty no specific technologies are requested and
      * the all device technologies are used.
@@ -130,6 +135,14 @@ public class RoomReservationTask extends ReservationTask
     public void setParticipantCount(Integer participantCount)
     {
         this.participantCount = participantCount;
+    }
+
+    /**
+     * @param participantNotification sets the {@link #participantNotification}
+     */
+    public void setParticipantNotification(String participantNotification)
+    {
+        this.participantNotification = participantNotification;
     }
 
     /**
@@ -537,6 +550,7 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
+                roomEndpoint.setParticipantNotification(participantNotification);
 
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);
@@ -615,7 +629,7 @@ public class RoomReservationTask extends ReservationTask
             reservation.setExecutable(roomEndpoint);
 
             // Notify participants
-            if (roomEndpoint != null) {
+            if (roomEndpoint != null && roomEndpoint.isParticipantNotificationEnabled()) {
                 schedulerContextState.addNotification(new RoomNotification.RoomCreated(roomEndpoint));
             }
 

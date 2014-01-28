@@ -402,6 +402,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
+        roomAvailability.setParticipantNotificationEnabled(true);
         roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
         roomSpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
@@ -465,7 +466,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         firstCapacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         firstCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        RoomSpecification firstCapacitySpecification = new RoomSpecification(5);
+        RoomSpecification firstCapacitySpecification = new RoomSpecification();
+        RoomAvailability roomAvailability = firstCapacitySpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.setParticipantNotificationEnabled(true);
         firstCapacitySpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
         firstCapacityReservationRequest.setSpecification(firstCapacitySpecification);
         String firstCapacityReservationRequestId = allocate(firstCapacityReservationRequest);
@@ -479,7 +483,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         secondCapacityReservationRequest.setSlot("2012-01-01T14:00", "PT1H");
         secondCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         secondCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
-        RoomSpecification secondCapacitySpecification = new RoomSpecification(5);
+        RoomSpecification secondCapacitySpecification = new RoomSpecification();
+        roomAvailability = secondCapacitySpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.setParticipantNotificationEnabled(true);
         secondCapacityReservationRequest.setSpecification(secondCapacitySpecification);
         String secondCapacityReservationRequestId = allocate(secondCapacityReservationRequest);
         Reservation secondCapacityReservation = checkAllocated(secondCapacityReservationRequestId);
@@ -600,6 +607,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
+        roomAvailability.setParticipantNotificationEnabled(true);
         roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
         roomSpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
