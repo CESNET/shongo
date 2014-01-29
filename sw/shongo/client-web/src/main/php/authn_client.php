@@ -36,8 +36,10 @@ if (array_key_exists("code", $_GET)) {
     $data = json_decode($request->send()->getBody());
     echo "<html>";
     echo "<head>";
+    echo "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>";
     echo "<title>Rezervační systém</title>";
     echo "</head>";
+    echo "<body>";
     echo "<h1 style='color: green;'>Vaše identita je nyní dostupná pro novou verzi rezervačního systému, děkujeme.</h1>";
     echo "<table>";
     echo "<tr><td style='text-align: right;'><strong>Jméno:</strong></td><td>" . $data->first_name . " " . $data->last_name . "</td></tr>";
@@ -46,6 +48,21 @@ if (array_key_exists("code", $_GET)) {
     echo "<tr><td style='text-align: right;'><strong>Identifikátor:</strong></td><td>" . $data->id . " (přidělený identifikátor v systému <a href='https://einfra.cesnet.cz/perun-gui/' target='_blank'>Perun</a>)</td></tr>";
     echo "</table>";
     echo "<h2>Tuto stránku můžete opustit.</h2>";
+    echo "</body>";
+    echo "</html>";
+}
+else if (array_key_exists("error", $_GET)) {
+    echo "<html>";
+    echo "<head>";
+    echo "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>";
+    echo "<title>Rezervační systém</title>";
+    echo "</head>";
+    echo "<body>";
+    echo "<h1>Nastala chyba</h1>";
+    echo @$_GET["error"];
+    echo "<br/>";
+    echo @$_GET["error_description"];
+    echo "</body>";
     echo "</html>";
 }
 else {
