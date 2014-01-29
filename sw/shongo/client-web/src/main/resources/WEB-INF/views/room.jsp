@@ -480,9 +480,6 @@
                             <c:when test="${room.technology == 'H323_SIP'}">
                                 <spring:message code="views.room.recording.downloadableUrl"/>
                             </c:when>
-                            <c:when test="${isWritable}">
-                                <spring:message code="views.room.recording.editableUrl"/>
-                            </c:when>
                             <c:otherwise>
                                 <spring:message code="views.room.recording.url"/>
                             </c:otherwise>
@@ -516,33 +513,39 @@
                     <td>
                         <c:choose>
                             <c:when test="${room.technology == 'H323_SIP'}">
-                                <c:choose>
-                                    <c:when test="${!'{{roomRecording.downloadableUrl}}'}">
-                                        <a href="{{roomRecording.downloadableUrl}}" target="_blank" download>{{roomRecording.downloadableUrl}}</a>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <spring:message code="views.room.recording.pending"/>
-                                    </c:otherwise>
-                                </c:choose>
+                                <span ng-show="'{{roomRecording.downloadableUrl}}' != ''"><a href="{{roomRecording.downloadableUrl}}" target="_blank" download>{{roomRecording.filename}}</a></span>
+                                <span ng-show="'{{roomRecording.downloadableUrl}}' == ''"><spring:message code="views.room.recording.pending"/></span>
                             </c:when>
-                            <c:when test="${isWritable}">
-                                <a href="{{roomRecording.editableUrl}}" target="_blank">{{roomRecording.editableUrl}}</a>
-                            </c:when>
-                            <c:otherwise>
+                            <c:when test="${room.technology == 'ADOBE_CONNECT'}">
                                 <a href="{{roomRecording.url}}" target="_blank">{{roomRecording.url}}</a>
-                            </c:otherwise>
+                            </c:when>
                         </c:choose>
                     </td>
                     <td ng-controller="RoomRecordingActionController">
-                        <c:if test="${isWritable}">
-                            <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
-                                <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
-                                <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
-                            </tag:url>
-                            <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
-                            <a href="" ng-click="postAndRefresh('${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                        <c:if test="${isWritable || room.technology == 'H323_SIP'}">
+                            <c:if test="${room.technology == 'H323_SIP'}">
+                                <span ng-show="'{{roomRecording.downloadableUrl}}' != ''">
+                            </c:if>
+                                <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
+                                    <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
+                                    <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
+                                </tag:url>
+                                <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
+                                <a href="" ng-click="postAndRefresh('${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                            <c:if test="${room.technology == 'H323_SIP'}">
+                                </span>
+                            </c:if>
                         </c:if>
-                    </td>
+                        <c:if test="${room.technology == 'H323_SIP'}">
+                                <span ng-show="'{{roomRecording.downloadableUrl}}' != ''">
+                                    <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
+                                    <a href="{{roomRecording.downloadableUrl}}" title="${recordingDownloadTitle}" target="_blank" download><i class="icon-download"></i></a>
+                                </span>
+                        </c:if>
+                        <c:if test="${room.technology == 'ADOBE_CONNECT' && isWritable}">
+                                <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
+                                <a href="{{roomRecording.editableUrl}}" title="${recordingEditTitle}" target="_blank"><i class="icon-edit"></i></a>
+                        </c:if>                    </td>
                 </tr>
                 </tbody>
                 <tbody>

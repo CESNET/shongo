@@ -255,6 +255,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
+        //TODO: delete not finished recordings
         storage.deleteFolder(recordingFolderId);
     }
 
@@ -284,8 +285,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         Command command = new Command("GetConference");
         command.setParameter("ConferenceID", recordingTCSId);
 
-        Element result = exec(command);
-        return result;
+        return exec(command).getChild("GetConferenceResponse").getChild("GetConferenceResult");
     }
 
     /**
@@ -301,7 +301,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         String fileId = getFileId(recording.getBeginDate());
 
         recording.setName(recordingData.getChildText("Title"));
-        System.out.println(recording.getName());
         Matcher matcher = RECORDING_TCS_TITLE_PATTERN.matcher(recording.getName());
         if (!matcher.find()) {
             throw new RuntimeException("Invalid format of recording title (recording TCS ID: " + recordingData.getChildText("ConferenceID") + ")");
@@ -324,6 +323,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
+        String recordingXml = null;
         try {
             String folderId = selectFolderId(recordingId);
             String fileId = selectFileId(recordingId);
@@ -340,13 +340,13 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 line = bufferedReader.readLine();
             }
             bufferedReader.close();
-            String recordingXml = inputStringBuilder.toString();
+            recordingXml = inputStringBuilder.toString();
             Document resultDocument = saxBuilder.build(new StringReader(recordingXml));
             Element rootElement = resultDocument.getRootElement();
 
             Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
 
-            Recording recording = parseRecording(rootElement.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+            Recording recording = parseRecording(rootElement);
             if (recording.getDownloadableUrl() != null) {
                 recording.setDownloadableUrl(storage.getFileDownloadableUrl(folderId, recording.getFileName()));
             }
@@ -357,6 +357,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             throw new RuntimeException("Error while reading file " + selectFolderId(recordingId) + "/" + getMetadataFilename(selectFileId(recordingId)) + ".".replaceAll(
                     "//", "/"));
         } catch (JDOMException e) {
+            System.out.println("aktualni obsah: " + recordingXml);
             throw new RuntimeException("Error while parsing file " + selectFolderId(recordingId) + "/" + getMetadataFilename(selectFileId(recordingId)) + ".".replaceAll("//","/"));
         }
     }
@@ -370,7 +371,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public Recording getOriginalRecording(String recordingTCSId) throws CommandException
     {
         Element result = getRecordingRawData(recordingTCSId);
-        return parseRecording(result.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+        return parseRecording(result);
     }
 
     /**
@@ -461,14 +462,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         String recordingTCSId = result.getChild("DialResponse").getChild("DialResult").getChildText("ConferenceID");
 
-        Element recordingRawData = getRecordingRawData(recordingTCSId);
-
-        String fileId = getFileId(parseRecording(
-                recordingRawData.getChild("GetConferenceResponse").getChild("GetConferenceResult")).getBeginDate());
-        String recordingId = makeRecordingId(folderId, fileId, recordingTCSId);
-
-        createMetadataFile(recordingId,recordingRawData);
-        return recordingId;
+        return getOriginalRecording(recordingTCSId).getId();
     }
       
     @Override
@@ -478,16 +472,20 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         command.setParameter("ConferenceID",selectRecordingTCSId(recordingId));
 
         exec(command);
+
+        // create metadata file
+        Element recordingRawData = getRecordingRawData(selectRecordingTCSId(recordingId));
+        createMetadataFile(parseRecording(recordingRawData).getId(),recordingRawData);
     }
 
-    protected void moveRecording(String recordingId, String recordingFolderId) throws CommandException
+    protected void moveRecording(String recordingId) throws CommandException
     {
         try {
+            String recordingFolderId = selectFolderId(recordingId);
             logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
 
             Element recordingXmlData = getRecordingRawData(selectRecordingTCSId(recordingId));
-            Recording recording = parseRecording(
-                    recordingXmlData.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+            Recording recording = parseRecording(recordingXmlData);
 
             Storage.File file = new Storage.File();
             file.setFileName(recording.getFileName());
@@ -773,8 +771,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         String fileId = selectFileId(recordingId);
         String folderId = selectFolderId(recordingId);
 
-        Recording recording = parseRecording(
-                recordingXmlData.getChild("GetConferenceResponse").getChild("GetConferenceResult"));
+        Recording recording = parseRecording(recordingXmlData);
 
         Storage.File metadataFile = new Storage.File();
         metadataFile.setFileName(getMetadataFilename(fileId));
@@ -857,37 +854,36 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                         // has prepared movie for download
                         if (recording.getDownloadableUrl() != null) {
-                            Matcher matcher = RECORDING_TCS_TITLE_PATTERN.matcher(recording.getName());
-                            if (matcher.find()) {
-                                String folderId = matcher.group(1);
-                                String recordingId = recording.getId();
+                            String recordingId = recording.getId();
+
+                            try {
+                               moveRecording(recordingId);
+                            }
+                            catch (Exception e) {
+                                logger.error("Error while moving recording (recordingId: " + recordingId + "). \nException: " +e);
+
+                                NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS, null);
+                                notifyTarget.addMessage("en",
+                                        "Moving recording from TCS failed",
+                                        "Error ocured while moving recording.\n"
+                                                + "Recording TCS ID: " + selectRecordingTCSId(recordingId) + "\n"
+                                                + "Recording folder ID: " + selectFolderId(recordingId) + "\n"
+                                                + "Recording filename: " + recording.getFileName() + "\n\n"
+                                                + "Thrown exception: " + e);
+                                notifyTarget.addMessage("cs",
+                                        "Přesunutí nahrávky z TCS selhalo",
+                                        "Nastala chyba při přesouvání nahrávky.\n"
+                                                + "TCS ID nahrávky: " + selectRecordingTCSId(recordingId) + "\n"
+                                                + "ID složky: " + selectFolderId(recordingId) + "\n"
+                                                + "Název souboru nahrávky: " + recording.getFileName() + "\n\n"
+                                                + "Vyhozená výjimka: " + e);
+
 
                                 try {
-
-                                    moveRecording(recordingId, folderId);
+                                    performControllerAction(notifyTarget);
                                 }
-                                catch (Exception e) {
-                                    logger.error("Error while moving recording (recordingId: " + recordingId + "). \nException: " +e);
-
-                                    NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS, null);
-                                    notifyTarget.addMessage("en",
-                                            "Moving of recording failed",
-                                            "Error ocured while moving recording.\n"
-                                                    + "Recording TCS ID: " + recordingId + "\n"
-                                                    + ""
-                                                    + "Thrown exception: " + e);
-                                    /*notifyTarget.addMessage("cs",
-                                            "Kapacita místnosti překročena: " + room.getName(),
-                                            "Kapacita vaší místnosti \"" + room.getName() + "\" byla překročena.\n\n"
-                                                    + "Počet licencí: " + room.getLicenseCount() + "\n"
-                                                    + "Počet účastníků: " + participants + "\n\n");*/
-
-                                    try {
-                                        performControllerAction(notifyTarget);
-                                    }
-                                    catch (CommandException e1) {
-                                        logger.error("Failure report sending of recording moving has failed.");
-                                    }
+                                catch (CommandException e1) {
+                                    logger.error("Failure report sending of recording moving has failed.");
                                 }
                             }
                         }

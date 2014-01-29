@@ -22,7 +22,7 @@ public class Recording extends IdentifiedComplexType
     private String name;
 
     /**
-     * Name of the recording file.
+     * Name of the recording file for download.
      */
     private String fileName;
 
@@ -208,6 +208,7 @@ public class Recording extends IdentifiedComplexType
     public static final String EDITABLEURL = "editableUrl";
     public static final String BEGINDATE = "beginDate";
     public static final String DURATION = "duration";
+    public static final String FILENAME = "filename";
 
     @Override
     public DataMap toData()
@@ -221,6 +222,7 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(EDITABLEURL, editableUrl);
         dataMap.set(BEGINDATE, beginDate);
         dataMap.set(DURATION, duration);
+        dataMap.set(FILENAME,fileName);
         return dataMap;
     }
 
@@ -236,6 +238,7 @@ public class Recording extends IdentifiedComplexType
         editableUrl = dataMap.getString(EDITABLEURL);
         beginDate = dataMap.getDateTime(BEGINDATE);
         duration = dataMap.getPeriod(DURATION);
+        fileName = dataMap.getString(FILENAME);
     }
 
     @Override
@@ -249,6 +252,7 @@ public class Recording extends IdentifiedComplexType
                 ", editableUrl='" + editableUrl + '\'' +
                 ", beginDate=" + beginDate +
                 ", duration=" + duration +
+                ", fileName=" + fileName +
                 '}';
     }
 }
