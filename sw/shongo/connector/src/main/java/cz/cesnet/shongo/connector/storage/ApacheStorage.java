@@ -189,7 +189,7 @@ public class ApacheStorage extends AbstractStorage
     public String getFileDownloadableUrl(String folderId, String fileName)
     {
         String fileUrl = getChildUrl(folderId, fileName);
-        String downloadableUrl = this.getDownloadableUrlBase() + fileUrl;
+        String downloadableUrl = this.getDownloadableUrlBase() + "/" + fileUrl;
         return downloadableUrl;
     }
 

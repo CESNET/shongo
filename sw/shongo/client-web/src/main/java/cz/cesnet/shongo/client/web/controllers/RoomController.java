@@ -502,6 +502,8 @@ public class RoomController
             item.put("duration", dateTimeFormatter.formatRoundedDuration(recording.getDuration()));
             item.put("url", recording.getUrl());
             item.put("editableUrl", recording.getEditableUrl());
+            item.put("downloadableUrl",recording.getDownloadableUrl());
+            item.put("filename",recording.getFileName());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();

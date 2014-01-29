@@ -476,7 +476,17 @@
                     <th><pagination-sort column="DURATION">
                         <spring:message code="views.room.recording.duration"/></pagination-sort></th>
                     <th>
-                        <spring:message code="views.room.recording.url"/>
+                        <c:choose>
+                            <c:when test="${room.technology == 'H323_SIP'}">
+                                <spring:message code="views.room.recording.downloadableUrl"/>
+                            </c:when>
+                            <c:when test="${isWritable}">
+                                <spring:message code="views.room.recording.editableUrl"/>
+                            </c:when>
+                            <c:otherwise>
+                                <spring:message code="views.room.recording.url"/>
+                            </c:otherwise>
+                        </c:choose>
                     </th>
                     <th>
                         <spring:message code="views.list.action"/>
@@ -505,6 +515,16 @@
                     </td>
                     <td>
                         <c:choose>
+                            <c:when test="${room.technology == 'H323_SIP'}">
+                                <c:choose>
+                                    <c:when test="${!'{{roomRecording.downloadableUrl}}'}">
+                                        <a href="{{roomRecording.downloadableUrl}}" target="_blank" download>{{roomRecording.downloadableUrl}}</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <spring:message code="views.room.recording.pending"/>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:when>
                             <c:when test="${isWritable}">
                                 <a href="{{roomRecording.editableUrl}}" target="_blank">{{roomRecording.editableUrl}}</a>
                             </c:when>

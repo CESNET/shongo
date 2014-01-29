@@ -1725,7 +1725,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setCapacityChecking(true);
-                logger.debug("Checking of rooms capacity - starting...");
+                logger.info("Checking of rooms capacity - starting...");
 
                 while (isConnected()) {
                     try {
@@ -1753,7 +1753,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             public void run()
             {
                 setRecordingChecking(true);
-                logger.debug("Checking of recordings - starting...");
+                logger.info("Checking of recordings - starting...");
 
                 while (isConnected()) {
                     try {
@@ -1787,12 +1787,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
-    public synchronized void setCapacityChecking(boolean value)
+    private synchronized void setCapacityChecking(boolean value)
     {
         this.capacityChecking = value;
     }
 
-    public synchronized void setRecordingChecking(boolean value)
+    private synchronized void setRecordingChecking(boolean value)
     {
         this.recordingChecking = value;
     }
