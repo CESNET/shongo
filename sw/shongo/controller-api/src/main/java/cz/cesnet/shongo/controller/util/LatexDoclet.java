@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.util;
 
-import com.sun.javadoc.Doclet;
+//import com.sun.javadoc.Doclet;
 
 /**
  * Class for generating API documentation to LaTeX.
@@ -9,7 +9,7 @@ import com.sun.javadoc.Doclet;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class LatexDoclet extends Doclet
+public class LatexDoclet /*extends Doclet*/
 {
     /*private static final List<String> SUPERCLASSES = new ArrayList<String>()
     {{

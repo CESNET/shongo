@@ -468,20 +468,24 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
-                    try {
-                        roomPin = Integer.parseInt(h323RoomSetting.getPin());
-                    }
-                    catch (NumberFormatException exception) {
-                        logger.warn("Failed parsing pin", exception);
+                    if (h323RoomSetting.getPin() != null) {
+                        try {
+                            roomPin = Integer.parseInt(h323RoomSetting.getPin());
+                        }
+                        catch (NumberFormatException exception) {
+                            logger.warn("Failed parsing pin", exception);
+                        }
                     }
                 }
                 if (roomSetting instanceof AdobeConnectRoomSetting) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
-                    try {
-                        roomPin = Integer.parseInt(adobeConnectRoomSetting.getPin());
-                    }
-                    catch (NumberFormatException exception) {
-                        logger.warn("Failed parsing pin", exception);
+                    if (adobeConnectRoomSetting.getPin() != null) {
+                        try {
+                            roomPin = Integer.parseInt(adobeConnectRoomSetting.getPin());
+                        }
+                        catch (NumberFormatException exception) {
+                            logger.warn("Failed parsing pin", exception);
+                        }
                     }
                     roomAccessMode = adobeConnectRoomSetting.getAccessMode();
                 }
