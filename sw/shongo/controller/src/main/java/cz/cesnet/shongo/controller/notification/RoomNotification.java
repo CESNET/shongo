@@ -38,16 +38,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         this.participantByPerson.put(personInformation, personParticipant);
     }
 
-    /**
-     * @return {@link NotificationRecord.NotificationType} for creation of {@link NotificationRecord}
-     */
-    protected abstract NotificationRecord.NotificationType getNotificationType();
-
-    /**
-     * @return {@link NotificationRecord#targetId} for creation of {@link NotificationRecord}
-     */
-    protected abstract Long getTargetId();
-
     @Override
     public boolean removeRecipient(PersonInformation recipient)
     {
@@ -62,21 +52,17 @@ public abstract class RoomNotification extends ConfigurableNotification
 
         StringBuilder titleBuilder = new StringBuilder();
         titleBuilder.append("Participant Notification - ");
-        titleBuilder.append(getNotificationType());
+        titleBuilder.append(getClass().getSimpleName());
 
         return renderTemplateMessage(renderContext, titleBuilder.toString(), "room-participation.ftl");
     }
 
-    @Override
-    public NotificationRecord createRecord(PersonInformation recipient, EntityManager entityManager)
+    /**
+     * @return {@link RoomEndpoint#id}
+     */
+    public Long getRoomEndpointId()
     {
-        NotificationRecord notificationRecord = new NotificationRecord();
-        notificationRecord.setCreatedAt(getCreatedAt());
-        notificationRecord.setRecipientType(NotificationRecord.RecipientType.PARTICIPANT);
-        notificationRecord.setRecipientId(participantByPerson.get(recipient).getId());
-        notificationRecord.setNotificationType(getNotificationType());
-        notificationRecord.setTargetId(getTargetId());
-        return notificationRecord;
+        return null;
     }
 
     @Override
@@ -88,13 +74,16 @@ public abstract class RoomNotification extends ConfigurableNotification
     /**
      * {@link RoomNotification} for a single {@link RoomEndpoint}.
      */
-    private static abstract class RoomSimpleNotification extends RoomNotification
+    protected static abstract class RoomSimpleNotification extends RoomNotification
     {
         /**
          * @see RoomEndpoint
          */
         protected RoomEndpoint roomEndpoint;
 
+        /**
+         * {@link UsedRoomEndpoint}s for the {@link #roomEndpoint}.
+         */
         private Map<UsedRoomEndpoint, ReservationRequest> usedRoomEndpoints;
 
         /**
@@ -166,7 +155,7 @@ public abstract class RoomNotification extends ConfigurableNotification
 
         /**
          * @return true whether {@link #roomEndpoint} is permanent room,
-         *         false otherwise
+         * false otherwise
          */
         public boolean isPermanentRoom()
         {
@@ -188,7 +177,7 @@ public abstract class RoomNotification extends ConfigurableNotification
                     this.usedRoomEndpoints = getUsedRoomEndpoints(this.roomEndpoint, executableManager);
                 }
                 logger.debug("Skipping {} for permanent room and adding notifications for usages {}.", this,
-                            usedRoomEndpoints.keySet());
+                        usedRoomEndpoints.keySet());
                 for (UsedRoomEndpoint usedRoomEndpoint : usedRoomEndpoints.keySet()) {
                     ReservationRequest reservationRequest = usedRoomEndpoints.get(usedRoomEndpoint);
                     RoomSimpleNotification notification =
@@ -200,7 +189,8 @@ public abstract class RoomNotification extends ConfigurableNotification
 
             // Skip adding the notification if the same notification already exists and add all participants to it
             Class<? extends RoomSimpleNotification> notificationType = getClass();
-            RoomSimpleNotification notification = notificationManager.getNotification(getTargetId(), notificationType);
+            RoomSimpleNotification notification = notificationManager
+                    .getNotification(getRoomEndpointId(), notificationType);
             if (notification != null) {
                 logger.debug("Skipping {} because {} already exists.", this, notification);
                 if (participant != null) {
@@ -249,7 +239,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
         {
             // Add notification to manager for grouping the same notifications
-            Long targetId = getTargetId();
+            Long targetId = getRoomEndpointId();
             Map<Class<? extends AbstractNotification>, AbstractNotification> notifications =
                     notificationManager.notificationsByTargetId.get(targetId);
             if (notifications == null) {
@@ -269,7 +259,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         {
             super.onAfterRemoved(notificationManager, entityManager);
 
-            Long targetId = getTargetId();
+            Long targetId = getRoomEndpointId();
             Map<Class<? extends AbstractNotification>, AbstractNotification> notifications =
                     notificationManager.notificationsByTargetId.get(targetId);
             if (notifications != null) {
@@ -289,7 +279,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        protected Long getTargetId()
+        public Long getRoomEndpointId()
         {
             return roomEndpoint.getId();
         }
@@ -298,7 +288,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         public String toString()
         {
             return String.format(getClass().getSimpleName() + " (targetId: %d, participant: %s)",
-                    getTargetId(), participant);
+                    getRoomEndpointId(), participant);
         }
 
         /**
@@ -360,12 +350,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        protected NotificationRecord.NotificationType getNotificationType()
-        {
-            return NotificationRecord.NotificationType.ROOM_CREATED;
-        }
-
-        @Override
         protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
         {
             if (!super.onBeforeAdded(notificationManager, entityManager)) {
@@ -378,7 +362,7 @@ public abstract class RoomNotification extends ConfigurableNotification
                 RoomDeleted roomDeleted = null;
                 for (RoomNotification roomNotification : roomNotifications) {
                     if (roomNotification instanceof RoomDeleted &&
-                            !roomNotification.getTargetId().equals(getTargetId())) {
+                            !((RoomDeleted) roomNotification).getRoomEndpointId().equals(getRoomEndpointId())) {
                         roomDeleted = (RoomDeleted) roomNotification;
                         break;
                     }
@@ -399,7 +383,8 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        protected RoomSimpleNotification createNotification(RoomEndpoint roomEndpoint, ReservationRequest reservationRequest, AbstractParticipant participant)
+        protected RoomSimpleNotification createNotification(RoomEndpoint roomEndpoint,
+                ReservationRequest reservationRequest, AbstractParticipant participant)
         {
             return new RoomCreated(roomEndpoint, reservationRequest, participant);
         }
@@ -434,12 +419,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        protected NotificationRecord.NotificationType getNotificationType()
-        {
-            return NotificationRecord.NotificationType.ROOM_DELETED;
-        }
-
-        @Override
         protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
         {
             if (!super.onBeforeAdded(notificationManager, entityManager)) {
@@ -453,7 +432,7 @@ public abstract class RoomNotification extends ConfigurableNotification
                 RoomCreated roomCreated = null;
                 for (RoomNotification roomNotification : roomNotifications) {
                     if (roomNotification instanceof RoomCreated &&
-                            !roomNotification.getTargetId().equals(getTargetId())) {
+                            !((RoomCreated) roomNotification).getRoomEndpointId().equals(getRoomEndpointId())) {
                         roomCreated = (RoomCreated) roomNotification;
                         break;
                     }
@@ -512,15 +491,9 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        protected NotificationRecord.NotificationType getNotificationType()
+        public Long getRoomEndpointId()
         {
-            return NotificationRecord.NotificationType.ROOM_MODIFIED;
-        }
-
-        @Override
-        protected Long getTargetId()
-        {
-            return roomCreated.getTargetId();
+            return roomCreated.getRoomEndpointId();
         }
     }
 
@@ -529,12 +502,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         public RoomAvailable(RoomEndpoint roomEndpoint)
         {
             super(roomEndpoint);
-        }
-
-        @Override
-        protected NotificationRecord.NotificationType getNotificationType()
-        {
-            return NotificationRecord.NotificationType.ROOM_AVAILABLE;
         }
     }
 

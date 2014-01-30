@@ -170,18 +170,6 @@ public abstract class AbstractNotification
     }
 
     /**
-     * Create {@link NotificationRecord} if needed for given {@code recipient}.
-     *
-     * @param recipient     for who the {@link NotificationRecord} should be created
-     * @param entityManager to be used
-     * @return new {@link NotificationRecord} or null
-     */
-    public NotificationRecord createRecord(PersonInformation recipient, EntityManager entityManager)
-    {
-        return null;
-    }
-
-    /**
      * Render {@link NotificationMessage} for given {@code recipient}.
      *
      *

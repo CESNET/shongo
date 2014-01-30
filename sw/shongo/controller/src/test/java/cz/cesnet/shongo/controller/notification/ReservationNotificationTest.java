@@ -25,9 +25,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import static cz.cesnet.shongo.controller.notification.NotificationRecord.NotificationType;
-import static cz.cesnet.shongo.controller.notification.NotificationRecord.RecipientType;
-
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
  *
@@ -141,7 +138,18 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 1x system-admin: allocation-failed
         // 4x resource-admin: new, deleted, new, deleted
         // 4x user: changes(allocation-failed), changes (new), changes (deleted, new), changes (deleted)
-        Assert.assertEquals(9, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(AllocationFailedNotification.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -202,7 +210,19 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 3x user: changes (allocation-failed), changes (new), changes (deleted)
         // 2x resource-admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        Assert.assertEquals(10, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(AllocationFailedNotification.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -245,7 +265,16 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 4x admin: new, deleted, new, deleted
         // 3x user: changes (new), changes (deleted, new), changes (deleted)
-        Assert.assertEquals(7, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -293,7 +322,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -332,7 +367,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 2x admin: new, deleted
         // 2x user: changes (new), changes (deleted)
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     @Test
@@ -371,7 +412,17 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 4x admin: new, new, deleted, deleted
         // 4x user: changes (new), changes (new), changes (deleted), changes (deleted)
-        Assert.assertEquals(8, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -406,7 +457,14 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 1x system-admin: allocation-failed
         // 2x resource-admin: new
         // 1x user: changes (allocation-failed, new, new)
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(AllocationFailedNotification.class);
+            }}, getNotificationTypes());
+        clearNotificationRecords();
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequestSet.class);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
@@ -415,7 +473,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // 1x resource-admin: deleted
         // 1x user: changes (deleted)
-        Assert.assertEquals(6, notificationExecutor.getNotificationCount());
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -457,15 +519,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler();
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<NotificationType>()
+        Assert.assertEquals(new ArrayList<Class<? extends RoomNotification>>()
         {{
-                add(NotificationType.ROOM_CREATED);
-                add(NotificationType.ROOM_CREATED);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_DELETED);
-                add(NotificationType.ROOM_DELETED);
-            }}, getNotificationRecordTypes());
+                add(RoomNotification.RoomCreated.class);
+                add(RoomNotification.RoomCreated.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomDeleted.class);
+                add(RoomNotification.RoomDeleted.class);
+            }}, getNotificationTypes(RoomNotification.class));
     }
 
     /**
@@ -545,19 +607,24 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         executeNotifications();
 
         // Check created notifications
-        List<NotificationRecord> notificationRecords = getNotificationRecords();
-        Long permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
-        Long capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+        List<TestingNotificationExecutor.NotificationRecord<RoomNotification>> notificationRecords =
+                getNotificationRecords(RoomNotification.class);
+        PersonInformation permanentParticipant1 =
+                checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
+                        RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
+        PersonInformation capacityParticipant1 =
+                checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                        RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, permanentParticipant1, secondCapacityId);
-        Long permanentParticipant2 = checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+                RoomNotification.RoomCreated.class, permanentParticipant1, secondCapacityId);
+        PersonInformation permanentParticipant2 =
+                checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
+                        RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
         checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, permanentParticipant2, secondCapacityId);
-        Long capacityParticipant2 = checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_CREATED, null, firstCapacityId).getRecipientId();
+                RoomNotification.RoomCreated.class, permanentParticipant2, secondCapacityId);
+        PersonInformation capacityParticipant2 = checkNotification(notificationRecords,
+                "Capacity Participant 2 - Capacity 1",
+                RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
         clearNotificationRecords();
 
         // Remove Permanent Participant 2 (should be notified about both capacities)
@@ -566,11 +633,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         executeNotifications();
 
         // Check deleted notifications
-        notificationRecords = getNotificationRecords();
+        notificationRecords = getNotificationRecords(RoomNotification.class);
         checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, firstCapacityId);
+                RoomNotification.RoomDeleted.class, permanentParticipant2, firstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant2, secondCapacityId);
+                RoomNotification.RoomDeleted.class, permanentParticipant2, secondCapacityId);
         clearNotificationRecords();
 
         // Modify permanent room
@@ -592,15 +659,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         String newSecondCapacityId = secondCapacity.getId();
 
         // Check modified and deleted notifications
-        notificationRecords = getNotificationRecords();
+        notificationRecords = getNotificationRecords(RoomNotification.class);
         permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, null, newFirstCapacityId).getRecipientId();
+                RoomNotification.RoomModified.class, null, newFirstCapacityId).getRecipient();
         capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, null, newFirstCapacityId).getRecipientId();
+                RoomNotification.RoomModified.class, null, newFirstCapacityId).getRecipient();
         checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant2, firstCapacityId);
+                RoomNotification.RoomDeleted.class, capacityParticipant2, firstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_MODIFIED, permanentParticipant1, newSecondCapacityId);
+                RoomNotification.RoomModified.class, permanentParticipant1, newSecondCapacityId);
         clearNotificationRecords();
 
         // Delete all
@@ -610,13 +677,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler();
 
         // Check deleted reservation requests
-        notificationRecords = getNotificationRecords();
+        notificationRecords = getNotificationRecords(RoomNotification.class);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, newFirstCapacityId);
+                RoomNotification.RoomDeleted.class, permanentParticipant1, newFirstCapacityId);
         checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, capacityParticipant1, newFirstCapacityId);
+                RoomNotification.RoomDeleted.class, capacityParticipant1, newFirstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RecipientType.PARTICIPANT, NotificationType.ROOM_DELETED, permanentParticipant1, newSecondCapacityId);
+                RoomNotification.RoomDeleted.class, permanentParticipant1, newSecondCapacityId);
         clearNotificationRecords();
     }
 
@@ -671,85 +738,81 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<NotificationType>()
+        Assert.assertEquals(new ArrayList<Class<? extends RoomNotification>>()
         {{
-                add(NotificationType.ROOM_CREATED);
-                add(NotificationType.ROOM_CREATED);
-                add(NotificationType.ROOM_AVAILABLE);
-                add(NotificationType.ROOM_AVAILABLE);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_MODIFIED);
-                add(NotificationType.ROOM_DELETED);
-                add(NotificationType.ROOM_DELETED);
-            }}, getNotificationRecordTypes());
+                add(RoomNotification.RoomCreated.class);
+                add(RoomNotification.RoomCreated.class);
+                add(RoomNotification.RoomAvailable.class);
+                add(RoomNotification.RoomAvailable.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomNotification.RoomDeleted.class);
+                add(RoomNotification.RoomDeleted.class);
+            }}, getNotificationTypes(RoomNotification.class));
     }
 
     private void clearNotificationRecords()
     {
-        EntityManager entityManager = createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.createQuery("DELETE FROM NotificationRecord").executeUpdate();
-            entityManager.getTransaction().commit();
-        }
-        finally {
-            entityManager.close();
-        }
+        notificationExecutor.notificationRecords.clear();
     }
 
-    private List<NotificationRecord> getNotificationRecords()
+    private List<TestingNotificationExecutor.NotificationRecord<AbstractNotification>> getNotificationRecords()
     {
-        EntityManager entityManager = createEntityManager();
-        try {
+        return getNotificationRecords(AbstractNotification.class);
+    }
 
-            List<NotificationRecord> notificationRecords =
-                    entityManager.createNamedQuery("NotificationRecord.list", NotificationRecord.class).getResultList();
-            System.err.println();
-            for (NotificationRecord notificationRecord : notificationRecords) {
-                System.err.println(notificationRecord);
+    private <T extends AbstractNotification> List<TestingNotificationExecutor.NotificationRecord<T>>
+    getNotificationRecords(Class<T> notificationType)
+    {
+        List<TestingNotificationExecutor.NotificationRecord<T>> notificationRecords =
+                new LinkedList<TestingNotificationExecutor.NotificationRecord<T>>();
+        for (TestingNotificationExecutor.NotificationRecord notificationRecord :
+                notificationExecutor.notificationRecords) {
+            AbstractNotification notification = notificationRecord.getNotification();
+            if (notificationType.isInstance(notification)) {
+                notificationRecords.add((TestingNotificationExecutor.NotificationRecord<T>) notificationRecord);
             }
-            return notificationRecords;
         }
-        finally {
-            entityManager.close();
-        }
+        return notificationRecords;
     }
 
-    private List<NotificationType> getNotificationRecordTypes()
+    private List<Class<? extends AbstractNotification>> getNotificationTypes()
     {
-        List<NotificationType> notificationTypes =
-                new LinkedList<NotificationType>();
-        for (NotificationRecord notificationRecord : getNotificationRecords()) {
-            notificationTypes.add(notificationRecord.getNotificationType());
+        return getNotificationTypes(AbstractNotification.class);
+    }
+
+    private <T extends AbstractNotification> List<Class<? extends T>> getNotificationTypes(Class<T> notificationType)
+    {
+        List<Class<? extends T>> notificationTypes = new LinkedList<Class<? extends T>>();
+        for (TestingNotificationExecutor.NotificationRecord<T> notificationRecord :
+                getNotificationRecords(notificationType)) {
+            notificationTypes.add((Class<? extends T>) notificationRecord.getNotification().getClass());
         }
         return notificationTypes;
     }
 
-    private NotificationRecord checkNotification(List<NotificationRecord> notificationRecords,
-            String message, RecipientType recipientType, NotificationType notificationType,
-            Long recipientId, String targetId)
+    private TestingNotificationExecutor.NotificationRecord checkNotification(
+            List<TestingNotificationExecutor.NotificationRecord<RoomNotification>> notificationRecords,
+            String message, Class<? extends AbstractNotification> requiredNotificationType,
+            PersonInformation requiredRecipient, String requiredRoomEndpointId)
     {
-        NotificationRecord notificationRecord = notificationRecords.get(0);
+        TestingNotificationExecutor.NotificationRecord notificationRecord = notificationRecords.get(0);
+        PersonInformation recipient = notificationRecord.getRecipient();
+        AbstractNotification notification = notificationRecord.getNotification();
         notificationRecords.remove(0);
-        if (notificationType != null) {
-            Assert.assertEquals(message + " - NotificationType",
-                    notificationType, notificationRecord.getNotificationType());
+        if (requiredNotificationType != null) {
+            Assert.assertEquals(message + " - NotificationType", requiredNotificationType, notification.getClass());
         }
-        if (targetId != null) {
+        if (requiredRoomEndpointId != null) {
+            RoomNotification roomNotification = (RoomNotification) notification;
             Long executableId = ObjectIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.executable.Executable.class, targetId);
-            Assert.assertEquals(message + " - TargetId",
-                    executableId, notificationRecord.getTargetId());
+                    cz.cesnet.shongo.controller.booking.executable.Executable.class, requiredRoomEndpointId);
+            Assert.assertEquals(message + " - RoomEndpointId", executableId, roomNotification.getRoomEndpointId());
         }
-        if (recipientType != null) {
-            Assert.assertEquals(message + " - RecipientType",
-                    recipientType, notificationRecord.getRecipientType());
-        }
-        if (recipientId != null) {
-            Assert.assertEquals(message + " - RecipientId",
-                    recipientId, notificationRecord.getRecipientId());
+        if (requiredRecipient != null) {
+            Assert.assertEquals(message + " - Recipient", requiredRecipient, recipient);
         }
         return notificationRecord;
     }
@@ -760,28 +823,50 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     private class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
-         * Number of executed notifications.
+         * Executed {@link AbstractNotification}.
          */
-        private int notificationCount = 0;
+        private List<NotificationRecord> notificationRecords = new LinkedList<NotificationRecord>();
 
         /**
-         * @return {@link #notificationCount}
+         * @return size of {@link #notificationRecords}
          */
         public int getNotificationCount()
         {
-            return notificationCount;
+            return notificationRecords.size();
         }
 
         @Override
-        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+        public void executeNotification(PersonInformation recipient, AbstractNotification notification,
                 NotificationManager manager, EntityManager entityManager)
         {
             NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
-            notificationCount++;
-            return true;
+            notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
+        }
+
+        private class NotificationRecord<T extends AbstractNotification>
+        {
+            private final PersonInformation recipient;
+
+            private final T notification;
+
+            private NotificationRecord(PersonInformation recipient, T notification)
+            {
+                this.recipient = recipient;
+                this.notification = notification;
+            }
+
+            public PersonInformation getRecipient()
+            {
+                return recipient;
+            }
+
+            public T getNotification()
+            {
+                return notification;
+            }
         }
     }
 }

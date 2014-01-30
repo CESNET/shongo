@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 
 /**
- * Represent an abstract executor of {@link cz.cesnet.shongo.controller.notification.NotificationRecord}s.
+ * Represent an abstract executor of {@link AbstractNotification}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -33,6 +33,6 @@ public abstract class NotificationExecutor
      * @param manager
      * @param entityManager
      */
-    public abstract boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+    public abstract void executeNotification(PersonInformation recipient, AbstractNotification notification,
             NotificationManager manager, EntityManager entityManager);
 }

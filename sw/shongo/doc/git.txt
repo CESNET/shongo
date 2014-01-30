@@ -1,0 +1,23 @@
+
+Cleanup local repository (remove not-existing remote branches, update master, delete local branches, show branches and gc):
+
+git checkout master
+git fetch --prune
+
+git merge master
+git branch -D srom-dev
+git branch -D recording
+git branch -D testing
+git branch -D web
+git branch -a
+git gc --aggressive
+
+
+Create local branch:
+
+git checkout -b recording origin/recording
+git log --all --graph
+
+git checkout -b testing origin/testing
+git log --all --graph
+

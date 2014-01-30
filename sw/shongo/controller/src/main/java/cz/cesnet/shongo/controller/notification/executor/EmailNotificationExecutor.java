@@ -57,17 +57,17 @@ public class EmailNotificationExecutor extends NotificationExecutor
     }
 
     @Override
-    public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+    public void executeNotification(PersonInformation recipient, AbstractNotification notification,
             NotificationManager manager, EntityManager entityManager)
     {
         if (!emailSender.isInitialized()) {
-            return false;
+            return;
         }
         try {
             String recipientEmail = recipient.getPrimaryEmail();
             if (recipientEmail == null) {
                 logger.warn("Notification '{}' has empty email address.", notification);
-                return false;
+                return;
             }
             List<String> replyToEmails = new LinkedList<String>();
             for (PersonInformation replyTo : notification.getReplyTo()) {
@@ -108,11 +108,9 @@ public class EmailNotificationExecutor extends NotificationExecutor
 
             // Send email
             emailSender.sendEmail(recipientEmail, replyToEmails, message.getTitle(), emailContent.toString());
-            return true;
         }
         catch (Exception exception) {
             Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
-            return false;
         }
     }
 }

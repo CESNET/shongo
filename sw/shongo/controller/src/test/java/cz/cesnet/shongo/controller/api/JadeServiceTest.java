@@ -179,7 +179,7 @@ public class JadeServiceTest extends AbstractExecutorTest
         }
 
         @Override
-        public boolean executeNotification(PersonInformation recipient, AbstractNotification notification,
+        public void executeNotification(PersonInformation recipient, AbstractNotification notification,
                 NotificationManager manager, EntityManager entityManager)
         {
             NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
@@ -187,7 +187,6 @@ public class JadeServiceTest extends AbstractExecutorTest
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
             notificationCount++;
-            return true;
         }
     }
 }

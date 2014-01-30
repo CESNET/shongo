@@ -14,7 +14,7 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents a {@link Component} for executing {@link NotificationRecord}s by multiple {@link NotificationExecutor}s.
+ * Represents a {@link Component} for executing {@link AbstractNotification}s by multiple {@link NotificationExecutor}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -28,7 +28,7 @@ public class NotificationManager extends Component implements Component.Authoriz
     private Authorization authorization;
 
     /**
-     * List of {@link NotificationExecutor}s for executing {@link NotificationRecord}s.
+     * List of {@link NotificationExecutor}s for executing {@link AbstractNotification}s.
      */
     private List<NotificationExecutor> notificationExecutors = new ArrayList<NotificationExecutor>();
 
@@ -38,7 +38,7 @@ public class NotificationManager extends Component implements Component.Authoriz
     private boolean enabled = true;
 
     /**
-     * {@link PersonInformation} to which all {@link NotificationRecord}s should be redirected.
+     * {@link PersonInformation} to which all {@link AbstractNotification}s should be redirected.
      */
     private PersonInformation redirectTo = null;
 
@@ -196,25 +196,10 @@ public class NotificationManager extends Component implements Component.Authoriz
         }
 
         for (PersonInformation recipient : recipients) {
-            boolean result = false;
             if (enabled) {
                 // Perform notification in every notification executor
                 for (NotificationExecutor notificationExecutor : notificationExecutors) {
-                    if (notificationExecutor.executeNotification(recipient, notification, this, entityManager)) {
-                        result = true;
-                    }
-                }
-            }
-            else {
-                // Notifications are disabled, act it has been performed successfully
-                result = true;
-            }
-            if (result && entityManager != null) {
-                // Create persistent notification record
-                NotificationRecord notificationRecord = notification.createRecord(recipient, entityManager);
-                if (notificationRecord != null) {
-                    logger.debug("{}", notificationRecord);
-                    entityManager.persist(notificationRecord);
+                    notificationExecutor.executeNotification(recipient, notification, this, entityManager);
                 }
             }
         }
