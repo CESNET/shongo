@@ -547,6 +547,9 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
+        // Disable automatic execution of notifications
+        setNotificationExecutionEnabled(false);
+
         // Create Permanent Room with Permanent Participant 1
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setDescription("Alias Reservation Request");
@@ -593,6 +596,9 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         Reservation secondCapacityReservation = checkAllocated(secondCapacityReservationRequestId);
         AbstractRoomExecutable secondCapacity = (AbstractRoomExecutable) secondCapacityReservation.getExecutable();
         String secondCapacityId = secondCapacity.getId();
+
+        // Execute creation notifications
+        executeNotifications();
 
         // Add Permanent Participant 2 (should be notified about both capacities)
         RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();

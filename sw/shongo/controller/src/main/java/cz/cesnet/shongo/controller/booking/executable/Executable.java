@@ -40,9 +40,14 @@ public abstract class Executable extends ExecutionTarget
     private boolean modified;
 
     /**
-     * {@link Migration} to be performed to initialize this {@link Executable} from another {@link Executable}.
+     * {@link Executable} from which this {@link Executable} should be initialized from.
      */
-    private Migration migration;
+    private Executable migrateFromExecutable;
+
+    /**
+     * {@link Executable} which should be initialized from this {@link Executable}.
+     */
+    private Executable migrateToExecutable;
 
     /**
      * List of child {@link Executable}s.
@@ -134,30 +139,59 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
-     * @return {@link #migration}
+     * @return {@link #migrateFromExecutable}
      */
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "targetExecutable")
-    @Access(AccessType.FIELD)
-    public Migration getMigration()
+    @OneToOne
+    @JoinColumn(name = "migrate_from_executable_id")
+    public Executable getMigrateFromExecutable()
     {
-        return migration;
+        return migrateFromExecutable;
     }
 
     /**
-     * @param migration sets the {@link #migration}
+     * @param migrateFromExecutable sets the {@link #migrateFromExecutable}
      */
-    public void setMigration(Migration migration)
+    public void setMigrateFromExecutable(Executable migrateFromExecutable)
     {
         // Manage bidirectional association
-        if (migration != this.migration) {
-            if (this.migration != null) {
-                Migration oldMigration = this.migration;
-                this.migration = null;
-                oldMigration.setTargetExecutable(null);
+        if (migrateFromExecutable != this.migrateFromExecutable) {
+            if (this.migrateFromExecutable != null) {
+                Executable oldMigrateFromExecutable = this.migrateFromExecutable;
+                this.migrateFromExecutable = null;
+                oldMigrateFromExecutable.setMigrateToExecutable(null);
             }
-            if (migration != null) {
-                this.migration = migration;
-                this.migration.setTargetExecutable(this);
+            if (migrateFromExecutable != null) {
+                this.migrateFromExecutable = migrateFromExecutable;
+                this.migrateFromExecutable.setMigrateToExecutable(this);
+            }
+        }
+    }
+
+    /**
+     * @return {@link #migrateToExecutable}
+     */
+    @OneToOne
+    @JoinColumn(name = "migrate_to_executable_id")
+    public Executable getMigrateToExecutable()
+    {
+        return migrateToExecutable;
+    }
+
+    /**
+     * @param migrateToExecutable sets the {@link #migrateToExecutable}
+     */
+    public void setMigrateToExecutable(Executable migrateToExecutable)
+    {
+        // Manage bidirectional association
+        if (migrateToExecutable != this.migrateToExecutable) {
+            if (this.migrateToExecutable != null) {
+                Executable oldMigrateToExecutable = this.migrateToExecutable;
+                this.migrateToExecutable = null;
+                oldMigrateToExecutable.setMigrateFromExecutable(null);
+            }
+            if (migrateToExecutable != null) {
+                this.migrateToExecutable = migrateToExecutable;
+                this.migrateToExecutable.setMigrateFromExecutable(this);
             }
         }
     }
@@ -246,6 +280,17 @@ public abstract class Executable extends ExecutionTarget
         }
     }
 
+    @javax.persistence.PreRemove
+    public void preRemove()
+    {
+        if (migrateFromExecutable != null) {
+            setMigrateFromExecutable(null);
+        }
+        if (migrateToExecutable != null) {
+            setMigrateToExecutable(null);
+        }
+    }
+
     @Transient
     @Override
     public String getReportDescription()
@@ -307,8 +352,8 @@ public abstract class Executable extends ExecutionTarget
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
         executableApi.setStateReport(getExecutionReport(userType));
-        if (migration != null) {
-            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(userType));
+        if (migrateFromExecutable != null) {
+            executableApi.setMigratedExecutable(migrateFromExecutable.toApi(userType));
         }
     }
 

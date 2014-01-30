@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
+import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -129,8 +129,10 @@ public class ExecutionPlanTest
         final SimpleExecutable executable2 = new SimpleExecutable();
         final SimpleExecutable executable3 = new SimpleExecutable();
         final SimpleExecutable executable4 = new SimpleExecutable();
+        executable4.setSlot(new Interval("2014/2015"));
         final SimpleExecutable executable5 = new SimpleExecutable();
-        final Migration migration = new Migration()
+        executable5.setSlot(new Interval("2015/2016"));
+        final Migration migration = new Migration(executable4, executable5)
         {
             @Override
             public boolean isReplacement()
@@ -138,8 +140,6 @@ public class ExecutionPlanTest
                 return false;
             }
         };
-        migration.setSourceExecutable(executable4);
-        migration.setTargetExecutable(executable5);
 
         ExecutionPlan executionPlan2 = new ExecutionPlan(null);
         executionPlan2.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));

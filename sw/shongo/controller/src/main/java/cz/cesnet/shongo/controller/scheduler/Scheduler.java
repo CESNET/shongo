@@ -439,16 +439,19 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 continue;
             }
 
+            // If old reservation time slot intersects the new reservation time slot
+            if (oldReservation.getSlotEnd().isAfter(slotStart)) {
+                // Set preceding reservation
+                if (precedingReservation != null) {
+                    throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
+                }
+                precedingReservation = oldReservation;
+            }
+
             // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
             if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
                 // If old reservation time slot intersects the new reservation time slot
                 if (oldReservation.getSlotEnd().isAfter(slotStart)) {
-                    // Set preceding reservation
-                    if (precedingReservation != null) {
-                        throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
-                    }
-                    precedingReservation = oldReservation;
-
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
                     oldReservation.setSlotEnd(slotStart);
 

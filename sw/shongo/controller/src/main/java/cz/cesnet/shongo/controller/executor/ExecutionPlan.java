@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
 import cz.cesnet.shongo.report.AbstractReport;
@@ -257,9 +258,11 @@ public class ExecutionPlan
         }
         ExecutionResult executionResult = new ExecutionResult();
         for (ExecutionAction executionAction : completedActions) {
-            entityManager.refresh(executionAction.target);
-            boolean result = executionAction.finish(entityManager, referenceDateTime, executionResult);
             Object target = executionAction.getTarget();
+            if (target instanceof PersistentObject) {
+                entityManager.refresh(target);
+            }
+            boolean result = executionAction.finish(entityManager, referenceDateTime, executionResult);
             if (target instanceof ExecutionTarget) {
                 ExecutionTarget executionTarget = (ExecutionTarget) target;
                 if (result) {

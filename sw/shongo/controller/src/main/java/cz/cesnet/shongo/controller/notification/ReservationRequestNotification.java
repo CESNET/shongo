@@ -77,18 +77,18 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         int allocationFailedNotifications = 0;
         int newReservationNotifications = 0;
         int deletedReservationNotifications = 0;
-        for (AbstractNotification event : notifications) {
-            if (event instanceof AllocationFailedNotification) {
+        for (AbstractNotification notification : notifications) {
+            if (notification instanceof AllocationFailedNotification) {
                 allocationFailedNotifications++;
             }
-            else if (event instanceof ReservationNotification.New) {
+            else if (notification instanceof ReservationNotification.New) {
                 newReservationNotifications++;
             }
-            else if (event instanceof ReservationNotification.Deleted) {
+            else if (notification instanceof ReservationNotification.Deleted) {
                 deletedReservationNotifications++;
             }
             else {
-                throw new TodoImplementException(event.getClass());
+                throw new TodoImplementException(notification.getClass());
             }
         }
 
@@ -161,14 +161,14 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
 
         NotificationMessage message = renderTemplateMessage(
                 renderContext, titleBuilder.toString(), "reservation-request.ftl");
-        for (AbstractNotification event : notifications) {
+        for (AbstractNotification notification : notifications) {
             NotificationMessage childMessage;
-            if (event instanceof ConfigurableNotification) {
-                ConfigurableNotification configurableEvent = (ConfigurableNotification) event;
+            if (notification instanceof ConfigurableNotification) {
+                ConfigurableNotification configurableEvent = (ConfigurableNotification) notification;
                 childMessage = configurableEvent.renderMessage(configuration, manager);
             }
             else {
-                throw new TodoImplementException(event.getClass());
+                throw new TodoImplementException(notification.getClass());
             }
             message.appendChildMessage(childMessage);
         }

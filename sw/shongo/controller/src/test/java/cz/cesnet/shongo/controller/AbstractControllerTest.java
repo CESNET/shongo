@@ -86,6 +86,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private Scheduler scheduler;
 
     /**
+     * Specifies whether automatic execution of notifications while scheduling is enabled.
+     */
+    private boolean notificationExecutionEnabled = true;
+
+    /**
      * @see ControllerClient
      */
     private ControllerClient controllerClient;
@@ -187,6 +192,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public void setWorkingInterval(Interval workingInterval)
     {
         this.workingInterval = workingInterval;
+    }
+
+    /**
+     * @param notificationExecutionEnabled sets the {@link #notificationExecutionEnabled}
+     */
+    public void setNotificationExecutionEnabled(boolean notificationExecutionEnabled)
+    {
+        this.notificationExecutionEnabled = notificationExecutionEnabled;
     }
 
     /**
@@ -347,7 +360,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         EntityManager entityManager = createEntityManager();
         Scheduler.Result result = scheduler.run(interval, entityManager);
-        executeNotifications(interval.getStart(), entityManager);
+        if (notificationExecutionEnabled) {
+            executeNotifications(interval.getStart(), entityManager);
+        }
         entityManager.close();
         return result;
     }

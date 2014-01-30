@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -272,9 +271,10 @@ public class Executor extends SwitchableComponent
                 ExecutionPlan executionPlan = new ExecutionPlan(this);
                 for (Executable executable : executableManager.listExecutablesForStart(start, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));
-                    Migration migration = executable.getMigration();
-                    if (migration != null) {
-                        executionPlan.addExecutionAction(new ExecutionAction.MigrationAction(migration));
+                    Executable migrateFromExecutable = executable.getMigrateFromExecutable();
+                    if (migrateFromExecutable != null && migrateFromExecutable.getState().isStarted()) {
+                        executionPlan.addExecutionAction(
+                                new ExecutionAction.MigrationAction(new Migration(migrateFromExecutable, executable)));
                     }
                 }
                 for (Executable executable : executableManager.listExecutablesForUpdate(dateTime, maxAttemptCount)) {

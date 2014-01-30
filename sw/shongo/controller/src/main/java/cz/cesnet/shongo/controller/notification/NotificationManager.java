@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -54,16 +55,19 @@ public class NotificationManager extends Component implements Component.Authoriz
             new HashMap<Long, ReservationRequestNotification>();
 
     /**
-     * Map of {@link ReservationRequestNotification} by {@link AbstractReservationRequest#id}.
+     * Map of {@link RoomNotification.RoomSimple}s by {@link RoomEndpoint#id} which is used for
+     * grouping {@link RoomNotification.RoomSimple}s of the same type for the same {@link RoomEndpoint}.
      */
-    protected Map<Long, List<RoomNotification>> roomNotificationsByReservationRequestId =
-            new HashMap<Long, List<RoomNotification>>();
+    protected Map<Long, Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple>>
+            roomSimpleNotificationsByRoomEndpointId =
+            new HashMap<Long, Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple>>();
 
     /**
-     * Map of {@link AbstractNotification}s by class by target-id.
+     * Map of {@link RoomGroupNotification} by {@link RoomEndpoint#id} which is used for
+     * grouping {@link RoomNotification}s for the same virtual room.
      */
-    protected Map<Long, Map<Class<? extends AbstractNotification>, AbstractNotification>> notificationsByTargetId =
-            new HashMap<Long, Map<Class<? extends AbstractNotification>, AbstractNotification>>();
+    protected Map<Long, RoomGroupNotification> roomGroupNotificationByRoomEndpointId =
+            new HashMap<Long, RoomGroupNotification>();
 
     /**
      * @return {@link #authorization}
@@ -206,28 +210,15 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     /**
-     * @param reservationRequestId
-     * @return list of {@link RoomNotification} for given {@code reservationRequestId}
-     */
-    protected synchronized List<RoomNotification> getRoomNotificationsByReservationRequestId(Long reservationRequestId)
-    {
-        List<RoomNotification> roomNotifications = roomNotificationsByReservationRequestId.get(reservationRequestId);
-        if (roomNotifications == null) {
-            roomNotifications = new LinkedList<RoomNotification>();
-            roomNotificationsByReservationRequestId.put(reservationRequestId, roomNotifications);
-        }
-        return roomNotifications;
-    }
-
-    /**
-     * @param targetId
+     * @param roomEndpointId
      * @param notificationType
-     * @return {@link AbstractNotification} of given {@code notificationType} for given {@code targetId}
+     * @return {@link RoomNotification.RoomSimple} of given {@code notificationType} for given {@code roomEndpointId}
      */
-    protected synchronized <T extends AbstractNotification> T getNotification(Long targetId, Class<T> notificationType)
+    protected synchronized <T extends RoomNotification.RoomSimple> T getRoomSimpleNotification(Long roomEndpointId,
+            Class<T> notificationType)
     {
-        Map<Class<? extends AbstractNotification>, AbstractNotification> notifications =
-                notificationsByTargetId.get(targetId);
+        Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple> notifications =
+                roomSimpleNotificationsByRoomEndpointId.get(roomEndpointId);
         if (notifications != null) {
             return notificationType.cast(notifications.get(notificationType));
         }

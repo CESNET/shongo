@@ -10,7 +10,6 @@ import cz.cesnet.shongo.controller.booking.alias.AliasReservationTask;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.recording.RecordingService;
@@ -272,11 +271,7 @@ public class RoomReservationTask extends ReservationTask
         Executable oldExecutable = oldReservation.getExecutable();
         Executable newExecutable = newReservation.getExecutable();
         if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
-            if (oldExecutable.getState().isStarted()) {
-                Migration migration = new Migration();
-                migration.setSourceExecutable(oldExecutable);
-                migration.setTargetExecutable(newExecutable);
-            }
+            newExecutable.setMigrateFromExecutable(oldExecutable);
         }
         super.migrateReservation(oldReservation, newReservation);
     }

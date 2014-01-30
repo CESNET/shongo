@@ -167,13 +167,14 @@ public abstract class ConfigurableNotification extends AbstractNotification
         // Render message for each configuration
         if (configurations.size() == 1) {
             // Single message
-            return getRenderedMessage(configurations.get(0), notificationManager).clone();
+            return getRenderedMessage(recipient, configurations.get(0), notificationManager).clone();
         }
         else {
             // Multiple messages
             NotificationMessage notificationMessage = new NotificationMessage(recipient, notificationManager);
             for (Configuration configuration : configurations) {
-                NotificationMessage configurationMessage = getRenderedMessage(configuration, notificationManager);
+                NotificationMessage configurationMessage =
+                        getRenderedMessage(recipient, configuration, notificationManager);
                 notificationMessage.appendMessage(configurationMessage);
             }
             return notificationMessage;
@@ -183,11 +184,14 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * Render or return already rendered {@link NotificationMessage} for given {@code configuration}.
      *
+     *
+     * @param recipient
      * @param configuration to be rendered
      * @param manager
      * @return rendered {@link NotificationMessage}
      */
-    private NotificationMessage getRenderedMessage(Configuration configuration, NotificationManager manager)
+    protected NotificationMessage getRenderedMessage(PersonInformation recipient, Configuration configuration,
+            NotificationManager manager)
     {
         NotificationMessage notificationMessage = configurationMessage.get(configuration);
         if (notificationMessage == null) {

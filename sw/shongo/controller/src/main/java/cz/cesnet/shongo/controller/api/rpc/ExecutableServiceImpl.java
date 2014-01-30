@@ -11,6 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
@@ -18,8 +19,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
+import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -557,10 +557,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             Set<cz.cesnet.shongo.controller.booking.executable.Executable> executablesToUpdate =
                     new HashSet<cz.cesnet.shongo.controller.booking.executable.Executable>();
             executablesToUpdate.add(executable);
-            Migration migration = executable.getMigration();
-            if (migration != null) {
-                executablesToUpdate.add(migration.getSourceExecutable());
-                executablesToUpdate.add(migration.getTargetExecutable());
+            cz.cesnet.shongo.controller.booking.executable.Executable migrateFromExecutable =
+                    executable.getMigrateFromExecutable();
+            if (migrateFromExecutable != null) {
+                executablesToUpdate.add(migrateFromExecutable);
             }
 
             int maxAttemptCount = configuration.getInt(ControllerConfiguration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);

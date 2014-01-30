@@ -2,16 +2,13 @@ package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservationTask;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.executable.Migration;
-import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.Interval;
 
@@ -54,7 +51,7 @@ public class AliasReservationTask extends ReservationTask
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
-     * @param slot sets the {@link #slot}
+     * @param slot             sets the {@link #slot}
      */
     public AliasReservationTask(SchedulerContext schedulerContext, Interval slot)
     {
@@ -283,21 +280,6 @@ public class AliasReservationTask extends ReservationTask
             }
         }
         throw new SchedulerException(getCurrentReport());
-    }
-
-    @Override
-    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
-    {
-        Executable oldExecutable = oldReservation.getExecutable();
-        Executable newExecutable = newReservation.getExecutable();
-        if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
-            if (oldExecutable.getState().isStarted()) {
-                Migration migration = new Migration();
-                migration.setSourceExecutable(oldExecutable);
-                migration.setTargetExecutable(newExecutable);
-            }
-        }
-        super.migrateReservation(oldReservation, newReservation);
     }
 
     /**
