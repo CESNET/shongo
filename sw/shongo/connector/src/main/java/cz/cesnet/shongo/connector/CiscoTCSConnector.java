@@ -78,8 +78,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      * <p/>
      * We should not use {@link DateTimeFormat#forStyle} because it is {@link java.util.Locale} dependent.
      */
-    private final DateTimeFormatter FILE_ID_DATE_TIME_FORMATTER =
-            DateTimeFormat.forPattern("yyyy-MM-dd_HH:mm:ss").withZoneUTC();
+    private static final DateTimeFormatter FILE_ID_DATE_TIME_FORMATTER =
+            DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZoneUTC();
 
     /**
      * Pattern for recording ID, which is in format recordingFolderId:recordingFileId:recordingTCSId
@@ -471,7 +471,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         titleBuilder.append(";alias:");
         titleBuilder.append(alias.getValue());
         titleBuilder.append(";created:");
-        titleBuilder.append(DateTime.now().toString());
+        titleBuilder.append(getFileId(DateTime.now()));
         titleBuilder.append("]");
 
         Command command = new Command("RequestConferenceID");
@@ -811,7 +811,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      * @param dateTime
      * @return
      */
-    protected String getFileId(DateTime dateTime)
+    public static String getFileId(DateTime dateTime)
     {
         return FILE_ID_DATE_TIME_FORMATTER.print(dateTime);
     }
