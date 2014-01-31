@@ -142,6 +142,7 @@ public class ServiceImpl implements Service
             ResourceManager resourceManager = new ResourceManager(entityManager);
             DeviceResource deviceResource = resourceManager.getManagedDeviceByAgent(agentName);
             if (deviceResource != null) {
+                deviceResource.loadLazyProperties();
                 return deviceResource;
             }
             throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
