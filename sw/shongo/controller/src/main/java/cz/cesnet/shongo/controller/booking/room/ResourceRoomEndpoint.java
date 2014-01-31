@@ -269,8 +269,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     public RecordingFolder getRecordingFolderApi()
     {
         RecordingFolder recordingFolder = new RecordingFolder();
-        recordingFolder.setName(String.format("[%s:exe:%d][res:%d][room:%s]",
-                Domain.getLocalDomainName(), getId(), getResource().getId(), getRoomId()));
+        recordingFolder.setName(String.format("exe:%d:res:%d:room:%s", getId(), getResource().getId(), getRoomId()));
         recordingFolder.setUserPermissions(getRecordingFolderUserPermissions());
         return recordingFolder;
     }
