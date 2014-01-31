@@ -929,9 +929,9 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             try {
                                 moveRecording(recordingId);
                             }
-                            catch (Exception e) {
-                                logger.error(
-                                        "Error while moving recording (recordingId: " + recordingId + "). \nException: " + e);
+                            catch (Exception exception) {
+                                logger.error("Error while moving recording (recordingId: " + recordingId + ").",
+                                        exception);
 
                                 NotifyTarget notifyTarget = new NotifyTarget(Service.NotifyTargetType.RESOURCE_ADMINS,
                                         null);
@@ -941,21 +941,20 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                                                 + "Recording TCS ID: " + selectRecordingTCSId(recordingId) + "\n"
                                                 + "Recording folder ID: " + selectFolderId(recordingId) + "\n"
                                                 + "Recording filename: " + recording.getFileName() + "\n\n"
-                                                + "Thrown exception: " + e);
+                                                + "Thrown exception: " + exception);
                                 notifyTarget.addMessage("cs",
                                         "Přesunutí nahrávky z TCS selhalo",
                                         "Nastala chyba při přesouvání nahrávky.\n"
                                                 + "TCS ID nahrávky: " + selectRecordingTCSId(recordingId) + "\n"
                                                 + "ID složky: " + selectFolderId(recordingId) + "\n"
                                                 + "Název souboru nahrávky: " + recording.getFileName() + "\n\n"
-                                                + "Vyhozená výjimka: " + e);
-
+                                                + "Vyhozená výjimka: " + exception);
 
                                 try {
                                     performControllerAction(notifyTarget);
                                 }
                                 catch (CommandException e1) {
-                                    logger.error("Failure report sending of recording moving has failed.");
+                                    logger.error("Failure report sending of recording moving has failed.", e1);
                                 }
                             }
                         }
