@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -136,6 +137,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      * Storage unit for recordings
      */
     private Storage storage;
+
+    /**
+     * Concurrent list of recordings to be moved to storage.
+     */
+    private CopyOnWriteArrayList<Recording> recordingsToMove = new CopyOnWriteArrayList<Recording>();
+
 
     public Storage getStorage()
     {
@@ -331,6 +338,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         }
         String folderId = matcher.group(1);
 
+        recording.setRecordingFolderId(folderId);
         recording.setId(makeRecordingId(folderId, fileId, recordingData.getChildText("ConferenceID")));
         recording.setDuration(new Period(Long.decode(recordingData.getChildText("Duration")).longValue()));
         //recording.setUrl(recordingData.getChildText("URL"));
@@ -535,7 +543,11 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             storage.createFile(file, new URL(recording.getDownloadableUrl()).openStream());
 
             // delete existing and create new metadata file
+            try {
             storage.deleteFile(recordingFolderId, getMetadataFilename(selectFileId(recordingId)));
+            } catch (Exception e) {
+                logger.warn("Deleting of temporary metadata file failed (recording ID: " + recordingId + ")",e);
+            }
             createMetadataFile(recordingId, recordingXmlData);
         }
         catch (IOException e) {
@@ -909,21 +921,50 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         command.setParameter("Owner", "");
         command.setParameter("Category", "");
         command.setParameter("Sort", "DateTime");
-        Element result = exec(command);
 
         ExecutorService exec = Executors.newFixedThreadPool(NUM_OF_THREADS);
         try {
-            for (final Element rec : result.getChild("GetConferencesResponse")
-                    .getChild("GetConferencesResult").getChildren("Conference")) {
+            List<Recording> recordings = new LinkedList<Recording>();
+
+            synchronized (CiscoTCSConnector.class) {
+                logger.debug("Checking recordings to be moved...");
+                Element result = exec(command);
+
+                Set<String> existingFolderNames = new HashSet<String>();
+                for (Storage.Folder folder : storage.listFolders(null, null)) {
+                    existingFolderNames.add(folder.getFolderId());
+                    System.out.println(folder.getFolderId());
+                }
+
+                for (Element rawRecording : result.getChild("GetConferencesResponse").getChild("GetConferencesResult").getChildren("Conference")) {
+                    try{
+                        Recording recording = parseRecording(rawRecording);
+                        if (recording.getDownloadableUrl() == null) {
+                            continue;
+                        }
+                        if (recordingsToMove.contains(recording)) {
+                            continue;
+                        }
+                        if (!existingFolderNames.contains(recording.getRecordingFolderId())) {
+                            continue;
+                        }
+
+                        //TODO:redundat???
+                        recordings.add(recording);
+                        recordingsToMove.add(recording);
+                    } catch (Exception e) {
+                        logger.warn("Recordings CheckAndMove failed.", e);
+                        continue;
+                    }
+                }
+            }
+
+            for (final Recording recording : recordings) {
                 exec.submit(new Runnable()
                 {
                     @Override
                     public void run()
                     {
-                        Recording recording = parseRecording(rec);
-
-                        // has prepared movie for download
-                        if (recording.getDownloadableUrl() != null) {
                             String recordingId = recording.getId();
 
                             try {
@@ -957,7 +998,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                                     logger.error("Failure report sending of recording moving has failed.", e1);
                                 }
                             }
-                        }
                     }
                 });
             }
