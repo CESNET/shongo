@@ -8,10 +8,7 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.ConnectorInfo;
-import cz.cesnet.shongo.connector.api.DeviceInfo;
-import cz.cesnet.shongo.connector.api.MultipointService;
-import cz.cesnet.shongo.connector.api.UsageStats;
+import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.MathHelper;
 import org.apache.commons.lang.StringUtils;
@@ -126,6 +123,11 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private Pattern roomNumberFromSIPURI = null;
 
     /**
+     * Addresses of participants which should be hidden.
+     */
+    private Set<String> hiddenParticipantAddresses = new HashSet<String>();
+
+    /**
      * Cache of results of previous calls to commands supporting revision numbers.
      * Map of cache ID to previous results.
      */
@@ -161,6 +163,24 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     }
 
     // COMMON SERVICE
+
+    @Override
+    public void setOptions(ConnectorOptions options)
+    {
+        super.setOptions(options);
+
+        hiddenParticipantAddresses.clear();
+        for (ConnectorOptions participant : options.getOptionsList("participants.participant")) {
+            boolean hide = participant.getBool("hide");
+            if (hide) {
+                String address = participant.getString("address");
+                if (address == null || address.isEmpty()) {
+                    throw new IllegalArgumentException("Address for participant must be filled.");
+                }
+                hiddenParticipantAddresses.add(address);
+            }
+        }
+    }
 
     /**
      * Connects to the MCU.
@@ -570,7 +590,14 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                 continue;
             }
             if (!roomId.equals(participant.get("conferenceName"))) {
-                continue; // not from this room
+                // not from this room
+                continue;
+            }
+            Map<String, Object> participantState = (Map<String, Object>) participant.get("currentState");
+            String participantAddress = (String) participantState.get("address");
+            if (participantAddress != null && hiddenParticipantAddresses.contains(participantAddress)) {
+                // participant should be hidden
+                continue;
             }
             result.add(extractRoomParticipant(participant));
         }

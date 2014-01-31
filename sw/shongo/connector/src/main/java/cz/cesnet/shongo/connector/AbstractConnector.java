@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -55,7 +56,25 @@ abstract public class AbstractConnector implements CommonService
     /**
      * {@link ConnectorOptions}.
      */
-    private ConnectorOptions options = new ConnectorOptions();
+    private ConnectorOptions options = new ConnectorOptions() {
+        @Override
+        public String getString(String key)
+        {
+            return null;
+        }
+
+        @Override
+        public List<String> getStringList(String key)
+        {
+            return null;
+        }
+
+        @Override
+        public List<ConnectorOptions> getOptionsList(String key)
+        {
+            return null;
+        }
+    };
 
     /**
      * Info about the connector and the device.

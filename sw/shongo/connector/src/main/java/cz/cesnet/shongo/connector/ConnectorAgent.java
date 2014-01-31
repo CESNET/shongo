@@ -107,7 +107,9 @@ public class ConnectorAgent extends Agent
                 abstractConnector.setConnectorAgent(this);
             }
 
-            connectorService.setOptions(options);
+            if (options != null) {
+                connectorService.setOptions(options);
+            }
             connectorService.connect(new Address(address, port), username, password);
 
             logger.info("Connector ready: {}", connectorService.getConnectorInfo());

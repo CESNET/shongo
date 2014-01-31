@@ -179,13 +179,10 @@ public class Connector
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
             if (instCfg.getProperty("device.connector-class") != null) {
-                ConnectorOptions connectorOptions = new ConnectorOptions();
+                ConnectorOptions connectorOptions = null;
                 if (!instCfg.configurationsAt("device.options").isEmpty()) {
-                    SubnodeConfiguration conf = instCfg.configurationAt("device.options");
-                    Map<Object,Object> confMap = ConfigurationConverter.getMap(conf);
-                    for (Map.Entry<Object,Object> entry : confMap.entrySet()) {
-                        connectorOptions.set((String) entry.getKey(), entry.getValue());
-                    }
+                    final HierarchicalConfiguration conf = instCfg.configurationAt("device.options");
+                    connectorOptions = new ConfigurationConnectorOptions(conf);
                 }
 
                 // command the agent to manage a device

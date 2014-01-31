@@ -29,6 +29,7 @@ public class ConnectorConfiguration extends CombinedConfiguration
     {
         NodeCombiner nodeCombiner = new UnionCombiner();
         nodeCombiner.addListNode("instance");
+        nodeCombiner.addListNode("participant");
         setNodeCombiner(nodeCombiner);
     }
 

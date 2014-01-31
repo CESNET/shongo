@@ -4,6 +4,7 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -12,51 +13,17 @@ import java.util.regex.Pattern;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ConnectorOptions
+public abstract class ConnectorOptions
 {
-    private Map<String, Object> options = new HashMap<String, Object>();
+    public abstract String getString(String key);
 
-    /**
-     * Sets an option to a given value.
-     *
-     * @param key   name of the option
-     * @param value value to be set
-     */
-    public void set(String key, Object value)
-    {
-        options.put(key, value);
-    }
+    public abstract List<String> getStringList(String key);
 
-    /**
-     * Sets all options from a given option map.
-     *
-     * @param options map of option names to corresponding values
-     */
-    public void set(Map<String, Object> options)
-    {
-        for (Map.Entry<String, Object> entry : options.entrySet()) {
-            set(entry.getKey(), entry.getValue());
-        }
-    }
+    public abstract List<ConnectorOptions> getOptionsList(String key);
 
-    /**
-     * Unsets an option, i.e. deletes the option from configuration.
-     *
-     * @param key name of the option
-     */
-    public void unset(String key)
+    public String getString(String key, String defaultValue)
     {
-        options.remove(key);
-    }
-
-    public Object getObject(String key)
-    {
-        return options.get(key);
-    }
-
-    public Object getObject(String key, Object defaultValue)
-    {
-        Object value = options.get(key);
+        String value = getString(key);
         if (value == null) {
             return defaultValue;
         }
@@ -65,24 +32,37 @@ public class ConnectorOptions
         }
     }
 
-    public String getString(String key)
+    public boolean getBool(String key)
     {
-        return (String) getObject(key);
+        String value = getString(key);
+        if (value != null) {
+            return Boolean.parseBoolean(value);
+        }
+        else {
+            return false;
+        }
     }
 
-    public String getString(String key, String defaultValue)
+    public int getInt(String key)
     {
-        return (String) getObject(key, defaultValue);
+        String value = getString(key);
+        if (value != null) {
+            return Integer.parseInt(value);
+        }
+        else {
+            return 0;
+        }
     }
 
-    public Integer getInt(String key)
+    public int getInt(String key, int defaultValue)
     {
-        return (Integer) getObject(key);
-    }
-
-    public Integer getInt(String key, Integer defaultValue)
-    {
-        return (Integer) getObject(key, defaultValue);
+        String value = getString(key);
+        if (value != null) {
+            return Integer.parseInt(value);
+        }
+        else {
+            return defaultValue;
+        }
     }
 
     public Pattern getPattern(String key)
