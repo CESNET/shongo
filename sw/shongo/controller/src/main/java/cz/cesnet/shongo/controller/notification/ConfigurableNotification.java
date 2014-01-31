@@ -298,7 +298,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
          * @param reservationRequestId
          * @return {@link ControllerConfiguration#NOTIFICATION_RESERVATION_REQUEST_URL} with given {@code reservationRequestId}
          */
-        public String getReservationRequestUrl(String reservationRequestId)
+        public String formatReservationRequestUrl(String reservationRequestId)
         {
             String reservationRequestUrl = getReservationRequestUrl();
             return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);

@@ -164,14 +164,14 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String ADMINISTRATOR_EMAIL = "administrator.email";
 
     /**
-     * Primary url of a reservation requests with "${reservationRequestId}" variable which can be used in notifications.
-     */
-    public static final String NOTIFICATION_RESERVATION_REQUEST_URL = "notification.reservation-request-url";
-
-    /**
      * Url where user can change his settings.
      */
     public static final String NOTIFICATION_USER_SETTINGS_URL = "notification.user-settings-url";
+
+    /**
+     * Primary url of a reservation requests with "${reservationRequestId}" variable which can be used in notifications.
+     */
+    public static final String NOTIFICATION_RESERVATION_REQUEST_URL = "notification.reservation-request-url";
 
     /**
      * Constructor.

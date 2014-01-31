@@ -4,7 +4,7 @@
 <#assign indent = 24>
 <#---->
 <#if context.reservationRequestUrl??>
-${context.message(indent, 'reservationRequest.url')}: ${context.reservationRequestUrl(notification.reservationRequestId)}
+${context.message(indent, 'reservationRequest.url')}: ${context.formatReservationRequestUrl(notification.reservationRequestId)}
 <#else>
 ${context.message(indent, 'reservationRequest.id')}: ${notification.reservationRequestId}
 </#if>

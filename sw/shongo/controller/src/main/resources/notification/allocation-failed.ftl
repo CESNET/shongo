@@ -4,7 +4,7 @@
 <#assign indent = 23>
 <#if context.configuration.class.simpleName != 'ParentConfiguration'>
 <#if context.reservationRequestUrl??>
-${context.message(indent, "reservationRequest.url")}: ${context.reservationRequestUrl(notification.reservationRequestId)}
+${context.message(indent, "reservationRequest.url")}: ${context.formatReservationRequestUrl(notification.reservationRequestId)}
 <#elseif notification.reservationRequestId??>
 ${context.message(indent, "reservationRequest.id")}: ${notification.reservationRequestId}
 </#if>

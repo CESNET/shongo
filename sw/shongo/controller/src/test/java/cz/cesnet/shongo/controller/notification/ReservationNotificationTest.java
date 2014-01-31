@@ -6,6 +6,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
+import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
@@ -49,6 +50,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         super.onInit();
 
         getController().addNotificationExecutor(notificationExecutor);
+
+        System.setProperty(ControllerConfiguration.NOTIFICATION_USER_SETTINGS_URL,
+                "https://127.0.0.1:8182/user/settings");
+        System.setProperty(ControllerConfiguration.NOTIFICATION_RESERVATION_REQUEST_URL,
+                "https://127.0.0.1:8182/reservation-request/${reservationRequestId}/detail");
 
         getController().getConfiguration().setAdministrators(new LinkedList<PersonInformation>()
         {{

@@ -18,7 +18,6 @@ import java.util.*;
  */
 public class ReservationRequestNotification extends AbstractReservationRequestNotification
 {
-
     private Target target;
 
     /**
