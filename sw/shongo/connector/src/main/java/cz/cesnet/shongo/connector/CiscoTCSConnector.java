@@ -813,7 +813,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      */
     protected String getFileId(DateTime dateTime)
     {
-        return DateTimeFormat.forStyle("SL").print(dateTime).replaceAll(" ", "_").replaceAll("/", "-");
+        return FILE_ID_DATE_TIME_FORMATTER.print(dateTime);
     }
 
     /**
