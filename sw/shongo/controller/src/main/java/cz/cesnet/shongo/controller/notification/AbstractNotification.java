@@ -67,16 +67,6 @@ public abstract class AbstractNotification
     }
 
     /**
-     * @param dateTime which specifies date/time in which this {@link AbstractNotification} should be checked
-     * @return true whether this {@link AbstractNotification} is ready for execution in given {@code dateTime},
-     *         false otherwise
-     */
-    public boolean isReady(DateTime dateTime)
-    {
-        return createdAt.isAfter(dateTime);
-    }
-
-    /**
      * @param recipient who should be notified by the {@link AbstractNotification}
      * @return true whether given {@code recipient} has been added,
      *         false whether given {@code recipient} already exists

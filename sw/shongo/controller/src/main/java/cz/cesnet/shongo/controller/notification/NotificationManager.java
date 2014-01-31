@@ -169,9 +169,6 @@ public class NotificationManager extends Component implements Component.Authoriz
         entityManager.getTransaction().begin();
         for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
             AbstractNotification notification = iterator.next();
-            if (dateTime != null && !notification.isReady(dateTime)) {
-                continue;
-            }
             executeNotification(notification, entityManager);
             iterator.remove();
             notification.onAfterRemoved(this, entityManager);
