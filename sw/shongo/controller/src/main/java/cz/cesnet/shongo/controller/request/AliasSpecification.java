@@ -24,7 +24,7 @@ import java.util.*;
  */
 @Entity
 public class AliasSpecification extends Specification
-        implements ReservationTaskProvider
+        implements ReservationTaskProvider, ObjectHelper.SameCheckable
 {
     /**
      * Restricts {@link AliasType} for allocation of {@link Alias}.
@@ -290,7 +290,8 @@ public class AliasSpecification extends Specification
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
-                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability())
+                || !ObjectHelper.isSamePersistent(getAliasProviderCapability(),
+                aliasSpecification.getAliasProviderCapability())
                 || !ObjectHelper.isSame(isPermanentRoom(), aliasSpecification.isPermanentRoom());
 
         setAliasTechnologies(aliasSpecification.getAliasTechnologies());
@@ -409,5 +410,42 @@ public class AliasSpecification extends Specification
                 });
 
         super.fromApi(specificationApi, entityManager);
+    }
+
+    @Override
+    public boolean isSame(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        AliasSpecification that = (AliasSpecification) object;
+
+        if (permanentRoom != that.permanentRoom) {
+            return false;
+        }
+        if (aliasProviderCapability != null ? !aliasProviderCapability
+                .equals(that.aliasProviderCapability) : that.aliasProviderCapability != null) {
+            return false;
+        }
+        if (aliasTechnologies != null ? !aliasTechnologies
+                .equals(that.aliasTechnologies) : that.aliasTechnologies != null) {
+            return false;
+        }
+        if (aliasTypes != null ? !aliasTypes.equals(that.aliasTypes) : that.aliasTypes != null) {
+            return false;
+        }
+        if (permanentRoomParticipants != null ? !ObjectHelper.isSame(permanentRoomParticipants,
+                that.permanentRoomParticipants) : that.permanentRoomParticipants != null) {
+            return false;
+        }
+        if (value != null ? !value.equals(that.value) : that.value != null) {
+            return false;
+        }
+
+        return true;
     }
 }

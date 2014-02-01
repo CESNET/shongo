@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PersonParticipant extends AbstractParticipant
+public class PersonParticipant extends AbstractParticipant implements ObjectHelper.SameCheckable
 {
     /**
      * @see AbstractPerson
@@ -77,7 +77,7 @@ public class PersonParticipant extends AbstractParticipant
         PersonParticipant personParticipant = (PersonParticipant) participant;
 
         boolean modified = super.synchronizeFrom(participant);
-        modified |= !ObjectHelper.isSame(getPerson(), personParticipant.getPerson());
+        modified |= !ObjectHelper.isSamePersistent(getPerson(), personParticipant.getPerson());
         modified |= !ObjectHelper.isSame(getRole(), personParticipant.getRole());
 
         setPerson(personParticipant.getPerson().clone());
@@ -122,5 +122,27 @@ public class PersonParticipant extends AbstractParticipant
         setRole(personParticipantApi.getRole());
 
         super.fromApi(participantApi, entityManager);
+    }
+
+    @Override
+    public boolean isSame(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        PersonParticipant that = (PersonParticipant) object;
+
+        if (person != null ? !ObjectHelper.isSame(person, that.person) : that.person != null) {
+            return false;
+        }
+        if (role != that.role) {
+            return false;
+        }
+
+        return true;
     }
 }

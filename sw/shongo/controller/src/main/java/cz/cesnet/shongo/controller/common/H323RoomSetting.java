@@ -292,4 +292,53 @@ public class H323RoomSetting extends RoomSetting
         setStartLocked(roomSettingH323Api.getStartLocked());
         setConferenceMeEnabled(roomSettingH323Api.getConferenceMeEnabled());
     }
+
+    @Override
+    public boolean isSame(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        H323RoomSetting that = (H323RoomSetting) object;
+
+        if (allowContent != null ? !allowContent.equals(that.allowContent) : that.allowContent != null) {
+            return false;
+        }
+        if (allowGuests != null ? !allowGuests.equals(that.allowGuests) : that.allowGuests != null) {
+            return false;
+        }
+        if (conferenceMeEnabled != null ? !conferenceMeEnabled
+                .equals(that.conferenceMeEnabled) : that.conferenceMeEnabled != null) {
+            return false;
+        }
+        if (joinAudioMuted != null ? !joinAudioMuted.equals(that.joinAudioMuted) : that.joinAudioMuted != null) {
+            return false;
+        }
+        if (joinVideoMuted != null ? !joinVideoMuted.equals(that.joinVideoMuted) : that.joinVideoMuted != null) {
+            return false;
+        }
+        if (listedPublicly != null ? !listedPublicly.equals(that.listedPublicly) : that.listedPublicly != null) {
+            return false;
+        }
+        if (pin != null ? !pin.equals(that.pin) : that.pin != null) {
+            return false;
+        }
+        if (registerWithGatekeeper != null ? !registerWithGatekeeper
+                .equals(that.registerWithGatekeeper) : that.registerWithGatekeeper != null) {
+            return false;
+        }
+        if (registerWithRegistrar != null ? !registerWithRegistrar
+                .equals(that.registerWithRegistrar) : that.registerWithRegistrar != null) {
+            return false;
+        }
+        if (startLocked != null ? !startLocked.equals(that.startLocked) : that.startLocked != null) {
+            return false;
+        }
+
+        return true;
+    }
 }

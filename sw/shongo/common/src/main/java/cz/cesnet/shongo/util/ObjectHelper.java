@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.util;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.SimplePersistentObject;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Helper class for object equality.
@@ -13,10 +13,23 @@ import java.util.Collection;
 public class ObjectHelper
 {
     /**
+     * To be implemented by objects which can be checked if they are same with other objects.
+     */
+    public static interface SameCheckable
+    {
+        /**
+         * @param object
+         * @return whether this object is same as given {@code object},
+         * false otherwise
+         */
+        public boolean isSame(Object object);
+    }
+
+    /**
      * @param object1
      * @param object2
      * @return true if both objects are same,
-     *         false otherwise
+     * false otherwise
      */
     public static boolean isSame(Object object1, Object object2)
     {
@@ -26,6 +39,14 @@ public class ObjectHelper
         if ((object1 == null) || (object2 == null)) {
             return false;
         }
+        if (object1 instanceof SameCheckable) {
+            SameCheckable sameCheckable = (SameCheckable) object1;
+            return sameCheckable.isSame(object2);
+        }
+        else if (object2 instanceof SameCheckable) {
+            SameCheckable sameCheckable = (SameCheckable) object2;
+            return sameCheckable.isSame(object1);
+        }
         return object1.equals(object2);
     }
 
@@ -33,15 +54,23 @@ public class ObjectHelper
      * @param object1
      * @param object2
      * @return true if both objects are same,
-     *         false otherwise
+     * false otherwise
      */
-    public static boolean isSame(SimplePersistentObject object1, SimplePersistentObject object2)
+    public static boolean isSamePersistent(SimplePersistentObject object1, SimplePersistentObject object2)
     {
         if (object1 == object2) {
             return true;
         }
         if ((object1 == null) || (object2 == null)) {
             return false;
+        }
+        if (object1 instanceof SameCheckable) {
+            SameCheckable sameCheckable = (SameCheckable) object1;
+            return sameCheckable.isSame(object2);
+        }
+        else if (object2 instanceof SameCheckable) {
+            SameCheckable sameCheckable = (SameCheckable) object2;
+            return sameCheckable.isSame(object1);
         }
         return isSame(object1.getId(), object2.getId());
     }
@@ -50,7 +79,7 @@ public class ObjectHelper
      * @param object1
      * @param object2
      * @return true if both collections contains same values,
-     *         false otherwise
+     * false otherwise
      */
     public static boolean isSame(Collection<?> object1, Collection<?> object2)
     {
@@ -63,26 +92,15 @@ public class ObjectHelper
         if (object1.size() != object2.size()) {
             return false;
         }
-        for (Object item1 : object1) {
-            if (item1 instanceof PersistentObject) {
-                PersistentObject persistentObject1 = (PersistentObject) item1;
-
-                boolean exists = false;
-                for (Object item2 : object2) {
-                    if (item2 instanceof PersistentObject) {
-                        Long persistentObject1Id = persistentObject1.getId();
-                        PersistentObject persistentObject2 = (PersistentObject) item2;
-                        if (persistentObject1Id != null && persistentObject1Id.equals(persistentObject2.getId())) {
-                            exists = true;
-                            break;
-                        }
-                    }
-                }
-                if (!exists) {
-                    return false;
-                }
+        Iterator iterator1 = object1.iterator();
+        Iterator iterator2 = object2.iterator();
+        while (iterator1.hasNext() && iterator2.hasNext()) {
+            Object item1 = iterator1.next();
+            Object item2 = iterator2.next();
+            if (item1 == item2) {
+                continue;
             }
-            else if (!object2.contains(object1)) {
+            else if (item1 != null && item2 != null && !isSame(item1, item2)) {
                 return false;
             }
         }

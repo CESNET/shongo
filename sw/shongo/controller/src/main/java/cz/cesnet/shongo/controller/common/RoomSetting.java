@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
@@ -14,7 +15,7 @@ import javax.persistence.InheritanceType;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class RoomSetting extends SimplePersistentObject
+public abstract class RoomSetting extends SimplePersistentObject implements ObjectHelper.SameCheckable
 {
     /**
      * @return {@link RoomSetting} converted to {@link cz.cesnet.shongo.api.RoomSetting}

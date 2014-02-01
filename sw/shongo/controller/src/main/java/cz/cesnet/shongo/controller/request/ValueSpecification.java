@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -103,7 +102,7 @@ public class ValueSpecification extends Specification
 
         boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getValues(), valueSpecification.getValues())
-                || !ObjectHelper.isSame(getValueProvider(), valueSpecification.getValueProvider());
+                || !ObjectHelper.isSamePersistent(getValueProvider(), valueSpecification.getValueProvider());
 
         setValueProvider(valueSpecification.getValueProvider());
         setValues(valueSpecification.getValues());

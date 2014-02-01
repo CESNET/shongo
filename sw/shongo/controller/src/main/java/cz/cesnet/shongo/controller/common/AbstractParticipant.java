@@ -4,6 +4,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.HashMap;

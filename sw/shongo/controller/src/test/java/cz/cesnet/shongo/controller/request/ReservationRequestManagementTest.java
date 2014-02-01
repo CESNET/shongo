@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
@@ -269,7 +270,11 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
                 DateTime.parse("2012-01-02T14:30"), Period.parse("PT4H"),
                 Period.parse("P1W"), LocalDate.parse("2012-01-29")));
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.H323);
+        roomSpecification.addParticipant(new PersonParticipant("test", "martin.srom@cesnet.cz"));
+        roomSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
         reservationRequest.setReusement(ReservationRequestReusement.OWNED);
         reservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
