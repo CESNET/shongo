@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
 import cz.cesnet.shongo.controller.api.CompartmentSpecification;
 import cz.cesnet.shongo.controller.api.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
@@ -198,13 +200,74 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         resource.setAllocatable(true);
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
+
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("request");
         reservationRequest.addSlot(new PeriodicDateTimeSlot(
                 DateTime.parse("2012-01-02T14:30"), Period.parse("PT4H"),
                 Period.parse("P1W"), LocalDate.parse("2012-01-29")));
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        Preprocessor.Result preprocessorResult = runPreprocessor(new Interval(
+                DateTime.parse("2012-01-01T00:00:00"),
+                DateTime.parse("2012-01-02T15:00:00")));
+        Scheduler.Result schedulerResult = runScheduler();
+        Assert.assertEquals(1, preprocessorResult.getCreatedReservationRequests());
+        Assert.assertEquals(1, schedulerResult.getAllocatedReservationRequests());
+
+        preprocessorResult = runPreprocessor(new Interval(
+                DateTime.parse("2012-01-02T15:00:00"),
+                DateTime.parse("2012-01-02T16:00:00")));
+        schedulerResult = runScheduler();
+        Assert.assertTrue(preprocessorResult.isEmpty());
+        Assert.assertTrue(schedulerResult.isEmpty());
+
+        for (int hour = 16; hour <= 20; hour++) {
+            preprocessorResult = runPreprocessor(new Interval(
+                    DateTime.parse("2012-01-01T00:00:00"),
+                    DateTime.parse("2012-01-02T" + hour + ":00:00")));
+            schedulerResult = runScheduler();
+            Assert.assertTrue(preprocessorResult.isEmpty());
+            Assert.assertTrue(schedulerResult.isEmpty());
+        }
+    }
+
+    /**
+     * Test set of reservation requests for permanent room capacity as it was in runtime (run the preprocessor each hour).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testReservationRequestSetRuntimePermanentRoomCapacity() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
+        permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
+        checkAllocated(permanentRoomReservationRequestId);
+
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.setDescription("request");
+        reservationRequest.addSlot(new PeriodicDateTimeSlot(
+                DateTime.parse("2012-01-02T14:30"), Period.parse("PT4H"),
+                Period.parse("P1W"), LocalDate.parse("2012-01-29")));
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        reservationRequest.setReusement(ReservationRequestReusement.OWNED);
+        reservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         Preprocessor.Result preprocessorResult = runPreprocessor(new Interval(

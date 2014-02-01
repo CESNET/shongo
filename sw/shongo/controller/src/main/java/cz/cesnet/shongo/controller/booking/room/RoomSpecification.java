@@ -275,22 +275,22 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         setReusedRoom(roomSpecification.isReusedRoom());
         setDeviceResource(roomSpecification.getDeviceResource());
 
-        if (!roomSettings.equals(roomSpecification.getRoomSettings())) {
+        if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
             modified = true;
         }
 
-        if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSame(aliasSpecifications, roomSpecification.getAliasSpecifications())) {
             setAliasSpecifications(roomSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }
 
-        if (!participants.equals(roomSpecification.getParticipants())) {
+        if (!ObjectHelper.isSame(participants, roomSpecification.getParticipants())) {
             setParticipants(roomSpecification.getParticipants());
             modified = true;
         }
 
-        if (!serviceSpecifications.equals(roomSpecification.getServiceSpecifications())) {
+        if (!ObjectHelper.isSame(serviceSpecifications, roomSpecification.getServiceSpecifications())) {
             setServiceSpecifications(roomSpecification.getServiceSpecifications(), entityManager);
             modified = true;
         }

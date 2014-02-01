@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.alias;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.*;
@@ -81,7 +82,7 @@ public class AliasSetSpecification extends Specification
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
 
-        if (!aliasSpecifications.equals(aliasSetSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSame(aliasSpecifications, aliasSetSpecification.getAliasSpecifications())) {
             setAliasSpecifications(aliasSetSpecification.getAliasSpecifications(), entityManager);
             modified = true;
         }
