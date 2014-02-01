@@ -269,7 +269,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
         modified |= !ObjectHelper.isSame(isReusedRoom(), roomSpecification.isReusedRoom());
-        modified |= !ObjectHelper.isSame(getDeviceResource(), roomSpecification.getDeviceResource());
+        modified |= !ObjectHelper.isSamePersistent(getDeviceResource(), roomSpecification.getDeviceResource());
 
         setParticipantCount(roomSpecification.getParticipantCount());
         setReusedRoom(roomSpecification.isReusedRoom());

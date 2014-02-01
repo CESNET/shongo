@@ -160,9 +160,6 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
         if (organization != null && person.organization != null) {
             return organization.equals(person.organization);
         }
-        if (name != null || person.name != null) {
-            return false;
-        }
 
         if (name != null && person.name != null) {
             return name.equals(person.name);

@@ -5,14 +5,18 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
-import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.controller.booking.specification.Specification;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.booking.specification.Specification} for an {@link Alias}.
@@ -21,7 +25,7 @@ import java.util.*;
  */
 @Entity
 public class AliasSpecification extends Specification
-        implements ReservationTaskProvider
+        implements ReservationTaskProvider, ObjectHelper.SameCheckable
 {
     /**
      * Restricts {@link AliasType} for allocation of {@link Alias}.
@@ -108,7 +112,7 @@ public class AliasSpecification extends Specification
     /**
      * @param aliasType
      * @return true if the {@link #aliasTypes} contains the given {@code aliasType},
-     *         false otherwise
+     * false otherwise
      */
     public boolean hasAliasType(AliasType aliasType)
     {
@@ -239,7 +243,8 @@ public class AliasSpecification extends Specification
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
-                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
+                || !ObjectHelper.isSamePersistent(getAliasProviderCapability(),
+                aliasSpecification.getAliasProviderCapability());
 
         setAliasTechnologies(aliasSpecification.getAliasTechnologies());
         setAliasTypes(aliasSpecification.getAliasTypes());
@@ -298,7 +303,8 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, final EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
+            final EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
@@ -313,7 +319,8 @@ public class AliasSpecification extends Specification
                     cz.cesnet.shongo.controller.booking.resource.Resource.class, aliasSpecificationApi.getResourceId());
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
-            AliasProviderCapability aliasProviderCapability = resource.getCapabilityRequired(AliasProviderCapability.class);
+            AliasProviderCapability aliasProviderCapability = resource
+                    .getCapabilityRequired(AliasProviderCapability.class);
             setAliasProviderCapability(aliasProviderCapability);
         }
 
@@ -321,5 +328,35 @@ public class AliasSpecification extends Specification
         Synchronization.synchronizeCollection(aliasTypes, aliasSpecificationApi.getAliasTypes());
 
         super.fromApi(specificationApi, entityManager);
+    }
+
+    @Override
+    public boolean isSame(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        AliasSpecification that = (AliasSpecification) object;
+
+        if (aliasProviderCapability != null ? !aliasProviderCapability
+                .equals(that.aliasProviderCapability) : that.aliasProviderCapability != null) {
+            return false;
+        }
+        if (aliasTechnologies != null ? !aliasTechnologies
+                .equals(that.aliasTechnologies) : that.aliasTechnologies != null) {
+            return false;
+        }
+        if (aliasTypes != null ? !aliasTypes.equals(that.aliasTypes) : that.aliasTypes != null) {
+            return false;
+        }
+        if (value != null ? !value.equals(that.value) : that.value != null) {
+            return false;
+        }
+
+        return true;
     }
 }

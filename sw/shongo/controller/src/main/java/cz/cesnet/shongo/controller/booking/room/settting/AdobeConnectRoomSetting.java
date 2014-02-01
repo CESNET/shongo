@@ -92,4 +92,26 @@ public class AdobeConnectRoomSetting extends RoomSetting
         setPin(roomSettingAdobeConnectApi.getPin());
         setAccessMode(roomSettingAdobeConnectApi.getAccessMode());
     }
+
+    @Override
+    public boolean isSame(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        AdobeConnectRoomSetting that = (AdobeConnectRoomSetting) object;
+
+        if (accessMode != that.accessMode) {
+            return false;
+        }
+        if (pin != null ? !pin.equals(that.pin) : that.pin != null) {
+            return false;
+        }
+
+        return true;
+    }
 }

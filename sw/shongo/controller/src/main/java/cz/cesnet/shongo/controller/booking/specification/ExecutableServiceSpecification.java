@@ -72,7 +72,7 @@ public abstract class ExecutableServiceSpecification extends Specification
         ExecutableServiceSpecification executableServiceSpecification = (ExecutableServiceSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
-        modified |= !ObjectHelper.isSame(getExecutable(), executableServiceSpecification.getExecutable());
+        modified |= !ObjectHelper.isSamePersistent(getExecutable(), executableServiceSpecification.getExecutable());
         modified |= !ObjectHelper.isSame(isEnabled(), executableServiceSpecification.isEnabled());
 
         setExecutable(executableServiceSpecification.getExecutable());

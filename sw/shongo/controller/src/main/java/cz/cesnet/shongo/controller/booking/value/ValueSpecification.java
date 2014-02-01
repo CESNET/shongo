@@ -102,7 +102,7 @@ public class ValueSpecification extends Specification
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
         modified |= !ObjectHelper.isSame(getValues(), valueSpecification.getValues())
-                || !ObjectHelper.isSame(getValueProvider(), valueSpecification.getValueProvider());
+                || !ObjectHelper.isSamePersistent(getValueProvider(), valueSpecification.getValueProvider());
 
         setValueProvider(valueSpecification.getValueProvider());
         setValues(valueSpecification.getValues());

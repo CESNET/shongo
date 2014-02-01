@@ -75,7 +75,7 @@ public class ExistingEndpointParticipant extends EndpointParticipant implements 
         ExistingEndpointParticipant existingEndpointParticipant = (ExistingEndpointParticipant) participant;
 
         boolean modified = super.synchronizeFrom(participant);
-        modified |= !ObjectHelper.isSame(getResource(), existingEndpointParticipant.getResource());
+        modified |= !ObjectHelper.isSamePersistent(getResource(), existingEndpointParticipant.getResource());
 
         setResource(existingEndpointParticipant.getResource());
 

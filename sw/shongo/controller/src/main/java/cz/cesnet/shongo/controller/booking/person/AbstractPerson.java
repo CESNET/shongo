@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.person;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 

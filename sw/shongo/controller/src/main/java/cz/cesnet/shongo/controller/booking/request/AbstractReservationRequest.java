@@ -421,7 +421,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                 || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
                 || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain())
-                || !ObjectHelper.isSame(getReusedAllocation(), reservationRequest.getReusedAllocation())
+                || !ObjectHelper.isSamePersistent(getReusedAllocation(), reservationRequest.getReusedAllocation())
                 || !ObjectHelper.isSame(isReusedAllocationMandatory(), reservationRequest.isReusedAllocationMandatory())
                 || !ObjectHelper.isSame(getReusement(), reservationRequest.getReusement());
         setCreatedBy(reservationRequest.getCreatedBy());

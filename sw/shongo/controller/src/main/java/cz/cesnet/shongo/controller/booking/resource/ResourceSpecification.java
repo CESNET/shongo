@@ -63,7 +63,7 @@ public class ResourceSpecification extends Specification implements ReservationT
         ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification, entityManager);
-        modified |= !ObjectHelper.isSame(getResource(), resourceSpecification.getResource());
+        modified |= !ObjectHelper.isSamePersistent(getResource(), resourceSpecification.getResource());
 
         setResource(resourceSpecification.getResource());
 
