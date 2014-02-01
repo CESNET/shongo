@@ -299,7 +299,7 @@ public class AliasSpecification extends Specification
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
         setPermanentRoom(aliasSpecification.isPermanentRoom());
 
-        if (!permanentRoomParticipants.equals(aliasSpecification.getPermanentRoomParticipants())) {
+        if (!ObjectHelper.isSame(permanentRoomParticipants, aliasSpecification.getPermanentRoomParticipants())) {
             setPermanentRoomParticipants(aliasSpecification.getPermanentRoomParticipants());
             modified = true;
         }

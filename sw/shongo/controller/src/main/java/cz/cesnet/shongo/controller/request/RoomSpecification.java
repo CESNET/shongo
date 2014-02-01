@@ -211,17 +211,17 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         setParticipantCount(roomSpecification.getParticipantCount());
         setDeviceResource(roomSpecification.getDeviceResource());
 
-        if (!roomSettings.equals(roomSpecification.getRoomSettings())) {
+        if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
             modified = true;
         }
 
-        if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSame(aliasSpecifications, roomSpecification.getAliasSpecifications())) {
             setAliasSpecifications(roomSpecification.getAliasSpecifications());
             modified = true;
         }
 
-        if (!participants.equals(roomSpecification.getParticipants())) {
+        if (!ObjectHelper.isSame(participants, roomSpecification.getParticipants())) {
             setParticipants(roomSpecification.getParticipants());
             modified = true;
         }

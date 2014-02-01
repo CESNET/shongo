@@ -106,7 +106,7 @@ public class AliasSetSpecification extends Specification
 
         setSharedExecutable(aliasSetSpecification.isSharedExecutable());
 
-        if (!aliasSpecifications.equals(aliasSetSpecification.getAliasSpecifications())) {
+        if (!ObjectHelper.isSame(aliasSpecifications, aliasSetSpecification.getAliasSpecifications())) {
             setAliasSpecifications(aliasSetSpecification.getAliasSpecifications());
             modified = true;
         }

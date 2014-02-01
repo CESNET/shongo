@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.util;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.SimplePersistentObject;
 
 import java.util.Collection;
@@ -59,6 +60,34 @@ public class ObjectHelper
         if ((object1 == null) || (object2 == null)) {
             return false;
         }
-        return object1.containsAll(object2);
+        if (object1.size() != object2.size()) {
+            return false;
+        }
+        for (Object item1 : object1) {
+            if (item1 instanceof PersistentObject) {
+                PersistentObject persistentObject1 = (PersistentObject) item1;
+
+                boolean exists = false;
+                for (Object item2 : object2) {
+                    if (item2 instanceof PersistentObject) {
+                        Long persistentObject1Id = persistentObject1.getId();
+                        PersistentObject persistentObject2 = (PersistentObject) item2;
+                        if (persistentObject1Id != null && persistentObject1Id.equals(persistentObject2.getId())) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+                if (!exists) {
+                    return false;
+                }
+            }
+            else if (!object2.contains(object1)) {
+                return false;
+            }
+        }
+        return true;
     }
+
+
 }
