@@ -214,11 +214,39 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 entityManager.createNativeQuery(queryInit).executeUpdate();
             }
 
-            entityManager.createQuery("UPDATE AclIdentity SET principalId = :newUserId WHERE type = :type AND principalId = :oldUserId")
-                    .setParameter("oldUserId", oldUserId)
-                    .setParameter("newUserId", newUserId)
-                    .setParameter("type", AclIdentityType.USER)
-                    .executeUpdate();
+            AclIdentity newAclIdentity;
+            try {
+                newAclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
+                        .setParameter("type", AclIdentityType.USER)
+                        .setParameter("principalId", newUserId)
+                        .getSingleResult();
+            }
+            catch (NoResultException exception) {
+                newAclIdentity = null;
+            }
+            if (newAclIdentity != null) {
+                try {
+                    AclIdentity oldAclIdentity = entityManager.createNamedQuery("AclIdentity.find", AclIdentity.class)
+                            .setParameter("type", AclIdentityType.USER)
+                            .setParameter("principalId", oldUserId)
+                            .getSingleResult();
+
+                    entityManager.createQuery("UPDATE AclEntry SET identity = :newIdentity WHERE identity = :oldIdentity")
+                            .setParameter("oldIdentity", oldAclIdentity)
+                            .setParameter("newIdentity", newAclIdentity)
+                            .executeUpdate();
+                }
+                catch (NoResultException exception) {
+                    // No update needed
+                }
+            }
+            else {
+                entityManager.createQuery("UPDATE AclIdentity SET principalId = :newUserId WHERE type = :type AND principalId = :oldUserId")
+                        .setParameter("oldUserId", oldUserId)
+                        .setParameter("newUserId", newUserId)
+                        .setParameter("type", AclIdentityType.USER)
+                        .executeUpdate();
+            }
 
             entityManager.createQuery("UPDATE UserPerson SET userId = :newUserId WHERE userId = :oldUserId")
                     .setParameter("oldUserId", oldUserId)
@@ -273,6 +301,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             authorization.clearCache();
         }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }

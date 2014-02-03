@@ -135,22 +135,59 @@ elsif ( defined($file) ) {
 # Run from standard input
 elsif ( $scripting ) {
     my $command = '';
+    my $object_parsing = 0;
     while ( my $line = <STDIN> ) {
-        if ( $line =~ /^(\s*(#.+)?|})\s*$/ ) {
-            if ( $line =~ /^}\s*$/ ) {
-                $command .= '}';
-            }
+LINE:
+        # check if $line is empty
+        if ( $line =~ /^\s*(#.+)?\s*$/ ) {
+            # execute not empty command
             if ( !($command =~ /^\s*$/) ) {
                 $shell->command($command);
                 $command = '';
             }
         }
+        # check if not empty $line should be appended to object parsing
+        elsif ( $object_parsing ) {
+            # check if $line is object ending
+            if ( $line =~ /^\s*}\s*$/ ) {
+                while ( $line =~ /^\s*}\s*$/ ) {
+                    $command .= '}';
+                    $line = <STDIN>;
+                }
+                # execute object command
+                $shell->command($command);
+                $command = '';
+                $object_parsing = 0;
+                goto LINE;
+            }
+            else {
+                $line =~ s/^\s+//;
+                $line =~ s/\s+$//;
+                $command .= $line;
+            }
+        }
+        # check if $line is object command begin
+        elsif ( $line =~ /^.*(=)?\s*{.*$/ ) {
+            $line =~ s/^\s+//;
+            $line =~ s/\s+$//;
+            # check if $line contains object command end
+            if ( $line =~ /^[^=]*(=)?\s*{[^=]*}[^=]*$/ ) {
+                # execute object command
+                $shell->command($line);
+            }
+            else {
+                $command .= $line;
+                $object_parsing = 1;
+            }
+        }
         else {
             $line =~ s/^\s+//;
             $line =~ s/\s+$//;
-            $command .= $line;
+            $shell->command($line);
         }
+
     }
+    # execute last not empty command
     if ( !($command =~ /^\s*$/) ) {
         $shell->command($command);
     }

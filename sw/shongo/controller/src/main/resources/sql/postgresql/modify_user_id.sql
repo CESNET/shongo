@@ -13,13 +13,13 @@ $$ LANGUAGE plpgsql;
  * and update it's acl_entry_dependency records.
  */
 CREATE RULE ignore_update_duplicate AS ON UPDATE TO acl_entry
-WHERE EXISTS(SELECT 1 FROM acl_entry WHERE (identity_id, object_identity_id, role) = (NEW.identity_id, NEW.object_identity_id, NEW.role))
+WHERE EXISTS(SELECT 1 FROM acl_entry WHERE (acl_identity_id, acl_object_identity_id, role) = (NEW.acl_identity_id, NEW.acl_object_identity_id, NEW.role))
 DO INSTEAD (
     SELECT alc_record_change_id(
-        (SELECT id FROM acl_entry WHERE (identity_id, object_identity_id, role) = (OLD.identity_id, OLD.object_identity_id, OLD.role)),
-        (SELECT id FROM acl_entry WHERE (identity_id, object_identity_id, role) = (NEW.identity_id, NEW.object_identity_id, NEW.role))
+        (SELECT id FROM acl_entry WHERE (acl_identity_id, acl_object_identity_id, role) = (OLD.acl_identity_id, OLD.acl_object_identity_id, OLD.role)),
+        (SELECT id FROM acl_entry WHERE (acl_identity_id, acl_object_identity_id, role) = (NEW.acl_identity_id, NEW.acl_object_identity_id, NEW.role))
     );
-    DELETE FROM acl_entry WHERE (identity_id, object_identity_id, role) = (OLD.identity_id, OLD.object_identity_id, OLD.role);
+    DELETE FROM acl_entry WHERE (acl_identity_id, acl_object_identity_id, role) = (OLD.acl_identity_id, OLD.acl_object_identity_id, OLD.role);
 );
 
 /**

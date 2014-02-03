@@ -513,7 +513,7 @@ sub modify_user_id()
         RPC::XML::string->new($args[0]),
         RPC::XML::string->new($args[1])
     );
-    if ( !ref($response) ) {
+    if ( ref($response) && !%{$response} ) {
         console_print_info("User-id '%s' has been modified to '%s'.", $args[0], $args[1]);
     }
 }
