@@ -1,37 +1,45 @@
 Shongo Controller
 
-BUILD
+== BUILD ==============================================================================================================
 
-To build controller by maven go to a directory
-<shongo_repository>/sw/shongo and type the following
-command:
+To build controller by maven go to the directory <shongo_repository>/sw/shongo and type the following command:
 
     mvn package
 
-To run controller on localhost at port 8008 type:
+To run controller on localhost at port 8181 type:
 
     bin/controller.sh
 
 To connect to the controller use the client application:
 
-    bin/client_cli.sh
+    bin/client_cli.sh --connect localhost --root
 
 
-REQUIREMENTS
 
-Controller requires java and maven to compile.
+== REQUIREMENTS =======================================================================================================
 
-To install maven download the version 2.2.1 from
-http://maven.apache.org/download.html and follow
-the Installation Instructions on the same page.
+Controller requires java and maven to compile and postgresql database to run.
 
-To install java on Ubuntu/Debian system type
-the following command:
+To install maven download the version 2.2.1 from http://maven.apache.org/download.html and follow the
+Installation Instructions on the same page.
 
-    sudo apt-get install sun-java6-jdk
+To install java on Ubuntu/Debian system use the following commands:
+
+    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
+    echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
+    apt-get update
+    apt-get install oracle-java6-installer
+
+Source: [http://www.webupd8.org/2012/06/how-to-install-oracle-java-7-in-debian.html]
+
+To install postgresql database on Ubuntu/Debian type the following command:
+
+    apt-get install postgresql
 
 
-CONFIGURATION OF POSTGRESQL DATABASE
+
+== CONFIGURATION OF POSTGRESQL DATABASE ===============================================================================
 
 Connect to PostgreSQL console (e.g., run 'psql' command as 'postgres' system user).
 
@@ -53,7 +61,9 @@ Add the following lines to the configuration file pg_hba.conf:
     host    all             all             ::1/128                 md5
 
 The file may be located, e.g., in /etc/postgresql/9.1/main/ (Debian) or in /var/lib/pgsql/data/pg_hba.conf (Fedora).
-Then restart the PostgreSQL server.
+Then restart the PostgreSQL server:
+
+    service postgresql restart
 
 Add the following lines to controller.cfg.xml configuration file:
 
@@ -65,7 +75,22 @@ Add the following lines to controller.cfg.xml configuration file:
     </database>
 
 
-NAGIOS NRPE
+
+== BACKUP/RESTORE OF POSTGRESQL DATABASE ==============================================================================
+
+Backup database:
+
+    su postgres -c "pg_dump <database> > /tmp/shongo.sql"
+
+Restore database:
+
+    su postgres -c "psql -c \"DROP DATABASE IF EXISTS <database>;\""
+    su postgres -c "psql -c \"CREATE DATABASE <database>;\""
+    su postgres -c "psql -d <database> < /tmp/shongo.sql"
+
+
+
+== NAGIOS NRPE ========================================================================================================
 
 Install nagios NRPE server:
 
@@ -77,7 +102,9 @@ Add also the following to "/etc/nagios/nrpe.cfg":
     command[check_shongo_controller]=<shongo>/sw/shongo/bin/check_shongo.sh -c shongo-dev.cesnet.cz controller
     command[check_shongo_connector]=<shongo>/sw/shongo/bin/check_shongo.sh -c shongo-dev.cesnet.cz connector <agent-names>
 
-HIBERNATE NOTES
+
+
+== HIBERNATE NOTES ====================================================================================================
 
 1) If OneToMany association without mappedBy attribute is declared as java.util.List, deletion of one item
    cause delete all items and insert all that should not be deleted.
