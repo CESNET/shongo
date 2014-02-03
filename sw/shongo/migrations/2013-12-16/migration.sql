@@ -1,12 +1,13 @@
 /**
  * 2013-12-01: Perun aware user settings.
- * 1) Add home_time_zone column to user_settings table
+ * 1) Add home_time_zone and use_web_service columns to user_settings table
  * 2) Alter user_settings with czech locale to use web service for loading locale (default web service locale is czech)
  * 3) Set home_time_zone to value from time_zone
  * 4) Remove time_zone column from user_settings table.
  */
 BEGIN TRANSACTION;
 ALTER TABLE user_settings ADD COLUMN home_time_zone VARCHAR(255);
+ALTER TABLE user_settings ADD COLUMN use_web_service BOOLEAN DEFAULT FALSE;
 UPDATE user_settings SET locale = null, use_web_service = true WHERE locale = 'cs';
 UPDATE user_settings SET home_time_zone = time_zone;
 ALTER TABLE user_settings DROP COLUMN time_zone;
@@ -188,4 +189,13 @@ INSERT INTO acl_entry (id, acl_identity_id, acl_object_identity_id, role)
     LEFT JOIN acl_object_identity ON acl_object_identity.acl_object_class_id = acl_object_class.id AND acl_object_identity.object_id = data.object_id;
 DROP TABLE acl_record_dependency;
 DROP TABLE acl_record;
+
+ALTER DATABASE shongo OWNER TO shongo;
+ALTER SCHEMA public OWNER TO shongo;
+ALTER TABLE acl_entry OWNER TO shongo;
+ALTER TABLE acl_entry_dependency OWNER TO shongo;
+ALTER TABLE acl_identity OWNER TO shongo;
+ALTER TABLE acl_object_class OWNER TO shongo;
+ALTER TABLE acl_object_identity OWNER TO shongo;
+
 COMMIT TRANSACTION;
