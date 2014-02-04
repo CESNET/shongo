@@ -122,7 +122,12 @@
     module.controller('RoomRecordingController', function($scope, $timeout) {
         $scope.isRecordingActive = ${room.recordingService.active};
         $scope.recordingError = null;
+        $scope.recordingRequestActive = false;
         $scope.startRecording = function() {
+            if ($scope.recordingRequestActive) {
+                return;
+            }
+            $scope.recordingRequestActive = true;
             $.post("${startRecordingUrl}", function(result){
                 $timeout(function(){
                     if (typeof(result) == "object" && result["error"] != null) {
@@ -132,10 +137,15 @@
                         $scope.isRecordingActive = true;
                         $scope.recordingError = null;
                     }
+                    $scope.recordingRequestActive = false;
                 }, 0);
             });
         };
         $scope.stopRecording = function() {
+            if ($scope.recordingRequestActive) {
+                return;
+            }
+            $scope.recordingRequestActive = true;
             $.post("${stopRecordingUrl}", function(result){
                 $timeout(function(){
                     if (typeof(result) == "object" && result["error"] != null) {
@@ -146,6 +156,7 @@
                         $scope.recordingError = null;
                         $scope.$parent.refresh();
                     }
+                    $scope.recordingRequestActive = false;
                 }, 0);
             });
         };
@@ -446,11 +457,11 @@
                     </pagination-page-size>
                     <div ng-controller="RoomRecordingController">
                         <spring:message code="views.room.recording.started" var="recordingStarted"/>
-                        <a class="btn" href="" ng-click="startRecording()" ng-hide="isRecordingActive">
+                        <a class="btn" href="" ng-click="startRecording()" ng-hide="isRecordingActive" ng-disabled="recordingRequestActive">
                             <i class="icon-recording-start"></i>
                             <spring:message code="views.room.recording.start"/>
                         </a>
-                        <a class="btn" href="" ng-click="stopRecording()" title="${recordingStarted}" ng-show="isRecordingActive">
+                        <a class="btn" href="" ng-click="stopRecording()" title="${recordingStarted}" ng-show="isRecordingActive"  ng-disabled="recordingRequestActive">
                             <i class="icon-recording-stop"></i>
                             <spring:message code="views.room.recording.stop"/>
                         </a>
@@ -513,7 +524,7 @@
                     <td>
                         <c:choose>
                             <c:when test="${room.technology == 'H323_SIP'}">
-                                <span ng-show="'{{roomRecording.downloadableUrl}}' != ''"><a href="{{roomRecording.downloadableUrl}}" target="_blank" download>{{roomRecording.filename}}</a></span>
+                                <span ng-show="'{{roomRecording.downloadableUrl}}' != ''"><a href="{{roomRecording.downloadableUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
                                 <span ng-show="'{{roomRecording.downloadableUrl}}' == ''"><spring:message code="views.room.recording.pending"/></span>
                             </c:when>
                             <c:when test="${room.technology == 'ADOBE_CONNECT'}">
@@ -539,7 +550,7 @@
                         <c:if test="${room.technology == 'H323_SIP'}">
                                 <span ng-show="'{{roomRecording.downloadableUrl}}' != ''">
                                     <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
-                                    <a href="{{roomRecording.downloadableUrl}}" title="${recordingDownloadTitle}" target="_blank" download><i class="icon-download"></i></a>
+                                    <a href="{{roomRecording.downloadableUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="icon-download"></i></a>
                                 </span>
                         </c:if>
                         <c:if test="${room.technology == 'ADOBE_CONNECT' && isWritable}">

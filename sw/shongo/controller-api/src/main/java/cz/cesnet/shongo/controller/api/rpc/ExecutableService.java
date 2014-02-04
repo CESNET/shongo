@@ -87,7 +87,8 @@ public interface ExecutableService extends Service
      *
      * @param executableId
      * @param executableServiceId
-     * @return {@link Boolean#TRUE} when the activation succeeds
+     * @return {@link Boolean#TRUE} when the activation succeeds,
+     *         {@link Boolean#FALSE} when the service was already active,
      *         otherwise {@link ExecutionReport} describing the error
      */
     @API
@@ -98,7 +99,8 @@ public interface ExecutableService extends Service
      *
      * @param executableId
      * @param executableServiceId
-     * @return {@link Boolean#TRUE} when the deactivation succeeds
+     * @return {@link Boolean#TRUE} when the deactivation succeeds,
+     *         {@link Boolean#FALSE} when the service was already inactive,
      *         otherwise {@link ExecutionReport} describing the error
      */
     @API

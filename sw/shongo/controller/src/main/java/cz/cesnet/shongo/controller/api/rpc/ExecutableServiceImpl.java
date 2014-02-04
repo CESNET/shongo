@@ -676,6 +676,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             cz.cesnet.shongo.controller.booking.executable.ExecutableService executableService =
                     executable.getServiceById(Long.parseLong(executableServiceId));
+            if (executableService.isActive()) {
+                return Boolean.FALSE;
+            }
 
             entityManager.getTransaction().begin();
 
@@ -731,6 +734,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
 
             cz.cesnet.shongo.controller.booking.executable.ExecutableService executableService =
                     executable.getServiceById(Long.parseLong(executableServiceId));
+            if (!executableService.isActive()) {
+                return Boolean.FALSE;
+            }
 
             entityManager.getTransaction().begin();
 

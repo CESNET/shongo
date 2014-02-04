@@ -351,7 +351,7 @@ public class RoomController
         catch (Exception exception) {
             logger.warn("Start recording failed", exception);
         }
-        if (Boolean.TRUE.equals(result)) {
+        if (Boolean.TRUE.equals(result) || Boolean.FALSE.equals(result)) {
             cache.clearExecutable(executableId);
         }
         else {

@@ -146,6 +146,9 @@ public class ApacheStorage extends AbstractStorage
     {
         String folderUrl = getUrlFromId(folderId);
         java.io.File ioFolder = new java.io.File(folderUrl);
+        if (!ioFolder.exists()) {
+            throw new RuntimeException("Folder '" + folderUrl + "' doesn't exist.");
+        }
         String[] ioFiles = ioFolder.list(new java.io.FilenameFilter()
         {
             @Override
