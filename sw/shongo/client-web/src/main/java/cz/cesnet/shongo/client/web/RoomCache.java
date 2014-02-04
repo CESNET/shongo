@@ -205,8 +205,7 @@ public class RoomCache
     {
         String cacheId = roomExecutableId + ":" + roomParticipantId;
         synchronized (roomParticipantSnapshotCache) {
-            MediaData roomParticipantSnapshot = roomParticipantSnapshotCache.get(cacheId);
-            if (roomParticipantSnapshot == null) {
+            if (!roomParticipantSnapshotCache.contains(cacheId)) {
                 RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
                 String resourceId = roomExecutable.getResourceId();
                 String resourceRoomId = roomExecutable.getRoomId();
@@ -214,10 +213,10 @@ public class RoomCache
                 roomParticipantIds.add(roomParticipantId);
                 Map<String, MediaData> participantSnapshots = resourceControlService.getRoomParticipantSnapshots(
                         securityToken, resourceId, resourceRoomId, roomParticipantIds);
-                roomParticipantSnapshot = participantSnapshots.get(roomParticipantId);
+                MediaData roomParticipantSnapshot = participantSnapshots.get(roomParticipantId);
                 roomParticipantSnapshotCache.put(cacheId, roomParticipantSnapshot);
             }
-            return roomParticipantSnapshot;
+            return roomParticipantSnapshotCache.get(cacheId);
         }
     }
 

@@ -32,7 +32,6 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1219,42 +1218,6 @@ ParamsLoop:
         return sb.toString();
     }
 
-    /**
-     * Generates a new room participant ID.
-     *
-     * @param roomId technology ID of the room to generate a new user ID for
-     * @return a free roomParticipantId to be assigned (free in the moment of processing this method, might race condition with
-     *         someone else)
-     */
-    private String generateRoomParticipantId(String roomId) throws CommandException
-    {
-        List<Map<String, Object>> participants;
-        try {
-            Command cmd = new Command("participant.enumerate");
-            cmd.setParameter("operationScope", new String[]{"currentState"});
-            participants = execApiEnumerate(cmd, "participants");
-        }
-        catch (CommandException e) {
-            throw new CommandException(
-                    "Cannot generate a new room participant ID - cannot list current room participants.", e);
-        }
-
-        // generate the new ID as maximal ID of present users increased by one
-        int maxFound = 0;
-        Pattern pattern = Pattern.compile("^participant(\\d+)$");
-        for (Map<String, Object> part : participants) {
-            if (!part.get("conferenceName").equals(roomId)) {
-                continue;
-            }
-            Matcher m = pattern.matcher((String) part.get("participantName"));
-            if (m.find()) {
-                maxFound = Math.max(maxFound, Integer.parseInt(m.group(1)));
-            }
-        }
-
-        return String.format("participant%d", maxFound + 1);
-    }
-
     private static RoomSummary extractRoomSummary(Map<String, Object> conference)
     {
         RoomSummary roomSummary = new RoomSummary();
@@ -1277,9 +1240,8 @@ ParamsLoop:
     {
         RoomParticipant roomParticipant = new RoomParticipant();
 
-        String participantId = (String) participant.get("participantName");
         String roomId = (String) participant.get("conferenceName");
-        roomParticipant.setId(participantId);
+        roomParticipant.setId(new RoomParticipantIdentifier(participant).toString());
         roomParticipant.setRoomId(roomId);
 
         @SuppressWarnings("unchecked")
@@ -1297,7 +1259,7 @@ ParamsLoop:
 
         String previewUrl = (String) state.get("previewURL");
         if (previewUrl != null && !previewUrl.isEmpty()) {
-            String cacheId = roomId + ":" + participantId;
+            String cacheId = roomId + ":" + roomParticipant.getId();
             synchronized (roomParticipantSnapshotUrlCache) {
                 roomParticipantSnapshotUrlCache.put(cacheId, previewUrl);
             }
@@ -1316,11 +1278,14 @@ ParamsLoop:
 
     private void identifyParticipant(Command cmd, String roomId, String roomParticipantId)
     {
+        RoomParticipantIdentifier roomParticipantIdentifier = new RoomParticipantIdentifier(roomParticipantId);
         cmd.setParameter("conferenceName", truncateString(roomId));
-        cmd.setParameter("participantName", truncateString(roomParticipantId));
+        cmd.setParameter("participantProtocol", truncateString(roomParticipantIdentifier.getParticipantProtocol()));
+        cmd.setParameter("participantName", truncateString(roomParticipantIdentifier.getParticipantName()));
         // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
         //       numbers, so we distinguish the type by the fact whether the name is a number or not
-        cmd.setParameter("participantType", (StringUtils.isNumeric(roomParticipantId) ? "ad_hoc" : "by_address"));
+        cmd.setParameter("participantType",
+                (StringUtils.isNumeric(roomParticipantIdentifier.getParticipantName()) ? "ad_hoc" : "by_address"));
     }
 
     /**
@@ -1351,25 +1316,32 @@ ParamsLoop:
         }
 
         logger.debug("Fetching snapshot for participant {} in room {}...", roomParticipantId, roomId);
-        MediaData mediaData = execHttp(roomParticipantSnapshotUrl);
-        MediaType mediaType = mediaData.getType();
-        String type = mediaType.getType();
-        if (mediaType.equals(MediaType.TEXT_PLAIN)) {
-            String error = new String(mediaData.getData());
-            if (error.contains("Unable to generate participant preview")) {
-                throw new CommandException("Cannot get snapshot for participant " + roomParticipantId
-                        + ". Participant doesn't exist.");
-            }
-            else {
-                throw new CommandException("Cannot get snapshot for participant " + roomParticipantId + "." + error);
-            }
+        try {
+            MediaData mediaData = execHttp(roomParticipantSnapshotUrl);
+            MediaType mediaType = mediaData.getType();
+            String type = mediaType.getType();
+            if (mediaType.equals(MediaType.TEXT_PLAIN)) {
+                String error = new String(mediaData.getData());
+                if (error.contains("Unable to generate participant preview")) {
+                    throw new CommandException("Cannot get snapshot for participant " + roomParticipantId
+                            + ". Participant doesn't exist.");
+                }
+                else {
+                    throw new CommandException("Cannot get snapshot for participant " + roomParticipantId + "." + error);
+                }
 
+            }
+            if (!type.equals("image")) {
+                throw new CommandException(
+                        "Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
+            }
+            return mediaData;
         }
-        if (!type.equals("image")) {
-            throw new CommandException(
-                    "Cannot get participant snapshot. Device returned " + mediaType + " instead of image.");
+        catch (CommandException exception) {
+            logger.warn("Retrieving snapshot for participant " + roomParticipantId + " in room " + roomId + " failed.",
+                    exception);
+            return null;
         }
-        return mediaData;
     }
 
     /**
@@ -1721,6 +1693,45 @@ ParamsLoop:
                 return 3;
             default:
                 throw new TodoImplementException(roomLayout);
+        }
+    }
+
+    private static class RoomParticipantIdentifier
+    {
+        private final String participantProtocol;
+
+        private final String participantName;
+
+        public RoomParticipantIdentifier(Map<String, Object> participant)
+        {
+            this.participantProtocol = (String) participant.get("participantProtocol");
+            this.participantName = (String) participant.get("participantName");
+        }
+
+        public RoomParticipantIdentifier(String roomParticipantId)
+        {
+            String[] parts = roomParticipantId.split(":");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Room participant id must in format '<protocol>:<name>'.");
+            }
+            this.participantProtocol = parts[0];
+            this.participantName = parts[1];
+        }
+
+        public String getParticipantProtocol()
+        {
+            return participantProtocol;
+        }
+
+        public String getParticipantName()
+        {
+            return participantName;
+        }
+
+        @Override
+        public String toString()
+        {
+            return participantProtocol + ":" + participantName;
         }
     }
 }
