@@ -102,7 +102,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         tcs.addTechnology(Technology.SIP);
         tcs.addCapability(new RecordingCapability(3));
         tcs.setAllocatable(true);
-        tcs.addAdministrator(new UserPerson(getUserId(SECURITY_TOKEN_USER1)));
         getResourceService().createResource(SECURITY_TOKEN, tcs);
 
         DeviceResource mcu = new DeviceResource();

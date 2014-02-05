@@ -6,6 +6,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
@@ -453,6 +454,14 @@ public abstract class Target
         }
     }
 
+    public static class RecordingService extends Target
+    {
+        public RecordingService(RecordingServiceReservation reservation)
+        {
+            super(reservation.getDeviceResource());
+        }
+    }
+
     public static class Other extends Target
     {
         private String description;
@@ -521,6 +530,9 @@ public abstract class Target
         }
         else if (reservation instanceof ExistingReservation) {
             return new Reused((ExistingReservation) reservation);
+        }
+        else if (reservation instanceof RecordingServiceReservation) {
+            return new RecordingService((RecordingServiceReservation) reservation);
         }
         else {
             Executable executable = reservation.getExecutable();

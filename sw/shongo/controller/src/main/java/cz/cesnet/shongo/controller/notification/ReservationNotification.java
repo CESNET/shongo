@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
@@ -182,6 +183,12 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             ValueReservation valueReservation = (ValueReservation) reservation;
             for (AbstractPerson person : valueReservation.getValueProvider().getCapabilityResource()
                     .getAdministrators()) {
+                addRecipient(person.getInformation(), true);
+            }
+        }
+        if (reservation instanceof RecordingServiceReservation) {
+            RecordingServiceReservation valueReservation = (RecordingServiceReservation) reservation;
+            for (AbstractPerson person : valueReservation.getDeviceResource().getAdministrators()) {
                 addRecipient(person.getInformation(), true);
             }
         }
