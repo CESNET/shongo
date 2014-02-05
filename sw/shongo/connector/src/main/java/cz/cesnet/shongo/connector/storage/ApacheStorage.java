@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * {@link AbstractStorage} which is implemented by local folder which is published by Apache.
@@ -16,6 +18,11 @@ import java.util.*;
  */
 public class ApacheStorage extends AbstractStorage
 {
+    /**
+     * List of folders and delete (request from another Thread)
+     */
+    protected CopyOnWriteArrayList foldersToDelete = new CopyOnWriteArrayList();
+
     /**
      * Constructor.
      *
@@ -120,10 +127,14 @@ public class ApacheStorage extends AbstractStorage
             byte[] buffer = new byte[4096];
             int bytesRead;
             while ((bytesRead = fileContent.read(buffer)) != -1) {
+                if (foldersToDelete.contains(file.getFolderId())) {
+                    break;
+                }
                 fileOutputStream.write(buffer, 0, bytesRead);
             }
             fileContent.close();
             fileOutputStream.close();
+            removeFolderToDelete(file.getFolderId());
         }
         catch (IOException exception) {
             throw new RuntimeException("File '" + fileUrl + "' couldn't be written.", exception);
@@ -259,4 +270,15 @@ public class ApacheStorage extends AbstractStorage
         }
         return true;
     }
+
+    public void addFolderToDelete(String folderId)
+    {
+        foldersToDelete.add(folderId);
+    }
+
+    public void removeFolderToDelete(String folderId)
+    {
+        foldersToDelete.remove(folderId);
+    }
+
 }

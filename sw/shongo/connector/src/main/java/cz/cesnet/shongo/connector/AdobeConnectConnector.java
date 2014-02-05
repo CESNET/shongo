@@ -57,12 +57,22 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private Pattern urlPathExtractionFromUri = null;
 
     /**
-     * Root folder for meetings
+     * Name of folder for meetings
+     */
+    protected String meetingsFolderName;
+
+    /**
+     * Root folder ID for meetings
      */
     protected String meetingsFolderID;
 
     /**
-     * Root folder for meetings
+     * Name of folder for recordings
+     */
+    protected String recordingsFolderName;
+
+    /**
+     * Root folder ID for meetings
      */
     protected String recordingsFolderID;
 
@@ -143,6 +153,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         // Setup options
         this.requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
         this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
+        this.recordingsFolderName = getOption("recordings-folder-name");
+        this.meetingsFolderName = getOption("meetings-folder-name");
 
         this.login();
 
@@ -812,7 +824,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         Element folder = getScoInfo(folderId);
         if ("folder".equals(folder.getAttributeValue("type"))) {
-            logger.warn("Recording is stored in wrong folder (outside folder shongo-rec): " + folder.getChildText("name"));
+            logger.warn("Recording is stored in wrong folder (outside folder " + recordingsFolderName + "): " + folder.getChildText("name"));
             return true;
         } else {
             return false;
@@ -1552,7 +1564,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("meetings".equals(sco.getAttributeValue("type"))) {
-                    // Find sco-id of /shongo folder
+                    // Find sco-id of meetings folder
                     RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
@@ -1560,26 +1572,26 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     Element shongoFolder = request("sco-contents", searchAttributes);
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
-                        if ("shongo".equals(folder.getChildText("name"))) {
+                        if (meetingsFolderName.equals(folder.getChildText("name"))) {
                             meetingsFolderID = folder.getAttributeValue("sco-id");
                         }
                     }
 
-                    // Creates /shongo folder if not exists
+                    // Creates meetings folder if not exists
                     if (meetingsFolderID == null) {
-                        logger.debug("Folder /shongo for shongo meetings does not exists, creating...");
+                        logger.debug("Folder /" + meetingsFolderName + " for shongo meetings does not exists, creating...");
 
                         RequestAttributeList folderAttributes = new RequestAttributeList();
                         folderAttributes.add("folder-id",
                                 sco.getAttributeValue("sco-id"));
-                        folderAttributes.add("name", "shongo");
+                        folderAttributes.add("name", meetingsFolderName);
                         folderAttributes.add("type", "folder");
 
                         Element folder = request("sco-update", folderAttributes);
 
                         meetingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
 
-                        logger.debug("Folder /shongo for meetings created with sco-id: " + meetingsFolderID);
+                        logger.debug("Folder /" + meetingsFolderName + " for meetings created with sco-id: " + meetingsFolderID);
                     }
 
                     break;
@@ -1602,7 +1614,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("content".equals(sco.getAttributeValue("type"))) {
-                    // Find sco-id of /shongo-rec folder
+                    // Find sco-id of recordings-folder folder
                     RequestAttributeList searchAttributes = new RequestAttributeList();
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
@@ -1610,25 +1622,25 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     Element shongoFolder = request("sco-contents", searchAttributes);
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
-                        if ("shongo-rec".equals(folder.getChildText("name"))) {
+                        if (recordingsFolderName.equals(folder.getChildText("name"))) {
                             recordingsFolderID = folder.getAttributeValue("sco-id");
                         }
                     }
 
-                    // Creates /shongo-rec folder if not exists
+                    // Creates recording folder if not exists
                     if (recordingsFolderID == null) {
-                        logger.debug("Folder /shongo-rec for shongo meetings does not exists, creating...");
+                        logger.debug("Folder /" + recordingsFolderName + " for shongo meetings does not exists, creating...");
 
                         RequestAttributeList folderAttributes = new RequestAttributeList();
                         folderAttributes.add("folder-id", sco.getAttributeValue("sco-id"));
-                        folderAttributes.add("name", "shongo-rec");
+                        folderAttributes.add("name", recordingsFolderName);
                         folderAttributes.add("type", "folder");
 
                         Element folder = request("sco-update", folderAttributes);
 
                         recordingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
 
-                        logger.debug("Folder /shongo-rec for meetings created with sco-id: " + recordingsFolderID);
+                        logger.debug("Folder /" + recordingsFolderName + " for meetings created with sco-id: " + recordingsFolderID);
                     }
 
                     break;

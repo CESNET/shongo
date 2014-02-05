@@ -284,8 +284,31 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        //TODO: delete not finished recordings
-        storage.deleteFolder(recordingFolderId);
+        synchronized (CiscoTCSConnector.class) {
+            // Stop moving recordings and delete them
+            for (Recording recording : recordingsToMove) {
+                if (!recordingFolderId.equals(recording.getRecordingFolderId())) {
+                    continue;
+                }
+                while (recordingsToMove.contains(recording)) {
+                    try {
+                        Thread.sleep(100);
+                    }
+                    catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+                deleteOriginalRecording(recording.getId());
+            }
+
+            // Delete original recordings
+            for (Recording recording : getRecordingsByName(recordingFolderId)) {
+                deleteOriginalRecording(recording.getId());
+            }
+
+
+            storage.deleteFolder(recordingFolderId);
+        }
     }
 
     @Override
@@ -395,7 +418,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             "//", "/"));
         }
         catch (JDOMException e) {
-            System.out.println("aktualni obsah: " + recordingXml);
             throw new RuntimeException(
                     "Error while parsing file " + selectFolderId(recordingId) + "/" + getMetadataFilename(
                             selectFileId(recordingId)) + ".".replaceAll("//", "/"));
@@ -895,6 +917,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         return matcher.group(3).replaceAll("::", ":");
     }
 
+    /**
+     * Contruct recording ID from separate segments
+     *
+     * @param folderId
+     * @param fileId
+     * @param recordingTCSId
+     * @return
+     */
     protected String makeRecordingId(String folderId, String fileId, String recordingTCSId)
     {
         StringBuilder recordingIdBuilder = new StringBuilder();
@@ -907,14 +937,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     /**
-     * Check if all recordings are stored, otherwise move them to appropriate folder (asks controller for folder name)
+     * Returns List of recordings by given regex (regex according Cisco TelePresence Content Server documentation of function GetConferences)
      *
-     * @throws CommandException
+     * @return
      */
-    protected void checkRecordings() throws CommandException
+    protected List<Recording> getRecordingsByName(String regex) throws CommandException
     {
         Command command = new Command("GetConferences");
-        command.setParameter("SearchExpression", "flr:");
+        command.setParameter("SearchExpression", regex);
         command.setParameter("ResultRange", "");
         command.setParameter("DateTime", "");
         command.setParameter("UpdateTime", "");
@@ -922,23 +952,38 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         command.setParameter("Category", "");
         command.setParameter("Sort", "DateTime");
 
+        Element result = exec(command);
+
+        ArrayList<Recording> recordings = new ArrayList<Recording>();
+        for (Element rawRecording : result.getChild("GetConferencesResponse").getChild("GetConferencesResult").getChildren("Conference")) {
+            recordings.add(parseRecording(rawRecording));
+        }
+
+        return recordings;
+    }
+
+    /**
+     * Check if all recordings are stored, otherwise move them to appropriate folder (asks controller for folder name)
+     *
+     * @throws CommandException
+     */
+    protected void checkRecordings() throws CommandException
+    {
         ExecutorService exec = Executors.newFixedThreadPool(NUM_OF_THREADS);
         try {
-            List<Recording> recordings = new LinkedList<Recording>();
+            List<Recording> recordingsToCheck = new LinkedList<Recording>();
 
             synchronized (CiscoTCSConnector.class) {
                 logger.debug("Checking recordings to be moved...");
-                Element result = exec(command);
+                List<Recording> allRecordings = getRecordingsByName("flr:");
 
                 Set<String> existingFolderNames = new HashSet<String>();
                 for (Storage.Folder folder : storage.listFolders(null, null)) {
                     existingFolderNames.add(folder.getFolderId());
-                    System.out.println(folder.getFolderId());
                 }
 
-                for (Element rawRecording : result.getChild("GetConferencesResponse").getChild("GetConferencesResult").getChildren("Conference")) {
+                for (Recording recording : allRecordings) {
                     try{
-                        Recording recording = parseRecording(rawRecording);
                         if (recording.getDownloadableUrl() == null) {
                             continue;
                         }
@@ -949,8 +994,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                             continue;
                         }
 
-                        //TODO:redundat???
-                        recordings.add(recording);
+                        recordingsToCheck.add(recording);
                         recordingsToMove.add(recording);
                     } catch (Exception e) {
                         logger.warn("Recordings CheckAndMove failed.", e);
@@ -959,7 +1003,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 }
             }
 
-            for (final Recording recording : recordings) {
+            for (final Recording recording : recordingsToCheck) {
                 exec.submit(new Runnable()
                 {
                     @Override
@@ -969,6 +1013,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                             try {
                                 moveRecording(recordingId);
+                                recordingsToMove.remove(recording);
                             }
                             catch (Exception exception) {
                                 logger.error("Error while moving recording (recordingId: " + recordingId + ").",
