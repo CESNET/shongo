@@ -414,7 +414,7 @@ public class Executor extends SwitchableComponent
     /**
      * @param notification to be added to the {@link #notifications}
      */
-    public void addNotification(RoomNotification notification)
+    public void addNotification(AbstractNotification notification)
     {
         synchronized (notifications) {
             notifications.add(notification);

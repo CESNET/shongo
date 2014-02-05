@@ -156,7 +156,7 @@ public class NotificationManager extends Component implements Component.Authoriz
     public void removeNotification(AbstractNotification notification, EntityManager entityManager)
     {
         if(notifications.remove(notification)) {
-            notification.onAfterRemoved(this, entityManager);
+            notification.onAfterRemoved(this);
         }
     }
 
@@ -166,14 +166,25 @@ public class NotificationManager extends Component implements Component.Authoriz
      */
     public synchronized void executeNotifications(DateTime dateTime, EntityManager entityManager)
     {
-        entityManager.getTransaction().begin();
-        for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
-            AbstractNotification notification = iterator.next();
-            executeNotification(notification, entityManager);
-            iterator.remove();
-            notification.onAfterRemoved(this, entityManager);
+        List<AbstractNotification> removedNotifications = new LinkedList<AbstractNotification>();
+        try {
+            entityManager.getTransaction().begin();
+            for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
+                AbstractNotification notification = iterator.next();
+                executeNotification(notification, entityManager);
+                iterator.remove();
+                removedNotifications.add(notification);
+            }
+            entityManager.getTransaction().commit();
         }
-        entityManager.getTransaction().commit();
+        finally {
+            for (AbstractNotification notification : removedNotifications) {
+                notification.onAfterRemoved(this);
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+        }
     }
 
     /**

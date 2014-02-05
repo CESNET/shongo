@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
@@ -497,7 +498,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         mcu.setAllocatable(true);
         mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -510,8 +512,12 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
         roomAvailability.setParticipantNotificationEnabled(true);
-        roomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
-        roomSpecification.addParticipant(new PersonParticipant("Ondrej Pavelka", "pavelka@cesnet.cz"));
+        roomSpecification.addParticipant(new PersonParticipant(
+                "Martin Srom", "srom@cesnet.cz", ParticipantRole.ADMINISTRATOR));
+        roomSpecification.addParticipant(new PersonParticipant(
+                "Ondrej Pavelka", "pavelka@cesnet.cz", ParticipantRole.PRESENTER));
+        roomSpecification.addParticipant(new PersonParticipant(
+                "Jan Ruzicka", "janru@cesnet.cz"));
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
@@ -524,16 +530,35 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<Class<? extends RoomNotification>>()
+        // Check executed notifications
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomCreated.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomModified.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomDeleted.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomDeleted.class);
-            }}, getNotificationTypes(RoomNotification.class));
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomDeleted.class);
+            }}, getNotificationTypes());
     }
 
     /**
@@ -750,19 +775,19 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
         // Check performed actions on connector agents
-        Assert.assertEquals(new ArrayList<Class<? extends RoomNotification>>()
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
                 add(RoomNotification.RoomCreated.class);
                 add(RoomNotification.RoomCreated.class);
-                add(RoomNotification.RoomAvailable.class);
-                add(RoomNotification.RoomAvailable.class);
+                add(RoomAvailableNotification.class);
+                add(RoomAvailableNotification.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomNotification.RoomDeleted.class);
                 add(RoomNotification.RoomDeleted.class);
-            }}, getNotificationTypes(RoomNotification.class));
+            }}, getNotificationTypes(AbstractNotification.class));
     }
 
     private void clearNotificationRecords()
@@ -856,6 +881,12 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
             notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
+            if (notification instanceof RoomGroupNotification) {
+                RoomGroupNotification roomGroupNotification = (RoomGroupNotification) notification;
+                for (RoomNotification roomNotification : roomGroupNotification.getNotifications()) {
+                    notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, roomNotification));
+                }
+            }
         }
 
         private class NotificationRecord<T extends AbstractNotification>

@@ -40,12 +40,25 @@ public class PersonParticipant extends AbstractParticipant
     /**
      * Constructor.
      *
-     * @param name  sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#name} for the {@link #PERSON}
-     * @param email sets the {@link cz.cesnet.shongo.controller.api.AnonymousPerson#email} for the {@link #PERSON}
+     * @param name  sets the {@link AnonymousPerson#name} for the {@link #person}
+     * @param email sets the {@link AnonymousPerson#email} for the {@link #person}
      */
     public PersonParticipant(String name, String email)
     {
         setPerson(new AnonymousPerson(name, email));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name  sets the {@link AnonymousPerson#name} for the {@link #person}
+     * @param email sets the {@link AnonymousPerson#email} for the {@link #person}
+     * @param role sets the {@link #role}
+     */
+    public PersonParticipant(String name, String email, ParticipantRole role)
+    {
+        setPerson(new AnonymousPerson(name, email));
+        setRole(role);
     }
 
     /**

@@ -23,7 +23,7 @@ import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.notification.RoomNotification;
+import cz.cesnet.shongo.controller.notification.RoomAvailableNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.Interval;
@@ -369,7 +369,7 @@ public abstract class RoomEndpoint extends Endpoint
         // Notify participants
         if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
             if (isParticipantNotificationEnabled()) {
-                executor.addNotification(new RoomNotification.RoomAvailable(this));
+                executor.addNotification(new RoomAvailableNotification(this));
             }
         }
         return State.STARTED;

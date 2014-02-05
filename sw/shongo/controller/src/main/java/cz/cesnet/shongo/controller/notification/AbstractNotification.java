@@ -117,7 +117,7 @@ public abstract class AbstractNotification
     /**
      * @return {@link #recipients}
      */
-    public final Set<PersonInformation> getRecipients()
+    public Set<PersonInformation> getRecipients()
     {
         return Collections.unmodifiableSet(recipients);
     }
@@ -218,9 +218,9 @@ public abstract class AbstractNotification
      * Event called right after this {@link AbstractNotification} has been removed from the {@link NotificationManager}.
      *
      * @param notificationManager
-     * @param entityManager
+     *
      */
-    protected void onAfterRemoved(NotificationManager notificationManager, EntityManager entityManager)
+    protected void onAfterRemoved(NotificationManager notificationManager)
     {
     }
 

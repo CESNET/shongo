@@ -45,7 +45,7 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
     /**
      * @return {@link #role}
      */
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     public ParticipantRole getRole()
     {
@@ -70,6 +70,14 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
             return null;
         }
         return person.getInformation();
+    }
+
+    @PrePersist
+    public void prePersist()
+    {
+        if (role == null) {
+            role = ParticipantRole.PARTICIPANT;
+        }
     }
 
     @Override
