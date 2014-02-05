@@ -96,6 +96,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
     @Test
     public void testRoom() throws Exception
     {
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new RecordingCapability(3));
+        tcs.setAllocatable(true);
+        tcs.addAdministrator(new UserPerson(getUserId(SECURITY_TOKEN_USER1)));
+        getResourceService().createResource(SECURITY_TOKEN, tcs);
+
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
@@ -123,6 +132,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         roomAvailability.setParticipantCount(4000);
         roomAvailability.setSlotMinutesBefore(10);
         roomAvailability.setSlotMinutesAfter(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);

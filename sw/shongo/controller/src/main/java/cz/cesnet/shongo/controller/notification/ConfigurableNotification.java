@@ -93,6 +93,14 @@ public abstract class ConfigurableNotification extends AbstractNotification
     }
 
     /**
+     * @param recipient to be set as administrator
+     */
+    public void setRecipientAsAdministrator(PersonInformation recipient)
+    {
+        administratorRecipients.add(recipient);
+    }
+
+    /**
      * @param recipients    who should be notified by the {@link ConfigurableNotification}
      * @param administrator specifies whether {@code recipients} should be notified as administrators
      */

@@ -201,6 +201,10 @@ public class NotificationManager extends Component implements Component.Authoriz
             });
             recipients = new LinkedList<PersonInformation>();
             recipients.add(redirectTo);
+            if (notification instanceof ConfigurableNotification) {
+                ConfigurableNotification configurableNotification = (ConfigurableNotification) notification;
+                configurableNotification.setRecipientAsAdministrator(redirectTo);
+            }
         }
 
         if (!enabled) {
