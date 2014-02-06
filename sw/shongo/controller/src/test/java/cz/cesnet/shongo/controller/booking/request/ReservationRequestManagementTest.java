@@ -255,7 +255,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        permanentRoomReservationRequest.setSpecification(new PermanentRoomSpecification(Technology.H323));
+        permanentRoomReservationRequest.setSpecification(new RoomSpecification(Technology.H323));
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
         checkAllocated(permanentRoomReservationRequestId);

@@ -486,8 +486,10 @@ public class RecordingServiceTest extends AbstractExecutorTest
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.minutes(120));
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification(5, Technology.ADOBE_CONNECT);
-        roomSpecification.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.ADOBE_CONNECT);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
         roomReservationRequest.setSpecification(roomSpecification);
         String roomReservationRequestId = allocate(roomReservationRequest);
         RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
