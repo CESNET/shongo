@@ -136,7 +136,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Storage unit for recordings
      */
-    private Storage storage;
+    private AbstractStorage storage;
 
     /**
      * Concurrent list of recordings to be moved to storage.

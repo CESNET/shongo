@@ -1,15 +1,18 @@
 package cz.cesnet.shongo.connector.storage;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * {@link AbstractStorage} which is implemented by local folder which is published by Apache.
@@ -18,6 +21,18 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public class ApacheStorage extends AbstractStorage
 {
+    private static Logger logger = LoggerFactory.getLogger(ApacheStorage.class);
+
+    /**
+     * Maximum number of consequent resumings.
+     */
+    private final int MAX_RESUME_COUNT = 5;
+
+    /**
+     * Duration in milliseconds to sleep before resuming.
+     */
+    private final int BEFORE_RESUME_SLEEP = 100;
+
     /**
      * List of folders and delete (request from another Thread)
      */
@@ -40,8 +55,11 @@ public class ApacheStorage extends AbstractStorage
         String folderId = getChildId(folder.getParentFolderId(), folder.getFolderName());
         String folderUrl = getUrlFromId(folderId);
         java.io.File file = new java.io.File(folderUrl);
-        if (!file.mkdir()) {
+        if (file.exists()) {
             throw new RuntimeException("Directory '" + folderUrl + "' already exists.");
+        }
+        if (!file.mkdir()) {
+            throw new RuntimeException("Directory '" + folderUrl + "' can't be created.");
         }
         return folderId;
     }
@@ -115,7 +133,7 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
-    public void createFile(File file, InputStream fileContent)
+    public void createFile(File file, InputStream fileContent, ResumeSupport resumeSupport)
     {
         String folderUrl = getUrlFromId(file.getFolderId());
         String fileUrl = getChildUrl(folderUrl, file.getFileName());
@@ -123,21 +141,106 @@ public class ApacheStorage extends AbstractStorage
             throw new RuntimeException("File '" + fileUrl + "' already exists.");
         }
         try {
+            int fileContentIndex = 0;
             OutputStream fileOutputStream = new FileOutputStream(fileUrl);
             byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fileContent.read(buffer)) != -1) {
+            while (true) {
+                // Read next bytes into buffer
+                int readResumeCount = MAX_RESUME_COUNT;
+                int bytesRead;
+                while (true) {
+                    try {
+                        bytesRead = fileContent.read(buffer, 0, buffer.length);
+                        readResumeCount = MAX_RESUME_COUNT;
+                        break;
+                    }
+                    catch (IOException exception) {
+                        // Check if resume isn't available
+                        if (resumeSupport == null || --readResumeCount <= 0) {
+                            throw exception;
+                        }
+
+                        // Reopen file content stream
+                        try {
+                            fileContent = resumeSupport.reopenInputStream(fileContent, fileContentIndex);
+                        }
+                        catch (Exception resumeException) {
+                            throw new RuntimeException("Reopening input stream failed for creation of file " +
+                                    getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ".", resumeException);
+                        }
+                        logger.warn("Reading data failed at " + fileContentIndex + " for creation of file " +
+                                getUrlFromId(file.getFolderId()) + "/" + file.getFileName() +
+                                ", resuming...", exception);
+                        try {
+                            Thread.sleep(BEFORE_RESUME_SLEEP);
+                        }
+                        catch (InterruptedException sleepException) {
+                            logger.warn("Thread.sleep", sleepException);
+                        }
+                    }
+                    catch (Exception exception) {
+                        throw new RuntimeException("Reading input stream failed for creation of file " +
+                                file.getFolderId() + ":" + file.getFileName() + " at " + fileContentIndex + ".",
+                                exception);
+                    }
+                }
+
+                // Check for end of file content
+                if (bytesRead == -1) {
+                    break;
+                }
+
+                // Check if folder isn't already deleted
                 if (foldersToDelete.contains(file.getFolderId())) {
                     break;
                 }
-                fileOutputStream.write(buffer, 0, bytesRead);
+
+                // Write bytes from buffer
+                int writeResumeCount = MAX_RESUME_COUNT;
+                while (true) {
+                    try {
+                        fileOutputStream.write(buffer, 0, bytesRead);
+                        writeResumeCount = MAX_RESUME_COUNT;
+                        break;
+                    }
+                    catch (IOException exception) {
+                        // Close output stream
+                        fileOutputStream.close();
+
+                        // Check if resume isn't available
+                        if (--writeResumeCount <= 0) {
+                            throw exception;
+                        }
+
+                        // Resume writing
+                        try {
+                            fileOutputStream = new FileOutputStream(fileUrl);
+                        }
+                        catch (Exception resumeException) {
+                            throw new RuntimeException("Reopening output stream failed for creation of file " +
+                                    file.getFolderId() + ":" + file.getFileName() + ".", resumeException);
+                        }
+                        logger.warn("Writing file {}:{} failed at {}, resuming...", new Object[]{
+                                file.getFolderId(), file.getFileName(), fileContentIndex
+                        });
+                        try {
+                            Thread.sleep(BEFORE_RESUME_SLEEP);
+                        }
+                        catch (InterruptedException sleepException) {
+                            logger.warn("Thread.sleep", sleepException);
+                        }
+                    }
+                }
+
+                // Move file content
+                fileContentIndex += bytesRead;
             }
             fileContent.close();
             fileOutputStream.close();
             removeFolderToDelete(file.getFolderId());
         }
         catch (IOException exception) {
-            throw new RuntimeException("File '" + fileUrl + "' couldn't be written.", exception);
+            throw new RuntimeException("File '" + fileUrl + "' couldn't be created.", exception);
         }
     }
 

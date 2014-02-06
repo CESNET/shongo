@@ -4,6 +4,8 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.io.InputStream;
+
 /**
  * Abstract {@link Storage} implementation.
  *
@@ -58,6 +60,17 @@ public abstract class AbstractStorage implements Storage
     public String getDownloadableUrlBase()
     {
         return downloadableUrlBase;
+    }
+
+    /**
+     * Create a new file in existing folder in the storage.
+     *
+     * @param file        information about the new file
+     * @param fileContent input stream from which the file content can be read
+     */
+    public final void createFile(File file, InputStream fileContent)
+    {
+        createFile(file, fileContent, null);
     }
 
     /**

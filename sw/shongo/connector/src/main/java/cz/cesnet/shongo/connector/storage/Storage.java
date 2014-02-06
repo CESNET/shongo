@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -50,10 +51,11 @@ public interface Storage
     /**
      * Create a new file in existing folder in the storage.
      *
-     * @param file        information about the new file
-     * @param fileContent input stream from which the file content can be read
+     * @param file          information about the new file
+     * @param fileContent   input stream from which the file content can be read
+     * @param resumeSupport to be used for re-opening given {@code fileContent}
      */
-    void createFile(File file, InputStream fileContent);
+    void createFile(File file, InputStream fileContent, ResumeSupport resumeSupport);
 
     /**
      * Delete existing file in the storage.
@@ -76,7 +78,7 @@ public interface Storage
      * Download content of existing file in the storage.
      *
      * @param folderId id of the folder in which the file is located
-     * @param fileName   id of the file in the folder
+     * @param fileName id of the file in the folder
      * @return {@link InputStream} with the file content
      */
     InputStream getFileContent(String folderId, String fileName);
@@ -244,18 +246,15 @@ public interface Storage
     }
 
     /**
-     * Available permissions which the user can have to a folder and all its' files.
-     *
-    enum UserPermission
+     * Interface which can be implemented to allow resuming of downloading by {@link java.io.InputStream}.
+     */
+    interface ResumeSupport
     {
         /**
-         * User can list files in folder and read the files.
-         *
-        READ,
-
-        /**
-         * User can do everything like {@link #READ} and modify and delete the files.
-         *
-        WRITE
-    }    */
+         * @param oldInputStream which can be closed
+         * @param offset         at which the {@link java.io.InputStream} should be reopened
+         * @return newly opened {@link java.io.InputStream}
+         */
+        InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException;
+    }
 }

@@ -6,8 +6,12 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 /**
@@ -17,8 +21,10 @@ import java.util.HashMap;
  */
 public class ApacheStorageTest
 {
+    private static Logger logger = LoggerFactory.getLogger(ApacheStorageTest.class);
+
     private static final String URL = "TMP";
-    //private static final String URL = "/media/shongo_storage";
+    //private static final String URL = "/media/test";
     private static final String DOWNLOADABL_URL_BASE = "https://shongo-auth-dev.cesnet.cz/tcs/";
 
     private AbstractStorage storage;
@@ -73,11 +79,74 @@ public class ApacheStorageTest
         Assert.assertTrue(fileExists("folder/recording"));
         Assert.assertEquals("<data>", getFileContent("folder/recording"));
 
-        storage.setFolderPermissions(folderId, new HashMap<String, RecordingFolder.UserPermission>(){{
-            put("srom", RecordingFolder.UserPermission.READ);
-        }});
+        storage.setFolderPermissions(folderId, new HashMap<String, RecordingFolder.UserPermission>()
+        {{
+                put("srom", RecordingFolder.UserPermission.READ);
+            }});
         Assert.assertTrue(fileExists("folder/.htaccess"));
         Assert.assertEquals("require user 208213@muni.cz srom@cesnet.cz", getFileContent("folder/.htaccess"));
+    }
+
+    @Test
+    public void testConnectionReset() throws Exception
+    {
+        // Prepare data
+        final int size = 1024 * 1024 * 10;
+        logger.info("Preparing data...");
+        final ByteBuffer fileData = ByteBuffer.allocateDirect(size);
+        for (int index = 0; index < fileData.remaining(); index++) {
+            fileData.put((byte) (index % 256));
+        }
+        fileData.rewind();
+        logger.info("Data prepared.");
+
+        // Create file
+        logger.info("Creating file.");
+        final ByteBufferInputStream fileContent = new ByteBufferInputStream(fileData);
+        fileContent.setCloseAfterBytes(size / 11);
+        final AbstractStorage storage = this.storage;
+        Thread thread = new Thread()
+        {
+            @Override
+            public void run()
+            {
+                logger.info("Copying started...");
+                storage.createFile(new Storage.File(null, "test"), fileContent, new Storage.ResumeSupport()
+                {
+                    @Override
+                    public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
+                    {
+                        ByteBufferInputStream inputStream = new ByteBufferInputStream(fileData);
+                        long skipped = inputStream.skip(offset);
+                        inputStream.setCloseAfterBytes(size / 5);
+                        if (skipped != offset) {
+                            throw new RuntimeException("Cannot skip " + offset + ", only skipped " + skipped + ".");
+                        }
+                        return inputStream;
+                    }
+                });
+                logger.info("Copying finished.");
+                super.run();
+            }
+        };
+        thread.start();
+        Thread.sleep(10);
+        thread.join();
+        logger.info("File created.");
+
+        // Check file
+        logger.info("Checking file...");
+        InputStream inputStream = storage.getFileContent(null, "test");
+        fileData.rewind();
+        int position = 0;
+        while (inputStream.available() != 0) {
+            byte[] expected = new byte[1024];
+            byte[] actual = new byte[1024];
+            fileData.get(expected);
+            inputStream.read(actual);
+            Assert.assertEquals("Check at position " + position, new String(expected), new String(actual));
+            position += 1024;
+        }
     }
 
     private boolean fileExists(String fileName)
@@ -115,6 +184,61 @@ public class ApacheStorageTest
         }
         finally {
             bufferedReader.close();
+        }
+    }
+
+    public class ByteBufferInputStream extends InputStream
+    {
+        private ByteBuffer byteBuffer;
+
+        private Integer closeAfterBytes;
+
+        public ByteBufferInputStream(ByteBuffer byteBuffer)
+        {
+            this.byteBuffer = byteBuffer;
+            this.byteBuffer.rewind();
+        }
+
+        public void setCloseAfterBytes(int closeAfterBytes)
+        {
+            this.closeAfterBytes = closeAfterBytes;
+        }
+
+        public int read() throws IOException
+        {
+            if (!byteBuffer.hasRemaining()) {
+                return -1;
+            }
+            return byteBuffer.get() & 0xFF;
+        }
+
+        public int read(byte[] bytes, int off, int len)
+                throws IOException
+        {
+            if (byteBuffer == null) {
+                throw new SocketException("Connection reset");
+            }
+            if (!byteBuffer.hasRemaining()) {
+                return -1;
+            }
+
+            len = Math.min(len, byteBuffer.remaining());
+            byteBuffer.get(bytes, off, len);
+
+            if (closeAfterBytes != null) {
+                closeAfterBytes -= len;
+                if (closeAfterBytes <= 0) {
+                    throw new SocketException("Connection reset");
+                }
+            }
+
+            return len;
+        }
+
+        @Override
+        public void close() throws IOException
+        {
+            byteBuffer = null;
         }
     }
 }
