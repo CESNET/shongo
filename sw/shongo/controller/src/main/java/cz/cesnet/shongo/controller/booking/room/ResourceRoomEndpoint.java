@@ -465,7 +465,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     @Override
     public void loadLazyProperties()
     {
-        getResource();
+        Resource resource = getResource();
+        resource.getCapabilities().size();
         super.loadLazyProperties();
     }
 }

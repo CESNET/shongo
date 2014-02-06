@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
@@ -457,10 +458,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             // Get participation
-            Set<AbstractParticipant> participants = new HashSet<AbstractParticipant>();
+            Map<Long, AbstractParticipant> participants =
+                    new HashMap<Long, AbstractParticipant>();
             if (executable instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
-                participants.addAll(roomEndpoint.getParticipants());
+                for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
+                    participants.put(participant.getId(), participant.clone());
+                }
             }
 
             if (executable.updateFromExecutableConfigurationApi(executableConfiguration, entityManager)) {
@@ -475,12 +479,21 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
                 if (roomEndpoint.isParticipantNotificationEnabled()) {
                     for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
-                        if (!participants.contains(participant)) {
+                        Long participantId = participant.getId();
+                        if (participants.containsKey(participantId)) {
+                            AbstractParticipant oldParticipant = participants.get(participantId);
+                            RoomNotification.RoomModified roomModified =
+                                    RoomNotification.RoomModified.create(roomEndpoint, oldParticipant, participant);
+                            if (roomModified != null) {
+                                notifications.add(roomModified);
+                            }
+                        }
+                        else {
                             notifications.add(new RoomNotification.RoomCreated(roomEndpoint, participant));
                         }
-                        participants.remove(participant);
+                        participants.remove(participantId);
                     }
-                    for (AbstractParticipant participant : participants) {
+                    for (AbstractParticipant participant : participants.values()) {
                         notifications.add(new RoomNotification.RoomDeleted(roomEndpoint, participant));
                     }
                 }

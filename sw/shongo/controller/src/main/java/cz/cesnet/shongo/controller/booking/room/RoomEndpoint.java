@@ -421,4 +421,11 @@ public abstract class RoomEndpoint extends Endpoint
             throw new IllegalStateException("Room configuration should have some technologies.");
         }
     }
+
+    @Override
+    public void loadLazyProperties()
+    {
+        this.getAssignedAliases().size();
+        super.loadLazyProperties();
+    }
 }

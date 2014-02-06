@@ -180,6 +180,8 @@ public class RoomGroupNotification extends ConfigurableNotification
                 ParticipantRole oldParticipantRole = roomModified.getOldParticipant(recipient).getRole();
                 ParticipantRole newParticipantRole = roomModified.getParticipant(recipient).getRole();
 
+                contentBuilder.append(":");
+
                 String oldParticipantRolePrefix = getPrefixByRole(oldParticipantRole);
                 contentBuilder.append("\n  -");
                 contentBuilder.append(renderContext.message(oldParticipantRolePrefix + ".title",

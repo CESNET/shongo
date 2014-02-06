@@ -530,7 +530,14 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
-        checkAllocated(reservationRequestId);
+        Reservation roomReservation = checkAllocated(reservationRequestId);
+        AbstractRoomExecutable room = (AbstractRoomExecutable) roomReservation.getExecutable();
+        String roomId = room.getId();
+
+        RoomExecutableParticipantConfiguration permanentRoomParticipants = room.getParticipantConfiguration();
+        ((PersonParticipant) permanentRoomParticipants.getParticipants().get(0)).setRole(ParticipantRole.PARTICIPANT);
+        getExecutableService().modifyExecutableConfiguration(SECURITY_TOKEN, roomId, permanentRoomParticipants);
+        executeNotifications();
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequestId = allocate(reservationRequest);
@@ -542,6 +549,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // Check executed notifications
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                // Create room
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
                 add(RoomGroupNotification.class);
@@ -550,12 +558,17 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(RoomNotification.RoomCreated.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
+                // Modify executable participants
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomModified.class);
+                //Modify room
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                // Delete room
                 add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);

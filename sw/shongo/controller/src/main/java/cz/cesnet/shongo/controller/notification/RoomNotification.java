@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -80,8 +81,40 @@ public abstract class RoomNotification extends ConfigurableNotification
     }
 
     @Override
+    protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
+    {
+        if (!super.onBeforeAdded(notificationManager, entityManager)) {
+            return false;
+        }
+
+        // Skip adding the notification if the same notification already exists and add all participants to it
+        Class<? extends RoomNotification> notificationType = getClass();
+        RoomNotification notification = notificationManager.getRoomNotification(getRoomEndpointId(), notificationType);
+        if (notification != null) {
+            logger.debug("Skipping {} because {} already exists.", this, notification);
+            notification.mergeParticipants(this);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
+        // Add notification to manager for grouping the same notifications
+        Long roomEndpointId = getRoomEndpointId();
+        Map<Class<? extends RoomNotification>, RoomNotification> notifications =
+                notificationManager.roomNotificationsByRoomEndpointId.get(roomEndpointId);
+        if (notifications == null) {
+            notifications = new HashMap<Class<? extends RoomNotification>, RoomNotification>();
+            notificationManager.roomNotificationsByRoomEndpointId.put(roomEndpointId, notifications);
+        }
+        if (notifications.put(getClass(), this) != null) {
+            throw new RuntimeException(getClass().getSimpleName() +
+                    " already exists for target " + roomEndpointId + ".");
+        }
+
         RoomEndpoint groupRoomEndpoint = getGroupRoomEndpoint();
         if (groupRoomEndpoint != null) {
             Long groupRoomEndpointId = groupRoomEndpoint.getId();
@@ -101,6 +134,18 @@ public abstract class RoomNotification extends ConfigurableNotification
     protected void onAfterRemoved(NotificationManager notificationManager)
     {
         super.onAfterRemoved(notificationManager);
+
+        Long roomEndpointId = getRoomEndpointId();
+        Map<Class<? extends RoomNotification>, RoomNotification> notifications =
+                notificationManager.roomNotificationsByRoomEndpointId.get(roomEndpointId);
+        if (notifications != null) {
+            AbstractNotification notification = notifications.get(getClass());
+            if (!this.equals(notification)) {
+                throw new RuntimeException(getClass().getSimpleName() +
+                        " doesn't exist for target " + roomEndpointId + ".");
+            }
+            notifications.remove(getClass());
+        }
 
         RoomEndpoint groupRoomEndpoint = getGroupRoomEndpoint();
         if (groupRoomEndpoint != null) {
@@ -138,12 +183,38 @@ public abstract class RoomNotification extends ConfigurableNotification
         return participants.get(participant);
     }
 
+    /**
+     * @return {@link Interval} of the room
+     */
     public abstract Interval getInterval();
+
+    /**
+     * @param notification to be merged into this {@link RoomNotification}
+     */
+    protected void mergeParticipants(RoomNotification notification)
+    {
+        for (PersonParticipant participant : notification.participants.values()) {
+            addParticipant(participant);
+        }
+    }
 
     @Override
     protected Collection<Locale> getAvailableLocals()
     {
         return NotificationMessage.AVAILABLE_LOCALES;
+    }
+
+    /**
+     * @param roomEndpoint
+     * @return top {@link RoomEndpoint} from given {@code roomEndpoint}
+     */
+    private static RoomEndpoint getTopRoomEndpoint(RoomEndpoint roomEndpoint)
+    {
+        while (roomEndpoint instanceof UsedRoomEndpoint) {
+            UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
+            roomEndpoint = usedRoomEndpoint.getReusedRoomEndpoint();
+        }
+        return roomEndpoint;
     }
 
     /**
@@ -240,10 +311,6 @@ public abstract class RoomNotification extends ConfigurableNotification
         @Override
         protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
         {
-            if (!super.onBeforeAdded(notificationManager, entityManager)) {
-                return false;
-            }
-
             // Skip adding the notification for permanent room and add notifications for future usages instead
             if (isPermanentRoom()) {
                 if (usedRoomEndpoints == null) {
@@ -261,25 +328,7 @@ public abstract class RoomNotification extends ConfigurableNotification
                 return false;
             }
 
-            // Skip adding the notification if the same notification already exists and add all participants to it
-            Class<? extends RoomSimple> notificationType = getClass();
-            RoomSimple notification = notificationManager
-                    .getRoomSimpleNotification(getRoomEndpointId(), notificationType);
-            if (notification != null) {
-                logger.debug("Skipping {} because {} already exists.", this, notification);
-                if (participant != null) {
-                    logger.warn("Add participant to existing reservation {}.", participant);
-                }
-                /*if (participants != null && notification.participants != null) {
-                    // Existing notification should notify also all participants from this skipped notification
-                    for (AbstractParticipant participant : participants) {
-                        notification.participants.add(participant);
-                    }
-                }
-                else {
-                    // Existing notifications should notify all participants
-                    notification.participants = null;
-                }*/
+            if (!super.onBeforeAdded(notificationManager, entityManager)) {
                 return false;
             }
 
@@ -309,43 +358,6 @@ public abstract class RoomNotification extends ConfigurableNotification
             return true;
         }
 
-        @Override
-        protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
-        {
-            // Add notification to manager for grouping the same notifications
-            Long roomEndpointId = getRoomEndpointId();
-            Map<Class<? extends RoomSimple>, RoomSimple> notifications =
-                    notificationManager.roomSimpleNotificationsByRoomEndpointId.get(roomEndpointId);
-            if (notifications == null) {
-                notifications = new HashMap<Class<? extends RoomSimple>, RoomSimple>();
-                notificationManager.roomSimpleNotificationsByRoomEndpointId.put(roomEndpointId, notifications);
-            }
-            if (notifications.put(getClass(), this) != null) {
-                throw new RuntimeException("Notification " + getClass().getSimpleName() +
-                        " already exists for target " + roomEndpointId + ".");
-            }
-
-            super.onAfterAdded(notificationManager, entityManager);
-        }
-
-        @Override
-        protected void onAfterRemoved(NotificationManager notificationManager)
-        {
-            super.onAfterRemoved(notificationManager);
-
-            Long roomEndpointId = getRoomEndpointId();
-            Map<Class<? extends RoomSimple>, RoomSimple> notifications =
-                    notificationManager.roomSimpleNotificationsByRoomEndpointId.get(roomEndpointId);
-            if (notifications != null) {
-                AbstractNotification notification = notifications.get(getClass());
-                if (!this.equals(notification)) {
-                    throw new RuntimeException("Notification " + getClass().getSimpleName() +
-                            " doesn't exist for target " + roomEndpointId + ".");
-                }
-                notifications.remove(getClass());
-            }
-        }
-
         protected RoomSimple createNotification(RoomEndpoint roomEndpoint,
                 ReservationRequest reservationRequest, AbstractParticipant participant)
         {
@@ -367,12 +379,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         @Override
         public RoomEndpoint getGroupRoomEndpoint()
         {
-            RoomEndpoint roomEndpoint = this.roomEndpoint;
-            while (roomEndpoint instanceof UsedRoomEndpoint) {
-                UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
-                roomEndpoint = usedRoomEndpoint.getReusedRoomEndpoint();
-            }
-            return roomEndpoint;
+            return getTopRoomEndpoint(this.roomEndpoint);
         }
 
         @Override
@@ -449,11 +456,13 @@ public abstract class RoomNotification extends ConfigurableNotification
 
             Executable migratedFromExecutable = roomEndpoint.getMigrateFromExecutable();
             if (migratedFromExecutable != null) {
-                RoomDeleted roomDeleted = notificationManager.getRoomSimpleNotification(
+                RoomDeleted roomDeleted = notificationManager.getRoomNotification(
                         migratedFromExecutable.getId(), RoomDeleted.class);
                 if (roomDeleted != null) {
-                    RoomModified modifiedNotification = new RoomModified(roomDeleted, this);
-                    notificationManager.addNotification(modifiedNotification, entityManager);
+                    RoomModified roomModified = RoomModified.create(roomDeleted, this);
+                    if (roomModified != null) {
+                        notificationManager.addNotification(roomModified, entityManager);
+                    }
                     if (!roomDeleted.hasParticipants()) {
                         notificationManager.removeNotification(roomDeleted, entityManager);
                     }
@@ -499,11 +508,13 @@ public abstract class RoomNotification extends ConfigurableNotification
 
             Executable migrateToExecutable = roomEndpoint.getMigrateToExecutable();
             if (migrateToExecutable != null) {
-                RoomCreated roomCreated = notificationManager.getRoomSimpleNotification(
+                RoomCreated roomCreated = notificationManager.getRoomNotification(
                         migrateToExecutable.getId(), RoomCreated.class);
                 if (roomCreated != null) {
-                    RoomModified modifiedNotification = new RoomModified(this, roomCreated);
-                    notificationManager.addNotification(modifiedNotification, entityManager);
+                    RoomModified roomModified = RoomModified.create(this, roomCreated);
+                    if (roomModified != null) {
+                        notificationManager.addNotification(roomModified, entityManager);
+                    }
                     if (!roomCreated.hasParticipants()) {
                         notificationManager.removeNotification(roomCreated, entityManager);
                     }
@@ -524,26 +535,104 @@ public abstract class RoomNotification extends ConfigurableNotification
 
     public static class RoomModified extends RoomNotification
     {
-        private final RoomDeleted roomDeleted;
+        private final RoomEndpoint oldRoomEndpoint;
 
-        private final RoomCreated roomCreated;
+        private final RoomEndpoint newRoomEndpoint;
+
+        private boolean roomModified = false;
 
         protected Map<PersonInformation, PersonParticipant> oldParticipants =
                 new HashMap<PersonInformation, PersonParticipant>();
 
-        private RoomModified(RoomDeleted roomDeleted, RoomCreated roomCreated)
+        /**
+         * Constructor.
+         *
+         * @param oldRoomEndpoint sets the {@link #oldRoomEndpoint}
+         * @param newRoomEndpoint sets the {@link #newRoomEndpoint}
+         */
+        private RoomModified(RoomEndpoint oldRoomEndpoint, RoomEndpoint newRoomEndpoint)
         {
-            this.roomDeleted = roomDeleted;
-            this.roomCreated = roomCreated;
+            this.newRoomEndpoint = newRoomEndpoint;
+            this.newRoomEndpoint.loadLazyProperties();
 
+            if (oldRoomEndpoint != null) {
+                this.oldRoomEndpoint = oldRoomEndpoint;
+                this.oldRoomEndpoint.loadLazyProperties();
+
+                // TODO: check modification
+                this.roomModified = true;
+            }
+            else {
+                this.oldRoomEndpoint = null;
+                this.roomModified = false;
+            }
+        }
+
+        /**
+         * @param roomDeleted
+         * @param roomCreated
+         * @return new instance of {@link RoomModified} for given arguments or {@code null} if it is not needed
+         */
+        public static RoomModified create(RoomDeleted roomDeleted, RoomCreated roomCreated)
+        {
+            RoomModified roomModified = new RoomModified(roomDeleted.roomEndpoint, roomCreated.roomEndpoint);
+            boolean isRoomModified = roomModified.isRoomModified();
+
+            // Get set of common participants
             Set<PersonInformation> participants = new LinkedHashSet<PersonInformation>(roomCreated.getParticipants());
             participants.retainAll(roomDeleted.getParticipants());
+
+            // Move participants to this notification
             for (PersonInformation participant : participants) {
-                oldParticipants.put(participant, this.roomDeleted.getParticipant(participant));
-                addParticipant(this.roomCreated.getParticipant(participant));
+                PersonParticipant oldParticipant = roomDeleted.getParticipant(participant);
+                PersonParticipant newParticipant = roomCreated.getParticipant(participant);
+                if (roomModified.addParticipant(oldParticipant, newParticipant)) {
+                    isRoomModified = true;
+                }
             }
             roomDeleted.removeParticipants(participants);
             roomCreated.removeParticipants(participants);
+
+            if (isRoomModified) {
+                return roomModified;
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * @param roomEndpoint
+         * @param oldParticipant
+         * @param newParticipant
+         * @return new instance of {@link RoomModified} for given arguments or {@code null} if it is not needed
+         */
+        public static RoomModified create(RoomEndpoint roomEndpoint, AbstractParticipant oldParticipant,
+                AbstractParticipant newParticipant)
+        {
+            RoomModified roomModified = new RoomModified(null, roomEndpoint);
+            if (!(oldParticipant instanceof PersonParticipant)) {
+                throw new IllegalArgumentException("Old participant must person.");
+            }
+            if (!(newParticipant instanceof PersonParticipant)) {
+                throw new IllegalArgumentException("New participant must person.");
+            }
+            PersonParticipant oldPersonParticipant = (PersonParticipant) oldParticipant;
+            PersonParticipant newPersonParticipant = (PersonParticipant) newParticipant;
+            if (roomModified.addParticipant(oldPersonParticipant, newPersonParticipant)) {
+                return roomModified;
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * @return {@link #roomModified}
+         */
+        public boolean isRoomModified()
+        {
+            return roomModified;
         }
 
         public PersonParticipant getOldParticipant(PersonInformation participant)
@@ -554,19 +643,45 @@ public abstract class RoomNotification extends ConfigurableNotification
         @Override
         public Long getRoomEndpointId()
         {
-            return roomCreated.getRoomEndpointId();
+            return newRoomEndpoint.getId();
         }
 
         @Override
         public RoomEndpoint getGroupRoomEndpoint()
         {
-            return roomCreated.getGroupRoomEndpoint();
+            return getTopRoomEndpoint(this.newRoomEndpoint);
         }
 
         @Override
         public Interval getInterval()
         {
-            return roomCreated.getInterval();
+            return newRoomEndpoint.getSlot();
+        }
+
+        @Override
+        protected void mergeParticipants(RoomNotification notification)
+        {
+            super.mergeParticipants(notification);
+
+            this.oldParticipants.putAll(notification.participants);
+        }
+
+        /**
+         * @param oldParticipant
+         * @param newParticipant
+         * @return true whether participant was added,
+         * false otherwise
+         */
+        private boolean addParticipant(PersonParticipant oldParticipant, PersonParticipant newParticipant)
+        {
+            if (!ObjectHelper.isSame(oldParticipant, newParticipant) || isRoomModified()) {
+                oldParticipants.put(oldParticipant.getPersonInformation(), oldParticipant);
+                addParticipant(newParticipant);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
     }
 

@@ -55,12 +55,11 @@ public class NotificationManager extends Component implements Component.Authoriz
             new HashMap<Long, ReservationRequestNotification>();
 
     /**
-     * Map of {@link RoomNotification.RoomSimple}s by {@link RoomEndpoint#id} which is used for
-     * grouping {@link RoomNotification.RoomSimple}s of the same type for the same {@link RoomEndpoint}.
+     * Map of {@link RoomNotification}s by {@link RoomEndpoint#id} which is used for
+     * grouping {@link RoomNotification}s of the same type for the same {@link RoomEndpoint}.
      */
-    protected Map<Long, Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple>>
-            roomSimpleNotificationsByRoomEndpointId =
-            new HashMap<Long, Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple>>();
+    protected Map<Long, Map<Class<? extends RoomNotification>, RoomNotification>> roomNotificationsByRoomEndpointId =
+            new HashMap<Long, Map<Class<? extends RoomNotification>, RoomNotification>>();
 
     /**
      * Map of {@link RoomGroupNotification} by {@link RoomEndpoint#id} which is used for
@@ -227,13 +226,13 @@ public class NotificationManager extends Component implements Component.Authoriz
     /**
      * @param roomEndpointId
      * @param notificationType
-     * @return {@link RoomNotification.RoomSimple} of given {@code notificationType} for given {@code roomEndpointId}
+     * @return {@link RoomNotification} of given {@code notificationType} for given {@code roomEndpointId}
      */
-    protected synchronized <T extends RoomNotification.RoomSimple> T getRoomSimpleNotification(Long roomEndpointId,
+    protected synchronized <T extends RoomNotification> T getRoomNotification(Long roomEndpointId,
             Class<T> notificationType)
     {
-        Map<Class<? extends RoomNotification.RoomSimple>, RoomNotification.RoomSimple> notifications =
-                roomSimpleNotificationsByRoomEndpointId.get(roomEndpointId);
+        Map<Class<? extends RoomNotification>, RoomNotification> notifications =
+                roomNotificationsByRoomEndpointId.get(roomEndpointId);
         if (notifications != null) {
             return notificationType.cast(notifications.get(notificationType));
         }
