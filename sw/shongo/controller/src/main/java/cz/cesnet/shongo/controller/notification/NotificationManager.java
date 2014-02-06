@@ -210,6 +210,9 @@ public class NotificationManager extends Component implements Component.Authoriz
         if (!enabled) {
             logger.warn("Notification '{}' cannot be executed because notifications are disabled.", notification);
         }
+        if (recipients.size() == 0) {
+            logger.warn("Notification '{}' doesn't have any recipients.", notification);
+        }
 
         for (PersonInformation recipient : recipients) {
             if (enabled) {
