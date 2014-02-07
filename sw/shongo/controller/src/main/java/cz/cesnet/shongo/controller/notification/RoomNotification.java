@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
@@ -10,8 +13,12 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.controller.booking.room.RoomConfiguration;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.Interval;
 
@@ -29,7 +36,7 @@ public abstract class RoomNotification extends ConfigurableNotification
      * Map of {@link AbstractParticipant}s by participant {@link PersonInformation}s.
      */
     private Map<PersonInformation, PersonParticipant> participants =
-            new HashMap<PersonInformation, PersonParticipant>();
+            new LinkedHashMap<PersonInformation, PersonParticipant>();
 
     /**
      * @param personParticipant to be added as participant
@@ -161,9 +168,23 @@ public abstract class RoomNotification extends ConfigurableNotification
     /**
      * @return {@link RoomEndpoint#id}
      */
-    public Long getRoomEndpointId()
+    public RoomEndpoint getRoomEndpoint()
     {
         return null;
+    }
+
+    /**
+     * @return {@link RoomEndpoint#id}
+     */
+    public final Long getRoomEndpointId()
+    {
+        RoomEndpoint roomEndpoint = getRoomEndpoint();
+        if (roomEndpoint != null) {
+            return roomEndpoint.getId();
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -208,13 +229,27 @@ public abstract class RoomNotification extends ConfigurableNotification
      * @param roomEndpoint
      * @return top {@link RoomEndpoint} from given {@code roomEndpoint}
      */
-    private static RoomEndpoint getTopRoomEndpoint(RoomEndpoint roomEndpoint)
+    public static RoomEndpoint getTopRoomEndpoint(RoomEndpoint roomEndpoint)
     {
         while (roomEndpoint instanceof UsedRoomEndpoint) {
             UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
             roomEndpoint = usedRoomEndpoint.getReusedRoomEndpoint();
         }
         return roomEndpoint;
+    }
+
+    /**
+     * @param roomEndpoint
+     * @return room name for given {@code roomEndpoint}
+     */
+    public static String getRoomName(RoomEndpoint roomEndpoint)
+    {
+        for (Alias alias : roomEndpoint.getAliases()) {
+            if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                return alias.getValue();
+            }
+        }
+        return null;
     }
 
     /**
@@ -365,15 +400,15 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         @Override
-        public Long getRoomEndpointId()
+        public RoomEndpoint getRoomEndpoint()
         {
-            return roomEndpoint.getId();
+            return roomEndpoint;
         }
 
         @Override
         public Interval getInterval()
         {
-            return roomEndpoint.getSlot();
+            return roomEndpoint.getOriginalSlot();
         }
 
         @Override
@@ -421,6 +456,9 @@ public abstract class RoomNotification extends ConfigurableNotification
             Map<UsedRoomEndpoint, ReservationRequest> usedRoomEndpoints =
                     new LinkedHashMap<UsedRoomEndpoint, ReservationRequest>();
             for (UsedRoomEndpoint usedRoomEndpoint : executableManager.getFutureUsedRoomEndpoint(roomEndpoint)) {
+                if (!usedRoomEndpoint.isParticipantNotificationEnabled()) {
+                    continue;
+                }
                 ReservationRequest reservationRequest =
                         getReservationRequestForRoomEndpoint(usedRoomEndpoint, executableManager);
                 usedRoomEndpoints.put(usedRoomEndpoint, reservationRequest);
@@ -559,8 +597,18 @@ public abstract class RoomNotification extends ConfigurableNotification
                 this.oldRoomEndpoint = oldRoomEndpoint;
                 this.oldRoomEndpoint.loadLazyProperties();
 
-                // TODO: check modification
-                this.roomModified = true;
+                if (!oldRoomEndpoint.getSlot().equals(newRoomEndpoint.getSlot())) {
+                    roomModified = true;
+                }
+                if (!ObjectHelper.isSame(oldRoomEndpoint.getAliases(), newRoomEndpoint.getAliases())) {
+                    roomModified = true;
+                }
+                if (!oldRoomEndpoint.getParticipantNotification().equals(newRoomEndpoint.getParticipantNotification())) {
+                    roomModified = true;
+                }
+                if (!ObjectHelper.isSame(oldRoomEndpoint.getPin(), newRoomEndpoint.getPin())) {
+                    roomModified = true;
+                }
             }
             else {
                 this.oldRoomEndpoint = null;
@@ -628,6 +676,22 @@ public abstract class RoomNotification extends ConfigurableNotification
         }
 
         /**
+         * @return {@link #oldRoomEndpoint}
+         */
+        public RoomEndpoint getOldRoomEndpoint()
+        {
+            return oldRoomEndpoint;
+        }
+
+        /**
+         * @return {@link #newRoomEndpoint}
+         */
+        public RoomEndpoint getNewRoomEndpoint()
+        {
+            return newRoomEndpoint;
+        }
+
+        /**
          * @return {@link #roomModified}
          */
         public boolean isRoomModified()
@@ -635,15 +699,37 @@ public abstract class RoomNotification extends ConfigurableNotification
             return roomModified;
         }
 
+        /**
+         * @param participant
+         * @return new {@link PersonParticipant} for given {@code participant}
+         */
+        public PersonParticipant getNewParticipant(PersonInformation participant)
+        {
+            return getParticipant(participant);
+        }
+
+        /**
+         * @param participant
+         * @return old {@link PersonParticipant} for given {@code participant}
+         */
         public PersonParticipant getOldParticipant(PersonInformation participant)
         {
             return oldParticipants.get(participant);
         }
 
-        @Override
-        public Long getRoomEndpointId()
+        /**
+         * @param participant
+         * @return true whether {@link PersonParticipant#role} has changed for given {@code recipient}
+         */
+        public boolean isParticipantRoleModified(PersonInformation participant)
         {
-            return newRoomEndpoint.getId();
+            return !getParticipant(participant).getRole().equals(getOldParticipant(participant).getRole());
+        }
+
+        @Override
+        public RoomEndpoint getRoomEndpoint()
+        {
+            return newRoomEndpoint;
         }
 
         @Override
@@ -655,7 +741,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         @Override
         public Interval getInterval()
         {
-            return newRoomEndpoint.getSlot();
+            return newRoomEndpoint.getOriginalSlot();
         }
 
         @Override

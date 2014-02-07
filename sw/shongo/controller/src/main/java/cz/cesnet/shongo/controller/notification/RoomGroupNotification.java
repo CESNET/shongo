@@ -7,6 +7,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -18,7 +19,11 @@ import java.util.*;
  */
 public class RoomGroupNotification extends ConfigurableNotification
 {
+    private static final String NOTIFICATION_RECORD_PREFIX = "\n  -";
+
     private RoomEndpoint roomEndpoint;
+
+    private String description;
 
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
@@ -28,11 +33,21 @@ public class RoomGroupNotification extends ConfigurableNotification
     public RoomGroupNotification(RoomEndpoint roomEndpoint)
     {
         this.roomEndpoint = roomEndpoint;
+        this.roomEndpoint.loadLazyProperties();
+        this.description = roomEndpoint.getParticipantNotification();
     }
 
-    public List<RoomNotification> getNotifications()
+    public List<RoomNotification> getNotifications(PersonInformation participant)
     {
-        return Collections.unmodifiableList(notifications);
+        List<RoomNotification> notifications = new LinkedList<RoomNotification>();
+        for (RoomNotification roomNotification : this.notifications) {
+            PersonParticipant personParticipant = roomNotification.getParticipant(participant);
+            if (personParticipant == null) {
+                continue;
+            }
+            notifications.add(roomNotification);
+        }
+        return notifications;
     }
 
     public void addNotification(RoomNotification roomNotification)
@@ -48,7 +63,7 @@ public class RoomGroupNotification extends ConfigurableNotification
     @Override
     public Set<PersonInformation> getRecipients()
     {
-        Set<PersonInformation> recipients = new HashSet<PersonInformation>();
+        Set<PersonInformation> recipients = new LinkedHashSet<PersonInformation>();
         for (RoomNotification notification : notifications) {
             recipients.addAll(notification.getParticipants());
         }
@@ -65,12 +80,15 @@ public class RoomGroupNotification extends ConfigurableNotification
     protected NotificationMessage getRenderedMessage(PersonInformation recipient,
             Configuration configuration, NotificationManager manager)
     {
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
+        RenderContext context = new ConfiguredRenderContext(configuration, "notification", manager);
 
         // Get notifications for recipient
         List<RoomNotification> roomNotifications = new LinkedList<RoomNotification>();
         int roomCreatedCount = 0;
         int roomDeletedCount = 0;
+        boolean isRoomModified = false;
+        boolean isParticipantRoleModified = false;
+        String oldRoomName = null;
         Set<ParticipantRole> participantRoles = new HashSet<ParticipantRole>();
         for (RoomNotification roomNotification : this.notifications) {
             PersonParticipant personParticipant = roomNotification.getParticipant(recipient);
@@ -82,6 +100,16 @@ public class RoomGroupNotification extends ConfigurableNotification
             roomNotifications.add(roomNotification);
             if (roomNotification instanceof RoomNotification.RoomCreated) {
                 roomCreatedCount++;
+            }
+            else if (roomNotification instanceof RoomNotification.RoomModified) {
+                RoomNotification.RoomModified roomModified = (RoomNotification.RoomModified) roomNotification;
+                if (roomModified.isRoomModified()) {
+                    isRoomModified = true;
+                    oldRoomName = RoomNotification.getRoomName(roomModified.getOldRoomEndpoint());
+                }
+                if (roomModified.isParticipantRoleModified(recipient)) {
+                    isParticipantRoleModified = true;
+                }
             }
             else if (roomNotification instanceof RoomNotification.RoomDeleted) {
                 roomDeletedCount++;
@@ -103,105 +131,226 @@ public class RoomGroupNotification extends ConfigurableNotification
 
         // Setup required parameters
         int totalCount = roomNotifications.size();
-        String roomName = getRoomName();
-        ParticipantRole sameParticipantRole = (participantRoles.size() == 1 ? participantRoles.iterator().next() : null);
+        String roomName = RoomNotification.getRoomName(this.roomEndpoint);
+        ParticipantRole sameParticipantRole =
+                (participantRoles.size() == 1 ? participantRoles.iterator().next() : null);
 
-        // Build message (to be used in title and content)
-        String messageCode;
-        String messageRoomCode;
-        String messageTypeCode;
+        // Build message
+        StringBuilder messageBuilder = new StringBuilder();
         if (roomCreatedCount == totalCount) {
             String sameParticipantRolePrefix = getPrefixByRole(sameParticipantRole);
-            messageCode = sameParticipantRolePrefix + ".title";
-            messageRoomCode = sameParticipantRolePrefix + ".room";
-            messageTypeCode = sameParticipantRolePrefix + ".created";
+            String messageCode = sameParticipantRolePrefix + ".title";
+            String messageTypeCode = sameParticipantRolePrefix + ".created";
+            String messageRoomName = "";
+            if (roomName != null) {
+                messageRoomName = context.message("room.participation.titleRoom", roomName);
+            }
+            messageBuilder.append(context.message(messageCode, context.message(messageTypeCode), messageRoomName));
         }
         else {
-            messageCode = "room.participation.access.title";
-            messageRoomCode = "room.participation.access.room";
             if (roomDeletedCount == totalCount) {
-                messageTypeCode = "room.participation.access.deleted";
+                String messageRoomName = "";
+                if (roomName != null) {
+                    messageRoomName = context.message("room.participation.titleRoom", roomName);
+                }
+                messageBuilder.append(context.message("room.participation.access.title",
+                        context.message("room.participation.access.deleted"), messageRoomName));
             }
             else {
-                messageTypeCode = "room.participation.access.modified";
+                String messageCode;
+                if (isRoomModified && isParticipantRoleModified) {
+                    messageCode = "room.participation.modified.title.roomAndRole";
+                }
+                else if (isRoomModified) {
+                    messageCode = "room.participation.modified.title.room";
+                }
+                else if (isParticipantRoleModified) {
+                    messageCode = "room.participation.modified.title.role";
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+                String messageRoomName = "";
+                String messageRoomNameModified = "";
+                if (oldRoomName != null && roomName != null && !oldRoomName.equals(roomName)) {
+                    messageRoomName = context.message("room.participation.titleRoom", oldRoomName);
+                    messageRoomNameModified = context.message("room.participation.titleRoomModified", roomName);
+                }
+                else if (roomName != null) {
+                    messageRoomName = context.message("room.participation.titleRoom", roomName);
+                }
+                messageBuilder.append(context.message(messageCode, messageRoomName, messageRoomNameModified));
             }
         }
-        StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append(renderContext.message(messageCode, renderContext.message(messageTypeCode)));
-        messageBuilder.append(renderContext.message(messageRoomCode));
-        if (roomName != null) {
-            messageBuilder.append(" ");
-            messageBuilder.append(roomName);
-        }
+
 
         // Build title
         StringBuilder titleBuilder = new StringBuilder();
         titleBuilder.append(messageBuilder.toString());
-        titleBuilder.append(renderContext.message("room.participation.titleSlot",
-                renderContext.formatInterval(roomNotifications.iterator().next().getInterval())));
+        titleBuilder.append(context.message("room.participation.titleSlot",
+                context.formatInterval(roomNotifications.iterator().next().getInterval())));
         if (totalCount > 1) {
-            titleBuilder.append(renderContext.message("room.participation.titleMore", totalCount - 1));
+            titleBuilder.append(context.message("room.participation.titleSlotMore", totalCount - 1));
         }
 
         // Build content
         StringBuilder contentBuilder = new StringBuilder();
-        contentBuilder.append(messageBuilder.toString());
-        contentBuilder.append(":");
-        contentBuilder.append("\n");
+        //contentBuilder.append(messageBuilder.toString());
+        //contentBuilder.append(":");
 
         // Build message
-        for (RoomNotification roomNotification : this.notifications) {
-            PersonParticipant personParticipant = roomNotification.getParticipant(recipient);
-            if (personParticipant == null) {
-                throw new RuntimeException(PersonParticipant.class.getSimpleName() + " doesn't exist for " + recipient);
+        for (RoomNotification roomNotification : roomNotifications) {
+            if (contentBuilder.length() > 0) {
+                contentBuilder.append("\n");
             }
-            ParticipantRole participantRole = personParticipant.getRole();
-            if (roomNotification instanceof RoomNotification.RoomCreated) {
-                String participantRolePrefix = getPrefixByRole(participantRole);
-                messageCode = participantRolePrefix + ".slot";
-                messageTypeCode = participantRolePrefix + ".created";
-            }
-            else {
-                messageCode = "room.participation.access.slot";
-                if (roomNotification instanceof RoomNotification.RoomDeleted) {
-                    messageTypeCode = "room.participation.access.deleted";
-                }
-                else {
-                    messageTypeCode = "room.participation.access.modified";
-                }
-            }
-
-            contentBuilder.append("\n* ");
-            contentBuilder.append(renderContext.message(messageCode,
-                    renderContext.formatInterval(roomNotification.getInterval()),
-                    renderContext.message(messageTypeCode)));
-            if (roomNotification instanceof RoomNotification.RoomModified) {
-                RoomNotification.RoomModified roomModified = (RoomNotification.RoomModified) roomNotification;
-                ParticipantRole oldParticipantRole = roomModified.getOldParticipant(recipient).getRole();
-                ParticipantRole newParticipantRole = roomModified.getParticipant(recipient).getRole();
-
-                contentBuilder.append(":");
-
-                String oldParticipantRolePrefix = getPrefixByRole(oldParticipantRole);
-                contentBuilder.append("\n  -");
-                contentBuilder.append(renderContext.message(oldParticipantRolePrefix + ".title",
-                        renderContext.message(oldParticipantRolePrefix + ".deleted")));
-
-                String newParticipantRolePrefix = getPrefixByRole(newParticipantRole);
-                contentBuilder.append("\n  -");
-                contentBuilder.append(renderContext.message(newParticipantRolePrefix + ".title",
-                        renderContext.message(newParticipantRolePrefix + ".created")));
-            }
+            contentBuilder.append("* ");
+            contentBuilder.append(renderNotification(recipient, roomNotification, context));
             contentBuilder.append("\n");
         }
 
-        return new NotificationMessage(renderContext.getLanguage(), titleBuilder.toString(), contentBuilder.toString());
+        // Add parameters
+        context.addParameter("description", description);
+        context.addParameter("notifications", contentBuilder.toString());
+        // Add parameters for not-deleted room
+        if (roomDeletedCount != totalCount) {
+            context.addParameter("pin", roomEndpoint.getPin());
+
+            // Room aliases
+            List<Alias> aliases = new LinkedList<Alias>();
+            for (Alias alias : roomEndpoint.getAliases()) {
+                aliases.add(alias);
+            }
+            Alias.sort(aliases);
+            context.addParameter("aliases", aliases);
+        }
+
+        // Render notification message
+        return renderTemplateMessage(context, titleBuilder.toString(), "room-group.ftl");
+    }
+
+    private String renderNotification(PersonInformation recipient, RoomNotification notification, RenderContext context)
+    {
+        StringBuilder outputBuilder = new StringBuilder();
+        StringBuilder recordsBuilder = new StringBuilder();
+
+        // Append output and records
+        if (notification instanceof RoomNotification.RoomCreated) {
+            ParticipantRole participantRole = notification.getParticipant(recipient).getRole();
+            String participantRolePrefix = getPrefixByRole(participantRole);
+            String messageCode = participantRolePrefix + ".item";
+            String messageTypeCode = participantRolePrefix + ".created";
+            outputBuilder.append(context.message(messageCode,
+                    context.formatInterval(notification.getInterval()),
+                    context.message(messageTypeCode)));
+        }
+        else if (notification instanceof RoomNotification.RoomDeleted) {
+            outputBuilder.append(context.message("room.participation.access.item",
+                    context.formatInterval(notification.getInterval()),
+                    context.message("room.participation.access.deleted")));
+        }
+        else if (notification instanceof RoomNotification.RoomModified) {
+            RoomNotification.RoomModified roomModified = (RoomNotification.RoomModified) notification;
+            boolean isRoomModified = roomModified.isRoomModified();
+            boolean isParticipantRoleModified = roomModified.isParticipantRoleModified(recipient);
+
+            // Append to output
+            String messageCode;
+            if (isRoomModified && isParticipantRoleModified) {
+                messageCode = "room.participation.modified.item.roomAndRole";
+            }
+            else if (isRoomModified) {
+                messageCode = "room.participation.modified.item.room";
+            }
+            else if (isParticipantRoleModified) {
+                messageCode = "room.participation.modified.item.role";
+            }
+            else {
+                throw new IllegalStateException();
+            }
+            Interval interval = notification.getInterval();
+            outputBuilder.append(context.message(messageCode, context.formatInterval(interval)));
+
+            // Append participant role modified records
+            if (isParticipantRoleModified) {
+                // Append old role disabled
+                ParticipantRole oldParticipantRole = roomModified.getOldParticipant(recipient).getRole();
+                String oldParticipantRolePrefix = getPrefixByRole(oldParticipantRole);
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(context.message(oldParticipantRolePrefix + ".modified",
+                        context.message(oldParticipantRolePrefix + ".deleted")));
+                recordsBuilder.append(".");
+
+                // Append new role enabled
+                ParticipantRole newParticipantRole = roomModified.getNewParticipant(recipient).getRole();
+                String newParticipantRolePrefix = getPrefixByRole(newParticipantRole);
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(context.message(newParticipantRolePrefix + ".modified",
+                        context.message(newParticipantRolePrefix + ".created")));
+                recordsBuilder.append(".");
+            }
+
+            // Append room modified records
+            if (isRoomModified) {
+                RoomEndpoint oldRoomEndpoint = roomModified.getOldRoomEndpoint();
+                RoomEndpoint newRoomEndpoint = roomModified.getNewRoomEndpoint();
+
+                Interval oldSlot = oldRoomEndpoint.getOriginalSlot();
+                Interval newSlot = newRoomEndpoint.getOriginalSlot();
+                if (!oldSlot.equals(newSlot)) {
+                    recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                    recordsBuilder.append(context.message("room.participation.modified.item.oldSlot",
+                            context.formatInterval(oldSlot)));
+                }
+            }
+        }
+
+        // Append slot before/after record
+        if (!(notification instanceof RoomNotification.RoomDeleted)) {
+            RoomEndpoint roomEndpoint = notification.getRoomEndpoint();
+            int slotMinutesBefore = roomEndpoint.getSlotMinutesBefore();
+            int slotMinutesAfter = roomEndpoint.getSlotMinutesAfter();
+            if (slotMinutesBefore > 0 && slotMinutesAfter > 0) {
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(
+                        context.message("room.slot.beforeAndAfter", slotMinutesBefore, slotMinutesAfter));
+            }
+            else if (slotMinutesBefore > 0) {
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(context.message("room.slot.before", slotMinutesBefore));
+            }
+            else if (slotMinutesAfter > 0) {
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(context.message("room.slot.after", slotMinutesAfter));
+            }
+        }
+
+        // Append description record
+        String participantNotification = notification.getRoomEndpoint().getParticipantNotification();
+        String participantNotificationLabel = context.message("room.description.item");
+        if (participantNotification != null && !participantNotification.equals(this.description)) {
+            recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+            recordsBuilder.append(participantNotificationLabel);
+            recordsBuilder.append(": ");
+            recordsBuilder.append(
+                    context.indentNextLines(5 + participantNotificationLabel.length(), participantNotification));
+        }
+
+        // Append records if not empty
+        if (recordsBuilder.length() > 0) {
+            outputBuilder.append(":");
+            outputBuilder.append(recordsBuilder);
+        }
+        else {
+            outputBuilder.append(".");
+        }
+
+        return outputBuilder.toString();
     }
 
     private String getPrefixByRole(ParticipantRole participantRole)
     {
         if (ParticipantRole.ADMINISTRATOR.equals(participantRole)) {
-            return  "room.participation.ADMINISTRATOR";
+            return "room.participation.ADMINISTRATOR";
         }
         else if (ParticipantRole.PRESENTER.equals(participantRole)) {
             return "room.participation.PRESENTER";
@@ -210,17 +359,6 @@ public class RoomGroupNotification extends ConfigurableNotification
             return "room.participation.access";
         }
 
-    }
-
-    private String getRoomName()
-    {
-        String roomName;
-        for (Alias alias : roomEndpoint.getAliases()) {
-            if (alias.getType().equals(AliasType.ROOM_NAME)) {
-                return alias.getValue();
-            }
-        }
-        return null;
     }
 
     @Override

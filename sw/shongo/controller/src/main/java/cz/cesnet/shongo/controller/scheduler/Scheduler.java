@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -127,7 +128,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             for (Reservation reservation : reservationsForDeletion) {
-                reservationNotifications.add(new ReservationNotification.Deleted(reservation, authorizationManager));
+                ReservationNotification.Deleted reservationNotificationDeleted =
+                        new ReservationNotification.Deleted(reservation, authorizationManager);
+                reservationNotifications.add(reservationNotificationDeleted);
                 reservation.setAllocation(null);
                 if (reservation.getSlotEnd().isAfter(start)) {
                     reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
@@ -379,6 +382,16 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
         else {
             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
+        }
+
+        // Prepare reservation request notification as the first notification for allocation
+        if (notificationManager != null) {
+            AbstractReservationRequest parentReservationRequest = reservationRequest;
+            Allocation parentAllocation = reservationRequest.getParentAllocation();
+            if (parentAllocation != null) {
+                parentReservationRequest = parentAllocation.getReservationRequest();
+            }
+            notificationManager.getReservationRequestNotification(parentReservationRequest, entityManager);
         }
 
         // Allocate reservation

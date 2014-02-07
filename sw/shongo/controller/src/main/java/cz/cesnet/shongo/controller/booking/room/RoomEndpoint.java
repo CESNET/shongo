@@ -21,6 +21,9 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
+import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.RoomAvailableNotification;
@@ -61,6 +64,11 @@ public abstract class RoomEndpoint extends Endpoint
      * Description of the room which can be displayed to the user.
      */
     private String roomDescription;
+
+    /**
+     * Temporary value of PIN.
+     */
+    private String tmpPin;
 
     /**
      * List of {@link cz.cesnet.shongo.controller.booking.participant.AbstractParticipant}s for the {@link RoomEndpoint}.
@@ -201,7 +209,7 @@ public abstract class RoomEndpoint extends Endpoint
 
     /**
      * @return true whether {@link #getParticipants()} should be notified about {@link RoomEndpoint},
-     *         false otherwise
+     * false otherwise
      */
     @Transient
     public boolean isParticipantNotificationEnabled()
@@ -259,6 +267,66 @@ public abstract class RoomEndpoint extends Endpoint
     public abstract String getRoomId();
 
     /**
+     * @return {@link #getSlot()} without {@link #slotMinutesBefore} and {@link #slotMinutesAfter} applied
+     */
+    @Transient
+    public Interval getOriginalSlot()
+    {
+        Interval slot = getSlot();
+        return new Interval(slot.getStart().plusMinutes(slotMinutesBefore),
+                slot.getEnd().minusMinutes(slotMinutesAfter));
+    }
+
+    @Transient
+    public String getPin()
+    {
+        if (tmpPin == null) {
+            RoomConfiguration roomConfiguration = getRoomConfiguration();
+            Set<Technology> technologies = roomConfiguration.getTechnologies();
+            if (technologies.contains(Technology.H323)) {
+                tmpPin = getPin(Technology.H323);
+            }
+            else if (technologies.contains(Technology.ADOBE_CONNECT)) {
+                tmpPin = getPin(Technology.ADOBE_CONNECT);
+            }
+            if (tmpPin == null) {
+                // Empty means no PIN
+                tmpPin = "";
+            }
+        }
+        if (!tmpPin.isEmpty()) {
+            return tmpPin;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Transient
+    public String getPin(Technology technology)
+    {
+        String pin = null;
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        Set<Technology> technologeis = roomConfiguration.getTechnologies();
+        for (RoomSetting setting : roomConfiguration.getRoomSettings()) {
+            if (setting instanceof H323RoomSetting && technologeis.contains(Technology.H323)) {
+                H323RoomSetting h323RoomSetting = (H323RoomSetting) setting;
+                if (h323RoomSetting.getPin() != null) {
+                    pin = h323RoomSetting.getPin();
+                }
+            }
+            else if (setting instanceof AdobeConnectRoomSetting && technologeis.contains(Technology.ADOBE_CONNECT)) {
+                AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) setting;
+                if (adobeConnectRoomSetting.getPin() != null) {
+                    pin = adobeConnectRoomSetting.getPin();
+                }
+            }
+        }
+        return pin;
+
+    }
+
+    /**
      * @param executableManager {@link ExecutableManager} which can be used
      * @return {@link cz.cesnet.shongo.api.Room} representing the current room for the {@link RoomEndpoint}
      */
@@ -314,10 +382,7 @@ public abstract class RoomEndpoint extends Endpoint
         abstractRoomExecutableApi.setDescription(roomDescription);
 
         // We must compute the original time slot
-        Interval slot = executableApi.getSlot();
-        slot = new Interval(slot.getStart().plusMinutes(slotMinutesBefore),
-                slot.getEnd().minusMinutes(slotMinutesAfter));
-        abstractRoomExecutableApi.setOriginalSlot(slot);
+        abstractRoomExecutableApi.setOriginalSlot(getOriginalSlot());
     }
 
     @Override
@@ -357,8 +422,7 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * @param roomApi  to be modified
      * @param executor to be used
-     * @throws cz.cesnet.shongo.controller.executor.ExecutionReportSet.RoomNotStartedException,
-     *          ExecutionReportSet.CommandFailedException
+     * @throws cz.cesnet.shongo.controller.executor.ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException
      */
     public abstract void modifyRoom(Room roomApi, Executor executor)
             throws ExecutionReportSet.RoomNotStartedException, ExecutionReportSet.CommandFailedException;
@@ -426,6 +490,8 @@ public abstract class RoomEndpoint extends Endpoint
     public void loadLazyProperties()
     {
         this.getAssignedAliases().size();
+        this.roomConfiguration.getTechnologies().size();
+        this.roomConfiguration.getRoomSettings().size();
         super.loadLazyProperties();
     }
 }

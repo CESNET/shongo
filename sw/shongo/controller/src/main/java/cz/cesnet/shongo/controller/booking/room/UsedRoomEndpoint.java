@@ -73,10 +73,11 @@ public class UsedRoomEndpoint extends RoomEndpoint
     /**
      * @return merged {@link RoomConfiguration} of {@link #roomConfiguration} and {@link #reusedRoomEndpoint#roomConfiguration}
      */
+    @Override
     @Transient
-    private RoomConfiguration getMergedRoomConfiguration()
+    public RoomConfiguration getRoomConfiguration()
     {
-        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        RoomConfiguration roomConfiguration = super.getRoomConfiguration();
         RoomConfiguration roomEndpointConfiguration = reusedRoomEndpoint.getRoomConfiguration();
         RoomConfiguration mergedRoomConfiguration = new RoomConfiguration();
         mergedRoomConfiguration.setLicenseCount(
@@ -132,7 +133,7 @@ public class UsedRoomEndpoint extends RoomEndpoint
 
         usedRoomExecutableEndpointApi.setReusedRoomExecutableId(ObjectIdentifier.formatId(reusedRoomEndpoint));
 
-        RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
         usedRoomExecutableEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());
         for (Technology technology : roomConfiguration.getTechnologies()) {
             usedRoomExecutableEndpointApi.addTechnology(technology);
@@ -296,7 +297,7 @@ public class UsedRoomEndpoint extends RoomEndpoint
 
         // Modify the room configuration (only when we aren't stopping the reused room)
         if (!isStopping) {
-            RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+            RoomConfiguration roomConfiguration = getRoomConfiguration();
             roomApi.setDescription(getRoomDescriptionApi());
             roomApi.setLicenseCount(roomConfiguration.getLicenseCount() + getEndpointServiceCount());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {

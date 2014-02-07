@@ -181,14 +181,26 @@ public abstract class AbstractNotification
      */
     protected final NotificationMessage renderTemplateMessage(RenderContext context, String title, String fileName)
     {
+        String content = renderTemplate(context, fileName);
+        return new NotificationMessage(context.getLanguage(), title, content);
+    }
+
+    /**
+     * Render template with given {@code fileName}.
+     *
+     * @param context  to be used for rendering
+     * @param fileName message template filename
+     * @return rendered {@link NotificationMessage}
+     */
+    protected final String renderTemplate(RenderContext context, String fileName)
+    {
         Map<String, Object> templateParameters = new HashMap<String, Object>();
         templateParameters.put("context", context);
         templateParameters.put("notification", this);
         for (Map.Entry<String, Object> parameter : context.getParameters().entrySet()) {
             templateParameters.put(parameter.getKey(), parameter.getValue());
         }
-        String content = renderTemplate(fileName, templateParameters);
-        return new NotificationMessage(context.getLanguage(), title, content);
+        return renderTemplate(fileName, templateParameters);
     }
 
     /**

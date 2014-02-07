@@ -182,6 +182,7 @@ public abstract class Target
                     technologies.add(technology);
                 }
             }
+            cz.cesnet.shongo.controller.booking.alias.Alias.sort(aliases);
         }
 
         public Set<Technology> getTechnologies()
@@ -327,6 +328,7 @@ public abstract class Target
                     aliases.add(alias);
                 }
             }
+            cz.cesnet.shongo.controller.booking.alias.Alias.sort(aliases);
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
                 RoomProviderCapability roomProviderCapability = resourceRoomEndpoint.getRoomProviderCapability();

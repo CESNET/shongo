@@ -216,7 +216,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
      * @param reservation for which the {@link AbstractReservationRequest} should be returned
      * @return {@link AbstractReservationRequest} for given {@code reservation}
      */
-    private static AbstractReservationRequest getReservationRequest(Reservation reservation)
+    public static AbstractReservationRequest getReservationRequest(Reservation reservation)
     {
         Allocation allocation = reservation.getAllocation();
         return (allocation != null ? allocation.getReservationRequest() : null);
@@ -245,6 +245,12 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
     public static class Deleted extends ReservationNotification
     {
+        public Deleted(Reservation reservation, AbstractReservationRequest reservationRequest,
+                AuthorizationManager authorizationManager)
+        {
+            super(reservation, reservationRequest, authorizationManager);
+        }
+
         public Deleted(Reservation reservation, AuthorizationManager authorizationManager)
         {
             super(reservation, getReservationRequest(reservation), authorizationManager);

@@ -76,14 +76,6 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
             return false;
         }
 
-        return true;
-    }
-
-    @Override
-    protected void onAfterAdded(NotificationManager notificationManager, EntityManager entityManager)
-    {
-        super.onAfterAdded(notificationManager, entityManager);
-
         // Group notifications for reservation request
         if (!(this instanceof ReservationRequestNotification)) {
             Long reservationRequestId = ObjectIdentifier.parseId(
@@ -91,34 +83,21 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
             if (reservationRequestId != null) {
                 // Get top reservation request
                 ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-                AbstractReservationRequest abstractReservationRequest =
-                        reservationRequestManager.get(reservationRequestId);
-                if (abstractReservationRequest instanceof ReservationRequest) {
-                    ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                    Allocation parentAllocation = reservationRequest.getParentAllocation();
+                AbstractReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+                if (reservationRequest instanceof ReservationRequest) {
+                    Allocation parentAllocation =
+                            ((ReservationRequest) reservationRequest).getParentAllocation();
                     if (parentAllocation != null) {
-                        AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
-                        if (parentReservationRequest != null) {
-                            abstractReservationRequest = parentReservationRequest;
-                        }
+                        reservationRequest = parentAllocation.getReservationRequest();
                     }
                 }
-
-                // Create or reuse reservation request notification
-                Long abstractReservationRequestId = abstractReservationRequest.getId();
-                ReservationRequestNotification reservationRequestNotification =
-                        notificationManager.reservationRequestNotificationsById.get(abstractReservationRequestId);
-                if (reservationRequestNotification == null) {
-                    AuthorizationManager authorizationManager = new AuthorizationManager(
-                            entityManager, notificationManager.getAuthorization());
-                    reservationRequestNotification =
-                            new ReservationRequestNotification(abstractReservationRequest, authorizationManager);
-                    notificationManager.addNotification(reservationRequestNotification, entityManager);
-                }
-
                 // Add reservation notification to reservation request notification
+                ReservationRequestNotification reservationRequestNotification =
+                        notificationManager.getReservationRequestNotification(reservationRequest, entityManager);
                 reservationRequestNotification.addNotification(this);
             }
         }
+
+        return true;
     }
 }

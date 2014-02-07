@@ -156,15 +156,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 4x user: changes(allocation-failed), changes (new), changes (deleted, new), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(AllocationFailedNotification.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
-                add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
             }}, getNotificationTypes());
     }
 
@@ -228,6 +228,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 2x user: changes (new), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(AllocationFailedNotification.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
@@ -237,7 +238,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
             }}, getNotificationTypes());
     }
 
@@ -283,13 +283,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 3x user: changes (new), changes (deleted, new), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
-                add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
             }}, getNotificationTypes());
     }
 
@@ -340,10 +340,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 2x user: changes (new), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
             }}, getNotificationTypes());
     }
 
@@ -385,10 +385,10 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 2x user: changes (new), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
             }}, getNotificationTypes());
     }
 
@@ -430,6 +430,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 4x user: changes (new), changes (new), changes (deleted), changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.New.class);
@@ -437,7 +438,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
             }}, getNotificationTypes());
     }
 
@@ -475,8 +475,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 1x user: changes (allocation-failed, new, new)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
-                add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
                 add(ReservationNotification.New.class);
                 add(AllocationFailedNotification.class);
             }}, getNotificationTypes());
@@ -491,8 +491,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // 1x user: changes (deleted)
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
-                add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
             }}, getNotificationTypes());
     }
 
@@ -507,20 +507,23 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
         mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("Room Reservation Request");
+        reservationRequest.setDescription("Room Reservation Request\nTest multiline");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
         roomAvailability.setParticipantCount(5);
         roomAvailability.setParticipantNotificationEnabled(true);
+        roomAvailability.setSlotMinutesBefore(10);
+        roomAvailability.setSlotMinutesAfter(2);
         roomSpecification.addParticipant(new PersonParticipant(
                 "Martin Srom", "srom@cesnet.cz", ParticipantRole.ADMINISTRATOR));
         roomSpecification.addParticipant(new PersonParticipant(
@@ -540,6 +543,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         executeNotifications();
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
@@ -550,6 +554,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
                 // Create room
+                add(ReservationRequestNotification.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
                 add(RoomGroupNotification.class);
@@ -557,23 +562,22 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
                 add(ReservationNotification.New.class);
-                add(ReservationRequestNotification.class);
                 // Modify executable participants
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
                 //Modify room
-                add(RoomGroupNotification.class);
-                add(RoomNotification.RoomModified.class);
-                add(RoomGroupNotification.class);
-                add(RoomNotification.RoomModified.class);
-                add(RoomGroupNotification.class);
-                add(RoomNotification.RoomModified.class);
-                // Delete room
-                add(ReservationNotification.Deleted.class);
                 add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
+                add(RoomNotification.RoomModified.class);
+                add(ReservationNotification.Deleted.class);
                 add(ReservationNotification.New.class);
-                add(ReservationNotification.Deleted.class);
+                // Delete room
                 add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
                 add(RoomGroupNotification.class);
                 add(RoomNotification.RoomDeleted.class);
                 add(RoomGroupNotification.class);
@@ -596,7 +600,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         mcu.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -609,7 +614,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         permanentRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification permanentRoomSpecification = new RoomSpecification(Technology.H323);
-        permanentRoomSpecification.addParticipant(new PersonParticipant("Martin Srom", "srom@cesnet.cz"));
+        permanentRoomSpecification.addParticipant(
+                new PersonParticipant("Martin Srom", "srom@cesnet.cz", ParticipantRole.ADMINISTRATOR));
         permanentRoomReservationRequest.setSpecification(permanentRoomSpecification);
         permanentRoomReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         String permanentRoomReservationRequestId = allocate(permanentRoomReservationRequest);
@@ -619,7 +625,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // Create Capacity 1 with Capacity Participant 1
         ReservationRequest firstCapacityReservationRequest = new ReservationRequest();
-        firstCapacityReservationRequest.setDescription("Capacity Reservation Request");
+        firstCapacityReservationRequest.setDescription("Capacity Reservation Request 1");
         firstCapacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         firstCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
@@ -636,7 +642,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // Create Capacity 2 without participants
         ReservationRequest secondCapacityReservationRequest = new ReservationRequest();
-        secondCapacityReservationRequest.setDescription("Capacity Reservation Request");
+        secondCapacityReservationRequest.setDescription("Capacity Reservation Request 2");
         secondCapacityReservationRequest.setSlot("2012-01-01T14:00", "PT1H");
         secondCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         secondCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
@@ -655,7 +661,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // Add Permanent Participant 2 (should be notified about both capacities)
         RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();
-        permanentRoomParticipants.addParticipant(new PersonParticipant("Jan Ruzicka", "janru@cesnet.cz"));
+        permanentRoomParticipants.addParticipant(
+                new PersonParticipant("Jan Ruzicka", "janru@cesnet.cz", ParticipantRole.PRESENTER));
         executableService.modifyExecutableConfiguration(SECURITY_TOKEN, permanentRoomId, permanentRoomParticipants);
         executeNotifications();
 
@@ -671,11 +678,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         PersonInformation permanentParticipant1 =
                 checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
                         RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
+                RoomNotification.RoomCreated.class, permanentParticipant1, secondCapacityId);
         PersonInformation capacityParticipant1 =
                 checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
                         RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
-        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RoomNotification.RoomCreated.class, permanentParticipant1, secondCapacityId);
         PersonInformation permanentParticipant2 =
                 checkNotification(notificationRecords, "Permanent Participant 2 - Capacity 1",
                         RoomNotification.RoomCreated.class, null, firstCapacityId).getRecipient();
@@ -716,17 +723,19 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 secondCapacityReservationRequest.getLastReservation(getReservationService(), SECURITY_TOKEN);
         secondCapacity = (AbstractRoomExecutable) secondCapacityReservation.getExecutable();
         String newSecondCapacityId = secondCapacity.getId();
+        executeNotifications();
 
         // Check modified and deleted notifications
         notificationRecords = getNotificationRecords(RoomNotification.class);
         permanentParticipant1 = checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
                 RoomNotification.RoomModified.class, null, newFirstCapacityId).getRecipient();
+        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
+                RoomNotification.RoomModified.class, permanentParticipant1, newSecondCapacityId);
         capacityParticipant1 = checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
                 RoomNotification.RoomModified.class, null, newFirstCapacityId).getRecipient();
         checkNotification(notificationRecords, "Capacity Participant 2 - Capacity 1",
                 RoomNotification.RoomDeleted.class, capacityParticipant2, firstCapacityId);
-        checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
-                RoomNotification.RoomModified.class, permanentParticipant1, newSecondCapacityId);
+
         clearNotificationRecords();
 
         // Delete all
@@ -734,15 +743,16 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, secondCapacityReservationRequestId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
         runScheduler();
+        executeNotifications();
 
         // Check deleted reservation requests
         notificationRecords = getNotificationRecords(RoomNotification.class);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 1",
                 RoomNotification.RoomDeleted.class, permanentParticipant1, newFirstCapacityId);
-        checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
-                RoomNotification.RoomDeleted.class, capacityParticipant1, newFirstCapacityId);
         checkNotification(notificationRecords, "Permanent Participant 1 - Capacity 2",
                 RoomNotification.RoomDeleted.class, permanentParticipant1, newSecondCapacityId);
+        checkNotification(notificationRecords, "Capacity Participant 1 - Capacity 1",
+                RoomNotification.RoomDeleted.class, capacityParticipant1, newFirstCapacityId);
         clearNotificationRecords();
     }
 
@@ -759,14 +769,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164}));
+        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create room
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("Room Reservation Request");
+        reservationRequest.setDescription("Room Reservation Request\nTest multiline");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
@@ -799,15 +810,32 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
+                // Create
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomCreated.class);
+                // Execute
                 add(RoomAvailableNotification.class);
                 add(RoomAvailableNotification.class);
+                // Modify
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                // Modify
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomModified.class);
+                // Delete
+                add(ReservationRequestNotification.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomDeleted.class);
+                add(RoomGroupNotification.class);
                 add(RoomNotification.RoomDeleted.class);
             }}, getNotificationTypes(AbstractNotification.class));
     }
@@ -899,13 +927,14 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 NotificationManager manager, EntityManager entityManager)
         {
             NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
+            if (notification instanceof RoomGroupNotification)
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
             notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
             if (notification instanceof RoomGroupNotification) {
                 RoomGroupNotification roomGroupNotification = (RoomGroupNotification) notification;
-                for (RoomNotification roomNotification : roomGroupNotification.getNotifications()) {
+                for (RoomNotification roomNotification : roomGroupNotification.getNotifications(recipient)) {
                     notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, roomNotification));
                 }
             }

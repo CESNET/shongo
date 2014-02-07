@@ -306,23 +306,9 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         RecordingSettings recordingSettings = new RecordingSettings();
         if (recordableEndpoint instanceof RoomEndpoint) {
             RoomEndpoint roomEndpoint = (RoomEndpoint) recordableEndpoint;
-            RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
-            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-                Technology technology = alias.getTechnology();
-                if (roomSetting instanceof AdobeConnectRoomSetting && technology.equals(Technology.ADOBE_CONNECT)) {
-                    AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
-                    String pin = adobeConnectRoomSetting.getPin();
-                    if (pin != null) {
-                        recordingSettings.setPin(pin);
-                    }
-                }
-                else if (roomSetting instanceof H323RoomSetting && technology.equals(Technology.H323)) {
-                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
-                    String pin = h323RoomSetting.getPin();
-                    if (pin != null) {
-                        recordingSettings.setPin(pin);
-                    }
-                }
+            String pin = roomEndpoint.getPin(alias.getTechnology());
+            if (pin != null) {
+                recordingSettings.setPin(pin);
             }
         }
         return recordingSettings;

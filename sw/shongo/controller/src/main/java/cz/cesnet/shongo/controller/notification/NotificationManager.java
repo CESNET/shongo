@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
@@ -239,5 +240,25 @@ public class NotificationManager extends Component implements Component.Authoriz
         else {
             return null;
         }
+    }
+
+    /**
+     * @param reservationRequest
+     * @param entityManager
+     * @return {@link ReservationRequestNotification} for given {@code reservationRequest}
+     */
+    public ReservationRequestNotification getReservationRequestNotification(
+            AbstractReservationRequest reservationRequest, EntityManager entityManager)
+    {
+        Long abstractReservationRequestId = reservationRequest.getId();
+        ReservationRequestNotification reservationRequestNotification =
+                reservationRequestNotificationsById.get(abstractReservationRequestId);
+        if (reservationRequestNotification == null) {
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, getAuthorization());
+            reservationRequestNotification =
+                    new ReservationRequestNotification(reservationRequest, authorizationManager);
+            addNotification(reservationRequestNotification, entityManager);
+        }
+        return reservationRequestNotification;
     }
 }
