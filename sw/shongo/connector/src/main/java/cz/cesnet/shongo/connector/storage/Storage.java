@@ -91,6 +91,14 @@ public interface Storage
     String getFileDownloadableUrl(String folderId, String fileName);
 
     /**
+     * Test if file already exists.
+     *
+     * @param file file to be tested
+     * @return {@value true} if file exists, {@value false} otherwise
+     */
+    public boolean fileExists(File file);
+
+    /**
      * Represents information about a single folder in the storage.
      */
     class Folder

@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -284,7 +285,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
+        if (recordingFolderId.isEmpty()) {
+            throw new IllegalArgumentException("deleteRecordingFolder() argument recordingFolderId cannot be empty.");
+        }
         synchronized (CiscoTCSConnector.class) {
+            storage.deleteFolder(recordingFolderId);
+
             // Stop moving recordings and delete them
             for (Recording recording : recordingsToMove) {
                 if (!recordingFolderId.equals(recording.getRecordingFolderId())) {
@@ -303,11 +309,9 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
             // Delete original recordings
             for (Recording recording : getRecordingsByName(recordingFolderId)) {
+                System.out.println("MAZU NAHRAVKY: " + recording);
                 deleteOriginalRecording(recording.getId());
             }
-
-
-            storage.deleteFolder(recordingFolderId);
         }
     }
 
@@ -562,7 +566,41 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             file.setFolderId(recordingFolderId);
 
             // recording
+//            if (!storage.fileExists(file)) {
             storage.createFile(file, new URL(recording.getDownloadableUrl()).openStream());
+/*            } else {
+
+                new Storage.ResumeSupport()
+                {
+                    @Override
+                    public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
+                    {
+                        ByteBufferInputStream inputStream = new ByteBufferInputStream(fileData);
+                        long skipped = inputStream.skip(offset);
+                        inputStream.setCloseAfterBytes(size / 5);
+                        if (skipped != offset) {
+                            throw new RuntimeException("Cannot skip " + offset + ", only skipped " + skipped + ".");
+                        }
+                        return inputStream;
+                    }
+                });
+
+
+                URL url = new URL(recording.getDownloadableUrl());
+
+                URLConnection connection = url.openConnection();
+                File fileThatExists = new File(path);
+                OutputStream output = new FileOutputStream(path, true);
+                connection.setRequestProperty("Range", "bytes=" + fileThatExists.length() + "-");
+
+                connection.connect();
+
+                int lenghtOfFile = connection.getContentLength();
+
+                InputStream input = new BufferedInputStream(url.openStream());
+
+                storage.createFile(file,input);
+            }     */
 
             // delete existing and create new metadata file
             try {
