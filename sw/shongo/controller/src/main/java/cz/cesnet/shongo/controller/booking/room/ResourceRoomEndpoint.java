@@ -110,7 +110,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     }
 
     @ElementCollection
-    @Column(name = "recording_folder_id")
+    @Column(name = "recording_folder_id", nullable = false)
     @MapKeyJoinColumn(name = "recording_capability_id")
     @Access(AccessType.FIELD)
     @Override

@@ -5,7 +5,7 @@ CREATE TABLE recording_capability (license_count INT4, id INT8 NOT NULL, PRIMARY
 ALTER TABLE recording_capability ADD CONSTRAINT FK1FEC8C268206B069 FOREIGN KEY (id) REFERENCES device_capability;
 
 /* Create resource_room_endpoint_recording_folder_ids */
-CREATE TABLE resource_room_endpoint_recording_folder_ids (resource_room_endpoint_id int8 NOT NULL, recording_folder_id VARCHAR(255), recording_capability_id int8 NOT NULL, PRIMARY KEY (resource_room_endpoint_id, recording_capability_id));
+CREATE TABLE resource_room_endpoint_recording_folder_ids (resource_room_endpoint_id int8 NOT NULL, recording_folder_id VARCHAR(255) NOT NULL, recording_capability_id int8 NOT NULL, PRIMARY KEY (resource_room_endpoint_id, recording_capability_id));
 ALTER TABLE resource_room_endpoint_recording_folder_ids ADD CONSTRAINT FKCF0984C1815AF60 FOREIGN KEY (recording_capability_id) REFERENCES recording_capability;
 ALTER TABLE resource_room_endpoint_recording_folder_ids ADD CONSTRAINT FKCF0984CA35D7203 FOREIGN KEY (resource_room_endpoint_id) REFERENCES resource_room_endpoint;
 
