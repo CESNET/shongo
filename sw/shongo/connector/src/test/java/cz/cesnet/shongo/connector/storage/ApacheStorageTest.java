@@ -3,12 +3,19 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import junit.framework.Assert;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -25,7 +32,7 @@ public class ApacheStorageTest
 
     private static final String URL = "TMP";
     //private static final String URL = "/media/test";
-    private static final String DOWNLOADABL_URL_BASE = "https://shongo-auth-dev.cesnet.cz/tcs/";
+    private static final String DOWNLOADABLE_URL_BASE = "https://shongo-auth-dev.cesnet.cz/tcs/";
 
     private AbstractStorage storage;
 
@@ -41,7 +48,7 @@ public class ApacheStorageTest
         }
         ApacheStorage.deleteContentRecursive(new File(rootFolderUrl));
 
-        storage = new ApacheStorage(rootFolderUrl, DOWNLOADABL_URL_BASE, new AbstractStorage.UserInformationProvider()
+        storage = new ApacheStorage(rootFolderUrl, DOWNLOADABLE_URL_BASE, new AbstractStorage.UserInformationProvider()
         {
             @Override
             public UserInformation getUserInformation(String userId)
@@ -148,6 +155,32 @@ public class ApacheStorageTest
             position += 1024;
         }
     }
+
+    /*@Test
+    public void testConnectionResetHttp() throws Exception
+    {
+        final String fileName = "http://195.113.151.184/large_file";
+        final HttpClient httpClient = new DefaultHttpClient();
+
+        HttpGet request = new HttpGet(fileName);
+        HttpContext context = new BasicHttpContext();
+        HttpResponse response = httpClient.execute(request, context);
+        InputStream inputStream = response.getEntity().getContent();
+        storage.createFile(new Storage.File(null, "test"), inputStream, new Storage.ResumeSupport()
+        {
+            @Override
+            public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
+            {
+                JOptionPane.showMessageDialog(null, "Trying to resume file...");
+
+                HttpGet request = new HttpGet(fileName);
+                request.setHeader("Range", "bytes=" + offset + "-");
+                HttpContext context = new BasicHttpContext();
+                HttpResponse response = httpClient.execute(request, context);
+                return response.getEntity().getContent();
+            }
+        });
+    }*/
 
     private boolean fileExists(String fileName)
     {

@@ -23,6 +23,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -138,6 +139,11 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      * Storage unit for recordings
      */
     private AbstractStorage storage;
+
+    /**
+     * @see org.apache.http.client.HttpClient
+     */
+    HttpClient lHttpClient = new DefaultHttpClient();
 
     /**
      * Concurrent list of recordings to be moved to storage.
@@ -565,42 +571,23 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             file.setFileName(recording.getFileName());
             file.setFolderId(recordingFolderId);
 
-            // recording
-//            if (!storage.fileExists(file)) {
-            storage.createFile(file, new URL(recording.getDownloadableUrl()).openStream());
-/*            } else {
-
-                new Storage.ResumeSupport()
+            // create recording file
+            final String recordingUrl = recording.getDownloadableUrl();
+            HttpGet request = new HttpGet(recordingUrl);
+            HttpResponse response = lHttpClient.execute(request);
+            InputStream inputStream = response.getEntity().getContent();
+            storage.createFile(file, inputStream, new Storage.ResumeSupport()
+            {
+                @Override
+                public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
                 {
-                    @Override
-                    public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
-                    {
-                        ByteBufferInputStream inputStream = new ByteBufferInputStream(fileData);
-                        long skipped = inputStream.skip(offset);
-                        inputStream.setCloseAfterBytes(size / 5);
-                        if (skipped != offset) {
-                            throw new RuntimeException("Cannot skip " + offset + ", only skipped " + skipped + ".");
-                        }
-                        return inputStream;
-                    }
-                });
-
-
-                URL url = new URL(recording.getDownloadableUrl());
-
-                URLConnection connection = url.openConnection();
-                File fileThatExists = new File(path);
-                OutputStream output = new FileOutputStream(path, true);
-                connection.setRequestProperty("Range", "bytes=" + fileThatExists.length() + "-");
-
-                connection.connect();
-
-                int lenghtOfFile = connection.getContentLength();
-
-                InputStream input = new BufferedInputStream(url.openStream());
-
-                storage.createFile(file,input);
-            }     */
+                    // resume input stream for recording data at given offset
+                    HttpGet request = new HttpGet(recordingUrl);
+                    request.setHeader("Range", "bytes=" + offset + "-");
+                    HttpResponse response = lHttpClient.execute(request);
+                    return response.getEntity().getContent();
+                }
+            });
 
             // delete existing and create new metadata file
             try {
@@ -706,8 +693,6 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                 logger.debug(String.format("%s issuing command '%s' on %s",
                         CiscoTCSConnector.class, command.getCommand(), this.info.getDeviceAddress()));
-
-                HttpClient lHttpClient = new DefaultHttpClient();
 
                 final ContextAwareAuthScheme md5Auth = new DigestScheme();
 

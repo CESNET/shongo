@@ -161,7 +161,9 @@ public class ApacheStorage extends AbstractStorage
             throw new RuntimeException("File '" + fileUrl + "' already exists.");
         }
 
-        filesToBeCreated.put(file.getFileName(),file.getFolderId());
+        if (file.getFolderId() != null) {
+            filesToBeCreated.put(file.getFileName(),file.getFolderId());
+        }
 
         try {
             int fileContentIndex = 0;
@@ -183,22 +185,27 @@ public class ApacheStorage extends AbstractStorage
                             throw exception;
                         }
 
-                        // Reopen file content stream
-                        try {
-                            fileContent = resumeSupport.reopenInputStream(fileContent, fileContentIndex);
-                        }
-                        catch (Exception resumeException) {
-                            throw new RuntimeException("Reopening input stream failed for creation of file " +
-                                    getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ".", resumeException);
-                        }
-                        logger.warn("Reading data failed at " + fileContentIndex + " for creation of file " +
-                                getUrlFromId(file.getFolderId()) + "/" + file.getFileName() +
-                                ", resuming...", exception);
+                        String message = "Creation of file " +
+                                getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ": ";
+                        logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
+
+                        // Wait before resuming
                         try {
                             Thread.sleep(BEFORE_RESUME_SLEEP);
                         }
                         catch (InterruptedException sleepException) {
                             logger.warn("Thread.sleep", sleepException);
+                        }
+
+                        // Reopen file content stream
+                        logger.info(message + "Trying to resume the reading the data at {}...", fileContentIndex);
+                        try {
+                            fileContent = resumeSupport.reopenInputStream(fileContent, fileContentIndex);
+                            logger.info(message + "Resume succeeded, continuing in file creation...");
+                        }
+                        catch (Exception resumeException) {
+                            throw new RuntimeException("Reopening input stream failed for creation of file " +
+                                    getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ".", resumeException);
                         }
                     }
                     catch (Exception exception) {
