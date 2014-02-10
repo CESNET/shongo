@@ -161,7 +161,18 @@ public abstract class ExecutableService extends ExecutionTarget
      */
     public final void check(Executor executor, ExecutableManager executableManager)
     {
-       onCheck(executor, executableManager);
+        onCheck(executor, executableManager);
+    }
+
+    /**
+     * @param executableService which can be used as migration source for this {@link ExecutableService}.
+     *                          Only instances of the same class as this {@link ExecutableService} will be passed here.
+     * @return true whether migration was successful,
+     *         false if the migration cannot be made
+     */
+    public boolean migrate(ExecutableService executableService)
+    {
+        return false;
     }
 
     /**

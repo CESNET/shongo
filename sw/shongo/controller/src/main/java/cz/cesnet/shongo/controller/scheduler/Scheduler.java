@@ -101,6 +101,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         cz.cesnet.shongo.util.Timer timer = new cz.cesnet.shongo.util.Timer();
         timer.start();
 
+        DateTime start = interval.getStart();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -128,10 +129,10 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             for (Reservation reservation : reservationsForDeletion) {
                 reservationNotifications.add(new ReservationNotification.Deleted(reservation, authorizationManager));
                 reservation.setAllocation(null);
-                if (reservation.getSlotEnd().isAfter(interval.getStart())) {
+                if (reservation.getSlotEnd().isAfter(start)) {
                     reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));
                 }
-                reservationManager.delete(reservation, authorizationManager);
+                reservationManager.delete(reservation, start, authorizationManager);
                 result.deletedReservations++;
             }
 
@@ -184,7 +185,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     reservationRequest = reservationRequestManager.getReservationRequest(reservationRequest.getId());
 
                     // Allocate reservation request
-                    DateTime start = interval.getStart();
                     SchedulerContext context = new SchedulerContext(start, cache, entityManager, authorizationManager);
                     SchedulerContextState contextState = context.getState();
                     allocateReservationRequest(reservationRequest, context);

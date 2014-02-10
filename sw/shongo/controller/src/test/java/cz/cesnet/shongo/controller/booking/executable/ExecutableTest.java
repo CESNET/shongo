@@ -871,10 +871,10 @@ public class ExecutableTest extends AbstractExecutorTest
         // Delete reservation request and the reservation
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
         // Run scheduler to modify room ending date/time
-        runScheduler();
+        runScheduler(dateTime.plusHours(1));
 
         // Stop compartment
-        result = runExecutor(DateTime.now());
+        result = runExecutor(dateTime.plusHours(1));
         Assert.assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents

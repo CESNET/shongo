@@ -318,7 +318,7 @@ public class SchedulerContext
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (Reservation reservation : state.getReservationsToDelete()) {
-            reservationManager.delete(reservation, authorizationManager);
+            reservationManager.delete(reservation, minimumDateTime, authorizationManager);
         }
         return state.getNotifications();
     }

@@ -229,7 +229,7 @@ public abstract class Executable extends ExecutionTarget
     @Access(AccessType.FIELD)
     public List<ExecutableService> getServices()
     {
-        return services;
+        return Collections.unmodifiableList(services);
     }
 
     /**

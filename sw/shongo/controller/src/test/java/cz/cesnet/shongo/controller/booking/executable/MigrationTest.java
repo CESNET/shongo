@@ -170,7 +170,7 @@ public class MigrationTest extends AbstractExecutorTest
         Assert.assertEquals(mcuPersistenceId, room2.getResource().getId());
         Assert.assertEquals(7, room2.getLicenseCount());
 
-        // Start recording
+        // Start recording (it is already started)
         getExecutableService().activateExecutableService(SECURITY_TOKEN, executableId, recordingServiceId);
 
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
@@ -180,7 +180,6 @@ public class MigrationTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 

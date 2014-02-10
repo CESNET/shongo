@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.TechnologySet;
@@ -272,6 +273,23 @@ public class RoomReservationTask extends ReservationTask
         Executable newExecutable = newReservation.getExecutable();
         if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
             newExecutable.setMigrateFromExecutable(oldExecutable);
+        }
+
+        // Migrate services
+        List<ExecutableService> newExecutableServices = new LinkedList<ExecutableService>(newExecutable.getServices());
+        for (ExecutableService oldExecutableService : oldExecutable.getServices()) {
+            oldExecutableService = PersistentObject.getLazyImplementation(oldExecutableService);
+            if (!oldExecutableService.isActive()) {
+                continue;
+            }
+            for (ExecutableService newExecutableService : newExecutableServices) {
+                if (oldExecutableService.getClass().equals(newExecutableService.getClass())) {
+                    if (newExecutableService.migrate(oldExecutableService)) {
+                        newExecutableServices.remove(newExecutableService);
+                        break;
+                    }
+                }
+            }
         }
         super.migrateReservation(oldReservation, newReservation);
     }

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
@@ -281,6 +282,22 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                 }
             }
         }
+    }
+
+    @Override
+    public boolean migrate(ExecutableService executableService)
+    {
+        RecordingService recordingService = (RecordingService) executableService;
+        if (!this.recordingCapability.getId().equals(recordingService.recordingCapability.getId())) {
+            return false;
+        }
+        if (!recordingService.isActive()) {
+            return false;
+        }
+        this.setRecordingId(recordingService.getRecordingId());
+        this.setState(recordingService.getState());
+        recordingService.setState(State.NOT_ACTIVE);
+        return true;
     }
 
     @Transient

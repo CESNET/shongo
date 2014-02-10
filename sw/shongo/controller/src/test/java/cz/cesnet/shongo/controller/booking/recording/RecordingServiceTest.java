@@ -220,7 +220,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
 
-        // Check performed actions on MCS
+        // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
@@ -389,6 +389,117 @@ public class RecordingServiceTest extends AbstractExecutorTest
     }
 
     /**
+     * Test modification of room when it has started allocated recording.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testModifyRoomWithActiveAllocatedRecording() throws Exception
+    {
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
+        TcsTestAgent tcsAgent = getController().addJadeAgent("tcs", new TcsTestAgent());
+
+        DateTime dateTime = DateTime.now();
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164}));
+        mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        DeviceResource tcs = new DeviceResource();
+        tcs.setName("tcs");
+        tcs.addTechnology(Technology.H323);
+        tcs.addTechnology(Technology.SIP);
+        tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(2));
+        tcs.setAllocatable(true);
+        tcs.setMode(new ManagedMode(tcsAgent.getName()));
+        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
+
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot(dateTime, Period.hours(2));
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        RoomEstablishment roomEstablishment = roomSpecification.createEstablishment();
+        roomEstablishment.addTechnology(Technology.H323);
+        roomEstablishment.addTechnology(Technology.SIP);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setParticipantCount(5);
+        roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
+        roomReservationRequest.setSpecification(roomSpecification);
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
+        RoomExecutable roomExecutable = (RoomExecutable) roomReservation.getExecutable();
+        String roomExecutableId = roomExecutable.getId();
+
+        // Check execution
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("One executable service should be activated.",
+                1, result.getActivatedExecutableServices().size());
+
+        roomReservationRequest = getReservationRequest(roomReservationRequestId, ReservationRequest.class);
+        roomReservationRequestId = allocate(roomReservationRequest, dateTime.plusHours(1));
+        checkAllocated(roomReservationRequestId);
+
+        // Check execution
+        result = runExecutor(dateTime.plusHours(1));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable should be started.",
+                1, result.getStartedExecutables().size());
+        Assert.assertEquals("No executable service should be stopped.",
+                0, result.getActivatedExecutableServices().size());
+        Assert.assertEquals("No executable service should be stopped.",
+                0, result.getDeactivatedExecutableServices().size());
+
+        // Delete reservation request
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
+        runScheduler(dateTime.plusHours(2));
+
+        // Stop recording and delete room
+        result = runExecutor(dateTime.plusHours(2));
+        Assert.assertEquals("One executable should be stopped.",
+                1, result.getStoppedExecutables().size());
+        Assert.assertEquals("One executable service should be stopped.",
+                1, result.getDeactivatedExecutableServices().size());
+
+        // Check performed actions on MCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedCommandClasses());
+        Assert.assertEquals(5, mcuAgent.getPerformedCommand(0,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(6, mcuAgent.getPerformedCommand(2,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+        Assert.assertEquals(5, mcuAgent.getPerformedCommand(3,
+                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+
+        // Check performed actions on TCS
+        Assert.assertEquals(new ArrayList<Class<? extends Command>>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
+            }}, tcsAgent.getPerformedCommandClasses());
+    }
+
+    /**
      * Test stopping of automatic {@link RecordingService} when {@link ReservationRequest} for {@link RoomExecutable}
      * is deleted before end of time slot.
      *
@@ -433,17 +544,17 @@ public class RecordingServiceTest extends AbstractExecutorTest
 
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
-        runScheduler();
+        runScheduler(dateTime.plusHours(1));
 
         // Stop recording and delete room
-        result = runExecutor(dateTime.plusMinutes(60));
+        result = runExecutor(dateTime.plusHours(1));
         Assert.assertEquals("One executable should be stopped.",
                 1, result.getStoppedExecutables().size());
         Assert.assertEquals("One executable service should be stopped.",
                 1, result.getDeactivatedExecutableServices().size());
 
         // Finalize
-        runExecutor(dateTime.plusMinutes(60));
+        runExecutor(dateTime.plusHours(2));
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
@@ -506,17 +617,17 @@ public class RecordingServiceTest extends AbstractExecutorTest
 
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
-        runScheduler();
+        runScheduler(dateTime.plusHours(1));
 
         // Stop recording and delete room
-        result = runExecutor(dateTime.plusMinutes(60));
+        result = runExecutor(dateTime.plusHours(1));
         Assert.assertEquals("One executable should be stopped.",
                 1, result.getStoppedExecutables().size());
         Assert.assertEquals("One executable service should be stopped.",
                 1, result.getDeactivatedExecutableServices().size());
 
         // Finalize
-        runExecutor(dateTime.plusMinutes(60));
+        runExecutor(dateTime.plusHours(2));
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()

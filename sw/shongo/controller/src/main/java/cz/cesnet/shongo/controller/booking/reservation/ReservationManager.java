@@ -61,9 +61,9 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param reservation to be deleted in the database
-     * @return collection of {@link AbstractNotification}s
+     * @param dateTime    representing now
      */
-    public synchronized void delete(Reservation reservation,
+    public synchronized void delete(Reservation reservation, DateTime dateTime,
             AuthorizationManager authorizationManager)
     {
         // Get all reservations
@@ -80,10 +80,8 @@ public class ReservationManager extends AbstractManager
             authorizationManager.deleteAclEntriesForEntity(reservationToDelete);
         }
 
-        // Date/time now for stopping executables
-        DateTime dateTimeNow = Temporal.nowRounded();
         // Stop all executables
-        stopReservationExecutables(reservation, dateTimeNow);
+        stopReservationExecutables(reservation, dateTime);
 
         // Delete all reservations
         for (Reservation reservationToDelete : reservationsToDelete) {
@@ -123,8 +121,7 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException
-     *          when the {@link Reservation} doesn't exist
+     * @throws cz.cesnet.shongo.CommonReportSet.ObjectNotExistsException when the {@link Reservation} doesn't exist
      */
     public Reservation get(Long reservationId) throws CommonReportSet.ObjectNotExistsException
     {
@@ -298,7 +295,7 @@ public class ReservationManager extends AbstractManager
     /**
      * @param allocation to be checked if it is reused by any {@link ReservationRequest}
      * @return true if given {@code allocation} is reused by any {@link ReservationRequest},
-     *         false otherwise
+     * false otherwise
      */
     public boolean isAllocationReused(Allocation allocation)
     {
