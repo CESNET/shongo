@@ -272,7 +272,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         }
 
         @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException
         {
             checkDisabled();
             performedCommands.add(command);
@@ -292,7 +292,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         private Map<String, Room> rooms = new HashMap<String, Room>();
 
         @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException
         {
             Object result = super.handleCommand(command, sender);
             if (command instanceof CreateRoom) {
@@ -329,7 +329,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         Map<Alias, String> activeRecordingIdByAlias = new HashMap<Alias, String>();
 
         @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException
         {
             Object result = super.handleCommand(command, sender);
             if (command instanceof CreateRecordingFolder) {
@@ -409,7 +409,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
         private Map<String, Room> rooms = new HashMap<String, Room>();
 
         @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException
         {
             Object result = super.handleCommand(command, sender);
             if (command instanceof CreateRoom) {

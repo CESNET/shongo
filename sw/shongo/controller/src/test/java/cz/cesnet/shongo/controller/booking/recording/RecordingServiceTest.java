@@ -453,9 +453,9 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 1, result.getStoppedExecutables().size());
         Assert.assertEquals("One executable should be started.",
                 1, result.getStartedExecutables().size());
-        Assert.assertEquals("No executable service should be stopped.",
+        Assert.assertEquals("No executable service should be activated.",
                 0, result.getActivatedExecutableServices().size());
-        Assert.assertEquals("No executable service should be stopped.",
+        Assert.assertEquals("No executable service should be deactivated.",
                 0, result.getDeactivatedExecutableServices().size());
 
         // Delete reservation request
@@ -652,7 +652,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
     public class TcsTestAgent extends RecordableTestAgent
     {
         @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException
         {
             return super.handleCommand(command, sender);
         }

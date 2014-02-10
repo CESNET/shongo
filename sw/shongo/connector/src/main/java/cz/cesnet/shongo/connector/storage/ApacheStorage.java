@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector.storage;
 
-import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -38,12 +37,13 @@ public class ApacheStorage extends AbstractStorage
     /**
      * List of folders and delete (request from another Thread)
      */
-    private CopyOnWriteArrayList foldersToDelete = new CopyOnWriteArrayList();
+    private List<String> foldersBeingDeleted = new CopyOnWriteArrayList<String>();
 
     /**
-     * List of files (and folders to be created in) to be created or that are being copied now
+     * Map of files to be created or that are being copied now (entry key represents a fileId and entry value
+     * represents a recordingFolderId of folder for the file to be created in)
      */
-    private ConcurrentHashMap<String,String> filesToBeCreated = new ConcurrentHashMap<String, String>();
+    private Map<String,String> filesBeingCreated = new ConcurrentHashMap<String, String>();
 
     /**
      * Constructor.
@@ -74,9 +74,9 @@ public class ApacheStorage extends AbstractStorage
     @Override
     public void deleteFolder(String folderId)
     {
-        foldersToDelete.add(folderId);
+        foldersBeingDeleted.add(folderId);
 
-        while(filesToBeCreated.containsValue(folderId)) {
+        while(filesBeingCreated.containsValue(folderId)) {
             try {
                 Thread.sleep(100);
             }
@@ -90,7 +90,7 @@ public class ApacheStorage extends AbstractStorage
             throw new RuntimeException("Directory '" + folderUrl + "' couldn't be deleted.");
         }
 
-        foldersToDelete.remove(folderId);
+        foldersBeingDeleted.remove(folderId);
     }
 
     @Override
@@ -155,16 +155,17 @@ public class ApacheStorage extends AbstractStorage
     @Override
     public void createFile(File file, InputStream fileContent, ResumeSupport resumeSupport)
     {
-        String folderUrl = getUrlFromId(file.getFolderId());
-        String fileUrl = getChildUrl(folderUrl, file.getFileName());
+        String folderId = file.getFolderId();
+        String folderUrl = getUrlFromId(folderId);
+        String fileName = file.getFileName();
+        String fileUrl = getChildUrl(folderUrl, fileName);
         if (new java.io.File(fileUrl).exists()) {
             throw new RuntimeException("File '" + fileUrl + "' already exists.");
         }
 
-        if (file.getFolderId() != null) {
-            filesToBeCreated.put(file.getFileName(),file.getFolderId());
+        if (folderId != null) {
+            filesBeingCreated.put(fileName, folderId);
         }
-
         try {
             int fileContentIndex = 0;
             OutputStream fileOutputStream = new FileOutputStream(fileUrl);
@@ -185,8 +186,7 @@ public class ApacheStorage extends AbstractStorage
                             throw exception;
                         }
 
-                        String message = "Creation of file " +
-                                getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ": ";
+                        String message = "Creation of file " + folderUrl + "/" + fileName + ": ";
                         logger.warn(message + "Reading data failed at " + fileContentIndex + ".", exception);
 
                         // Wait before resuming
@@ -205,13 +205,12 @@ public class ApacheStorage extends AbstractStorage
                         }
                         catch (Exception resumeException) {
                             throw new RuntimeException("Reopening input stream failed for creation of file " +
-                                    getUrlFromId(file.getFolderId()) + "/" + file.getFileName() + ".", resumeException);
+                                    folderUrl + "/" + fileName + ".", resumeException);
                         }
                     }
                     catch (Exception exception) {
                         throw new RuntimeException("Reading input stream failed for creation of file " +
-                                file.getFolderId() + ":" + file.getFileName() + " at " + fileContentIndex + ".",
-                                exception);
+                                folderUrl + "/" + fileName + " at " + fileContentIndex + ".", exception);
                     }
                 }
 
@@ -221,7 +220,9 @@ public class ApacheStorage extends AbstractStorage
                 }
 
                 // Check if folder isn't already deleted
-                if (foldersToDelete.contains(file.getFolderId())) {
+                if (foldersBeingDeleted.contains(file.getFolderId())) {
+                    logger.warn("Creation of file " + folderUrl + "/" + fileName +
+                            " has been stopped because folder " + folderId + " is being deleted.");
                     break;
                 }
 
@@ -272,7 +273,7 @@ public class ApacheStorage extends AbstractStorage
             throw new RuntimeException("File '" + fileUrl + "' couldn't be created.", exception);
         }
         finally {
-            filesToBeCreated.remove(file.getFileName(),file.getFolderId());
+            filesBeingCreated.remove(file.getFileName());
         }
     }
 

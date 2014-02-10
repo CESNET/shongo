@@ -7,6 +7,9 @@ import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
@@ -18,6 +21,7 @@ import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import jade.core.AID;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -914,5 +918,74 @@ public class ExecutableTest extends AbstractExecutorTest
         String roomExecutableId = roomExecutable.getId();
 
         getExecutableService().getExecutable(SECURITY_TOKEN_USER2, roomExecutableId);
+    }
+
+    /**
+     * Allocate {@link RoomEndpoint} and execute it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomModificationFailed() throws Exception
+    {
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent(){
+            @Override
+            public Object handleCommand(Command command, AID sender) throws CommandException
+            {
+                if (command instanceof ModifyRoom) {
+                    ModifyRoom modifyRoom = (ModifyRoom) command;
+                    if (modifyRoom.getRoom().getDescription().contains("ModifyRoomDisabled")) {
+                        throw new RuntimeException("cannot modify room");
+                    }
+                }
+                return super.handleCommand(command, sender);
+            }
+        });
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2H");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+
+        // Allocate reservation request
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        // Start virtual room
+        ExecutionResult result = runExecutor(dateTime);
+        Assert.assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+
+        // Modify room
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequest.setDescription("ModifyRoomDisabled");
+        reservationRequestId = allocate(reservationRequest, dateTime.plusHours(1));
+        checkAllocated(reservationRequestId);
+
+        // Check that nothing gets executed
+        result = runExecutor(dateTime.plusHours(1));
+        Assert.assertEquals("No executable should be stopped.", 0, result.getStoppedExecutables().size());
+        Assert.assertEquals("No executable should be started.", 0, result.getStartedExecutables().size());
+
+        // Stop the original room
+        result = runExecutor(dateTime.plus(duration));
+        Assert.assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
+
+        // Check performed actions on connector agents
+        Assert.assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 }

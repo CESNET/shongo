@@ -270,10 +270,19 @@ public class ExecutionPlan
                     executionTarget.setAttemptCount(0);
                 }
                 else {
+                    cz.cesnet.shongo.controller.executor.ExecutionReport lastReport = executionTarget.getLastReport();
+                    if (lastReport == null && executionAction.isSkipPerform()) {
+                        // If no report is created for the execution target and it wasn't performing anything
+                        // (e.g., the action is Stop from a failed Migration)
+                        // do not increase the attempt count
+                        continue;
+                    }
+
+                    // Increment attempt count
                     executionTarget.setNextAttempt(null);
                     executionTarget.setAttemptCount(executionTarget.getAttemptCount() + 1);
 
-                    cz.cesnet.shongo.controller.executor.ExecutionReport lastReport = executionTarget.getLastReport();
+                    // If the last report allows for next attempt, set the date/time for the next attempt
                     if (lastReport != null && lastReport.getResolution().equals(AbstractReport.Resolution.TRY_AGAIN)) {
                         Executor executor = getExecutor();
                         if (executionTarget.getAttemptCount() < executor.getMaxAttemptCount()) {
