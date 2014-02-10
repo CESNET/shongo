@@ -502,20 +502,40 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         return !newRoomName.equals(oldRoomName);
     }
 
+    /**
+     *
+     * Disconnect participants in room to except number specified by {@code licenseCount}.
+     *
+     * @param licenseCount number of participants which can be kept in the room (0 means disconnect all participants,
+     *                     1 all participants except one, etc)
+     */
+    private void disconnectRoomParticipants(String roomId, int licenseCount) throws CommandException
+    {
+        int participantCount = 0;
+        for (RoomParticipant roomParticipant : listRoomParticipants(roomId)) {
+            // Disconnect participant only when he excess specified license count
+            if (participantCount < licenseCount) {
+                logger.debug("Keeping participant {} connected to room {}...",
+                        new Object[]{roomParticipant, roomId});
+                participantCount++;
+                continue;
+            }
+            try {
+                logger.warn("Disconnecting participant {} in room {} to meet license count {}...",
+                        new Object[]{roomParticipant, roomId, licenseCount});
+                disconnectRoomParticipant(roomParticipant.getRoomId(), roomParticipant.getId());
+            }
+            catch (CommandException exception) {
+                throw new CommandException("Cannot disconnect participant" + roomParticipant + ".", exception);
+            }
+        }
+    }
+
     @Override
     protected void onModifyRoom(Room room) throws CommandException
     {
-        if (room.getLicenseCount() == 0) {
-            // First we must disconnect all participants
-            for (RoomParticipant roomParticipant : listRoomParticipants(room.getId())) {
-                try {
-                  disconnectRoomParticipant(roomParticipant.getRoomId(), roomParticipant.getId());
-                }
-                catch (CommandException exception) {
-                    throw new CommandException("Cannot disconnect participant" + roomParticipant + ".", exception);
-                }
-            }
-        }
+        disconnectRoomParticipants(room.getId(), room.getLicenseCount());
+
         Command cmd = new Command("conference.modify");
         cmd.setParameter("conferenceName", truncateString(room.getId()));
         setConferenceParametersByRoom(cmd, room);
