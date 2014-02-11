@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
@@ -56,11 +57,21 @@ public class RoomAvailableNotification extends ConfigurableNotification
     protected NotificationMessage renderMessage(Configuration configuration, NotificationManager manager)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
+
+        String roomName = RoomNotification.getRoomName(roomEndpoint);
+        if (roomName != null) {
+            roomName = " " + roomName;
+        }
+        else {
+            roomName = "";
+        }
+
+        String title = renderContext.message("room.available.title", roomName,
+                renderContext.formatInterval(roomEndpoint.getOriginalSlot()));
+
         renderContext.addParameter("roomEndpoint", roomEndpoint);
-
-        StringBuilder titleBuilder = new StringBuilder();
-        titleBuilder.append("Room available");
-
-        return renderTemplateMessage(renderContext, titleBuilder.toString(), "room-available.ftl");
+        renderContext.addParameter("aliases", Alias.sortedList(roomEndpoint.getAliases()));
+        renderContext.addParameter("roomName", roomName);
+        return renderTemplateMessage(renderContext, title, "room-available.ftl");
     }
 }

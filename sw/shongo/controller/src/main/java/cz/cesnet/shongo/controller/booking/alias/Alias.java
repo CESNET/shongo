@@ -5,10 +5,7 @@ import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents an identifier/number or any other value depicting some callable target.
@@ -146,5 +143,12 @@ public class Alias extends SimplePersistentObject implements Cloneable
                 return alias1.getType().compareTo(alias2.getType());
             }
         });
+    }
+
+    public static List<Alias> sortedList(Collection<Alias> aliases)
+    {
+        List<Alias> aliasList = new LinkedList<Alias>(aliases);
+        sort(aliasList);
+        return aliasList;
     }
 }

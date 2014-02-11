@@ -214,14 +214,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         // Add parameters for not-deleted room
         if (roomDeletedCount != totalCount) {
             context.addParameter("pin", roomEndpoint.getPin());
-
-            // Room aliases
-            List<Alias> aliases = new LinkedList<Alias>();
-            for (Alias alias : roomEndpoint.getAliases()) {
-                aliases.add(alias);
-            }
-            Alias.sort(aliases);
-            context.addParameter("aliases", aliases);
+            context.addParameter("aliases", Alias.sortedList(roomEndpoint.getAliases()));
         }
 
         // Render notification message

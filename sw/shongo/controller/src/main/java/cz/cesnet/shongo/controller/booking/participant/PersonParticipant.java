@@ -72,6 +72,18 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
         return person.getInformation();
     }
 
+    /**
+     * @return get full name
+     */
+    @Transient
+    public String getPersonFullName()
+    {
+        if (person == null) {
+            return null;
+        }
+        return person.getInformation().getFullName();
+    }
+
     @PrePersist
     public void prePersist()
     {

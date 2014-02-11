@@ -927,7 +927,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 NotificationManager manager, EntityManager entityManager)
         {
             NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
-            if (notification instanceof RoomGroupNotification)
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
