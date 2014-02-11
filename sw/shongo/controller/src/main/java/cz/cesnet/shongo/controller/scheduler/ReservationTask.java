@@ -9,6 +9,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -342,11 +343,13 @@ public abstract class ReservationTask
     /**
      * Migrate {@code oldReservation} to {@code newReservation}.
      *
+     *
      * @param oldReservation
      * @param newReservation
+     * @param entityManager
      * @throws SchedulerException
      */
-    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
+    public void migrateReservation(Reservation oldReservation, Reservation newReservation, EntityManager entityManager) throws SchedulerException
     {
     }
 

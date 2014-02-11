@@ -7,12 +7,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Represents that room should be made available to participants for joining.
+ * Represents that room should be made available to participants for joining (e.g. a meeting will take place there).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RoomAvailability extends AbstractComplexType
 {
+    /**
+     * Specifies the name of the meeting which will take place in the room.
+     */
+    private String meetingName;
+
     /**
      * Number of minutes which the room shall be available before requested time slot.
      */
@@ -29,14 +34,9 @@ public class RoomAvailability extends AbstractComplexType
     private int participantCount;
 
     /**
-     * Specifies whether configured participants should  be notified about the room.
+     * Specifies whether configured participants should be notified about the room events.
      */
     private boolean participantNotificationEnabled = false;
-
-    /**
-     * Specifies message by which the participants should be notified.
-     */
-    private String participantNotification;
 
     /**
      * {@link cz.cesnet.shongo.controller.api.ExecutableServiceSpecification}s for the virtual room.
@@ -58,6 +58,22 @@ public class RoomAvailability extends AbstractComplexType
     public RoomAvailability(int participantCount)
     {
         this.participantCount = participantCount;
+    }
+
+    /**
+     * @return {@link #meetingName}
+     */
+    public String getMeetingName()
+    {
+        return meetingName;
+    }
+
+    /**
+     * @param meetingName sets the {@link #meetingName}
+     */
+    public void setMeetingName(String meetingName)
+    {
+        this.meetingName = meetingName;
     }
 
     /**
@@ -125,22 +141,6 @@ public class RoomAvailability extends AbstractComplexType
     }
 
     /**
-     * @return {@link #participantNotification}
-     */
-    public String getParticipantNotification()
-    {
-        return participantNotification;
-    }
-
-    /**
-     * @param participantNotification sets the {@link #participantNotification}
-     */
-    public void setParticipantNotification(String participantNotification)
-    {
-        this.participantNotification = participantNotification;
-    }
-
-    /**
      * @return {@link #serviceSpecifications}
      */
     public List<ExecutableServiceSpecification> getServiceSpecifications()
@@ -156,22 +156,22 @@ public class RoomAvailability extends AbstractComplexType
         serviceSpecifications.add(serviceSpecification);
     }
 
+    public static final String MEETING_NAME = "meetingName";
     public static final String SLOT_MINUTES_BEFORE = "slotMinutesBefore";
     public static final String SLOT_MINUTES_AFTER = "slotMinutesAfter";
     public static final String PARTICIPANT_COUNT = "participantCount";
     public static final String PARTICIPANT_NOTIFICATION_ENABLED = "participantNotificationEnabled";
-    public static final String PARTICIPANT_NOTIFICATION = "participantNotification";
     public static final String SERVICE_SPECIFICATIONS = "serviceSpecifications";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(MEETING_NAME, meetingName);
         dataMap.set(SLOT_MINUTES_BEFORE, slotMinutesBefore);
         dataMap.set(SLOT_MINUTES_AFTER, slotMinutesAfter);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
         dataMap.set(PARTICIPANT_NOTIFICATION_ENABLED, participantNotificationEnabled);
-        dataMap.set(PARTICIPANT_NOTIFICATION, participantNotification);
         dataMap.set(SERVICE_SPECIFICATIONS, serviceSpecifications);
         return dataMap;
     }
@@ -180,11 +180,11 @@ public class RoomAvailability extends AbstractComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        meetingName = dataMap.getString(MEETING_NAME);
         slotMinutesBefore = dataMap.getInt(SLOT_MINUTES_BEFORE, 0);
         slotMinutesAfter = dataMap.getInt(SLOT_MINUTES_AFTER, 0);
         participantCount = dataMap.getInt(PARTICIPANT_COUNT);
         participantNotificationEnabled = dataMap.getBool(PARTICIPANT_NOTIFICATION_ENABLED);
-        participantNotification = dataMap.getString(PARTICIPANT_NOTIFICATION);
         serviceSpecifications = dataMap.getList(SERVICE_SPECIFICATIONS, ExecutableServiceSpecification.class);
     }
 }

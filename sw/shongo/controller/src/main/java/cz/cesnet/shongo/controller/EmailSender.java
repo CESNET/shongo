@@ -4,15 +4,13 @@ import cz.cesnet.shongo.util.PasswordAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import javax.mail.internet.*;
+import javax.mail.util.ByteArrayDataSource;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Helper object for sending emails.
@@ -41,137 +39,179 @@ public class EmailSender
     /**
      * Constructor.
      *
+     * @param sender
+     * @param subjectPrefix
+     */
+    public EmailSender(String sender, String subjectPrefix)
+    {
+        this.sender = sender;
+        this.subjectPrefix = subjectPrefix;
+        if (this.subjectPrefix == null) {
+            this.subjectPrefix = "";
+        }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param sender
+     * @param smtpHost
+     * @param smtpPort
+     * @param smtpUsername
+     * @param smtpPassword
+     */
+    public EmailSender(String sender, String smtpHost, int smtpPort, String smtpUsername, String smtpPassword)
+    {
+        this(sender, null);
+
+        initSession(smtpHost, smtpPort, smtpUsername, smtpPassword);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param smtpHost
+     * @param smtpPort
+     * @param smtpUsername
+     * @param smtpPassword
+     */
+    public EmailSender(String smtpHost, int smtpPort, String smtpUsername, String smtpPassword)
+    {
+        this("no-reply@shongo.cz", null);
+
+        initSession(smtpHost, smtpPort, smtpUsername, smtpPassword);
+    }
+
+    /**
+     * Constructor.
+     *
      * @param configuration from which the SMTP configuration should be loaded
      */
     public EmailSender(ControllerConfiguration configuration)
     {
+        this(configuration.getString(ControllerConfiguration.SMTP_SENDER),
+                configuration.getString(ControllerConfiguration.SMTP_SUBJECT_PREFIX));
+
         // Skip configuration without host
         if (!configuration.containsKey(ControllerConfiguration.SMTP_HOST)) {
             logger.warn("Cannot initialize email notifications because SMTP configuration is empty.");
             return;
         }
 
-        String port = configuration.getString(ControllerConfiguration.SMTP_PORT);
+        String smtpHost = configuration.getString(ControllerConfiguration.SMTP_HOST);
+        int smtpPort = configuration.getInt(ControllerConfiguration.SMTP_PORT);
+        String smtpUsername = null;
+        String smtpPassword = null;
+        if (configuration.containsKey(ControllerConfiguration.SMTP_USERNAME)) {
+            smtpUsername = configuration.getString(ControllerConfiguration.SMTP_USERNAME);
+            smtpPassword = configuration.getString(ControllerConfiguration.SMTP_PASSWORD);
+        }
+        initSession(smtpHost, smtpPort, smtpUsername, smtpPassword);
+    }
+
+    /**
+     * @return {@link #sender}
+     */
+    public String getSender()
+    {
+        return sender;
+    }
+
+    /**
+     * Initialize SMTP session.
+     *
+     * @param smtpHost
+     * @param smtpPort
+     * @param smtpUserName
+     * @param smtpPassword
+     */
+    private void initSession(String smtpHost, int smtpPort, String smtpUserName, String smtpPassword)
+    {
         Properties properties = new Properties();
-        properties.setProperty("mail.smtp.host", configuration.getString(ControllerConfiguration.SMTP_HOST));
-        properties.setProperty("mail.smtp.port", port);
-        if (!port.equals("25")) {
+        properties.setProperty("mail.smtp.host", smtpHost);
+        properties.setProperty("mail.smtp.port", String.valueOf(smtpPort));
+        if (smtpPort != 25) {
             properties.setProperty("mail.smtp.starttls.enable", "true");
             properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             properties.setProperty("mail.smtp.socketFactory.fallback", "false");
         }
-
-        sender = configuration.getString(ControllerConfiguration.SMTP_SENDER);
-        subjectPrefix = configuration.getString(ControllerConfiguration.SMTP_SUBJECT_PREFIX);
-
         Authenticator authenticator = null;
-        if (configuration.containsKey(ControllerConfiguration.SMTP_USERNAME)) {
+        if (smtpUserName != null) {
             properties.setProperty("mail.smtp.auth", "true");
-            authenticator = new PasswordAuthenticator(
-                    configuration.getString(ControllerConfiguration.SMTP_USERNAME),
-                    configuration.getString(ControllerConfiguration.SMTP_PASSWORD));
+            authenticator = new PasswordAuthenticator(smtpUserName, smtpPassword);
         }
-
         session = Session.getDefaultInstance(properties, authenticator);
     }
 
     /**
      * @return true whether SMTP is configured,
-     *         false otherwise
+     * false otherwise
      */
     public boolean isInitialized()
     {
         return session != null;
-
     }
 
     /**
      * Send email.
      *
-     * @param recipient
-     * @param subject
-     * @param content
+     * @param email
      * @throws MessagingException
      */
-    public void sendEmail(String recipient, Collection<String> replyTo, String subject, String content) throws MessagingException
-    {
-        List<String> recipients = new LinkedList<String>();
-        recipients.add(recipient);
-        sendEmail(recipients, replyTo, subject, content);
-    }
-
-    /**
-     * Send email.
-     *
-     * @param recipients
-     * @param subject
-     * @param content
-     * @throws MessagingException
-     */
-    public void sendEmail(Collection<String> recipients, Collection<String> replyTo, String subject, String content)
-            throws MessagingException
-    {
-        if (session == null) {
-            throw new IllegalStateException("Email sender is not initialized.");
-        }
-
-        MimeBodyPart textPart = new MimeBodyPart();
-        textPart.setContent(content, "text/plain; charset=utf-8");
-
-        StringBuilder html = new StringBuilder();
-        html.append("<html><body><pre>");
-        html.append(content);
-        html.append("</pre></body></html>");
-
-        MimeBodyPart htmlPart = new MimeBodyPart();
-        htmlPart.setContent(html.toString(), "text/html; charset=utf-8");
-
-        Multipart multipart = new MimeMultipart("alternative");
-        multipart.addBodyPart(textPart);
-        multipart.addBodyPart(htmlPart);
-
-        sendEmail(recipients, replyTo, subject, multipart);
-    }
-
-    /**
-     * Send email.
-     *
-     * @param recipients
-     * @param subject
-     * @param content
-     * @throws MessagingException
-     */
-    public void sendEmail(Collection<String> recipients, Collection<String> replyTo, String subject, Multipart content)
-            throws MessagingException
+    public void sendEmail(Email email) throws MessagingException
     {
         if (session == null) {
             return;
         }
         MimeMessage message = new MimeMessage(session);
         message.setFrom(new InternetAddress(sender));
-        for (String recipient : recipients) {
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+        for (InternetAddress recipient : email.recipients) {
+            message.addRecipient(Message.RecipientType.TO, recipient);
         }
-        if (replyTo != null && replyTo.size() > 0) {
-            List<Address> replyToAddresses = new LinkedList<Address>();
-            for (String replyToAddress : replyTo) {
-                replyToAddresses.add(new InternetAddress(replyToAddress));
-            }
-            message.setReplyTo(replyToAddresses.toArray(new Address[replyToAddresses.size()]));
+        if (email.replyTo.size() > 0) {
+            message.setReplyTo(email.replyTo.toArray(new Address[email.replyTo.size()]));
         }
-        message.setSubject(subjectPrefix + subject);
-        message.setContent(content);
-        sendEmail(message, subject);
-    }
+        message.setSubject(subjectPrefix + email.subject);
 
-    /**
-     * Send email.
-     *
-     * @param message
-     * @throws MessagingException
-     */
-    private void sendEmail(MimeMessage message, String subject) throws MessagingException
-    {
+        // Create content multipart
+        MimeMultipart contentMultipart = new MimeMultipart("alternative");
+
+        // Add text part
+        String content = email.content;
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setContent(content, "text/plain; charset=utf-8");
+        contentMultipart.addBodyPart(textPart);
+
+        // Add html part
+        String htmlContent = "<html><body><pre>" + content + "</pre></body></html>";
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(htmlContent, "text/html; charset=utf-8");
+        contentMultipart.addBodyPart(htmlPart);
+
+        MimeMultipart messageMultipart;
+        if (email.attachments.size() > 0) {
+            // Create content multipart part
+            MimeBodyPart contentMultipartPart = new MimeBodyPart();
+            contentMultipartPart.setContent(contentMultipart);
+            // Create message multipart
+            messageMultipart = new MimeMultipart("related");
+            messageMultipart.addBodyPart(contentMultipartPart);
+            // Add attachments
+            for (Map.Entry<String, DataSource> entry : email.attachments.entrySet()) {
+                MimeBodyPart attachmentPart = new MimeBodyPart();
+                attachmentPart.setDataHandler(new DataHandler(entry.getValue()));
+                attachmentPart.setFileName(entry.getKey());
+                messageMultipart.addBodyPart(attachmentPart);
+            }
+        }
+        else {
+            // Content multipart is used as message multipart
+            messageMultipart = contentMultipart;
+        }
+
+        // Set message multipart content
+        message.setContent(messageMultipart);
+
         StringBuilder recipientString = new StringBuilder();
         for (Address recipient : message.getRecipients(Message.RecipientType.TO)) {
             if (recipientString.length() > 0) {
@@ -179,9 +219,96 @@ public class EmailSender
             }
             recipientString.append(recipient.toString());
         }
-
-        logger.debug("Sending email '{}' from '{}' to '{}'...", new Object[]{subject, sender, recipientString});
+        logger.debug("Sending email '{}' from '{}' to '{}'...", new Object[]{email.subject, sender, recipientString});
         Transport.send(message);
+    }
+
+    public static class Email
+    {
+        private List<InternetAddress> recipients = new LinkedList<InternetAddress>();
+
+        private List<InternetAddress> replyTo = new LinkedList<InternetAddress>();
+
+        private String subject;
+
+        private String content;
+
+        private Map<String, DataSource> attachments = new LinkedHashMap<String, DataSource>();
+
+        public Email(String recipient, String subject, String content)
+        {
+            addRecipient(recipient);
+            setSubject(subject);
+            setContent(content);
+        }
+
+        public Email(Collection<String> recipients, String subject, String content)
+        {
+            for (String recipient : recipients) {
+                addRecipient(recipient);
+            }
+            setSubject(subject);
+            setContent(content);
+        }
+
+        public Email(String recipient, Collection<String> replyTo, String subject, String content)
+        {
+            addRecipient(recipient);
+            for (String replyToItem : replyTo) {
+                addReplyTo(replyToItem);
+            }
+            setSubject(subject);
+            setContent(content);
+        }
+
+        public void addRecipient(String recipient)
+        {
+            try {
+                recipients.add(new InternetAddress(recipient));
+            }
+            catch (AddressException exception) {
+                throw new IllegalArgumentException(exception);
+            }
+        }
+
+        public void addReplyTo(String replyTo)
+        {
+            try {
+                this.replyTo.add(new InternetAddress(replyTo));
+            }
+            catch (AddressException exception) {
+                throw new IllegalArgumentException(exception);
+            }
+        }
+
+        public String getSubject()
+        {
+            return subject;
+        }
+
+        public void setSubject(String subject)
+        {
+            this.subject = subject;
+        }
+
+        public void setContent(String content)
+        {
+            if (content == null) {
+                content = "";
+            }
+            this.content = content;
+        }
+
+        public void addAttachment(String fileName, String fileContent)
+        {
+            try {
+                DataSource dataSource = new ByteArrayDataSource(fileContent, "text/plain; charset=UTF-8");
+                attachments.put(fileName, dataSource);
+            }
+            catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
     }
 
 }

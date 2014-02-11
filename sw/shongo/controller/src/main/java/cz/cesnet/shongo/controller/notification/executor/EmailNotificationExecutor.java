@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.notification.executor;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.UserSettings;
-import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
-import cz.cesnet.shongo.controller.notification.NotificationMessage;
+import cz.cesnet.shongo.controller.notification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,13 +68,6 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 logger.warn("Notification '{}' has empty email address.", notification);
                 return;
             }
-            List<String> replyToEmails = new LinkedList<String>();
-            for (PersonInformation replyTo : notification.getReplyTo()) {
-                String replyToEmail = replyTo.getPrimaryEmail();
-                if (replyToEmail != null) {
-                    replyToEmails.add(replyToEmail);
-                }
-            }
             NotificationMessage message = notification.getMessage(recipient, manager, entityManager);
 
             // Build email header
@@ -106,8 +98,28 @@ public class EmailNotificationExecutor extends NotificationExecutor
             emailContent.append(emailHeaderBuilder.toString());
             emailContent.append(message.getContent());
 
+            EmailSender.Email email = new EmailSender.Email(recipientEmail, message.getTitle(), emailContent.toString());
+            for (PersonInformation replyTo : notification.getReplyTo()) {
+                String replyToEmail = replyTo.getPrimaryEmail();
+                if (replyToEmail != null) {
+                    email.addReplyTo(replyToEmail);
+                }
+            }
+            for (NotificationAttachment attachment : message.getAttachments()) {
+                String fileName = attachment.getFileName();
+                String fileContent;
+                if (attachment instanceof iCalendarNotificationAttachment) {
+                    iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
+                    fileContent = calendarAttachment.getFileContent(emailSender.getSender(), entityManager);
+                }
+                else {
+                    throw new TodoImplementException(attachment.getClass());
+                }
+                email.addAttachment(fileName, fileContent);
+            }
+
             // Send email
-            emailSender.sendEmail(recipientEmail, replyToEmails, message.getTitle(), emailContent.toString());
+            emailSender.sendEmail(email);
         }
         catch (Exception exception) {
             Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);

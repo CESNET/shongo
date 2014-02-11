@@ -14,5 +14,5 @@ ${context.width(indent)}  (${context.message('reservationRequest.configureTimeZo
 </#if>
 ${context.message(indent, 'reservationRequest.updatedBy')}: ${context.formatUser(notification.reservationRequestUpdatedBy)}
 <#if notification.reservationRequestDescription??>
-${context.message(indent, 'reservationRequest.description')}: ${notification.reservationRequestDescription}
+${context.message(indent, 'reservationRequest.description')}: ${context.indentNextLines(indent + 2, notification.reservationRequestDescription)}
 </#if>

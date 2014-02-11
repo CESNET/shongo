@@ -1,13 +1,19 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
+import cz.cesnet.shongo.controller.util.iCalendar;
 import org.joda.time.Interval;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -20,6 +26,9 @@ import java.util.*;
 public class RoomGroupNotification extends ConfigurableNotification
 {
     private static final String NOTIFICATION_RECORD_PREFIX = "\n  -";
+
+    private static final DateTimeFormatter ATTACHMENT_FILENAME_FORMATTER =
+            DateTimeFormat.forPattern("yyyy-MM-dd_HH:mm");
 
     private RoomEndpoint roomEndpoint;
 
@@ -34,7 +43,7 @@ public class RoomGroupNotification extends ConfigurableNotification
     {
         this.roomEndpoint = roomEndpoint;
         this.roomEndpoint.loadLazyProperties();
-        this.description = roomEndpoint.getParticipantNotification();
+        this.description = roomEndpoint.getRoomDescription();
     }
 
     public List<RoomNotification> getNotifications(PersonInformation participant)
@@ -195,8 +204,6 @@ public class RoomGroupNotification extends ConfigurableNotification
 
         // Build content
         StringBuilder contentBuilder = new StringBuilder();
-        //contentBuilder.append(messageBuilder.toString());
-        //contentBuilder.append(":");
 
         // Build message
         for (RoomNotification roomNotification : roomNotifications) {
@@ -218,7 +225,63 @@ public class RoomGroupNotification extends ConfigurableNotification
         }
 
         // Render notification message
-        return renderTemplateMessage(context, titleBuilder.toString(), "room-group.ftl");
+        NotificationMessage message = renderTemplateMessage(context, titleBuilder.toString(), "room-group.ftl");
+
+        // Add attachments
+        DateTimeFormatter dateTimeFormatter = ATTACHMENT_FILENAME_FORMATTER.withZone(context.getTimeZone());
+        for (RoomNotification roomNotification : roomNotifications) {
+            String fileName = dateTimeFormatter.print(roomNotification.getStart()) + ".ics";
+            iCalendar calendar = createCalendar(roomNotification, context);
+            if (roomNotification instanceof RoomNotification.RoomCreated) {
+                calendar.setMethod(iCalendar.Method.CREATE);
+                fileName = "invite_" + fileName;
+            }
+            else if (roomNotification instanceof RoomNotification.RoomModified) {
+                calendar.setMethod(iCalendar.Method.UPDATE);
+                fileName = "invite_" + fileName;
+            }
+            else if (roomNotification instanceof RoomNotification.RoomDeleted) {
+                calendar.setMethod(iCalendar.Method.CANCEL);
+                fileName = "invite_" + fileName;
+            }
+            else {
+                throw new TodoImplementException(roomNotification.getClass());
+            }
+            message.addAttachment(new iCalendarNotificationAttachment(
+                    fileName, calendar, roomNotification.getNotificationState()));
+        }
+
+        return message;
+    }
+
+    private iCalendar createCalendar(RoomNotification roomNotification, RenderContext context)
+    {
+        RoomEndpoint roomEndpoint = roomNotification.getRoomEndpoint();
+        Interval interval = roomNotification.getInterval();
+        String meetingName = roomEndpoint.getMeetingName();
+        if (meetingName == null) {
+            meetingName = context.message("room.meeting");
+        }
+        String eventId = ObjectIdentifier.formatId(roomEndpoint);
+
+        iCalendar iCalendar = new iCalendar();
+        iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
+        event.setDescription(roomEndpoint.getRoomDescription());
+        event.setInterval(interval, context.getTimeZone());
+
+        Set<PersonInformation> attendees = new LinkedHashSet<PersonInformation>();
+        attendees.addAll(roomNotification.getParticipants());
+        for (AbstractParticipant participant : roomEndpoint.getParticipants()) {
+            if (participant instanceof PersonParticipant) {
+                PersonParticipant personParticipant = (PersonParticipant) participant;
+                PersonInformation personInformation = personParticipant.getPersonInformation();
+                attendees.add(personInformation);
+            }
+        }
+        for (PersonInformation attendee : attendees) {
+            event.addAttendee(attendee.getFullName(), attendee.getPrimaryEmail());
+        }
+        return iCalendar;
     }
 
     private String renderNotification(PersonInformation recipient, RoomNotification notification, RenderContext context)
@@ -226,18 +289,26 @@ public class RoomGroupNotification extends ConfigurableNotification
         StringBuilder outputBuilder = new StringBuilder();
         StringBuilder recordsBuilder = new StringBuilder();
 
+        String meetingName = notification.getRoomEndpoint().getMeetingName();
+        if (meetingName != null) {
+            meetingName = " \"" + meetingName + "\"";
+        }
+        else {
+            meetingName = "";
+        }
+
         // Append output and records
         if (notification instanceof RoomNotification.RoomCreated) {
             ParticipantRole participantRole = notification.getParticipant(recipient).getRole();
             String participantRolePrefix = getPrefixByRole(participantRole);
             String messageCode = participantRolePrefix + ".item";
             String messageTypeCode = participantRolePrefix + ".created";
-            outputBuilder.append(context.message(messageCode,
+            outputBuilder.append(context.message(messageCode, meetingName,
                     context.formatInterval(notification.getInterval()),
                     context.message(messageTypeCode)));
         }
         else if (notification instanceof RoomNotification.RoomDeleted) {
-            outputBuilder.append(context.message("room.participation.access.item",
+            outputBuilder.append(context.message("room.participation.access.item", meetingName,
                     context.formatInterval(notification.getInterval()),
                     context.message("room.participation.access.deleted")));
         }
@@ -261,7 +332,7 @@ public class RoomGroupNotification extends ConfigurableNotification
                 throw new IllegalStateException();
             }
             Interval interval = notification.getInterval();
-            outputBuilder.append(context.message(messageCode, context.formatInterval(interval)));
+            outputBuilder.append(context.message(messageCode, meetingName, context.formatInterval(interval)));
 
             // Append participant role modified records
             if (isParticipantRoleModified) {
@@ -318,14 +389,13 @@ public class RoomGroupNotification extends ConfigurableNotification
         }
 
         // Append description record
-        String participantNotification = notification.getRoomEndpoint().getParticipantNotification();
-        String participantNotificationLabel = context.message("room.description.item");
-        if (participantNotification != null && !participantNotification.equals(this.description)) {
+        String description = notification.getRoomEndpoint().getRoomDescription();
+        String descriptionLabel = context.message("room.description.item");
+        if (description != null && !description.equals(this.description)) {
             recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
-            recordsBuilder.append(participantNotificationLabel);
+            recordsBuilder.append(descriptionLabel);
             recordsBuilder.append(": ");
-            recordsBuilder.append(
-                    context.indentNextLines(5 + participantNotificationLabel.length(), participantNotification));
+            recordsBuilder.append(context.indentNextLines(5 + descriptionLabel.length(), description));
         }
 
         // Append records if not empty

@@ -26,10 +26,12 @@ import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomAvailableNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.Interval;
+import org.omg.CORBA.PERSIST_STORE;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -45,6 +47,11 @@ import java.util.Set;
 @Entity
 public abstract class RoomEndpoint extends Endpoint
 {
+    /**
+     * Specifies the name of the meeting which will take place in the room.
+     */
+    private String meetingName;
+
     /**
      * Number of minutes which the room is be available before requested time slot.
      */
@@ -78,9 +85,31 @@ public abstract class RoomEndpoint extends Endpoint
     private List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
     /**
-     * Specifies message by which the participants should be notified. If not set participants should not be notified.
+     * Specifies whether configured participants should  be notified about the room.
      */
-    private String participantNotification;
+    private boolean participantNotificationEnabled;
+
+    /**
+     * {@link NotificationState} for participant notifications.
+     */
+    private NotificationState participantNotificationState = new NotificationState();
+
+    /**
+     * @return {@link #meetingName}
+     */
+    @Column
+    public String getMeetingName()
+    {
+        return meetingName;
+    }
+
+    /**
+     * @param meetingName sets the {@link #meetingName}
+     */
+    public void setMeetingName(String meetingName)
+    {
+        this.meetingName = meetingName;
+    }
 
     /**
      * @return {@link #slotMinutesBefore}
@@ -191,20 +220,37 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     /**
-     * @return {@link #participantNotification}
+     * @return {@link #participantNotificationEnabled}
      */
-    @Column
-    public String getParticipantNotification()
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean getParticipantNotificationEnabled()
     {
-        return participantNotification;
+        return participantNotificationEnabled;
     }
 
     /**
-     * @param participantNotification sets the {@link #participantNotification}
+     * @param participantNotificationEnabled sets the {@link #participantNotificationEnabled}
      */
-    public void setParticipantNotification(String participantNotification)
+    public void setParticipantNotificationEnabled(boolean participantNotificationEnabled)
     {
-        this.participantNotification = participantNotification;
+        this.participantNotificationEnabled = participantNotificationEnabled;
+    }
+
+    /**
+     * @return {@link #participantNotificationState}
+     */
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    public NotificationState getParticipantNotificationState()
+    {
+        return participantNotificationState;
+    }
+
+    /**
+     * @param participantNotificationState sets the {@link #participantNotificationState}
+     */
+    public void setParticipantNotificationState(NotificationState participantNotificationState)
+    {
+        this.participantNotificationState = participantNotificationState;
     }
 
     /**
@@ -216,7 +262,7 @@ public abstract class RoomEndpoint extends Endpoint
     {
         // Participation is enabled for the room or the room is permanent room and thus we must create
         // notifications to allow active usages notifications
-        return participantNotification != null || roomConfiguration.getLicenseCount() == 0;
+        return participantNotificationEnabled || roomConfiguration.getLicenseCount() == 0;
     }
 
     /**
@@ -475,6 +521,7 @@ public abstract class RoomEndpoint extends Endpoint
         onUpdate();
     }
 
+    @PrePersist
     @PreUpdate
     protected void onUpdate()
     {
@@ -489,7 +536,7 @@ public abstract class RoomEndpoint extends Endpoint
     @Override
     public void loadLazyProperties()
     {
-        this.getAssignedAliases().size();
+        this.participants.size();
         this.roomConfiguration.getTechnologies().size();
         this.roomConfiguration.getRoomSettings().size();
         super.loadLazyProperties();

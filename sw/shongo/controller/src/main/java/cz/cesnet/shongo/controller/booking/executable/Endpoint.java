@@ -160,4 +160,11 @@ public abstract class Endpoint extends Executable
             }
         }
     }
+
+    @Override
+    public void loadLazyProperties()
+    {
+        this.assignedAliases.size();
+        super.loadLazyProperties();
+    }
 }

@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -13,13 +12,10 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.room.RoomConfiguration;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
-import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -188,6 +184,20 @@ public abstract class RoomNotification extends ConfigurableNotification
     }
 
     /**
+     * @return {@link RoomEndpoint#getParticipantNotificationState()}
+     */
+    public final NotificationState getNotificationState()
+    {
+        RoomEndpoint roomEndpoint = getRoomEndpoint();
+        if (roomEndpoint != null) {
+            return roomEndpoint.getParticipantNotificationState();
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * @return {@link RoomEndpoint#id}
      */
     public RoomEndpoint getGroupRoomEndpoint()
@@ -208,6 +218,14 @@ public abstract class RoomNotification extends ConfigurableNotification
      * @return {@link Interval} of the room
      */
     public abstract Interval getInterval();
+
+    /**
+     * @return {@link Interval#getStart()} for {@link #getInterval()}
+     */
+    public DateTime getStart()
+    {
+        return getInterval().getStart();
+    }
 
     /**
      * @param notification to be merged into this {@link RoomNotification}
@@ -286,6 +304,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         private RoomSimple(RoomEndpoint roomEndpoint)
         {
             this.roomEndpoint = roomEndpoint;
+            this.roomEndpoint.loadLazyProperties();
         }
 
         /**
@@ -297,6 +316,7 @@ public abstract class RoomNotification extends ConfigurableNotification
         private RoomSimple(RoomEndpoint roomEndpoint, AbstractParticipant participant)
         {
             this.roomEndpoint = roomEndpoint;
+            this.roomEndpoint.loadLazyProperties();
             this.participant = participant;
         }
 
@@ -597,13 +617,16 @@ public abstract class RoomNotification extends ConfigurableNotification
                 this.oldRoomEndpoint = oldRoomEndpoint;
                 this.oldRoomEndpoint.loadLazyProperties();
 
+                if (!ObjectHelper.isSame(oldRoomEndpoint.getMeetingName(), newRoomEndpoint.getMeetingName())) {
+                    roomModified = true;
+                }
                 if (!oldRoomEndpoint.getSlot().equals(newRoomEndpoint.getSlot())) {
                     roomModified = true;
                 }
                 if (!ObjectHelper.isSame(oldRoomEndpoint.getAliases(), newRoomEndpoint.getAliases())) {
                     roomModified = true;
                 }
-                if (!oldRoomEndpoint.getParticipantNotification().equals(newRoomEndpoint.getParticipantNotification())) {
+                if (!ObjectHelper.isSame(oldRoomEndpoint.getRoomDescription(), newRoomEndpoint.getRoomDescription())) {
                     roomModified = true;
                 }
                 if (!ObjectHelper.isSame(oldRoomEndpoint.getPin(), newRoomEndpoint.getPin())) {

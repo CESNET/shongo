@@ -17,26 +17,29 @@ public class NotificationMessage
     /**
      * Available {@link java.util.Locale}s for {@link AbstractNotification}s.
      */
-    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
-        add(UserSettings.LOCALE_ENGLISH);
-        add(UserSettings.LOCALE_CZECH);
-    }};
+    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>()
+    {{
+            add(UserSettings.LOCALE_ENGLISH);
+            add(UserSettings.LOCALE_CZECH);
+        }};
 
     /**
      * Language string for each {@link #AVAILABLE_LOCALES}.
      */
-    public static Map<String, String> LANGUAGE_STRING = new HashMap<String, String>() {{
-        put(UserSettings.LOCALE_ENGLISH.getLanguage(), "ENGLISH VERSION");
-        put(UserSettings.LOCALE_CZECH.getLanguage(), "ČESKÁ VERZE");
-    }};
+    public static Map<String, String> LANGUAGE_STRING = new HashMap<String, String>()
+    {{
+            put(UserSettings.LOCALE_ENGLISH.getLanguage(), "ENGLISH VERSION");
+            put(UserSettings.LOCALE_CZECH.getLanguage(), "ČESKÁ VERZE");
+        }};
 
     /**
      * Use settings string for each {@link #AVAILABLE_LOCALES}.
      */
-    public static Map<String, String> USER_SETTINGS_STRING = new HashMap<String, String>() {{
-        put(UserSettings.LOCALE_ENGLISH.getLanguage(), "you can select your preferred language at ");
-        put(UserSettings.LOCALE_CZECH.getLanguage(), "preferovaný jazyk si můžete zvolit na ");
-    }};
+    public static Map<String, String> USER_SETTINGS_STRING = new HashMap<String, String>()
+    {{
+            put(UserSettings.LOCALE_ENGLISH.getLanguage(), "you can select your preferred language at ");
+            put(UserSettings.LOCALE_CZECH.getLanguage(), "preferovaný jazyk si můžete zvolit na ");
+        }};
 
     private String userSettingsUrl;
 
@@ -45,6 +48,8 @@ public class NotificationMessage
     private String title;
 
     private StringBuilder content = new StringBuilder();
+
+    private List<NotificationAttachment> attachments = new LinkedList<NotificationAttachment>();
 
     private NotificationMessage()
     {
@@ -84,6 +89,16 @@ public class NotificationMessage
         return content.toString();
     }
 
+    public List<NotificationAttachment> getAttachments()
+    {
+        return attachments;
+    }
+
+    public void addAttachment(NotificationAttachment attachment)
+    {
+        attachments.add(attachment);
+    }
+
     public void appendMessage(NotificationMessage message)
     {
         if (content.length() > 0) {
@@ -105,6 +120,17 @@ public class NotificationMessage
         }
         content.append("\n");
         content.append(message.getContent());
+
+        // Add attachments
+outer:
+        for (NotificationAttachment newAttachment : message.getAttachments()) {
+            for (NotificationAttachment existingAttachment : attachments) {
+                if (newAttachment.getFileName().equals(existingAttachment.getFileName())) {
+                    continue outer;
+                }
+            }
+            attachments.add(newAttachment);
+        }
     }
 
     public void appendLine(String text)

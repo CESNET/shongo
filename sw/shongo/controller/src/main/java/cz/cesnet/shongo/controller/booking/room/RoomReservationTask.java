@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
@@ -38,6 +39,11 @@ import java.util.*;
  */
 public class RoomReservationTask extends ReservationTask
 {
+    /**
+     * Specifies the name of the meeting which will take place in the room.
+     */
+    private String meetingName;
+
     /**
      * Number of minutes which the room shall be available before requested time slot.
      */
@@ -64,9 +70,9 @@ public class RoomReservationTask extends ReservationTask
     private Integer participantCount;
 
     /**
-     * Specifies message by which the participants should be notified. If not set participants should not be notified.
+     * Specifies whether configured participants should  be notified about the room.
      */
-    private String participantNotification;
+    private boolean participantNotificationEnabled;
 
     /**
      * Collection of {@link Technology} set variants where at least one must be supported by
@@ -130,6 +136,14 @@ public class RoomReservationTask extends ReservationTask
     }
 
     /**
+     * @param meetingName sets the {@link #meetingName}
+     */
+    public void setMeetingName(String meetingName)
+    {
+        this.meetingName = meetingName;
+    }
+
+    /**
      * @param participantCount sets the {@link #participantCount}
      */
     public void setParticipantCount(Integer participantCount)
@@ -138,11 +152,11 @@ public class RoomReservationTask extends ReservationTask
     }
 
     /**
-     * @param participantNotification sets the {@link #participantNotification}
+     * @param participantNotificationEnabled sets the {@link #participantNotificationEnabled}
      */
-    public void setParticipantNotification(String participantNotification)
+    public void setParticipantNotificationEnabled(boolean participantNotificationEnabled)
     {
-        this.participantNotification = participantNotification;
+        this.participantNotificationEnabled = participantNotificationEnabled;
     }
 
     /**
@@ -267,12 +281,20 @@ public class RoomReservationTask extends ReservationTask
     }
 
     @Override
-    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
+    public void migrateReservation(Reservation oldReservation, Reservation newReservation, EntityManager entityManager)
+            throws SchedulerException
     {
         Executable oldExecutable = oldReservation.getExecutable();
         Executable newExecutable = newReservation.getExecutable();
         if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
             newExecutable.setMigrateFromExecutable(oldExecutable);
+
+            // Migrate participant notification state
+            RoomEndpoint oldRoomEndpoint = (RoomEndpoint) oldExecutable;
+            RoomEndpoint newRoomEndpoint = (RoomEndpoint) newExecutable;
+            NotificationState notificationState = newRoomEndpoint.getParticipantNotificationState();
+            newRoomEndpoint.setParticipantNotificationState(oldRoomEndpoint.getParticipantNotificationState());
+            entityManager.remove(notificationState);
         }
 
         // Migrate services
@@ -291,7 +313,7 @@ public class RoomReservationTask extends ReservationTask
                 }
             }
         }
-        super.migrateReservation(oldReservation, newReservation);
+        super.migrateReservation(oldReservation, newReservation, entityManager);
     }
 
     /**
@@ -561,9 +583,10 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setSlot(slot);
                 roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
                 roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
+                roomEndpoint.setMeetingName(meetingName);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
-                roomEndpoint.setParticipantNotification(participantNotification);
+                roomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);
 
                 // Allocate aliases for the room endpoint
                 allocateAliases(roomProviderCapability, roomEndpoint);

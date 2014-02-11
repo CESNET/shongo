@@ -13,7 +13,7 @@ ${context.message(indent, "reservationRequest.updatedAt")}: ${context.formatDate
 ${context.message(indent, "reservationRequest.updatedBy")}: ${context.formatUser(notification.reservationRequestUpdatedBy)}
 </#if>
 <#if notification.reservationRequestDescription??>
-${context.message(indent, "reservationRequest.description")}: ${notification.reservationRequestDescription}
+${context.message(indent, "reservationRequest.description")}: ${context.indentNextLines(indent + 2, notification.reservationRequestDescription)}
 </#if>
 </#if>
 ${context.message(indent, 'allocationFailed.requestedSlot')}: ${context.formatInterval(notification.requestedSlot)}

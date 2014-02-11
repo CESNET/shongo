@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.notification.executor.NotificationExecutor;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -516,10 +517,11 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Room Reservation Request\nTest multiline");
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
+        reservationRequest.setSlot("2014-02-11T14:00", "PT3H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
         RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setMeetingName("First testing meeting");
         roomAvailability.setParticipantCount(5);
         roomAvailability.setParticipantNotificationEnabled(true);
         roomAvailability.setSlotMinutesBefore(10);
@@ -543,7 +545,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         executeNotifications();
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setSlot("2014-02-11T14:00", "PT2H");
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
@@ -625,7 +627,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
 
         // Create Capacity 1 with Capacity Participant 1
         ReservationRequest firstCapacityReservationRequest = new ReservationRequest();
-        firstCapacityReservationRequest.setDescription("Capacity Reservation Request 1");
+        firstCapacityReservationRequest.setDescription("Capacity Reservation Request 1\nmultiline test");
         firstCapacityReservationRequest.setSlot("2012-01-01T12:00", "PT1H");
         firstCapacityReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstCapacityReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId, true);
@@ -927,9 +929,15 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 NotificationManager manager, EntityManager entityManager)
         {
             NotificationMessage recipientMessage = notification.getMessage(recipient, manager, entityManager);
+            if (notification instanceof RoomGroupNotification)
             logger.debug("Notification for {} (reply-to: {})...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
                     recipient, notification.getReplyTo(), recipientMessage.getTitle(), recipientMessage.getContent()
             });
+            for (NotificationAttachment attachment : recipientMessage.getAttachments()) {
+                iCalendarNotificationAttachment calendarAttachment = (iCalendarNotificationAttachment) attachment;
+                String fileContent = calendarAttachment.getFileContent("test", entityManager);
+                logger.debug("ATTACHMENT {}:\n{}", attachment.getFileName(), fileContent);
+            }
             notificationRecords.add(new NotificationRecord<AbstractNotification>(recipient, notification));
             if (notification instanceof RoomGroupNotification) {
                 RoomGroupNotification roomGroupNotification = (RoomGroupNotification) notification;
