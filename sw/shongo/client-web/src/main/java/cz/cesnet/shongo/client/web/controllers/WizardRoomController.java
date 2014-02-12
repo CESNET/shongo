@@ -13,9 +13,11 @@ import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -356,7 +359,22 @@ public class WizardRoomController extends WizardParticipantsController
         wizardView.addObject("createUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE);
         wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY);
         wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE);
+        wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
         return wizardView;
+    }
+
+    /**
+     * Process participants form.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANTS, method = RequestMethod.POST)
+    public Object handleParticipantsProcess(
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel,
+            BindingResult bindingResult)
+    {
+        if (!ReservationRequestValidator.validateParticipants(reservationRequestModel, bindingResult)) {
+            return handleParticipants(reservationRequestModel);
+        }
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
     }
 
     /**

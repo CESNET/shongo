@@ -476,13 +476,20 @@ public abstract class RoomEndpoint extends Endpoint
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
+        return State.STARTED;
+    }
+
+    @Override
+    protected void onAfterStart(Executor executor)
+    {
+        super.onAfterStart(executor);
+
         // Notify participants
         if (roomConfiguration.getLicenseCount() > 0 && participants.size() > 0) {
             if (isParticipantNotificationEnabled()) {
                 executor.addNotification(new RoomAvailableNotification(this));
             }
         }
-        return State.STARTED;
     }
 
     @Override

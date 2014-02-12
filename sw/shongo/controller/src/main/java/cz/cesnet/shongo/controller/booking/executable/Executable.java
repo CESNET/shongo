@@ -371,6 +371,9 @@ public abstract class Executable extends ExecutionTarget
         }
         State state = onStart(executor, executableManager);
         setState(state);
+        if (state.isStarted()) {
+            onAfterStart(executor);
+        }
     }
 
     /**
@@ -435,6 +438,15 @@ public abstract class Executable extends ExecutionTarget
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         return State.SKIPPED;
+    }
+
+    /**
+     * Event called after executable is successfully started.
+     *
+     * @param executor
+     */
+    protected void onAfterStart(Executor executor)
+    {
     }
 
     /**

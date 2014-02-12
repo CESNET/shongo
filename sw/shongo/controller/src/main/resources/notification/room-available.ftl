@@ -16,6 +16,6 @@ ${context.message("room.aliases")}:
 
 ${context.message("room.available.participants")}:
 <#list roomEndpoint.participants as participant>
- - ${context.message("room.available.participant", participant.personFullName, context.message("room.available.participant.role." + participant.role))}:
+ - ${context.message("room.available.participant", participant.personFullName, context.message("room.available.participant.role." + participant.role))}
 </#list>
 </#if>

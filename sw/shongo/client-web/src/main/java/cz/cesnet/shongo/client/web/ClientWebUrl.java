@@ -79,6 +79,8 @@ public class ClientWebUrl
             "/wizard/{reservationRequestId:.+}/duplicate";
     public static final String WIZARD_MODIFY =
             "/wizard/{reservationRequestId:.+}/modify";
+    public static final String WIZARD_UPDATE =
+            "/wizard/update";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";

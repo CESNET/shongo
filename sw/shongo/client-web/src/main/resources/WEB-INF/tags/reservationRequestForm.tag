@@ -398,7 +398,7 @@
                     <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
                 </form:label>
                 <div class="controls">
-                    <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" value="xx"/>
+                    <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                     <form:errors path="roomRecorded" cssClass="error"/>
                 </div>

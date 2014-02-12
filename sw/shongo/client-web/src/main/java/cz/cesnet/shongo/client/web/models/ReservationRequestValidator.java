@@ -73,6 +73,7 @@ public class ReservationRequestValidator implements Validator
                     if (roomParticipantCount != null && roomParticipantCount <= 0) {
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
+                    validateParticipants(reservationRequestModel, errors);
                     break;
             }
             switch (specificationType) {
@@ -176,6 +177,19 @@ public class ReservationRequestValidator implements Validator
         ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
                 userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequestModel, errors);
+        return !errors.hasErrors();
+    }
+
+    /**
+     * @param reservationRequestModel to get validated participants
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
+    public static boolean validateParticipants(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        if (reservationRequestModel.isRoomParticipantNotificationEnabled()) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomMeetingName", "validation.field.required");
+        }
         return !errors.hasErrors();
     }
 }

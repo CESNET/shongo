@@ -89,6 +89,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected List<ParticipantModel> roomParticipants = new LinkedList<ParticipantModel>();
 
+    protected boolean roomParticipantNotificationEnabled = false;
+
+    protected String roomMeetingName;
+
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
@@ -457,6 +461,26 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         return participantModel;
     }
 
+    public String getRoomMeetingName()
+    {
+        return roomMeetingName;
+    }
+
+    public void setRoomMeetingName(String roomMeetingName)
+    {
+        this.roomMeetingName = roomMeetingName;
+    }
+
+    public boolean isRoomParticipantNotificationEnabled()
+    {
+        return roomParticipantNotificationEnabled;
+    }
+
+    public void setRoomParticipantNotificationEnabled(boolean roomParticipantNotificationEnabled)
+    {
+        this.roomParticipantNotificationEnabled = roomParticipantNotificationEnabled;
+    }
+
     /**
      * Load attributes from given {@code specification}.
      *
@@ -513,6 +537,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 slotBeforeMinutes = roomAvailability.getSlotMinutesBefore();
                 slotAfterMinutes = roomAvailability.getSlotMinutesAfter();
                 roomParticipantCount = roomAvailability.getParticipantCount();
+                roomParticipantNotificationEnabled = roomAvailability.isParticipantNotificationEnabled();
+                roomMeetingName = roomAvailability.getMeetingName();
 
                 for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
                     switch (service.getType()) {
@@ -672,6 +698,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 // Room availability
                 RoomAvailability roomAvailability = roomSpecification.createAvailability();
                 roomAvailability.setParticipantCount(roomParticipantCount);
+                roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
+                roomAvailability.setMeetingName(roomMeetingName);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
@@ -695,6 +723,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 // Room availability
                 RoomAvailability roomAvailability = roomSpecification.createAvailability();
                 roomAvailability.setParticipantCount(roomParticipantCount);
+                roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
+                roomAvailability.setMeetingName(roomMeetingName);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }

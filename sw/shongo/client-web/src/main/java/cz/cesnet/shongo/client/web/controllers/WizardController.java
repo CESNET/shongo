@@ -12,9 +12,8 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -25,6 +24,9 @@ import javax.annotation.Resource;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
+@SessionAttributes({
+        WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE
+})
 public class WizardController
 {
     @Resource
@@ -76,5 +78,16 @@ public class WizardController
             default:
                 throw new TodoImplementException(specificationType);
         }
+    }
+
+    /**
+     * Update reservation request in memory.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_UPDATE, method = {RequestMethod.POST})
+    @ResponseBody
+    public Object handleUpdate(
+            @ModelAttribute(WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    {
+        return null;
     }
 }

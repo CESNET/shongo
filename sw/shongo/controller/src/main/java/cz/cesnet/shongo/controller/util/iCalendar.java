@@ -208,13 +208,17 @@ public class iCalendar
             DateTime start = getDateTime(interval.getStart().withZone(dateTimeZone));
             DateTime end = getDateTime(interval.getEnd().withZone(dateTimeZone));
 
+            DtStart dtStart = new DtStart(start);
+            dtStart.setTimeZone(new TimeZone(timeZone));
+            DtEnd dtEnd = new DtEnd(end);
+            dtEnd.setTimeZone(new TimeZone(timeZone));
+
             PropertyList properties = event.getProperties();
             properties.remove(Property.TZID);
             properties.remove(Property.DTSTART);
             properties.remove(Property.DTEND);
-            properties.add(timeZone.getTimeZoneId());
-            properties.add(new DtStart(start));
-            properties.add(new DtEnd(end));
+            properties.add(dtStart);
+            properties.add(dtEnd);
         }
 
         public void setSummary(String summary)

@@ -171,6 +171,7 @@ outer:
         notificationMessage.languages.addAll(this.languages);
         notificationMessage.title = this.title;
         notificationMessage.content = this.content;
+        notificationMessage.attachments.addAll(this.attachments);
         return notificationMessage;
     }
 

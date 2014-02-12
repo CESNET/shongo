@@ -161,11 +161,21 @@ dl.dl-horizontal dd select {
 }
 
 /* Form */
+legend {
+    margin-bottom: 10px;
+}
+legend input[type="radio"], form input[type="checkbox"] {
+    margin-left: 10px;
+    margin-bottom: 8px;
+}
 form.inline {
     display: inline-block;
 }
 form fieldset textarea {
     resize:none;
+}
+form fieldset legend {
+    margin-bottom: 0px;
 }
 form fieldset legend.select {
     padding-bottom: 5px;

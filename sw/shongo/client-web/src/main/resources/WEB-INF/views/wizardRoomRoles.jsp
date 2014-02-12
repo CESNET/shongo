@@ -18,15 +18,19 @@
 
     <h1><spring:message code="views.wizard.room.roles"/></h1>
 
+
     <spring:message code="views.wizard.room.roles.description"/>
     <tag:help>
         <strong><spring:message code="views.userRole.objectRole.OWNER"/></strong>
+
         <p><spring:message code="views.userRole.objectRoleHelp.OWNER"/></p>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <strong><spring:message code="views.userRole.objectRole.RESERVATION_REQUEST_USER"/></strong>
+
             <p><spring:message code="views.userRole.objectRoleHelp.RESERVATION_REQUEST_USER"/></p>
         </c:if>
         <strong><spring:message code="views.userRole.objectRole.READER"/></strong>
+
         <p><spring:message code="views.userRole.objectRoleHelp.READER"/></p>
     </tag:help>
 

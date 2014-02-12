@@ -334,6 +334,17 @@
         </dd>
     </c:if>
 
+    <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
+        <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
+        <dd>
+            <spring:message code="views.button.yes"/>
+        </dd>
+        <dt><spring:message code="views.reservationRequest.specification.roomMeetingName"/>:</dt>
+        <dd>
+            ${reservationRequest.roomMeetingName}
+        </dd>
+    </c:if>
+
     <%-- Created --%>
     <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>

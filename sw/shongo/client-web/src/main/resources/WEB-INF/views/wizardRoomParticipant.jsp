@@ -16,11 +16,11 @@
 
     <c:choose>
         <c:when test="${empty participant.id}">
-            <c:set var="title" value="views.wizard.createParticipants.add"/>
+            <c:set var="title" value="views.wizard.room.participants.add"/>
             <c:set var="confirmTitle" value="views.button.add"/>
         </c:when>
         <c:otherwise>
-            <c:set var="title" value="views.wizard.createParticipants.modify"/>
+            <c:set var="title" value="views.wizard.room.participants.modify"/>
             <c:set var="confirmTitle" value="views.button.modify"/>
         </c:otherwise>
     </c:choose>
