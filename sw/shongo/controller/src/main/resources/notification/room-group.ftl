@@ -15,8 +15,8 @@ ${context.message(23, "room.pin")}: ${pin}
 <#if aliases?? && aliases?has_content>
 ${context.message(23, "room.aliases")}:
 <@formatAliases aliases=aliases/>
-
 </#if>
+
 <#-- Notifications -->
 ${notifications}
 

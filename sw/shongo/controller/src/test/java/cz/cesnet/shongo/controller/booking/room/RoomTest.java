@@ -287,13 +287,18 @@ public class RoomTest extends AbstractControllerTest
         roomAvailability.setSlotMinutesAfter(5);
         roomAvailability.setParticipantCount(5);
         reservationRequest.setSpecification(roomSpecification);
-        RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
+        String reservationRequestId = allocate(reservationRequest);
+        RoomReservation reservation = (RoomReservation) checkAllocated(reservationRequestId);
         RoomExecutable room = (RoomExecutable) reservation.getExecutable();
         Assert.assertEquals(new Interval(
                 slot.getStart().minusMinutes(roomAvailability.getSlotMinutesBefore()),
                 slot.getEnd().plusMinutes(roomAvailability.getSlotMinutesAfter())),
                 room.getSlot());
         Assert.assertEquals(slot, room.getOriginalSlot());
+
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequestId = allocate(reservationRequest, slot.getStart().plusMinutes(5));
+        checkAllocated(reservationRequestId);
     }
 
     private void checkAliasTypes(AliasType[] requiredAliasTypes, Collection<Alias> givenAliases)

@@ -30,7 +30,9 @@ import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomAvailableNotification;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.omg.CORBA.PERSIST_STORE;
 
 import javax.persistence.*;
@@ -318,9 +320,23 @@ public abstract class RoomEndpoint extends Endpoint
     @Transient
     public Interval getOriginalSlot()
     {
-        Interval slot = getSlot();
-        return new Interval(slot.getStart().plusMinutes(slotMinutesBefore),
-                slot.getEnd().minusMinutes(slotMinutesAfter));
+        return getOriginalSlot(getSlot(), Period.minutes(slotMinutesBefore), Period.minutes(slotMinutesAfter));
+    }
+
+    /**
+     * @param slot
+     * @param slotBefore
+     * @param slotAfter
+     * @return original slot from given {@code slot} and {@code slotBefore} and {@code slotAfter}
+     */
+    public static Interval getOriginalSlot(Interval slot, Period slotBefore, Period slotAfter)
+    {
+        DateTime start = slot.getStart().plus(slotBefore);
+        DateTime end = slot.getEnd().minus(slotAfter);
+        if (end.isBefore(start)) {
+            end = start;
+        }
+        return new Interval(start, end);
     }
 
     @Transient

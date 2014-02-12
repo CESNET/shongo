@@ -81,13 +81,10 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                     ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY,
                     "views.wizard.page.room.capacity.create"));
         }
-        if (reservationRequest == null || reservationRequest.getTechnology() == null
-                || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
-            wizardView.addPage(new WizardPage(
+        wizardView.addPage(new WizardPage(
                     Page.PARTICIPANTS,
                     ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS,
                     "views.wizard.page.room.participants"));
-        }
         wizardView.addPage(new WizardPage(
                 Page.CONFIRM,
                 ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM,
@@ -211,12 +208,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
         else {
-            if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
-                return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
-            }
-            else {
-                return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM;
-            }
+            return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
     }
 

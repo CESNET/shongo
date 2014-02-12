@@ -13,11 +13,9 @@ import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -25,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ValidationUtils;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -97,11 +94,8 @@ public class WizardRoomController extends WizardParticipantsController
             wizardView.addPage(new WizardPage(Page.ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
                     "views.wizard.page.room.roles"));
         }
-        if (reservationRequest == null || reservationRequest.getTechnology() == null
-                || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
-            wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
-                    "views.wizard.page.room.participants"));
-        }
+        wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
+                "views.wizard.page.room.participants"));
         wizardView.addPage(new WizardPage(Page.CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
                 "views.wizard.page.room.confirm"));
     }
@@ -170,9 +164,9 @@ public class WizardRoomController extends WizardParticipantsController
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
         AbstractReservationRequest reservationRequest =
-                    reservationService.getReservationRequest(securityToken, reservationRequestId);
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
         ReservationRequestModel reservationRequestModel =
-                    new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
+                new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         reservationRequestModel.setId(null);
         reservationRequestModel.setStart(DateTime.now());
         WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
@@ -237,11 +231,8 @@ public class WizardRoomController extends WizardParticipantsController
             if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
                 return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
             }
-            else if (reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
-                return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
-            }
             else {
-                return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
+                return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
             }
         }
     }
@@ -554,7 +545,7 @@ public class WizardRoomController extends WizardParticipantsController
     private ReservationRequestModel createReservationRequest(SecurityToken securityToken, UserSession userSession)
     {
         ReservationRequestModel reservationRequest = new ReservationRequestModel(
-                    new CacheProvider(cache, securityToken), userSession.getUserSettings());
+                new CacheProvider(cache, securityToken), userSession.getUserSettings());
         reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
         reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
         return reservationRequest;

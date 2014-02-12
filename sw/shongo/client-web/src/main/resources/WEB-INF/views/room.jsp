@@ -556,7 +556,8 @@
                         <c:if test="${room.technology == 'ADOBE_CONNECT' && isWritable}">
                                 <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
                                 <a href="{{roomRecording.editableUrl}}" title="${recordingEditTitle}" target="_blank"><i class="icon-edit"></i></a>
-                        </c:if>                    </td>
+                        </c:if>
+                    </td>
                 </tr>
                 </tbody>
                 <tbody>

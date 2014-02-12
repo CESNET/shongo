@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import org.joda.time.Interval;
@@ -130,8 +131,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             if (this.target instanceof Target.Room) {
                 // We must compute the original time slot
                 Target.Room room = (Target.Room) this.target;
-                slot = new Interval(slot.getStart().plus(room.getSlotBefore()),
-                        slot.getEnd().minus(room.getSlotAfter()));
+                slot = RoomEndpoint.getOriginalSlot(slot, room.getSlotBefore(), room.getSlotAfter());
             }
             renderContext.addParameter("slot", slot);
             templateFileName = "reservation-request-reservation.ftl";

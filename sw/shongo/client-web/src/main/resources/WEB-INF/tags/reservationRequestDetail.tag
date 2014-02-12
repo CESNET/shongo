@@ -315,24 +315,22 @@
     </c:if>
 
     <%-- Participants --%>
-    <c:if test="${reservationRequest.technology == 'ADOBE_CONNECT'}">
-        <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
-        <dd>
-            <span ng-repeat="roomParticipant in roomParticipants">
-                {{roomParticipant.name}} ({{roomParticipant.role}}){{$last ? '' : ', '}}
-            </span>
-            <span ng-hide="roomParticipants.length">
-                <spring:message code="views.reservationRequest.participants.none"/>
-            </span>
-            <span ng-show="roomState != null && roomState.code != 'STOPPED'">
-                <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
-                    <tag:param name="roomId" value="{{roomId}}" escape="false"/>
-                    <tag:param name="back-url" value="${requestUrl}"/>
-                </tag:url>
-                (<a href="${modifyParticipantsUrl}"><spring:message code="views.reservationRequest.participants.modify"/></a>)
-            </span>
-        </dd>
-    </c:if>
+    <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
+    <dd>
+        <span ng-repeat="roomParticipant in roomParticipants">
+            {{roomParticipant.name}} ({{roomParticipant.role}}){{$last ? '' : ', '}}
+        </span>
+        <span ng-hide="roomParticipants.length">
+            <spring:message code="views.reservationRequest.participants.none"/>
+        </span>
+        <span ng-show="roomState != null && roomState.code != 'STOPPED'">
+            <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
+                <tag:param name="roomId" value="{{roomId}}" escape="false"/>
+                <tag:param name="back-url" value="${requestUrl}"/>
+            </tag:url>
+            (<a href="${modifyParticipantsUrl}"><spring:message code="views.reservationRequest.participants.modify"/></a>)
+        </span>
+    </dd>
 
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
         <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
