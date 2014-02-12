@@ -357,9 +357,15 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         slot = new Interval(slotStart, slot.getEnd());
 
         // Fill already allocated reservations as reallocatable
+        Specification specification = reservationRequest.getSpecification();
+        Interval allocationSlot = slot;
+        if (specification instanceof SpecificationIntervalUpdater) {
+            SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
+            allocationSlot = intervalUpdater.updateInterval(allocationSlot);
+        }
         Allocation allocation = reservationRequest.getAllocation();
         for (Reservation allocatedReservation : allocation.getReservations()) {
-            if (!slot.overlaps(allocatedReservation.getSlot())) {
+            if (!allocationSlot.overlaps(allocatedReservation.getSlot())) {
                 continue;
             }
             contextState.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
@@ -373,7 +379,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Get reservation task
-        Specification specification = reservationRequest.getSpecification();
         ReservationTask reservationTask;
         if (specification instanceof ReservationTaskProvider) {
             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;

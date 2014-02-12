@@ -161,14 +161,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, cacheProvider,
                 messageProvider, executableService, userSession);
-
-        // Add user roles
-        AclEntryListRequest userRoleRequest = new AclEntryListRequest();
-        userRoleRequest.setSecurityToken(securityToken);
-        userRoleRequest.addObjectId(reservationRequestId);
-        for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
-            reservationRequestModel.addUserRole(new UserRoleModel(aclEntry, cacheProvider));
-        }
+        reservationRequestModel.loadUserRoles(securityToken, authorizationService);
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);

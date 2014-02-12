@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -29,7 +31,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -65,11 +66,11 @@ public class WizardRoomController extends WizardParticipantsController
 
     private static enum Page
     {
-        ROOM_TYPE,
-        ROOM_ATTRIBUTES,
-        ROOM_ROLES,
-        ROOM_PARTICIPANTS,
-        ROOM_CONFIRM
+        SELECT,
+        ATTRIBUTES,
+        ROLES,
+        PARTICIPANTS,
+        CONFIRM
     }
 
     @Override
@@ -78,22 +79,28 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
 
-        wizardView.addPage(new WizardPage(Page.ROOM_TYPE, ClientWebUrl.WIZARD_ROOM,
-                "views.wizard.page.createRoom"));
-        wizardView.addPage(new WizardPage(Page.ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
-                "views.wizard.page.createRoom.attributes"));
+        if (reservationRequest != null && reservationRequest instanceof ReservationRequestModificationModel) {
+            wizardView.addPage(new WizardPage(Page.SELECT, null, "views.wizard.page.room.modify"));
+        }
+        else {
+            wizardView.addPage(new WizardPage(Page.SELECT, ClientWebUrl.WIZARD_ROOM,
+                    "views.wizard.page.room.create"));
+        }
+
+        wizardView.addPage(new WizardPage(Page.ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
+                "views.wizard.page.room.attributes"));
         if (reservationRequest == null || reservationRequest.getSpecificationType() == null
                 || reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
-            wizardView.addPage(new WizardPage(Page.ROOM_ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
-                    "views.wizard.page.createRoom.roles"));
+            wizardView.addPage(new WizardPage(Page.ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
+                    "views.wizard.page.room.roles"));
         }
         if (reservationRequest == null || reservationRequest.getTechnology() == null
                 || reservationRequest.getTechnology().equals(TechnologyModel.ADOBE_CONNECT)) {
-            wizardView.addPage(new WizardPage(Page.ROOM_PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
-                    "views.wizard.page.createRoom.participants"));
+            wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
+                    "views.wizard.page.room.participants"));
         }
-        wizardView.addPage(new WizardPage(Page.ROOM_CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
-                "views.wizard.page.createConfirm"));
+        wizardView.addPage(new WizardPage(Page.CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
+                "views.wizard.page.room.confirm"));
     }
 
     /**
@@ -109,16 +116,13 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
-     * Book new virtual room.
+     * Book new  room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
-    public ModelAndView handleRoomType(UserSession userSession, SecurityToken securityToken)
+    public ModelAndView handleRoomType(SecurityToken securityToken, UserSession userSession)
     {
-        WizardView wizardView = getWizardView(Page.ROOM_TYPE, "wizardCreateRoom.jsp");
-        ReservationRequestModel reservationRequest = new ReservationRequestModel(
-                new CacheProvider(cache, securityToken), userSession.getUserSettings());
-        reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
-        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
+        WizardView wizardView = getWizardView(Page.SELECT, "wizardRoomType.jsp");
+        ReservationRequestModel reservationRequest = createReservationRequest(securityToken, userSession);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
         return wizardView;
@@ -126,27 +130,65 @@ public class WizardRoomController extends WizardParticipantsController
 
     /**
      * Change new virtual room to ad-hoc type and show form for editing room attributes.
-     *
-     * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ADHOC_ROOM, method = RequestMethod.GET)
-    public String handleAdhocRoom(
-            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ADHOC, method = RequestMethod.GET)
+    public String handleAdhocRoom(SecurityToken securityToken, UserSession userSession)
     {
+        ReservationRequestModel reservationRequest = getReservationRequest();
+        if (reservationRequest == null) {
+            reservationRequest = createReservationRequest(securityToken, userSession);
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
+        }
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
         return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
     }
 
     /**
      * Change new virtual room to permanent type and show form for editing room attributes.
-     *
-     * @param reservationRequest session attribute is required
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM, method = RequestMethod.GET)
-    public String handlePermanentRoom(
-            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PERMANENT, method = RequestMethod.GET)
+    public String handlePermanentRoom(SecurityToken securityToken, UserSession userSession)
     {
+        ReservationRequestModel reservationRequest = getReservationRequest();
+        if (reservationRequest == null) {
+            reservationRequest = createReservationRequest(securityToken, userSession);
+            WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
+        }
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+    }
+
+    /**
+     * Handle duplication of an existing reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_DUPLICATE, method = RequestMethod.GET)
+    public String handleRoomDuplicate(
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+    {
+        AbstractReservationRequest reservationRequest =
+                    reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel =
+                    new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
+        reservationRequestModel.setId(null);
+        reservationRequestModel.setStart(DateTime.now());
+        WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
+        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+    }
+
+    /**
+     * Modify existing virtual room.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_MODIFY, method = RequestMethod.GET)
+    public String handleRoomModify(
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+    {
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
+                reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
+        WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
         return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
     }
 
@@ -208,7 +250,7 @@ public class WizardRoomController extends WizardParticipantsController
     public ModelAndView handleRoles(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRoles.jsp");
+        return getWizardView(Page.ROLES, "wizardRoomRoles.jsp");
     }
 
     /**
@@ -219,7 +261,7 @@ public class WizardRoomController extends WizardParticipantsController
             SecurityToken securityToken,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        WizardView wizardView = getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRole.jsp");
+        WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRole.jsp");
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         wizardView.addObject("userRole", new UserRoleModel(cacheProvider));
         wizardView.setNextPageUrl(null);
@@ -243,7 +285,7 @@ public class WizardRoomController extends WizardParticipantsController
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
             // Show form for adding new user role with validation errors
-            WizardView wizardView = getWizardView(Page.ROOM_ROLES, "wizardCreateRoomRole.jsp");
+            WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRole.jsp");
             wizardView.setNextPageUrl(null);
             wizardView.setPreviousPageUrl(null);
             return wizardView;
@@ -310,8 +352,8 @@ public class WizardRoomController extends WizardParticipantsController
     public ModelAndView handleParticipants(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
     {
-        WizardView wizardView = getWizardView(Page.ROOM_PARTICIPANTS, "wizardCreateParticipants.jsp");
-        wizardView.addObject("createUrl", ClientWebUrl.WIZARD_PARTICIPANT_CREATE);
+        WizardView wizardView = getWizardView(Page.PARTICIPANTS, "wizardRoomParticipants.jsp");
+        wizardView.addObject("createUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE);
         wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY);
         wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE);
         return wizardView;
@@ -320,18 +362,18 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * Show form for adding new participant for ad-hoc/permanent room.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_PARTICIPANT_CREATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE, method = RequestMethod.GET)
     public ModelAndView handleParticipantCreate(
             SecurityToken securityToken,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return handleParticipantCreate(Page.ROOM_PARTICIPANTS, reservationRequest, securityToken);
+        return handleParticipantCreate(Page.PARTICIPANTS, reservationRequest, securityToken);
     }
 
     /**
      * Store new {@code participant} to given {@code reservationRequest}.
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_PARTICIPANT_CREATE, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public Object handleParticipantCreateProcess(
             HttpSession httpSession,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
@@ -342,7 +384,7 @@ public class WizardRoomController extends WizardParticipantsController
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
-            return handleParticipantView(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
+            return handleParticipantView(Page.PARTICIPANTS, reservationRequest, participant);
         }
     }
 
@@ -354,7 +396,7 @@ public class WizardRoomController extends WizardParticipantsController
             @PathVariable("participantId") String participantId,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return handleParticipantModify(Page.ROOM_PARTICIPANTS, reservationRequest, participantId);
+        return handleParticipantModify(Page.PARTICIPANTS, reservationRequest, participantId);
     }
 
     /**
@@ -372,7 +414,7 @@ public class WizardRoomController extends WizardParticipantsController
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
-            return handleParticipantModify(Page.ROOM_PARTICIPANTS, reservationRequest, participant);
+            return handleParticipantModify(Page.PARTICIPANTS, reservationRequest, participant);
         }
     }
 
@@ -406,7 +448,7 @@ public class WizardRoomController extends WizardParticipantsController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
         }
-        WizardView wizardView = getWizardView(Page.ROOM_CONFIRM, "wizardCreateConfirm.jsp");
+        WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);
         return wizardView;
     }
@@ -422,13 +464,23 @@ public class WizardRoomController extends WizardParticipantsController
             SessionStatus sessionStatus,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        // Create reservation request
-        String reservationRequestId = reservationService.createReservationRequest(
-                securityToken, reservationRequest.toApi());
+        // Create or modify reservation request
+        String reservationRequestId;
+        if (Strings.isNullOrEmpty(reservationRequest.getId())) {
+            reservationRequestId = reservationService.createReservationRequest(
+                    securityToken, reservationRequest.toApi());
+        }
+        else {
+            reservationRequestId = reservationService.modifyReservationRequest(
+                    securityToken, reservationRequest.toApi());
+        }
         UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {
+            if (!Strings.isNullOrEmpty(userRole.getId())) {
+                continue;
+            }
             userRole.setObjectId(reservationRequestId);
             authorizationService.createAclEntry(securityToken, userRole.toApi());
         }
@@ -457,10 +509,36 @@ public class WizardRoomController extends WizardParticipantsController
      */
     private WizardView getCreateRoomAttributesView()
     {
-        WizardView wizardView = getWizardView(Page.ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
+        WizardView wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
         wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
+    }
+
+    /**
+     * @return {@link ReservationRequestModel} from {@link #request}
+     */
+    private ReservationRequestModel getReservationRequest()
+    {
+        Object reservationRequestAttribute = WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
+        if (reservationRequestAttribute instanceof ReservationRequestModel) {
+            return (ReservationRequestModel) reservationRequestAttribute;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * @return {@link ReservationRequestModel} from {@link #request}
+     */
+    private ReservationRequestModel createReservationRequest(SecurityToken securityToken, UserSession userSession)
+    {
+        ReservationRequestModel reservationRequest = new ReservationRequestModel(
+                    new CacheProvider(cache, securityToken), userSession.getUserSettings());
+        reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
+        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
+        return reservationRequest;
     }
 }

@@ -577,8 +577,7 @@
         </c:if>--%>
         <security:authorize access="hasPermission(RESERVATION)">
             <c:if test="${room.state.started && room.licenseCount == 0 && reservationRequestProvidable}">
-                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-                    <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                     <tag:param name="permanentRoom" value="${room.id}"/>
                     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                 </tag:url>

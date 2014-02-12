@@ -5,6 +5,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 
 /**
  * {@link ReservationRequestModel} for modification.
@@ -16,7 +18,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     private boolean adhocRoomRetainRoomName = false;
 
     public ReservationRequestModificationModel(AbstractReservationRequest reservationRequest,
-            CacheProvider cacheProvider)
+            CacheProvider cacheProvider, AuthorizationService authorizationService)
     {
         super(reservationRequest, cacheProvider);
 
@@ -40,6 +42,12 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
                 // Room name should be retained
                 adhocRoomRetainRoomName = true;
             }
+        }
+
+        // Load user roles
+        loadUserRoles(cacheProvider.getSecurityToken(), authorizationService);
+        for (UserRoleModel userRole : getUserRoles()) {
+            userRole.setDeletable(false);
         }
     }
 

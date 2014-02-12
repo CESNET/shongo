@@ -10,12 +10,19 @@
 <hr/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:wizardCreateConfirm', ['ngApplication', 'tag:reservationRequestDetail']);
+    var module = angular.module('jsp:wizardRoomConfirm', ['ngApplication', 'tag:reservationRequestDetail']);
 </script>
 
-<div ng-app="jsp:wizardCreateConfirm">
+<div ng-app="jsp:wizardRoomConfirm">
 
-    <h2><spring:message code="views.wizard.confirmation.question"/></h2>
+    <c:choose>
+        <c:when test="${not empty reservationRequest.id}">
+            <h2><spring:message code="views.wizard.confirmation.question.modify"/></h2>
+        </c:when>
+        <c:otherwise>
+            <h2><spring:message code="views.wizard.confirmation.question.create"/></h2>
+        </c:otherwise>
+    </c:choose>
 
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}"
                                   detailUrl="<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"

@@ -7,19 +7,19 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ADHOC_ROOM %>"/>
-<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM %>"/>
+<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ADHOC %>"/>
+<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PERMANENT %>"/>
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
 <div class="actions">
-    <span><spring:message code="views.wizard.createRoom"/></span>
+    <span><spring:message code="views.wizard.room.type"/></span>
     <ul>
         <li>
-            <a href="${createAdhocRoomUrl}" tabindex="1"><spring:message code="views.wizard.createRoom.adhoc"/></a>
+            <a href="${createAdhocRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.adhoc"/></a>
             <p><spring:message code="views.help.roomType.ADHOC_ROOM.description"/></p>
         </li>
         <li>
-            <a href="${createPermanentRoomUrl}" tabindex="1"><spring:message code="views.wizard.createRoom.permanent"/></a>
+            <a href="${createPermanentRoomUrl}" tabindex="1"><spring:message code="views.wizard.room.type.permanent"/></a>
             <p><spring:message code="views.help.roomType.PERMANENT_ROOM.description"/></p>
         </li>
         <a class="btn btn-success" href="${helpUrl}#rooms" target="_blank">

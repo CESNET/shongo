@@ -99,6 +99,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             Interval interval = request.getSlot();
+            Specification specificationApi = request.getSpecification();
+            cz.cesnet.shongo.controller.booking.specification.Specification specification = null;
+            if (specificationApi != null) {
+                 specification = cz.cesnet.shongo.controller.booking.specification.Specification.createFromApi(
+                         specificationApi, entityManager);
+                if (specification instanceof SpecificationIntervalUpdater) {
+                    SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
+                    interval = intervalUpdater.updateInterval(interval);
+                }
+            }
 
             // We must check only the future (because scheduler allocates only in future)
             DateTime dateTimeNow = DateTime.now();
@@ -151,11 +161,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
 
                 // Check specification availability
-                Specification specificationApi = request.getSpecification();
-                if (specificationApi != null) {
-                    cz.cesnet.shongo.controller.booking.specification.Specification specification =
-                            cz.cesnet.shongo.controller.booking.specification.Specification
-                                    .createFromApi(specificationApi, entityManager);
+                if (specification != null) {
                     if (specification instanceof ReservationTaskProvider) {
                         try {
                             entityManager.getTransaction().begin();

@@ -152,30 +152,6 @@
         </put-list-attribute>
     </definition>
 
-    <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
-        <put-attribute name="confirmTitle" value=""/>
-    </definition>
-
-    <definition name="reservationRequestCreate" extends="layoutAngularForm">
-        <put-attribute name="title" value="views.reservationRequestCreate.title"/>
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="reservationRequestCreateBody" type="definition"/>
-    </definition>
-    <definition name="reservationRequestCreateBody" extends="reservationRequestUpdateBody">
-        <put-attribute name="title" value="views.reservationRequestCreate.title"/>
-        <put-attribute name="confirmTitle" value="views.button.create"/>
-    </definition>
-
-    <definition name="reservationRequestModify" extends="layoutAngularForm">
-        <put-attribute name="title" value="views.reservationRequestModify.title"/>
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="reservationRequestModifyBody" type="definition"/>
-    </definition>
-    <definition name="reservationRequestModifyBody" extends="reservationRequestUpdateBody">
-        <put-attribute name="title" value="views.reservationRequestModify.title"/>
-        <put-attribute name="confirmTitle" value="views.button.save"/>
-    </definition>
-
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDelete.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>

@@ -17,11 +17,11 @@
 <tag:url var="usageDetailUrl" value="${detailUrl}">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
 </tag:url>
-<tag:url var="usageModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+<tag:url var="usageModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="usageDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+<tag:url var="usageDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>

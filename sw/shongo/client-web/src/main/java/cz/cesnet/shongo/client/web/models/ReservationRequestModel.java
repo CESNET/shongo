@@ -16,8 +16,10 @@ import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
 import org.slf4j.Logger;
@@ -1012,6 +1014,26 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             ParticipantModel roomParticipant = new ParticipantModel(participant, cacheProvider);
             roomParticipant.setNullId();
             roomParticipants.add(index++, roomParticipant);
+        }
+    }
+
+    /**
+     * Load user roles into this {@link ReservationRequestModel}.
+     *
+     * @param securityToken
+     * @param authorizationService
+     */
+    public void loadUserRoles(SecurityToken securityToken, AuthorizationService authorizationService)
+    {
+        if (id == null) {
+            throw new IllegalStateException("Id mustn't be null.");
+        }
+        // Add user roles
+        AclEntryListRequest userRoleRequest = new AclEntryListRequest();
+        userRoleRequest.setSecurityToken(securityToken);
+        userRoleRequest.addObjectId(id);
+        for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
+            addUserRole(new UserRoleModel(aclEntry, cacheProvider));
         }
     }
 

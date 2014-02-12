@@ -13,10 +13,10 @@
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 <tag:url var="reservationRequestDetailUrl" value="<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
 
-<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
 </tag:url>
-<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
 </tag:url>
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
@@ -180,8 +180,7 @@
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <hr/>
             <c:if test="${canCreatePermanentRoomCapacity}">
-                <tag:url var="createUsageUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-                    <tag:param name="specificationType" value="PERMANENT_ROOM_CAPACITY"/>
+                <tag:url var="createUsageUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                     <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
                     <tag:param name="back-url" value="${requestUrl}"/>
                 </tag:url>

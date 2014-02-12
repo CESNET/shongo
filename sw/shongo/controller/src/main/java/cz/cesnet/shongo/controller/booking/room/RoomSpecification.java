@@ -32,7 +32,8 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class RoomSpecification extends Specification implements ReservationTaskProvider
+public class RoomSpecification extends Specification
+        implements ReservationTaskProvider, SpecificationIntervalUpdater
 {
     /**
      * Specifies the name of the meeting which will take place in the room.
@@ -685,5 +686,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
         aliasTechnologies.remove(Technology.ALL);
         return aliasTechnologies;
+    }
+
+    @Override
+    public Interval updateInterval(Interval interval)
+    {
+        return new Interval(interval.getStart().minusMinutes(slotMinutesBefore),
+                interval.getEnd().plusMinutes(slotMinutesAfter));
     }
 }

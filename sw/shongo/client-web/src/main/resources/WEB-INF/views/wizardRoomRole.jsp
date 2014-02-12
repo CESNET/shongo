@@ -11,12 +11,12 @@
 <tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLES %>"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:wizardCreateRoomRole', ['ngApplication', 'tag:userRoleForm']);
+    var module = angular.module('jsp:wizardRoomRole', ['ngApplication', 'tag:userRoleForm']);
 </script>
 
-<div ng-app="jsp:wizardCreateRoomRole">
+<div ng-app="jsp:wizardRoomRole">
 
-    <h1><spring:message code="views.wizard.createRoom.role.add"/></h1>
+    <h1><spring:message code="views.wizard.room.role.add"/></h1>
 
     <hr/>
 

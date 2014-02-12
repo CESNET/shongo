@@ -9,10 +9,10 @@
 <tag:url var="cancelUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PARTICIPANTS %>"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:wizardCreateParticipant', ['ngApplication', 'tag:participantForm']);
+    var module = angular.module('jsp:wizardRoomParticipant', ['ngApplication', 'tag:participantForm']);
 </script>
 
-<div ng-app="jsp:wizardCreateParticipant">
+<div ng-app="jsp:wizardRoomParticipant">
 
     <c:choose>
         <c:when test="${empty participant.id}">

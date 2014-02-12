@@ -11,10 +11,10 @@
 
 <tag:url var="listDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
 <tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
-<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_MODIFY %>">
+<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
-<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE_DUPLICATE %>">
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
@@ -24,12 +24,8 @@
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <security:authorize access="hasPermission(RESERVATION)">
-    <tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-        <tag:param name="specificationType" value="PERMANENT_ROOM"/>
-    </tag:url>
-    <tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %>">
-        <tag:param name="specificationType" value="ADHOC_ROOM"/>
-    </tag:url>
+    <tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PERMANENT %>"/>
+    <tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ADHOC %>"/>
 </security:authorize>
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 

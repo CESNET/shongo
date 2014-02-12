@@ -41,7 +41,7 @@ import java.util.Locale;
 @SessionAttributes({"userSettings", "timeZones"})
 public class UserController
 {
-    private static Logger logger = LoggerFactory.getLogger(ReservationRequestUpdateController.class);
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Resource
     private AuthorizationService authorizationService;

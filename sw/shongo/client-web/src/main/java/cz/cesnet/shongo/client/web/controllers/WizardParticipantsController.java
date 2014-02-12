@@ -58,7 +58,7 @@ public abstract class WizardParticipantsController extends AbstractWizardControl
     protected WizardView handleParticipantView(Object wizardPageId, ReservationRequestModel reservationRequest,
             ParticipantModel participant)
     {
-        WizardView wizardView = getWizardView(wizardPageId, "wizardCreateParticipant.jsp");
+        WizardView wizardView = getWizardView(wizardPageId, "wizardRoomParticipant.jsp");
         wizardView.addObject(PARTICIPANT_ATTRIBUTE, participant);
         wizardView.setNextPageUrl(null);
         wizardView.setPreviousPageUrl(null);
@@ -89,7 +89,7 @@ public abstract class WizardParticipantsController extends AbstractWizardControl
     protected WizardView handleParticipantModify(Object wizardPageId, ReservationRequestModel reservationRequest,
             ParticipantModel participant)
     {
-        WizardView wizardView = getWizardView(wizardPageId, "wizardCreateParticipant.jsp");
+        WizardView wizardView = getWizardView(wizardPageId, "wizardRoomParticipant.jsp");
         wizardView.addObject(PARTICIPANT_ATTRIBUTE, participant);
         wizardView.setNextPageUrl(null);
         wizardView.setPreviousPageUrl(null);

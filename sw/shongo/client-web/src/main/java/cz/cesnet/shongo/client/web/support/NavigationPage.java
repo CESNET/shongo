@@ -190,22 +190,24 @@ public class NavigationPage extends Page
             StringBuilder urlPatternBuilder = new StringBuilder();
             urlLiterals = new LinkedList<String>();
             urlAttributes = new LinkedList<String>();
-            Matcher matcher = URL_ATTRIBUTE_PATTERN.matcher(url);
-            while (matcher.find()) {
-                MatchResult matchResult = matcher.toMatchResult();
-                if (matchResult.start() > 0) {
-                    String urlLiteral = url.substring(0, matchResult.start());
-                    urlPatternBuilder.append(Pattern.quote(urlLiteral));
-                    urlLiterals.add(urlLiteral);
+            if (url != null) {
+                Matcher matcher = URL_ATTRIBUTE_PATTERN.matcher(url);
+                while (matcher.find()) {
+                    MatchResult matchResult = matcher.toMatchResult();
+                    if (matchResult.start() > 0) {
+                        String urlLiteral = url.substring(0, matchResult.start());
+                        urlPatternBuilder.append(Pattern.quote(urlLiteral));
+                        urlLiterals.add(urlLiteral);
+                    }
+                    urlPatternBuilder.append("([^/?]+)");
+                    String attribute = matchResult.group(1);
+                    urlAttributes.add(attribute);
+                    url = url.substring(matchResult.end());
+                    matcher.reset(url);
                 }
-                urlPatternBuilder.append("([^/?]+)");
-                String attribute = matchResult.group(1);
-                urlAttributes.add(attribute);
-                url = url.substring(matchResult.end());
-                matcher.reset(url);
+                urlPatternBuilder.append(Pattern.quote(url));
+                urlLiterals.add(url);
             }
-            urlPatternBuilder.append(Pattern.quote(url));
-            urlLiterals.add(url);
             urlPattern = Pattern.compile(urlPatternBuilder.toString());
         }
     }

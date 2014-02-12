@@ -11,14 +11,14 @@
 <tag:url var="deleteRoleUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ROLE_DELETE %>"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:wizardCreateRoomRoles', ['ngApplication', 'ngTooltip']);
+    var module = angular.module('jsp:wizardRoomRoles', ['ngApplication', 'ngTooltip']);
 </script>
 
-<div ng-app="jsp:wizardCreateRoomRoles">
+<div ng-app="jsp:wizardRoomRoles">
 
-    <h1><spring:message code="views.wizard.createRoom.roles"/></h1>
+    <h1><spring:message code="views.wizard.room.roles"/></h1>
 
-    <spring:message code="views.wizard.createRoom.roles.description"/>
+    <spring:message code="views.wizard.room.roles.description"/>
     <tag:help>
         <strong><spring:message code="views.userRole.objectRole.OWNER"/></strong>
         <p><spring:message code="views.userRole.objectRoleHelp.OWNER"/></p>

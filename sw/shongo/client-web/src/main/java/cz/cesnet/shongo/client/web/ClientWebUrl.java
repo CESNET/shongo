@@ -26,46 +26,59 @@ public class ClientWebUrl
     public static final String WIZARD =
             "/wizard";
     public static final String WIZARD_ROOM =
-            "/wizard/create";
-    public static final String WIZARD_ADHOC_ROOM =
-            "/wizard/create/adhoc-room";
-    public static final String WIZARD_PERMANENT_ROOM =
-            "/wizard/create/permanent-room";
+            "/wizard/room";
+    public static final String WIZARD_ROOM_ADHOC =
+            "/wizard/room/adhoc";
+    public static final String WIZARD_ROOM_PERMANENT =
+            "/wizard/room/permanent";
+    public static final String WIZARD_ROOM_DUPLICATE =
+            "/wizard/room/{reservationRequestId:.+}/duplicate";
+    public static final String WIZARD_ROOM_MODIFY =
+            "/wizard/room/{reservationRequestId:.+}/modify";
     public static final String WIZARD_ROOM_ATTRIBUTES =
-            "/wizard/create/attributes";
+            "/wizard/room/attributes";
     public static final String WIZARD_ROOM_ROLES =
-            "/wizard/create/roles";
+            "/wizard/room/roles";
     public static final String WIZARD_ROOM_PARTICIPANTS =
-            "/wizard/create/participants";
-    public static final String WIZARD_PARTICIPANT_CREATE =
-            "/wizard/create/participant/create";
+            "/wizard/room/participants";
+    public static final String WIZARD_ROOM_PARTICIPANT_CREATE =
+            "/wizard/room/participant/create";
     public static final String WIZARD_ROOM_PARTICIPANT_MODIFY =
-            "/wizard/create/participant/{participantId}/modify";
+            "/wizard/room/participant/{participantId}/modify";
     public static final String WIZARD_ROOM_PARTICIPANT_DELETE =
-            "/wizard/create/participant/{participantId}/delete";
+            "/wizard/room/participant/{participantId}/delete";
     public static final String WIZARD_ROOM_ROLE_CREATE =
-            "/wizard/create/role/create";
+            "/wizard/room/role/create";
     public static final String WIZARD_ROOM_ROLE_DELETE =
-            "/wizard/create/role/{roleId}/delete";
+            "/wizard/room/role/{roleId}/delete";
     public static final String WIZARD_ROOM_CONFIRM =
-            "/wizard/create/confirm";
+            "/wizard/room/confirm";
     public static final String WIZARD_ROOM_CONFIRMED =
             "/wizard/create/confirmed";
 
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY =
-            "/wizard/create/permanent-room-capacity";
+            "/wizard/permanent-room-capacity/create";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_DUPLICATE =
+            "/wizard/permanent-room-capacity/{reservationRequestId:.+}/duplicate";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_MODIFY =
+            "/wizard/permanent-room-capacity/{reservationRequestId:.+}/modify";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS =
-            "/wizard/create/permanent-room-capacity/participants";
+            "/wizard/permanent-room-capacity/participants";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE =
-            "/wizard/create/permanent-room-capacity/participant/create";
+            "/wizard/permanent-room-capacity/participant/create";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY =
-            "/wizard/create/permanent-room-capacity/participant/{participantId}/modify";
+            "/wizard/permanent-room-capacity/participant/{participantId}/modify";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_DELETE =
-            "/wizard/create/permanent-room-capacity/participant/{participantId}/delete";
+            "/wizard/permanent-room-capacity/participant/{participantId}/delete";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM =
-            "/wizard/create/permanent-room-capacity/confirm";
+            "/wizard/permanent-room-capacity/confirm";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRMED =
-            "/wizard/create/permanent-room-capacity/confirmed";
+            "/wizard/permanent-room-capacity/confirmed";
+
+    public static final String WIZARD_DUPLICATE =
+            "/wizard/{reservationRequestId:.+}/duplicate";
+    public static final String WIZARD_MODIFY =
+            "/wizard/{reservationRequestId:.+}/modify";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
@@ -73,8 +86,6 @@ public class ClientWebUrl
             "/reservation-request/list";
     public static final String RESERVATION_REQUEST_LIST_DATA =
             "/reservation-request/list/data";
-    public static final String RESERVATION_REQUEST_CREATE =
-            "/reservation-request/create/{specificationType}";
     public static final String RESERVATION_REQUEST_DETAIL =
             "/reservation-request/{reservationRequestId:.+}/detail";
     public static final String RESERVATION_REQUEST_DETAIL_STATE =
@@ -85,10 +96,6 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/detail/usages";
     public static final String RESERVATION_REQUEST_DETAIL_REVERT =
             "/reservation-request/{reservationRequestId:.+}/detail/revert";
-    public static final String RESERVATION_REQUEST_MODIFY =
-            "/reservation-request/{reservationRequestId:.+}/modify";
-    public static final String RESERVATION_REQUEST_CREATE_DUPLICATE =
-            "/reservation-request/{reservationRequestId:.+}/duplicate";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
     public static final String RESERVATION_REQUEST_UPDATE =
