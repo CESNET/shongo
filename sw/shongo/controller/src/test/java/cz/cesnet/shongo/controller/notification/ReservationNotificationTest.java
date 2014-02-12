@@ -792,18 +792,22 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         reservationRequest.setSpecification(roomSpecification);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
-
         runExecutor(DateTime.parse("2012-06-22T14:10"));
+
         // Modify room
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:20"));
         checkAllocated(reservationRequestId);
-
         runExecutor(DateTime.parse("2012-06-22T14:30"));
+
         // Modify room
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
         reservationRequestId = allocate(reservationRequest, DateTime.parse("2012-06-22T14:40"));
         checkAllocated(reservationRequestId);
+        runExecutor(DateTime.parse("2012-06-22T14:50"));
+
+        // Stop room
+        runExecutor(DateTime.parse("2012-06-22T16:30"));
 
         // Delete room
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
@@ -835,10 +839,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(RoomNotification.RoomModified.class);
                 // Delete
                 add(ReservationRequestNotification.class);
-                add(RoomGroupNotification.class);
-                add(RoomNotification.RoomDeleted.class);
-                add(RoomGroupNotification.class);
-                add(RoomNotification.RoomDeleted.class);
             }}, getNotificationTypes(AbstractNotification.class));
     }
 

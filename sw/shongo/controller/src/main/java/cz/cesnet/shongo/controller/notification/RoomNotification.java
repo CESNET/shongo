@@ -560,6 +560,15 @@ public abstract class RoomNotification extends ConfigurableNotification
         @Override
         protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
         {
+            switch (roomEndpoint.getState()) {
+                case STOPPED:
+                case STOPPING_FAILED:
+                case FINALIZED:
+                case FINALIZATION_FAILED:
+                    // Do not notify about deletion of finished rooms
+                    return false;
+            }
+
             if (!super.onBeforeAdded(notificationManager, entityManager)) {
                 return false;
             }
