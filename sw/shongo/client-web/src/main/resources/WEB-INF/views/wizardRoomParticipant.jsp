@@ -29,7 +29,8 @@
 
     <hr/>
 
-    <tag:participantForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"/>
+    <tag:participantForm confirmTitle="${confirmTitle}" cancelUrl="${cancelUrl}"
+                         hideRole="${reservationRequest.technology == 'H323_SIP'}"/>
 
     <hr/>
 

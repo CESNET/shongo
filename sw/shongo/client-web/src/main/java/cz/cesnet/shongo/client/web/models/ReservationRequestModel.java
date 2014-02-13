@@ -93,6 +93,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected String roomMeetingName;
 
+    protected String roomMeetingDescription;
+
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
@@ -471,6 +473,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomMeetingName = roomMeetingName;
     }
 
+    public String getRoomMeetingDescription()
+    {
+        return roomMeetingDescription;
+    }
+
+    public void setRoomMeetingDescription(String roomMeetingDescription)
+    {
+        this.roomMeetingDescription = roomMeetingDescription;
+    }
+
     public boolean isRoomParticipantNotificationEnabled()
     {
         return roomParticipantNotificationEnabled;
@@ -539,6 +551,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomParticipantCount = roomAvailability.getParticipantCount();
                 roomParticipantNotificationEnabled = roomAvailability.isParticipantNotificationEnabled();
                 roomMeetingName = roomAvailability.getMeetingName();
+                roomMeetingDescription = roomAvailability.getMeetingDescription();
 
                 for (ExecutableServiceSpecification service : roomAvailability.getServiceSpecifications()) {
                     switch (service.getType()) {
@@ -700,6 +713,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomAvailability.setParticipantCount(roomParticipantCount);
                 roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
                 roomAvailability.setMeetingName(roomMeetingName);
+                roomAvailability.setMeetingDescription(roomMeetingDescription);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
@@ -725,6 +739,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 roomAvailability.setParticipantCount(roomParticipantCount);
                 roomAvailability.setParticipantNotificationEnabled(roomParticipantNotificationEnabled);
                 roomAvailability.setMeetingName(roomMeetingName);
+                roomAvailability.setMeetingDescription(roomMeetingDescription);
                 if (roomRecorded && !technology.equals(TechnologyModel.ADOBE_CONNECT)) {
                     roomAvailability.addServiceSpecification(ExecutableServiceSpecification.createRecording());
                 }
@@ -1064,6 +1079,19 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         userRoleRequest.addObjectId(id);
         for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
             addUserRole(new UserRoleModel(aclEntry, cacheProvider));
+        }
+    }
+
+    /**
+     * @return default automatically added {@link cz.cesnet.shongo.ParticipantRole} for owner
+     */
+    public ParticipantRole getDefaultOwnerParticipantRole()
+    {
+        if (TechnologyModel.H323_SIP.equals(technology)) {
+            return ParticipantRole.PARTICIPANT;
+        }
+        else {
+            return ParticipantRole.ADMINISTRATOR;
         }
     }
 

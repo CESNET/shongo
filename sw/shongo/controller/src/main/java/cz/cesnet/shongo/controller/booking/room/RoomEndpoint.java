@@ -55,6 +55,11 @@ public abstract class RoomEndpoint extends Endpoint
     private String meetingName;
 
     /**
+     * Specifies the description of the meeting which will take place in the room.
+     */
+    private String meetingDescription;
+
+    /**
      * Number of minutes which the room is be available before requested time slot.
      */
     private int slotMinutesBefore;
@@ -111,6 +116,23 @@ public abstract class RoomEndpoint extends Endpoint
     public void setMeetingName(String meetingName)
     {
         this.meetingName = meetingName;
+    }
+
+    /**
+     * @return {@link #meetingDescription}
+     */
+    @Column
+    public String getMeetingDescription()
+    {
+        return meetingDescription;
+    }
+
+    /**
+     * @param meetingDescription sets the {@link #meetingDescription}
+     */
+    public void setMeetingDescription(String meetingDescription)
+    {
+        this.meetingDescription = meetingDescription;
     }
 
     /**

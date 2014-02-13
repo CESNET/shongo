@@ -99,6 +99,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         boolean isRoomModified = false;
         boolean isParticipantRoleModified = false;
         String oldRoomName = null;
+        String samePin = roomEndpoint.getPin();
         Set<ParticipantRole> participantRoles = new HashSet<ParticipantRole>();
         for (RoomNotification roomNotification : this.notifications) {
             PersonParticipant personParticipant = roomNotification.getParticipant(recipient);
@@ -107,6 +108,13 @@ public class RoomGroupNotification extends ConfigurableNotification
             }
             ParticipantRole participantRole = personParticipant.getRole();
             participantRoles.add(participantRole);
+
+            RoomEndpoint roomEndpoint = roomNotification.getRoomEndpoint();
+            String roomEndpointPin = roomEndpoint.getPin();
+            if (roomEndpointPin != null && !roomEndpointPin.equals(samePin)) {
+                samePin = null;
+            }
+
             roomNotifications.add(roomNotification);
             if (roomNotification instanceof RoomNotification.RoomCreated) {
                 roomCreatedCount++;
@@ -193,7 +201,6 @@ public class RoomGroupNotification extends ConfigurableNotification
             }
         }
 
-
         // Build title
         StringBuilder titleBuilder = new StringBuilder();
         titleBuilder.append(messageBuilder.toString());
@@ -211,8 +218,7 @@ public class RoomGroupNotification extends ConfigurableNotification
             if (contentBuilder.length() > 0) {
                 contentBuilder.append("\n");
             }
-            contentBuilder.append("* ");
-            contentBuilder.append(renderNotification(recipient, roomNotification, context));
+            contentBuilder.append(renderNotification(recipient, roomNotification, context, samePin));
             contentBuilder.append("\n");
         }
 
@@ -221,7 +227,7 @@ public class RoomGroupNotification extends ConfigurableNotification
         context.addParameter("notifications", contentBuilder.toString());
         // Add parameters for not-deleted room
         if (roomDeletedCount != totalCount) {
-            context.addParameter("pin", roomEndpoint.getPin());
+            context.addParameter("pin", samePin);
             context.addParameter("aliases", Alias.sortedList(roomEndpoint.getAliases()));
         }
 
@@ -239,11 +245,11 @@ public class RoomGroupNotification extends ConfigurableNotification
             }
             else if (roomNotification instanceof RoomNotification.RoomModified) {
                 calendar.setMethod(iCalendar.Method.UPDATE);
-                fileName = "invite_" + fileName;
+                fileName = "update_" + fileName;
             }
             else if (roomNotification instanceof RoomNotification.RoomDeleted) {
                 calendar.setMethod(iCalendar.Method.CANCEL);
-                fileName = "invite_" + fileName;
+                fileName = "cancel_" + fileName;
             }
             else {
                 throw new TodoImplementException(roomNotification.getClass());
@@ -263,12 +269,15 @@ public class RoomGroupNotification extends ConfigurableNotification
         if (meetingName == null) {
             meetingName = context.message("room.meeting");
         }
+        String meetingDescription = roomEndpoint.getMeetingDescription();
         String eventId = ObjectIdentifier.formatId(roomEndpoint);
 
         iCalendar iCalendar = new iCalendar();
         iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
-        event.setDescription(roomEndpoint.getRoomDescription());
         event.setInterval(interval, context.getTimeZone());
+        if (meetingDescription != null) {
+            event.setDescription(meetingDescription);
+        }
 
         String location = null;
         for (Alias alias : roomEndpoint.getAliases()) {
@@ -302,12 +311,14 @@ public class RoomGroupNotification extends ConfigurableNotification
         return iCalendar;
     }
 
-    private String renderNotification(PersonInformation recipient, RoomNotification notification, RenderContext context)
+    private String renderNotification(PersonInformation recipient, RoomNotification notification, RenderContext context,
+            String samePin)
     {
+        RoomEndpoint roomEndpoint = notification.getRoomEndpoint();
         StringBuilder outputBuilder = new StringBuilder();
         StringBuilder recordsBuilder = new StringBuilder();
 
-        String meetingName = notification.getRoomEndpoint().getMeetingName();
+        String meetingName = roomEndpoint.getMeetingName();
         if (meetingName != null) {
             meetingName = " \"" + meetingName + "\"";
         }
@@ -388,7 +399,6 @@ public class RoomGroupNotification extends ConfigurableNotification
 
         // Append slot before/after record
         if (!(notification instanceof RoomNotification.RoomDeleted)) {
-            RoomEndpoint roomEndpoint = notification.getRoomEndpoint();
             int slotMinutesBefore = roomEndpoint.getSlotMinutesBefore();
             int slotMinutesAfter = roomEndpoint.getSlotMinutesAfter();
             if (slotMinutesBefore > 0 && slotMinutesAfter > 0) {
@@ -404,12 +414,19 @@ public class RoomGroupNotification extends ConfigurableNotification
                 recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
                 recordsBuilder.append(context.message("room.slot.after", slotMinutesAfter));
             }
+            String pin = roomEndpoint.getPin();
+            if (pin != null && !pin.equals(samePin)) {
+                recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
+                recordsBuilder.append(context.message("room.pin"));
+                recordsBuilder.append(": ");
+                recordsBuilder.append(pin);
+            }
         }
 
         // Append description record
-        String description = notification.getRoomEndpoint().getRoomDescription();
-        String descriptionLabel = context.message("room.description.item");
-        if (description != null && !description.equals(this.description)) {
+        String description = roomEndpoint.getMeetingDescription();
+        if (description != null) {
+            String descriptionLabel = context.message("room.meeting.description");
             recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
             recordsBuilder.append(descriptionLabel);
             recordsBuilder.append(": ");

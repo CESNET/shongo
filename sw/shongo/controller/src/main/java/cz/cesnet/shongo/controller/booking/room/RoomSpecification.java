@@ -41,6 +41,11 @@ public class RoomSpecification extends Specification
     private String meetingName;
 
     /**
+     * Specifies the description of the meeting which will take place in the room.
+     */
+    private String meetingDescription;
+
+    /**
      * Number of minutes which the room shall be available before requested time slot.
      */
     private int slotMinutesBefore;
@@ -103,6 +108,7 @@ public class RoomSpecification extends Specification
     /**
      * @return {@link #meetingName}
      */
+    @Column
     public String getMeetingName()
     {
         return meetingName;
@@ -111,10 +117,26 @@ public class RoomSpecification extends Specification
     /**
      * @param notifyParticipantsMessage sets the {@link #meetingName}
      */
-    @Column
     public void setMeetingName(String notifyParticipantsMessage)
     {
         this.meetingName = notifyParticipantsMessage;
+    }
+
+    /**
+     * @return {@link #meetingDescription}
+     */
+    @Column
+    public String getMeetingDescription()
+    {
+        return meetingDescription;
+    }
+
+    /**
+     * @param meetingDescription sets the {@link #meetingDescription}
+     */
+    public void setMeetingDescription(String meetingDescription)
+    {
+        this.meetingDescription = meetingDescription;
     }
 
     /**
@@ -368,6 +390,7 @@ public class RoomSpecification extends Specification
         modified |= !ObjectHelper.isSame(isParticipantNotificationEnabled(),
                 roomSpecification.isParticipantNotificationEnabled());
         modified |= !ObjectHelper.isSame(getMeetingName(), roomSpecification.getMeetingName());
+        modified |= !ObjectHelper.isSame(getMeetingDescription(), roomSpecification.getMeetingDescription());
 
         setSlotMinutesBefore(roomSpecification.getSlotMinutesBefore());
         setSlotMinutesAfter(roomSpecification.getSlotMinutesAfter());
@@ -376,6 +399,7 @@ public class RoomSpecification extends Specification
         setParticipantCount(roomSpecification.getParticipantCount());
         setParticipantNotificationEnabled(roomSpecification.isParticipantNotificationEnabled());
         setMeetingName(roomSpecification.getMeetingName());
+        setMeetingDescription(roomSpecification.getMeetingDescription());
 
         if (!ObjectHelper.isSame(roomSettings, roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
@@ -411,6 +435,7 @@ public class RoomSpecification extends Specification
         RoomReservationTask roomReservationTask =
                 new RoomReservationTask(schedulerContext, slot, slotMinutesBefore, slotMinutesAfter);
         roomReservationTask.setMeetingName(getMeetingName());
+        roomReservationTask.setMeetingDescription(getMeetingDescription());
         roomReservationTask.setParticipantCount(getParticipantCount());
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
@@ -483,6 +508,7 @@ public class RoomSpecification extends Specification
             availabilityApi.setParticipantCount(participantCount != null ? participantCount : 0);
             availabilityApi.setParticipantNotificationEnabled(participantNotificationEnabled);
             availabilityApi.setMeetingName(meetingName);
+            availabilityApi.setMeetingDescription(meetingDescription);
             for (ExecutableServiceSpecification serviceSpecification : getServiceSpecifications()) {
                 availabilityApi.addServiceSpecification(serviceSpecification.toApi());
             }
@@ -593,6 +619,7 @@ public class RoomSpecification extends Specification
             setParticipantCount(availabilityApi.getParticipantCount());
             setParticipantNotificationEnabled(availabilityApi.isParticipantNotificationEnabled());
             setMeetingName(availabilityApi.getMeetingName());
+            setMeetingDescription(availabilityApi.getMeetingDescription());
 
             Synchronization.synchronizeCollection(this.serviceSpecifications, availabilityApi.getServiceSpecifications(),
                     new Synchronization.Handler<ExecutableServiceSpecification, cz.cesnet.shongo.controller.api.ExecutableServiceSpecification>(
@@ -621,6 +648,7 @@ public class RoomSpecification extends Specification
             setParticipantCount(null);
             setParticipantNotificationEnabled(false);
             setMeetingName(null);
+            setMeetingDescription(null);
             serviceSpecifications.clear();
         }
 

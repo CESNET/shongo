@@ -30,7 +30,7 @@
     </tag:url>
     <tag:participantList data="${room.participants}"
                          createUrl="${participantCreateUrl}" modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
-                         urlParam="roomId" urlValue="roomId"/>
+                         urlParam="roomId" urlValue="roomId"  hideRole="${room.technology == 'H323_SIP'}"/>
 
 </div>
 

@@ -30,7 +30,8 @@ ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 ${context.message(indent, "target.room.pin")}: ${target.pin}
 </#if>
 <#if target.aliases?has_content>
-${context.message(indent, "target.room.aliases")}:
+<#assign aliasesLabel = context.message("target.room.aliases")>
+${context.width(indent + (aliasesLabel?length + 1) / 2 + 1, "----- " + aliasesLabel)} -----
 <@formatAliases aliases=target.aliases/>
 </#if>
 <#elseif target.class.simpleName == "Reused">

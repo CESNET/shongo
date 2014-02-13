@@ -224,6 +224,10 @@ public class WizardRoomController extends WizardParticipantsController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
         }
+        ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
+        if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
+            reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
+        }
         if (finish) {
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
@@ -291,16 +295,17 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Add admin participant for owner
         if (userRole.getIdentityType().equals(AclIdentityType.USER) && userRole.getRole().equals(ObjectRole.OWNER)) {
-            boolean administratorExists = false;
+            ParticipantRole defaultParticipantRole = reservationRequest.getDefaultOwnerParticipantRole();
+            boolean defaultParticipantRoleExists = false;
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
-                        ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
+                        defaultParticipantRole.equals(participant.getRole()) &&
                         userRole.getIdentityPrincipalId().equals(participant.getUserId())) {
-                    administratorExists = true;
+                    defaultParticipantRoleExists = true;
                 }
             }
-            if (!administratorExists) {
-                reservationRequest.addRoomParticipant(userRole.getUser(), ParticipantRole.ADMINISTRATOR);
+            if (!defaultParticipantRoleExists) {
+                reservationRequest.addRoomParticipant(userRole.getUser(), defaultParticipantRole);
             }
         }
 
@@ -326,9 +331,10 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Delete admin participant for owner
         if (userRole.getRole().equals(ObjectRole.OWNER)) {
+            ParticipantRole defaultParticipantRole = reservationRequest.getDefaultOwnerParticipantRole();
             for (ParticipantModel participant : reservationRequest.getRoomParticipants()) {
                 if (ParticipantModel.Type.USER.equals(participant.getType()) &&
-                        ParticipantRole.ADMINISTRATOR.equals(participant.getRole()) &&
+                        defaultParticipantRole.equals(participant.getRole()) &&
                         userRole.getIdentityPrincipalId().equals(participant.getUserId())) {
                     reservationRequest.deleteParticipant(participant.getId());
                     break;
@@ -547,7 +553,6 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequest = new ReservationRequestModel(
                 new CacheProvider(cache, securityToken), userSession.getUserSettings());
         reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
-        reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
         return reservationRequest;
     }
 }

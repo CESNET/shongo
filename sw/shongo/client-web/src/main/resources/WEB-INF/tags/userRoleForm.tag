@@ -139,6 +139,7 @@
                     }).fail($application.handleAjaxFailure);
                 }
             });
+            $scope.groupDescription = '';
             $("#identityPrincipalId").off("change", $scope.refreshGroupDescription);
             $("#identityPrincipalId").on("change", $scope.refreshGroupDescription);
         };

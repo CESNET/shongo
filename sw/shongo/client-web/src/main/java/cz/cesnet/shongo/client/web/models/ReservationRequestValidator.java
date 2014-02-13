@@ -54,7 +54,6 @@ public class ReservationRequestValidator implements Validator
     {
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");

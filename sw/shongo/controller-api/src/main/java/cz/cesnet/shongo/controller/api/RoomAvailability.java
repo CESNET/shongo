@@ -19,6 +19,11 @@ public class RoomAvailability extends AbstractComplexType
     private String meetingName;
 
     /**
+     * Specifies the description of the meeting which will take place in the room.
+     */
+    private String meetingDescription;
+
+    /**
      * Number of minutes which the room shall be available before requested time slot.
      */
     private int slotMinutesBefore = 0;
@@ -74,6 +79,22 @@ public class RoomAvailability extends AbstractComplexType
     public void setMeetingName(String meetingName)
     {
         this.meetingName = meetingName;
+    }
+
+    /**
+     * @return {@link #meetingDescription}
+     */
+    public String getMeetingDescription()
+    {
+        return meetingDescription;
+    }
+
+    /**
+     * @param meetingDescription sets the {@link #meetingDescription}
+     */
+    public void setMeetingDescription(String meetingDescription)
+    {
+        this.meetingDescription = meetingDescription;
     }
 
     /**
@@ -157,6 +178,7 @@ public class RoomAvailability extends AbstractComplexType
     }
 
     public static final String MEETING_NAME = "meetingName";
+    public static final String MEETING_DESCRIPTION = "meetingDescription";
     public static final String SLOT_MINUTES_BEFORE = "slotMinutesBefore";
     public static final String SLOT_MINUTES_AFTER = "slotMinutesAfter";
     public static final String PARTICIPANT_COUNT = "participantCount";
@@ -168,6 +190,7 @@ public class RoomAvailability extends AbstractComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(MEETING_NAME, meetingName);
+        dataMap.set(MEETING_DESCRIPTION, meetingDescription);
         dataMap.set(SLOT_MINUTES_BEFORE, slotMinutesBefore);
         dataMap.set(SLOT_MINUTES_AFTER, slotMinutesAfter);
         dataMap.set(PARTICIPANT_COUNT, participantCount);
@@ -181,6 +204,7 @@ public class RoomAvailability extends AbstractComplexType
     {
         super.fromData(dataMap);
         meetingName = dataMap.getString(MEETING_NAME);
+        meetingDescription = dataMap.getString(MEETING_DESCRIPTION);
         slotMinutesBefore = dataMap.getInt(SLOT_MINUTES_BEFORE, 0);
         slotMinutesAfter = dataMap.getInt(SLOT_MINUTES_AFTER, 0);
         participantCount = dataMap.getInt(PARTICIPANT_COUNT);

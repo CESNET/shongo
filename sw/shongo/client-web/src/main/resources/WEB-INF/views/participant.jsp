@@ -29,6 +29,6 @@
 
     <h1><spring:message code="${title}"/></h1>
 
-    <tag:participantForm confirmTitle="${confirmTitle}"/>
+    <tag:participantForm confirmTitle="${confirmTitle}" hideRole="${technology == 'H323_SIP'}"/>
 
 </div>

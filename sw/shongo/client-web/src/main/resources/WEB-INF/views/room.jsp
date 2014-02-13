@@ -311,7 +311,7 @@
         </tag:url>
         <tag:participantList isWritable="${isWritable}" data="${room.participants}" description="${not empty room.usageId}"
                              modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
-                             urlParam="roomId" urlValue="roomId"/>
+                             urlParam="roomId" urlValue="roomId" hideRole="${room.technology == 'H323_SIP'}"/>
         <c:if test="${isWritable}">
             <div class="table-actions">
                 <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">

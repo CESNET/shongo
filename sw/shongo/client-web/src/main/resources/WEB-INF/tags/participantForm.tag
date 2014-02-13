@@ -13,6 +13,7 @@
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
+<%@attribute name="hideRole" required="false" type="java.lang.Boolean" %>
 
 <%
     String formUrl = request.getParameter("form-url");
@@ -33,7 +34,7 @@
 <script type="text/javascript">
     var module = angular.module('tag:participantForm', ['ngTooltip']);
 
-    module.controller("ParticipantFormController", function($scope) {
+    module.controller("ParticipantFormController", function($scope, $application) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
@@ -41,62 +42,63 @@
 
         // Get dynamic participant attributes
         $scope.type = $scope.value('${participant.type}', null);
-    });
 
-    $(function () {
-        var formatUser = function(user) {
-            var text = "<b>" + user.firstName;
-            if ( user.lastName != null ) {
-                text += " " + user.lastName;
-            }
-            text += "</b>";
-            if ( user.organization != null ) {
-                text += " (" + user.organization + ")";
-            }
-            return text;
-        };
-        $("#userId").select2({
-            placeholder: "<spring:message code="views.select.user"/>",
-            width: 'resolve',
-            minimumInputLength: 2,
-            ajax: {
-                url: "${userListUrl}",
-                dataType: 'json',
-                data: function (term, page) {
-                    return {
-                        filter: term
-                    };
-                },
-                results: function (data, page) {
-                    var results = [];
-                    for (var index = 0; index < data.length; index++) {
-                        var dataItem = data[index];
-                        results.push({id: dataItem.userId, text: formatUser(dataItem)});
-                    }
-                    return {results: results};
-                },
-                transport: function (options) {
-                    return $.ajax(options).fail($application.handleAjaxFailure);
+        $scope.init = function() {
+            var formatUser = function(user) {
+                var text = "<b>" + user.firstName;
+                if ( user.lastName != null ) {
+                    text += " " + user.lastName;
                 }
-            },
-            escapeMarkup: function (markup) { return markup; },
-            initSelection: function (element, callback) {
-                var id = $(element).val();
-                callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
-                $.ajax("${userListUrl}?userId=" + id, {
-                    dataType: "json"
-                }).done(function (data) {
-                    callback({id: id, text: formatUser(data[0])});
-                }).fail($application.handleAjaxFailure);
-            }
-        });
+                text += "</b>";
+                if ( user.organization != null ) {
+                    text += " (" + user.organization + ")";
+                }
+                return text;
+            };
+            $("#userId").select2({
+                placeholder: "<spring:message code="views.select.user"/>",
+                width: 'resolve',
+                minimumInputLength: 2,
+                ajax: {
+                    url: "${userListUrl}",
+                    dataType: 'json',
+                    data: function (term, page) {
+                        return {
+                            filter: term
+                        };
+                    },
+                    results: function (data, page) {
+                        var results = [];
+                        for (var index = 0; index < data.length; index++) {
+                            var dataItem = data[index];
+                            results.push({id: dataItem.userId, text: formatUser(dataItem)});
+                        }
+                        return {results: results};
+                    },
+                    transport: function (options) {
+                        return $.ajax(options).fail($application.handleAjaxFailure);
+                    }
+                },
+                escapeMarkup: function (markup) { return markup; },
+                initSelection: function (element, callback) {
+                    var id = $(element).val();
+                    callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
+                    $.ajax("${userListUrl}?userId=" + id, {
+                        dataType: "json"
+                    }).done(function (data) {
+                        callback({id: id, text: formatUser(data[0])});
+                    }).fail($application.handleAjaxFailure);
+                }
+            });
+        };
     });
 </script>
 
 <form:form class="form-horizontal"
            commandName="participant"
            method="post"
-           ng-controller="ParticipantFormController">
+           ng-controller="ParticipantFormController"
+           ng-init="init()">
 
     <fieldset>
 
@@ -149,26 +151,33 @@
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="role">
-                <spring:message code="views.participant.role"/>:
-            </form:label>
-            <div class="controls">
-                <spring:eval var="roles" expression="T(cz.cesnet.shongo.ParticipantRole).values()"/>
-                <form:select path="role" tabindex="${tabIndex}">
-                    <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.participant.role.${role}"/></form:option>
-                    </c:forEach>
-                </form:select>
-                <form:errors path="role" cssClass="error"/>
-                <tag:help>
-                    <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.participant.role.${role}"/></strong>
-                        <p><spring:message code="views.participant.roleHelp.${role}"/></p>
-                    </c:forEach>
-                </tag:help>
-            </div>
-        </div>
+        <c:choose>
+            <c:when test="${hideRole}">
+                <form:hidden path="role" value="PARTICIPANT"/>
+            </c:when>
+            <c:otherwise>
+                <div class="control-group">
+                    <form:label class="control-label" path="role">
+                        <spring:message code="views.participant.role"/>:
+                    </form:label>
+                    <div class="controls">
+                        <spring:eval var="roles" expression="T(cz.cesnet.shongo.ParticipantRole).values()"/>
+                        <form:select path="role" tabindex="${tabIndex}">
+                            <c:forEach items="${roles}" var="role">
+                                <form:option value="${role}"><spring:message code="views.participant.role.${role}"/></form:option>
+                            </c:forEach>
+                        </form:select>
+                        <form:errors path="role" cssClass="error"/>
+                        <tag:help>
+                            <c:forEach items="${roles}" var="role">
+                                <strong><spring:message code="views.participant.role.${role}"/></strong>
+                                <p><spring:message code="views.participant.roleHelp.${role}"/></p>
+                            </c:forEach>
+                        </tag:help>
+                    </div>
+                </div>
+            </c:otherwise>
+        </c:choose>
 
     </fieldset>
 

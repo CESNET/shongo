@@ -14,7 +14,7 @@
 <tag:url var="deleteUrl" value="${deleteUrl}"/>
 
 <script type="text/javascript">
-    var module = angular.module('jsp:wizardRoomParticipants', ['ngTooltip']);
+    var module = angular.module('jsp:wizardRoomParticipants', ['ngApplication', 'ngTooltip']);
 
     /**
      * Store reservation request form and redirect to given {@code url}.
@@ -30,7 +30,8 @@
 
 <h1><spring:message code="views.wizard.room.participants"/></h1>
 
-<div ng-app="jsp:wizardRoomParticipants" ng-init="roomParticipantNotificationEnabled = ${reservationRequest.roomParticipantNotificationEnabled}">
+<div class="jspWizardRoomParticipants" ng-app="jsp:wizardRoomParticipants"
+     ng-init="roomParticipantNotificationEnabled = ${reservationRequest.roomParticipantNotificationEnabled}">
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <form:form class="form-horizontal" commandName="reservationRequest" method="post">
@@ -49,6 +50,15 @@
                         <form:errors path="roomMeetingName" cssClass="error"/>
                     </div>
                 </div>
+                <div class="control-group">
+                    <form:label class="control-label" path="roomMeetingDescription">
+                        <spring:message code="views.reservationRequest.specification.roomMeetingDescription"/>:
+                    </form:label>
+                    <div class="controls double-width">
+                        <form:textarea path="roomMeetingDescription" rows="3" cssErrorClass="error" tabindex="${tabIndex}" ng-disabled="!roomParticipantNotificationEnabled"/>
+                        <form:errors path="roomMeetingDescription" cssClass="error"/>
+                    </div>
+                </div>
             </fieldset>
         </form:form>
     </c:if>
@@ -59,8 +69,9 @@
 
     <tag:participantList data="${reservationRequest.roomParticipants}"
                          createUrl="javascript: redirect('${createUrl}')"
-                         modifyUrl="javascript: redirect${modifyUrl}')"
-                         deleteUrl="javascript: redirect${deleteUrl}')"/>
+                         modifyUrl="javascript: redirect('${modifyUrl}')"
+                         deleteUrl="javascript: redirect('${deleteUrl}')"
+                         hideRole="${reservationRequest.technology == 'H323_SIP'}"/>
 
     <hr/>
 

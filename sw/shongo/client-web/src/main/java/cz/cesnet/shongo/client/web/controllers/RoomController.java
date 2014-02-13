@@ -25,6 +25,7 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -640,7 +641,9 @@ public class RoomController
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId)
     {
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         ModelAndView modelAndView = new ModelAndView("participant");
+        modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
         modelAndView.addObject(PARTICIPANT_ATTRIBUTE, new ParticipantModel(new CacheProvider(cache, securityToken)));
         return modelAndView;
     }
@@ -649,19 +652,22 @@ public class RoomController
      * Store new {@code participant} to reservation request.
      */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_CREATE, method = RequestMethod.POST)
-    public String handleParticipantCreateProcess(
+    public Object handleParticipantCreateProcess(
             HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            return "participant";
+            ModelAndView modelAndView = new ModelAndView("participant");
+            modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
+            modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
+            return modelAndView;
         }
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
 
         // Initialize model from API
@@ -695,6 +701,7 @@ public class RoomController
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
         ParticipantModel participant = getParticipant(participantConfiguration, participantId, securityToken);
         ModelAndView modelAndView = new ModelAndView("participant");
+        modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
         modelAndView.addObject(PARTICIPANT_ATTRIBUTE, participant);
         return modelAndView;
     }
@@ -703,7 +710,7 @@ public class RoomController
      * Store changes for existing {@code participant} to reservation request.
      */
     @RequestMapping(value = ClientWebUrl.ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
-    public String handleParticipantModifyProcess(
+    public Object handleParticipantModifyProcess(
             HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable("roomId") String roomId,
@@ -711,12 +718,14 @@ public class RoomController
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
+        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            return "participant";
+            ModelAndView modelAndView = new ModelAndView("participant");
+            modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
+            return modelAndView;
         }
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, roomId);
         RoomExecutableParticipantConfiguration participantConfiguration = roomExecutable.getParticipantConfiguration();
 
         // Initialize model from API
@@ -825,7 +834,7 @@ public class RoomController
 
     private AbstractRoomExecutable getRoomExecutable(SecurityToken securityToken, String executableId)
     {
-        Executable executable = executableService.getExecutable(securityToken, executableId);
+        Executable executable = getExecutable(securityToken, executableId);
         if (executable instanceof AbstractRoomExecutable) {
             return (AbstractRoomExecutable) executable;
         }

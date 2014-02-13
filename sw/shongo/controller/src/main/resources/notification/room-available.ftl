@@ -9,11 +9,12 @@ ${context.message("room.available.description", roomName, context.formatInterval
 <#-- Aliases -->
 <#if aliases?? && aliases?has_content>
 
-${context.message("room.aliases")}:
+<#assign aliasesLabel = context.message("target.room.aliases")>
+${context.width(indent + (aliasesLabel?length + 1) / 2 + 1, "----- " + aliasesLabel)} -----
+<@formatAliases aliases=aliases/>
+</#if>
 <#if pin??>
 ${context.message(indent, "room.pin")}: ${pin}
-</#if>
-<@formatAliases aliases=aliases/>
 </#if>
 <#if roomEndpoint.participants?has_content>
 

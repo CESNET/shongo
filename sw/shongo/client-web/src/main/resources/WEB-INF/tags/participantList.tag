@@ -14,13 +14,16 @@
 <%@attribute name="deleteUrl" required="false" %>
 <%@attribute name="urlParam" required="false" %>
 <%@attribute name="urlValue" required="false" %>
+<%@attribute name="hideRole" required="false" type="java.lang.Boolean" %>
 
 <c:set var="isWritable" value="${isWritable != null ? isWritable : true}"/>
 <c:set var="tableHead">
     <thead>
     <tr>
         <th><spring:message code="views.participant.userId"/></th>
-        <th><spring:message code="views.participant.role"/></th>
+        <c:if test="${!hideRole}">
+            <th><spring:message code="views.participant.role"/></th>
+        </c:if>
         <th><spring:message code="views.participant.email"/></th>
         <c:if test="${description}">
             <th><spring:message code="views.participant.description"/></th>
@@ -43,7 +46,9 @@
     <c:forEach items="${data}" var="participant">
         <tr>
             <td>${participant.name}</td>
-            <td><spring:message code="views.participant.role.${participant.role}"/></td>
+            <c:if test="${!hideRole}">
+                <td><spring:message code="views.participant.role.${participant.role}"/></td>
+            </c:if>
             <td>${participant.email}</td>
             <c:if test="${description}">
                 <td>${participant.description}</td>

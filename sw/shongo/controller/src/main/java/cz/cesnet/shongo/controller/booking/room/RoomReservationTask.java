@@ -45,6 +45,11 @@ public class RoomReservationTask extends ReservationTask
     private String meetingName;
 
     /**
+     * Specifies the description of the meeting which will take place in the room.
+     */
+    private String meetingDescription;
+
+    /**
      * Number of minutes which the room shall be available before requested time slot.
      */
     private int slotMinutesBefore;
@@ -141,6 +146,14 @@ public class RoomReservationTask extends ReservationTask
     public void setMeetingName(String meetingName)
     {
         this.meetingName = meetingName;
+    }
+
+    /**
+     * @param meetingDescription sets the {@link #meetingDescription}
+     */
+    public void setMeetingDescription(String meetingDescription)
+    {
+        this.meetingDescription = meetingDescription;
     }
 
     /**
@@ -584,6 +597,7 @@ public class RoomReservationTask extends ReservationTask
                 roomEndpoint.setSlotMinutesBefore(slotMinutesBefore);
                 roomEndpoint.setSlotMinutesAfter(slotMinutesAfter);
                 roomEndpoint.setMeetingName(meetingName);
+                roomEndpoint.setMeetingDescription(meetingDescription);
                 roomEndpoint.setRoomDescription(schedulerContext.getDescription());
                 roomEndpoint.setParticipants(participants);
                 roomEndpoint.setParticipantNotificationEnabled(participantNotificationEnabled);

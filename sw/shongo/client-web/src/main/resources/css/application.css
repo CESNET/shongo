@@ -496,7 +496,7 @@ span.dotted {
 }
 
 /** Other */
-push-top {
+.push-top {
     vertical-align: top;
 }
 
@@ -806,6 +806,14 @@ div.not-available {
     .jspHelp > .content {
         padding-left: 210px;
     }
+}
+
+/* vies/wizardRoomParticipants.jsp */
+.jspWizardRoomParticipants .form-horizontal .control-label {
+    width: 230px;
+}
+.jspWizardRoomParticipants .form-horizontal .controls {
+    margin-left: 250px;
 }
 
 /* vies/reservationRequestDetail.jsp */

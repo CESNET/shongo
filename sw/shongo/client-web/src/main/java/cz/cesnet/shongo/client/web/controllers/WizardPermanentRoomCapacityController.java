@@ -201,8 +201,9 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             return getCreatePermanentRoomCapacityView();
         }
         reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
-        if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), ParticipantRole.ADMINISTRATOR)) {
-            reservationRequest.addRoomParticipant(securityToken.getUserInformation(), ParticipantRole.ADMINISTRATOR);
+        ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
+        if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
+            reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
         }
         if (finish) {
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
