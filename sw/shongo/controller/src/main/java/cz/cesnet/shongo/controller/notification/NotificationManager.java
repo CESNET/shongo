@@ -100,6 +100,14 @@ public class NotificationManager extends Component implements Component.Authoriz
         return !notifications.isEmpty();
     }
 
+    /**
+     * @return {@link #redirectTo}
+     */
+    public PersonInformation getRedirectTo()
+    {
+        return redirectTo;
+    }
+
     @Override
     public synchronized void init(ControllerConfiguration configuration)
     {
@@ -194,18 +202,6 @@ public class NotificationManager extends Component implements Component.Authoriz
     {
         // Get recipients (or redirect)
         Collection<PersonInformation> recipients = notification.getRecipients();
-        if (redirectTo != null) {
-            logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
-                    notification,
-                    redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
-            });
-            recipients = new LinkedList<PersonInformation>();
-            recipients.add(redirectTo);
-            if (notification instanceof ConfigurableNotification) {
-                ConfigurableNotification configurableNotification = (ConfigurableNotification) notification;
-                configurableNotification.setRecipientAsAdministrator(redirectTo);
-            }
-        }
 
         if (!enabled) {
             logger.warn("Notification '{}' cannot be executed because notifications are disabled.", notification);

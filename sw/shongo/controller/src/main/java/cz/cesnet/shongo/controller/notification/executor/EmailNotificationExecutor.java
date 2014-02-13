@@ -64,10 +64,19 @@ public class EmailNotificationExecutor extends NotificationExecutor
         }
         try {
             String recipientEmail = recipient.getPrimaryEmail();
+            if (manager.getRedirectTo() != null) {
+                PersonInformation redirectTo = manager.getRedirectTo();
+                logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
+                        notification,
+                        redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
+                });
+                recipientEmail = redirectTo.getPrimaryEmail();
+            }
             if (recipientEmail == null) {
                 logger.warn("Notification '{}' has empty email address.", notification);
                 return;
             }
+
             NotificationMessage message = notification.getMessage(recipient, manager, entityManager);
 
             // Build email header
