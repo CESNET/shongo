@@ -72,6 +72,7 @@ public class RoomAvailableNotification extends ConfigurableNotification
         renderContext.addParameter("roomEndpoint", roomEndpoint);
         renderContext.addParameter("aliases", Alias.sortedList(roomEndpoint.getAliases()));
         renderContext.addParameter("roomName", roomName);
+        renderContext.addParameter("pin", roomEndpoint.getPin());
         return renderTemplateMessage(renderContext, title, "room-available.ftl");
     }
 }

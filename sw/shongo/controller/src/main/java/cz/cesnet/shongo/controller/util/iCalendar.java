@@ -274,6 +274,13 @@ public class iCalendar
                 throw new IllegalArgumentException(exception);
             }
         }
+
+        public void setLocation(String location)
+        {
+            PropertyList properties = event.getProperties();
+            properties.remove(Property.LOCATION);
+            properties.add(new Location(location));
+        }
     }
 
     public static enum Method

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.TodoImplementException;
@@ -268,6 +269,23 @@ public class RoomGroupNotification extends ConfigurableNotification
         iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
         event.setDescription(roomEndpoint.getRoomDescription());
         event.setInterval(interval, context.getTimeZone());
+
+        String location = null;
+        for (Alias alias : roomEndpoint.getAliases()) {
+            AliasType aliasType = alias.getType();
+            if (AliasType.H323_E164.equals(aliasType)) {
+                location = "Video: " + alias.getValue();
+                break;
+            }
+            else if (AliasType.ADOBE_CONNECT_URI.equals(aliasType)) {
+                location = "Web: " + alias.getValue();
+                break;
+            }
+        }
+
+        if (location != null) {
+            event.setLocation(location);
+        }
 
         Set<PersonInformation> attendees = new LinkedHashSet<PersonInformation>();
         attendees.addAll(roomNotification.getParticipants());
