@@ -381,7 +381,7 @@ public class Executor extends SwitchableComponent
                                 sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
                     }
                     recordingFolderId = (String) sendLocalCommand.getResult();
-                    if (recordingFolderId == null) {
+                    if (recordingFolderId == null || recordingFolderId.isEmpty()) {
                         throw new RuntimeException(CreateRecordingFolder.class.getSimpleName() +
                                 " should return identifier of the recording folder.");
                     }
