@@ -100,12 +100,17 @@
         };
     });
     module.controller('RoomRecordingActionController', function($scope, $timeout) {
-        $scope.postAndRefresh = function(url) {
-            $.post(url, function(){
-                $timeout(function(){
-                    $scope.$parent.refresh();
-                }, 0);
-            });
+        $scope.deleteRecording = function(filename, url) {
+            var question = "<spring:message code="views.room.recording.deleteQuestion" arguments=":filename"/>";
+            question = question.replace(":filename", filename);
+            if (confirm(question)) {
+                $.post(url, function(){
+                    $timeout(function(){
+                        $scope.$parent.refresh();
+                    }, 0);
+                });
+            }
+
         };
     });
 <c:if test="${room.recordingService != null}">
@@ -542,7 +547,7 @@
                                     <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
                                 </tag:url>
                                 <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
-                                <a href="" ng-click="postAndRefresh('${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                                <a href="" ng-click="deleteRecording('{{roomRecording.filename}}', '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
                             <c:if test="${room.technology == 'H323_SIP'}">
                                 </span>
                             </c:if>
