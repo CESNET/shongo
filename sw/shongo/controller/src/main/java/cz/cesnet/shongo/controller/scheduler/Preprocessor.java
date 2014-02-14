@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
+import org.joda.time.Hours;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,23 +144,24 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
             for (Interval slot : reservationRequestSet.enumerateSlots(interval)) {
                 // Find existing child reservation request by date/time slot
                 ReservationRequest childReservationRequest = null;
-                Interval childReservationRequestOverlap = null;
+                int childReservationRequestHours = 0;
                 for (ReservationRequest possibleChildReservationRequest : childReservationRequests) {
-                    Interval possibleOverlap = slot.overlap(possibleChildReservationRequest.getSlot());
+                    int possibleHours = Math.abs(Hours.hoursBetween(
+                            slot.getStart(), possibleChildReservationRequest.getSlot().getStart()).getHours());
                     // If possible child reservation request overlaps current slot
-                    if (possibleOverlap != null) {
+                    if (possibleHours < 24) {
                         if (childReservationRequest != null) {
+                            int hours = Math.abs(Hours.hoursBetween(
+                                    slot.getStart(), possibleChildReservationRequest.getSlot().getEnd()).getHours());
                             // If possible child reservation has already been found and new one does not fit better
-                            long millisOld = childReservationRequestOverlap.toDurationMillis();
-                            long millisNew = possibleOverlap.toDurationMillis();
-                            if (millisNew <= millisOld) {
+                            if (possibleHours >= childReservationRequestHours) {
                                 // Skip the new one
                                 continue;
                             }
                         }
                         // Existing child reservation request was found
                         childReservationRequest = possibleChildReservationRequest;
-                        childReservationRequestOverlap = possibleOverlap;
+                        childReservationRequestHours = possibleHours;
                     }
                 }
 

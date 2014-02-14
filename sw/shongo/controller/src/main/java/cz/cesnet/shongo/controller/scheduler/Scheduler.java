@@ -448,7 +448,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         oldReservations.addAll(allocation.getReservations());
 
         // Remove/update/delete old allocated reservations
-        Reservation precedingReservation = null;
+        Reservation previousReservation = null;
         for (Reservation oldReservation : oldReservations) {
             // If old reservation has been reallocated to a new reservation
             if (newReservations.contains(oldReservation)) {
@@ -458,13 +458,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 continue;
             }
 
-            // If old reservation time slot intersects the new reservation time slot
-            if (oldReservation.getSlotEnd().isAfter(slotStart)) {
-                // Set preceding reservation
-                if (precedingReservation != null) {
-                    throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
-                }
-                precedingReservation = oldReservation;
+            // Set previous reservation as last reservation
+            if (previousReservation == null || oldReservation.getSlotEnd().isAfter(previousReservation.getSlotEnd())) {
+                previousReservation = oldReservation;
             }
 
             // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
@@ -497,8 +493,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         allocation.addReservation(allocatedReservation);
 
         // Allocate migration
-        if (precedingReservation != null && precedingReservation.getClass().equals(allocatedReservation.getClass())) {
-            reservationTask.migrateReservation(precedingReservation, allocatedReservation, entityManager);
+        if (previousReservation != null && previousReservation.getClass().equals(allocatedReservation.getClass())) {
+            reservationTask.migrateReservation(previousReservation, allocatedReservation, entityManager);
         }
 
         // Create notification

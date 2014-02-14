@@ -540,13 +540,13 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         AbstractRoomExecutable room = (AbstractRoomExecutable) roomReservation.getExecutable();
         String roomId = room.getId();
 
-        RoomExecutableParticipantConfiguration permanentRoomParticipants = room.getParticipantConfiguration();
-        ((PersonParticipant) permanentRoomParticipants.getParticipants().get(0)).setRole(ParticipantRole.PARTICIPANT);
-        getExecutableService().modifyExecutableConfiguration(SECURITY_TOKEN, roomId, permanentRoomParticipants);
+        RoomExecutableParticipantConfiguration roomParticipants = room.getParticipantConfiguration();
+        ((PersonParticipant) roomParticipants.getParticipants().get(0)).setRole(ParticipantRole.PARTICIPANT);
+        getExecutableService().modifyExecutableConfiguration(SECURITY_TOKEN, roomId, roomParticipants);
         executeNotifications();
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        reservationRequest.setSlot("2014-02-11T14:00", "PT2H");
+        reservationRequest.setSlot("2014-02-11T20:00", "PT2H");
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

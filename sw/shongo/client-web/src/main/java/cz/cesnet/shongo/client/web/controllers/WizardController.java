@@ -29,6 +29,13 @@ import javax.annotation.Resource;
 })
 public class WizardController
 {
+    public static final String SUBMIT_RESERVATION_REQUEST = "javascript: " +
+            "document.getElementById('reservationRequest').submit();";
+
+    public static final String SUBMIT_RESERVATION_REQUEST_FINISH = "javascript: " +
+            "$('form#reservationRequest').append('<input type=\\'hidden\\' name=\\'finish\\' value=\\'true\\'/>');" +
+            "document.getElementById('reservationRequest').submit();";
+
     @Resource
     private Cache cache;
 

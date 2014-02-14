@@ -45,7 +45,11 @@
     <tbody>
     <c:forEach items="${data}" var="participant">
         <tr>
-            <td>${participant.name}</td>
+            <td>${participant.name}
+                <c:if test="${participant.type == 'USER'}">
+                    (${participant.user.organization})
+                </c:if>
+            </td>
             <c:if test="${!hideRole}">
                 <td><spring:message code="views.participant.role.${participant.role}"/></td>
             </c:if>

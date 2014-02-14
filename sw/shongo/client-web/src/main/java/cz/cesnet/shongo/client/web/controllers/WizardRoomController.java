@@ -48,13 +48,6 @@ public class WizardRoomController extends WizardParticipantsController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardRoomController.class);
 
-    public static final String SUBMIT_RESERVATION_REQUEST = "javascript: " +
-            "document.getElementById('reservationRequest').submit();";
-
-    public static final String SUBMIT_RESERVATION_REQUEST_FINISH = "javascript: " +
-            "$('form#reservationRequest').append('<input type=\\'hidden\\' name=\\'finish\\' value=\\'true\\'/>');" +
-            "document.getElementById('reservationRequest').submit();";
-
     @Resource
     private Cache cache;
 
@@ -224,9 +217,11 @@ public class WizardRoomController extends WizardParticipantsController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
         }
-        ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
-        if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
-            reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
+        if (reservationRequest.getRoomParticipants().size() == 0) {
+            ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
+            if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
+                reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
+            }
         }
         if (finish) {
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
@@ -356,7 +351,7 @@ public class WizardRoomController extends WizardParticipantsController
         wizardView.addObject("createUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE);
         wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY);
         wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE);
-        wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
+        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         return wizardView;
     }
 
@@ -525,8 +520,8 @@ public class WizardRoomController extends WizardParticipantsController
     private WizardView getCreateRoomAttributesView()
     {
         WizardView wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
-        wizardView.setNextPageUrl(SUBMIT_RESERVATION_REQUEST);
-        wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH,
+        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }

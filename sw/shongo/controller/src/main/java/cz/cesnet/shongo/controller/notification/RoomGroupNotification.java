@@ -179,14 +179,11 @@ public class RoomGroupNotification extends ConfigurableNotification
                 if (isRoomModified && isParticipantRoleModified) {
                     messageCode = "room.participation.modified.title.roomAndRole";
                 }
-                else if (isRoomModified) {
-                    messageCode = "room.participation.modified.title.room";
-                }
                 else if (isParticipantRoleModified) {
                     messageCode = "room.participation.modified.title.role";
                 }
                 else {
-                    throw new IllegalStateException();
+                    messageCode = "room.participation.modified.title.room";
                 }
                 String messageRoomName = "";
                 String messageRoomNameModified = "";
@@ -270,7 +267,7 @@ public class RoomGroupNotification extends ConfigurableNotification
             meetingName = context.message("room.meeting");
         }
         String meetingDescription = roomEndpoint.getMeetingDescription();
-        String eventId = ObjectIdentifier.formatId(roomEndpoint);
+        String eventId = roomNotification.getNotificationState().getId().toString();
 
         iCalendar iCalendar = new iCalendar();
         iCalendar.Event event = iCalendar.addEvent(Domain.getLocalDomainName(), eventId, meetingName);
