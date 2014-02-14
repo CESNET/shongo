@@ -512,7 +512,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private void disconnectRoomParticipants(String roomId, int licenseCount) throws CommandException
     {
         int participantCount = 0;
-        for (RoomParticipant roomParticipant : listRoomParticipants(roomId)) {
+        for (RoomParticipant roomParticipant : getRoomParticipants(roomId, true)) {
             // Disconnect participant only when he excess specified license count
             if (participantCount < licenseCount) {
                 logger.debug("Keeping participant {} connected to room {}...",
@@ -598,30 +598,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     @Override
     public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
     {
-        Command cmd = new Command("participant.enumerate");
-        cmd.setParameter("operationScope", new String[]{"currentState"});
-        cmd.setParameter("enumerateFilter", "connected");
-        List<Map<String, Object>> participants = execApiEnumerate(cmd, "participants");
-
-        List<RoomParticipant> result = new ArrayList<RoomParticipant>();
-        for (Map<String, Object> participant : participants) {
-            if (participant == null) {
-                continue;
-            }
-            if (!roomId.equals(participant.get("conferenceName"))) {
-                // not from this room
-                continue;
-            }
-            Map<String, Object> participantState = (Map<String, Object>) participant.get("currentState");
-            String participantAddress = (String) participantState.get("address");
-            if (participantAddress != null && hiddenParticipantAddresses.contains(participantAddress)) {
-                // participant should be hidden
-                continue;
-            }
-            result.add(extractRoomParticipant(participant));
-        }
-
-        return result;
+        return getRoomParticipants(roomId, false);
     }
 
     @Override
@@ -1248,6 +1225,41 @@ ParamsLoop:
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         roomSummary.setStartDateTime(new DateTime(conference.get(timeField)));
         return roomSummary;
+    }
+
+    private Collection<RoomParticipant> getRoomParticipants(String roomId, boolean withHidden) throws CommandException
+    {
+        Command cmd = new Command("participant.enumerate");
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+        cmd.setParameter("enumerateFilter", "connected");
+        List<Map<String, Object>> participants = execApiEnumerate(cmd, "participants");
+
+        List<RoomParticipant> result = new ArrayList<RoomParticipant>();
+        for (Map<String, Object> participant : participants) {
+            if (participant == null) {
+                continue;
+            }
+            if (!roomId.equals(participant.get("conferenceName"))) {
+                // not from this room
+                continue;
+            }
+            Map<String, Object> participantState = (Map<String, Object>) participant.get("currentState");
+            String participantAddress = (String) participantState.get("address");
+            if (participantAddress != null && hiddenParticipantAddresses.contains(participantAddress)) {
+                if (withHidden) {
+                    // participant should be moved to the start of the list
+                    result.add(0, extractRoomParticipant(participant));
+                    continue;
+                }
+                else {
+                    // participant should be hidden
+                    continue;
+                }
+            }
+            result.add(extractRoomParticipant(participant));
+        }
+
+        return result;
     }
 
     /**
