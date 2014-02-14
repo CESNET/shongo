@@ -72,11 +72,11 @@
     <legend><spring:message code="views.wizard.room.participants.title"/></legend>
 
     <c:choose>
-        <c:when test="${reservationRequest.technology == 'ADOBE_CONNECT'}">
-            <p><spring:message code="views.wizard.room.participants.help.ADOBE_CONNECT"/></p>
+        <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+            <p><spring:message code="views.room.participants.help.${reservationRequest.technology}.permanentRoom"/></p>
         </c:when>
         <c:otherwise>
-            <p><spring:message code="views.wizard.room.participants.help"/></p>
+            <p><spring:message code="views.room.participants.help.${reservationRequest.technology}"/></p>
         </c:otherwise>
     </c:choose>
 

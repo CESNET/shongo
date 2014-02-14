@@ -300,42 +300,48 @@
     </dl>
 
     <%-- Allowed Participants --%>
-    <c:if test="${room.technology == 'ADOBE_CONNECT'}">
-        <h2><spring:message code="views.room.participants"/></h2>
-        <p><spring:message code="views.room.participants.help"/></p>
-        <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
-            <tag:param name="back-url" value="${requestUrl}"/>
-        </tag:url>
-        <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_DELETE %>">
-            <tag:param name="back-url" value="${requestUrl}"/>
-        </tag:url>
-        <tag:participantList isWritable="${isWritable}" data="${room.participants}" description="${not empty room.usageId}"
-                             modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
-                             urlParam="roomId" urlValue="roomId" hideRole="${room.technology == 'H323_SIP'}"/>
-        <c:if test="${isWritable}">
-            <div class="table-actions">
+    <h2><spring:message code="views.room.participants"/></h2>
+
+    <c:choose>
+        <c:when test="${room.type == 'PERMANENT_ROOM'}">
+            <p><spring:message code="views.room.participants.help.${room.technology}.permanentRoom"/></p>
+        </c:when>
+        <c:otherwise>
+            <p><spring:message code="views.room.participants.help.${room.technology}"/></p>
+        </c:otherwise>
+    </c:choose>
+    <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_DELETE %>">
+        <tag:param name="back-url" value="${requestUrl}"/>
+    </tag:url>
+    <tag:participantList isWritable="${isWritable}" data="${room.participants}" description="${not empty room.usageId}"
+                         modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
+                         urlParam="roomId" urlValue="roomId" hideRole="${room.technology == 'H323_SIP'}"/>
+    <c:if test="${isWritable}">
+        <div class="table-actions">
+            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+                <tag:param name="roomId" value="${room.id}"/>
+                <tag:param name="back-url" value="${requestUrl}"/>
+            </tag:url>
+            <a class="btn btn-primary" href="${participantCreateUrl}">
+                <spring:message code="views.button.add"/>
+                <c:if test="${not empty room.usageId}">
+                    (<spring:message code="views.room.participants.addRoom"/>)
+                </c:if>
+            </a>
+            <c:if test="${not empty room.usageId}">
                 <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
-                    <tag:param name="roomId" value="${room.id}"/>
+                    <tag:param name="roomId" value="${room.usageId}"/>
                     <tag:param name="back-url" value="${requestUrl}"/>
                 </tag:url>
                 <a class="btn btn-primary" href="${participantCreateUrl}">
                     <spring:message code="views.button.add"/>
-                    <c:if test="${not empty room.usageId}">
-                        (<spring:message code="views.room.participants.addRoom"/>)
-                    </c:if>
+                    (<spring:message code="views.room.participants.addUsage"/>)
                 </a>
-                <c:if test="${not empty room.usageId}">
-                    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
-                        <tag:param name="roomId" value="${room.usageId}"/>
-                        <tag:param name="back-url" value="${requestUrl}"/>
-                    </tag:url>
-                    <a class="btn btn-primary" href="${participantCreateUrl}">
-                        <spring:message code="views.button.add"/>
-                        (<spring:message code="views.room.participants.addUsage"/>)
-                    </a>
-                </c:if>
-            </div>
-        </c:if>
+            </c:if>
+        </div>
     </c:if>
 
     <%-- Runtime management - Not-Available --%>

@@ -17,7 +17,14 @@
 
 <div ng-app="jsp:roomParticipantList" class="table-actions-left">
 
-    <p><spring:message code="views.room.participants.help"/></p>
+    <c:choose>
+        <c:when test="${room.type == 'PERMANENT_ROOM'}">
+            <p><spring:message code="views.room.participants.help.${room.technology}.permanentRoom"/></p>
+        </c:when>
+        <c:otherwise>
+            <p><spring:message code="views.room.participants.help.${room.technology}"/></p>
+        </c:otherwise>
+    </c:choose>
     <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
         <tag:param name="roomId" value="${room.id}"/>
         <tag:param name="back-url" value="${requestUrl}"/>
