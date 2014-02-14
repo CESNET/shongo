@@ -422,7 +422,7 @@ public class RoomGroupNotification extends ConfigurableNotification
 
         // Append description record
         String description = roomEndpoint.getMeetingDescription();
-        if (description != null) {
+        if (description != null && !description.isEmpty()) {
             String descriptionLabel = context.message("room.meeting.description");
             recordsBuilder.append(NOTIFICATION_RECORD_PREFIX);
             recordsBuilder.append(descriptionLabel);

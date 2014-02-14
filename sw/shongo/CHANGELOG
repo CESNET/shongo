@@ -1,6 +1,6 @@
-0.6.1 (2014-01-03)
+0.6.1 (2014-02-14)
 
-    * Management of Adobe Connect recordings (start/stop).
+    * Management of Adobe Connect and MCU recordings.
 
     * Merge user identities by using Perun as provider of user information.
 
@@ -9,6 +9,8 @@
     * Added list of your participation in rooms to main page.
 
     * Restrict the creation of new rooms to users with certain level of authenticity.
+
+    * Added option to send automatic email notifications to participants with iCalendar (.ics) attachment.
 
 0.6.0 (2013-10-18)
 

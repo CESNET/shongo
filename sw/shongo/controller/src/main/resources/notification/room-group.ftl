@@ -5,7 +5,7 @@
 <#---->
 <#assign indent = 24>
 <#---->
-<#if description??>
+<#if description?? && (description?length > 0)>
 ${context.message(indent, "room.description")}: ${context.indentNextLines(indent + 2, description)}
 
 </#if>
