@@ -25,7 +25,6 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
-import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -295,7 +294,13 @@ public class RoomController
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        List<RoomParticipant> roomParticipants = roomCache.getRoomParticipants(securityToken, roomId);
+        List<RoomParticipant> roomParticipants = Collections.emptyList();
+        try {
+            roomParticipants = roomCache.getRoomParticipants(securityToken, roomId);
+        }
+        catch (Exception exception) {
+            logger.warn("Failed to load participants", exception);
+        }
         int maxIndex = Math.max(0, roomParticipants.size() - 1);
         if (start > maxIndex) {
             start = maxIndex;

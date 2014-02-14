@@ -142,7 +142,7 @@ public class RoomModel extends ParticipantConfigurationModel
         }
         this.slotAfter = null;
         if (!slot.getEnd().equals(this.slot.getEnd())) {
-            this.slotAfter = new Period(slot.getEnd(), this.slot.getEnd());
+            this.slotAfter = new Period(this.slot.getEnd(), slot.getEnd());
         }
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();

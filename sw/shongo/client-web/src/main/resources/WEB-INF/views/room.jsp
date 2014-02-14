@@ -195,7 +195,7 @@
 
         <dt><spring:message code="views.room.slot"/>:</dt>
         <dd>
-            <tag:format value="${room.slot}" multiline="true"/>
+            <tag:format value="${room.slot}" multiline="true" pre="${room.slotBefore}" post="${room.slotAfter}"/>
         </dd>
 
         <dt><spring:message code="views.room.state"/>:</dt>
