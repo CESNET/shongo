@@ -299,15 +299,27 @@ public class RoomReservationTask extends ReservationTask
     {
         Executable oldExecutable = oldReservation.getExecutable();
         Executable newExecutable = newReservation.getExecutable();
+
         if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
             newExecutable.setMigrateFromExecutable(oldExecutable);
 
-            // Migrate participant notification state
             RoomEndpoint oldRoomEndpoint = (RoomEndpoint) oldExecutable;
             RoomEndpoint newRoomEndpoint = (RoomEndpoint) newExecutable;
+
+            // Migrate participant notification state
             NotificationState notificationState = newRoomEndpoint.getParticipantNotificationState();
             newRoomEndpoint.setParticipantNotificationState(oldRoomEndpoint.getParticipantNotificationState());
             entityManager.remove(notificationState);
+        }
+
+        if (oldExecutable instanceof ResourceRoomEndpoint && newExecutable instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint oldRoomEndpoint = (ResourceRoomEndpoint) oldExecutable;
+            ResourceRoomEndpoint newRoomEndpoint = (ResourceRoomEndpoint) newExecutable;
+
+            // Migrate recording folders
+            for(Map.Entry<RecordingCapability, String> entry : oldRoomEndpoint.getRecordingFolderIds().entrySet()) {
+                newRoomEndpoint.putRecordingFolderId(entry.getKey(), entry.getValue());
+            }
         }
 
         // Migrate services

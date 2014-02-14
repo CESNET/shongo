@@ -111,7 +111,6 @@ public class Migration
                     targetResourceRoom.setState(Executable.State.STARTED);
                     sourceResourceRoom.setState(Executable.State.STOPPED);
                     sourceResourceRoom.setModified(false);
-                    migrateRecordingFolders(sourceResourceRoom, targetResourceRoom);
                     return true;
                 }
                 else {
@@ -133,7 +132,6 @@ public class Migration
                     targetUsedRoom.setState(Executable.State.STARTED);
                     sourceUsedRoom.setState(Executable.State.STOPPED);
                     sourceUsedRoom.setModified(false);
-                    migrateRecordingFolders(sourceUsedRoom, targetUsedRoom);
                     return true;
                 }
                 else {
@@ -142,18 +140,5 @@ public class Migration
             }
         }
         return false;
-    }
-
-    /**
-     * Migrate {@link RecordableEndpoint#getRecordingFolderIds()} from {@code sourceRoom} to {@code targetRoom}.
-     *
-     * @param sourceRoom
-     * @param targetRoom
-     */
-    private void migrateRecordingFolders(RecordableEndpoint sourceRoom, RecordableEndpoint targetRoom)
-    {
-        for(Map.Entry<RecordingCapability, String> entry : sourceRoom.getRecordingFolderIds().entrySet()) {
-            targetRoom.putRecordingFolderId(entry.getKey(), entry.getValue());
-        }
     }
 }

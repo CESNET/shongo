@@ -32,14 +32,9 @@ public class Recording extends IdentifiedComplexType
     private  String description;
 
     /**
-     * URL to view recording.
+     * URL to view or download recording.
      */
     private String url;
-
-    /**
-     * URL to download recording.
-     */
-    private String downloadableUrl;
 
     /**
      * URL for editing recording.
@@ -137,22 +132,6 @@ public class Recording extends IdentifiedComplexType
     }
 
     /**
-     * @return  {@link #downloadableUrl}
-     */
-    public String getDownloadableUrl()
-    {
-        return downloadableUrl;
-    }
-
-    /**
-     * @param downloadableUrl sets the {@link #downloadableUrl}
-     */
-    public void setDownloadableUrl(String downloadableUrl)
-    {
-        this.downloadableUrl = downloadableUrl;
-    }
-
-    /**
      * @return {@link #editableUrl}
      */
     public String getEditableUrl()
@@ -204,7 +183,6 @@ public class Recording extends IdentifiedComplexType
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
     public static final String URL = "url";
-    public static final String DOWNLOADABLEURL = "downloadableUrl";
     public static final String EDITABLEURL = "editableUrl";
     public static final String BEGINDATE = "beginDate";
     public static final String DURATION = "duration";
@@ -218,7 +196,6 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION,description);
         dataMap.set(URL, url);
-        dataMap.set(DOWNLOADABLEURL, downloadableUrl);
         dataMap.set(EDITABLEURL, editableUrl);
         dataMap.set(BEGINDATE, beginDate);
         dataMap.set(DURATION, duration);
@@ -234,7 +211,6 @@ public class Recording extends IdentifiedComplexType
         name = dataMap.getString(NAME);
         description = dataMap.getString(DESCRIPTION);
         url = dataMap.getString(URL);
-        downloadableUrl = dataMap.getString(DOWNLOADABLEURL);
         editableUrl = dataMap.getString(EDITABLEURL);
         beginDate = dataMap.getDateTime(BEGINDATE);
         duration = dataMap.getPeriod(DURATION);
@@ -248,7 +224,6 @@ public class Recording extends IdentifiedComplexType
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", url='" + url + '\'' +
-                ", downloadableUrl='" + downloadableUrl + '\'' +
                 ", editableUrl='" + editableUrl + '\'' +
                 ", beginDate=" + beginDate +
                 ", duration=" + duration +

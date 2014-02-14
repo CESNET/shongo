@@ -37,7 +37,7 @@ public class ResourceRecording extends Recording
         setName(recording.getName());
         setDescription(recording.getDescription());
         setUrl(recording.getUrl());
-        setDownloadableUrl(recording.getDownloadableUrl());
+        setUrl(recording.getUrl());
         setEditableUrl(recording.getEditableUrl());
         setBeginDate(recording.getBeginDate());
         setDuration(recording.getDuration());

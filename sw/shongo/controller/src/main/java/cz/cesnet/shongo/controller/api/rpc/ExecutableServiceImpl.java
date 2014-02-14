@@ -248,10 +248,12 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             ListResponse<ExecutableSummary> response = new ListResponse<ExecutableSummary>();
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
+                DateTime slotStart = new DateTime(record[2]);
+                DateTime slotEnd = new DateTime(record[3]);
                 ExecutableSummary executableSummary = new ExecutableSummary();
                 executableSummary.setId(ObjectIdentifier.formatId(ObjectType.EXECUTABLE, record[0].toString()));
                 executableSummary.setType(ExecutableSummary.Type.valueOf(record[1].toString().trim()));
-                executableSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
+                executableSummary.setSlot(new Interval(slotStart, (slotEnd.isBefore(slotStart) ? slotStart : slotEnd)));
                 executableSummary.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
                         record[4].toString()).toApi());
                 executableSummary.setRoomDescription(record[8] != null ? (String) record[8] : null);
@@ -590,11 +592,13 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     // Set executable as stopped
                     cz.cesnet.shongo.controller.booking.executable.Executable.State state = executableToUpdate
                             .getState();
-                    if (state.isStarted() ||
-                            state.equals(
-                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
-                        executableToUpdate
-                                .setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                    if (state.isStarted() || state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                        executableToUpdate.setState(
+                                cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                    }
+                    if (state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.FINALIZATION_FAILED)) {
+                        executableToUpdate.setNextAttempt(dateTimeNow);
+                        executableToUpdate.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
                     }
                 }
             }

@@ -563,6 +563,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                     + resultRecording.getChildText("url-path");
 
+            recording.setFileName(resultRecording.getChildText("name"));
             recording.setUrl(baseUrl);
             recording.setEditableUrl(baseUrl + "?pbMode=edit");
             //recording.setDownloadableUrl();                 output/filename.zip?download=zip
@@ -598,9 +599,10 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                 + scoInfo.getChildText("url-path");
 
+        recording.setFileName(scoInfo.getChildText("name"));
         recording.setUrl(baseUrl);
         recording.setEditableUrl(baseUrl + "?pbMode=edit");
-        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+        //recording.setUrl();                 output/filename.zip?download=zip
 
         //TODO: vse ostatni
 
@@ -641,6 +643,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                 + resultRecording.getChildText("url-path");
 
+        recording.setFileName(resultRecording.getChildText("name"));
         recording.setUrl(baseUrl);
 
         return recording;
