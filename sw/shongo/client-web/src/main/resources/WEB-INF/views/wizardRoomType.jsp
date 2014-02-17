@@ -7,8 +7,12 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ADHOC %>"/>
-<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PERMANENT %>"/>
+<tag:url var="createAdhocRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_ADHOC %>">
+    <tag:param name="back-url" value="${requestScope.backUrl}"/>
+</tag:url>
+<tag:url var="createPermanentRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM_PERMANENT %>">
+    <tag:param name="back-url" value="${requestScope.backUrl}"/>
+</tag:url>
 <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
 <div class="actions">

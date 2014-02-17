@@ -130,7 +130,7 @@ public class WizardRoomController extends WizardParticipantsController
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
-        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -145,7 +145,7 @@ public class WizardRoomController extends WizardParticipantsController
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
-        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -163,7 +163,7 @@ public class WizardRoomController extends WizardParticipantsController
         reservationRequestModel.setId(null);
         reservationRequestModel.setStart(DateTime.now());
         WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
-        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -179,7 +179,7 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
                 reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
         WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequestModel);
-        return "redirect:" + ClientWebUrl.WIZARD_ROOM_ATTRIBUTES;
+        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -243,7 +243,10 @@ public class WizardRoomController extends WizardParticipantsController
     public ModelAndView handleRoles(
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
-        return getWizardView(Page.ROLES, "wizardRoomRoles.jsp");
+        WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRoles.jsp");
+        wizardView.addAction(ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
+        return wizardView;
     }
 
     /**
@@ -352,6 +355,8 @@ public class WizardRoomController extends WizardParticipantsController
         wizardView.addObject("modifyUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY);
         wizardView.addObject("deleteUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_DELETE);
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
 
@@ -360,13 +365,20 @@ public class WizardRoomController extends WizardParticipantsController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANTS, method = RequestMethod.POST)
     public Object handleParticipantsProcess(
+
+            @RequestParam(value = "finish", required = false) boolean finish,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel,
             BindingResult bindingResult)
     {
         if (!ReservationRequestValidator.validateParticipants(reservationRequestModel, bindingResult)) {
             return handleParticipants(reservationRequestModel);
         }
-        return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
+        if (finish) {
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_FINISH;
+        }
+        else {
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_CONFIRM;
+        }
     }
 
     /**
@@ -460,6 +472,8 @@ public class WizardRoomController extends WizardParticipantsController
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);
+        wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
+                "views.button.cancel", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
 
@@ -505,6 +519,40 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     /**
+     * Cancel the reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_CANCEL, method = RequestMethod.GET)
+    public Object handleCancel(
+            SessionStatus sessionStatus)
+    {
+        sessionStatus.setComplete();
+        BackUrl backUrl = BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+        return "redirect:" + backUrl.getUrl(ClientWebUrl.HOME);
+    }
+
+    /**
+     * Finish the reservation request.
+     *
+     * @param reservationRequest to be finished
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_FINISH, method = RequestMethod.GET)
+    public Object handleFinish(
+            SecurityToken securityToken,
+            UserSession userSession,
+            SessionStatus sessionStatus,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
+            BindingResult bindingResult)
+    {
+        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
+                userSession.getLocale(), userSession.getTimeZone());
+        validator.validate(reservationRequest, bindingResult);
+        if (bindingResult.hasErrors()) {
+            return getCreateRoomAttributesView();
+        }
+        return handleConfirmed(securityToken, sessionStatus, reservationRequest);
+    }
+
+    /**
      * Handle missing session attributes.
      */
     @ExceptionHandler({HttpSessionRequiredException.class, IllegalStateException.class})
@@ -523,6 +571,8 @@ public class WizardRoomController extends WizardParticipantsController
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
+        wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
+                "views.button.cancel", WizardView.ActionPosition.LEFT);
         return wizardView;
     }
 

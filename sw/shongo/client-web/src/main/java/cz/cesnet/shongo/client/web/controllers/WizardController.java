@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModificationModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
+import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controller for common wizard actions.
@@ -44,6 +46,7 @@ public class WizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_DUPLICATE, method = RequestMethod.GET)
     public String handleRoomDuplicate(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
@@ -53,11 +56,11 @@ public class WizardController
         switch (specificationType) {
             case ADHOC_ROOM:
             case PERMANENT_ROOM:
-                return "redirect:" + ClientWebUrl.format(
-                        ClientWebUrl.WIZARD_ROOM_DUPLICATE, reservationRequestId);
+                return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
+                        ClientWebUrl.WIZARD_ROOM_DUPLICATE, reservationRequestId));
             case PERMANENT_ROOM_CAPACITY:
-                return "redirect:" + ClientWebUrl.format(
-                        ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_DUPLICATE, reservationRequestId);
+                return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
+                        ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_DUPLICATE, reservationRequestId));
             default:
                 throw new TodoImplementException(specificationType);
         }
@@ -68,6 +71,7 @@ public class WizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY, method = RequestMethod.GET)
     public String handleRoomModify(
+            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
@@ -77,11 +81,11 @@ public class WizardController
         switch (specificationType) {
             case ADHOC_ROOM:
             case PERMANENT_ROOM:
-                return "redirect:" + ClientWebUrl.format(
-                        ClientWebUrl.WIZARD_ROOM_MODIFY, reservationRequestId);
+                return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
+                        ClientWebUrl.WIZARD_ROOM_MODIFY, reservationRequestId));
             case PERMANENT_ROOM_CAPACITY:
-                return "redirect:" + ClientWebUrl.format(
-                        ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_MODIFY, reservationRequestId);
+                return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.format(
+                        ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_MODIFY, reservationRequestId));
             default:
                 throw new TodoImplementException(specificationType);
         }

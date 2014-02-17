@@ -98,26 +98,27 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
-            Interval interval = request.getSlot();
+            // We must check only the future (because scheduler allocates only in future)
+            DateTime dateTimeNow = DateTime.now();
+            Interval slot = request.getSlot();
+            if (slot.getStart().isBefore(dateTimeNow)) {
+                slot = slot.withStart(dateTimeNow);
+            }
+
             Specification specificationApi = request.getSpecification();
             cz.cesnet.shongo.controller.booking.specification.Specification specification = null;
+            Interval allocationSlot = slot;
             if (specificationApi != null) {
                  specification = cz.cesnet.shongo.controller.booking.specification.Specification.createFromApi(
                          specificationApi, entityManager);
                 if (specification instanceof SpecificationIntervalUpdater) {
                     SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
-                    interval = intervalUpdater.updateInterval(interval);
+                    allocationSlot = intervalUpdater.updateInterval(allocationSlot);
                 }
             }
 
-            // We must check only the future (because scheduler allocates only in future)
-            DateTime dateTimeNow = DateTime.now();
-            if (interval.getStart().isBefore(dateTimeNow)) {
-                interval = interval.withStart(dateTimeNow);
-            }
-
             // Create scheduler context
-            SchedulerContext schedulerContext = new SchedulerContext(interval.getStart(), cache, entityManager,
+            SchedulerContext schedulerContext = new SchedulerContext(slot.getStart(), cache, entityManager,
                     new AuthorizationManager(entityManager, authorization));
             schedulerContext.setPurpose(request.getPurpose());
 
@@ -131,7 +132,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         reservationRequestManager.get(objectId.getPersistenceId());
                 for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                         ignoredReservationRequest.getAllocation().getReservations()) {
-                    if (reservation.getSlot().overlaps(interval)) {
+                    if (allocationSlot.overlaps(reservation.getSlot())) {
                         schedulerContextState.addAvailableReservation(
                                 reservation, AvailableReservation.Type.REALLOCATABLE);
                     }
@@ -141,7 +142,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         ignoredReservationRequest.getAllocation().getChildReservationRequests()) {
                     for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                             childReservationRequest.getAllocation().getReservations()) {
-                        if (reservation.getSlot().overlaps(interval)) {
+                        if (reservation.getSlot().overlaps(slot)) {
                             schedulerContextState.addAvailableReservation(
                                     reservation, AvailableReservation.Type.REALLOCATABLE);
                         }
@@ -157,7 +158,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             reservationRequestId, ObjectType.RESERVATION_REQUEST);
                     cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
                             reservationRequestManager.get(objectId.getPersistenceId());
-                    schedulerContext.setReusableAllocation(reservationRequest.getAllocation(), interval);
+                    schedulerContext.setReusableAllocation(reservationRequest.getAllocation(), slot);
                 }
 
                 // Check specification availability
@@ -167,7 +168,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             entityManager.getTransaction().begin();
                             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
                             ReservationTask reservationTask =
-                                    reservationTaskProvider.createReservationTask(schedulerContext, interval);
+                                    reservationTaskProvider.createReservationTask(schedulerContext, slot);
                             reservationTask.perform();
                         }
                         finally {

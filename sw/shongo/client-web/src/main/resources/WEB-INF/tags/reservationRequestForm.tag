@@ -70,7 +70,16 @@
             // Determine requested slot
             var requestedStart = moment($("#start").val());
             var requestedDuration = parseInt($("#durationCount").val());
-            var requestedEnd = (requestedStart != null && requestedDuration > 0) ? requestedStart.add($("#durationType").val().toLowerCase(), requestedDuration) : null;
+            var durationType = $("#durationType").val().toLowerCase() + "s";
+            var requestedEnd = (requestedStart != null && requestedDuration > 0) ? requestedStart.clone().add(durationType, requestedDuration) : null;
+            var slotBeforeMinutesPicker = $("#slotBeforeMinutes");
+            if (requestedStart != null && slotBeforeMinutesPicker != null) {
+                requestedStart.add("minutes", -slotBeforeMinutesPicker.val());
+            }
+            var slotAfterMinutesPicker = $("#slotAfterMinutes");
+            if (requestedEnd != null && slotAfterMinutesPicker != null) {
+                requestedEnd.add("minutes", slotAfterMinutesPicker.val());
+            }
             requestedStart = requestedStart != null ? requestedStart.unix() : null;
             requestedEnd = requestedEnd != null ? requestedEnd.unix() : null;
 
@@ -105,7 +114,7 @@
             }
         };
         // Update permanent rooms model when start or duration changes
-        $("#start,#durationCount").change(function () {
+        $("#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
         });
         // Set proper technology for selected permanent room

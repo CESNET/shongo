@@ -55,6 +55,10 @@ public class ClientWebUrl
             "/wizard/room/confirm";
     public static final String WIZARD_ROOM_CONFIRMED =
             "/wizard/create/confirmed";
+    public static final String WIZARD_ROOM_CANCEL =
+            "/wizard/room/cancel";
+    public static final String WIZARD_ROOM_FINISH =
+            "/wizard/room/finish";
 
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY =
             "/wizard/permanent-room-capacity/create";
@@ -74,6 +78,10 @@ public class ClientWebUrl
             "/wizard/permanent-room-capacity/confirm";
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRMED =
             "/wizard/permanent-room-capacity/confirmed";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_CANCEL =
+            "/wizard/permanent-room-capacity/cancel";
+    public static final String WIZARD_PERMANENT_ROOM_CAPACITY_FINISH =
+            "/wizard/permanent-room-capacity/finish";
 
     public static final String WIZARD_DUPLICATE =
             "/wizard/{reservationRequestId:.+}/duplicate";

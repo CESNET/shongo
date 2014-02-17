@@ -333,7 +333,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (permanentRoomReservationRequestId != null && start != null) {
             for (ReservationRequestSummary permanentRoomSummary : permanentRooms) {
                 if (permanentRoomSummary.getId().equals(permanentRoomReservationRequestId)) {
-                    DateTime permanentRoomStart = permanentRoomSummary.getEarliestSlot().getStart();
+                    Interval permanentRoomSlot = permanentRoomSummary.getEarliestSlot();
+                    DateTime permanentRoomStart = permanentRoomSlot.getStart().plus(getSlotBefore());
                     if (permanentRoomStart.isAfter(start)) {
                         setStart(permanentRoomStart);
                     }
