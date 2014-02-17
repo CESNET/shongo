@@ -1,13 +1,17 @@
 package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
@@ -30,15 +34,18 @@ public class ReservationRequestValidator implements Validator
 
     private ReservationService reservationService;
 
+    private Cache cache;
+
     private Locale locale;
 
     private DateTimeZone timeZone;
 
-    public ReservationRequestValidator(SecurityToken securityToken, ReservationService reservationService,
+    public ReservationRequestValidator(SecurityToken securityToken, ReservationService reservationService, Cache cache,
             Locale locale, DateTimeZone timeZone)
     {
         this.securityToken = securityToken;
         this.reservationService = reservationService;
+        this.cache = cache;
         this.locale = locale;
         this.timeZone = timeZone;
     }
@@ -53,12 +60,30 @@ public class ReservationRequestValidator implements Validator
     public void validate(Object object, Errors errors)
     {
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
+        SpecificationType specificationType = reservationRequestModel.getSpecificationType();
+
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
+            if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
+                if (reservationRequestModel.getPermanentRoomReservationRequestId() != null) {
+                    ReservationRequestSummary permanentRoom =
+                            reservationRequestModel.loadPermanentRoom(new CacheProvider(cache, securityToken));
+                    LocalDate permanentRoomEnd = permanentRoom.getEarliestSlot().getEnd().toLocalDate();
+                    LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
+                    if (periodicityEnd == null) {
+                        reservationRequestModel.setPeriodicityEnd(permanentRoomEnd);
+                    }
+                    else if (periodicityEnd.isAfter(permanentRoomEnd)) {
+                        errors.rejectValue("periodicityEnd", "validation.field.permanentRoomNotAvailable");
+                    }
+                }
+            }
+        }
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
 
-        SpecificationType specificationType = reservationRequestModel.getSpecificationType();
         if (specificationType != null) {
             switch (specificationType) {
                 case ADHOC_ROOM:
@@ -161,7 +186,6 @@ public class ReservationRequestValidator implements Validator
     }
 
     /**
-     *
      * @param reservationRequestModel to be validated
      * @param errors                  to be filled with errors
      * @param securityToken           to be used for validation
@@ -170,11 +194,11 @@ public class ReservationRequestValidator implements Validator
      * @return true whether validation succeeds, otherwise false
      */
     public static boolean validate(ReservationRequestModel reservationRequestModel, Errors errors,
-            SecurityToken securityToken, ReservationService reservationService, HttpServletRequest request)
+            SecurityToken securityToken, ReservationService reservationService, Cache cache, HttpServletRequest request)
     {
         UserSession userSession = UserSession.getInstance(request);
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
-                userSession.getLocale(), userSession.getTimeZone());
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequestModel, errors);
         return !errors.hasErrors();
     }

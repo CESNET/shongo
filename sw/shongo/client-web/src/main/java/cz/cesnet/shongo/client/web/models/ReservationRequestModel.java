@@ -685,7 +685,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @param cacheProvider
      */
-    public void loadPermanentRoom(CacheProvider cacheProvider)
+    public ReservationRequestSummary loadPermanentRoom(CacheProvider cacheProvider)
     {
         if (permanentRoomReservationRequestId == null) {
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
@@ -694,6 +694,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         roomName = permanentRoomReservationRequest.getRoomName();
         technology = TechnologyModel.find(permanentRoomReservationRequest.getSpecificationTechnologies());
         addPermanentRoomParticipants();
+        return permanentRoomReservationRequest;
     }
 
     /**

@@ -211,8 +211,8 @@ public class WizardRoomController extends WizardParticipantsController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
-                userSession.getLocale(), userSession.getTimeZone());
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
@@ -464,8 +464,8 @@ public class WizardRoomController extends WizardParticipantsController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
-                userSession.getLocale(), userSession.getTimeZone());
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
@@ -543,8 +543,8 @@ public class WizardRoomController extends WizardParticipantsController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService,
-                userSession.getLocale(), userSession.getTimeZone());
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
