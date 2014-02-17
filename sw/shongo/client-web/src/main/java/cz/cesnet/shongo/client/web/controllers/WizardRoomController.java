@@ -13,6 +13,8 @@ import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -47,6 +49,9 @@ import javax.servlet.http.HttpSession;
 public class WizardRoomController extends WizardParticipantsController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardRoomController.class);
+
+    public static final String SUBMIT_RESERVATION_REQUEST_FINISH_WITH_CAPACITY =
+            WizardController.SUBMIT_RESERVATION_REQUEST_FINISH.replace("finish", "finish-with-capacity");
 
     @Resource
     private Cache cache;
@@ -194,7 +199,7 @@ public class WizardRoomController extends WizardParticipantsController
         if (reservationRequest.getSpecificationType() == null) {
             throw new IllegalStateException("Room type is not specified.");
         }
-        return getCreateRoomAttributesView();
+        return getCreateRoomAttributesView(reservationRequest);
     }
 
     /**
@@ -208,6 +213,7 @@ public class WizardRoomController extends WizardParticipantsController
             SecurityToken securityToken,
             SessionStatus sessionStatus,
             @RequestParam(value = "finish", required = false) boolean finish,
+            @RequestParam(value = "finish-with-capacity", required = false) boolean finishWithCapacity,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
@@ -215,7 +221,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            return getCreateRoomAttributesView();
+            return getCreateRoomAttributesView(reservationRequest);
         }
         if (reservationRequest.getRoomParticipants().size() == 0) {
             ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
@@ -223,16 +229,18 @@ public class WizardRoomController extends WizardParticipantsController
                 reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
             }
         }
-        if (finish) {
+        if (finishWithCapacity) {
+            handleConfirmed(securityToken, sessionStatus, reservationRequest);
+            return createPermanentRoomCapacity(securityToken, reservationRequest.getId());
+        }
+        else if (finish) {
             return handleConfirmed(securityToken, sessionStatus, reservationRequest);
         }
+        else if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
+        }
         else {
-            if (reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
-                return "redirect:" + ClientWebUrl.WIZARD_ROOM_ROLES;
-            }
-            else {
-                return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
-            }
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
     }
 
@@ -244,8 +252,12 @@ public class WizardRoomController extends WizardParticipantsController
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRoles.jsp");
-        wizardView.addAction(ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_FINISH,
+        wizardView.addAction(ClientWebUrl.WIZARD_ROOM_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
+        if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addAction(ClientWebUrl.WIZARD_ROOM_FINISH_WITH_CAPACITY,
+                    "views.wizard.finishWithCapacity", WizardView.ActionPosition.RIGHT);
+        }
         return wizardView;
     }
 
@@ -348,7 +360,7 @@ public class WizardRoomController extends WizardParticipantsController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANTS, method = RequestMethod.GET)
     public ModelAndView handleParticipants(
-            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel)
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         WizardView wizardView = getWizardView(Page.PARTICIPANTS, "wizardRoomParticipants.jsp");
         wizardView.addObject("createUrl", ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE);
@@ -357,6 +369,10 @@ public class WizardRoomController extends WizardParticipantsController
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
+        if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH_WITH_CAPACITY,
+                    "views.wizard.finishWithCapacity", WizardView.ActionPosition.RIGHT);
+        }
         return wizardView;
     }
 
@@ -367,13 +383,17 @@ public class WizardRoomController extends WizardParticipantsController
     public Object handleParticipantsProcess(
 
             @RequestParam(value = "finish", required = false) boolean finish,
+            @RequestParam(value = "finish-with-capacity", required = false) boolean finishWithCapacity,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel,
             BindingResult bindingResult)
     {
         if (!ReservationRequestValidator.validateParticipants(reservationRequestModel, bindingResult)) {
             return handleParticipants(reservationRequestModel);
         }
-        if (finish) {
+        if (finishWithCapacity) {
+            return "redirect:" + ClientWebUrl.WIZARD_ROOM_FINISH_WITH_CAPACITY;
+        }
+        else if (finish) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_FINISH;
         }
         else {
@@ -468,10 +488,14 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            return getCreateRoomAttributesView();
+            return getCreateRoomAttributesView(reservationRequest);
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
         wizardView.setNextPageUrl(ClientWebUrl.WIZARD_ROOM_CONFIRMED);
+        if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addAction(ClientWebUrl.WIZARD_ROOM_FINISH_WITH_CAPACITY,
+                    "views.wizard.finishWithCapacity", WizardView.ActionPosition.RIGHT);
+        }
         wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
                 "views.button.cancel", WizardView.ActionPosition.RIGHT);
         return wizardView;
@@ -498,6 +522,7 @@ public class WizardRoomController extends WizardParticipantsController
             reservationRequestId = reservationService.modifyReservationRequest(
                     securityToken, reservationRequest.toApi());
         }
+        reservationRequest.setId(reservationRequestId);
         UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
 
         // Create user roles
@@ -513,9 +538,8 @@ public class WizardRoomController extends WizardParticipantsController
         sessionStatus.setComplete();
 
         // Show detail of newly created reservation request
-        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM).applyToUrl(
-                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId)
-        );
+        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES).applyToUrl(
+                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
     }
 
     /**
@@ -540,6 +564,7 @@ public class WizardRoomController extends WizardParticipantsController
             SecurityToken securityToken,
             UserSession userSession,
             SessionStatus sessionStatus,
+            @RequestParam(value = "create-capacity", required = false) boolean createCapacity,
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
@@ -547,9 +572,44 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            return getCreateRoomAttributesView();
+            return getCreateRoomAttributesView(reservationRequest);
         }
-        return handleConfirmed(securityToken, sessionStatus, reservationRequest);
+        Object result = handleConfirmed(securityToken, sessionStatus, reservationRequest);
+        if (createCapacity) {
+            return createPermanentRoomCapacity(securityToken, reservationRequest.getId());
+        }
+        else {
+            return result;
+        }
+    }
+
+    private Object createPermanentRoomCapacity(SecurityToken securityToken, String reservationRequestId)
+    {
+        AllocationState allocationState = null;
+        for (int index = 0; index < 5; index++) {
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException exception) {
+                logger.warn("Sleep failed", exception);
+            }
+            ReservationRequest reservationRequest =
+                    (ReservationRequest) reservationService.getReservationRequest(securityToken, reservationRequestId);
+            allocationState = reservationRequest.getAllocationState();
+            if (!allocationState.equals(AllocationState.NOT_ALLOCATED)) {
+                break;
+            }
+        }
+        if (AllocationState.ALLOCATED.equals(allocationState)) {
+            // Create permanent room capacity
+            return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES).applyToUrl(
+                    ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY + "?permanentRoom=" + reservationRequestId);
+        }
+        else {
+            // Show detail of reservation request
+            return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES).applyToUrl(
+                    ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
+        }
     }
 
     /**
@@ -565,14 +625,18 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * @return {@link WizardView} for reservation request form
      */
-    private WizardView getCreateRoomAttributesView()
+    private WizardView getCreateRoomAttributesView(ReservationRequestModel reservationRequest)
     {
         WizardView wizardView = getWizardView(Page.ATTRIBUTES, "wizardRoomAttributes.jsp");
         wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
-        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
-                "views.button.finish", WizardView.ActionPosition.RIGHT);
         wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
                 "views.button.cancel", WizardView.ActionPosition.LEFT);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
+        if (SpecificationType.PERMANENT_ROOM.equals(reservationRequest.getSpecificationType())) {
+            wizardView.addAction(SUBMIT_RESERVATION_REQUEST_FINISH_WITH_CAPACITY,
+                    "views.wizard.finishWithCapacity", WizardView.ActionPosition.RIGHT);
+        }
         return wizardView;
     }
 

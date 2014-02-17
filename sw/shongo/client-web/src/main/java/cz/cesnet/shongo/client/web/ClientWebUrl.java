@@ -59,6 +59,8 @@ public class ClientWebUrl
             "/wizard/room/cancel";
     public static final String WIZARD_ROOM_FINISH =
             "/wizard/room/finish";
+    public static final String WIZARD_ROOM_FINISH_WITH_CAPACITY =
+            "/wizard/room/finish?create-capacity=true";
 
     public static final String WIZARD_PERMANENT_ROOM_CAPACITY =
             "/wizard/permanent-room-capacity/create";
