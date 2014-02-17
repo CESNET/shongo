@@ -11,11 +11,15 @@ bin/client_cli.sh src --connect localhost --root --scripting --cmd "list-referen
 for user_id in $(cat __tmp_referenced_users | sed "s/\([0-9]\+\);.*/\1/g")
 do
     if [[ $user_id -ne 0 ]] ; then
-        echo -n "$user_id;"
-        bin/client_cli.sh src --connect localhost --root --scripting --cmd "get-user $user_id" \
+        result=$(bin/client_cli.sh src --connect localhost --root --scripting --cmd "get-user $user_id" \
             | tr -d '\n' \
             | grep "\[ " \
-            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Email" : "\([^"]\+\)".*/\1 \2;\3/g'
+            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Email" : "\([^"]\+\)".*/\1 \2;\3/g')
+        if [[ -z "$result" ]]
+        then
+            result="<not-exist>; "
+        fi
+        echo "$user_id;$result"
     fi
 done > __tmp_user_info
 
