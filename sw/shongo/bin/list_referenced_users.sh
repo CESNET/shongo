@@ -15,7 +15,7 @@ do
         bin/client_cli.sh src --connect localhost --root --scripting --cmd "get-user $user_id" \
             | tr -d '\n' \
             | grep "\[ " \
-            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Email" : \[ *"\([^"]\+\)".*/\1 \2;\3/g'
+            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Email" : "\([^"]\+\)".*/\1 \2;\3/g'
     fi
 done > __tmp_user_info
 

@@ -170,7 +170,7 @@ sub get_user()
         $object->add_attribute('Principal Names', {'type' => 'collection'}, $user->{'principalNames'});
         $object->add_attribute('First Name', {}, $user->{'firstName'});
         $object->add_attribute('Last Name', {}, $user->{'lastName'});
-        $object->add_attribute('Email', {}, $user->{'emails'});
+        $object->add_attribute('Email', {}, $user->{'email'});
         $object->add_attribute('Organization', {}, $user->{'organization'});
         console_print_text($object);
     }

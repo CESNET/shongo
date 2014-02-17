@@ -6,7 +6,7 @@
 SELECT
     DISTINCT user_id, string_agg(description, ', ') AS description
 FROM (
-    SELECT acl_identity.principal_id, COUNT(acl_entry.id) || ' acl-records' AS description
+    SELECT acl_identity.principal_id AS user_id, COUNT(acl_entry.id) || ' acl-records' AS description
     FROM acl_entry
     LEFT JOIN acl_identity ON acl_identity.id = acl_entry.acl_identity_id
     WHERE acl_identity.type = 'USER'
