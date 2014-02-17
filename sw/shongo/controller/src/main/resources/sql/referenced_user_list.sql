@@ -10,7 +10,7 @@ FROM (
     FROM acl_entry
     LEFT JOIN acl_identity ON acl_identity.id = acl_entry.acl_identity_id
     WHERE acl_identity.type = 'USER'
-    GROUP BY acl_entry.user_id
+    GROUP BY acl_identity.principal_id
     UNION ALL
     SELECT person.user_id, COUNT(person.id) || ' persons' AS description
     FROM person WHERE person.user_id IS NOT NULL GROUP BY person.user_id
