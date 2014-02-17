@@ -179,6 +179,7 @@ public class MigrationTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }

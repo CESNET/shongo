@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -23,7 +24,8 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
      */
-    private List<AbstractNotification> notifications = new LinkedList<AbstractNotification>();
+    private List<AbstractReservationRequestNotification> notifications =
+            new LinkedList<AbstractReservationRequestNotification>();
 
     /**
      * Constructor.
@@ -48,15 +50,30 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     /**
      * @param notification to be added to the {@link #notifications}
      */
-    public void addNotification(AbstractNotification notification)
+    public void addNotification(AbstractReservationRequestNotification notification)
     {
         notifications.add(notification);
+        Collections.sort(notifications, new Comparator<AbstractReservationRequestNotification>()
+        {
+            @Override
+            public int compare(AbstractReservationRequestNotification notification1,
+                    AbstractReservationRequestNotification notification2)
+            {
+                return notification1.getSlotStart().compareTo(notification2.getSlotStart());
+            }
+        });
     }
 
     @Override
     protected Collection<Locale> getAvailableLocals()
     {
         return NotificationMessage.AVAILABLE_LOCALES;
+    }
+
+    @Override
+    public Interval getSlot()
+    {
+        throw new TodoImplementException();
     }
 
     @Override
@@ -67,8 +84,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    protected NotificationMessage renderMessage(Configuration configuration,
-            NotificationManager manager)
+    protected NotificationMessage renderMessage(Configuration configuration, NotificationManager manager)
     {
         RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification", manager);
 

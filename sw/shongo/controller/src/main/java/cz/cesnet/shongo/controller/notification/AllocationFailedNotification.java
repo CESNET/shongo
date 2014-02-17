@@ -110,4 +110,10 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         notificationMessage.appendTitleAfter("] ", "(" + user.getFullName() + ") ");
         return notificationMessage;
     }
+
+    @Override
+    public Interval getSlot()
+    {
+        return requestedSlot;
+    }
 }

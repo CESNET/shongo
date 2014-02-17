@@ -7,7 +7,8 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
+<security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="hasWritePermission"/>
+<c:set var="isWritable" value="${hasWritePermission}"/>
 <c:if test="${room.state == 'STOPPED'}">
     <c:set var="isWritable" value="false"/>
 </c:if>
@@ -533,40 +534,37 @@
                         {{roomRecording.duration}}
                     </td>
                     <td>
-                        <c:choose>
-                            <c:when test="${room.technology == 'H323_SIP'}">
-                                <span ng-show="'{{roomRecording.url}}' != ''"><a href="{{roomRecording.url}}" target="_blank">{{roomRecording.filename}}</a></span>
-                                <span ng-show="'{{roomRecording.url}}' == ''"><spring:message code="views.room.recording.pending"/></span>
-                            </c:when>
-                            <c:when test="${room.technology == 'ADOBE_CONNECT'}">
-                                <a href="{{roomRecording.url}}" target="_blank">{{roomRecording.url}}</a>
-                            </c:when>
-                        </c:choose>
+                        <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                        <span ng-hide="roomRecording.downloadUrl"><spring:message code="views.room.recording.pending"/></span>
                     </td>
                     <td ng-controller="RoomRecordingActionController">
-                        <c:if test="${isWritable || room.technology == 'H323_SIP'}">
-                            <c:if test="${room.technology == 'H323_SIP'}">
-                                <span ng-show="'{{roomRecording.url}}' != ''">
-                            </c:if>
+                        <span ng-show="roomRecording.downloadUrl">
+                            <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
+                            <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="icon-download"></i></a>
+                        </span>
+                        <c:choose>
+                            <c:when test="${hasWritePermission}">
+                                <span ng-show="roomRecording.editUrl">
+                                    <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
+                                    <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle}" target="_blank"><i class="icon-edit"></i></a>
+                                </span>
+                            </c:when>
+                            <c:otherwise>
+                                <span ng-show="roomRecording.viewUrl">
+                                    <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
+                                    <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="icon-eye-open"></i></a>
+                                </span>
+                            </c:otherwise>
+                        </c:choose>
+                        <c:if test="${hasWritePermission}">
+                            <span ng-show="roomRecording.downloadUrl">
                                 <tag:url value="<%= ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
                                     <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
                                     <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
                                 </tag:url>
                                 <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
-                                <a href="" ng-click="deleteRecording('{{roomRecording.filename}}', '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
-                            <c:if test="${room.technology == 'H323_SIP'}">
-                                </span>
-                            </c:if>
-                        </c:if>
-                        <c:if test="${room.technology == 'H323_SIP'}">
-                                <span ng-show="'{{roomRecording.url}}' != ''">
-                                    <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
-                                    <a href="{{roomRecording.url}}" title="${recordingDownloadTitle}" target="_blank"><i class="icon-download"></i></a>
-                                </span>
-                        </c:if>
-                        <c:if test="${room.technology == 'ADOBE_CONNECT' && isWritable}">
-                                <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
-                                <a href="{{roomRecording.editableUrl}}" title="${recordingEditTitle}" target="_blank"><i class="icon-edit"></i></a>
+                                <a href="" ng-click="deleteRecording(roomRecording.filename, '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                            </span>
                         </c:if>
                     </td>
                 </tr>

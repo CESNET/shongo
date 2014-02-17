@@ -339,7 +339,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be deactivated.",
                 1, result.getDeactivatedExecutableServices().size());
 
-        // Check performed actions on MCS
+        // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
@@ -469,7 +469,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be stopped.",
                 1, result.getDeactivatedExecutableServices().size());
 
-        // Check performed actions on MCS
+        // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
@@ -493,6 +493,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
+                add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);

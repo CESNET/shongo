@@ -506,8 +506,9 @@ public class RoomController
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
             item.put("duration", dateTimeFormatter.formatRoundedDuration(recording.getDuration()));
-            item.put("url", recording.getUrl());
-            item.put("editableUrl", recording.getEditableUrl());
+            item.put("downloadUrl", recording.getDownloadUrl());
+            item.put("viewUrl", recording.getViewUrl());
+            item.put("editUrl", recording.getEditUrl());
             item.put("filename",recording.getFileName());
             items.add(item);
         }

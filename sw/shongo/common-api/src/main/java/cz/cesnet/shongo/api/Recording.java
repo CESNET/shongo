@@ -32,14 +32,19 @@ public class Recording extends IdentifiedComplexType
     private  String description;
 
     /**
-     * URL to view or download recording.
+     * URL to download recording.
      */
-    private String url;
+    private String downloadUrl;
+
+    /**
+     * URL to view recording.
+     */
+    private String viewUrl;
 
     /**
      * URL for editing recording.
      */
-    private String editableUrl;
+    private String editUrl;
 
     /**
      * Time of the beginning of the recording.
@@ -116,35 +121,51 @@ public class Recording extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #url}
+     * @return {@link #downloadUrl}
      */
-    public String getUrl()
+    public String getDownloadUrl()
     {
-        return url;
+        return downloadUrl;
     }
 
     /**
-     * @param url sets the {@link #url}
+     * @param downloadUrl sets the {@link #downloadUrl}
      */
-    public void setUrl(String url)
+    public void setDownloadUrl(String downloadUrl)
     {
-        this.url = url;
+        this.downloadUrl = downloadUrl;
     }
 
     /**
-     * @return {@link #editableUrl}
+     * @return {@link #viewUrl}
      */
-    public String getEditableUrl()
+    public String getViewUrl()
     {
-        return editableUrl;
+        return viewUrl;
     }
 
     /**
-     * @param editableUrl sets the {@link #editableUrl}
+     * @param viewUrl sets the {@link #viewUrl}
      */
-    public void setEditableUrl(String editableUrl)
+    public void setViewUrl(String viewUrl)
     {
-        this.editableUrl = editableUrl;
+        this.viewUrl = viewUrl;
+    }
+
+    /**
+     * @return {@link #editUrl}
+     */
+    public String getEditUrl()
+    {
+        return editUrl;
+    }
+
+    /**
+     * @param editUrl sets the {@link #editUrl}
+     */
+    public void setEditUrl(String editUrl)
+    {
+        this.editUrl = editUrl;
     }
 
     /**
@@ -182,9 +203,10 @@ public class Recording extends IdentifiedComplexType
     public static final String RECORDING_FOLDER_ID = "recordingFolderId";
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
-    public static final String URL = "url";
-    public static final String EDITABLEURL = "editableUrl";
-    public static final String BEGINDATE = "beginDate";
+    public static final String DOWNLOAD_URL = "downloadUrl";
+    public static final String VIEW_URL = "viewUrl";
+    public static final String EDITABLE_URL = "editUrl";
+    public static final String BEGIN_DATE = "beginDate";
     public static final String DURATION = "duration";
     public static final String FILENAME = "filename";
 
@@ -195,9 +217,10 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(RECORDING_FOLDER_ID, recordingFolderId);
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION,description);
-        dataMap.set(URL, url);
-        dataMap.set(EDITABLEURL, editableUrl);
-        dataMap.set(BEGINDATE, beginDate);
+        dataMap.set(DOWNLOAD_URL, downloadUrl);
+        dataMap.set(VIEW_URL, viewUrl);
+        dataMap.set(EDITABLE_URL, editUrl);
+        dataMap.set(BEGIN_DATE, beginDate);
         dataMap.set(DURATION, duration);
         dataMap.set(FILENAME,fileName);
         return dataMap;
@@ -210,9 +233,10 @@ public class Recording extends IdentifiedComplexType
         recordingFolderId = dataMap.getStringRequired(RECORDING_FOLDER_ID);
         name = dataMap.getString(NAME);
         description = dataMap.getString(DESCRIPTION);
-        url = dataMap.getString(URL);
-        editableUrl = dataMap.getString(EDITABLEURL);
-        beginDate = dataMap.getDateTime(BEGINDATE);
+        downloadUrl = dataMap.getString(DOWNLOAD_URL);
+        viewUrl = dataMap.getString(VIEW_URL);
+        editUrl = dataMap.getString(EDITABLE_URL);
+        beginDate = dataMap.getDateTime(BEGIN_DATE);
         duration = dataMap.getPeriod(DURATION);
         fileName = dataMap.getString(FILENAME);
     }
@@ -223,8 +247,9 @@ public class Recording extends IdentifiedComplexType
         return "Recording{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", url='" + url + '\'' +
-                ", editableUrl='" + editableUrl + '\'' +
+                ", downloadUrl='" + downloadUrl + '\'' +
+                ", viewUrl='" + viewUrl + '\'' +
+                ", editUrl='" + editUrl + '\'' +
                 ", beginDate=" + beginDate +
                 ", duration=" + duration +
                 ", fileName=" + fileName +

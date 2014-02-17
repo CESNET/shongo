@@ -48,8 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -374,13 +372,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         recording.setRecordingFolderId(folderId);
         recording.setId(makeRecordingId(folderId, fileId, recordingData.getChildText("ConferenceID")));
         recording.setDuration(new Period(Long.decode(recordingData.getChildText("Duration")).longValue()));
-        //recording.setUrl(recordingData.getChildText("URL"));
         if ("true".equals(recordingData.getChildText("HasDownloadableMovie"))) {
-            recording.setUrl(
+            recording.setDownloadUrl(
                     recordingData.getChild("DownloadableMovies").getChild("DownloadableMovie").getChildText("URL"));
-            String downloadableUrl = recording.getUrl();
-            String[] downloadableUrlParts = downloadableUrl.split("\\.");
-            String extension = downloadableUrlParts[downloadableUrlParts.length - 1];
+            String downloadUrl = recording.getDownloadUrl();
+            String[] downloadUrlParts = downloadUrl.split("\\.");
+            String extension = downloadUrlParts[downloadUrlParts.length - 1];
             recording.setFileName(fileId + "." + extension);
         }
 
@@ -410,12 +407,9 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             recordingXml = inputStringBuilder.toString();
             Document resultDocument = saxBuilder.build(new StringReader(recordingXml));
             Element rootElement = resultDocument.getRootElement();
-
-            Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
-
             Recording recording = parseRecording(rootElement);
-            if (recording.getUrl() != null) {
-                recording.setUrl(storage.getFileDownloadableUrl(folderId, recording.getFileName()));
+            if (recording.getDownloadUrl() != null) {
+                recording.setDownloadUrl(storage.getFileDownloadableUrl(folderId, recording.getFileName()));
             }
             recording.setRecordingFolderId(selectFolderId(recordingId));
 
@@ -572,7 +566,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             file.setFolderId(recordingFolderId);
 
             // create recording file
-            final String recordingUrl = recording.getUrl();
+            final String recordingUrl = recording.getDownloadUrl();
             HttpGet request = new HttpGet(recordingUrl);
             HttpResponse response = lHttpClient.execute(request);
             InputStream inputStream = response.getEntity().getContent();
@@ -1007,7 +1001,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
                 for (Recording recording : allRecordings) {
                     try{
-                        if (recording.getUrl() == null) {
+                        if (recording.getDownloadUrl() == null) {
                             continue;
                         }
                         if (recordingsToMove.contains(recording)) {

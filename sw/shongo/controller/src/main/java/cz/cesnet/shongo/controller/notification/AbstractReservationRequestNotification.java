@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -99,5 +100,18 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
         }
 
         return true;
+    }
+
+    /**
+     * @return {@link Interval} of the reservation request
+     */
+    public abstract Interval getSlot();
+
+    /**
+     * @return {@link org.joda.time.Interval#getStart()} for the {@link #getSlot()}
+     */
+    public final DateTime getSlotStart()
+    {
+        return getSlot().getStart();
     }
 }

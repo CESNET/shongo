@@ -78,6 +78,7 @@ public abstract class ReservationNotification extends AbstractReservationRequest
         return owners;
     }
 
+    @Override
     public Interval getSlot()
     {
         return slot;

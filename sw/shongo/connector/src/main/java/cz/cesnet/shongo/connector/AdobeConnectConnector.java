@@ -7,7 +7,6 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
-import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -541,72 +540,18 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("filter-icon", "archive");
         attributes.add("filter-out-date-end","null");
 
-
         Element response = request("sco-contents", attributes);
-
         for (Element resultRecording : response.getChild("scos").getChildren()) {
-            Recording recording = new Recording();
-
-            recording.setId(resultRecording.getAttributeValue("sco-id"));
-            recording.setRecordingFolderId(recordingFolderId);
-            recording.setName(resultRecording.getChildText("name"));
-
-            String description = resultRecording.getChildText("description");
-            recording.setDescription(description == null ? "" : description);
-
-            String dateBegin = resultRecording.getChildText("date-begin");
-            recording.setBeginDate(DateTime.parse(dateBegin));
-
-            String dateEnd = resultRecording.getChildText("date-end");
-            recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
-
-            String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
-                    + resultRecording.getChildText("url-path");
-
-            recording.setFileName(resultRecording.getChildText("name"));
-            recording.setUrl(baseUrl);
-            recording.setEditableUrl(baseUrl + "?pbMode=edit");
-            //recording.setDownloadableUrl();                 output/filename.zip?download=zip
-
-            //TODO: vse ostatni
-
-            recordingList.add(recording);
+            recordingList.add(extractRecording(resultRecording));
         }
-
         return Collections.unmodifiableList(recordingList);
     }
 
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
-        Element scoInfo = getScoInfo(recordingId);
-
-        Recording recording = new Recording();
-
-        String recordingFolderId = scoInfo.getAttributeValue("folder-id");
-        recording.setRecordingFolderId(recordingFolderId);
-        recording.setName(scoInfo.getChildText("name"));
-
-        String description = scoInfo.getChildText("description");
-        recording.setDescription(description == null ? "" : description);
-
-        String dateBegin = scoInfo.getChildText("date-begin");
-        recording.setBeginDate(DateTime.parse(dateBegin));
-
-        String dateEnd = scoInfo.getChildText("date-end");
-        recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
-
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
-                + scoInfo.getChildText("url-path");
-
-        recording.setFileName(scoInfo.getChildText("name"));
-        recording.setUrl(baseUrl);
-        recording.setEditableUrl(baseUrl + "?pbMode=edit");
-        //recording.setUrl();                 output/filename.zip?download=zip
-
-        //TODO: vse ostatni
-
-        return recording;
+        Element resultRecording = getScoInfo(recordingId);
+        return extractRecording(resultRecording);
     }
 
     /**
@@ -629,24 +574,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             return null;
         }
 
-        Recording recording = new Recording();
-
-        recording.setId(resultRecording.getAttributeValue("sco-id"));
-        recording.setName(resultRecording.getChildText("name"));
-
-        String description = resultRecording.getChildText("description");
-        recording.setDescription(description == null ? "" : description);
-
-        String dateBegin = resultRecording.getChildText("date-begin");
-        recording.setBeginDate(DateTime.parse(dateBegin));
-
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
-                + resultRecording.getChildText("url-path");
-
-        recording.setFileName(resultRecording.getChildText("name"));
-        recording.setUrl(baseUrl);
-
-        return recording;
+        return extractRecording(resultRecording);
     }
 
     @Override
@@ -1486,6 +1414,37 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
+    }
+
+    private Recording extractRecording(Element resultRecording)
+    {
+        Recording recording = new Recording();
+        recording.setId(resultRecording.getAttributeValue("sco-id"));
+        recording.setRecordingFolderId(resultRecording.getAttributeValue("folder-id"));
+        recording.setName(resultRecording.getChildText("name"));
+
+        String description = resultRecording.getChildText("description");
+        recording.setDescription(description == null ? "" : description);
+
+        String dateBegin = resultRecording.getChildText("date-begin");
+        recording.setBeginDate(DateTime.parse(dateBegin));
+
+        String dateEnd = resultRecording.getChildText("date-end");
+        if (dateEnd != null) {
+            recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
+        }
+
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
+                + resultRecording.getChildText("url-path");
+
+        recording.setFileName(resultRecording.getChildText("name"));
+        recording.setDownloadUrl(baseUrl);
+        recording.setViewUrl(baseUrl);
+        if (dateEnd != null) {
+            recording.setEditUrl(baseUrl + "?pbMode=edit");
+        }
+
+        return recording;
     }
 
     protected Element getScoInfo(String scoId) throws CommandException
