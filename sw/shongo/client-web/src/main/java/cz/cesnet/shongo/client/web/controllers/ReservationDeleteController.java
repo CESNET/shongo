@@ -27,7 +27,7 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class ReservationRequestDeleteController implements BreadcrumbProvider
+public class ReservationDeleteController implements BreadcrumbProvider
 {
     @Resource
     private ReservationService reservationService;
@@ -54,6 +54,19 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
     }
 
     /**
+     * Handle revert of reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_REVERT, method = RequestMethod.GET)
+    public String handleRevert(
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+    {
+        // Get reservation request
+        reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId);
+    }
+
+    /**
      * Handle deletion of reservation request view.
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
@@ -74,7 +87,7 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
                 new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         if (breadcrumb != null) {
             breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
-                    reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
+                    reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL));
         }
 
         return "reservationRequestDelete";

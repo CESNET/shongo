@@ -29,13 +29,13 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * Controller for managing ACL for reservation requests.
+ * Controller for managing {@link UserRoleModel}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
 @SessionAttributes({"userRole"})
-public class UserRoleController
+public class DetailUserRoleController
 {
     @Resource
     private ReservationService reservationService;
@@ -50,33 +50,9 @@ public class UserRoleController
     private MessageSource messageSource;
 
     /**
-     * Handle list of user roles view.
-     */
-    @RequestMapping(value = ClientWebUrl.USER_ROLE_LIST, method = RequestMethod.GET)
-    public ModelAndView handleListView(
-            Locale locale,
-            SecurityToken securityToken,
-            @PathVariable(value = "objectId") String objectId)
-    {
-        ModelAndView modelAndView = new ModelAndView("userRoleList");
-        modelAndView.addObject("objectId", objectId);
-        if (objectId.contains(":req:")) {
-            ReservationRequestSummary reservationRequest = cache.getReservationRequestSummary(securityToken, objectId);
-            SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
-            modelAndView.addObject("headingFor",
-                    messageSource.getMessage("views.reservationRequest.for." + specificationType,
-                            new Object[]{reservationRequest.getRoomName()}, locale));
-        }
-        else {
-            throw new UnsupportedApiException(objectId);
-        }
-        return modelAndView;
-    }
-
-    /**
      * Handle data request for reservation request {@link UserRoleModel}s.
      */
-    @RequestMapping(value = ClientWebUrl.USER_ROLE_LIST_DATA, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Map handleListData(
             Locale locale,
@@ -132,7 +108,7 @@ public class UserRoleController
     /**
      * Handle creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_CREATE, method = RequestMethod.GET)
     public ModelAndView handleRoleCreate(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId)
@@ -145,7 +121,7 @@ public class UserRoleController
     /**
      * Handle confirmation of creation of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.USER_ROLE_CREATE, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_CREATE, method = RequestMethod.POST)
     public Object handleRoleCreateProcess(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
@@ -162,13 +138,13 @@ public class UserRoleController
         }
         authorizationService.createAclEntry(securityToken, userRole.toApi());
 
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, objectId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_TAB_USER_ROLES, objectId);
     }
 
     /**
      * Handle deletion of {@link UserRoleModel} for reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.USER_ROLE_DELETE,
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_DELETE,
             method = RequestMethod.GET)
     public String handleRoleDelete(
             SecurityToken securityToken,
@@ -187,7 +163,7 @@ public class UserRoleController
             return "message";
         }
         authorizationService.deleteAclEntry(securityToken, userRoleId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.USER_ROLE_LIST, objectId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_TAB_USER_ROLES, objectId);
     }
 
     /**

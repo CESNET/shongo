@@ -143,29 +143,23 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
     </definition>
 
-    <definition name="reservationRequestDetail" extends="layoutAngular">
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp" type="template"/>
-        <put-list-attribute name="title">
-            <add-attribute value="views.reservationRequestDetail.title"/>
-            <add-attribute expression="T(${reservationRequest.description})"/>
-        </put-list-attribute>
-    </definition>
-
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDelete.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
     </definition>
 
+    <definition name="detail" extends="layoutAngular">
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/detail.jsp" type="template"/>
+        <put-list-attribute name="title">
+            <add-attribute value="views.detail.title"/>
+            <add-attribute expression="T(${titleDescription})"/>
+        </put-list-attribute>
+    </definition>
+
     <definition name="userRole" extends="layoutAngularForm">
         <put-attribute name="title" value="views.userRole.title"/>
         <put-attribute name="body" value="/WEB-INF/views/userRole.jsp" type="template"/>
-    </definition>
-
-    <definition name="userRoleList" extends="layoutAngular">
-        <put-attribute name="title" value="views.userRoleList.title"/>
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/userRoleList.jsp" type="template"/>
     </definition>
 
     <definition name="roomList" extends="layoutAngular">

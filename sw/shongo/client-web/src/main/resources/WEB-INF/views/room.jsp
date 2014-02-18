@@ -13,8 +13,8 @@
     <c:set var="isWritable" value="false"/>
 </c:if>
 
-<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-    <tag:param name="reservationRequestId" value="${reservationRequestId}"/>
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+    <tag:param name="objectId" value="${reservationRequestId}"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
@@ -255,7 +255,7 @@
                     (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
                 </c:forEach>
                 <c:if test="${isWritable}">
-                    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
+                    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_TAB_USER_ROLES %>">
                         <tag:param name="objectId" value="${reservationRequestId}"/>
                         <tag:param name="back-url" value="${requestUrl}"/>
                     </tag:url>
@@ -265,7 +265,7 @@
         </c:if>
 
         <dd>
-            <a href="${reservationRequestDetailUrl}"><spring:message code="views.room.showReservationRequest"/></a>
+            <a href="${detailUrl}"><spring:message code="views.room.showReservationRequest"/></a>
         </dd>
 
         <c:if test="${roomRuntime != null}">
@@ -287,7 +287,7 @@
                 <dd>${room.id}</dd>
 
                 <dt><spring:message code="views.reservationRequest"/>:</dt>
-                <dd><a href="${reservationRequestDetailUrl}">${reservationRequestId}</a></dd>
+                <dd><a href="${detailUrl}">${reservationRequestId}</a></dd>
             </div>
 
             <dt></dt>

@@ -34,11 +34,11 @@
     }
 </script>
 
-<tag:url var="childListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_CHILDREN %>">
-    <tag:param name="reservationRequestId" value=":id" escape="false"/>
+<tag:url var="childListUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_CHILDREN %>">
+    <tag:param name="objectId" value=":id" escape="false"/>
 </tag:url>
 <tag:url var="childDetailUrl" value="${detailUrl}">
-    <tag:param name="reservationRequestId" value="{{childReservationRequest.id}}" escape="false"/>
+    <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
 </tag:url>
 <tag:url var="childRoomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
     <tag:param name="roomId" value="{{childReservationRequest.roomId}}" escape="false"/>

@@ -15,8 +15,8 @@
 <%@attribute name="modifyUserRolesUrl" required="false" %>
 
 <c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
-<tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE %>">
-    <tag:param name="reservationRequestId" value=":reservationRequestId" escape="false"/>
+<tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
+    <tag:param name="objectId" value=":reservationRequestId" escape="false"/>
 </tag:url>
 <tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
     <tag:param name="roomId" value="{{roomId}}" escape="false"/>
@@ -175,7 +175,7 @@
             <c:choose>
             <c:when test="${not empty detailUrl}">
                 <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
-                    <tag:param name="reservationRequestId" value="${reservationRequest.parentReservationRequestId}"/>
+                    <tag:param name="objectId" value="${reservationRequest.parentReservationRequestId}"/>
                 </tag:url>
                 <a href="${parentReservationRequestDetailUrl}">${reservationRequest.parentReservationRequestId}</a>
             </c:when>
@@ -205,7 +205,7 @@
             <c:choose>
                 <c:when test="${not empty detailUrl}">
                     <tag:url var="permanentRoomDetailUrl" value="${detailUrl}">
-                        <tag:param name="reservationRequestId" value="${reservationRequest.permanentRoomReservationRequestId}"/>
+                        <tag:param name="objectId" value="${reservationRequest.permanentRoomReservationRequestId}"/>
                     </tag:url>
                     <a href="${permanentRoomDetailUrl}" tabindex="2">${reservationRequest.permanentRoomReservationRequest.roomName}</a>
                 </c:when>

@@ -20,7 +20,7 @@
             <c:forEach var="dependency" items="${dependencies}">
                 <li>
                     <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
-                        <tag:param name="reservationRequestId" value="${dependency.id}"/>
+                        <tag:param name="objectId" value="${dependency.id}"/>
                     </tag:url>
                     <a href="${parentReservationRequestDetailUrl}" tabindex="2">${dependency.description}</a>
                     (<spring:message code="views.reservationRequestDelete.dateTime"/>&nbsp;<tag:format value="${dependency.dateTime}"/>)

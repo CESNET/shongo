@@ -10,7 +10,9 @@
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
 <tag:url var="listDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
-<tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+</tag:url>
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
@@ -55,7 +57,7 @@
 
     <div ng-show="ready">
 
-        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${reservationRequestDetailUrl}"
+        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}"
                                     detailed="true" createUrl="${createPermanentRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>
@@ -71,7 +73,7 @@
 
         <hr/>
 
-        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${reservationRequestDetailUrl}"
+        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${detailUrl}"
                                     detailed="true" createUrl="${createAdhocRoomUrl}" modifyUrl="${reservationRequestModifyUrl}"
                                     duplicateUrl="${reservationRequestDuplicateUrl}" deleteUrl="${reservationRequestDeleteUrl}">
             <h2>

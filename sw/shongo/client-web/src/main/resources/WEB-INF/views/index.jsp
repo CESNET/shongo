@@ -35,8 +35,8 @@
     <tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
         <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
     </tag:url>
-    <tag:url var="reservationRequestDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-        <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+    <tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+        <tag:param name="objectId" value="{{reservationRequest.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
     <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
@@ -56,8 +56,8 @@
         <tag:param name="force" value="true"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
-    <tag:url var="permanentRoomCapacityDetailUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-        <tag:param name="reservationRequestId" value="{{capacity.id}}" escape="false"/>
+    <tag:url var="permanentRoomCapacityDetailUrl" value="<%= ClientWebUrl.DETAIL %>">
+        <tag:param name="objectId" value="{{capacity.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
 
@@ -260,7 +260,7 @@
                                 <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
                                     <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
                                 </span>
-                                <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${reservationRequestDetailUrl}" tabindex="2"/>
+                                <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${detailUrl}" tabindex="2"/>
                                 <span ng-show="reservationRequest.isWritable">
                                     <c:if test="${advancedUserInterface}">
                                         <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
@@ -294,7 +294,7 @@
                                             <span class="reservation-request-state">(<tag:help label="{{capacity.stateMessage}}" cssClass="{{capacity.state}}"><span>{{capacity.stateHelp}}</span></tag:help>)</span>
                                         </li>
                                         <li ng-show="count > items.length">
-                                            <a href="${reservationRequestDetailUrl}" tabindex="2">
+                                            <a href="${detailUrl}" tabindex="2">
                                                 <spring:message code="views.index.rooms.permanentRoomCapacity.slotMore" arguments="{{count - items.length}}"/>...
                                             </a>
                                         </li>

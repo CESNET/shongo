@@ -10,7 +10,6 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -20,11 +19,10 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -35,7 +33,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class ReservationRequestDetailController implements BreadcrumbProvider
+public class DetailController implements BreadcrumbProvider
 {
     @Resource
     private ReservationService reservationService;
@@ -63,7 +61,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         if (navigationPage == null) {
             return null;
         }
-        if (ClientWebNavigation.RESERVATION_REQUEST_DETAIL.isNavigationPage(navigationPage)) {
+        if (ClientWebNavigation.DETAIL.isNavigationPage(navigationPage)) {
             breadcrumb = new Breadcrumb(navigationPage.getParentNavigationPage(), requestURI);
             return breadcrumb;
         }
@@ -71,24 +69,58 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     }
 
     /**
-     * Handle detail of reservation request view.
+     * Handle detail view.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
-    public String handleDetailView(
-            UserSession userSession,
+    @RequestMapping(value = ClientWebUrl.DETAIL, method = RequestMethod.GET)
+    public ModelAndView handleDetailView(
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String id,
-            Model model)
+            Locale locale,
+            @PathVariable(value = "objectId") String objectId,
+            @RequestParam(value = "tab", required = false) String tab)
+    {
+        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+        AbstractReservationRequest abstractReservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(
+                abstractReservationRequest, new CacheProvider(cache, securityToken));
+        ReservationRequestSummary reservationRequestSummary =
+                cache.getReservationRequestSummary(securityToken, reservationRequestId);
+        SpecificationType specificationType = reservationRequestModel.getSpecificationType();
+        ModelAndView modelAndView = new ModelAndView("detail");
+        modelAndView.addObject("tab", tab);
+        modelAndView.addObject("titleDescription", messageSource.getMessage("views.detail.title." + specificationType,
+                new Object[]{reservationRequestSummary.getRoomName()}, locale));
+
+        // Initialize breadcrumb
+        if (breadcrumb != null) {
+            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL));
+        }
+
+        return modelAndView;
+    }
+
+    /**
+     * Handle detail reservation request tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST, method = RequestMethod.GET)
+    public ModelAndView handleDetailReservationRequestTab(
+            SecurityToken securityToken,
+            UserSession userSession,
+            @PathVariable(value = "objectId") String objectId)
     {
         Locale locale = userSession.getLocale();
         DateTimeZone timeZone = userSession.getTimeZone();
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
 
+        ModelAndView modelAndView = new ModelAndView("detailReservationRequest");
+
+        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
-                reservationService.getReservationRequest(securityToken, id);
-        String reservationRequestId = abstractReservationRequest.getId();
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        reservationRequestId = abstractReservationRequest.getId();
 
         // Determine whether reservation request is child reservation request
         boolean isChildReservationRequest = false;
@@ -107,7 +139,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
             for (ReservationRequestSummary historyItem :
-                    reservationService.getReservationRequestHistory(securityToken, id)) {
+                    reservationService.getReservationRequestHistory(securityToken, reservationRequestId)) {
                 Map<String, Object> item = new HashMap<String, Object>();
                 String historyItemId = historyItem.getId();
                 item.put("id", historyItemId);
@@ -141,7 +173,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             }
             currentHistoryItem.put("selected", true);
 
-            model.addAttribute("history", history);
+            modelAndView.addObject("history", history);
             if (isActive) {
                 isActive = currentHistoryItem == history.get(0);
             }
@@ -163,26 +195,65 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                 messageProvider, executableService, userSession);
         reservationRequestModel.loadUserRoles(securityToken, authorizationService);
 
-        model.addAttribute("reservationRequest", reservationRequestModel);
-        model.addAttribute("isActive", isActive);
+        modelAndView.addObject("reservationRequest", reservationRequestModel);
+        modelAndView.addObject("isActive", isActive);
 
-        // Initialize breadcrumb
-        if (breadcrumb != null) {
-            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));
-        }
+        return modelAndView;
+    }
 
-        return "reservationRequestDetail";
+    /**
+     * Handle detail user roles tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES, method = RequestMethod.GET)
+    public ModelAndView handleDetailUserRolesTab(
+            @PathVariable(value = "objectId") String objectId)
+    {
+        ModelAndView modelAndView = new ModelAndView("detailUserRoles");
+        return modelAndView;
+    }
+
+    /**
+     * Handle detail participants tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_PARTICIPANTS, method = RequestMethod.GET)
+    public ModelAndView handleDetailParticipantsTab(
+            @PathVariable(value = "objectId") String objectId)
+    {
+        ModelAndView modelAndView = new ModelAndView("detailParticipants");
+        return modelAndView;
+    }
+
+    /**
+     * Handle detail runtime management tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT, method = RequestMethod.GET)
+    public ModelAndView handleDetailRuntimeManagementTab(
+            @PathVariable(value = "objectId") String objectId)
+    {
+        ModelAndView modelAndView = new ModelAndView("detailRuntimeManagement");
+        return modelAndView;
+    }
+
+    /**
+     * Handle detail recordings tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS, method = RequestMethod.GET)
+    public ModelAndView handleRecordingsTab(
+            @PathVariable(value = "objectId") String objectId)
+    {
+        ModelAndView modelAndView = new ModelAndView("detailRecordings");
+        return modelAndView;
     }
 
     /**
      * Handle state for detail of reservation request view.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE, method = RequestMethod.GET)
     @ResponseBody
     public Map handleDetailState(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+            @PathVariable(value = "objectId") String reservationRequestId)
     {
 
         final Locale locale = userSession.getLocale();
@@ -245,13 +316,13 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     /**
      * Handle data request for children of reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_CHILDREN, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_CHILDREN, method = RequestMethod.GET)
     @ResponseBody
     public Map handleDetailChildren(
             Locale locale,
             DateTimeZone timeZone,
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @PathVariable(value = "objectId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
@@ -337,13 +408,13 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     /**
      * Handle data request for usages of reservation request.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_USAGES, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_USAGES, method = RequestMethod.GET)
     @ResponseBody
     public Map handleDetailUsages(
             Locale locale,
             DateTimeZone timeZone,
             SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
+            @PathVariable(value = "objectId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
@@ -407,18 +478,5 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         data.put("sort-desc", sortDescending);
         data.put("items", usages);
         return data;
-    }
-
-    /**
-     * Handle detail of reservation request view.
-     */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_REVERT, method = RequestMethod.GET)
-    public String handleDetailRevert(
-            SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId)
-    {
-        // Get reservation request
-        reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 }

@@ -92,41 +92,50 @@ public class ClientWebUrl
     public static final String WIZARD_UPDATE =
             "/wizard/update";
 
+    public static final String DETAIL =
+            "/detail/{objectId:.+}";
+    public static final String DETAIL_TAB_USER_ROLES = DETAIL + "?tab=userRoles";
+    public static final String DETAIL_RESERVATION_REQUEST =
+            "/detail/{objectId:.+}/reservation-request";
+    public static final String DETAIL_RESERVATION_REQUEST_STATE =
+            "/detail/{objectId:.+}/reservation-request/state";
+    public static final String DETAIL_RESERVATION_REQUEST_CHILDREN =
+            "/detail/{objectId:.+}/reservation-request/children";
+    public static final String DETAIL_RESERVATION_REQUEST_USAGES =
+            "/detail/{objectId:.+}/reservation-request/usages";
+    public static final String DETAIL_USER_ROLES =
+            "/detail/{objectId:.+}/user-roles";
+    public static final String DETAIL_USER_ROLES_DATA =
+            "/detail/{objectId:.+}/user-roles/data";
+    public static final String DETAIL_USER_ROLE_CREATE =
+            "/detail/{objectId:.+}/user-role/create";
+    public static final String DETAIL_USER_ROLE_DELETE =
+            "/detail/{objectId:.+}/user-role/{roleId}/delete";
+    public static final String DETAIL_PARTICIPANTS =
+            "/detail/{objectId:.+}/participants";
+    public static final String DETAIL_PARTICIPANTS_DATA =
+            "/detail/{objectId:.+}/participants/data";
+    public static final String DETAIL_RUNTIME_MANAGEMENT =
+            "/detail/{objectId:.+}/runtime-management";
+    public static final String DETAIL_RECORDINGS =
+            "/detail/{objectId:.+}/recordings";
+
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
     public static final String RESERVATION_REQUEST_LIST =
             "/reservation-request/list";
     public static final String RESERVATION_REQUEST_LIST_DATA =
             "/reservation-request/list/data";
-    public static final String RESERVATION_REQUEST_DETAIL =
-            "/reservation-request/{reservationRequestId:.+}/detail";
-    public static final String RESERVATION_REQUEST_DETAIL_STATE =
-            "/reservation-request/{reservationRequestId:.+}/detail/state";
-    public static final String RESERVATION_REQUEST_DETAIL_CHILDREN =
-            "/reservation-request/{reservationRequestId:.+}/detail/children";
-    public static final String RESERVATION_REQUEST_DETAIL_USAGES =
-            "/reservation-request/{reservationRequestId:.+}/detail/usages";
-    public static final String RESERVATION_REQUEST_DETAIL_REVERT =
-            "/reservation-request/{reservationRequestId:.+}/detail/revert";
+    public static final String RESERVATION_REQUEST_REVERT =
+            "/reservation-request/{reservationRequestId:.+}/revert";
     public static final String RESERVATION_REQUEST_DELETE =
             "/reservation-request/{reservationRequestId:.+}/delete";
-    public static final String RESERVATION_REQUEST_UPDATE =
-            "/reservation-request/update";
     public static final String RESERVATION_REQUEST_PARTICIPANT_CREATE =
             "/reservation-request/participant/create";
     public static final String RESERVATION_REQUEST_PARTICIPANT_MODIFY =
             "/reservation-request/participant/{participantId}/modify";
     public static final String RESERVATION_REQUEST_PARTICIPANT_DELETE =
             "/reservation-request/participant/{participantId}/delete";
-
-    public static final String USER_ROLE_LIST =
-            "/user-role/{objectId:.+}/list";
-    public static final String USER_ROLE_LIST_DATA =
-            "/user-role/{objectId:.+}/list/data";
-    public static final String USER_ROLE_CREATE =
-            "/user-role/{objectId:.+}/create";
-    public static final String USER_ROLE_DELETE =
-            "/user-role/{objectId:.+}/{roleId}/delete";
 
     public static final String USER_SETTINGS =
             "/user/settings";

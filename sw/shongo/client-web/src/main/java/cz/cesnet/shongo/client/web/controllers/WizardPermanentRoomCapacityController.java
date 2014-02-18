@@ -165,9 +165,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         reservationRequest.setTechnology(null);
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
         if (permanentRoomId != null) {
-            if (permanentRoomId.contains(":exe:")) {
-                permanentRoomId = cache.getReservationRequestIdByExecutableId(securityToken, permanentRoomId);
-            }
+            permanentRoomId = cache.getReservationRequestId(securityToken, permanentRoomId);
             reservationRequest.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
         }
         else if (reservationRequest.getPermanentRoomReservationRequestId() == null) {
@@ -383,7 +381,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
 
         // Show detail of newly created reservation request
         return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM).applyToUrl(
-                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId)
+                ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId)
         );
     }
 

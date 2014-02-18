@@ -92,6 +92,9 @@ a.bordered:hover {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+.tab-pane .table-actions {
+    margin-bottom: 0px;
+}
 .table-actions-left .table-actions {
     float: left;
 }
@@ -138,6 +141,10 @@ dl.dl-horizontal dd select {
 }
 
 /* Tabs */
+.tabbable {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
 .tabbable a {
     cursor: pointer;
 }
@@ -378,6 +385,9 @@ div.actions {
     font-size: 20px;
     border: solid 1px #888888;
     background-color: #f9f9f9;
+}
+.tab-pane div.actions {
+    margin-top: 0px;
 }
 div.actions>a {
     float: right;

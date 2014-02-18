@@ -11,11 +11,11 @@
 <%@attribute name="createUrl" required="false" %>
 <%@attribute name="createWhen" required="false" %>
 
-<tag:url var="usageListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_USAGES %>">
-    <tag:param name="reservationRequestId" value=":id"/>
+<tag:url var="usageListUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_USAGES %>">
+    <tag:param name="objectId" value=":id"/>
 </tag:url>
 <tag:url var="usageDetailUrl" value="${detailUrl}">
-    <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
+    <tag:param name="objectId" value="{{usage.id}}" escape="false"/>
 </tag:url>
 <tag:url var="usageModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>

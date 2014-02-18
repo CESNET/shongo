@@ -11,7 +11,7 @@
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
-<tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
+<tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="<%= ClientWebUrl.DETAIL %>"/>
 
 <c:choose>
     <c:when test="${dependencies.size() > 0}">

@@ -1,8 +1,6 @@
-
 <%--
   -- List of user roles
   --%>
-<%@ tag body-content="empty" %>
 <%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -123,7 +121,7 @@
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
+            <jsp:doBody/>
             <div class="spinner" ng-hide="ready || errorContent"></div>
             <span ng-controller="HtmlController" ng-show="errorContent" ng-bind-html="html(errorContent)"></span>
             <table class="table table-striped table-hover" ng-show="ready">

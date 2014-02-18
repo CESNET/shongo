@@ -895,34 +895,34 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 // Add breadcrumb for permanent room reservation request
                 breadcrumbItems.add(new BreadcrumbItem(
                         ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
-                        "navigation.reservationRequest.detail"));
+                        "navigation.detail"));
 
                 // Add breadcrumb for reservation request set
                 breadcrumbItems.add(new BreadcrumbItem(
                         ClientWebUrl.format(detailUrl, parentReservationRequestId),
-                        "navigation.reservationRequest.detailCapacity"));
+                        "navigation.detail.capacity"));
             }
             else {
                 // Add breadcrumb for reservation request set
                 breadcrumbItems.add(new BreadcrumbItem(
                         ClientWebUrl.format(detailUrl, parentReservationRequestId),
-                        "navigation.reservationRequest.detail"));
+                        "navigation.detail"));
             }
 
             // This reservation request is periodic event
-            titleCode = "navigation.reservationRequest.detailEvent";
+            titleCode = "navigation.detail.event";
         }
         else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             // Add breadcrumb for permanent room reservation request
             breadcrumbItems.add(new BreadcrumbItem(
                     ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
-                    "navigation.reservationRequest.detail"));
+                    "navigation.detail"));
 
             // This reservation request is capacity
-            titleCode = "navigation.reservationRequest.detailCapacity";
+            titleCode = "navigation.detail.capacity";
         }
         else {
-            titleCode = "navigation.reservationRequest.detail";
+            titleCode = "navigation.detail";
         }
 
         // Add breadcrumb for this reservation request

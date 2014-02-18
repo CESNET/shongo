@@ -30,7 +30,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class ReservationRequestController
+public class ReservationListController
 {
     @Resource
     private ReservationService reservationService;

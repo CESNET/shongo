@@ -6,10 +6,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:url var="cancelUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL %>">
-    <tag:param name="reservationRequestId" value="${userRole.objectId}"/>
-</tag:url>
-
 <script type="text/javascript">
     var module = angular.module('jsp:reservationRequestParticipant', ['ngApplication', 'tag:participantForm']);
 </script>

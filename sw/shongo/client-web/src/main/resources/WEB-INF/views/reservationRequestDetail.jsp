@@ -11,7 +11,7 @@
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
-<tag:url var="reservationRequestDetailUrl" value="<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>"/>
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>"/>
 
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
@@ -56,124 +56,25 @@
 
 <div ng-app="jsp:reservationRequestDetail">
 
-    <%-- What do you want to do? --%>
-    <tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
-        <span><spring:message code="views.select.action"/></span>
-        <ul>
-            <c:if test="${canCreatePermanentRoomCapacity}">
-                <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
-                    <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
-                    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-                </tag:url>
-                <li ng-switch on="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')">
-                    <a ng-switch-when="true" href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                        <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                    </a>
-                    <span ng-switch-when="false" class="disabled">
-                        <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                    </span>
-                </li>
-            </c:if>
-            <li>
-                <a href="javascript: location.reload();"  tabindex="1">
-                    <spring:message code="views.reservationRequestDetail.action.refresh"/>
-                </a>
-            </li>
-            <c:if test="${isWritable}">
-                <li>
-                    <tag:url var="deleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-                        <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-                    </tag:url>
-                    <a href="${reservationRequestDeleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
-                </li>
-            </c:if>
-        </ul>
-    </tag:expandableBlock>
 
-    <%-- History --%>
-    <c:if test="${history != null}">
-        <div class="bordered jspReservationRequestDetailHistory">
-            <h2><spring:message code="views.reservationRequestDetail.history"/></h2>
-            <table class="table table-striped table-hover">
-                <thead>
-                <tr>
-                    <th><spring:message code="views.reservationRequest.dateTime"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
-                    <th><spring:message code="views.reservationRequest.type"/></th>
-                    <c:if test="${reservationRequest.state != null}">
-                        <th><spring:message code="views.reservationRequest.state"/></th>
-                    </c:if>
-                    <th><spring:message code="views.list.action"/></th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach items="${history}" var="historyItem" varStatus="status">
-                    <c:set var="rowClass" value=""/>
-                    <c:choose>
-                        <c:when test="${historyItem.selected}">
-                            <tr class="selected">
-                        </c:when>
-                        <c:otherwise>
-                            <tr>
-                        </c:otherwise>
-                    </c:choose>
-                    <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
-                    <td>${historyItem.user}</td>
-                    <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
-                    <c:if test="${reservationRequest.state != null}">
-                        <td class="reservation-request-state">
-                            <c:choose>
-                                <c:when test="${historyItem.selected}">
-                                    <span class="{{$child.state.code}}">{{$child.state.label}}</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <c:if test="${historyItem.state != null}">
-                                        <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
-                                    </c:if>
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                    </c:if>
-                    <td>
-                        <c:choose>
-                            <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                                <spring:eval var="historyItemDetailUrl"
-                                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(reservationRequestDetailUrl, historyItem.id)"/>
-                                <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
-                            </c:when>
-                            <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
-                        </c:choose>
-                        <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
-                            <tag:url var="historyItemRevertUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DETAIL_REVERT %>">
-                                <tag:param name="reservationRequestId" value="${historyItem.id}"/>
-                            </tag:url>
-                            <span ng-show="$child.allocationState.code != 'ALLOCATED'">
-                                | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
-                            </span>
-                        </c:if>
-                    </td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </div>
-    </c:if>
+
+
 
     <%-- Detail of request --%>
     <c:if test="${isWritable}">
-        <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.USER_ROLE_LIST %>">
+        <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_TAB_USER_ROLES %>">
             <tag:param name="objectId" value="${reservationRequest.id}"/>
             <tag:param name="back-url" value="${requestUrl}"/>
         </tag:url>
     </c:if>
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${reservationRequestDetailUrl}" isActive="${isActive}" modifyUserRolesUrl="${modifyUserRolesUrl}"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}" modifyUserRolesUrl="${modifyUserRolesUrl}"/>
 
     <c:if test="${isActive}">
 
         <%-- Periodic events --%>
         <c:if test="${reservationRequest.periodicityType != 'NONE'}">
             <hr/>
-            <tag:reservationRequestChildren detailUrl="${reservationRequestDetailUrl}"/>
+            <tag:reservationRequestChildren detailUrl="${detailUrl}"/>
         </c:if>
 
         <%-- Permanent room capacities --%>
@@ -187,7 +88,7 @@
                 <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
             </c:if>
             <div class="table-actions-left">
-                <tag:reservationRequestUsages detailUrl="${reservationRequestDetailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
+                <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
             </div>
         </c:if>
 

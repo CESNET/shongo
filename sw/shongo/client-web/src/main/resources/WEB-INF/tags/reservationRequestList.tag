@@ -36,8 +36,8 @@
 <c:set var="listUrlParameters" value="${listUrlParameters}]}"/>
 <tag:url var="listUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
 
-<tag:url var="reservationRequestDetailUrl" value="${detailUrl}">
-    <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
+<tag:url var="detailUrl" value="${detailUrl}">
+    <tag:param name="objectId" value="{{reservationRequest.id}}" escape="false"/>
 </tag:url>
 <tag:url var="reservationRequestModifyUrl" value="${modifyUrl}">
     <tag:param name="reservationRequestId" value="{{reservationRequest.id}}" escape="false"/>
@@ -139,13 +139,13 @@
                 <td>{{reservationRequest.dateTime}}</td>
             </c:if>
             <td>
-                <c:if test="${not empty reservationRequestDetailUrl}">
-                    <tag:listAction code="show" url="${reservationRequestDetailUrl }" tabindex="4"/>
+                <c:if test="${not empty detailUrl}">
+                    <tag:listAction code="show" url="${detailUrl }" tabindex="4"/>
                 </c:if>
                 <span ng-show="reservationRequest.isWritable">
                     <c:if test="${not empty reservationRequestModifyUrl}">
                         <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                            <c:if test="${not empty reservationRequestDetailUrl}">| </c:if>
+                            <c:if test="${not empty detailUrl}">| </c:if>
                             <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
                         </span>
                     </c:if>
@@ -155,7 +155,7 @@
                             <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
                         </span>
                     </c:if>
-                    <c:if test="${not empty reservationRequestDetailUrl || (not empty reservationRequestModifyUrl && not empty reservationRequestDuplicateUrl)}"> | </c:if>
+                    <c:if test="${not empty detailUrl || (not empty reservationRequestModifyUrl && not empty reservationRequestDuplicateUrl)}"> | </c:if>
                     <c:if test="${not empty reservationRequestDeleteUrl}">
                         <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
                     </c:if>

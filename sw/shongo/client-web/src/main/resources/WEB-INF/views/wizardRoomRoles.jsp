@@ -18,7 +18,6 @@
 
     <h1><spring:message code="views.wizard.room.roles"/></h1>
 
-
     <spring:message code="views.wizard.room.roles.description"/>
     <tag:help>
         <strong><spring:message code="views.userRole.objectRole.OWNER"/></strong>

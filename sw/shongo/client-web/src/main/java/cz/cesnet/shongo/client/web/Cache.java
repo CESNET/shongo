@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
@@ -442,13 +443,21 @@ public class Cache
 
     /**
      * @param securityToken
-     * @param executableId
-     * @return reservation request id for given {@code executableId}
+     * @param objectId
+     * @return reservation request id for given {@code objectId}
      */
-    public synchronized String getReservationRequestIdByExecutableId(SecurityToken securityToken, String executableId)
+    public synchronized String getReservationRequestId(SecurityToken securityToken, String objectId)
     {
-        Executable executable = getExecutable(securityToken, executableId);
-        return getReservationRequestIdByExecutable(securityToken, executable);
+        if (objectId.contains(":req:")) {
+            return objectId;
+        }
+        else if (objectId.contains(":exe:")) {
+            Executable executable = getExecutable(securityToken, objectId);
+            return getReservationRequestIdByExecutable(securityToken, executable);
+        }
+        else {
+            throw new TodoImplementException(objectId);
+        }
     }
 
     /**
