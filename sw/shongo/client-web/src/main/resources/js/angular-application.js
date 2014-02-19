@@ -42,6 +42,27 @@ applicationModule.factory("$application", function() {
     };
 });
 
+applicationModule.controller("DynamicContentController", function($scope, $element, $timeout) {
+    /**
+     * Specifies whether tab content has already been initialized.
+     */
+    $scope.inited = true;
+
+    /**
+     * Refresh tab content.
+     */
+    $scope.refresh = function(contentUrl) {
+        $scope.inited = false;
+        if (contentUrl != null) {
+            $scope.contentUrl = contentUrl;
+        }
+        $timeout(function(){
+            $scope.inited = true;
+        });
+    };
+});
+
+
 /**
  * Tab controller.
  */
@@ -89,9 +110,11 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
     /**
      * Refresh tab content.
      */
-    $scope.refresh = function() {
+    $scope.refresh = function(contentUrl) {
         $scope.inited = false;
-        //$scope.$apply();
+        if (contentUrl != null) {
+            $scope.contentUrl = contentUrl;
+        }
         $timeout(function(){
             $scope.inited = true;
         });
@@ -121,27 +144,27 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
         scope: false,
         link: function(scope, element, attrs) {
             // Create content element and replace it in the transclude
-            element.contentElementId = "tabContent" + (++index);
-            var contentElement = $compile("<div id ='" + element.contentElementId + "' class='spinner'></div>")(scope.$parent);
-            scope.$transcludeFn = function(scope, callback) {
-                callback(contentElement);
-            };
-
-            // Init or schedule the init for later
-            if (!scope.inited) {
-                scope.$watch('inited', function(inited) {
-                    if (inited) {
-                        loadContent(attrs.contentUrl, element.contentElementId, scope);
-                    }
-                });
+            scope.contentElementId = "contentElement" + (++index);
+            scope.contentUrl = attrs.contentUrl;
+            var contentElement = $compile("<div id ='" + scope.contentElementId + "' class='spinner'></div>")(scope.$parent);
+            if (scope.$transcludeFn != null) {
+                scope.$transcludeFn = function(scope, callback) {
+                    callback(contentElement);
+                };
             }
             else {
-                loadContent(attrs.url, element.contentElementId, scope);
+                element.append(contentElement);
             }
+            // Load content when inited is changed
+            scope.$watch('inited', function(inited) {
+                if (inited) {
+                    loadContent(scope);
+                }
+            });
         }
     };
-    function loadContent(url, elementId, scope){
-        $http.get(url).success(function (html) {
+    function loadContent(scope){
+        $http.get(scope.contentUrl).success(function (html) {
             // Extract scripts from html
             var scripts = "";
             var result = SCRIPT_PATTERN.exec(html);
@@ -155,10 +178,9 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
             // Append scripts to head
             $("head").append(scripts);
 
-
             // Replace element content
-            var oldElement = $("#" + elementId);
-            var newElement = $compile("<div id='" + elementId + "'>" + html + "</div>")(scope.$parent);
+            var oldElement = $("#" + scope.contentElementId);
+            var newElement = $compile("<div id='" + scope.contentElementId + "'>" + html + "</div>")(scope.$parent);
             oldElement.replaceWith(newElement);
         });
     }

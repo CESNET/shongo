@@ -102,7 +102,7 @@
     <c:if test="${not empty createUrl}">
         <div class="table-actions">
             <a class="btn btn-primary" href="${createUrl}" tabindex="1" ng-show="${not empty createWhen ? createWhen : 'true'}">
-                <spring:message code="views.button.create"/>
+                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
             </a>
         </div>
     </c:if>

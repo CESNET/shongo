@@ -14,9 +14,6 @@
 <%@attribute name="detailUrl" required="false" %>
 
 <c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
-<tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
-    <tag:param name="objectId" value=":reservationRequestId" escape="false"/>
-</tag:url>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -71,66 +68,6 @@
                 help: "<spring:message code="views.executable.roomStateHelp.${reservationRequestDetail.room.type}.${reservationRequestDetail.room.state}"/>",
                 report: "${roomStateReport}"
             };
-        </c:if>
-        <c:if test="${isActive}">
-            // Refreshing resource
-            $scope.refreshResource = $resource("${reservationRequestDetailStateUrl}", {reservationRequestId: "${reservationRequest.id}"}, {
-                get: {method: "GET"}
-            });
-            // Initial refresh timeout in seconds
-            $scope.refreshTimeout = 5;
-            // Number of performed automatic refreshes
-            $scope.refreshCount = 0;
-            // Specifies whether refreshing is in progress
-            $scope.refreshing = false;
-
-            /**
-             * Perform refresh of reservation request state
-             *
-             * @param callback to be called after refresh is finished
-             */
-            $scope.refresh = function(callback){
-                $scope.refreshing = true;
-                $scope.refreshResource.get(null, function (result) {
-                    $scope.state = result.state;
-                    $scope.allocationState = result.allocationState;
-                    $scope.roomId = result.roomId;
-                    $scope.roomSlot = result.roomSlot;
-                    $scope.roomName = result.roomName;
-                    $scope.roomLicenseCount = result.roomLicenseCount;
-                    $scope.roomAliases = result.roomAliases;
-                    $scope.roomAliasesDescription = result.roomAliasesDescription;
-                    $scope.roomParticipants = result.roomParticipants;
-                    $scope.roomState = result.roomState;
-                    $scope.allocatedSlot = result.allocatedSlot;
-                    if (callback != null) {
-                        callback();
-                    }
-                    $scope.refreshing = false;
-                });
-            };
-
-            /**
-             * Perform automatic refresh.
-             */
-            $scope.autoRefresh = function() {
-                $scope.refresh(function(){
-                    $scope.refreshCount++;
-                    if (($scope.refreshCount % 3) == 0) {
-                        // Double refresh timeout after three refreshes
-                        $scope.refreshTimeout *= 2;
-                    }
-                    $scope.setupRefresh();
-                });
-            };
-            // Schedule first automatic refresh
-            $scope.setupRefresh = function() {
-                if ($scope.allocationState != null && $scope.allocationState.code == 'NOT_ALLOCATED' ||
-                        ($scope.roomState != null && $scope.roomState.code != 'STOPPED' && $scope.roomState.code != 'FAILED')) {
-                    $timeout($scope.autoRefresh, $scope.refreshTimeout * 1000);
-                }
-            };
-            $scope.setupRefresh();
         </c:if>
 
         $scope.html = function(html) {
@@ -262,12 +199,6 @@
             <tag:help label="{{state.label}}" cssClass="{{state.code}}">
                 <span ng-bind-html="html(state.help)"></span>
             </tag:help>
-            <spring:message code="views.button.refresh" var="buttonRefresh"/>
-            <c:if test="${isActive}">
-                <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
-                    <i ng-class="{'icon-refresh': !refreshing, 'icon-repeat': refreshing}"></i>
-                </a>
-            </c:if>
         </dd>
     </div>
 

@@ -114,10 +114,10 @@ public class WizardRoomController extends WizardParticipantsController
      * Book new  room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM, method = RequestMethod.GET)
-    public ModelAndView handleRoomType(SecurityToken securityToken, UserSession userSession)
+    public ModelAndView handleRoomType(SecurityToken securityToken)
     {
         WizardView wizardView = getWizardView(Page.SELECT, "wizardRoomType.jsp");
-        ReservationRequestModel reservationRequest = createReservationRequest(securityToken, userSession);
+        ReservationRequestModel reservationRequest = createReservationRequest(securityToken);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
         return wizardView;
@@ -131,10 +131,11 @@ public class WizardRoomController extends WizardParticipantsController
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
         if (reservationRequest == null) {
-            reservationRequest = createReservationRequest(securityToken, userSession);
+            reservationRequest = createReservationRequest(securityToken);
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
+        reservationRequest.initByUserSettings(userSession.getUserSettings());
         return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
     }
 
@@ -146,7 +147,7 @@ public class WizardRoomController extends WizardParticipantsController
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
         if (reservationRequest == null) {
-            reservationRequest = createReservationRequest(securityToken, userSession);
+            reservationRequest = createReservationRequest(securityToken);
             WebUtils.setSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         }
         reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
@@ -661,10 +662,10 @@ public class WizardRoomController extends WizardParticipantsController
     /**
      * @return {@link ReservationRequestModel} from {@link #request}
      */
-    private ReservationRequestModel createReservationRequest(SecurityToken securityToken, UserSession userSession)
+    private ReservationRequestModel createReservationRequest(SecurityToken securityToken)
     {
         ReservationRequestModel reservationRequest = new ReservationRequestModel(
-                new CacheProvider(cache, securityToken), userSession.getUserSettings());
+                new CacheProvider(cache, securityToken));
         reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
         return reservationRequest;
     }

@@ -96,9 +96,8 @@
     <c:if test="${roomRuntime != null}">
         $scope.layout = "${roomRuntime.layout != null ? roomRuntime.layout : 'OTHER'}";
         <tag:url var="modifyRoomUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY %>">
-        <tag:param name="objectId" value="${room.id}"/>
-        <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-        <tag:param name="layout" value=":layout"/>
+            <tag:param name="objectId" value="${room.id}"/>
+            <tag:param name="layout" value=":layout"/>
         </tag:url>
         $scope.$watch("layout", function (newVal, oldVal) {
             if (newVal != oldVal) {
@@ -364,19 +363,21 @@
 </c:if>
 
 <%-- Actions --%>
-<div class="table-actions" style="text-align: right;">
+<div class="table-actions pull-right">
+    <a class="btn" href="#" ng-click="refreshTab('runtimeManagement')">
+        <spring:message code="views.button.refresh"/>
+    </a>
+</div>
+<div class="table-actions">
     <security:authorize access="hasPermission(RESERVATION)">
         <c:if test="${room.started && room.type == 'PERMANENT_ROOM' && isProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                 <tag:param name="permanentRoom" value="${room.id}"/>
-                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
             </tag:url>
             <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
-                <spring:message code="views.room.requestCapacity"/>
+                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
             </a>
         </c:if>
     </security:authorize>
-    <a class="btn" href="#" ng-click="refreshTab('runtimeManagement')">
-        <spring:message code="views.button.refresh"/>
-    </a>
 </div>

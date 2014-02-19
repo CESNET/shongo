@@ -10,12 +10,10 @@
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
 </c:if>
-<c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
-    <security:authorize access="hasPermission(RESERVATION)">
-        <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
-                                    domainObject="${reservationRequest}" var="canCreatePermanentRoomCapacity"/>
-    </security:authorize>
-</c:if>
+<security:authorize access="hasPermission(RESERVATION)">
+    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
+                                domainObject="${reservationRequest}" var="canCreatePermanentRoomCapacity"/>
+</security:authorize>
 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
     <c:set var="canCreatePermanentRoomCapacity" value="${false}"/>
 </c:if>
@@ -30,6 +28,19 @@
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
 </tag:url>
+
+<script type="text/javascript">
+    function DetailReservationRequestController($scope) {
+    <c:if test="${isActive && (reservationRequest.allocationState == 'NOT_ALLOCATED' || (reservationRequest.room != null && reservationRequest.room.state != 'STOPPED' && reservationRequest.room.state != 'FAILED'))}">
+        // Schedule automatic refresh
+        $scope.setRefreshTimeout(function(){
+            $scope.refreshTab('reservationRequest');
+        });
+    </c:if>
+    }
+</script>
+
+<div ng-controller="DetailReservationRequestController">
 
 <%-- History --%>
 <c:if test="${history != null}">
@@ -78,9 +89,10 @@
                 <td>
                     <c:choose>
                         <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                            <spring:eval var="historyItemDetailUrl"
-                                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
-                            <tag:listAction code="show" url="${historyItemDetailUrl}" tabindex="2"/>
+                            <tag:url var="detailReservationRequestTabUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_TAB %>">
+                                <tag:param name="objectId" value="${historyItem.id}"/>
+                            </tag:url>
+                            <tag:listAction code="show" ngClick="refreshTab('reservationRequest', '${detailReservationRequestTabUrl}')" tabindex="2"/>
                         </c:when>
                         <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
                     </c:choose>
@@ -100,6 +112,13 @@
     </div>
 </c:if>
 
+<%-- TODO: Refactorize detail to dynamic panel
+<tag:url var="reservationRequestStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
+    <tag:param name="objectId" value="${objectId}"/>
+</tag:url>
+<div id="reservationRequestState" ng-controller="DynamicContentController" content-url="${reservationRequestStateUrl}">
+</div>--%>
+
 <%-- Detail of request --%>
 <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>
 
@@ -117,7 +136,7 @@
         <c:if test="${canCreatePermanentRoomCapacity}">
             <tag:url var="createUsageUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                 <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
-                <tag:param name="back-url" value="${requestUrl}"/>
+                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
             </tag:url>
             <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
         </c:if>
@@ -127,6 +146,8 @@
     </c:if>
 
 </c:if>
+
+</div>
 
 <div class="table-actions pull-right">
     <a class="btn" href="#" ng-click="refreshTab('reservationRequest')" tabindex="1">

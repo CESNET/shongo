@@ -8,23 +8,86 @@
 
 <script type="text/javascript">
     var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
-    module.controller("DetailController", function($scope){
+    module.controller("DetailController", function($scope, $timeout){
+        var refreshParameters = {};
+
+        // Set refresh timeout
+        $scope.setRefreshTimeout = function(callback) {
+            if ($scope.activeTabId == null) {
+                console.error("setRefreshTimeout failed: No tab is active.");
+            }
+            if (refreshParameters[$scope.activeTabId] == null) {
+                refreshParameters[$scope.activeTabId] = {
+                    timeout: 5,
+                    count: 0
+                };
+            }
+            var tabRefreshParameters = refreshParameters[$scope.activeTabId];
+
+            // Increase count and timeout
+            if (tabRefreshParameters.count > 0 && (tabRefreshParameters.count % 3) == 0) {
+                // Double refresh timeout after three refreshes
+                tabRefreshParameters.timeout *= 2;
+            }
+            tabRefreshParameters.count++;
+
+            // Cancel old promise
+            if (tabRefreshParameters.promise != null) {
+                $timeout.cancel(tabRefreshParameters.promise);
+            }
+
+            // Setup refresh
+            //console.debug("Setup refresh #" + tabRefreshParameters.count + ", timeout", tabRefreshParameters.timeout + "s");
+            tabRefreshParameters.promiseCallback = callback;
+            tabRefreshParameters.promise = $timeout(function(){
+                // Cancel promise and callback
+                tabRefreshParameters.promise = null;
+                tabRefreshParameters.promiseCallback = null;
+                // Perform callback
+                callback();
+            }, tabRefreshParameters.timeout * 1000);
+        };
+
         $scope.requestUrl = null;
+        $scope.activeTabId = null;
         $scope.onCreateTab = function(tabId, tabScope) {
             if (tabId == "${tab}") {
                 tabScope.active = true;
             }
         };
         $scope.onActivateTab = function(tabId) {
-            $scope.requestUrl = "${requestUrl}".split("?")[0];
-            if (tabId != "reservationRequest") {
-                $scope.requestUrl += "?tab=" + tabId;
+            if (tabId != $scope.activeTabId) {
+                // Stop old tab refresh
+                if (refreshParameters[$scope.activeTabId] != null) {
+                    var tabRefreshParameters = refreshParameters[$scope.activeTabId];
+                    if (tabRefreshParameters.promise != null) {
+                        // Cancel promise
+                        $timeout.cancel(tabRefreshParameters.promise);
+                    }
+                }
+
+                // Set new tab
+                $scope.activeTabId = tabId;
+                $scope.requestUrl = "${requestUrl}".split("?")[0];
+                if (tabId != "reservationRequest") {
+                    $scope.requestUrl += "?tab=" + tabId;
+                }
+
+                // Start new tab refresh
+                if (refreshParameters[$scope.activeTabId] != null) {
+                    var tabRefreshParameters = refreshParameters[$scope.activeTabId];
+                    if (tabRefreshParameters.promiseCallback != null) {
+                        // Schedule promise again
+                        tabRefreshParameters.count--;
+                        $scope.setRefreshTimeout(tabRefreshParameters.promiseCallback);
+                    }
+                }
             }
         };
-        $scope.refreshTab = function(tabId, element) {
+        $scope.refreshTab = function(tabId, url) {
             var tabElement = angular.element("#" + tabId);
             var tabScope = tabElement.scope();
-            tabScope.refresh();
+            tabScope.refresh(url);
         };
     });
 </script>

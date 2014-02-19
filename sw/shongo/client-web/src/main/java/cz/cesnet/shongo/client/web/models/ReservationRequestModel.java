@@ -98,18 +98,23 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     /**
      * Create new {@link ReservationRequestModel} from scratch.
      */
+    public ReservationRequestModel(CacheProvider cacheProvider)
+    {
+        this.cacheProvider = cacheProvider;
+        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
+        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+    }
+
+    /**
+     * Create new {@link ReservationRequestModel} from scratch.
+     */
     public ReservationRequestModel(CacheProvider cacheProvider, UserSettingsModel userSettingsModel)
     {
         this.cacheProvider = cacheProvider;
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
         setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
 
-        if (userSettingsModel.getSlotBefore() != null) {
-            setSlotBeforeMinutes(userSettingsModel.getSlotBefore());
-        }
-        if (userSettingsModel.getSlotAfter() != null) {
-            setSlotAfterMinutes(userSettingsModel.getSlotAfter());
-        }
+        initByUserSettings(userSettingsModel);
     }
 
     /**
@@ -121,6 +126,19 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         fromApi(reservationRequest, cacheProvider);
+    }
+
+    /**
+     * @param userSettingsModel to be inited from
+     */
+    public void initByUserSettings(UserSettingsModel userSettingsModel)
+    {
+        if (userSettingsModel.getSlotBefore() != null) {
+            setSlotBeforeMinutes(userSettingsModel.getSlotBefore());
+        }
+        if (userSettingsModel.getSlotAfter() != null) {
+            setSlotAfterMinutes(userSettingsModel.getSlotAfter());
+        }
     }
 
     /**

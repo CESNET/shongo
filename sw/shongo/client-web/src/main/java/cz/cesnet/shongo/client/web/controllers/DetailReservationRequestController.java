@@ -36,7 +36,7 @@ public class DetailReservationRequestController extends AbstractDetailController
 {
     @Resource
     private AuthorizationService authorizationService;
-
+    
     /**
      * Handle detail reservation request tab.
      */
@@ -140,72 +140,30 @@ public class DetailReservationRequestController extends AbstractDetailController
     }
 
     /**
-     * Handle state for detail of reservation request view.
-     */
+      * Handle state for detail of reservation request view.
+      */
     @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE, method = RequestMethod.GET)
-    @ResponseBody
-    public Map handleDetailState(
-            UserSession userSession,
-            SecurityToken securityToken,
-            @PathVariable(value = "objectId") String reservationRequestId)
+    public ModelAndView handleDetailState(
+                UserSession userSession,
+                SecurityToken securityToken,
+                @PathVariable(value = "objectId") String reservationRequestId)
     {
-
-        final Locale locale = userSession.getLocale();
-        DateTimeZone timeZone = userSession.getTimeZone();
-
         AbstractReservationRequest abstractReservationRequest =
-                reservationService.getReservationRequest(securityToken, reservationRequestId);
+            reservationService.getReservationRequest(securityToken, reservationRequestId);
         Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
 
+        final Locale locale = userSession.getLocale();
+        final DateTimeZone timeZone = userSession.getTimeZone();
         final MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
         final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
-                messageProvider, executableService, userSession);
-        final SpecificationType specificationType = reservationRequestModel.getSpecificationType();
-        final RoomModel roomModel = reservationRequestModel.getRoom();
+                        abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
+                        messageProvider, executableService, userSession);
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("state", new HashMap<String, Object>(){{
-            ReservationRequestState state = reservationRequestModel.getState();
-            put("code", state);
-            put("label", state.getMessage(messageSource, locale, specificationType));
-            put("help", reservationRequestModel.getStateHelp());
-        }});
-        data.put("allocationState", new HashMap<String, Object>(){{
-            AllocationState allocationState = reservationRequestModel.getAllocationState();
-            put("code", allocationState);
-            put("label", messageProvider.getMessage("views.reservationRequest.allocationState." + allocationState));
-            put("help", reservationRequestModel.getAllocationStateHelp());
-        }});
-        if (roomModel != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.LONG, locale, timeZone);
-            data.put("roomId", roomModel.getId());
-            data.put("roomSlot", formatter.formatIntervalMultiLine(
-                    roomModel.getSlot(), roomModel.getSlotBefore(), roomModel.getSlotAfter()));
-            data.put("roomName", roomModel.getName());
-            data.put("roomLicenseCount", roomModel.getLicenseCount());
-            data.put("roomAliases", roomModel.getAliases());
-            data.put("roomAliasesDescription", roomModel.getAliasesDescription());
-            data.put("roomState", new HashMap<String, Object>(){{
-                RoomState roomState = roomModel.getState();
-                put("code", roomState);
-                put("started", roomState.isStarted());
-                put("report", roomModel.getStateReport());
-                put("label", roomState.getMessage(messageSource, locale, roomModel.getType()));
-                put("help", roomState.getHelp(messageSource, locale, roomModel.getType()));
-            }});
-        }
-        List<Map<String, Object>> roomParticipants = new LinkedList<Map<String, Object>>();
-        for (final ParticipantModel roomParticipant : reservationRequestModel.getRoomParticipants()) {
-            roomParticipants.add(new HashMap<String, Object>(){{
-                put("name", roomParticipant.getName());
-                put("role", messageSource.getMessage(
-                        "views.participant.role." + roomParticipant.getRole(), null, locale));
-            }});
-        }
-        data.put("roomParticipants", roomParticipants);
-        return data;
+        ModelAndView modelAndView = new ModelAndView("detailReservationRequestState");
+        modelAndView.addObject("reservationRequest", reservationRequestModel);
+        return modelAndView;
     }
+
 
     /**
      * Handle data request for children of reservation request.
