@@ -4,8 +4,9 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
 <c:if test="${!isStopped}">
-    <security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
+
 </c:if>
 
 <div class="table-actions-left">

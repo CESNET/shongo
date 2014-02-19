@@ -110,7 +110,18 @@ public class RoomController
                 slot = executableSummary.getSlot();
             }
             item.put("slot", formatter.formatInterval(slot));
-            item.put("isDeprecated", slot.getEnd().isBeforeNow());
+
+            boolean isDeprecated;
+            switch (roomState) {
+                case STARTED:
+                case STARTED_AVAILABLE:
+                    isDeprecated = false;
+                    break;
+                default:
+                    isDeprecated = slot.getEnd().isBeforeNow();
+                    break;
+            }
+            item.put("isDeprecated", isDeprecated);
 
             Integer licenseCount = executableSummary.getRoomUsageLicenseCount();
             if (licenseCount == null) {

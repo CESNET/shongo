@@ -12,7 +12,6 @@
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@attribute name="isActive" required="true" type="java.lang.Boolean" %>
 <%@attribute name="detailUrl" required="false" %>
-<%@attribute name="modifyUserRolesUrl" required="false" %>
 
 <c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
 <tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
@@ -302,9 +301,6 @@
                 </c:choose>
                 (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
             </c:forEach>
-            <c:if test="${not empty modifyUserRolesUrl && reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
-                (<a href="${modifyUserRolesUrl}"><spring:message code="views.reservationRequest.userRoles.modify"/></a>)
-            </c:if>
         </dd>
     </c:if>
 
@@ -316,13 +312,6 @@
         </span>
         <span ng-hide="roomParticipants.length">
             <spring:message code="views.reservationRequest.participants.none"/>
-        </span>
-        <span ng-show="roomState != null && roomState.code != 'STOPPED'">
-            <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_VIEW %>">
-                <tag:param name="roomId" value="{{roomId}}" escape="false"/>
-                <tag:param name="back-url" value="${requestUrl}"/>
-            </tag:url>
-            (<a href="${modifyParticipantsUrl}"><spring:message code="views.reservationRequest.participants.modify"/></a>)
         </span>
     </dd>
 

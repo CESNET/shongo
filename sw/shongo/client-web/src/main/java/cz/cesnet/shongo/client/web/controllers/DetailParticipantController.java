@@ -59,6 +59,14 @@ public class DetailParticipantController extends AbstractDetailController
                 roomExecutable.getParticipantConfiguration();
 
         List<AbstractParticipant> participants = roomExecutableParticipants.getParticipants();
+        Collections.sort(participants, new Comparator<AbstractParticipant>()
+        {
+            @Override
+            public int compare(AbstractParticipant o1, AbstractParticipant o2)
+            {
+                return Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId()));
+            }
+        });
         int maxIndex = Math.max(0, participants.size() - 1);
         if (start > maxIndex) {
             start = maxIndex;

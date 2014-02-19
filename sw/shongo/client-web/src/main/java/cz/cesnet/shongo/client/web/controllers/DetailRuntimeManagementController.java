@@ -79,7 +79,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
                 modelAndView.addObject("roomRuntime", room);
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
-                modelAndView.addObject("roomNotAvailable", true);
+                logger.warn("Room " + executableId +" isn't available", exception);
             }
         }
 
@@ -88,19 +88,6 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         Set<ObjectPermission> reservationRequestPermissions = cache.getObjectPermissions(securityToken,
                 reservationRequestId);
         modelAndView.addObject("reservationRequestId", reservationRequestId);
-        modelAndView.addObject("reservationRequestProvidable",
-                reservationRequestPermissions.contains(ObjectPermission.PROVIDE_RESERVATION_REQUEST));
-
-        // Add use roles
-        // Add user roles
-        AclEntryListRequest userRoleRequest = new AclEntryListRequest();
-        userRoleRequest.setSecurityToken(securityToken);
-        userRoleRequest.addObjectId(reservationRequestId);
-        List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
-        for (AclEntry aclEntry : authorizationService.listAclEntries(userRoleRequest)) {
-            userRoles.add(new UserRoleModel(aclEntry, cacheProvider));
-        }
-        modelAndView.addObject("userRoles", userRoles);
 
         return modelAndView;
     }

@@ -31,40 +31,6 @@
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
 </tag:url>
 
-<%-- What do you want to do? --%>
-<tag:expandableBlock name="actions" expandable="${advancedUserInterface}" expandCode="views.select.action" cssClass="actions">
-    <span><spring:message code="views.select.action"/></span>
-    <ul>
-        <c:if test="${canCreatePermanentRoomCapacity}">
-            <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
-                <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
-                <tag:param name="back-url" value="${requestScope.requestUrl}"/>
-            </tag:url>
-            <li ng-switch on="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')">
-                <a ng-switch-when="true" href="${createPermanentRoomCapacityUrl}" tabindex="1">
-                    <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                </a>
-                <span ng-switch-when="false" class="disabled">
-                    <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-                </span>
-            </li>
-        </c:if>
-        <li>
-            <a href="javascript: location.reload();"  tabindex="1">
-                <spring:message code="views.reservationRequestDetail.action.refresh"/>
-            </a>
-        </li>
-        <c:if test="${isWritable}">
-            <li>
-                <tag:url var="deleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-                    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-                </tag:url>
-                <a href="${reservationRequestDeleteUrl}" tabindex="1"><spring:message code="views.reservationRequestDetail.action.delete"/></a>
-            </li>
-        </c:if>
-    </ul>
-</tag:expandableBlock>
-
 <%-- History --%>
 <c:if test="${history != null}">
     <div class="bordered jspReservationRequestDetailHistory">
@@ -135,13 +101,7 @@
 </c:if>
 
 <%-- Detail of request --%>
-<c:if test="${isWritable}">
-    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_VIEW %>">
-        <tag:param name="objectId" value="${reservationRequest.id}"/>
-        <tag:param name="back-url" value="${requestUrl}"/>
-    </tag:url>
-</c:if>
-<tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}" modifyUserRolesUrl="${modifyUserRolesUrl}"/>
+<tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>
 
 <c:if test="${isActive}">
 
@@ -169,7 +129,7 @@
 </c:if>
 
 <div class="table-actions pull-right">
-    <a class="btn" href="javascript: location.reload();" tabindex="1">
+    <a class="btn" href="#" ng-click="refreshTab('reservationRequest')" tabindex="1">
         <spring:message code="views.button.refresh"/>
     </a>
     <c:if test="${isWritable}">

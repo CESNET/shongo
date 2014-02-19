@@ -148,7 +148,7 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
     </definition>
 
-    <definition name="detail" extends="layoutAngular">
+    <definition name="detail" extends="layoutAngularForm">
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/detail.jsp" type="template"/>
         <put-list-attribute name="title">
@@ -166,21 +166,6 @@
         <put-attribute name="title" value="views.roomList.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
-    </definition>
-
-    <definition name="room" extends="layoutAngular">
-        <put-attribute name="title" value="views.room.title"/>
-        <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
-        <put-list-attribute name="css" inherit="true">
-            <add-attribute value="jquery-select2.css"/>
-        </put-list-attribute>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="jquery-select2.min.js"/>
-        </put-list-attribute>
-        <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="jquery-select2"/>
-        </put-list-attribute>
     </definition>
 
     <definition name="participant" extends="layoutAngularForm">

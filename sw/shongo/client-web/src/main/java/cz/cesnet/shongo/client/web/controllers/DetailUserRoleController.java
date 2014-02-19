@@ -42,9 +42,12 @@ public class DetailUserRoleController extends AbstractDetailController
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES_TAB, method = RequestMethod.GET)
     public ModelAndView handleDetailUserRolesTab(
+            SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
         ModelAndView modelAndView = new ModelAndView("detailUserRoles");
+        modelAndView.addObject("reservationRequestId", reservationRequestId);
         return modelAndView;
     }
 
@@ -112,8 +115,9 @@ public class DetailUserRoleController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
-        userRole.setObjectId(objectId);
+        userRole.setObjectId(reservationRequestId);
         return handleUserRoleCreateView(userRole);
     }
 
@@ -127,7 +131,8 @@ public class DetailUserRoleController extends AbstractDetailController
             @ModelAttribute(USER_ROLE_ATTRIBUTE) UserRoleModel userRole,
             BindingResult result)
     {
-        if (!userRole.getObjectId().equals(objectId)) {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
+        if (!userRole.getObjectId().equals(reservationRequestId)) {
             throw new IllegalStateException("Acl entry object id doesn't match the reservation request id.");
         }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
@@ -151,9 +156,10 @@ public class DetailUserRoleController extends AbstractDetailController
             @PathVariable(value = "roleId") String userRoleId,
             Model model)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
         AclEntryListRequest request = new AclEntryListRequest();
         request.setSecurityToken(securityToken);
-        request.addObjectId(objectId);
+        request.addObjectId(reservationRequestId);
         request.addRole(ObjectRole.OWNER);
         ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
         if (aclEntries.getItemCount() == 1 && aclEntries.getItem(0).getId().equals(userRoleId)) {

@@ -4,11 +4,13 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<jsp:include page="../templates/roomParticipantDialog.jsp"/>
+
 <script type="text/javascript">
-    var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
+    var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
     module.controller("DetailController", function($scope){
         $scope.requestUrl = null;
-        $scope.onInitTab = function(tabId, tabScope) {
+        $scope.onCreateTab = function(tabId, tabScope) {
             if (tabId == "${tab}") {
                 tabScope.active = true;
             }
@@ -18,6 +20,11 @@
             if (tabId != "reservationRequest") {
                 $scope.requestUrl += "?tab=" + tabId;
             }
+        };
+        $scope.refreshTab = function(tabId, element) {
+            var tabElement = angular.element("#" + tabId);
+            var tabScope = tabElement.scope();
+            tabScope.refresh();
         };
     });
 </script>

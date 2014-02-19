@@ -17,7 +17,7 @@
         <tag:param name="objectId" value="${objectId}"/>
         <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
     </tag:url>
-    <tag:userRoleList dataUrl="${userRoleDataUrl}" dataUrlParameters="id: '${objectId}'"
+    <tag:userRoleList dataUrl="${userRoleDataUrl}" dataUrlParameters="id: '${reservationRequestId}'"
                       createUrl="${userRoleCreateUrl}" deleteUrl="${userRoleDeleteUrl}">
 
         <h2><spring:message code="views.userRoleList.title"/></h2>

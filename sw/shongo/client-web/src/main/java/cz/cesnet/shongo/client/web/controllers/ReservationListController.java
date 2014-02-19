@@ -5,9 +5,13 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.models.ReservationRequestState;
+import cz.cesnet.shongo.client.web.models.SpecificationType;
+import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.controller.ObjectPermission;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -70,7 +74,8 @@ public class ReservationListController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort", required = false,
+                    defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
             @RequestParam(value = "specification-type", required = false) Set<SpecificationType> specificationTypes,
             @RequestParam(value = "allocation-state", required = false) AllocationState allocationState,
@@ -159,7 +164,17 @@ public class ReservationListController
             if (futureSlotCount != null) {
                 item.put("futureSlotCount", futureSlotCount);
             }
-            item.put("isDeprecated", earliestSlot.getEnd().isBeforeNow());
+            boolean isDeprecated;
+            switch (state != null ? state : ReservationRequestState.ALLOCATED) {
+                case ALLOCATED_STARTED:
+                case ALLOCATED_STARTED_AVAILABLE:
+                    isDeprecated = false;
+                    break;
+                default:
+                    isDeprecated = earliestSlot.getEnd().isBeforeNow();
+                    break;
+            }
+            item.put("isDeprecated", isDeprecated);
 
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);
@@ -167,8 +182,7 @@ public class ReservationListController
             item.put("typeMessage", messageSource.getMessage(
                     "views.reservationRequest.specification." + specificationType, null, locale));
             switch (specificationType) {
-                case PERMANENT_ROOM:
-                {
+                case PERMANENT_ROOM: {
                     if (technology != null) {
                         item.put("technology", technology);
                         item.put("technologyTitle", technology.getTitle());
@@ -176,8 +190,7 @@ public class ReservationListController
                     item.put("roomName", reservationRequest.getRoomName());
                     break;
                 }
-                case PERMANENT_ROOM_CAPACITY:
-                {
+                case PERMANENT_ROOM_CAPACITY: {
                     String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
                     item.put("roomReservationRequestId", reusedReservationRequestId);
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
@@ -192,8 +205,7 @@ public class ReservationListController
                     }
                     break;
                 }
-                case ADHOC_ROOM:
-                {
+                case ADHOC_ROOM: {
                     if (technology != null) {
                         item.put("technology", technology);
                         item.put("technologyTitle", technology.getTitle());
