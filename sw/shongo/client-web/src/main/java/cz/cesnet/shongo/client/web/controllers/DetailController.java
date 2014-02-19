@@ -187,28 +187,6 @@ public class DetailController extends AbstractDetailController implements Breadc
     }
 
     /**
-     * Handle detail runtime management tab.
-     */
-    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB, method = RequestMethod.GET)
-    public ModelAndView handleDetailRuntimeManagementTab(
-            @PathVariable(value = "objectId") String objectId)
-    {
-        ModelAndView modelAndView = new ModelAndView("detailRuntimeManagement");
-        return modelAndView;
-    }
-
-    /**
-     * Handle detail recordings tab.
-     */
-    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS_TAB, method = RequestMethod.GET)
-    public ModelAndView handleRecordingsTab(
-            @PathVariable(value = "objectId") String objectId)
-    {
-        ModelAndView modelAndView = new ModelAndView("detailRecordings");
-        return modelAndView;
-    }
-
-    /**
      * Handle state for detail of reservation request view.
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE, method = RequestMethod.GET)

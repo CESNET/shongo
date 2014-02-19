@@ -13,11 +13,7 @@ import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
-import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -47,26 +42,27 @@ public class DetailRuntimeManagementController extends AbstractDetailController
     private static Logger logger = LoggerFactory.getLogger(DetailRuntimeManagementController.class);
 
     @Resource
-    private ResourceControlService resourceControlService;
-
-    @Resource
     private AuthorizationService authorizationService;
 
     @Resource
     private RoomCache roomCache;
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
-    public ModelAndView handleRoomManagement(
+    /**
+     * Handle detail runtime management tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB, method = RequestMethod.GET)
+    public ModelAndView handleDetailRuntimeManagementTab(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId)
+            @PathVariable(value = "objectId") String objectId)
     {
-        ModelAndView modelAndView = new ModelAndView("room");
+        ModelAndView modelAndView = new ModelAndView("detailRuntimeManagement");
 
         // Get target room executable
-        Executable executable = getExecutable(securityToken, roomId);
-        RoomExecutable roomExecutable = getTargetRoomFromExecutable(securityToken, executable);
-        roomId = roomExecutable.getId();
+        String executableId = getExecutableId(securityToken, objectId);
+        Executable executable = getExecutable(securityToken, executableId);
+        RoomExecutable roomExecutable = getTargetRoomExecutableFromExecutable(securityToken, executable);
+        executableId = roomExecutable.getId();
 
         // Room model
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
@@ -79,7 +75,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         // Runtime room
         if (roomModel.isStarted()) {
             try {
-                Room room = roomCache.getRoom(securityToken, roomId);
+                Room room = roomCache.getRoom(securityToken, executableId);
                 modelAndView.addObject("roomRuntime", room);
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
@@ -109,50 +105,52 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         return modelAndView;
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_MODIFY, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY, method = RequestMethod.GET)
     @ResponseBody
-    public String handleRoomModify(
+    public String handleModify(
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "layout", required = false) RoomLayout layout)
     {
-        Room room = roomCache.getRoom(securityToken, roomId);
+        String executableId = getExecutableId(securityToken, objectId);
+        Room room = roomCache.getRoom(securityToken, executableId);
         if (layout != null) {
             if (room.getLayout() == null) {
                 throw new IllegalStateException("Layout is not available.");
             }
             room.setLayout(layout);
         }
-        roomCache.modifyRoom(securityToken, roomId, room);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        roomCache.modifyRoom(securityToken, executableId, room);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_MODIFY, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_MODIFY, method = RequestMethod.POST)
     @ResponseBody
-    public void handleRoomModifyPost(
+    public void handleModifyPost(
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "layout", required = false) RoomLayout layout)
     {
-        handleRoomModify(securityToken, roomId, layout);
+        handleModify(securityToken, objectId, layout);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANTS_DATA, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANTS_DATA, method = RequestMethod.GET)
     @ResponseBody
     public Map handleRoomManagementParticipants(
             Locale locale,
             DateTimeZone timeZone,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") String sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
+        String executableId = getExecutableId(securityToken, objectId);
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
         List<RoomParticipant> roomParticipants = Collections.emptyList();
         try {
-            roomParticipants = roomCache.getRoomParticipants(securityToken, roomId);
+            roomParticipants = roomCache.getRoomParticipants(securityToken, executableId);
         }
         catch (Exception exception) {
             logger.warn("Failed to load participants", exception);
@@ -197,12 +195,112 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         return data;
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START, method = RequestMethod.GET)
-    public String handleRoomManagementRecordingStart(
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT)
+    @IgnoreDateTimeZone
+    public ResponseEntity<byte[]> handleRoomParticipantVideoSnapshot(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        String executableId = getExecutableId(securityToken, objectId);
+        try {
+            MediaData participantSnapshot = roomCache.getRoomParticipantSnapshot(
+                    securityToken, executableId, participantId);
+            if (participantSnapshot != null) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(participantSnapshot.getType().toString()));
+                headers.setCacheControl("no-cache, no-store, must-revalidate");
+                headers.setPragma("no-cache");
+                return new ResponseEntity<byte[]>(participantSnapshot.getData(), headers, HttpStatus.OK);
+            }
+        }
+        catch (Exception exception) {
+            logger.warn("Failed to get participant snapshot", exception);
+        }
+        return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.GET)
+    @ResponseBody
+    public String handleRoomParticipantModify(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
+            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
+            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
+    {
+        String executableId = getExecutableId(securityToken, objectId);
+        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, executableId, participantId);
+        RoomParticipant roomParticipant = new RoomParticipant(participantId);
+        if (layout != null) {
+            if (oldRoomParticipant.getLayout() == null) {
+                throw new IllegalStateException("Layout is not available.");
+            }
+            roomParticipant.setLayout(layout);
+        }
+        if (microphoneLevel != null) {
+            roomParticipant.setMicrophoneLevel(microphoneLevel);
+        }
+        if (audioMuted != null) {
+            if (oldRoomParticipant.getAudioMuted() == null) {
+                throw new IllegalStateException("Audio muting is not available.");
+            }
+            roomParticipant.setAudioMuted(audioMuted);
+        }
+        if (videoMuted != null) {
+            if (oldRoomParticipant.getVideoMuted() == null) {
+                throw new IllegalStateException("Video muting is not available.");
+            }
+            roomParticipant.setVideoMuted(videoMuted);
+        }
+        roomCache.modifyRoomParticipant(securityToken, executableId, roomParticipant);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantModifyPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
+            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
+            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
+    {
+        handleRoomParticipantModify(
+                securityToken, objectId, participantId, layout, microphoneLevel, audioMuted, videoMuted);
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)
+    public String handleRoomParticipantDisconnect(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        String executableId = getExecutableId(securityToken, objectId);
+        roomCache.disconnectRoomParticipant(securityToken, executableId, participantId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.POST)
+    @ResponseBody
+    public void handleRoomParticipantDisconnectPost(
+            SecurityToken securityToken,
+            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "participantId") String participantId)
+    {
+        handleRoomParticipantDisconnect(securityToken, objectId, participantId);
+    }
+
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_RECORDING_START, method = RequestMethod.GET)
+    public String handleRecordingStart(
             UserSession userSession,
             SecurityToken securityToken,
             Model model,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
@@ -237,32 +335,32 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             }
             model.addAttribute("error", messageSource.getMessage(errorCode, null, locale));
         }
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_START, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_RECORDING_START, method = RequestMethod.POST)
     @ResponseBody
-    public Object handleRoomManagementRecordingStartPost(
+    public Object handleRecordingStartPost(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
         Model model = new ExtendedModelMap();
-        handleRoomManagementRecordingStart(userSession, securityToken, model, roomId, executableId, executableServiceId);
+        handleRecordingStart(userSession, securityToken, model, objectId, executableId, executableServiceId);
         if (model.containsAttribute("error")) {
             return new HashMap<String, Object>(model.asMap());
         }
         return null;
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP, method = RequestMethod.GET)
-    public String handleRoomManagementRecordingStop(
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_RECORDING_STOP, method = RequestMethod.GET)
+    public String handleRecordingStop(
             UserSession userSession,
             SecurityToken securityToken,
             Model model,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
@@ -286,202 +384,33 @@ public class DetailRuntimeManagementController extends AbstractDetailController
                     "views.room.recording.error.stoppingFailed", null, locale));
         }
         cache.clearExecutable(executableId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_STOP, method = RequestMethod.POST)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_RECORDING_STOP, method = RequestMethod.POST)
     @ResponseBody
-    public Map handleRoomManagementRecordingStopPost(
+    public Map handleRecordingStopPost(
             UserSession userSession,
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "executableId") String executableId,
             @RequestParam(value = "executableServiceId") String executableServiceId)
     {
         Model model = new ExtendedModelMap();
-        handleRoomManagementRecordingStop(userSession, securityToken, model, roomId, executableId, executableServiceId);
+        handleRecordingStop(userSession, securityToken, model, objectId, executableId, executableServiceId);
         if (model.containsAttribute("error")) {
             return new HashMap<String, Object>(model.asMap());
         }
         return null;
     }
 
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE, method = RequestMethod.GET)
-    public String handleRoomManagementRecordingDelete(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "resourceId") String resourceId,
-            @PathVariable(value = "recordingId") String recordingId)
-    {
-        resourceControlService.deleteRecording(securityToken, resourceId, recordingId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDING_DELETE, method = RequestMethod.POST)
-    @ResponseBody
-    public Map handleRoomManagementRecordingDeletePost(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "resourceId") String resourceId,
-            @PathVariable(value = "recordingId") String recordingId)
-    {
-        handleRoomManagementRecordingDelete(securityToken, roomId, resourceId, recordingId);
-        return null;
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_RECORDINGS_DATA, method = RequestMethod.GET)
-    @ResponseBody
-    public Map handleRoomManagementRecordings(
-            Locale locale,
-            DateTimeZone timeZone,
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false,
-                    defaultValue = "START") ExecutableRecordingListRequest.Sort sort,
-            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
-    {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(
-                DateTimeFormatter.Type.SHORT, locale, timeZone);
-
-        ExecutableRecordingListRequest request = new ExecutableRecordingListRequest();
-        request.setSecurityToken(securityToken);
-        request.setExecutableId(roomId);
-        request.setStart(start);
-        request.setCount(count);
-        request.setSort(sort);
-        request.setSortDescending(sortDescending);
-        ListResponse<ResourceRecording> response = executableService.listExecutableRecordings(request);
-        List<Map> items = new LinkedList<Map>();
-        for (ResourceRecording recording : response.getItems()) {
-            Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", recording.getId());
-            item.put("resourceId", recording.getResourceId());
-            item.put("name", recording.getName());
-            item.put("description", recording.getDescription());
-            item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
-            item.put("duration", dateTimeFormatter.formatRoundedDuration(recording.getDuration()));
-            item.put("downloadUrl", recording.getDownloadUrl());
-            item.put("viewUrl", recording.getViewUrl());
-            item.put("editUrl", recording.getEditUrl());
-            item.put("filename",recording.getFileName());
-            items.add(item);
-        }
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", response.getStart());
-        data.put("count", response.getCount());
-        data.put("sort", sort);
-        data.put("sort-desc", sortDescending);
-        data.put("items", items);
-        return data;
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT)
-    @IgnoreDateTimeZone
-    public ResponseEntity<byte[]> handleRoomParticipantVideoSnapshot(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
-    {
-        try {
-            MediaData participantSnapshot = roomCache.getRoomParticipantSnapshot(securityToken, roomId, participantId);
-            if (participantSnapshot != null) {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.parseMediaType(participantSnapshot.getType().toString()));
-                headers.setCacheControl("no-cache, no-store, must-revalidate");
-                headers.setPragma("no-cache");
-                return new ResponseEntity<byte[]>(participantSnapshot.getData(), headers, HttpStatus.OK);
-            }
-        }
-        catch (Exception exception) {
-            logger.warn("Failed to get participant snapshot", exception);
-        }
-        return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.GET)
-    @ResponseBody
-    public String handleRoomParticipantModify(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout,
-            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
-            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
-            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
-    {
-        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, roomId, participantId);
-        RoomParticipant roomParticipant = new RoomParticipant(participantId);
-        if (layout != null) {
-            if (oldRoomParticipant.getLayout() == null) {
-                throw new IllegalStateException("Layout is not available.");
-            }
-            roomParticipant.setLayout(layout);
-        }
-        if (microphoneLevel != null) {
-            roomParticipant.setMicrophoneLevel(microphoneLevel);
-        }
-        if (audioMuted != null) {
-            if (oldRoomParticipant.getAudioMuted() == null) {
-                throw new IllegalStateException("Audio muting is not available.");
-            }
-            roomParticipant.setAudioMuted(audioMuted);
-        }
-        if (videoMuted != null) {
-            if (oldRoomParticipant.getVideoMuted() == null) {
-                throw new IllegalStateException("Video muting is not available.");
-            }
-            roomParticipant.setVideoMuted(videoMuted);
-        }
-        roomCache.modifyRoomParticipant(securityToken, roomId, roomParticipant);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_MODIFY, method = RequestMethod.POST)
-    @ResponseBody
-    public void handleRoomParticipantModifyPost(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout,
-            @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
-            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
-            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
-    {
-        handleRoomParticipantModify(securityToken, roomId, participantId,
-                layout, microphoneLevel, audioMuted, videoMuted);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)
-    public String handleRoomParticipantDisconnect(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
-    {
-        roomCache.disconnectRoomParticipant(securityToken, roomId, participantId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.ROOM_MANAGEMENT, roomId);
-    }
-
-    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.POST)
-    @ResponseBody
-    public void handleRoomParticipantDisconnectPost(
-            SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
-            @PathVariable(value = "participantId") String participantId)
-    {
-        handleRoomParticipantDisconnect(securityToken, roomId, participantId);
-    }
-
-
-
-    @RequestMapping(value = ClientWebUrl.ROOM_ENTER, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER, method = RequestMethod.GET)
     public String handleRoomEnter(
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId)
+            @PathVariable(value = "objectId") String objectId)
     {
-        Executable executable = getExecutable(securityToken, roomId);
-        RoomExecutable roomExecutable = getTargetRoomFromExecutable(securityToken, executable);
+        Executable executable = getExecutable(securityToken, objectId);
+        RoomExecutable roomExecutable = getTargetRoomExecutableFromExecutable(securityToken, executable);
         Alias adobeConnectUrl = roomExecutable.getAliasByType(AliasType.ADOBE_CONNECT_URI);
         if (adobeConnectUrl == null) {
             throw new UnsupportedApiException(roomExecutable.getId());
@@ -490,7 +419,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
     }
 
     /**
-     * Handle missing session attributes.
+     * Handle device command failed.
      */
     @ExceptionHandler(ControllerReportSet.DeviceCommandFailedException.class)
     public Object handleExceptions(Exception exception, HttpServletResponse response)
@@ -499,7 +428,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         return "roomNotAvailable";
     }
 
-    private RoomExecutable getTargetRoomFromExecutable(SecurityToken securityToken, Executable executable)
+    public RoomExecutable getTargetRoomExecutableFromExecutable(SecurityToken securityToken, Executable executable)
     {
         RoomExecutable roomExecutable;
         if (executable instanceof RoomExecutable) {

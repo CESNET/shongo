@@ -9,8 +9,8 @@
 
 <tag:url var="roomListDataUrl" value="<%= ClientWebUrl.ROOM_LIST_DATA %>"/>
 <tag:url var="roomUsageListData" value="<%= ClientWebUrl.ROOM_LIST_DATA %>"/>
-<tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
-    <tag:param name="roomId" value="{{room.id}}" escape="false"/>
+<tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW %>">
+    <tag:param name="objectId" value="{{room.id}}" escape="false"/>
 </tag:url>
 
 <script type="text/javascript">
@@ -76,7 +76,7 @@
                            ng-class="{'icon-plus': !room.showUsages, 'icon-minus': room.showUsages}"></a>
                         <span ng-switch-default class="icon-none"></span>
                     </span>
-                    <a href="${roomManagementUrl}" tabindex="2">{{room.name}}</a>
+                    <a href="${detailRuntimeManagementUrl}" tabindex="2">{{room.name}}</a>
                     <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
                 </td>
                 <td>{{room.technologyTitle}}</td>

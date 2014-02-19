@@ -452,6 +452,10 @@ public class Cache
         if (objectId.contains(":req:")) {
             return objectId;
         }
+        else if (objectId.contains(":rsv:")) {
+            Reservation reservation = getReservation(securityToken, objectId);
+            return reservation.getReservationRequestId();
+        }
         else if (objectId.contains(":exe:")) {
             Executable executable = getExecutable(securityToken, objectId);
             return getReservationRequestIdByExecutable(securityToken, executable);

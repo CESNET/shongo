@@ -41,19 +41,17 @@ public enum ClientWebNavigation
     DETAIL_USER_ROLE_DELETE(DETAIL, ClientWebUrl.DETAIL_USER_ROLE_DELETE,
             "navigation.detail.userRole.delete"),
     DETAIL_PARTICIPANT_CREATE(RESERVATION_REQUEST,
-            ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_CREATE,
+            ClientWebUrl.DETAIL_PARTICIPANT_CREATE,
             "navigation.detail.participant.create"),
     DETAIL_PARTICIPANT_MODIFY(RESERVATION_REQUEST,
-            ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_MODIFY,
+            ClientWebUrl.DETAIL_PARTICIPANT_MODIFY,
             "navigation.detail.participant.modify"),
     DETAIL_PARTICIPANT_DELETE(RESERVATION_REQUEST,
-            ClientWebUrl.RESERVATION_REQUEST_PARTICIPANT_DELETE,
+            ClientWebUrl.DETAIL_PARTICIPANT_DELETE,
             "navigation.detail.participant.delete"),
 
-    ROOM_LIST(HOME, ClientWebUrl.ROOM_LIST,
-            "navigation.roomList"),
-    ROOM_MANAGEMENT(HOME, ClientWebUrl.ROOM_MANAGEMENT,
-            "navigation.roomManagement");
+    ROOM_LIST(HOME, ClientWebUrl.ROOM_LIST_VIEW,
+            "navigation.roomList");
 
     private final NavigationPage navigationPage;
 

@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
-import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
-import cz.cesnet.shongo.controller.api.ExecutableSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -36,7 +36,7 @@ public class RoomController
     /**
      * Handle room list view
      */
-    @RequestMapping(value = ClientWebUrl.ROOM_LIST, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.ROOM_LIST_VIEW, method = RequestMethod.GET)
     public String handleRoomListView()
     {
         return "roomList";

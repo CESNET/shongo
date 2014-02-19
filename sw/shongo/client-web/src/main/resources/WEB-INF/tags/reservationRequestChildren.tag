@@ -40,8 +40,8 @@
 <tag:url var="childDetailUrl" value="${detailUrl}">
     <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
 </tag:url>
-<tag:url var="childRoomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
-    <tag:param name="roomId" value="{{childReservationRequest.roomId}}" escape="false"/>
+<tag:url var="childRoomManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW %>">
+    <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
 </tag:url>
 
 <div ng-controller="PaginationController"

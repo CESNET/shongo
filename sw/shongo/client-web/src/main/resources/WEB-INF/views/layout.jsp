@@ -118,7 +118,7 @@
                         </li>
                         <c:if test="${sessionScope.SHONGO_USER.administratorMode}">
                             <li>
-                                <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST %>"/>
+                                <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST_VIEW %>"/>
                                 <a href="${roomListUrl}"><spring:message code="navigation.roomList"/></a>
                             </li>
                         </c:if>

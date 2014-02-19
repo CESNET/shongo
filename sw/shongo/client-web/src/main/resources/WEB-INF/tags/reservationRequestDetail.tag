@@ -18,9 +18,6 @@
 <tag:url var="reservationRequestDetailStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
     <tag:param name="objectId" value=":reservationRequestId" escape="false"/>
 </tag:url>
-<tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
-    <tag:param name="roomId" value="{{roomId}}" escape="false"/>
-</tag:url>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
@@ -267,9 +264,6 @@
                 <span ng-bind-html="html(state.help)"></span>
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
-            <span ng-show="roomId != null && roomState.started">
-                (<a href="${roomManagementUrl}"><spring:message code="views.reservationRequest.room.manage"/></a>)
-            </span>
             <c:if test="${isActive}">
                 <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
                     <i ng-class="{'icon-refresh': !refreshing, 'icon-repeat': refreshing}"></i>
