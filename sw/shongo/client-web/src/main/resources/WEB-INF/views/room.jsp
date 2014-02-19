@@ -13,7 +13,7 @@
     <c:set var="isWritable" value="false"/>
 </c:if>
 
-<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
     <tag:param name="objectId" value="${reservationRequestId}"/>
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
@@ -255,7 +255,7 @@
                     (<spring:message code="views.userRole.objectRole.${userRole.role}"/>)<c:if test="${!status.last}">, </c:if>
                 </c:forEach>
                 <c:if test="${isWritable}">
-                    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_TAB_USER_ROLES %>">
+                    <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_VIEW %>">
                         <tag:param name="objectId" value="${reservationRequestId}"/>
                         <tag:param name="back-url" value="${requestUrl}"/>
                     </tag:url>
@@ -311,18 +311,12 @@
             <p><spring:message code="views.room.participants.help.${room.technology}"/></p>
         </c:otherwise>
     </c:choose>
-    <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_MODIFY %>">
-        <tag:param name="back-url" value="${requestUrl}"/>
-    </tag:url>
-    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_DELETE %>">
-        <tag:param name="back-url" value="${requestUrl}"/>
-    </tag:url>
-    <tag:participantList isWritable="${isWritable}" data="${room.participants}" description="${not empty room.usageId}"
+    <tag:participantList isWritable="${isWritable}" data="${room.participants}"
                          modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
-                         urlParam="roomId" urlValue="roomId" hideRole="${room.technology == 'H323_SIP'}"/>
+                         hideRole="${room.technology == 'H323_SIP'}"/>
     <c:if test="${isWritable}">
         <div class="table-actions">
-            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+            <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_CREATE %>">
                 <tag:param name="roomId" value="${room.id}"/>
                 <tag:param name="back-url" value="${requestUrl}"/>
             </tag:url>
@@ -333,7 +327,7 @@
                 </c:if>
             </a>
             <c:if test="${not empty room.usageId}">
-                <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANT_CREATE %>">
+                <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_CREATE %>">
                     <tag:param name="roomId" value="${room.usageId}"/>
                     <tag:param name="back-url" value="${requestUrl}"/>
                 </tag:url>

@@ -126,4 +126,13 @@ public enum RoomState
                 throw new TodoImplementException(roomState);
         }
     }
+
+    /**
+     * @param roomState
+     * @return {@link RoomState}
+     */
+    public static RoomState fromRoomState(ExecutableState roomState)
+    {
+        return fromRoomState(roomState, 1, null);
+    }
 }

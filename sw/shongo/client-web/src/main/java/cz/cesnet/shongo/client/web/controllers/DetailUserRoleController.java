@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
@@ -12,13 +10,10 @@ import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AclEntry;
 import cz.cesnet.shongo.controller.api.Group;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -34,27 +29,31 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"userRole"})
-public class DetailUserRoleController
+@SessionAttributes({DetailUserRoleController.USER_ROLE_ATTRIBUTE})
+public class DetailUserRoleController extends AbstractDetailController
 {
-    @Resource
-    private ReservationService reservationService;
+    protected static final String USER_ROLE_ATTRIBUTE = "userRole";
 
     @Resource
     private AuthorizationService authorizationService;
 
-    @Resource
-    private Cache cache;
-
-    @Resource
-    private MessageSource messageSource;
+    /**
+     * Handle user roles tab.
+     */
+    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES_TAB, method = RequestMethod.GET)
+    public ModelAndView handleDetailUserRolesTab(
+            @PathVariable(value = "objectId") String objectId)
+    {
+        ModelAndView modelAndView = new ModelAndView("detailUserRoles");
+        return modelAndView;
+    }
 
     /**
-     * Handle data request for reservation request {@link UserRoleModel}s.
+     * Handle user roles data.
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES_DATA, method = RequestMethod.GET)
     @ResponseBody
-    public Map handleListData(
+    public Map handleUserRoleData(
             Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
@@ -106,26 +105,26 @@ public class DetailUserRoleController
     }
 
     /**
-     * Handle creation of {@link UserRoleModel} for reservation request.
+     * Handle creation of {@link UserRoleModel}.
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_CREATE, method = RequestMethod.GET)
-    public ModelAndView handleRoleCreate(
+    public ModelAndView handleUserRoleCreate(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId)
     {
         UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
         userRole.setObjectId(objectId);
-        return handleRoleCreate(userRole);
+        return handleUserRoleCreateView(userRole);
     }
 
     /**
-     * Handle confirmation of creation of {@link UserRoleModel} for reservation request.
+     * Handle confirmation of creation of {@link UserRoleModel}.
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_CREATE, method = RequestMethod.POST)
-    public Object handleRoleCreateProcess(
+    public Object handleUserRoleCreateProcess(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
-            @ModelAttribute("userRole") UserRoleModel userRole,
+            @ModelAttribute(USER_ROLE_ATTRIBUTE) UserRoleModel userRole,
             BindingResult result)
     {
         if (!userRole.getObjectId().equals(objectId)) {
@@ -134,19 +133,19 @@ public class DetailUserRoleController
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, result);
         if (result.hasErrors()) {
-            return handleRoleCreate(userRole);
+            return handleUserRoleCreateView(userRole);
         }
         authorizationService.createAclEntry(securityToken, userRole.toApi());
 
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_TAB_USER_ROLES, objectId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);
     }
 
     /**
-     * Handle deletion of {@link UserRoleModel} for reservation request.
+     * Handle deletion of {@link UserRoleModel}.
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_DELETE,
             method = RequestMethod.GET)
-    public String handleRoleDelete(
+    public String handleUserRoleDelete(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "roleId") String userRoleId,
@@ -163,16 +162,16 @@ public class DetailUserRoleController
             return "message";
         }
         authorizationService.deleteAclEntry(securityToken, userRoleId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_TAB_USER_ROLES, objectId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);
     }
 
     /**
-     * Handle view for creation of {@link UserRoleModel} for reservation request.
+     * Handle view for creation of {@link UserRoleModel}.
      */
-    private ModelAndView handleRoleCreate(UserRoleModel userRole)
+    private ModelAndView handleUserRoleCreateView(UserRoleModel userRole)
     {
         ModelAndView modelAndView = new ModelAndView("userRole");
-        modelAndView.addObject("userRole", userRole);
+        modelAndView.addObject(USER_ROLE_ATTRIBUTE, userRole);
         return modelAndView;
     }
 }

@@ -6,20 +6,22 @@
 
 <div class="table-actions-left">
 
-    <tag:url var="aclUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_DATA %>">
+    <tag:url var="userRoleDataUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_DATA %>">
         <tag:param name="objectId" value=":id"/>
     </tag:url>
-    <tag:url var="aclCreateUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLE_CREATE %>">
+    <tag:url var="userRoleCreateUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLE_CREATE %>">
         <tag:param name="objectId" value="${objectId}"/>
         <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
     </tag:url>
-    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLE_DELETE %>">
+    <tag:url var="userRoleDeleteUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLE_DELETE %>">
         <tag:param name="objectId" value="${objectId}"/>
         <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
     </tag:url>
-    <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${objectId}'"
-                      createUrl="${aclCreateUrl}" deleteUrl="${participantDeleteUrl}">
+    <tag:userRoleList dataUrl="${userRoleDataUrl}" dataUrlParameters="id: '${objectId}'"
+                      createUrl="${userRoleCreateUrl}" deleteUrl="${userRoleDeleteUrl}">
+
         <h2><spring:message code="views.userRoleList.title"/></h2>
+
     </tag:userRoleList>
 
 </div>

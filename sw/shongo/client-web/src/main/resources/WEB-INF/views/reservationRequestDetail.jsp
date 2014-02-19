@@ -11,7 +11,7 @@
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
-<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>"/>
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>"/>
 
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
@@ -62,7 +62,7 @@
 
     <%-- Detail of request --%>
     <c:if test="${isWritable}">
-        <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_TAB_USER_ROLES %>">
+        <tag:url var="modifyUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_VIEW %>">
             <tag:param name="objectId" value="${reservationRequest.id}"/>
             <tag:param name="back-url" value="${requestUrl}"/>
         </tag:url>

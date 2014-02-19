@@ -10,7 +10,7 @@
 <c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
 
 <tag:url var="listDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>"/>
-<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+<tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">

@@ -35,7 +35,7 @@
     <tag:url var="roomManagementUrl" value="<%= ClientWebUrl.ROOM_MANAGEMENT %>">
         <tag:param name="roomId" value="{{reservationRequest.reservationId}}" escape="false"/>
     </tag:url>
-    <tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL %>">
+    <tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
         <tag:param name="objectId" value="{{reservationRequest.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
@@ -56,7 +56,7 @@
         <tag:param name="force" value="true"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
-    <tag:url var="permanentRoomCapacityDetailUrl" value="<%= ClientWebUrl.DETAIL %>">
+    <tag:url var="permanentRoomCapacityDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
         <tag:param name="objectId" value="{{capacity.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>

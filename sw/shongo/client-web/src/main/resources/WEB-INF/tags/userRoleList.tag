@@ -56,6 +56,7 @@
 <c:choose>
     <%-- Static list of user roles --%>
     <c:when test="${data != null}">
+        <jsp:doBody/>
         <table class="table table-striped table-hover">
                 ${tableHead}
             <tbody>

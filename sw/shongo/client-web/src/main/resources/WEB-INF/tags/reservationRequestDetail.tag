@@ -324,7 +324,7 @@
             <spring:message code="views.reservationRequest.participants.none"/>
         </span>
         <span ng-show="roomState != null && roomState.code != 'STOPPED'">
-            <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.ROOM_PARTICIPANTS %>">
+            <tag:url var="modifyParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_VIEW %>">
                 <tag:param name="roomId" value="{{roomId}}" escape="false"/>
                 <tag:param name="back-url" value="${requestUrl}"/>
             </tag:url>

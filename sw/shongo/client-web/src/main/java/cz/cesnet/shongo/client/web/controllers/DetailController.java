@@ -14,12 +14,9 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -33,22 +30,10 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class DetailController implements BreadcrumbProvider
+public class DetailController extends AbstractDetailController implements BreadcrumbProvider
 {
     @Resource
-    private ReservationService reservationService;
-
-    @Resource
-    private ExecutableService executableService;
-
-    @Resource
     private AuthorizationService authorizationService;
-
-    @Resource
-    private Cache cache;
-
-    @Resource
-    private MessageSource messageSource;
 
     /**
      * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDetailView}
@@ -71,14 +56,14 @@ public class DetailController implements BreadcrumbProvider
     /**
      * Handle detail view.
      */
-    @RequestMapping(value = ClientWebUrl.DETAIL, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_VIEW, method = RequestMethod.GET)
     public ModelAndView handleDetailView(
             SecurityToken securityToken,
             Locale locale,
             @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "tab", required = false) String tab)
     {
-        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         ReservationRequestModel reservationRequestModel = new ReservationRequestModel(
@@ -93,7 +78,7 @@ public class DetailController implements BreadcrumbProvider
 
         // Initialize breadcrumb
         if (breadcrumb != null) {
-            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL));
+            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL_VIEW));
         }
 
         return modelAndView;
@@ -102,7 +87,7 @@ public class DetailController implements BreadcrumbProvider
     /**
      * Handle detail reservation request tab.
      */
-    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_TAB, method = RequestMethod.GET)
     public ModelAndView handleDetailReservationRequestTab(
             SecurityToken securityToken,
             UserSession userSession,
@@ -115,7 +100,7 @@ public class DetailController implements BreadcrumbProvider
 
         ModelAndView modelAndView = new ModelAndView("detailReservationRequest");
 
-        String reservationRequestId = cache.getReservationRequestId(securityToken, objectId);
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -202,31 +187,9 @@ public class DetailController implements BreadcrumbProvider
     }
 
     /**
-     * Handle detail user roles tab.
-     */
-    @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLES, method = RequestMethod.GET)
-    public ModelAndView handleDetailUserRolesTab(
-            @PathVariable(value = "objectId") String objectId)
-    {
-        ModelAndView modelAndView = new ModelAndView("detailUserRoles");
-        return modelAndView;
-    }
-
-    /**
-     * Handle detail participants tab.
-     */
-    @RequestMapping(value = ClientWebUrl.DETAIL_PARTICIPANTS, method = RequestMethod.GET)
-    public ModelAndView handleDetailParticipantsTab(
-            @PathVariable(value = "objectId") String objectId)
-    {
-        ModelAndView modelAndView = new ModelAndView("detailParticipants");
-        return modelAndView;
-    }
-
-    /**
      * Handle detail runtime management tab.
      */
-    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB, method = RequestMethod.GET)
     public ModelAndView handleDetailRuntimeManagementTab(
             @PathVariable(value = "objectId") String objectId)
     {
@@ -237,7 +200,7 @@ public class DetailController implements BreadcrumbProvider
     /**
      * Handle detail recordings tab.
      */
-    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.DETAIL_RECORDINGS_TAB, method = RequestMethod.GET)
     public ModelAndView handleRecordingsTab(
             @PathVariable(value = "objectId") String objectId)
     {

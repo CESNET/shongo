@@ -45,7 +45,10 @@ public class PermissionEvaluator implements org.springframework.security.access.
             }
             else {
                 String objectId;
-                if (targetDomainObject instanceof RoomModel) {
+                if (targetDomainObject instanceof String) {
+                    objectId = (String) targetDomainObject;
+                }
+                else if (targetDomainObject instanceof RoomModel) {
                     objectId = ((RoomModel) targetDomainObject).getId();
                 }
                 else if (targetDomainObject instanceof Executable) {

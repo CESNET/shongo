@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
@@ -457,6 +458,35 @@ public class Cache
         }
         else {
             throw new TodoImplementException(objectId);
+        }
+    }
+
+    /**
+     * @param securityToken
+     * @param objectId
+     * @return executable id for given {@code objectId}
+     */
+    public String getExecutableId(SecurityToken securityToken, String objectId)
+    {
+        if (objectId.contains(":exe:")) {
+            return objectId;
+        }
+        else {
+            if (objectId.contains(":req:")) {
+                ReservationRequestSummary reservationRequest = getReservationRequestSummary(securityToken, objectId);
+                objectId = reservationRequest.getLastReservationId();
+            }
+            if (objectId.contains(":rsv:")) {
+                Reservation reservation = getReservation(securityToken, objectId);
+                Executable executable = reservation.getExecutable();
+                if (executable == null) {
+                    throw new UnsupportedApiException("Reservation " + objectId + " doesn't have executable.");
+                }
+                return executable.getId();
+            }
+            else {
+                throw new TodoImplementException(objectId);
+            }
         }
     }
 

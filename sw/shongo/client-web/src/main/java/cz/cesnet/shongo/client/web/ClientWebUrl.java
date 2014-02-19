@@ -92,10 +92,11 @@ public class ClientWebUrl
     public static final String WIZARD_UPDATE =
             "/wizard/update";
 
-    public static final String DETAIL =
-            "/detail/{objectId:.+}";
-    public static final String DETAIL_TAB_USER_ROLES = DETAIL + "?tab=userRoles";
-    public static final String DETAIL_RESERVATION_REQUEST =
+    public static final String DETAIL_VIEW = "/detail/{objectId:.+}";
+    public static final String DETAIL_USER_ROLES_VIEW = DETAIL_VIEW + "?tab=userRoles";
+    public static final String DETAIL_PARTICIPANTS_VIEW = DETAIL_VIEW + "?tab=participants";
+
+    public static final String DETAIL_RESERVATION_REQUEST_TAB =
             "/detail/{objectId:.+}/reservation-request";
     public static final String DETAIL_RESERVATION_REQUEST_STATE =
             "/detail/{objectId:.+}/reservation-request/state";
@@ -103,7 +104,8 @@ public class ClientWebUrl
             "/detail/{objectId:.+}/reservation-request/children";
     public static final String DETAIL_RESERVATION_REQUEST_USAGES =
             "/detail/{objectId:.+}/reservation-request/usages";
-    public static final String DETAIL_USER_ROLES =
+
+    public static final String DETAIL_USER_ROLES_TAB =
             "/detail/{objectId:.+}/user-roles";
     public static final String DETAIL_USER_ROLES_DATA =
             "/detail/{objectId:.+}/user-roles/data";
@@ -111,13 +113,21 @@ public class ClientWebUrl
             "/detail/{objectId:.+}/user-role/create";
     public static final String DETAIL_USER_ROLE_DELETE =
             "/detail/{objectId:.+}/user-role/{roleId}/delete";
-    public static final String DETAIL_PARTICIPANTS =
+
+    public static final String DETAIL_PARTICIPANTS_TAB =
             "/detail/{objectId:.+}/participants";
     public static final String DETAIL_PARTICIPANTS_DATA =
             "/detail/{objectId:.+}/participants/data";
-    public static final String DETAIL_RUNTIME_MANAGEMENT =
+    public static final String DETAIL_PARTICIPANT_CREATE =
+            "/detail/{objectId:.+}/participant/create";
+    public static final String DETAIL_PARTICIPANT_MODIFY =
+            "/detail/{objectId:.+}/participant/{participantId}/modify";
+    public static final String DETAIL_PARTICIPANT_DELETE =
+            "/detail/{objectId:.+}/participant/{participantId}/delete";
+
+    public static final String DETAIL_RUNTIME_MANAGEMENT_TAB =
             "/detail/{objectId:.+}/runtime-management";
-    public static final String DETAIL_RECORDINGS =
+    public static final String DETAIL_RECORDINGS_TAB =
             "/detail/{objectId:.+}/recordings";
 
     public static final String RESERVATION_REQUEST =
@@ -172,14 +182,6 @@ public class ClientWebUrl
             "/room/{roomId:.+}/participant/{participantId}/manage";
     public static final String ROOM_MANAGEMENT_PARTICIPANT_DISCONNECT =
             "/room/{roomId:.+}/participant/{participantId}/disconnect";
-    public static final String ROOM_PARTICIPANTS =
-            "/room/{roomId:.+}/participants";
-    public static final String ROOM_PARTICIPANT_CREATE =
-            "/room/{roomId:.+}/participant/create";
-    public static final String ROOM_PARTICIPANT_MODIFY =
-            "/room/{roomId:.+}/participant/{participantId}/modify";
-    public static final String ROOM_PARTICIPANT_DELETE =
-            "/room/{roomId:.+}/participant/{participantId}/delete";
     public static final String ROOM_ENTER =
             "/room/{roomId:.+}/enter";
 

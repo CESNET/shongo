@@ -542,7 +542,7 @@ public class WizardRoomController extends WizardParticipantsController
 
         // Show detail of newly created reservation request
         return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES).applyToUrl(
-                ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId));
+                ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId));
     }
 
     /**
@@ -611,7 +611,7 @@ public class WizardRoomController extends WizardParticipantsController
         else {
             // Show detail of reservation request
             return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES).applyToUrl(
-                    ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId));
+                    ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId));
         }
     }
 

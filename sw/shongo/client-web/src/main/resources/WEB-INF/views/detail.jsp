@@ -29,7 +29,7 @@
     <tabset>
 
         <spring:message var="detailReservationRequestTitle" code="views.detail.tab.reservationRequest"/>
-        <tag:url var="detailReservationRequestUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST %>">
+        <tag:url var="detailReservationRequestUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_TAB %>">
             <tag:param name="objectId" value="${objectId}"/>
         </tag:url>
         <tab id="reservationRequest" ng-controller="TabController"
@@ -38,7 +38,7 @@
         </tab>
 
         <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
-        <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES %>">
+        <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
             <tag:param name="objectId" value="${objectId}"/>
         </tag:url>
         <tab id="userRoles" ng-controller="TabController"
@@ -47,7 +47,7 @@
         </tab>
 
         <spring:message var="detailParticipantsTitle" code="views.detail.tab.participants"/>
-        <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS %>">
+        <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
             <tag:param name="objectId" value="${objectId}"/>
         </tag:url>
         <tab id="participants" ng-controller="TabController"
@@ -56,7 +56,7 @@
         </tab>
 
         <spring:message var="detailRuntimeManagementTitle" code="views.detail.tab.runtimeManagement"/>
-        <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT %>">
+        <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
             <tag:param name="objectId" value="${objectId}"/>
         </tag:url>
         <tab id="runtimeManagement" ng-controller="TabController"
@@ -65,7 +65,7 @@
         </tab>
 
         <spring:message var="detailRecordingsTitle" code="views.detail.tab.recordings"/>
-        <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS %>">
+        <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
             <tag:param name="objectId" value="${objectId}"/>
         </tag:url>
         <tab id="recordings" ng-controller="TabController"

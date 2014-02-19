@@ -381,7 +381,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
 
         // Show detail of newly created reservation request
         return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_ROOM).applyToUrl(
-                ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId)
+                ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId)
         );
     }
 

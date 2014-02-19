@@ -63,7 +63,7 @@ public class ReservationDeleteController implements BreadcrumbProvider
     {
         // Get reservation request
         reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL, reservationRequestId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId);
     }
 
     /**
@@ -87,7 +87,7 @@ public class ReservationDeleteController implements BreadcrumbProvider
                 new ReservationRequestModel(reservationRequest, new CacheProvider(cache, securityToken));
         if (breadcrumb != null) {
             breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
-                    reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL));
+                    reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL_VIEW));
         }
 
         return "reservationRequestDelete";
