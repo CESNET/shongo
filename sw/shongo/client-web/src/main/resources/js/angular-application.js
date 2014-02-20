@@ -44,21 +44,18 @@ applicationModule.factory("$application", function() {
 
 applicationModule.controller("DynamicContentController", function($scope, $element, $timeout) {
     /**
-     * Specifies whether tab content has already been initialized.
+     * Specifies whether dynamic content has already been loaded.
      */
-    $scope.inited = true;
+    $scope.contentLoaded = false;
 
     /**
      * Refresh tab content.
      */
     $scope.refresh = function(contentUrl) {
-        $scope.inited = false;
         if (contentUrl != null) {
             $scope.contentUrl = contentUrl;
         }
-        $timeout(function(){
-            $scope.inited = true;
-        });
+        return true;
     };
 });
 
@@ -78,14 +75,20 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
     $scope.contentUrl = null;
 
     /**
-     * Specifies whether tab content has already been initialized.
+     * Specifies whether tab has been initialized (displayed).
+     * @type {boolean}
      */
     $scope.inited = false;
 
     /**
+     * Specifies whether tab content has already been loaded.
+     */
+    $scope.contentLoaded = false;
+
+    /**
      * Initialize this tab in parent scope.
      */
-    if ($scope.$parent.onCreateTab != null) {
+    if ($scope.$parent != null && $scope.$parent.onCreateTab != null) {
         $scope.$parent.onCreateTab($scope.id, $scope);
     }
 
@@ -94,12 +97,15 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
      */
     $scope.$watch("active", function(active) {
         if (active) {
-            if (!$scope.inited) {
-                $scope.onInit();
-                $scope.inited = true;
+            if ($scope.disabled) {
+                $scope.active = false;
+                console.debug($scope);
+                return;
             }
-            else {
-                $scope.onRefresh();
+            $scope.inited = true;
+            if (!$scope.contentLoaded) {
+                $scope.refresh();
+                $scope.contentLoaded = true;
             }
             if ($scope.$parent != null && $scope.$parent.onActivateTab != null) {
                 $scope.$parent.onActivateTab($scope.id);
@@ -111,25 +117,9 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
      * Refresh tab content.
      */
     $scope.refresh = function(contentUrl) {
-        $scope.inited = false;
         if (contentUrl != null) {
             $scope.contentUrl = contentUrl;
         }
-        $timeout(function(){
-            $scope.inited = true;
-        });
-    };
-
-    /**
-     * Initialize tab content.
-     */
-    $scope.onInit = function() {
-    };
-
-    /**
-     * Refresh tab content.
-     */
-    $scope.onRefresh = function() {
     };
 });
 
@@ -143,27 +133,63 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
         restrict: 'A',
         scope: false,
         link: function(scope, element, attrs) {
-            // Create content element and replace it in the transclude
-            scope.contentElementId = "contentElement" + (++index);
+            // Check if "content-url" attribute is on <tab>
+            var isTab = scope.$transcludeFn != null;
+
+            // Determine content element id
+            scope.contentElementId = (isTab ? null : element.attr("id"));
+            if (scope.contentElementId == null) {
+                scope.contentElementId = "__contentElement" + (++index);
+            }
             scope.contentUrl = attrs.contentUrl;
-            var contentElement = $compile("<div id ='" + scope.contentElementId + "' class='spinner'></div>")(scope.$parent);
+            if (attrs.contentLoaded != null) {
+                scope.contentLoaded = attrs.contentLoaded;
+            }
+
+            // Create content element
+            var contentElement = $compile("<div id ='" + scope.contentElementId + "'><div class='spinner'></div></div>")(scope.$parent);
             if (scope.$transcludeFn != null) {
+                // Init tab content (replace the content element in the transclude)
                 scope.$transcludeFn = function(scope, callback) {
                     callback(contentElement);
                 };
             }
             else {
-                element.append(contentElement);
-            }
-            // Load content when inited is changed
-            scope.$watch('inited', function(inited) {
-                if (inited) {
-                    loadContent(scope);
+                // Init div content
+                if (scope.contentLoaded) {
+                    // Modify existing content element id
+                    element.attr("id", scope.contentElementId);
                 }
-            });
+                else {
+                    // Replace content element
+                    element.replaceWith(contentElement);
+                }
+            }
+
+            // Load content for the first time
+            if (!scope.contentLoaded && (scope.inited == null || scope.inited == true)) {
+                loadContent(scope);
+            }
+
+            // Bind to scope refresh
+            var defaultRefresh = scope.refresh;
+            scope.refresh = function(contentUrl) {
+                defaultRefresh(contentUrl);
+                loadContent(scope);
+            };
         }
     };
+
+    /**
+     * Load content from given scope.
+     *
+     * @param scope
+     */
     function loadContent(scope){
+        // Hide all tooltips
+        $('.qtip-app').qtip('hide');
+
+        // Load new content
         $http.get(scope.contentUrl).success(function (html) {
             // Extract scripts from html
             var scripts = "";
@@ -180,8 +206,9 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
 
             // Replace element content
             var oldElement = $("#" + scope.contentElementId);
-            var newElement = $compile("<div id='" + scope.contentElementId + "'>" + html + "</div>")(scope.$parent);
-            oldElement.replaceWith(newElement);
+            var newElement = $compile("<div>" + html + "</div>")(scope.$parent);
+            oldElement.empty();
+            oldElement.append(newElement);
         });
     }
 });

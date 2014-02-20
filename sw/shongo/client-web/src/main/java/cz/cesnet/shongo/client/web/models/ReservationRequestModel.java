@@ -905,6 +905,21 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public List<BreadcrumbItem> getBreadcrumbItems(String detailUrl)
     {
+        return getBreadcrumbItems(
+                detailUrl, id, specificationType, parentReservationRequestId, permanentRoomReservationRequestId);
+    }
+
+    /**
+     * @param detailUrl
+     * @param specificationType
+     * @param parentReservationRequestId
+     * @param permanentRoomReservationRequestId
+     * @return list of {@link BreadcrumbItem}s for this reservation request
+     */
+    public static List<BreadcrumbItem> getBreadcrumbItems(String detailUrl, String reservationRequestId,
+            SpecificationType specificationType, String parentReservationRequestId,
+            String permanentRoomReservationRequestId)
+    {
         List<BreadcrumbItem> breadcrumbItems = new LinkedList<BreadcrumbItem>();
 
         String titleCode;
@@ -944,7 +959,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         // Add breadcrumb for this reservation request
-        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, id), titleCode));
+        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, reservationRequestId), titleCode));
 
         return breadcrumbItems;
     }
@@ -1061,9 +1076,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (permanentRoomReservationRequest == null) {
             throw new IllegalStateException("Permanent room reservation request must not be null");
         }
-        String permanentRoomReservationId = permanentRoomReservationRequest.getLastReservationId();
+        String permanentRoomReservationId = permanentRoomReservationRequest.getAllocatedReservationId();
         Reservation permanentRoomReservation = cacheProvider.getReservation(permanentRoomReservationId);
-        AbstractRoomExecutable permanentRoom = (AbstractRoomExecutable) permanentRoomReservation.getExecutable();
+        String permanentRoomId = permanentRoomReservation.getExecutable().getId();
+        AbstractRoomExecutable permanentRoom = (AbstractRoomExecutable) cacheProvider.getExecutable(permanentRoomId);
         RoomExecutableParticipantConfiguration permanentRoomParticipants = permanentRoom.getParticipantConfiguration();
 
         // Remove all participants without identifier (old permanent room participants)

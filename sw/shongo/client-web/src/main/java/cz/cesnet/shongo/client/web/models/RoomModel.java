@@ -206,6 +206,9 @@ public class RoomModel extends ParticipantConfigurationModel
                 this.recordingService = null;
                 this.recordable = isPermanentRoomRecordable(executableService, securityToken, this.id);
             }
+            else {
+                this.recordable = roomExecutable.isRecordable();
+            }
         }
         else {
             // Capacity or ad-hoc room
@@ -218,6 +221,9 @@ public class RoomModel extends ParticipantConfigurationModel
             if (services) {
                 this.recordingService = getRecordingService(executableService, securityToken, this.id);
                 this.recordable = this.recordingService != null;
+            }
+            else {
+                this.recordable = roomExecutable.isRecordable();
             }
         }
 

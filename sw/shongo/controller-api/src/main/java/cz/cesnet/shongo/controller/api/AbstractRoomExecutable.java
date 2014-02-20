@@ -58,6 +58,11 @@ public abstract class AbstractRoomExecutable extends Executable
     private RoomExecutableParticipantConfiguration participantConfiguration;
 
     /**
+     * Specifies whether this room has {@link cz.cesnet.shongo.controller.api.RecordingService}.
+     */
+    private boolean recordable = false;
+
+    /**
      * @return {@link #originalSlot}
      */
     public Interval getOriginalSlot()
@@ -243,6 +248,22 @@ public abstract class AbstractRoomExecutable extends Executable
         this.participantConfiguration = participantConfiguration;
     }
 
+    /**
+     * @return {@link #recordable}
+     */
+    public boolean isRecordable()
+    {
+        return recordable;
+    }
+
+    /**
+     * @param recordable sets the {@link #recordable}
+     */
+    public void setRecordable(boolean recordable)
+    {
+        this.recordable = recordable;
+    }
+
     private static final String ORIGINAL_SLOT = "originalSlot";
     private static final String TECHNOLOGIES = "technologies";
     private static final String LICENSE_COUNT = "licenseCount";
@@ -250,6 +271,7 @@ public abstract class AbstractRoomExecutable extends Executable
     private static final String ALIASES = "aliases";
     private static final String ROOM_SETTINGS = "roomSettings";
     private static final String PARTICIPANT_CONFIGURATION = "participantConfiguration";
+    private static final String RECORDABLE = "recordable";
 
     @Override
     public DataMap toData()
@@ -262,6 +284,7 @@ public abstract class AbstractRoomExecutable extends Executable
         dataMap.set(ALIASES, aliases);
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(PARTICIPANT_CONFIGURATION, participantConfiguration);
+        dataMap.set(RECORDABLE, recordable);
         return dataMap;
     }
 
@@ -277,5 +300,6 @@ public abstract class AbstractRoomExecutable extends Executable
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         participantConfiguration = dataMap.getComplexType(
                 PARTICIPANT_CONFIGURATION, RoomExecutableParticipantConfiguration.class);
+        recordable = dataMap.getBool(RECORDABLE);
     }
 }

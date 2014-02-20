@@ -51,6 +51,7 @@ FROM reservation_request;
 CREATE VIEW reservation_request_summary AS
 SELECT
     abstract_reservation_request.id AS id,
+    parent_allocation.abstract_reservation_request_id AS parent_reservation_request_id,
     abstract_reservation_request.created_at AS created_at,
     abstract_reservation_request.created_by AS created_by,
     abstract_reservation_request.updated_at AS updated_at,
@@ -70,11 +71,13 @@ SELECT
     NULL AS slot_nearness_value,
     reservation_request_state.allocation_state AS allocation_state,
     reservation_request_state.executable_state AS executable_state,
+    NULL AS room_recordable,
     NULL AS last_reservation_id,
     NULL AS usage_executable_state
 FROM abstract_reservation_request
 LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
+LEFT JOIN allocation AS parent_allocation ON parent_allocation.id = reservation_request.parent_allocation_id
 LEFT JOIN reservation_request_set ON reservation_request_set.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id;
 

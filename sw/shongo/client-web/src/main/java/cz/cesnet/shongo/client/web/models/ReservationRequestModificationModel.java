@@ -27,7 +27,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
             ReservationRequestSummary reservationRequestSummary =
                     cacheProvider.getReservationRequestSummary(reservationRequest.getId());
             if (reservationRequestSummary != null) {
-                String reservationId = reservationRequestSummary.getLastReservationId();
+                String reservationId = reservationRequestSummary.getAllocatedReservationId();
                 if (reservationId != null) {
                     Reservation reservation = cacheProvider.getReservation(reservationId);
                     AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();

@@ -1,27 +1,17 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
-import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.NavigationPage;
-import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
-import cz.cesnet.shongo.util.DateTimeFormatter;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Interval;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -61,21 +51,43 @@ public class DetailController extends AbstractDetailController implements Breadc
             @RequestParam(value = "tab", required = false) String tab)
     {
         String reservationRequestId = getReservationRequestId(securityToken, objectId);
-        AbstractReservationRequest abstractReservationRequest =
-                reservationService.getReservationRequest(securityToken, reservationRequestId);
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(
-                abstractReservationRequest, new CacheProvider(cache, securityToken));
-        ReservationRequestSummary reservationRequestSummary =
-                cache.getReservationRequestSummary(securityToken, reservationRequestId);
-        SpecificationType specificationType = reservationRequestModel.getSpecificationType();
+        ReservationRequestSummary reservationRequest =
+                cache.getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
+        String parentReservationRequestId = reservationRequest.getParentReservationRequestId();
+        RoomState roomState = null;
+        String roomName = null;
+        String reservationId = reservationRequest.getAllocatedReservationId();
+        if (reservationId != null) {
+            AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, reservationId);
+            Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
+            if (roomNameAlias != null) {
+                roomName = roomNameAlias.getValue();
+            }
+            roomState = RoomState.fromRoomState(reservationRequest.getExecutableState(),
+                    reservationRequest.getRoomParticipantCount(), reservationRequest.getUsageExecutableState());
+        }
+        else {
+            roomName = reservationRequest.getRoomName();
+        }
+        SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
+        String titleDescription = messageSource.getMessage(
+                "views.detail.title." + specificationType, new Object[]{roomName != null ? roomName : ""}, locale);
+
         ModelAndView modelAndView = new ModelAndView("detail");
+        modelAndView.addObject("titleDescription", titleDescription);
         modelAndView.addObject("tab", tab);
-        modelAndView.addObject("titleDescription", messageSource.getMessage("views.detail.title." + specificationType,
-                new Object[]{reservationRequestSummary.getRoomName()}, locale));
+        modelAndView.addObject("specificationType", specificationType);
+        modelAndView.addObject("allocationState", reservationRequest.getAllocationState());
+        modelAndView.addObject("roomState", roomState);
+        modelAndView.addObject("isPeriodic", reservationRequest.getFutureSlotCount() != null);
+        modelAndView.addObject("isPeriodicEvent", parentReservationRequestId != null);
+        modelAndView.addObject("isRoomRecordable", reservationRequest.isRoomRecordable());
 
         // Initialize breadcrumb
         if (breadcrumb != null) {
-            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(ClientWebUrl.DETAIL_VIEW));
+            breadcrumb.addItems(ReservationRequestModel.getBreadcrumbItems(
+                    ClientWebUrl.DETAIL_VIEW, reservationRequestId, specificationType, parentReservationRequestId,
+                    reservationRequest.getReusedReservationRequestId()));
         }
 
         return modelAndView;

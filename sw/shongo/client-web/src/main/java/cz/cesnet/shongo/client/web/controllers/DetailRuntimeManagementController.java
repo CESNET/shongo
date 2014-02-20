@@ -85,9 +85,8 @@ public class DetailRuntimeManagementController extends AbstractDetailController
 
         // Reservation request for room
         String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
-        Set<ObjectPermission> reservationRequestPermissions = cache.getObjectPermissions(securityToken,
-                reservationRequestId);
         modelAndView.addObject("reservationRequestId", reservationRequestId);
+        modelAndView.addObject("isProvidable", executable instanceof RoomExecutable);
 
         return modelAndView;
     }

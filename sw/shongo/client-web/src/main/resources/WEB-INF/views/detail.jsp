@@ -37,7 +37,6 @@
             }
 
             // Setup refresh
-            //console.debug("Setup refresh #" + tabRefreshParameters.count + ", timeout", tabRefreshParameters.timeout + "s");
             tabRefreshParameters.promiseCallback = callback;
             tabRefreshParameters.promise = $timeout(function(){
                 // Cancel promise and callback
@@ -48,13 +47,56 @@
             }, tabRefreshParameters.timeout * 1000);
         };
 
+        /**
+         * Reservation request parameters
+         */
+        $scope.reservationRequest = {
+            id: "${objectId}",
+            isPeriodic: ${isPeriodic},
+            isPeriodicEvent: ${isPeriodicEvent},
+            allocationState: "${allocationState}",
+            roomState: "${roomState}",
+            roomStateStarted: ${roomState.started == true},
+            roomRecordable: ${isRoomRecordable == true}
+        };
+
+        /**
+         * Url to this page with currently active tab.
+         */
         $scope.requestUrl = null;
+
+        /**
+         * Currently active tab id.
+         */
         $scope.activeTabId = null;
+
+        /**
+         * Event called when tab is created.
+         */
         $scope.onCreateTab = function(tabId, tabScope) {
-            if (tabId == "${tab}") {
-                tabScope.active = true;
+            if ($scope.firstTabActivation == null) {
+                // Watch first tab activation
+                $scope.firstTabActivation = tabScope.$watch("active", function(){
+                    // If specified tab exists and it isn't disabled
+                    if ($scope.firstTabActivation.tabScope != null && !$scope.firstTabActivation.tabScope.disabled) {
+                        // Deactivate first tab
+                        tabScope.active = false;
+                        // Active specified tab
+                        $scope.firstTabActivation.tabScope.active = true;
+                    }
+                    // Remove the watch
+                    $scope.firstTabActivation();
+                });
+            }
+            else if (tabId == "${tab}") {
+                // Store this tab for the first tab activation
+                $scope.firstTabActivation.tabScope = tabScope;
             }
         };
+
+        /**
+         * Event called when tab is activated
+         */
         $scope.onActivateTab = function(tabId) {
             if (tabId != $scope.activeTabId) {
                 // Stop old tab refresh
@@ -84,6 +126,10 @@
                 }
             }
         };
+
+        /**
+         * Can be used to refresh tab with given tabId.
+         */
         $scope.refreshTab = function(tabId, url) {
             var tabElement = angular.element("#" + tabId);
             var tabScope = tabElement.scope();
@@ -107,41 +153,46 @@
              content-url="${detailReservationRequestUrl}">
         </tab>
 
-        <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
-        <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
-            <tag:param name="objectId" value="${objectId}"/>
-        </tag:url>
-        <tab id="userRoles" ng-controller="TabController"
-             heading="${detailUserRolesTitle}"
-             content-url="${detailUserRolesUrl}">
-        </tab>
+        <c:if test="${!isPeriodicEvent}">
+            <spring:message var="detailUserRolesTitle" code="views.detail.tab.userRoles"/>
+            <tag:url var="detailUserRolesUrl" value="<%= ClientWebUrl.DETAIL_USER_ROLES_TAB %>">
+                <tag:param name="objectId" value="${objectId}"/>
+            </tag:url>
+            <tab id="userRoles" ng-controller="TabController"
+                 heading="${detailUserRolesTitle}"
+                 content-url="${detailUserRolesUrl}">
+            </tab>
+        </c:if>
 
-        <spring:message var="detailParticipantsTitle" code="views.detail.tab.participants"/>
-        <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
-            <tag:param name="objectId" value="${objectId}"/>
-        </tag:url>
-        <tab id="participants" ng-controller="TabController"
-             heading="${detailParticipantsTitle}"
-             content-url="${detailParticipantsUrl}">
-        </tab>
+        <c:if test="${!isPeriodic}">
+            <spring:message var="detailParticipantsTitle" code="views.detail.tab.participants"/>
+            <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
+                <tag:param name="objectId" value="${objectId}"/>
+            </tag:url>
+            <tab id="participants" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED'"
+                 heading="${detailParticipantsTitle}"
+                 content-url="${detailParticipantsUrl}">
+            </tab>
 
-        <spring:message var="detailRuntimeManagementTitle" code="views.detail.tab.runtimeManagement"/>
-        <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
-            <tag:param name="objectId" value="${objectId}"/>
-        </tag:url>
-        <tab id="runtimeManagement" ng-controller="TabController"
-             heading="${detailRuntimeManagementTitle}"
-             content-url="${detailRuntimeManagementUrl}">
-        </tab>
+            <spring:message var="detailRuntimeManagementTitle" code="views.detail.tab.runtimeManagement"/>
+            <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
+                <tag:param name="objectId" value="${objectId}"/>
+            </tag:url>
+            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED' || reservationRequest.roomState == 'NOT_STARTED'"
+                 heading="${detailRuntimeManagementTitle}"
+                 content-url="${detailRuntimeManagementUrl}">
+            </tab>
 
-        <spring:message var="detailRecordingsTitle" code="views.detail.tab.recordings"/>
-        <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
-            <tag:param name="objectId" value="${objectId}"/>
-        </tag:url>
-        <tab id="recordings" ng-controller="TabController"
-             heading="${detailRecordingsTitle}"
-             content-url="${detailRecordingsUrl}">
-        </tab>
+            <spring:message var="detailRecordingsTitle" code="views.detail.tab.recordings"/>
+            <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
+                <tag:param name="objectId" value="${objectId}"/>
+            </tag:url>
+            <tab id="recordings" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED' || !reservationRequest.roomRecordable"
+                 heading="${detailRecordingsTitle}"
+                 content-url="${detailRecordingsUrl}">
+            </tab>
+
+        </c:if>
 
     </tabset>
 

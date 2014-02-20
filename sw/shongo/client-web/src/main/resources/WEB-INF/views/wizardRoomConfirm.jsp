@@ -25,8 +25,7 @@
     </c:choose>
 
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}"
-                                  detailUrl="<%= cz.cesnet.shongo.client.web.ClientWebUrl.DETAIL_VIEW %>"
-                                  isActive="false"/>
+                                  detailUrl="<%= cz.cesnet.shongo.client.web.ClientWebUrl.DETAIL_VIEW %>"/>
     &nbsp;
     <p><spring:message code="views.wizard.confirmation.chooseFinish"/></p>
 

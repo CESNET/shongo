@@ -50,16 +50,40 @@ public class DetailParticipantController extends AbstractDetailController
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
+        final CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+
+
         // Get room executable
         String executableId = getExecutableId(securityToken, objectId);
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
 
-        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        RoomExecutableParticipantConfiguration roomExecutableParticipants =
-                roomExecutable.getParticipantConfiguration();
+        List<AbstractParticipant> participants = new LinkedList<AbstractParticipant>();
 
-        List<AbstractParticipant> participants = roomExecutableParticipants.getParticipants();
-        Collections.sort(participants, new Comparator<AbstractParticipant>()
+        // Add reused room participants as read-only
+        if (roomExecutable instanceof UsedRoomExecutable) {
+            UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) roomExecutable;
+            String reusedRoomExecutableId = usedRoomExecutable.getReusedRoomExecutableId();
+            RoomExecutable reusedRoomExecutable =
+                    (RoomExecutable) getRoomExecutable(securityToken, reusedRoomExecutableId);
+            List<AbstractParticipant> reusedRoomParticipants =
+                    reusedRoomExecutable.getParticipantConfiguration().getParticipants();
+            Collections.sort(reusedRoomParticipants, new Comparator<AbstractParticipant>()
+            {
+                @Override
+                public int compare(AbstractParticipant o1, AbstractParticipant o2)
+                {
+                    return Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId()));
+                }
+            });
+            for (AbstractParticipant participant : reusedRoomParticipants) {
+                participant.setId((String) null);
+                participants.add(participant);
+            }
+        }
+
+        // Add room participants
+        List<AbstractParticipant> roomParticipants = roomExecutable.getParticipantConfiguration().getParticipants();
+        Collections.sort(roomParticipants, new Comparator<AbstractParticipant>()
         {
             @Override
             public int compare(AbstractParticipant o1, AbstractParticipant o2)
@@ -67,6 +91,8 @@ public class DetailParticipantController extends AbstractDetailController
                 return Integer.valueOf(o1.getId()).compareTo(Integer.valueOf(o2.getId()));
             }
         });
+        participants.addAll(roomParticipants);
+
         int maxIndex = Math.max(0, participants.size() - 1);
         if (start > maxIndex) {
             start = maxIndex;
@@ -147,8 +173,8 @@ public class DetailParticipantController extends AbstractDetailController
         for (ParticipantModel participantModel : participantConfigurationModel.getParticipants()) {
             participantConfiguration.addParticipant(participantModel.toApi());
         }
-
         executableService.modifyExecutableConfiguration(securityToken, executableId, participantConfiguration);
+        cache.clearExecutable(executableId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_PARTICIPANTS_VIEW, objectId);
     }
 
@@ -207,6 +233,7 @@ public class DetailParticipantController extends AbstractDetailController
             participantConfiguration.addParticipant(participantModel.toApi());
         }
         executableService.modifyExecutableConfiguration(securityToken, executableId, participantConfiguration);
+        cache.clearExecutable(executableId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_PARTICIPANTS_VIEW, objectId);
     }
 
@@ -225,6 +252,7 @@ public class DetailParticipantController extends AbstractDetailController
         ParticipantModel oldParticipant = getParticipant(participantConfiguration, participantId, securityToken);
         participantConfiguration.removeParticipantById(oldParticipant.getId());
         executableService.modifyExecutableConfiguration(securityToken, executableId, participantConfiguration);
+        cache.clearExecutable(executableId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_PARTICIPANTS_VIEW, objectId);
     }
 

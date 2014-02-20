@@ -6,9 +6,11 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
-<security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST" domainObject="${reservationRequestId}" var="isProvidable"/>
 <c:if test="${room.state == 'STOPPED'}">
     <c:set var="isWritable" value="false"/>
+</c:if>
+<c:if test="${isProvidable}">
+    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST" domainObject="${reservationRequestId}" var="isProvidable"/>
 </c:if>
 
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>

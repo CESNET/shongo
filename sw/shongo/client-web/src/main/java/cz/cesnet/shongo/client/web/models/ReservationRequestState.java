@@ -103,7 +103,7 @@ public enum ReservationRequestState
         return fromApi(reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
                 reservationRequest.getUsageExecutableState(), reservationRequest.getType(),
                 SpecificationType.fromReservationRequestSummary(reservationRequest),
-                reservationRequest.getLastReservationId());
+                reservationRequest.getAllocatedReservationId());
     }
 
     /**

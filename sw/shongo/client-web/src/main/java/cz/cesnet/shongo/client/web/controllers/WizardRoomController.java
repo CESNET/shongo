@@ -527,7 +527,9 @@ public class WizardRoomController extends WizardParticipantsController
                     securityToken, reservationRequest.toApi());
         }
         reservationRequest.setId(reservationRequestId);
-        UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
+        if (!reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
+            UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
+        }
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {

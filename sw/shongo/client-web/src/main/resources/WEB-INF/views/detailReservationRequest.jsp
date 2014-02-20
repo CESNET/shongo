@@ -31,12 +31,81 @@
 
 <script type="text/javascript">
     function DetailReservationRequestController($scope) {
-    <c:if test="${isActive && (reservationRequest.allocationState == 'NOT_ALLOCATED' || (reservationRequest.room != null && reservationRequest.room.state != 'STOPPED' && reservationRequest.room.state != 'FAILED'))}">
-        // Schedule automatic refresh
-        $scope.setRefreshTimeout(function(){
-            $scope.refreshTab('reservationRequest');
-        });
-    </c:if>
+        /**
+         * Reservation request state url.
+         */
+        <tag:url var="detailReservationRequestStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
+            <tag:param name="objectId" value=":reservationRequestId"/>
+            <tag:param name="isReservationVisible" value=":isReservationVisible"/>
+        </tag:url>
+        var RESERVATION_REQUEST_STATE_URL = "${detailReservationRequestStateUrl}";
+
+        /**
+         * Specifies whether current reservation request is last version which can be modified.
+         */
+        $scope.reservationRequest.isActive = ${isActive};
+
+        /**
+         * Set version of reservation request for the state.
+         */
+        $scope.setReservationRequest = function(reservationRequestId, isActive, isReservationVisible) {
+            var url = null;
+            if (reservationRequestId != null) {
+                $scope.reservationRequest.id = reservationRequestId;
+                $scope.reservationRequest.isActive = isActive;
+                $scope.reservationRequest.state = null;
+                url = RESERVATION_REQUEST_STATE_URL;
+                url = url.replace(":reservationRequestId", reservationRequestId);
+                url = url.replace(":isReservationVisible", (isReservationVisible ? true : false));
+            }
+            $scope.refreshReservationRequestState(url);
+        };
+
+        /**
+         * Refresh reservation request state.
+         */
+        $scope.refreshReservationRequestState = function(url) {
+            var reservationRequestStateScope = angular.element("#reservationRequestState").scope();
+            reservationRequestStateScope.refresh(url);
+            $scope.setupAutoRefresh();
+        };
+
+        /**
+         * Check if auto refresh is needed.
+         */
+        $scope.isAutoRefreshNeeded = function(){
+            if ($scope.reservationRequest.isPeriodic) {
+                // Periodic events don't need to refresh (their state isn't changed)
+                return false;
+            }
+            if (!$scope.reservationRequest.isActive) {
+                // Old version of reservation request, so we don't need to refresh
+                return false;
+            }
+            if ($scope.reservationRequest.allocationState == 'NOT_ALLOCATED') {
+                // Not allocated, so we need to refresh
+                return true;
+            }
+            if (($scope.reservationRequest.roomState != 'STOPPED' && $scope.reservationRequest.roomState != 'FAILED')) {
+                // Not finished, so we need to refresh
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Setup automatic refresh of reservation request state.
+         */
+        $scope.setupAutoRefresh = function(){
+            if ($scope.isAutoRefreshNeeded()) {
+                $scope.setRefreshTimeout(function(){
+                    if ($scope.isAutoRefreshNeeded()) {
+                        $scope.refreshReservationRequestState();
+                    }
+                });
+            }
+        };
+        $scope.setupAutoRefresh();
     }
 </script>
 
@@ -60,49 +129,36 @@
             </thead>
             <tbody>
             <c:forEach items="${history}" var="historyItem" varStatus="status">
-                <c:set var="rowClass" value=""/>
-                <c:choose>
-                    <c:when test="${historyItem.selected}">
-                        <tr class="selected">
-                    </c:when>
-                    <c:otherwise>
-                        <tr>
-                    </c:otherwise>
-                </c:choose>
+                <tr ng-class="{selected: reservationRequest.id == '${historyItem.id}'}">
                 <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <c:if test="${reservationRequest.state != null}">
                     <td class="reservation-request-state">
-                        <c:choose>
-                            <c:when test="${historyItem.selected}">
-                                <span class="{{$child.state.code}}">{{$child.state.label}}</span>
-                            </c:when>
-                            <c:otherwise>
-                                <c:if test="${historyItem.state != null}">
-                                    <span class="${historyItem.state}"><spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/></span>
-                                </c:if>
-                            </c:otherwise>
-                        </c:choose>
+                        <span ng-show="reservationRequest.id == '${historyItem.id}' && reservationRequest.state">
+                            <span class="{{reservationRequest.state}}">{{reservationRequest.stateLabel}}</span>
+                        </span>
+                        <span ng-show="reservationRequest.id != '${historyItem.id}' || !reservationRequest.state">
+                            <span class="${historyItem.state}">
+                                <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/>
+                            </span>
+                        </span>
                     </td>
                 </c:if>
                 <td>
-                    <c:choose>
-                        <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                            <tag:url var="detailReservationRequestTabUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_TAB %>">
-                                <tag:param name="objectId" value="${historyItem.id}"/>
-                            </tag:url>
-                            <tag:listAction code="show" ngClick="refreshTab('reservationRequest', '${detailReservationRequestTabUrl}')" tabindex="2"/>
-                        </c:when>
-                        <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
-                    </c:choose>
+                    <c:if test="${historyItem.type != 'DELETED'}">
+                        <span ng-show="reservationRequest.id != '${historyItem.id}'">
+                            <tag:listAction code="show" ngClick="setReservationRequest('${historyItem.id}', ${historyItem.isActive}, ${historyItem.isReservationVisible})" tabindex="2"/>
+                        </span>
+                    </c:if>
+                    <span ng-show="reservationRequest.id == '${historyItem.id}'">(<spring:message code="views.list.selected"/>)</span>
                     <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
                         <tag:url var="historyItemRevertUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_REVERT %>">
                             <tag:param name="reservationRequestId" value="${historyItem.id}"/>
                         </tag:url>
-                            <span ng-show="$child.allocationState.code != 'ALLOCATED'">
-                                | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
-                            </span>
+                        <span ng-show="reservationRequest.allocationState != 'ALLOCATED'">
+                            | <tag:listAction code="revert" url="${historyItemRevertUrl}" tabindex="2"/>
+                        </span>
                     </c:if>
                 </td>
                 </tr>
@@ -112,15 +168,14 @@
     </div>
 </c:if>
 
-<%-- TODO: Refactorize detail to dynamic panel
+<%-- Reservation request state (refreshable by dynamic content controller) --%>
 <tag:url var="reservationRequestStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
     <tag:param name="objectId" value="${objectId}"/>
+    <tag:param name="isReservationVisible" value="${isReservationVisible}"/>
 </tag:url>
-<div id="reservationRequestState" ng-controller="DynamicContentController" content-url="${reservationRequestStateUrl}">
-</div>--%>
-
-<%-- Detail of request --%>
-<tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>
+<div id="reservationRequestState" ng-controller="DynamicContentController" content-url="${reservationRequestStateUrl}" content-loaded="true">
+    <c:import url="detailReservationRequestState.jsp"/>
+</div>
 
 <c:if test="${isActive}">
 
@@ -138,7 +193,7 @@
                 <tag:param name="permanentRoom" value="${reservationRequest.id}"/>
                 <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
             </tag:url>
-            <c:set var="createUsageWhen" value="$child.allocationState.code == 'ALLOCATED' && ($child.roomState.started || $child.roomState.code == 'NOT_STARTED')"/>
+            <c:set var="createUsageWhen" value="reservationRequest.allocationState == 'ALLOCATED' && (reservationRequest.roomStateStarted || reservationRequest.roomState == 'NOT_STARTED')"/>
         </c:if>
         <div class="table-actions-left">
             <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${createUsageUrl}" createWhen="${createUsageWhen}"/>
@@ -150,12 +205,9 @@
 </div>
 
 <div class="table-actions pull-right">
-    <a class="btn" href="#" ng-click="refreshTab('reservationRequest')" tabindex="1">
-        <spring:message code="views.button.refresh"/>
-    </a>
     <c:if test="${isWritable}">
         <c:if test="${advancedUserInterface}">
-                <span ng-switch on="$child.state.code == 'ALLOCATED_FINISHED'">
+                <span ng-switch on="reservationRequest.allocationState == 'ALLOCATED_FINISHED'">
                     <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
                         <spring:message code="views.button.duplicate"/>
                     </a>

@@ -119,11 +119,16 @@ SELECT
     reservation_request.id AS id,
     reservation_request.allocation_state AS allocation_state,
     executable.state AS executable_state,
+    COUNT(recording_service.id) > 0 AS room_recordable,
     reservation.id AS last_reservation_id
 FROM reservation_request
 LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
 LEFT JOIN reservation ON reservation.allocation_id = abstract_reservation_request.allocation_id AND abstract_reservation_request.state = 'ACTIVE'
 LEFT JOIN executable ON executable.id = reservation.executable_id
+LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = executable.id
+LEFT JOIN executable_service ON executable_service.executable_id = executable.id OR executable_service.executable_id = used_room_endpoint.id
+LEFT JOIN recording_service ON recording_service.id = executable_service.id
+GROUP BY reservation_request.id, executable.id, reservation.id
 ORDER BY reservation_request.id, reservation.slot_end DESC;
 
 /**
@@ -211,6 +216,7 @@ FROM (
     FROM (
         SELECT
             abstract_reservation_request.id AS id,
+            parent_allocation.abstract_reservation_request_id AS parent_reservation_request_id,
             abstract_reservation_request.created_at AS created_at,
             abstract_reservation_request.created_by AS created_by,
             abstract_reservation_request.updated_at AS updated_at,
@@ -228,6 +234,7 @@ FROM (
             COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
             reservation_request_state.allocation_state AS allocation_state,
             reservation_request_state.executable_state AS executable_state,
+            reservation_request_state.room_recordable AS room_recordable,
             reservation_request_state.last_reservation_id AS last_reservation_id,
             reservation_request_active_usage.executable_state AS usage_executable_state,
             reservation_request_earliest_usage.slot_start AS usage_slot_start,
@@ -235,6 +242,7 @@ FROM (
         FROM abstract_reservation_request
         LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
         LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
+        LEFT JOIN allocation AS parent_allocation ON parent_allocation.id = reservation_request.parent_allocation_id
         LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
         LEFT JOIN reservation_request_earliest_usage ON reservation_request_earliest_usage.id = reservation_request.id
         LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id

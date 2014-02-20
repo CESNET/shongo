@@ -3,13 +3,9 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.client.web.support.Breadcrumb;
-import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
-import cz.cesnet.shongo.client.web.support.NavigationPage;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -46,14 +42,9 @@ public class DetailReservationRequestController extends AbstractDetailController
             UserSession userSession,
             @PathVariable(value = "objectId") String objectId)
     {
-        Locale locale = userSession.getLocale();
-        DateTimeZone timeZone = userSession.getTimeZone();
-        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
 
         ModelAndView modelAndView = new ModelAndView("detailReservationRequest");
-
-        String reservationRequestId = getReservationRequestId(securityToken, objectId);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
@@ -67,74 +58,55 @@ public class DetailReservationRequestController extends AbstractDetailController
             isChildReservationRequest = reservationRequest.getParentReservationRequestId() != null;
         }
 
-        // Reservation request is active (e.g., it can be modified and deleted)
+        // Specifies whether reservation request is last version which can be modified
         boolean isActive = true;
-        // Reservation request has visible allocated reservation
-        boolean hasVisibleReservation = true;
+        // Specifies whether reservation should be visible for the reservation request
+        boolean isReservationVisible = true;
 
         // Get history of reservation request (only if it is not child reservation request)
         if (!isChildReservationRequest && userSession.isAdvancedUserInterface()) {
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
+            boolean historyItemisReservationVisible = true;
             for (ReservationRequestSummary historyItem :
                     reservationService.getReservationRequestHistory(securityToken, reservationRequestId)) {
-                Map<String, Object> item = new HashMap<String, Object>();
                 String historyItemId = historyItem.getId();
+                ReservationRequestType historyItemType = historyItem.getType();
+                AllocationState historyItemAllocationState = historyItem.getAllocationState();
+                ReservationRequestState historyItemState = ReservationRequestState.fromApi(historyItem);
+
+                Map<String, Object> item = new HashMap<String, Object>();
                 item.put("id", historyItemId);
                 item.put("dateTime", historyItem.getDateTime());
                 UserInformation user = cache.getUserInformation(securityToken, historyItem.getUserId());
                 item.put("user", user.getFullName());
-                item.put("type", historyItem.getType());
+                item.put("type", historyItemType);
+                item.put("isActive", (history.size() == 0 && !historyItemType.equals(ReservationRequestType.DELETED)));
+                item.put("isReservationVisible", historyItemisReservationVisible);
+                item.put("allocationState", historyItemAllocationState);
+                item.put("state", historyItemState);
+                history.add(item);
 
+                if (AllocationState.ALLOCATED.equals(historyItemAllocationState)) {
+                    // Reservation is visible only for reservation requests until first allocated
+                    historyItemisReservationVisible = false;
+                }
                 if (historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
-                    isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
-
-                AllocationState allocationState = historyItem.getAllocationState();
-                if (allocationState != null) {
-                    item.put("allocationState", allocationState);
-
-                    // Reservation is visible only for reservation requests until first allocated reservation request
-                    if (allocationState.equals(AllocationState.ALLOCATED) && currentHistoryItem == null) {
-                        hasVisibleReservation = false;
-                    }
-                }
-
-                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
-                item.put("state", state);
-
-                history.add(item);
             }
             if (currentHistoryItem == null) {
                 throw new RuntimeException("Reservation request " + reservationRequestId + " should exist in history.");
             }
-            currentHistoryItem.put("selected", true);
-
             modelAndView.addObject("history", history);
-            if (isActive) {
-                isActive = currentHistoryItem == history.get(0);
-            }
-        }
-        else {
-            // Child reservation requests don't have history
-            // and thus they are automatically active and have visible reservation
+            isActive = (Boolean) currentHistoryItem.get("isActive");
+            isReservationVisible = (Boolean) currentHistoryItem.get("isReservationVisible");
         }
 
-        // Get reservation
-        Reservation reservation = null;
-        if (hasVisibleReservation) {
-            reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
-        }
-
-        // Create reservation request model
-        ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                abstractReservationRequest, reservation, cacheProvider,
-                messageProvider, executableService, userSession);
-        reservationRequestModel.loadUserRoles(securityToken, authorizationService);
-
-        modelAndView.addObject("reservationRequest", reservationRequestModel);
         modelAndView.addObject("isActive", isActive);
+        modelAndView.addObject("isReservationVisible", isReservationVisible);
+        modelAndView.addObject("reservationRequest", getReservationRequestState(
+                securityToken, userSession, abstractReservationRequest, isReservationVisible));
 
         return modelAndView;
     }
@@ -144,26 +116,19 @@ public class DetailReservationRequestController extends AbstractDetailController
       */
     @RequestMapping(value = ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE, method = RequestMethod.GET)
     public ModelAndView handleDetailState(
+            SecurityToken securityToken,
                 UserSession userSession,
-                SecurityToken securityToken,
-                @PathVariable(value = "objectId") String reservationRequestId)
+                @PathVariable(value = "objectId") String reservationRequestId,
+                @PathVariable(value = "isReservationVisible") boolean isReservationVisible)
     {
         AbstractReservationRequest abstractReservationRequest =
             reservationService.getReservationRequest(securityToken, reservationRequestId);
-        Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
-
-        final Locale locale = userSession.getLocale();
-        final DateTimeZone timeZone = userSession.getTimeZone();
-        final MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
-        final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
-                        abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
-                        messageProvider, executableService, userSession);
 
         ModelAndView modelAndView = new ModelAndView("detailReservationRequestState");
-        modelAndView.addObject("reservationRequest", reservationRequestModel);
+        modelAndView.addObject("reservationRequest", getReservationRequestState(
+                securityToken, userSession, abstractReservationRequest, isReservationVisible));
         return modelAndView;
     }
-
 
     /**
      * Handle data request for children of reservation request.
@@ -330,5 +295,34 @@ public class DetailReservationRequestController extends AbstractDetailController
         data.put("sort-desc", sortDescending);
         data.put("items", usages);
         return data;
+    }
+
+    /**
+     * @param securityToken
+     * @param userSession
+     * @param reservationRequest
+     * @param isReservationVisible
+     * @return {@link cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel} state
+     */
+    public ReservationRequestDetailModel getReservationRequestState(SecurityToken securityToken,
+            UserSession userSession, AbstractReservationRequest reservationRequest, boolean isReservationVisible)
+    {
+        final Locale locale = userSession.getLocale();
+        final DateTimeZone timeZone = userSession.getTimeZone();
+        final CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        final MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
+
+        // Get reservation
+        Reservation reservation = null;
+        if (isReservationVisible) {
+            reservation = reservationRequest.getLastReservation(reservationService, securityToken);
+        }
+
+        // Create reservation request model
+        ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
+                reservationRequest, reservation, cacheProvider,
+                messageProvider, executableService, userSession);
+        reservationRequestModel.loadUserRoles(securityToken, authorizationService);
+        return reservationRequestModel;
     }
 }

@@ -22,8 +22,16 @@
                     <tag:url var="parentReservationRequestDetailUrl" value="${detailUrl}">
                         <tag:param name="objectId" value="${dependency.id}"/>
                     </tag:url>
-                    <a href="${parentReservationRequestDetailUrl}" tabindex="2">${dependency.description}</a>
-                    (<spring:message code="views.reservationRequestDelete.dateTime"/>&nbsp;<tag:format value="${dependency.dateTime}"/>)
+                    <a href="${parentReservationRequestDetailUrl}" tabindex="2">
+                        <c:choose>
+                            <c:when test="${not empty dependency.description}">
+                                ${dependency.description} (<tag:format value="${dependency.earliestSlot}"/>)
+                            </c:when>
+                            <c:otherwise>
+                                <tag:format value="${dependency.earliestSlot}"/>
+                            </c:otherwise>
+                        </c:choose>
+                    </a>
                 </li>
             </c:forEach>
         </ul>

@@ -52,20 +52,7 @@ public class AbstractDetailController
     protected Executable getExecutable(SecurityToken securityToken, String objectId)
     {
         String executableId = cache.getExecutableId(securityToken, objectId);
-
-        Executable executable;
-        if (executableId.contains(":rsv:")) {
-            Reservation reservation = reservationService.getReservation(securityToken, executableId);
-            executable = reservation.getExecutable();
-            if (executable == null) {
-                throw new UnsupportedApiException("Reservation " + executableId + " doesn't have executable.");
-            }
-        }
-        else {
-            executable = executableService.getExecutable(securityToken, executableId);
-        }
-
-        return executable;
+        return cache.getExecutable(securityToken, executableId);
     }
 
     protected AbstractRoomExecutable getRoomExecutable(SecurityToken securityToken, String objectId)

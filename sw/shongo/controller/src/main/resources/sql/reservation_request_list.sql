@@ -5,6 +5,7 @@
  */
 SELECT
     reservation_request_summary.id AS id,
+    reservation_request_summary.parent_reservation_request_id AS parent_reservation_request_id,
     CASE
         WHEN reservation_request_summary.modified_reservation_request_id IS NOT NULL THEN 'MODIFIED'
         ELSE 'NEW'
@@ -22,6 +23,7 @@ SELECT
     specification_summary.type AS specification_type,
     specification_summary.technologies AS specification_technologies,
     specification_summary.room_participant_count AS room_participant_count,
+    reservation_request_summary.room_recordable AS room_recordable,
     CASE
         WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
         ELSE reused_specification_summary.alias_room_name
@@ -35,6 +37,4 @@ LEFT JOIN specification_summary ON specification_summary.id = reservation_reques
 LEFT JOIN abstract_reservation_request AS reused_reservation_request ON reused_reservation_request.id = reservation_request_summary.reused_reservation_request_id
 LEFT JOIN specification_summary AS reused_specification_summary ON reused_specification_summary.id = reused_reservation_request.specification_id
 WHERE ${filter}
-    /* List only latest versions of a reservation requests (no it's modifications or deleted requests) */
-    AND reservation_request_summary.state = 'ACTIVE'
 ORDER BY ${order}

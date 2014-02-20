@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
 import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.person.UserPerson;
+import cz.cesnet.shongo.controller.booking.recording.RecordingService;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
@@ -464,6 +465,12 @@ public abstract class RoomEndpoint extends Endpoint
         }
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
         abstractRoomExecutableApi.setDescription(roomDescription);
+        for (ExecutableService service : services) {
+            if (service instanceof RecordingService) {
+                abstractRoomExecutableApi.setRecordable(true);
+                break;
+            }
+        }
 
         // We must compute the original time slot
         abstractRoomExecutableApi.setOriginalSlot(getOriginalSlot());

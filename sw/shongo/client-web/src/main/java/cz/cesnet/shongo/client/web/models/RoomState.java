@@ -99,7 +99,7 @@ public enum RoomState
      * @param roomUsageState
      * @return {@link RoomState}
      */
-    public static RoomState fromRoomState(ExecutableState roomState, int roomLicenseCount, ExecutableState roomUsageState)
+    public static RoomState fromRoomState(ExecutableState roomState, Integer roomLicenseCount, ExecutableState roomUsageState)
     {
         switch (roomState) {
             case NOT_STARTED:
@@ -109,7 +109,7 @@ public enum RoomState
                     // Permanent room with earliest usage
                     return roomUsageState.isAvailable() ? STARTED_AVAILABLE : STARTED_NOT_AVAILABLE;
                 }
-                else if (roomLicenseCount == 0) {
+                else if (roomLicenseCount == null || roomLicenseCount == 0) {
                     // Permanent room without earliest usage
                     return STARTED_NOT_AVAILABLE;
                 }

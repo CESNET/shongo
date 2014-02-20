@@ -10,69 +10,14 @@
 
 <%@attribute name="reservationRequest" required="false"
              type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
-<%@attribute name="isActive" required="true" type="java.lang.Boolean" %>
 <%@attribute name="detailUrl" required="false" %>
 
-<c:set var="reservationRequestDetail" value="${reservationRequest.detail}"/>
 <tag:url var="userListUrl" value="<%= ClientWebUrl.USER_LIST_DATA %>"/>
 
 <script type="text/javascript">
     angular.provideModule('tag:reservationRequestDetail', ['ngTooltip', 'ngResource', 'ngSanitize']);
 
-    function DynamicStateController($scope, $application, $resource, $sce, $timeout) {
-        // Setup child scope
-        if ( $scope.$parent != null ) {
-            $scope.$parent.$child = $scope;
-        }
-
-        // Default requested slot
-        $scope.requestedSlot = "<tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/>";
-        $scope.roomParticipants = [<c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
-            { name: "${participant.name}", role: "<spring:message code="views.participant.role.${participant.role}"/>" }<c:if test="${!status.last}">,</c:if>
-            </c:forEach>
-        ];
-        <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.stateHelp)" var="stateHelp"/>
-            // Default ReservationRequestState
-            $scope.state = {
-                code: "${reservationRequestDetail.state}",
-                label: "<spring:message code="views.reservationRequest.state.${reservationRequestDetail.specificationType}.${reservationRequestDetail.state}"/>",
-                help: "${stateHelp}"
-            };
-        </c:if>
-        <c:if test="${reservationRequestDetail != null && reservationRequestDetail.allocationState != null}">
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.allocationStateHelp)" var="allocationStateHelp"/>
-            // Default AllocationState
-            $scope.allocationState = {
-                code: "${reservationRequestDetail.allocationState}",
-                label: "<spring:message code="views.reservationRequest.allocationState.${reservationRequestDetail.allocationState}"/>",
-                help: "${allocationStateHelp}"
-            };
-        </c:if>
-        <c:if test="${reservationRequestDetail != null && reservationRequestDetail.room != null}">
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.aliases)" var="roomAliases"/>
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.aliasesDescription)" var="roomAliasesDescription"/>
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequestDetail.room.stateReport)" var="roomStateReport"/>
-            // Default room id and slot
-            $scope.roomId = "${reservationRequestDetail.room.id}";
-            $scope.roomSlot = "<tag:format value="${reservationRequestDetail.room.slot}" multiline="true" pre="${reservationRequestDetail.room.slotBefore}" post="${reservationRequestDetail.room.slotAfter}"/>";
-            $scope.roomName = "${reservationRequestDetail.room.name}";
-            $scope.roomLicenseCount = "${reservationRequestDetail.room.licenseCount}";
-            $scope.roomAliases = "${roomAliases}";
-            $scope.roomAliasesDescription = "${roomAliasesDescription}";
-            // Default  RoomState
-            $scope.roomState = {
-                code: "${reservationRequestDetail.room.state}",
-                started: ${reservationRequestDetail.room.state.started},
-                label: "<spring:message code="views.executable.roomState.${reservationRequestDetail.room.type}.${reservationRequestDetail.room.state}"/>",
-                help: "<spring:message code="views.executable.roomStateHelp.${reservationRequestDetail.room.type}.${reservationRequestDetail.room.state}"/>",
-                report: "${roomStateReport}"
-            };
-        </c:if>
-
-        $scope.html = function(html) {
-            return $sce.trustAsHtml(html);
-        };
+    function DynamicStateController($scope, $application, $sce) {
         $scope.formatGroup = function(groupId, event) {
             $.ajax("${userListUrl}?groupId=" + groupId, {
                 dataType: "json"
@@ -86,7 +31,12 @@
     }
 
     function MoreDetailController($scope) {
-        $scope.show = false;
+        if (window.reservationRequestDetail == null) {
+            window.reservationRequestDetail = {
+                show: false
+            };
+        }
+        $scope.$context = window.reservationRequestDetail;
     }
 </script>
 
@@ -156,14 +106,16 @@
     </c:if>
 
     <%-- Requested/allocated time slot --%>
-    <div ng-show="allocationState.code == 'ALLOCATED' && roomId">
-        <dt><spring:message code="views.reservationRequest.room.slot"/>:</dt>
-        <dd><span ng-bind-html="html(roomSlot)"></span></dd>
-    </div>
-    <div ng-show="allocationState.code != 'ALLOCATED' || !roomId">
-        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
-        <dd><span ng-bind-html="html(requestedSlot)"></span></dd>
-    </div>
+    <c:choose>
+        <c:when test="${reservationRequest.detail != null && reservationRequest.detail.allocationState == 'ALLOCATED' && reservationRequest.detail.room != null}">
+            <dt><spring:message code="views.reservationRequest.room.slot"/>:</dt>
+            <dd><tag:format value="${reservationRequest.detail.room.slot}" multiline="true" pre="${reservationRequest.detail.room.slotBefore}" post="${reservationRequest.detail.room.slotAfter}"/></dd>
+        </c:when>
+        <c:otherwise>
+            <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+            <dd><tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
+        </c:otherwise>
+    </c:choose>
 
     <%-- Periodicity --%>
     <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
@@ -189,29 +141,32 @@
     </c:if>
 
     <%-- Description --%>
-    <dt><spring:message code="views.reservationRequest.description"/>:</dt>
-    <dd>${reservationRequest.description}</dd>
+    <c:if test="${not empty reservationRequest.description}">
+        <dt><spring:message code="views.reservationRequest.description"/>:</dt>
+        <dd>${reservationRequest.description}</dd>
+    </c:if>
 
     <%-- State --%>
-    <div ng-show="state">
+    <c:if test="${reservationRequest.detail != null && reservationRequest.detail.state != null}">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
-            <tag:help label="{{state.label}}" cssClass="{{state.code}}">
-                <span ng-bind-html="html(state.help)"></span>
+            <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${reservationRequest.detail.state}" var="stateLabel"/>
+            <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}">
+                <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.stateHelp)"/>
             </tag:help>
         </dd>
-    </div>
+    </c:if>
 
     <%-- How to reach --%>
-    <div ng-show="roomAliases">
+    <c:if test="${reservationRequest.detail != null && reservationRequest.detail.room != null && not empty reservationRequest.detail.room.aliases}">
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <c:set var="roomAliases"><span ng-bind-html="html(roomAliases)"></span></c:set>
+            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.aliases)" var="roomAliases"/>
             <tag:help label="${roomAliases}" selectable="true">
-                <span ng-bind-html="html(roomAliasesDescription)"></span>
+                <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.aliasesDescription)"/>
             </tag:help>
         </dd>
-    </div>
+    </c:if>
 
     <%-- User roles --%>
     <c:if test="${not empty reservationRequest.userRoles}">
@@ -238,12 +193,12 @@
     <%-- Participants --%>
     <dt><spring:message code="views.reservationRequest.participants"/>:</dt>
     <dd>
-        <span ng-repeat="roomParticipant in roomParticipants">
-            {{roomParticipant.name}} ({{roomParticipant.role}}){{$last ? '' : ', '}}
-        </span>
-        <span ng-hide="roomParticipants.length">
+        <c:forEach items="${reservationRequest.roomParticipants}" var="participant" varStatus="status">
+            ${participant.name} (<spring:message code="views.participant.role.${participant.role}"/>)<c:if test="${!status.last}">, </c:if>
+        </c:forEach>
+        <c:if test="${empty reservationRequest.roomParticipants}">
             <spring:message code="views.reservationRequest.participants.none"/>
-        </span>
+        </c:if>
     </dd>
 
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
@@ -264,53 +219,60 @@
     </c:if>
 
     <%-- Show more detail --%>
-    <c:if test="${reservationRequestDetail != null}">
+    <c:if test="${reservationRequest.detail != null}">
 
         <div ng-controller="MoreDetailController">
 
-            <div ng-show="show">
+            <div ng-show="$context.show">
 
                 <hr/>
 
-                <div ng-show="allocationState.code">
+                <c:if test="${reservationRequest.detail.allocationState != null}">
                     <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
                     <dd class="allocation-state">
-                        <tag:help label="{{allocationState.label}}" cssClass="{{allocationState.code}}">
-                            <span ng-bind-html="html(allocationState.help)"></span>
+                        <spring:message code="views.reservationRequest.allocationState.${reservationRequest.detail.allocationState}" var="allocationStateLabel"/>
+                        <tag:help label="${allocationStateLabel}" cssClass="${reservationRequest.detail.allocationState}">
+                            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.allocationStateHelp)"/>
                         </tag:help>
                     </dd>
-                </div>
-
-                <div ng-show="roomState.code">
-                    <dt><spring:message code="views.room.state"/>:</dt>
-                    <dd class="room-state">
-                        <tag:help label="{{roomState.label}}" cssClass="{{roomState.code}}">
-                            <span>{{roomState.help}}</span>
-                            <pre ng-show="roomState.report">{{roomState.report}}</pre>
-                        </tag:help>
-                    </dd>
-                </div>
-
-                <div ng-show="allocationState.code != 'ALLOCATED' && roomId">
-                    <dt><spring:message code="views.reservationRequest.room.slot"/>:</dt>
-                    <dd><span ng-bind-html="html(roomSlot)"></span></dd>
-                </div>
-                <div ng-show="allocationState.code == 'ALLOCATED' && roomId">
-                    <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
-                    <dd><span ng-bind-html="html(requestedSlot)"></span></dd>
-                </div>
-
-                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
-                    <div ng-show="roomName">
-                        <dt><spring:message code="views.reservationRequest.room.name"/>:</dt>
-                        <dd>{{roomName}}</dd>
-                    </div>
                 </c:if>
 
-                <div ng-show="roomLicenseCount">
+                <c:if test="${reservationRequest.detail.room != null}">
+                    <dt><spring:message code="views.room.state"/>:</dt>
+                    <dd class="room-state">
+                        <spring:message code="views.executable.roomState.${reservationRequest.detail.room.type}.${reservationRequest.detail.room.state}" var="roomStateLabel"/>
+                        <tag:help label="${roomStateLabel}" cssClass="${reservationRequest.detail.room.state}">
+                            <span><spring:message code="views.executable.roomStateHelp.${reservationRequest.detail.room.type}.${reservationRequest.detail.room.state}"/></span>
+                            <c:if test="${not empty reservationRequest.detail.room.stateReport}">
+                                <pre>
+                                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.stateReport)"/>
+                                </pre>
+                            </c:if>
+                        </tag:help>
+                    </dd>
+                </c:if>
+
+                <c:choose>
+                    <c:when test="${reservationRequest.detail.allocationState != 'ALLOCATED' && reservationRequest.detail.room != null}">
+                        <dt><spring:message code="views.reservationRequest.room.slot"/>:</dt>
+                        <dd><tag:format value="${reservationRequest.detail.room.slot}" multiline="true" pre="${reservationRequest.detail.room.slotBefore}" post="${reservationRequest.detail.room.slotAfter}"/></dd>
+                    </c:when>
+                    <c:when test="${reservationRequest.detail.allocationState == 'ALLOCATED' && reservationRequest.detail.room != null}">
+                        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+                        <dd><tag:format value="${reservationRequest.slot}" multiline="true"  pre="${reservationRequest.slotBefore}" post="${reservationRequest.slotAfter}"/></dd>
+                    </c:when>
+
+                </c:choose>
+
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY' && reservationRequest.detail.room != null}">
+                    <dt><spring:message code="views.reservationRequest.room.name"/>:</dt>
+                    <dd>${reservationRequest.detail.room.name}</dd>
+                </c:if>
+
+                <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.detail.room != null}">
                     <dt><spring:message code="views.reservationRequest.room.licenseCount"/>:</dt>
-                    <dd>{{roomLicenseCount}}</dd>
-                </div>
+                    <dd>${reservationRequest.detail.room.licenseCount}</dd>
+                </c:if>
 
                 <c:if test="${not empty reservationRequest.id}">
                     <dt><spring:message code="views.reservationRequest.identifier"/>:</dt>
@@ -321,8 +283,8 @@
 
             <dt></dt>
             <dd>
-                <a href="" ng-click="show = true" ng-show="!show"><spring:message code="views.button.showMoreDetail"/></a>
-                <a href="" ng-click="show = false" ng-show="show"><spring:message code="views.button.hideMoreDetail"/></a>
+                <a href="" ng-click="$context.show = true" ng-show="!$context.show"><spring:message code="views.button.showMoreDetail"/></a>
+                <a href="" ng-click="$context.show = false" ng-show="$context.show"><spring:message code="views.button.hideMoreDetail"/></a>
             </dd>
 
         </div>

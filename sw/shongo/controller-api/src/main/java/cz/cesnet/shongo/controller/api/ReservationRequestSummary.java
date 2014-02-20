@@ -17,6 +17,11 @@ import java.util.*;
 public class ReservationRequestSummary extends IdentifiedComplexType
 {
     /**
+     * Parent reservation request identifier.
+     */
+    private String parentReservationRequestId;
+
+    /**
      * @see ReservationRequestType
      */
     private ReservationRequestType type;
@@ -101,6 +106,27 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * Specification name of the room.
      */
     private String roomName;
+
+    /**
+     * Specifies whether room has recording service.
+     */
+    private boolean roomRecordable;
+
+    /**
+     * @return {@link #parentReservationRequestId}
+     */
+    public String getParentReservationRequestId()
+    {
+        return parentReservationRequestId;
+    }
+
+    /**
+     * @param parentReservationRequestId sets the {@link #parentReservationRequestId}
+     */
+    public void setParentReservationRequestId(String parentReservationRequestId)
+    {
+        this.parentReservationRequestId = parentReservationRequestId;
+    }
 
     /**
      * @return {@link #type}
@@ -271,6 +297,17 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #lastReservationId}
+     */
+    public String getAllocatedReservationId()
+    {
+        if (allocationState.equals(AllocationState.NOT_ALLOCATED)) {
+            return null;
+        }
+        return lastReservationId;
+    }
+
+    /**
      * @param reservationId sets the {@link #lastReservationId}
      */
     public void setLastReservationId(String reservationId)
@@ -382,6 +419,23 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         this.roomName = roomName;
     }
 
+    /**
+     * @return {@link #roomRecordable}
+     */
+    public boolean isRoomRecordable()
+    {
+        return roomRecordable;
+    }
+
+    /**
+     * @param roomRecordable sets the {@link #roomRecordable}
+     */
+    public void setRoomRecordable(boolean roomRecordable)
+    {
+        this.roomRecordable = roomRecordable;
+    }
+
+    private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
     private static final String USER_ID = "userId";
@@ -399,11 +453,13 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_PARTICIPANT_COUNT = "roomParticipantCount";
     private static final String ROOM_NAME = "roomName";
+    private static final String ROOM_RECORDABLE = "roomRecordable";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(TYPE, type);
         dataMap.set(DATETIME, dateTime);
         dataMap.set(USER_ID, userId);
@@ -421,6 +477,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_PARTICIPANT_COUNT, roomParticipantCount);
         dataMap.set(ROOM_NAME, roomName);
+        dataMap.set(ROOM_RECORDABLE, roomRecordable);
         return dataMap;
     }
 
@@ -428,6 +485,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         type = dataMap.getEnum(TYPE, ReservationRequestType.class);
         dateTime = dataMap.getDateTime(DATETIME);
         userId = dataMap.getString(USER_ID);
@@ -445,16 +503,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         resourceId = dataMap.getString(RESOURCE_ID);
         roomParticipantCount = dataMap.getInteger(ROOM_PARTICIPANT_COUNT);
         roomName = dataMap.getString(ROOM_NAME);
-    }
-
-    @Override
-    public String toString()
-    {
-        return getClass().getSimpleName() + "{id=" + id
-                + ", type=" + specificationType
-                + ", reused=" + reusedReservationRequestId
-                + ", technology=" + specificationTechnologies
-                +"}";
+        roomRecordable = dataMap.getBool(ROOM_RECORDABLE);
     }
 
     /**

@@ -485,11 +485,11 @@ public class ExecutableManager extends AbstractManager
                 "SELECT INDEX(recordingFolder), recordingFolder FROM ResourceRoomEndpoint roomEndpoint"
                         + " LEFT JOIN roomEndpoint.recordingFolderIds AS recordingFolder"
                         + " WHERE INDEX(recordingFolder) IS NOT NULL"
-                        + " AND (roomEndpoint = :executable OR roomEndpoint IN("
+                        + " AND (roomEndpoint.id = :executableId OR roomEndpoint IN("
                         + "   SELECT usedRoomEndpoint.reusedRoomEndpoint FROM UsedRoomEndpoint usedRoomEndpoint"
-                        + "   WHERE usedRoomEndpoint = :executable"
+                        + "   WHERE usedRoomEndpoint.id = :executableId"
                         + "))", Object[].class)
-                .setParameter("executable", executable)
+                .setParameter("executableId", executable.getId())
                 .getResultList();
         for (Object[] result : results) {
             RecordingCapability recordingCapability = (RecordingCapability) result[0];

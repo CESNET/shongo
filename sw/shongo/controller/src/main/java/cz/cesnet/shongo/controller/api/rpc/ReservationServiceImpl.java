@@ -580,72 +580,77 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
                 queryFilter.addFilterParameter("reservationRequestIds", reservationRequestIds);
             }
-
-            // List only child reservation requests for specified parent reservation request
-            String parentReservationRequestId = request.getParentReservationRequestId();
-            if (parentReservationRequestId != null) {
-                queryFilter.addFilter("reservation_request.parent_allocation_id IN("
-                        + " SELECT DISTINCT abstract_reservation_request.allocation_id"
-                        + " FROM abstract_reservation_request "
-                        + " WHERE abstract_reservation_request.id = :parentReservationRequestId)");
-                queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseId(
-                        cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
-                        parentReservationRequestId));
-            }
+            // Else other filters
             else {
-                // List only top reservation requests (no child requests created for a set of reservation requests)
-                queryFilter.addFilter("reservation_request.parent_allocation_id IS NULL");
-            }
+                // List only latest versions of a reservation requests (no it's modifications or deleted requests)
+                queryFilter.addFilter("reservation_request_summary.state = 'ACTIVE'");
 
-            // List only reservation requests which specifies given technologies
-            if (request.getTechnologies().size() > 0) {
-                queryFilter.addFilter("reservation_request_summary.id IN ("
-                        + "  SELECT DISTINCT abstract_reservation_request.id"
-                        + "  FROM abstract_reservation_request"
-                        + "  LEFT JOIN specification_technologies ON specification_technologies.specification_id = "
-                        + "            abstract_reservation_request.specification_id"
-                        + "  WHERE specification_technologies.technologies IN(:technologies))");
-                queryFilter.addFilterParameter("technologies", request.getTechnologies());
-            }
-
-            // List only reservation requests which has specification of given classes
-            if (request.getSpecificationTypes().size() > 0) {
-                StringBuilder specificationTypes = new StringBuilder();
-                for (ReservationRequestSummary.SpecificationType type : request.getSpecificationTypes()) {
-                    if (specificationTypes.length() > 0) {
-                        specificationTypes.append(",");
-                    }
-                    specificationTypes.append("'");
-                    specificationTypes.append(type);
-                    specificationTypes.append("'");
-                }
-                queryFilter.addFilter("specification_summary.type IN(" + specificationTypes.toString() + ")");
-            }
-
-            String reusedReservationRequestId = request.getReusedReservationRequestId();
-            if (reusedReservationRequestId != null) {
-                if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
-                    // List only reservation requests which hasn't reused any reservation request
-                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NULL");
-                }
-                else if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
-                    // List only reservation requests which reuse any reservation request
-                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NOT NULL");
+                // List only child reservation requests for specified parent reservation request
+                String parentReservationRequestId = request.getParentReservationRequestId();
+                if (parentReservationRequestId != null) {
+                    queryFilter.addFilter("reservation_request.parent_allocation_id IN("
+                            + " SELECT DISTINCT abstract_reservation_request.allocation_id"
+                            + " FROM abstract_reservation_request "
+                            + " WHERE abstract_reservation_request.id = :parentReservationRequestId)");
+                    queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseId(
+                            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
+                            parentReservationRequestId));
                 }
                 else {
-                    // List only reservation requests which reuse given reservation request
-                    Long persistenceId = ObjectIdentifier.parseId(
-                            ReservationRequest.class, reusedReservationRequestId);
-                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
-                            + ":reusedReservationRequestId");
-                    queryFilter.addFilterParameter("reusedReservationRequestId", persistenceId);
+                    // List only top reservation requests (no child requests created for a set of reservation requests)
+                    queryFilter.addFilter("reservation_request.parent_allocation_id IS NULL");
                 }
-            }
 
-            AllocationState allocationState = request.getAllocationState();
-            if (allocationState != null) {
-                queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");
-                queryFilter.addFilterParameter("allocationState", allocationState.toString());
+                // List only reservation requests which specifies given technologies
+                if (request.getTechnologies().size() > 0) {
+                    queryFilter.addFilter("reservation_request_summary.id IN ("
+                            + "  SELECT DISTINCT abstract_reservation_request.id"
+                            + "  FROM abstract_reservation_request"
+                            + "  LEFT JOIN specification_technologies ON specification_technologies.specification_id = "
+                            + "            abstract_reservation_request.specification_id"
+                            + "  WHERE specification_technologies.technologies IN(:technologies))");
+                    queryFilter.addFilterParameter("technologies", request.getTechnologies());
+                }
+
+                // List only reservation requests which has specification of given classes
+                if (request.getSpecificationTypes().size() > 0) {
+                    StringBuilder specificationTypes = new StringBuilder();
+                    for (ReservationRequestSummary.SpecificationType type : request.getSpecificationTypes()) {
+                        if (specificationTypes.length() > 0) {
+                            specificationTypes.append(",");
+                        }
+                        specificationTypes.append("'");
+                        specificationTypes.append(type);
+                        specificationTypes.append("'");
+                    }
+                    queryFilter.addFilter("specification_summary.type IN(" + specificationTypes.toString() + ")");
+                }
+
+                String reusedReservationRequestId = request.getReusedReservationRequestId();
+                if (reusedReservationRequestId != null) {
+                    if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
+                        // List only reservation requests which hasn't reused any reservation request
+                        queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NULL");
+                    }
+                    else if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
+                        // List only reservation requests which reuse any reservation request
+                        queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NOT NULL");
+                    }
+                    else {
+                        // List only reservation requests which reuse given reservation request
+                        Long persistenceId = ObjectIdentifier.parseId(
+                                ReservationRequest.class, reusedReservationRequestId);
+                        queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
+                                + ":reusedReservationRequestId");
+                        queryFilter.addFilterParameter("reusedReservationRequestId", persistenceId);
+                    }
+                }
+
+                AllocationState allocationState = request.getAllocationState();
+                if (allocationState != null) {
+                    queryFilter.addFilter("reservation_request_summary.allocation_state = :allocationState");
+                    queryFilter.addFilterParameter("allocationState", allocationState.toString());
+                }
             }
 
             // Query order by
@@ -1065,73 +1070,80 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
         reservationRequestSummary.setId(ObjectIdentifier.formatId(
                 ObjectType.RESERVATION_REQUEST, record[0].toString()));
-        reservationRequestSummary.setType(ReservationRequestType.valueOf(record[1].toString().trim()));
-        reservationRequestSummary.setDateTime(new DateTime(record[2]));
-        reservationRequestSummary.setUserId(record[3].toString());
-        reservationRequestSummary.setDescription(record[4] != null ? record[4].toString() : null);
-        reservationRequestSummary.setPurpose(ReservationRequestPurpose.valueOf(record[5].toString().trim()));
+        if (record[1] != null) {
+            reservationRequestSummary.setParentReservationRequestId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION_REQUEST, record[1].toString()));
+        }
+        reservationRequestSummary.setType(ReservationRequestType.valueOf(record[2].toString().trim()));
+        reservationRequestSummary.setDateTime(new DateTime(record[3]));
+        reservationRequestSummary.setUserId(record[4].toString());
+        reservationRequestSummary.setDescription(record[5] != null ? record[5].toString() : null);
+        reservationRequestSummary.setPurpose(ReservationRequestPurpose.valueOf(record[6].toString().trim()));
         reservationRequestSummary.setEarliestSlot(new Interval(
-                new DateTime(record[6]), new DateTime(record[7])));
-        if (record[8] != null) {
+                new DateTime(record[7]), new DateTime(record[8])));
+        if (record[9] != null) {
             reservationRequestSummary.setAllocationState(
                     ReservationRequest.AllocationState.valueOf(
-                            record[8].toString().trim()).toApi());
-        }
-        if (record[9] != null) {
-            reservationRequestSummary.setExecutableState(
-                    Executable.State.valueOf(
                             record[9].toString().trim()).toApi());
         }
-        reservationRequestSummary.setReusedReservationRequestId(record[10] != null ?
-                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[10].toString()) : null);
-        if (record[11] != null) {
-            reservationRequestSummary.setLastReservationId(ObjectIdentifier.formatId(
-                    ObjectType.RESERVATION, record[11].toString()));
+        if (record[10] != null) {
+            reservationRequestSummary.setExecutableState(
+                    Executable.State.valueOf(
+                            record[10].toString().trim()).toApi());
         }
-        String type = record[12].toString().trim();
+        reservationRequestSummary.setReusedReservationRequestId(record[11] != null ?
+                ObjectIdentifier.formatId(ObjectType.RESERVATION_REQUEST, record[11].toString()) : null);
+        if (record[12] != null) {
+            reservationRequestSummary.setLastReservationId(ObjectIdentifier.formatId(
+                    ObjectType.RESERVATION, record[12].toString()));
+        }
+        String type = record[13].toString().trim();
         if (type.equals("ALIAS")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ALIAS);
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+            reservationRequestSummary.setRoomName(record[16] != null ? record[16].toString() : null);
         }
         else if (type.equals("ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
             reservationRequestSummary.setRoomParticipantCount(
-                    record[14] != null ? ((Number) record[14]).intValue() : null);
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+                    record[15] != null ? ((Number) record[15]).intValue() : null);
+            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
         }
         else if (type.equals("PERMANENT_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
         }
         else if (type.equals("USED_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
             reservationRequestSummary.setRoomParticipantCount(
-                    record[14] != null ? ((Number) record[14]).intValue() : null);
-            reservationRequestSummary.setRoomName(record[15] != null ? record[15].toString() : null);
+                    record[15] != null ? ((Number) record[15]).intValue() : null);
+            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
             reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
-                    ObjectType.RESOURCE, ((Number) record[16]).longValue()));
+                    ObjectType.RESOURCE, ((Number) record[18]).longValue()));
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
         }
-        if (record[13] != null) {
-            String technologies = record[13].toString();
+        if (record[14] != null) {
+            String technologies = record[14].toString();
             if (!technologies.isEmpty()) {
                 for (String technology : technologies.split(",")) {
                     reservationRequestSummary.addSpecificationTechnology(Technology.valueOf(technology.trim()));
                 }
             }
         }
-        if (record[17] != null) {
+        if (record[19] != null) {
             reservationRequestSummary.setUsageExecutableState(
                     cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                            record[17].toString().trim()).toApi());
+                            record[19].toString().trim()).toApi());
         }
-        if (record[18] != null) {
-            reservationRequestSummary.setFutureSlotCount(((Number) record[18]).intValue());
+        if (record[20] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number) record[20]).intValue());
         }
         return reservationRequestSummary;
     }

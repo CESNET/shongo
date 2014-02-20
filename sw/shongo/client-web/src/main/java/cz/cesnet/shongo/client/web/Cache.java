@@ -478,7 +478,16 @@ public class Cache
         else {
             if (objectId.contains(":req:")) {
                 ReservationRequestSummary reservationRequest = getReservationRequestSummary(securityToken, objectId);
-                objectId = reservationRequest.getLastReservationId();
+                AllocationState allocationState = reservationRequest.getAllocationState();
+                String reservationId = reservationRequest.getAllocatedReservationId();
+                if (reservationId == null) {
+                    reservationRequest = getReservationRequestSummaryNotCached(securityToken, objectId);
+                    reservationId = reservationRequest.getAllocatedReservationId();
+                    if (objectId == null) {
+                        throw new TodoImplementException("Reservation doesn't exist.");
+                    }
+                }
+                objectId = reservationId;
             }
             if (objectId.contains(":rsv:")) {
                 Reservation reservation = getReservation(securityToken, objectId);

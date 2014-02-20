@@ -8,6 +8,7 @@
     /* Select new and modified versions of reservation request */
     SELECT
         reservation_request_summary.id AS id,
+        reservation_request_summary.parent_reservation_request_id AS parent_reservation_request_id,
         CASE
             WHEN reservation_request_summary.modified_reservation_request_id IS NOT NULL THEN 'MODIFIED'
             ELSE 'NEW'
@@ -25,6 +26,7 @@
         specification_summary.type AS specification_type,
         specification_summary.technologies AS specification_technologies,
         specification_summary.room_participant_count AS room_participant_count,
+        reservation_request_summary.room_recordable AS room_recordable,
         specification_summary.alias_room_name AS alias_room_name,
         specification_summary.resource_id AS resource_id,
         reservation_request_summary.usage_executable_state AS usage_executable_state,
@@ -39,6 +41,7 @@ UNION ALL (
     /* Select deleted version of reservation request */
     SELECT
         reservation_request_summary.id AS id,
+        reservation_request_summary.parent_reservation_request_id AS parent_reservation_request_id,
         'DELETED' AS type,
         reservation_request_summary.updated_at AS created_at,
         reservation_request_summary.updated_by AS created_by,
@@ -53,6 +56,7 @@ UNION ALL (
         specification_summary.type AS specification_type,
         specification_summary.technologies AS specification_technologies,
         specification_summary.room_participant_count AS room_participant_count,
+        reservation_request_summary.room_recordable AS room_recordable,
         specification_summary.alias_room_name AS alias_room_name,
         specification_summary.resource_id AS resource_id,
         reservation_request_summary.usage_executable_state AS usage_executable_state,
