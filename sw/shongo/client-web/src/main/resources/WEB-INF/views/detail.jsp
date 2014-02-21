@@ -4,8 +4,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<jsp:include page="../templates/roomParticipantDialog.jsp"/>
-
 <script type="text/javascript">
     var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
     module.controller("DetailController", function($scope, $timeout){
@@ -139,6 +137,8 @@
 </script>
 
 <div ng-app="jsp:detail" ng-controller="DetailController">
+
+    <jsp:include page="../templates/roomParticipantDialog.jsp"/>
 
     <h1>${titleDescription}</h1>
 

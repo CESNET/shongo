@@ -99,7 +99,6 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
         if (active) {
             if ($scope.disabled) {
                 $scope.active = false;
-                console.debug($scope);
                 return;
             }
             $scope.inited = true;
@@ -188,6 +187,8 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
     function loadContent(scope){
         // Hide all tooltips
         $('.qtip-app').qtip('hide');
+        // Hide all select2 drop boxes
+        $('.select2-drop').hide();
 
         // Load new content
         $http.get(scope.contentUrl).success(function (html) {

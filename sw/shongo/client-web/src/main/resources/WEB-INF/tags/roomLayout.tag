@@ -11,7 +11,6 @@
         function formatRoomLayout(roomLayout) {
             return "<span class='" + roomLayout.id + "'>" + roomLayout.text +"</span>";
         }
-        console.debug(document.getElementById("${id}"), "${id}", $("#${id}"), $("#${id}").size());
         $("#${id}").select2({
         <c:if test="${not empty width}">
             width: "${width}",
@@ -52,9 +51,9 @@
     <c:otherwise>
         <script type="text/javascript">
             ${javascript}
-            $(function () {
+            setTimeout(function(){
                 tagRoomLayout_${id}Init();
-            });
+            },0);
         </script>
         ${html}
     </c:otherwise>
