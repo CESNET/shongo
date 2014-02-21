@@ -195,7 +195,7 @@ public class ReservationListController
                     item.put("roomReservationRequestId", reusedReservationRequestId);
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
-                            "views.reservationRequest.specification.roomParticipantCountMessage",
+                            "views.room.participants.value",
                             new Object[]{reservationRequest.getRoomParticipantCount()}, locale));
 
                     ReservationRequestSummary reusedReservationRequest =
@@ -213,7 +213,7 @@ public class ReservationListController
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
                     item.put("roomParticipantCount", reservationRequest.getRoomParticipantCount());
                     item.put("roomParticipantCountMessage", messageSource.getMessage(
-                            "views.reservationRequest.specification.roomParticipantCountMessage",
+                            "views.room.participants.value",
                             new Object[]{reservationRequest.getRoomParticipantCount()}, locale));
                     break;
                 }

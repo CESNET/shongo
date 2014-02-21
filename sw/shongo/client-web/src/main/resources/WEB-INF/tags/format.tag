@@ -49,6 +49,9 @@
             value = dateTimeFormatter.formatInterval((Interval) value);
         }
     }
+    else if (value instanceof Period) {
+        value = dateTimeFormatter.formatDuration((Period) value);
+    }
     else if (value instanceof Duration) {
         if (style != null && style.equals("time")) {
             value = dateTimeFormatter.formatDurationTime((Duration) value);

@@ -200,11 +200,11 @@
         </c:if>
     </dd>
 
+    <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
+    <dd>
+        <spring:message code="views.button.${reservationRequest.roomParticipantNotificationEnabled ? 'yes' : 'no'}"/>
+    </dd>
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
-        <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
-        <dd>
-            <spring:message code="views.button.yes"/>
-        </dd>
         <dt><spring:message code="views.reservationRequest.specification.roomMeetingName"/>:</dt>
         <dd>
             ${reservationRequest.roomMeetingName}

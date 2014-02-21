@@ -682,19 +682,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
         // Room duration
         if (!specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
-            int minutes = duration.toStandardMinutes().getMinutes();
-            if ((minutes % (60 * 24)) == 0) {
-                durationCount = minutes / (60 * 24);
-                durationType = DurationType.DAY;
-            }
-            else if ((minutes % 60) == 0) {
-                durationCount = minutes / 60;
-                durationType = DurationType.HOUR;
-            }
-            else {
-                durationCount = minutes;
-                durationType = DurationType.MINUTE;
-            }
+            setDuration(duration);
         }
     }
 
@@ -827,6 +815,33 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
+     * @param duration
+     */
+    public void setDuration(Period duration)
+    {
+        switch (specificationType) {
+            case ADHOC_ROOM:
+            case PERMANENT_ROOM_CAPACITY:
+                int minutes = duration.toStandardMinutes().getMinutes();
+                if ((minutes % (60 * 24)) == 0) {
+                    durationCount = minutes / (60 * 24);
+                    durationType = DurationType.DAY;
+                }
+                else if ((minutes % 60) == 0) {
+                    durationCount = minutes / 60;
+                    durationType = DurationType.HOUR;
+                }
+                else {
+                    durationCount = minutes;
+                    durationType = DurationType.MINUTE;
+                }
+                break;
+            default:
+                throw new TodoImplementException(specificationType);
+        }
+    }
+
+    /**
      * @return requested reservation date/time slot as {@link Interval}
      */
     public Interval getSlot()
@@ -911,7 +926,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * @param detailUrl
      * @param specificationType
      * @param parentReservationRequestId
      * @param permanentRoomReservationRequestId

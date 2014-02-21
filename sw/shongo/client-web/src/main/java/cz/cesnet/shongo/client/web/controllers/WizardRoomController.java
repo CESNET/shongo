@@ -10,6 +10,7 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
+import cz.cesnet.shongo.client.web.support.editors.PeriodEditor;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
@@ -21,6 +22,7 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -107,6 +109,7 @@ public class WizardRoomController extends WizardParticipantsController
     public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
     {
         binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+        binder.registerCustomEditor(Period.class, new PeriodEditor());
         binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
     }
 
@@ -129,7 +132,13 @@ public class WizardRoomController extends WizardParticipantsController
      * Change new virtual room to ad-hoc type and show form for editing room attributes.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ADHOC, method = RequestMethod.GET)
-    public String handleAdhocRoom(SecurityToken securityToken, UserSession userSession)
+    public String handleAdhocRoom(
+            SecurityToken securityToken,
+            UserSession userSession,
+            @RequestParam(value = "technology", required = false) TechnologyModel technology,
+            @RequestParam(value = "participantCount", required = false) Integer participantCount,
+            @RequestParam(value = "duration", required = false) Period duration,
+            @RequestParam(value = "confirm", required = false) boolean confirm)
     {
         ReservationRequestModel reservationRequest = getReservationRequest();
         if (reservationRequest == null) {
@@ -138,7 +147,22 @@ public class WizardRoomController extends WizardParticipantsController
         }
         reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
         reservationRequest.initByUserSettings(userSession.getUserSettings());
-        return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+        if (technology != null) {
+            reservationRequest.setTechnology(technology);
+        }
+        if (participantCount != null) {
+            reservationRequest.setRoomParticipantCount(participantCount);
+        }
+        if (duration != null) {
+            reservationRequest.setDuration(duration);
+        }
+        if (confirm) {
+            addDefaultParticipant(securityToken, reservationRequest);
+            return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_CONFIRM);
+        }
+        else {
+            return "redirect:" + BackUrl.getInstance(request).applyToUrl(ClientWebUrl.WIZARD_ROOM_ATTRIBUTES);
+        }
     }
 
     /**
@@ -226,12 +250,7 @@ public class WizardRoomController extends WizardParticipantsController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView(reservationRequest);
         }
-        if (reservationRequest.getRoomParticipants().size() == 0) {
-            ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
-            if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
-                reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
-            }
-        }
+        addDefaultParticipant(securityToken, reservationRequest);
         if (finishWithCapacity) {
             handleConfirmed(securityToken, sessionStatus, reservationRequest);
             return createPermanentRoomCapacity(securityToken, reservationRequest.getId());
@@ -672,5 +691,19 @@ public class WizardRoomController extends WizardParticipantsController
                 new CacheProvider(cache, securityToken));
         reservationRequest.addUserRole(securityToken.getUserInformation(), ObjectRole.OWNER);
         return reservationRequest;
+    }
+
+    /**
+     * @param securityToken
+     * @param reservationRequest to which a default participant should be added
+     */
+    private void addDefaultParticipant(SecurityToken securityToken, ReservationRequestModel reservationRequest)
+    {
+        if (reservationRequest.getRoomParticipants().size() == 0) {
+            ParticipantRole participantRole = reservationRequest.getDefaultOwnerParticipantRole();
+            if (!reservationRequest.hasUserParticipant(securityToken.getUserId(), participantRole)) {
+                reservationRequest.addRoomParticipant(securityToken.getUserInformation(), participantRole);
+            }
+        }
     }
 }

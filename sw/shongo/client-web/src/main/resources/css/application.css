@@ -839,6 +839,26 @@ div.not-available {
     }
 }
 
+/* vies/wizardRoomType.jsp */
+.jspWizardRoomType li table {
+    margin-left: 30px;
+    font-size: 16px;
+    border-spacing: 10px 2px;
+    border-collapse: separate;
+}
+.jspWizardRoomType li table td {
+}
+.jspWizardRoomType li table td.header {
+    text-align: center;
+    background-color: #ccc;
+    padding: 3px;
+}
+
+.jspWizardRoomType li table a {
+    line-height: 20px;
+    padding: 4px 10px;
+}
+
 /* vies/room.jsp */
 .icon-recording-start {
     padding-right: 16px;
