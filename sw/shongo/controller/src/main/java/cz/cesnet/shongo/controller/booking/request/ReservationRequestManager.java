@@ -162,6 +162,9 @@ public class ReservationRequestManager extends AbstractManager
             detachedReservations.add(reservation);
         }
 
+        // Delete acl records
+        authorizationManager.deleteAclEntriesForEntity(reservationRequest);
+
         List<AbstractReservationRequest> versions = listVersions(reservationRequest);
         for (AbstractReservationRequest version : versions) {
             delete(version, authorizationManager, true);
@@ -223,8 +226,6 @@ public class ReservationRequestManager extends AbstractManager
 
         // Hard delete
         if (hardDelete) {
-            authorizationManager.deleteAclEntriesForEntity(abstractReservationRequest);
-
             super.delete(abstractReservationRequest);
         }
         // Soft delete

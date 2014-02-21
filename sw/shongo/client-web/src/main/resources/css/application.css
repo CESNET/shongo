@@ -832,7 +832,7 @@ div.not-available {
     margin-left: 25px;
     margin-bottom: 10px;
 }
-@media (min-width: 1020px) {
+@media (min-width: 1200px) {
     .jspReservationRequestDetailHistory {
         display: block;
         float: right;
