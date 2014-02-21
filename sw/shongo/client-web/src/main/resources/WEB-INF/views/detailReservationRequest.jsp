@@ -210,7 +210,7 @@
 <div class="table-actions pull-right">
     <c:if test="${isWritable}">
         <c:if test="${advancedUserInterface}">
-                <span ng-switch on="reservationRequest.allocationState == 'ALLOCATED_FINISHED'">
+                <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
                     <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
                         <spring:message code="views.button.duplicate"/>
                     </a>
