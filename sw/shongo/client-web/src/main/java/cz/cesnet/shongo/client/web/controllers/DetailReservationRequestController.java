@@ -118,9 +118,10 @@ public class DetailReservationRequestController extends AbstractDetailController
     public ModelAndView handleDetailState(
             SecurityToken securityToken,
                 UserSession userSession,
-                @PathVariable(value = "objectId") String reservationRequestId,
+                @PathVariable(value = "objectId") String objectId,
                 @PathVariable(value = "isReservationVisible") boolean isReservationVisible)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
         AbstractReservationRequest abstractReservationRequest =
             reservationService.getReservationRequest(securityToken, reservationRequestId);
 
@@ -139,12 +140,14 @@ public class DetailReservationRequestController extends AbstractDetailController
             Locale locale,
             DateTimeZone timeZone,
             SecurityToken securityToken,
-            @PathVariable(value = "objectId") String reservationRequestId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
+
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
@@ -231,12 +234,14 @@ public class DetailReservationRequestController extends AbstractDetailController
             Locale locale,
             DateTimeZone timeZone,
             SecurityToken securityToken,
-            @PathVariable(value = "objectId") String reservationRequestId,
+            @PathVariable(value = "objectId") String objectId,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
+        String reservationRequestId = getReservationRequestId(securityToken, objectId);
+
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);

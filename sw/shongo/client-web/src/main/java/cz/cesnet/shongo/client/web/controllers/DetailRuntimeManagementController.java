@@ -73,7 +73,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         modelAndView.addObject("room", roomModel);
 
         // Runtime room
-        if (roomModel.isStarted()) {
+        if (roomModel.isAvailable()) {
             try {
                 Room room = roomCache.getRoom(securityToken, executableId);
                 modelAndView.addObject("roomRuntime", room);

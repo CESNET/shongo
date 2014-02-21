@@ -37,7 +37,7 @@
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
     <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW %>">
-        <tag:param name="objectId" value="{{reservationRequest.reservationId}}" escape="false"/>
+        <tag:param name="objectId" value="{{reservationRequest.id}}" escape="false"/>
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
     <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">

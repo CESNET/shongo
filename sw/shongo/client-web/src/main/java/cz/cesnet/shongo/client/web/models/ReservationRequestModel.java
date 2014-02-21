@@ -900,13 +900,14 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     }
 
     /**
-     * @param detailUrl
-     * @return list of {@link BreadcrumbItem}s for this reservation request
+     * @param reservationRequest
+     * @return list of {@link BreadcrumbItem}s for given {@code reservationRequest}
      */
-    public List<BreadcrumbItem> getBreadcrumbItems(String detailUrl)
+    public static List<BreadcrumbItem> getBreadcrumbItems(ReservationRequestSummary reservationRequest)
     {
-        return getBreadcrumbItems(
-                detailUrl, id, specificationType, parentReservationRequestId, permanentRoomReservationRequestId);
+        SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
+        return getBreadcrumbItems(reservationRequest.getId(), specificationType,
+                reservationRequest.getParentReservationRequestId(), reservationRequest.getReusedReservationRequestId());
     }
 
     /**
@@ -916,7 +917,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param permanentRoomReservationRequestId
      * @return list of {@link BreadcrumbItem}s for this reservation request
      */
-    public static List<BreadcrumbItem> getBreadcrumbItems(String detailUrl, String reservationRequestId,
+    public static List<BreadcrumbItem> getBreadcrumbItems(String reservationRequestId,
             SpecificationType specificationType, String parentReservationRequestId,
             String permanentRoomReservationRequestId)
     {
@@ -927,18 +928,18 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 // Add breadcrumb for permanent room reservation request
                 breadcrumbItems.add(new BreadcrumbItem(
-                        ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
+                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
                         "navigation.detail"));
 
                 // Add breadcrumb for reservation request set
                 breadcrumbItems.add(new BreadcrumbItem(
-                        ClientWebUrl.format(detailUrl, parentReservationRequestId),
+                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
                         "navigation.detail.capacity"));
             }
             else {
                 // Add breadcrumb for reservation request set
                 breadcrumbItems.add(new BreadcrumbItem(
-                        ClientWebUrl.format(detailUrl, parentReservationRequestId),
+                        ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, parentReservationRequestId),
                         "navigation.detail"));
             }
 
@@ -948,7 +949,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             // Add breadcrumb for permanent room reservation request
             breadcrumbItems.add(new BreadcrumbItem(
-                    ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
+                    ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, permanentRoomReservationRequestId),
                     "navigation.detail"));
 
             // This reservation request is capacity
@@ -959,7 +960,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
 
         // Add breadcrumb for this reservation request
-        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, reservationRequestId), titleCode));
+        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId), titleCode));
 
         return breadcrumbItems;
     }

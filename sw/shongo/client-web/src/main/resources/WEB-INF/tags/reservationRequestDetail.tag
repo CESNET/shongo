@@ -152,7 +152,7 @@
         <dd class="reservation-request-state">
             <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${reservationRequest.detail.state}" var="stateLabel"/>
             <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}">
-                <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.stateHelp)"/>
+                ${reservationRequest.detail.stateHelp}
             </tag:help>
         </dd>
     </c:if>
@@ -161,9 +161,8 @@
     <c:if test="${reservationRequest.detail != null && reservationRequest.detail.room != null && not empty reservationRequest.detail.room.aliases}">
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.aliases)" var="roomAliases"/>
-            <tag:help label="${roomAliases}" selectable="true">
-                <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.aliasesDescription)"/>
+            <tag:help label="${reservationRequest.detail.room.aliases}" selectable="true">
+                ${reservationRequest.detail.room.aliasesDescription}
             </tag:help>
         </dd>
     </c:if>
@@ -232,7 +231,7 @@
                     <dd class="allocation-state">
                         <spring:message code="views.reservationRequest.allocationState.${reservationRequest.detail.allocationState}" var="allocationStateLabel"/>
                         <tag:help label="${allocationStateLabel}" cssClass="${reservationRequest.detail.allocationState}">
-                            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.allocationStateHelp)"/>
+                            ${reservationRequest.detail.allocationStateHelp}
                         </tag:help>
                     </dd>
                 </c:if>
@@ -245,7 +244,7 @@
                             <span><spring:message code="views.executable.roomStateHelp.${reservationRequest.detail.room.type}.${reservationRequest.detail.room.state}"/></span>
                             <c:if test="${not empty reservationRequest.detail.room.stateReport}">
                                 <pre>
-                                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.CommonModel).escapeDoubleQuotedString(reservationRequest.detail.room.stateReport)"/>
+                                    ${reservationRequest.detail.room.stateReport}
                                 </pre>
                             </c:if>
                         </tag:help>

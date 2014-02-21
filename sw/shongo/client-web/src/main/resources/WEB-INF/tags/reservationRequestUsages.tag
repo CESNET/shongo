@@ -19,15 +19,15 @@
 </tag:url>
 <tag:url var="usageModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 <tag:url var="usageDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 <tag:url var="usageDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="reservationRequestId" value="{{usage.id}}" escape="false"/>
-    <tag:param name="back-url" value="${requestScope.requestUrl}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 
 <script type="text/javascript">

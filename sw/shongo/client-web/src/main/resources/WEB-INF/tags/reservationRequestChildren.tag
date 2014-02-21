@@ -39,9 +39,11 @@
 </tag:url>
 <tag:url var="childDetailUrl" value="${detailUrl}">
     <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 <tag:url var="childRoomManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW %>">
     <tag:param name="objectId" value="{{childReservationRequest.id}}" escape="false"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 
 <div ng-controller="PaginationController"

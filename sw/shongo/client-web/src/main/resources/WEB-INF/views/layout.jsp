@@ -40,21 +40,25 @@
                 - ${title}
             </c:when>
             <c:otherwise>
-                <c:forEach items="${title}" var="titleItem" varStatus="titleStatus">
-                    <c:if test="${titleItem != null}">
-                        <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
-                        <c:choose>
-                            <c:when test="${empty titleItem}"/>
-                            <c:when test="${!titleItem.startsWith('T(')}">
-                                - <spring:message code="${titleItem}"/>
-                            </c:when>
-                            <c:when test="${titleItem.length() > 3}">
-                                - ${titleItem.substring(2, titleItem.length() - 1)}
-                            </c:when>
-                        </c:choose>
-                    </c:if>
-                </c:forEach>
-                <spring:message code="${title.get(0)}" var="title"/>
+                <c:set var="title">
+                    <c:forEach items="${title}" var="titleItem" varStatus="titleStatus">
+                        <c:if test="${titleItem != null}">
+                            <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
+                            <c:choose>
+                                <c:when test="${empty titleItem}"/>
+                                <c:when test="${!titleItem.startsWith('T(')}">
+                                    <c:if test="${!titleStatus.first}"> - </c:if>
+                                    <spring:message code="${titleItem}"/>
+                                </c:when>
+                                <c:when test="${titleItem.length() > 3}">
+                                    <c:if test="${!titleStatus.first}"> - </c:if>
+                                    ${titleItem.substring(2, titleItem.length() - 1)}
+                                </c:when>
+                            </c:choose>
+                        </c:if>
+                    </c:forEach>
+                </c:set>
+                - ${title}
             </c:otherwise>
         </c:choose>
     </title>

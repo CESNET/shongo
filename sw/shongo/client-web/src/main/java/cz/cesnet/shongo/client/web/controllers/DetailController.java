@@ -86,7 +86,7 @@ public class DetailController extends AbstractDetailController implements Breadc
         // Initialize breadcrumb
         if (breadcrumb != null) {
             breadcrumb.addItems(ReservationRequestModel.getBreadcrumbItems(
-                    ClientWebUrl.DETAIL_VIEW, reservationRequestId, specificationType, parentReservationRequestId,
+                    reservationRequestId, specificationType, parentReservationRequestId,
                     reservationRequest.getReusedReservationRequestId()));
         }
 

@@ -144,8 +144,10 @@
     </definition>
 
     <definition name="reservationRequestDelete" extends="layout">
-        <put-attribute name="title" value="views.reservationRequestDelete.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
+        <put-list-attribute name="title">
+            <add-attribute expression="T(${titleDescription})"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="detail" extends="layoutAngularForm">

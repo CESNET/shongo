@@ -11,7 +11,33 @@
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
-<tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="<%= ClientWebUrl.DETAIL_VIEW %>"/>
+
+<c:set var="specificationType">
+    <strong><spring:message code="views.reservationRequestDelete.specificationType.${specificationType}" arguments=" ${reservationRequest.roomName}"/></strong>
+</c:set>
+
+<c:choose>
+    <c:when test="${dependencies.size() > 0}">
+        <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${specificationType}"/></p>
+        <ul>
+            <c:forEach var="dependency" items="${dependencies}">
+                <li>
+                    <tag:url var="parentReservationRequestDetailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>">
+                        <tag:param name="objectId" value="${dependency.id}"/>
+                    </tag:url>
+                    <a href="${parentReservationRequestDetailUrl}" tabindex="2">
+                        <spring:eval expression="T(cz.cesnet.shongo.client.web.models.SpecificationType).fromReservationRequestSummary(dependency)" var="dependencySpecificationType"/>
+                        <strong><spring:message code="views.detail.title.${dependencySpecificationType}" arguments=" "/></strong>
+                    </a>
+                    (<tag:format value="${dependency.earliestSlot}"/><c:if test="${not empty dependency.description}">, ${dependency.description}</c:if>)
+                </li>
+            </c:forEach>
+        </ul>
+    </c:when>
+    <c:otherwise>
+        <p><spring:message code="views.reservationRequestDelete.question" arguments="${specificationType}"/></p>
+    </c:otherwise>
+</c:choose>
 
 <c:choose>
     <c:when test="${dependencies.size() > 0}">

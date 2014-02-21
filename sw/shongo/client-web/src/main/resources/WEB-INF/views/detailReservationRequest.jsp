@@ -21,12 +21,15 @@
 <tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>"/>
 <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 <tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
     <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
 </tag:url>
 
 <script type="text/javascript">

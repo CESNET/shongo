@@ -120,6 +120,8 @@ public class WizardRoomController extends WizardParticipantsController
         ReservationRequestModel reservationRequest = createReservationRequest(securityToken);
         wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
         wizardView.setNextPageUrl(null);
+        wizardView.addAction(ClientWebUrl.WIZARD_ROOM_CANCEL,
+                "views.button.cancel", WizardView.ActionPosition.LEFT);
         return wizardView;
     }
 

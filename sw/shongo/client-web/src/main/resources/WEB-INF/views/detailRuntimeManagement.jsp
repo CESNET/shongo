@@ -208,7 +208,7 @@
 </dl>
 
 <%-- Room state isn't available --%>
-<c:if test="${room.started && roomRuntime == null}">
+<c:if test="${room.available && roomRuntime == null}">
     <jsp:include page="roomNotAvailable.jsp"/>
 </c:if>
 
@@ -372,7 +372,7 @@
 </div>
 <div class="table-actions">
     <security:authorize access="hasPermission(RESERVATION)">
-        <c:if test="${room.started && room.type == 'PERMANENT_ROOM' && isProvidable}">
+        <c:if test="${room.started && !room.available && room.type == 'PERMANENT_ROOM' && isProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
                 <tag:param name="permanentRoom" value="${room.id}"/>
                 <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>

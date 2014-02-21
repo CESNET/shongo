@@ -121,10 +121,6 @@
         <path>/WEB-INF/tags/reportForm.tag</path>
     </tag-file>
     <tag-file>
-        <name>reservationRequestDelete</name>
-        <path>/WEB-INF/tags/reservationRequestDelete.tag</path>
-    </tag-file>
-    <tag-file>
         <name>reservationRequestDetail</name>
         <path>/WEB-INF/tags/reservationRequestDetail.tag</path>
     </tag-file>
