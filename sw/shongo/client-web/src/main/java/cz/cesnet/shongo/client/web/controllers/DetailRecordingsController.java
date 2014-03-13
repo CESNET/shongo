@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.ExecutionReportMessages;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -14,8 +11,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ExtendedModelMap;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -99,12 +94,12 @@ public class DetailRecordingsController extends AbstractDetailController
     @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_DELETE, method = RequestMethod.GET)
     public String handleRecordingDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "objectId") String objectId,
+            @PathVariable(value = "roomId") String roomId,
             @PathVariable(value = "resourceId") String resourceId,
             @PathVariable(value = "recordingId") String recordingId)
     {
         resourceControlService.deleteRecording(securityToken, resourceId, recordingId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, roomId);
     }
 
     @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_DELETE, method = RequestMethod.POST)

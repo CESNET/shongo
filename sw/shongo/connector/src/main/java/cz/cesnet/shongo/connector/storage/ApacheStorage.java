@@ -4,14 +4,12 @@ import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -75,13 +73,12 @@ public class ApacheStorage extends AbstractStorage
     public void deleteFolder(String folderId)
     {
         foldersBeingDeleted.add(folderId);
-
         while(filesBeingCreated.containsValue(folderId)) {
             try {
                 Thread.sleep(100);
             }
             catch (InterruptedException e) {
-                break;
+                continue;
             }
         }
 
@@ -218,14 +215,12 @@ public class ApacheStorage extends AbstractStorage
                 if (bytesRead == -1) {
                     break;
                 }
-
                 // Check if folder isn't already deleted
                 if (foldersBeingDeleted.contains(file.getFolderId())) {
                     logger.warn("Creation of file " + folderUrl + "/" + fileName +
                             " has been stopped because folder " + folderId + " is being deleted.");
                     break;
                 }
-
                 // Write bytes from buffer
                 int writeResumeCount = MAX_RESUME_COUNT;
                 while (true) {
@@ -263,9 +258,11 @@ public class ApacheStorage extends AbstractStorage
                     }
                 }
 
+
                 // Move file content
                 fileContentIndex += bytesRead;
             }
+
             fileContent.close();
             fileOutputStream.close();
         }
