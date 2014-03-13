@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.connector;
 
 
-import com.sun.media.sound.InvalidFormatException;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
@@ -1124,5 +1123,32 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     private synchronized void setRecordingChecking(boolean value)
     {
         this.recordingChecking = value;
+    }
+
+    private class InvalidFormatException extends CommandException
+    {
+        /**
+         * Constructor.
+         */
+        protected InvalidFormatException()
+        {
+        }
+
+        /**
+         * @param message description of the failure
+         */
+        public InvalidFormatException(String message)
+        {
+            super(message);
+        }
+
+        /**
+         * @param message description of the failure
+         * @param cause   the cause of the failure
+         */
+        public InvalidFormatException(String message, Throwable cause)
+        {
+            super(message, cause);
+        }
     }
 }
