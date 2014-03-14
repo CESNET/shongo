@@ -620,6 +620,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 throw new RecordingUnavailableException("Recording is not available now.");
             }
 
+            if ("internal-error".equals(ex.getCode())) {
+                logger.warn("AC internal error thrown during starting recording (meeting is probably just starting).");
+                throw new RecordingUnavailableException("Recording is not available now.");
+            }
+
             throw ex;
         }
 
@@ -1438,7 +1443,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 + resultRecording.getChildText("url-path");
 
         recording.setFileName(resultRecording.getChildText("name"));
-        recording.setDownloadUrl(baseUrl);
         recording.setViewUrl(baseUrl);
         if (dateEnd != null) {
             recording.setEditUrl(baseUrl + "?pbMode=edit");

@@ -79,29 +79,24 @@
             </td>
             <td>
                 <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
-                <span ng-hide="roomRecording.downloadUrl"><spring:message code="views.room.recording.pending"/></span>
+                <span ng-show="roomRecording.viewUrl && roomRecording.downloadUrl == null"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
+                <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
             </td>
             <td ng-controller="RoomRecordingActionController">
                 <span ng-show="roomRecording.downloadUrl">
                     <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
                     <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="icon-download"></i></a>
                 </span>
-                <c:choose>
-                    <c:when test="${hasWritePermission}">
-                        <span ng-show="roomRecording.editUrl">
-                            <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
-                            <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle}" target="_blank"><i class="icon-edit"></i></a>
-                        </span>
-                    </c:when>
-                    <c:otherwise>
-                        <span ng-show="roomRecording.viewUrl">
-                            <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
-                            <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="icon-eye-open"></i></a>
-                        </span>
-                    </c:otherwise>
-                </c:choose>
+                <span ng-show="roomRecording.viewUrl">
+                    <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
+                    <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="icon-eye-open"></i></a>
+                </span>
                 <c:if test="${hasWritePermission}">
-                    <span ng-show="roomRecording.downloadUrl">
+                    <span ng-show="roomRecording.editUrl">
+                        <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
+                        <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="icon-edit"></i></a>
+                    </span>
+                    <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
                         <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
                             <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
                             <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
