@@ -22,6 +22,7 @@ import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -325,7 +326,9 @@ public class RoomController
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
-            item.put("duration", dateTimeFormatter.formatDuration(recording.getDuration()));
+            String formatedDuration = recording.getDuration().toStandardDuration().isShorterThan(Duration.standardMinutes(1)) ? messageSource.getMessage("views.room.recording.lessThanMinute", null, locale)
+            : dateTimeFormatter.formatDuration(recording.getDuration());
+            item.put("duration", formatedDuration);
             item.put("url", recording.getUrl());
             item.put("editableUrl", recording.getEditableUrl());
             items.add(item);
