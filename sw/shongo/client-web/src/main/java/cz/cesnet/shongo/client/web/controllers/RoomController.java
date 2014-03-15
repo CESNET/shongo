@@ -325,7 +325,7 @@ public class RoomController
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
-            item.put("duration", recording.getDuration() == null ? "not available" : dateTimeFormatter.formatDuration(recording.getDuration()));
+            item.put("duration", dateTimeFormatter.formatDuration(recording.getDuration()));
             item.put("url", recording.getUrl());
             item.put("editableUrl", recording.getEditableUrl());
             items.add(item);

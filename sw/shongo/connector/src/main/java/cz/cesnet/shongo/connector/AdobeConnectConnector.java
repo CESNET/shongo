@@ -472,7 +472,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (dateBegin != null) {
                 recording.setBeginDate(DateTime.parse(dateBegin));
             }
-            String duration = resultRecording.getChildText("duration");
+            String duration = resultRecording.getAttributeValue("duration");
             if (duration != null) {
                 DateTime durationDateTime = DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(duration);
                 recording.setDuration(new Period(durationDateTime.getMillis()));
