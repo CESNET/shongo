@@ -239,6 +239,7 @@ public class RecordingServiceReservationTask extends ReservationTask
         private AvailableRecorder(RecordingCapability recordingCapability, int usedLicenseCount)
         {
             this.recordingCapability = recordingCapability;
+            System.out.println("TEST:"+usedLicenseCount+"-"+recordingCapability.getLicenseCount());
             this.availableLicenseCount = recordingCapability.getLicenseCount() - usedLicenseCount;
             if (this.availableLicenseCount < 0) {
                 throw new IllegalStateException("Available license count can't be negative.");

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -75,7 +76,11 @@ public class DetailRecordingsController extends AbstractDetailController
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
-            item.put("duration", dateTimeFormatter.formatRoundedDuration(recording.getDuration()));
+            String formatedDuration = recording.getDuration().toStandardDuration().isShorterThan(
+                    Duration.standardMinutes(1))
+                    ? messageSource.getMessage("views.room.recording.lessThanMinute", null, locale)
+                    : dateTimeFormatter.formatRoundedDuration(recording.getDuration());
+            item.put("duration", formatedDuration);
             item.put("downloadUrl", recording.getDownloadUrl());
             item.put("viewUrl", recording.getViewUrl());
             item.put("editUrl", recording.getEditUrl());
