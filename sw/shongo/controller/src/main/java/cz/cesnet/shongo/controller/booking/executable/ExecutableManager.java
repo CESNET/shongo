@@ -382,7 +382,8 @@ public class ExecutableManager extends AbstractManager
                         + " WHERE executable IN("
                         + "  SELECT roomEndpoint FROM ResourceRoomEndpoint roomEndpoint"
                         + "  LEFT JOIN roomEndpoint.recordingFolderIds recordingFolder"
-                        + "  WHERE INDEX(recordingFolder) = :recordingCapability AND recordingFolder = :recordingFolderId"
+                        + "  WHERE roomEndpoint.migrateToExecutable IS NULL "
+                        + "  AND INDEX(recordingFolder) = :recordingCapability AND recordingFolder = :recordingFolderId"
                         + " )", Executable.class)
                 .setParameter("recordingCapability", recordingCapability)
                 .setParameter("recordingFolderId", recordingFolderId)
