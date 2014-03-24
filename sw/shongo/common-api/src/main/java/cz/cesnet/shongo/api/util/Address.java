@@ -7,7 +7,8 @@ package cz.cesnet.shongo.api.util;
  */
 public class Address
 {
-    private String host;
+    private final boolean ssl;
+    private final String host;
     private int port;
 
     /**
@@ -44,8 +45,8 @@ public class Address
         String host = input;
         int port = defaultPort;
 
-        if (host.indexOf(':') != -1) {
-            int colonPos = host.indexOf(':');
+        int colonPos = host.lastIndexOf(':');
+        if (colonPos != -1) {
             try {
                 port = Integer.parseInt(host.substring(colonPos + 1));
                 host = host.substring(0, colonPos);
@@ -67,24 +68,30 @@ public class Address
      */
     public Address(String host)
     {
-        this.host = host;
-        this.port = DEFAULT_PORT;
+        this(host, DEFAULT_PORT);
     }
 
     public Address(String host, int port)
     {
+        if (host.startsWith("http://")) {
+            host = host.substring(7);
+            this.ssl = false;
+        }
+        else {
+            this.ssl = true;
+        }
         this.host = host;
         this.port = port;
+    }
+
+    public boolean isSsl()
+    {
+        return ssl;
     }
 
     public String getHost()
     {
         return host;
-    }
-
-    public void setHost(String host)
-    {
-        this.host = host;
     }
 
     public int getPort()

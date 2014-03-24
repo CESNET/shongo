@@ -39,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -149,7 +150,8 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private URL getDeviceApiUrl() throws MalformedURLException
     {
         // RPC2 is a fixed path given by Cisco, see the API docs
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "/RPC2");
+        Address address = info.getDeviceAddress();
+        return new URL(address.isSsl() ? "https" : "http", address.getHost(), info.getDeviceAddress().getPort(), "/RPC2");
     }
 
     /**
@@ -215,7 +217,9 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             authPassword = password;
 
             // Trust device certificate
-            ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
+            if (address.isSsl()) {
+                ConfiguredSSLContext.getInstance().addAdditionalCertificates(address.getHost());
+            }
 
             // Create XmlRpcClient for XML-RPC API communication
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
@@ -952,9 +956,39 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         try {
             return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
         }
-        catch (XmlRpcException e) {
-            throw new CommandException(e.getMessage());
+        catch (XmlRpcException exception) {
+            if (isExecApiRetryPossible(exception)) {
+                logger.warn("{}: Trying again...", exception.getMessage());
+                int retryCount = 5;
+                while (retryCount > 0) {
+                    retryCount--;
+                    try {
+                        return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
+                    }
+                    catch (XmlRpcException exception2) {
+                        if (isExecApiRetryPossible(exception2)) {
+                            logger.warn("{}: Trying again...",
+                                    exception2.getMessage());
+                        }
+                        else {
+                            exception = exception2;
+                            break;
+                        }
+                    }
+                }
+            }
+            throw new CommandException(exception.getMessage(), exception.getCause());
         }
+    }
+
+    /**
+     * @param exception
+     * @return true whether given {@code exception} allows to retry the API request, false otherwise
+     */
+    protected boolean isExecApiRetryPossible(XmlRpcException exception)
+    {
+        Throwable cause = exception.getCause();
+        return (cause instanceof SocketException && cause.getMessage().equals("Connection reset"));
     }
 
     /**
