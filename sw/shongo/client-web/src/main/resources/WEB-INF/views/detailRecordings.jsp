@@ -98,6 +98,7 @@
                     </span>
                     <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
                         <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
+                            <tag:param name="objectId" value="${objectId}"/>
                             <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
                             <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
                         </tag:url>

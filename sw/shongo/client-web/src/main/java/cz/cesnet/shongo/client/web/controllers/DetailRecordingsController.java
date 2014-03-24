@@ -99,23 +99,23 @@ public class DetailRecordingsController extends AbstractDetailController
     @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_DELETE, method = RequestMethod.GET)
     public String handleRecordingDelete(
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "resourceId") String resourceId,
             @PathVariable(value = "recordingId") String recordingId)
     {
         resourceControlService.deleteRecording(securityToken, resourceId, recordingId);
-        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, roomId);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
     }
 
     @RequestMapping(value = ClientWebUrl.DETAIL_RECORDING_DELETE, method = RequestMethod.POST)
     @ResponseBody
     public Map handleRoomManagementRecordingDeletePost(
             SecurityToken securityToken,
-            @PathVariable(value = "roomId") String roomId,
+            @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "resourceId") String resourceId,
             @PathVariable(value = "recordingId") String recordingId)
     {
-        handleRecordingDelete(securityToken, roomId, resourceId, recordingId);
+        handleRecordingDelete(securityToken, objectId, resourceId, recordingId);
         return null;
     }
 

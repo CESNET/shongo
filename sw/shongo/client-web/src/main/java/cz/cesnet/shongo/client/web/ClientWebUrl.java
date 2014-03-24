@@ -150,7 +150,7 @@ public class ClientWebUrl
     public static final String DETAIL_RECORDINGS_DATA =
             "/detail/{objectId:.+}/recordings/data";
     public static final String DETAIL_RECORDING_DELETE =
-            "/detail/{roomId:.+}/recording/{resourceId:.+}/{recordingId:.+}/delete";
+            "/detail/{objectId:.+}/recording/{resourceId:.+}/{recordingId:.+}/delete";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
