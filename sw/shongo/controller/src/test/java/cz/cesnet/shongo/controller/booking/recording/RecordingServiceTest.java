@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
@@ -443,6 +444,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals("One executable service should be activated.",
                 1, result.getActivatedExecutableServices().size());
 
+        // Modify reservation request
         roomReservationRequest = getReservationRequest(roomReservationRequestId, ReservationRequest.class);
         roomReservationRequestId = allocate(roomReservationRequest, dateTime.plusHours(1));
         checkAllocated(roomReservationRequestId);
@@ -468,6 +470,8 @@ public class RecordingServiceTest extends AbstractExecutorTest
                 1, result.getStoppedExecutables().size());
         Assert.assertEquals("One executable service should be stopped.",
                 1, result.getDeactivatedExecutableServices().size());
+        // Finalize room
+        runExecutor(dateTime.plusHours(3));
 
         // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
