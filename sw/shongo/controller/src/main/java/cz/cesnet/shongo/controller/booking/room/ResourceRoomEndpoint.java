@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
@@ -12,7 +10,9 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -131,6 +131,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
     {
         this.recordingFolderIds.put(recordingCapability, recordingFolderId);
+    }
+
+    @Transient
+    @Override
+    public void removeRecordingFolderId(RecordingCapability recordingCapability)
+    {
+        this.recordingFolderIds.remove(recordingCapability);
     }
 
     @Override

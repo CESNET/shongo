@@ -319,6 +319,7 @@ public class RoomReservationTask extends ReservationTask
             // Migrate recording folders
             for(Map.Entry<RecordingCapability, String> entry : oldRoomEndpoint.getRecordingFolderIds().entrySet()) {
                 newRoomEndpoint.putRecordingFolderId(entry.getKey(), entry.getValue());
+                oldRoomEndpoint.removeRecordingFolderId(entry.getKey());
             }
         }
 

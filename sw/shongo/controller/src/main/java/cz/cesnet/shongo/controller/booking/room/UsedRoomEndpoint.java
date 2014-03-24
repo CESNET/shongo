@@ -276,11 +276,25 @@ public class UsedRoomEndpoint extends RoomEndpoint
     }
 
     @Override
+    @Transient
     public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId)
     {
         if (reusedRoomEndpoint instanceof RecordableEndpoint) {
             RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
             recordableEndpoint.putRecordingFolderId(recordingCapability, recordingFolderId);
+        }
+        else {
+            throw new TodoImplementException(reusedRoomEndpoint.getClass());
+        }
+    }
+
+    @Override
+    @Transient
+    public void removeRecordingFolderId(RecordingCapability recordingCapability)
+    {
+        if (reusedRoomEndpoint instanceof RecordableEndpoint) {
+            RecordableEndpoint recordableEndpoint = (RecordableEndpoint) reusedRoomEndpoint;
+            recordableEndpoint.removeRecordingFolderId(recordingCapability);
         }
         else {
             throw new TodoImplementException(reusedRoomEndpoint.getClass());

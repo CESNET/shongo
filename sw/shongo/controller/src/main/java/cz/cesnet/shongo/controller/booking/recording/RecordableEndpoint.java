@@ -54,7 +54,13 @@ public interface RecordableEndpoint
     public String getRecordingFolderId(RecordingCapability recordingCapability);
 
     /**
+     * @param recordingCapability for which the identifier of the folder should be set
      * @param recordingFolderId sets the value returned by {@link #getRecordingFolderId}
      */
     public void putRecordingFolderId(RecordingCapability recordingCapability, String recordingFolderId);
+
+    /**
+     * @param recordingCapability for which the identifier of the folder should be removed
+     */
+    public void removeRecordingFolderId(RecordingCapability recordingCapability);
 }
