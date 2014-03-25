@@ -55,19 +55,17 @@ public class DetailController extends AbstractDetailController implements Breadc
                 cache.getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
         String parentReservationRequestId = reservationRequest.getParentReservationRequestId();
         RoomState roomState = null;
-        String roomName = null;
+        String roomName = reservationRequest.getRoomName();
         String reservationId = reservationRequest.getAllocatedReservationId();
         if (reservationId != null) {
-            AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, reservationId);
-            Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
-            if (roomNameAlias != null) {
-                roomName = roomNameAlias.getValue();
-            }
+            // We don't want to show allocated room name
+            // AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, reservationId);
+            // Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
+            // if (roomNameAlias != null) {
+            //     roomName = roomNameAlias.getValue();
+            // }
             roomState = RoomState.fromRoomState(reservationRequest.getExecutableState(),
                     reservationRequest.getRoomParticipantCount(), reservationRequest.getUsageExecutableState());
-        }
-        else {
-            roomName = reservationRequest.getRoomName();
         }
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
         String titleDescription = messageSource.getMessage(

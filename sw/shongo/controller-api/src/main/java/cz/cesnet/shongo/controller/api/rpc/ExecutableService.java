@@ -27,7 +27,7 @@ public interface ExecutableService extends Service
      * Gets the {@link Executable} for given {@code executableId}.
      *
      * @param securityToken token of the user requesting the operation
-     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
+     * @param executableId  shongo-id of the {@link Executable} to get
      */
     @API
     public Executable getExecutable(SecurityToken securityToken, String executableId);
@@ -46,7 +46,7 @@ public interface ExecutableService extends Service
      * Updates executable configuration.
      *
      * @param securityToken           token of the user requesting the operation
-     * @param executableId            shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
+     * @param executableId            shongo-id of the {@link Executable} to get
      * @param executableConfiguration new configuration for an executable with the given {@code executableId}
      */
     @API
@@ -57,19 +57,21 @@ public interface ExecutableService extends Service
      * Deletes a executable with given {@code executableId}.
      *
      * @param securityToken token of the user requesting the operation
-     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to delete
+     * @param executableId  shongo-id of the {@link Executable} to delete
      */
     @API
     public void deleteExecutable(SecurityToken securityToken, String executableId);
 
     /**
-     * Try to start/stop/update again given {@link Executable} (e.g., if it is in failed state).
+     * Try to again start/update/stop {@link Executable} with given {@code executableId} (e.g., if it is in failed state).
      *
      * @param securityToken token of the user requesting the operation
-     * @param executableId  shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to start
+     * @param executableId  shongo-id of the {@link Executable} to start/update/stop
+     * @param skipExecution specifies whether the actual execution (start/update/stop) should be skipped and only the state
+     *                      should be set to proper value
      */
     @API
-    public void updateExecutable(SecurityToken securityToken, String executableId);
+    public void updateExecutable(SecurityToken securityToken, String executableId, Boolean skipExecution);
 
     /**
      * Attach {@link cz.cesnet.shongo.controller.api.ExecutableState#NOT_STARTED} room executable to an existing room in

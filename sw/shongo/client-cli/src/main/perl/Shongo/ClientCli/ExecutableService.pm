@@ -56,15 +56,17 @@ sub populate()
             }
         },
         'update-executable' => {
-            desc => 'Start/stop existing executable (if it is in failed state)',
-            args => '[id]',
+            desc => 'Start/Update/Stop existing executable again (if it is in failed state)',
+            options => 'skip-execution',
+            args => '[id] [-skip-execution]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
                     foreach my $id (split(/,/, $args[0])) {
-                        update_executable($id);
+                        update_executable($id, $params->{'options'});
                     }
-                } else {
+                }
+                else {
                     update_executable();
                 }
             }
@@ -183,14 +185,19 @@ sub get_executable()
 
 sub update_executable()
 {
-    my ($id) = @_;
+    my ($id, $options) = @_;
     $id = select_executable($id);
     if ( !defined($id) ) {
         return;
     }
+    my $skip_execution = 0;
+    if ( defined($options->{'skip-execution'}) ) {
+        $skip_execution = 1;
+    }
     my $response = Shongo::ClientCli->instance()->secure_request(
         'Executable.updateExecutable',
-        RPC::XML::string->new($id)
+        RPC::XML::string->new($id),
+        RPC::XML::boolean->new($skip_execution)
     );
     if ( defined($response) ) {
         console_print_info("Executable '$id' has been updated.");

@@ -34,7 +34,7 @@ public class ExecutionPlan
      * Set of {@link ExecutionAction}s with satisfied dependencies (with empty {@link ExecutionAction#dependencies})
      * which haven't been popped yet.
      */
-    protected final Set<ExecutionAction> satisfiedActions = new HashSet<ExecutionAction>();
+    protected Set<ExecutionAction> satisfiedActions;
 
     /**
      * Set of popped {@link ExecutionAction}s (by {@link #popExecutionActions()}) which has been returned for starting
@@ -114,6 +114,8 @@ public class ExecutionPlan
      */
     public void build()
     {
+        satisfiedActions = new HashSet<ExecutionAction>();
+
         // Execution plan is empty
         if (remainingActions.size() == 0) {
             return;
@@ -121,7 +123,6 @@ public class ExecutionPlan
 
         // Setup dependencies and remaining actions
         for (ExecutionAction executionAction : remainingActions) {
-            remainingActions.add(executionAction);
             executionAction.buildDependencies();
         }
 
@@ -210,12 +211,24 @@ public class ExecutionPlan
      */
     public synchronized void removeExecutionAction(ExecutionAction<?> executionAction)
     {
-        logger.debug("{} ended.", executionAction);
+        // When plan has been build
+        if (satisfiedActions != null) {
+            logger.debug("{} ended.", executionAction);
 
-        if (!poppedActions.remove(executionAction)) {
-            throw new IllegalArgumentException("Execution action hasn't been popped (or has already been removed).");
+            if (!poppedActions.remove(executionAction)) {
+                throw new IllegalArgumentException("Execution action hasn't been popped (or has already been removed).");
+            }
+            completeExecutionAction(executionAction);
         }
-        completeExecutionAction(executionAction);
+        // Otherwise remove it totally from the plan
+        else {
+            Object target = executionAction.getTarget();
+            if (target instanceof ExecutionTarget) {
+                ExecutionTarget executionTarget = (ExecutionTarget) target;
+                actionByExecutionTargetId.remove(executionTarget.getId());
+            }
+            remainingActions.remove(executionAction);
+        }
     }
 
     /**

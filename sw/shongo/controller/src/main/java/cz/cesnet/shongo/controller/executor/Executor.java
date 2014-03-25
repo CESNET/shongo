@@ -284,6 +284,10 @@ public class Executor extends SwitchableComponent
                     executionPlan.addExecutionAction(new ExecutionAction.StopExecutableAction(executable));
                 }
                 for (Executable executable : executableManager.listExecutablesForFinalization(dateTime, maxAttemptCount)) {
+                    ExecutionAction executionAction = executionPlan.getActionByExecutionTarget(executable);
+                    if (executionAction != null) {
+                        executionPlan.removeExecutionAction(executionAction);
+                    }
                     executionPlan.addExecutionAction(new ExecutionAction.FinalizeExecutableAction(executable));
                 }
                 for (ExecutableService service : executableManager.listServicesForActivation(start, maxAttemptCount)) {

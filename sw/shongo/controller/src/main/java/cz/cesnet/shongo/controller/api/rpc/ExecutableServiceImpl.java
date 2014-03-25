@@ -552,7 +552,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void updateExecutable(SecurityToken securityToken, String executableId)
+    public void updateExecutable(SecurityToken securityToken, String executableId, Boolean skipExecution)
     {
         authorization.validate(securityToken);
 
@@ -581,24 +581,61 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             int maxAttemptCount = configuration.getInt(ControllerConfiguration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
             DateTime dateTimeNow = DateTime.now();
             for (cz.cesnet.shongo.controller.booking.executable.Executable executableToUpdate : executablesToUpdate) {
-                if (executableToUpdate.getSlot().contains(dateTimeNow)) {
-                    // Schedule next attempt
-                    if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
-                        executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                cz.cesnet.shongo.controller.booking.executable.Executable.State executableState =
+                        executableToUpdate.getState();
+                // When executable slot is active or the executable is modified
+                if (executableToUpdate.getSlot().contains(dateTimeNow) ||
+                        (executableToUpdate.isModified() &&
+                                 cz.cesnet.shongo.controller.booking.executable.Executable.MODIFIABLE_STATES.contains(
+                                         executableState))) {
+                    if (Boolean.TRUE.equals(skipExecution)) {
+                        throw new TodoImplementException("Skip execution for " + executableState + ".");
                     }
-                    executableToUpdate.setNextAttempt(dateTimeNow);
-                }
-                else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
-                    // Set executable as stopped
-                    cz.cesnet.shongo.controller.booking.executable.Executable.State state = executableToUpdate
-                            .getState();
-                    if (state.isStarted() || state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
-                        executableToUpdate.setState(
-                                cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
-                    }
-                    if (state.equals(cz.cesnet.shongo.controller.booking.executable.Executable.State.FINALIZATION_FAILED)) {
+                    // When some attempt has been already made
+                    if (executableToUpdate.getAttemptCount() > 0) {
+                        // Schedule next attempt
+                        if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
+                            executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                        }
                         executableToUpdate.setNextAttempt(dateTimeNow);
-                        executableToUpdate.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                    }
+                }
+                // When executable slot is in history
+                else if (executableToUpdate.getSlotEnd().isBefore(dateTimeNow)) {
+                    // When executable is started or failed to start, set it as stopped
+                    if (executableState.isStarted() || executableState.equals(
+                            cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTING_FAILED)) {
+                        if (Boolean.TRUE.equals(skipExecution)) {
+                            executableToUpdate.setState(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                            executableToUpdate.setAttemptCount(0);
+                            executableToUpdate.setNextAttempt(null);
+                        }
+                    }
+                    // If executable failed to finalize, set it as finalized or prepare the finalization again
+                    if (executableState.equals(
+                            cz.cesnet.shongo.controller.booking.executable.Executable.State.FINALIZATION_FAILED)) {
+                        if (Boolean.TRUE.equals(skipExecution)) {
+                            executableToUpdate.setState(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.FINALIZED);
+                            executableToUpdate.setAttemptCount(0);
+                            executableToUpdate.setNextAttempt(null);
+                        }
+                        else {
+                            executableToUpdate.setState(
+                                    cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                        }
+                    }
+                    // When execution should not be skipped
+                    if (!Boolean.TRUE.equals(skipExecution)) {
+                        // When some attempt has been already made
+                        if (executableToUpdate.getAttemptCount() > 0) {
+                            // Schedule next attempt
+                            if (executableToUpdate.getAttemptCount() >= maxAttemptCount) {
+                                executableToUpdate.setAttemptCount(maxAttemptCount - 1);
+                            }
+                            executableToUpdate.setNextAttempt(dateTimeNow);
+                        }
                     }
                 }
             }
