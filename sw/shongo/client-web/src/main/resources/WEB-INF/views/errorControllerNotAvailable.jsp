@@ -13,7 +13,7 @@
 </tag:url>
 
 <div class="not-available">
-    <h2><spring:message code="views.room.notAvailable.heading"/></h2>
-    <p><spring:message code="views.room.notAvailable.text" arguments="${reportUrl}"/></p>
+    <h2><spring:message code="views.errorControllerNotAvailable.heading"/></h2>
+    <p><spring:message code="views.errorControllerNotAvailable.text" arguments="${reportUrl}"/></p>
 </div>
 

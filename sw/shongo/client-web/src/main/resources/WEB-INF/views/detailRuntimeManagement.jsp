@@ -209,7 +209,7 @@
 
 <%-- Room state isn't available --%>
 <c:if test="${room.available && roomRuntime == null}">
-    <jsp:include page="roomNotAvailable.jsp"/>
+    <jsp:include page="errorRoomNotAvailable.jsp"/>
 </c:if>
 
 <%-- Participants --%>

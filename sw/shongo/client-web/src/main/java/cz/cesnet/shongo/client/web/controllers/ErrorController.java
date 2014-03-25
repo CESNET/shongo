@@ -195,7 +195,7 @@ public class ErrorController
     @RequestMapping(value = "/controller-not-available")
     public String handleControllerNotAvailableView()
     {
-        return "controllerNotAvailable";
+        return "errorControllerNotAvailable";
     }
 
     /**

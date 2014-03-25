@@ -411,7 +411,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
     public Object handleExceptions(Exception exception, HttpServletResponse response)
     {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        return "roomNotAvailable";
+        return "errorRoomNotAvailable";
     }
 
     public RoomExecutable getTargetRoomExecutableFromExecutable(SecurityToken securityToken, Executable executable)

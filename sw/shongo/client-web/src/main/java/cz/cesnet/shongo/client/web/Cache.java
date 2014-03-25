@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web;
 
-import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
@@ -389,10 +388,6 @@ public class Cache
         if (reservationRequest == null) {
             reservationRequest = getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
         }
-        if (reservationRequest == null) {
-            throw new CommonReportSet.ObjectNotExistsException(
-                    ReservationRequestSummary.class.getSimpleName(), reservationRequestId);
-        }
         return reservationRequest;
     }
 
@@ -413,7 +408,7 @@ public class Cache
             reservationRequestById.put(reservationRequest.getId(), reservationRequest);
             return reservationRequest;
         }
-        return null;
+        throw new ObjectInaccessibleException(reservationRequestId);
     }
 
     /**
@@ -478,12 +473,11 @@ public class Cache
         else {
             if (objectId.contains(":req:")) {
                 ReservationRequestSummary reservationRequest = getReservationRequestSummary(securityToken, objectId);
-                AllocationState allocationState = reservationRequest.getAllocationState();
                 String reservationId = reservationRequest.getAllocatedReservationId();
                 if (reservationId == null) {
                     reservationRequest = getReservationRequestSummaryNotCached(securityToken, objectId);
                     reservationId = reservationRequest.getAllocatedReservationId();
-                    if (objectId == null) {
+                    if (reservationId == null) {
                         throw new TodoImplementException("Reservation doesn't exist.");
                     }
                 }

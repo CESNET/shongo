@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.client.web.controllers.ErrorController;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
@@ -14,8 +15,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.net.ConnectException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link HandlerExceptionResolver} for client web.
@@ -43,7 +45,25 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
         Throwable cause = exception;
         while (cause != null) {
             if (exception instanceof ControllerConnectException) {
-                return new ModelAndView("controllerNotAvailable");
+                return new ModelAndView("errorControllerNotAvailable");
+            }
+            else if (exception instanceof ControllerReportSet.SecurityNotAuthorizedException) {
+                ControllerReportSet.SecurityNotAuthorizedException securityNotAuthorizedException =
+                        (ControllerReportSet.SecurityNotAuthorizedException) exception;
+                String action = securityNotAuthorizedException.getReport().getAction();
+                Pattern pattern = Pattern.compile("read .+ (shongo(:[-\\.a-zA-Z0-9]+)+:[0-9]+)");
+                Matcher matcher = pattern.matcher(action);
+                if (matcher.find()) {
+                    ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
+                    modelAndView.addObject("objectId", matcher.group(1));
+                    return modelAndView;
+                }
+            }
+            else if (exception instanceof ObjectInaccessibleException) {
+                ObjectInaccessibleException objectInaccessibleException = (ObjectInaccessibleException) exception;
+                ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
+                modelAndView.addObject("objectId", objectInaccessibleException.getObjectId());
+                return modelAndView;
             }
             else if (exception instanceof org.eclipse.jetty.io.EofException) {
                 // Just log that exceptions and do not report it

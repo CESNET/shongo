@@ -324,7 +324,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
      *
      * @param reservationRequest to be confirmed
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM)
     public Object handleConfirm(
             UserSession userSession,
             SecurityToken securityToken,

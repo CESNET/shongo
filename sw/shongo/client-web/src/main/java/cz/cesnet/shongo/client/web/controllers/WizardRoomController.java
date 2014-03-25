@@ -501,7 +501,7 @@ public class WizardRoomController extends WizardParticipantsController
      *
      * @param reservationRequest to be confirmed
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_CONFIRM, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_CONFIRM)
     public Object handleConfirm(
             UserSession userSession,
             SecurityToken securityToken,
