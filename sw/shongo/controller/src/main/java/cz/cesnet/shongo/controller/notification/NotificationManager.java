@@ -95,7 +95,7 @@ public class NotificationManager extends Component implements Component.Authoriz
      * @return true whether {@link #notifications} is not empty,
      *         false otherwise
      */
-    public boolean hasNotifications()
+    public synchronized boolean hasNotifications()
     {
         return !notifications.isEmpty();
     }
@@ -161,7 +161,7 @@ public class NotificationManager extends Component implements Component.Authoriz
      * @param notification to be removed from the {@link #notifications}
      * @param entityManager
      */
-    public void removeNotification(AbstractNotification notification, EntityManager entityManager)
+    public synchronized void removeNotification(AbstractNotification notification, EntityManager entityManager)
     {
         if(notifications.remove(notification)) {
             notification.onAfterRemoved(this);
@@ -169,11 +169,20 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     /**
-     * @param dateTime
      * @param entityManager to be used
      */
-    public synchronized void executeNotifications(DateTime dateTime, EntityManager entityManager)
+    public synchronized void executeNotifications(EntityManager entityManager)
     {
+        // Group notifications
+        for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
+            AbstractNotification notification = iterator.next();
+            if (notification.group(this)) {
+                iterator.remove();
+                notification.onAfterRemoved(this);
+            }
+        }
+
+        // Execute notifications
         List<AbstractNotification> removedNotifications = new LinkedList<AbstractNotification>();
         try {
             entityManager.getTransaction().begin();
@@ -243,7 +252,7 @@ public class NotificationManager extends Component implements Component.Authoriz
      * @param entityManager
      * @return {@link ReservationRequestNotification} for given {@code reservationRequest}
      */
-    public ReservationRequestNotification getReservationRequestNotification(
+    public synchronized ReservationRequestNotification getReservationRequestNotification(
             AbstractReservationRequest reservationRequest, EntityManager entityManager)
     {
         Long abstractReservationRequestId = reservationRequest.getId();

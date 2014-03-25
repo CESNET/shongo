@@ -69,7 +69,7 @@ public abstract class AbstractNotification
     /**
      * @param recipient who should be notified by the {@link AbstractNotification}
      * @return true whether given {@code recipient} has been added,
-     *         false whether given {@code recipient} already exists
+     * false whether given {@code recipient} already exists
      */
     protected boolean addRecipient(PersonInformation recipient)
     {
@@ -89,7 +89,7 @@ public abstract class AbstractNotification
     /**
      * @param recipient who should not be notified by the {@link AbstractNotification}
      * @return true whether given {@code recipient} has been removed,
-     *         false whether given {@code recipient} didn't exist
+     * false whether given {@code recipient} didn't exist
      */
     public boolean removeRecipient(PersonInformation recipient)
     {
@@ -147,9 +147,8 @@ public abstract class AbstractNotification
     }
 
     /**
-     *
-     * @param recipient for who the message should be retrieved
-     * @param manager   to be used
+     * @param recipient     for who the message should be retrieved
+     * @param manager       to be used
      * @param entityManager
      * @return {@link NotificationMessage} for given {@code recipient}
      */
@@ -162,8 +161,7 @@ public abstract class AbstractNotification
     /**
      * Render {@link NotificationMessage} for given {@code recipient}.
      *
-     *
-     * @param recipient for who the message should be rendered
+     * @param recipient     for who the message should be rendered
      * @param manager
      * @param entityManager
      * @return rendered {@link NotificationMessage}
@@ -209,7 +207,7 @@ public abstract class AbstractNotification
      * @param notificationManager
      * @param entityManager
      * @return true whether this {@link AbstractNotification} should be added to the {@code notificationManager},
-     *         false otherwise
+     * false otherwise
      */
     protected boolean onBeforeAdded(NotificationManager notificationManager, EntityManager entityManager)
     {
@@ -230,10 +228,23 @@ public abstract class AbstractNotification
      * Event called right after this {@link AbstractNotification} has been removed from the {@link NotificationManager}.
      *
      * @param notificationManager
-     *
      */
     protected void onAfterRemoved(NotificationManager notificationManager)
     {
+    }
+
+    /**
+     * Try to group this {@link AbstractNotification} to another {@link AbstractNotification}
+     * from given {@code notificationManager}.
+     *
+     * @param notificationManager to be used
+     * @return true when this {@link AbstractNotification} was successfully grouped into another
+     * {@link AbstractNotification} and thus this {@link AbstractNotification} can be deleted,
+     * false otherwise
+     */
+    public boolean group(NotificationManager notificationManager)
+    {
+        return false;
     }
 
     @Override

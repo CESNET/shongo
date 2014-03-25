@@ -381,6 +381,11 @@ public abstract class Target
             return slotAfter;
         }
 
+        public Room getReusedRoom()
+        {
+            return reusedRoom;
+        }
+
         public boolean isPermanent()
         {
             return licenseCount == 0 && reusedRoom == null;

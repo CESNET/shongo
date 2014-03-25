@@ -117,6 +117,9 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             // Get all referenced reservations from reservations from deletion
             List<Reservation> referencedReservations = new LinkedList<Reservation>();
             for (Reservation reservationForDeletion : reservationsForDeletion) {
+                ReservationNotification.Deleted reservationNotificationDeleted =
+                        new ReservationNotification.Deleted(reservationForDeletion, authorizationManager);
+                reservationNotifications.add(reservationNotificationDeleted);
                 getReferencedReservations(reservationForDeletion, referencedReservations);
             }
             // Move all referenced reservations to the end
@@ -128,9 +131,6 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 }
             }
             for (Reservation reservation : reservationsForDeletion) {
-                ReservationNotification.Deleted reservationNotificationDeleted =
-                        new ReservationNotification.Deleted(reservation, authorizationManager);
-                reservationNotifications.add(reservationNotificationDeleted);
                 reservation.setAllocation(null);
                 if (reservation.getSlotEnd().isAfter(start)) {
                     reservationNotifications.addAll(finalizeActiveReservation(reservation, entityManager));

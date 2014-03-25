@@ -122,7 +122,7 @@ public class WorkerThread extends Thread
             logger.info("Executing remaining notifications...");
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             try {
-                notificationManager.executeNotifications(null, entityManager);
+                notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);
@@ -153,7 +153,7 @@ public class WorkerThread extends Thread
                 // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
-                notificationManager.executeNotifications(interval.getStart(), entityManager);
+                notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.WORKER, exception);

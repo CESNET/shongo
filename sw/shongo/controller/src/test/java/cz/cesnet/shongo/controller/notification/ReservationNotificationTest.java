@@ -237,7 +237,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
             }}, getNotificationTypes());
     }
@@ -437,7 +436,6 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(ReservationNotification.New.class);
                 add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
-                add(ReservationRequestNotification.class);
                 add(ReservationNotification.Deleted.class);
             }}, getNotificationTypes());
     }

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -20,6 +21,8 @@ import java.util.*;
 public class ReservationRequestNotification extends AbstractReservationRequestNotification
 {
     private Target target;
+
+    private Long reusedReservationRequestId;
 
     /**
      * List of {@link AbstractNotification}s which are part of the {@link ReservationNotification}.
@@ -39,8 +42,12 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         super(reservationRequest);
 
         EntityManager entityManager = authorizationManager.getEntityManager();
-
         this.target = Target.createInstance(reservationRequest, entityManager);
+
+        Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+        if (reusedAllocation != null) {
+            reusedReservationRequestId = reusedAllocation.getReservationRequest().getId();
+        }
 
         for (String userId : authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER)) {
             addRecipient(authorizationManager.getUserInformation(userId), false);
@@ -208,5 +215,22 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
         Long reservationRequestId = ObjectIdentifier.parseId(
                 AbstractReservationRequest.class, getReservationRequestId());
         notificationManager.reservationRequestNotificationsById.remove(reservationRequestId);
+    }
+
+    @Override
+    public boolean group(NotificationManager notificationManager)
+    {
+        if (reusedReservationRequestId != null && notifications.size() == 1) {
+            AbstractReservationRequestNotification notification = notifications.get(0);
+            if (notification instanceof ReservationNotification.Deleted) {
+                ReservationRequestNotification reservationRequestNotification =
+                        notificationManager.reservationRequestNotificationsById.get(reusedReservationRequestId);
+                if (reservationRequestNotification != null) {
+                    reservationRequestNotification.addNotification(notification);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

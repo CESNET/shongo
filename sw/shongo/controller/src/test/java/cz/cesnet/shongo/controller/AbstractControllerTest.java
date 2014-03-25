@@ -361,7 +361,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         EntityManager entityManager = createEntityManager();
         Scheduler.Result result = scheduler.run(interval, entityManager);
         if (notificationExecutionEnabled) {
-            executeNotifications(interval.getStart(), entityManager);
+            executeNotifications(entityManager);
         }
         entityManager.close();
         return result;
@@ -370,13 +370,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Invoke {@link NotificationManager#executeNotifications}
      *
-     * @param dateTime
      * @param entityManager to be used
      */
-    protected void executeNotifications(DateTime dateTime, EntityManager entityManager)
+    protected void executeNotifications(EntityManager entityManager)
     {
         NotificationManager notificationManager = controller.getNotificationManager();
-        notificationManager.executeNotifications(dateTime, entityManager);
+        notificationManager.executeNotifications(entityManager);
     }
 
     /**
@@ -385,7 +384,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected final void executeNotifications()
     {
         EntityManager entityManager = createEntityManager();
-        executeNotifications(null, entityManager);
+        executeNotifications(entityManager);
         entityManager.close();
     }
 
