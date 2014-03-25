@@ -49,7 +49,7 @@ applicationModule.controller("DynamicContentController", function($scope, $eleme
     $scope.contentLoaded = false;
 
     /**
-     * Refresh tab content.
+     * Refresh content.
      */
     $scope.refresh = function(contentUrl) {
         if (contentUrl != null) {
@@ -101,14 +101,14 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
                 $scope.active = false;
                 return;
             }
-            $scope.inited = true;
             if (!$scope.contentLoaded) {
                 $scope.refresh();
                 $scope.contentLoaded = true;
             }
             if ($scope.$parent != null && $scope.$parent.onActivateTab != null) {
-                $scope.$parent.onActivateTab($scope.id);
+                $scope.$parent.onActivateTab($scope.id, $scope);
             }
+            $scope.inited = true;
         }
     });
 

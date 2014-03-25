@@ -95,7 +95,7 @@
         /**
          * Event called when tab is activated
          */
-        $scope.onActivateTab = function(tabId) {
+        $scope.onActivateTab = function(tabId, tabScope) {
             if (tabId != $scope.activeTabId) {
                 // Stop old tab refresh
                 if (refreshParameters[$scope.activeTabId] != null) {
@@ -111,6 +111,19 @@
                 $scope.requestUrl = "${requestUrl}".split("?")[0];
                 if (tabId != "reservationRequest") {
                     $scope.requestUrl += "?tab=" + tabId;
+                }
+
+                // Refresh tab
+                if (tabScope.inited) {
+                    // Always refresh runtime management
+                    if (tabId == "runtimeManagement") {
+                        tabScope.refresh();
+                    }
+                    // Refresh recordings when it is requested
+                    else if (tabId == "recordings" && $scope.refreshRecordings) {
+                        $scope.refreshRecordings = false;
+                        tabScope.refresh();
+                    }
                 }
 
                 // Start new tab refresh

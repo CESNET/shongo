@@ -67,6 +67,8 @@
                         else {
                             $scope.isRecordingActive = false;
                             $scope.recordingError = null;
+                            // Refresh recordings tab when it becomes active
+                            $scope.$parent.refreshRecordings = true;
                         }
                         $scope.recordingRequestActive = false;
                     }, 0);

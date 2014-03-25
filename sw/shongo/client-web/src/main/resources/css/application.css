@@ -34,6 +34,7 @@ a.bordered:hover {
 .table {
     margin-top: 8px;
     margin-bottom: 0px;
+    border-collapse: separate;
 }
 .table thead th a {
     color: black;
@@ -694,7 +695,7 @@ table.aliases td.label {
  ** APPLICATION VIES AND TAGS *****************************************************************************************
  **********************************************************************************************************************/
 
-/** Not available block for views/room.jsp and views/errorControllerNotAvailable.jsp */
+/** Not available block for views/room.jsp and views/errorontrollerNotAvailable.jsp */
 div.not-available {
     margin: 20px 20px;
     padding: 10px 30px;
