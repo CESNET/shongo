@@ -41,6 +41,76 @@
         </instance>
         -->
 
+        <!-- instance of Adobe Connect Pro
+        <instance>
+            <name>Adobe Connect Pro</name>
+            <device>
+                <connector-class>cz.cesnet.shongo.connector.AdobeConnectConnector</connector-class>
+                <host>connect.cesnet.cz</host>
+                <port>443</port>
+                <auth>
+                    <username>admin</username>
+                    <password>(password)</password>
+                </auth>
+                <options>
+                    <timeout>PT10S</timeout>
+                    # Folders to be created on server
+                    <recordings-folder-name>shongo-rec</recordings-folder-name>
+                    <meetings-folder-name>shongo</meetings-folder-name>
+                    <url-path-extraction-from-uri>connect\.cesnet\.cz/(.+)$</url-path-extraction-from-uri>
+                </options>
+            </device>
+        </instance>
+        -->
+
+        <!-- instance of Cisco MCU
+        <instance>
+            <name>MCU</name>
+            <device>
+                <connector-class>cz.cesnet.shongo.connector.CiscoMCUConnector</connector-class>
+                <host>mcuc.cesnet.cz</host>
+                <auth>
+                    <username>admin</username>
+                    <password>(password)</password>
+                </auth>
+                <options>
+                    <timeout>PT30S</timeout>
+                    <room-number-extraction-from-h323-number>(\d{3})$</room-number-extraction-from-h323-number>
+                    <room-number-extraction-from-sip-uri>^[+\d]*(\d{3})@</room-number-extraction-from-sip-uri>
+                    <participants>
+                        <participant>
+                            # Hide TCS participant (TCS)
+                            <address>950084999</address>
+                            <hide>true</hide>
+                        </participant>
+                    </participants>
+                </options>
+            </device>
+        </instance>
+        -->
+
+        <!-- instance of Cisco TelePresence Content server
+        <instance>
+            <name>TelepresenceContent server</name>
+            <device>
+                <connector-class>cz.cesnet.shongo.connector.CiscoTCSConnector</connector-class>
+                <host>195.113.151.188</host>
+                <port>80</port>
+                <auth>
+                    <username>admin</username>
+                    <password>(heslo)</password>
+                </auth>
+                <options>
+                    <default-bitrate>768</default-bitrate>
+                    <alias>999</alias>
+                    <storage-url>/media/shongo-dev/storage</storage-url>
+                    <metadata-local-storage>/media/shongo-dev/metadata</metadata-local-storage>
+                    <recordings-prefix>shongo-dev</recordings-prefix>
+                    <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
+                </options>
+            </device>
+        </instance>
+         -->
     </instances>
 
 </configuration>
