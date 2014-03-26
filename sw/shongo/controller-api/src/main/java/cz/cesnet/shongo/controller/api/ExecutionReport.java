@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.AbstractObjectReport;
 import cz.cesnet.shongo.controller.ExecutionReportMessages;
+import cz.cesnet.shongo.controller.RecordingUnavailableException;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import org.joda.time.DateTime;
@@ -40,7 +42,8 @@ public class ExecutionReport extends AbstractObjectReport
     @Override
     public String toString(Locale locale, DateTimeZone timeZone)
     {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG).with(locale, timeZone);
+        DateTimeFormatter dateTimeFormatter =
+                DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG).with(locale, timeZone);
         StringBuilder stringBuilder = new StringBuilder();
         int count = 0;
         for (Map<String, Object> report : reports) {
@@ -63,5 +66,62 @@ public class ExecutionReport extends AbstractObjectReport
             stringBuilder.append(message);
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
+    }
+
+    /**
+     * @return {@link UserError} detected from this {@link ExecutionReport}
+     */
+    public UserError toUserError()
+    {
+        Map<String, Object> report = getLastReport();
+        if (report != null) {
+            String identifier = (String) report.get(ID);
+            if (identifier.equals(ExecutionReportMessages.RECORDING_UNAVAILABLE)) {
+                return new RecordingUnavailable();
+            }
+            else if (identifier.equals(ExecutionReportMessages.ROOM_NOT_STARTED)) {
+                String roomName = (String) report.get("roomName");
+                return new RoomNotStarted(roomName);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Represents an execution error which can be detected from {@link ExecutionReport}.
+     */
+    public static class UserError
+    {
+
+    }
+
+    /**
+     * Command threw {@link RecordingUnavailableException}.
+     *
+     * @see RecordingUnavailableException
+     */
+    public static class RecordingUnavailable extends UserError
+    {
+        public RecordingUnavailable()
+        {
+        }
+    }
+
+    /**
+     * Cannot modify room {@link #roomName}, because it has not been started yet..
+     */
+    public static class RoomNotStarted extends UserError
+    {
+        private final String roomName;
+
+        public RoomNotStarted(String roomName)
+        {
+            this.roomName = roomName;
+        }
+
+        public String getRoomName()
+        {
+            return roomName;
+        }
     }
 }

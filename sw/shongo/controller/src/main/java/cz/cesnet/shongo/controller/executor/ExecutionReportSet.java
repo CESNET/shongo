@@ -151,6 +151,123 @@ public class ExecutionReportSet extends AbstractReportSet
     }
 
     /**
+     * {@link #reason}
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("RecordingUnavailableReport")
+    public static class RecordingUnavailableReport extends cz.cesnet.shongo.controller.executor.ExecutionReport
+    {
+        protected String reason;
+
+        public RecordingUnavailableReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "recording-unavailable";
+        }
+
+        public RecordingUnavailableReport(String reason)
+        {
+            setReason(reason);
+        }
+
+        @javax.persistence.Column
+        public String getReason()
+        {
+            return reason;
+        }
+
+        public void setReason(String reason)
+        {
+            this.reason = reason;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.TRY_AGAIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reason", reason);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.ExecutionReportMessages.getMessage("recording-unavailable", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link RecordingUnavailableReport}.
+     */
+    public static class RecordingUnavailableException extends ReportException
+    {
+        public RecordingUnavailableException(RecordingUnavailableReport report)
+        {
+            this.report = report;
+        }
+
+        public RecordingUnavailableException(Throwable throwable, RecordingUnavailableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public RecordingUnavailableException(String reason)
+        {
+            RecordingUnavailableReport report = new RecordingUnavailableReport();
+            report.setReason(reason);
+            this.report = report;
+        }
+
+        public RecordingUnavailableException(Throwable throwable, String reason)
+        {
+            super(throwable);
+            RecordingUnavailableReport report = new RecordingUnavailableReport();
+            report.setReason(reason);
+            this.report = report;
+        }
+
+        public String getReason()
+        {
+            return getReport().getReason();
+        }
+
+        @Override
+        public RecordingUnavailableReport getReport()
+        {
+            return (RecordingUnavailableReport) report;
+        }
+    }
+
+    /**
      * Cannot modify room {@link #roomName}, because it has not been started yet.
      */
     @javax.persistence.Entity
@@ -271,6 +388,7 @@ public class ExecutionReportSet extends AbstractReportSet
     protected void fillReportClasses()
     {
         addReportClass(CommandFailedReport.class);
+        addReportClass(RecordingUnavailableReport.class);
         addReportClass(RoomNotStartedReport.class);
     }
 }

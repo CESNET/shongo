@@ -351,13 +351,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint
 
         Room roomApi = getRoomApi(executableManager);
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
-        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+        if (sendLocalCommand.isSuccessful()) {
             setRoomId((String) sendLocalCommand.getResult());
             return State.STARTED;
         }
         else {
-            executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+            executableManager.createExecutionReport(this, sendLocalCommand);
             return State.STARTING_FAILED;
         }
     }
@@ -390,9 +389,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint
                 ControllerAgent controllerAgent = executor.getControllerAgent();
                 SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
                         new ModifyRecordingFolder(entry.getValue(), userPermissions));
-                if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                    executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                            sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                if (sendLocalCommand.isFailed()) {
+                    executableManager.createExecutionReport(this, sendLocalCommand);
                     return Boolean.FALSE;
                 }
             }
@@ -434,12 +432,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint
             throw new RuntimeException("Cannot delete virtual room because it's identifier is null.");
         }
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new DeleteRoom(roomId));
-        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+        if (sendLocalCommand.isSuccessful()) {
             return State.STOPPED;
         }
         else {
-            executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                    sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+            executableManager.createExecutionReport(this, sendLocalCommand);
             return State.STOPPING_FAILED;
         }
     }
@@ -457,12 +454,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint
             ControllerAgent controllerAgent = executor.getControllerAgent();
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName,
                     new DeleteRecordingFolder(entry.getValue()));
-            if (SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
+            if (sendLocalCommand.isSuccessful()) {
                 iterator.remove();
             }
             else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                executableManager.createExecutionReport(this, sendLocalCommand);
                 state = State.FINALIZATION_FAILED;
             }
         }

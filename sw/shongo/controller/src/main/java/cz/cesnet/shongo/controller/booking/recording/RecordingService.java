@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.recording;
 
+import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
@@ -10,6 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive;
 import cz.cesnet.shongo.connector.api.jade.recording.StartRecording;
 import cz.cesnet.shongo.connector.api.jade.recording.StopRecording;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.RecordingUnavailableException;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
@@ -22,11 +24,14 @@ import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.settting.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.H323RoomSetting;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
+import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
+
+import static cz.cesnet.shongo.controller.executor.ExecutionReportSet.RecordingUnavailableReport;
 
 /**
  * {@link cz.cesnet.shongo.controller.booking.executable.ExecutableService} for recording.
@@ -172,11 +177,16 @@ public class RecordingService extends ExecutableService implements EndpointExecu
         // Start new recording
         if (recordingId == null) {
             RecordingSettings recordingSettings = getRecordingSettings(recordableEndpoint, alias);
-            sendLocalCommand = controllerAgent.sendCommand(agentName,
-                    new StartRecording(recordingFolderId, alias.toApi(), recordingSettings));
-            if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+            StartRecording startRecording = new StartRecording(recordingFolderId, alias.toApi(), recordingSettings);
+            sendLocalCommand = controllerAgent.sendCommand(agentName, startRecording);
+            if (sendLocalCommand.isFailed()) {
+                if (sendLocalCommand.isJadeCommandFailed(RecordingUnavailableException.CODE)) {
+                    executableManager.createExecutionReport(
+                            this, new RecordingUnavailableReport(sendLocalCommand.getCommandFailedReason()));
+                }
+                else {
+                    executableManager.createExecutionReport(this, sendLocalCommand);
+                }
                 return State.ACTIVATION_FAILED;
             }
             recordingId = (String) sendLocalCommand.getResult();
@@ -206,9 +216,8 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                 Boolean result = (Boolean) sendLocalCommand.getResult();
                 if (result != null && result.equals(Boolean.TRUE)) {
                     sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
-                    if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                        executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                                sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                    if (sendLocalCommand.isFailed()) {
+                        executableManager.createExecutionReport(this, sendLocalCommand);
                         return State.DEACTIVATION_FAILED;
                     }
                 }
@@ -225,9 +234,8 @@ public class RecordingService extends ExecutableService implements EndpointExecu
                                 recordingId = recording.getId();
                             }
                             sendLocalCommand = controllerAgent.sendCommand(agentName, new StopRecording(recordingId));
-                            if (!SendLocalCommand.State.SUCCESSFUL.equals(sendLocalCommand.getState())) {
-                                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                            if (sendLocalCommand.isFailed()) {
+                                executableManager.createExecutionReport(this, sendLocalCommand);
                                 return State.DEACTIVATION_FAILED;
                             }
                         }

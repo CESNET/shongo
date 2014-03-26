@@ -308,15 +308,9 @@ public class DetailRuntimeManagementController extends AbstractDetailController
                 logger.warn("Start recording failed: {}", executionReport.toString(locale, userSession.getTimeZone()));
 
                 // Detect further error
-                Map<String, Object> report = executionReport.getLastReport();
-                if (report != null && ExecutionReportMessages.COMMAND_FAILED.equals(report.get("id"))) {
-                    Map jadeReport = (Map) report.get("jadeReport");
-                    if (jadeReport != null && JadeReportSet.COMMAND_FAILED.equals(jadeReport.get("id"))) {
-                        String code = (String) jadeReport.get("code");
-                        if (code != null && code.equals("recording-unavailable")) {
-                            errorCode = "views.room.recording.error.unavailable";
-                        }
-                    }
+                ExecutionReport.UserError userError = executionReport.toUserError();
+                if (userError instanceof ExecutionReport.RecordingUnavailable) {
+                    errorCode = "views.room.recording.error.unavailable";
                 }
             }
             model.addAttribute("error", messageSource.getMessage(errorCode, null, locale));

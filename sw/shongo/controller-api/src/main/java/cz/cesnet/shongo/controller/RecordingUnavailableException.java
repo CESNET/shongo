@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 
@@ -9,6 +9,8 @@ import cz.cesnet.shongo.api.jade.CommandException;
  */
 public class RecordingUnavailableException extends CommandException
 {
+    public static final String CODE = "recording-unavailable";
+
     /**
      * Constructor.
      */
@@ -36,6 +38,6 @@ public class RecordingUnavailableException extends CommandException
     @Override
     public String getCode()
     {
-        return "recording-unavailable";
+        return CODE;
     }
 }

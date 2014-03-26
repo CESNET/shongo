@@ -10,6 +10,7 @@ import cz.cesnet.shongo.report.*;
 public class ExecutionReportMessages
 {
     public static final String COMMAND_FAILED = "command-failed";
+    public static final String RECORDING_UNAVAILABLE = "recording-unavailable";
     public static final String ROOM_NOT_STARTED = "room-not-started";
 
     /**
@@ -17,6 +18,7 @@ public class ExecutionReportMessages
      */
     private static final ReportSetMessages MESSAGES = new ReportSetMessages() {{
         addMessage(COMMAND_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Command ${command} failed: ${jadeReportMessage(jadeReport)}");
+        addMessage(RECORDING_UNAVAILABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "${reason}");
         addMessage(ROOM_NOT_STARTED, new Report.UserType[]{}, Report.Language.ENGLISH, "Cannot modify room ${roomName}, because it has not been started yet.");
     }};
 

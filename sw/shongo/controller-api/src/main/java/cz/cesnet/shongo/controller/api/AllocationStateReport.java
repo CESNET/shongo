@@ -53,87 +53,15 @@ public class AllocationStateReport extends AbstractObjectReport
     }
 
     /**
-     * @return {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} detected from this {@link AllocationStateReport}
+     * @return {@link UserError} detected from this {@link AllocationStateReport}
      */
     public UserError toUserError()
     {
-        UserError userError = findAllocationError(reports, new Stack<Map<String, Object>>());
+        UserError userError = findUserError(reports, new Stack<Map<String, Object>>());
         if (userError == null) {
             userError = new UserError();
         }
         return userError;
-    }
-
-    /**
-     * Represents an allocation error which can be detected from {@link AllocationStateReport} and which can be
-     * formatted to user in a user-friendly way.
-     */
-    public static class UserError
-    {
-        /**
-         * To be used for {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} messages.
-         */
-        protected static final MessageSource MESSAGE_SOURCE = new MessageSource("allocation-error");
-
-        /**
-         * To be used for formatting date/times.
-         */
-        protected static DateTimeFormatter DATE_TIME_FORMATTER =
-                DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT);
-
-        /**
-         * @param locale
-         * @param timeZone
-         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} and for given {@code locale} and {@code timeZone}
-         */
-        public String getMessage(Locale locale, DateTimeZone timeZone)
-        {
-            return MESSAGE_SOURCE.getMessage("unknown", locale);
-        }
-
-        /**
-         * @param locale
-         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} and for given {@code locale}
-         */
-        public final String getMessage(Locale locale)
-        {
-            return getMessage(locale, DateTimeZone.getDefault());
-        }
-
-        /**
-         * @return message for this {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError}
-         */
-        public final String getMessage()
-        {
-            return getMessage(Locale.getDefault(), DateTimeZone.getDefault());
-        }
-
-        /**
-         * @return true whether this {@link UserError} doesn't represent a specific error,
-         *         false otherwise
-         */
-        public boolean isUnknown()
-        {
-            return getClass().equals(UserError.class);
-        }
-
-        @Override
-        public String toString()
-        {
-            return getMessage();
-        }
-
-        /**
-         * @param userErrorType
-         * @return whether this {@link UserError} has lower priority than given {@code userErrorType},
-         */
-        public static <T extends UserError> boolean hasHigherPriorityThan(T userErrorType)
-        {
-            if (userErrorType == null) {
-                return true;
-            }
-            return false;
-        }
     }
 
     /**
@@ -189,10 +117,9 @@ public class AllocationStateReport extends AbstractObjectReport
     /**
      * @param reports
      * @param parentReports
-     * @return {@link cz.cesnet.shongo.controller.api.AllocationStateReport.UserError} for given {@code reports} and {@code parentReports}
+     * @return {@link AllocationStateReport.UserError} for given {@code reports} and {@code parentReports}
      */
-    private UserError findAllocationError(Collection<Map<String, Object>> reports,
-            Stack<Map<String, Object>> parentReports)
+    private UserError findUserError(Collection<Map<String, Object>> reports, Stack<Map<String, Object>> parentReports)
     {
         UserError userError = null;
         for (Map<String, Object> report : reports) {
@@ -291,7 +218,7 @@ public class AllocationStateReport extends AbstractObjectReport
             }
 
             parentReports.push(report);
-            UserError childUserError = findAllocationError(getReportChildren(report), parentReports);
+            UserError childUserError = findUserError(getReportChildren(report), parentReports);
             if (childUserError != null) {
                 if (identifier.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE) && childUserError instanceof RoomCapacityExceeded) {
                     RoomCapacityExceeded roomCapacityExceeded = (RoomCapacityExceeded) childUserError;
@@ -320,6 +247,78 @@ public class AllocationStateReport extends AbstractObjectReport
             }
         }
         return null;
+    }
+
+    /**
+     * Represents an allocation error which can be detected from {@link AllocationStateReport} and which can be
+     * formatted to user in a user-friendly way.
+     */
+    public static class UserError
+    {
+        /**
+         * To be used for {@link AllocationStateReport.UserError} messages.
+         */
+        protected static final MessageSource MESSAGE_SOURCE = new MessageSource("allocation-error");
+
+        /**
+         * To be used for formatting date/times.
+         */
+        protected static DateTimeFormatter DATE_TIME_FORMATTER =
+                DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT);
+
+        /**
+         * @param locale
+         * @param timeZone
+         * @return message for this {@link AllocationStateReport.UserError} and for given {@code locale} and {@code timeZone}
+         */
+        public String getMessage(Locale locale, DateTimeZone timeZone)
+        {
+            return MESSAGE_SOURCE.getMessage("unknown", locale);
+        }
+
+        /**
+         * @param locale
+         * @return message for this {@link AllocationStateReport.UserError} and for given {@code locale}
+         */
+        public final String getMessage(Locale locale)
+        {
+            return getMessage(locale, DateTimeZone.getDefault());
+        }
+
+        /**
+         * @return message for this {@link AllocationStateReport.UserError}
+         */
+        public final String getMessage()
+        {
+            return getMessage(Locale.getDefault(), DateTimeZone.getDefault());
+        }
+
+        /**
+         * @return true whether this {@link UserError} doesn't represent a specific error,
+         *         false otherwise
+         */
+        public boolean isUnknown()
+        {
+            return getClass().equals(UserError.class);
+        }
+
+        @Override
+        public String toString()
+        {
+            return getMessage();
+        }
+
+        /**
+         * @param userErrorType
+         * @return whether this {@link UserError} has lower priority than given {@code userErrorType},
+         */
+        public static <T extends UserError> boolean hasHigherPriorityThan(T userErrorType)
+        {
+            if (userErrorType == null) {
+                return true;
+            }
+            return false;
+        }
     }
 
     /**

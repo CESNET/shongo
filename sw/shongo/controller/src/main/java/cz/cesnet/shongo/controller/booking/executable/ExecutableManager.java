@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -12,7 +13,9 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.util.QueryFilter;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -542,6 +545,17 @@ public class ExecutableManager extends AbstractManager
         executionTarget.addReport(executionReport);
 
         executionReports.add(executionReport);
+    }
+
+    /**
+     * @param executionTarget to which the {@code executionReport} will be added
+     * @param sendLocalCommand to be reported to the {@code executable}
+     */
+    public void createExecutionReport(ExecutionTarget executionTarget, SendLocalCommand sendLocalCommand)
+    {
+        String commandName = sendLocalCommand.getName();
+        JadeReport jadeReport = sendLocalCommand.getJadeReport();
+        createExecutionReport(executionTarget, new ExecutionReportSet.CommandFailedReport(commandName, jadeReport));
     }
 
     /**

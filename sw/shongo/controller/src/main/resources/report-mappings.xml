@@ -86,6 +86,7 @@
         <discriminator-value>CommandFailedReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
+            <basic name="code"/>
             <basic name="reason">
                 <column length="2048"/>
             </basic>

@@ -96,6 +96,24 @@ public class SendLocalCommand extends LocalCommand
     }
 
     /**
+     * @return true if command has succeeded,
+     *         false otherwise
+     */
+    public boolean isSuccessful()
+    {
+        return State.SUCCESSFUL.equals(state);
+    }
+
+    /**
+     * @return true if command has failed,
+     *         false otherwise
+     */
+    public boolean isFailed()
+    {
+        return State.FAILED.equals(state);
+    }
+
+    /**
      * @param state sets the {@link #state}
      */
     public void setState(State state)
@@ -124,6 +142,32 @@ public class SendLocalCommand extends LocalCommand
             return new JadeReportSet.CommandUnknownErrorReport(command.getName(), null);
         }
         return jadeReport;
+    }
+
+    /**
+     * @param code
+     * @return true whether {@link #jadeReport} is {@link JadeReportSet.CommandFailedReport} with given {@code code},
+     *         false otherwise
+     */
+    public boolean isJadeCommandFailed(String code)
+    {
+        if (jadeReport instanceof JadeReportSet.CommandFailedReport) {
+            JadeReportSet.CommandFailedReport commandFailedReport = (JadeReportSet.CommandFailedReport) jadeReport;
+            return code.equals(commandFailedReport.getCode());
+        }
+        return false;
+    }
+
+    /**
+     * @return {@link JadeReportSet.CommandFailedReport#getReason()} for {@link #jadeReport}
+     */
+    public String getCommandFailedReason()
+    {
+        if (jadeReport instanceof JadeReportSet.CommandFailedReport) {
+            JadeReportSet.CommandFailedReport commandFailedReport = (JadeReportSet.CommandFailedReport) jadeReport;
+            return commandFailedReport.getReason();
+        }
+        return null;
     }
 
     /**

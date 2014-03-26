@@ -33,7 +33,7 @@ public class JadeReportSet extends AbstractReportSet
         addMessage(COMMAND_REFUSED, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} has refused command ${command}.");
         addMessage(COMMAND_NOT_UNDERSTOOD, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} didn't understand command ${command}.");
         addMessage(COMMAND_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}");
-        addMessage(COMMAND_FAILED, new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Command ${command} ended with error.");
+        addMessage(COMMAND_FAILED, new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "${reason}");
         addMessage(COMMAND_RESULT_DECODING_FAILED, new Report.UserType[]{}, Report.Language.ENGLISH, "Sender agent ${senderAgent} cannot decode response from command ${command}.");
     }};
 

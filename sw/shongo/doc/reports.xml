@@ -218,7 +218,7 @@
                 Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}
             </message>
             <message for="user">
-                Command ${command} ended with error.
+                ${reason}
             </message>
             <example>
                 TODO:
@@ -1668,6 +1668,24 @@
                 TODO:
             </example>
             <resolution param="jadeReport"/>
+        </report>
+
+        <report>
+            <id>recording-unavailable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="reason" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                ${reason}
+            </message>
+            <example>
+                TODO:
+            </example>
+            <resolution>try-again</resolution>
         </report>
 
         <report>

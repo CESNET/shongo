@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.controller.RecordingUnavailableException;
 import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;

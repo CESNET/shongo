@@ -152,13 +152,12 @@ public class Connection extends Executable
             else {
                 sendLocalCommand = controllerAgent.sendCommand(agentName, new Dial(getAlias().toApi()));
             }
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            if (sendLocalCommand.isSuccessful()) {
                 setConnectionId((String) sendLocalCommand.getResult());
                 return State.STARTED;
             }
             else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                executableManager.createExecutionReport(this, sendLocalCommand);
                 return State.STARTING_FAILED;
             }
         }
@@ -184,15 +183,13 @@ public class Connection extends Executable
             }
             else {
                 // TODO: use connection id to hangup
-
                 sendLocalCommand = controllerAgent.sendCommand(agentName, new HangUpAll());
             }
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            if (sendLocalCommand.isSuccessful()) {
                 return State.STOPPED;
             }
             else {
-                executableManager.createExecutionReport(this, new ExecutionReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
+                executableManager.createExecutionReport(this, sendLocalCommand);
                 return State.STOPPING_FAILED;
             }
         }
