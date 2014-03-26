@@ -17,6 +17,7 @@
 <%-- Variables --%>
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="name" value="${configuration.getName(requestContext.locale.language)}"/>
 <tag:url var="reportUrl" value="<%= ClientWebUrl.REPORT %>">
     <tag:param name="back-url" value="${requestScope.requestUrl}"/>
 </tag:url>
@@ -33,9 +34,9 @@
 <%-- Header --%>
 <head>
     <title>
-        <spring:message code="system.name"/>
+        ${name}
         <c:choose>
-            <c:when test="${title.getClass().name == 'java.lang.String'}">
+            <c:when test="${title.getClass().name == 'java.lang.String' && not empty title}">
                 <spring:message code="${title}" var="title"/>
                 - ${title}
             </c:when>
@@ -58,7 +59,9 @@
                         </c:if>
                     </c:forEach>
                 </c:set>
-                - ${title}
+                <c:if test="${not empty title}">
+                    - ${title}
+                </c:if>
             </c:otherwise>
         </c:choose>
     </title>
@@ -98,7 +101,7 @@
         <div class="navbar-inner">
             <%-- Left panel - application name and main links --%>
             <div class="main">
-                <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
+                <a class="brand" href="/">${name}</a>
                 <div class="pull-left">
                     <ul class="nav" role="navigation">
                         <%-- Button which represents collapsed main links --%>
@@ -310,9 +313,8 @@
     <%-- Page footer --%>
     <div class="footer block">
         <p class="muted">
-            <a href="${changelogUrl}"><spring:message code="system.name"/>&nbsp;<spring:message
-                    code="system.version"/></a>
-            &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
+            <a href="${changelogUrl}">Powered by Shongo&nbsp;<spring:message code="system.version"/></a>
+            &copy; 2012 - 2014&nbsp;&nbsp;&nbsp;
             <a title="CESNET" href="http://www.cesnet.cz/">
                 <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
             </a>

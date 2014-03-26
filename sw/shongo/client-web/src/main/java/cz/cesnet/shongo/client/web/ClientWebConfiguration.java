@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.client.web;
 
 import org.apache.commons.configuration.CombinedConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * Web client configuration.
@@ -26,6 +27,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
      * Controller url.
      */
     private URL controllerUrl;
+
+    /**
+     * Application name by language code.
+     */
+    private Map<String, String> nameByLanguage;
 
     /**
      * @return {@link #clientWebConfiguration}
@@ -67,6 +73,37 @@ public class ClientWebConfiguration extends CombinedConfiguration
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default configuration.", exception);
         }
+    }
+
+    /**
+     * @param language
+     * @return application name for given {@code language}
+     */
+    public String getName(String language)
+    {
+        if (nameByLanguage == null) {
+            // Load names by languages
+            nameByLanguage = new HashMap<String, String>();
+            for (HierarchicalConfiguration nameConfiguration : configurationsAt("name")) {
+                nameConfiguration.getRoot();
+                Node nameNode = nameConfiguration.getRoot();
+                String nameLanguage = null;
+                String nameValue = (String) nameNode.getValue();
+                List<ConfigurationNode> attributeNodes = nameNode.getAttributes("language");
+                if (attributeNodes.size() > 0) {
+                    ConfigurationNode attributeNode = attributeNodes.get(0);
+                    nameLanguage = (String) attributeNode.getValue();
+                }
+                if (!nameByLanguage.containsKey(nameLanguage)) {
+                    nameByLanguage.put(nameLanguage, nameValue);
+                }
+            }
+        }
+        String name = nameByLanguage.get(language);
+        if (name == null) {
+            name = nameByLanguage.get(null);
+        }
+        return name;
     }
 
     /**
@@ -129,14 +166,6 @@ public class ClientWebConfiguration extends CombinedConfiguration
             }
         }
         return controllerUrl;
-    }
-
-    /**
-     * @return title suffix
-     */
-    public String getTitleSuffix()
-    {
-        return getString("title-suffix");
     }
 
     /**

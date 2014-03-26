@@ -3,6 +3,10 @@
 <!-- Default Configuration of Web Client -->
 <configuration>
 
+    <!-- Application name -->
+    <name>Reservation system (BETA)</name>
+    <name language="cs">Rezervační systém (BETA)</name>
+
     <!-- Web server configuration -->
     <server>
         <port>80</port>
@@ -13,9 +17,6 @@
 
     <!-- Controller url -->
     <controller>127.0.0.1:8181</controller>
-
-    <!-- Application title suffix -->
-    <title-suffix>(BETA)</title-suffix>
 
     <!-- Contact email -->
     <suggestion-email>vidcon@cesnet.cz</suggestion-email>
