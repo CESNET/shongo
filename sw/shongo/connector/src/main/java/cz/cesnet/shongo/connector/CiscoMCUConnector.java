@@ -1268,6 +1268,7 @@ ParamsLoop:
         cmd.setParameter("enumerateFilter", "connected");
         List<Map<String, Object>> participants = execApiEnumerate(cmd, "participants");
 
+        List<RoomParticipant> hiddenResult = new ArrayList<RoomParticipant>();
         List<RoomParticipant> result = new ArrayList<RoomParticipant>();
         for (Map<String, Object> participant : participants) {
             if (participant == null) {
@@ -1280,17 +1281,16 @@ ParamsLoop:
             Map<String, Object> participantState = (Map<String, Object>) participant.get("currentState");
             String participantAddress = (String) participantState.get("address");
             if (participantAddress != null && hiddenParticipantAddresses.contains(participantAddress)) {
-                if (withHidden) {
-                    // participant should be moved to the start of the list
-                    result.add(0, extractRoomParticipant(participant));
-                    continue;
-                }
-                else {
-                    // participant should be hidden
-                    continue;
-                }
+                hiddenResult.add(extractRoomParticipant(participant));
             }
-            result.add(extractRoomParticipant(participant));
+            else {
+                result.add(extractRoomParticipant(participant));
+            }
+        }
+
+        // Append hidden participants to the end
+        if (withHidden) {
+            result.addAll(hiddenResult);
         }
 
         return result;
