@@ -19,7 +19,22 @@
     <thead>
     <tr>
         <th><spring:message code="views.userRoleList.for"/></th>
-        <th><spring:message code="views.userRole.objectRole"/></th>
+        <th>
+            <spring:message code="views.userRole.objectRole"/>
+            <tag:help>
+                <strong><spring:message code="views.userRole.objectRole.OWNER"/></strong>
+
+                <p><spring:message code="views.userRole.objectRoleHelp.OWNER"/></p>
+                <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+                    <strong><spring:message code="views.userRole.objectRole.RESERVATION_REQUEST_USER"/></strong>
+
+                    <p><spring:message code="views.userRole.objectRoleHelp.RESERVATION_REQUEST_USER"/></p>
+                </c:if>
+                <strong><spring:message code="views.userRole.objectRole.READER"/></strong>
+
+                <p><spring:message code="views.userRole.objectRoleHelp.READER"/></p>
+            </tag:help>
+        </th>
         <th><spring:message code="views.userRole.email"/></th>
         <c:if test="${isWritable && not empty deleteUrl}">
             <th style="min-width: 85px; width: 85px;">

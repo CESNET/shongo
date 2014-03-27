@@ -52,6 +52,7 @@
             id: "${objectId}",
             isPeriodic: ${isPeriodic},
             isPeriodicEvent: ${isPeriodicEvent},
+            technology: ${technology != null ? ('"'.concat(technology).concat('"')) : 'null'},
             allocationState: "${allocationState}",
             roomState: "${roomState}",
             roomStateStarted: ${roomState.started == true},

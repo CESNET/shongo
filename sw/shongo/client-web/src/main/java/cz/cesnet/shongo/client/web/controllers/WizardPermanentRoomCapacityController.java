@@ -237,7 +237,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequestModel,
             BindingResult bindingResult)
     {
-        if (!ReservationRequestValidator.validateParticipants(reservationRequestModel, bindingResult)) {
+        if (!ReservationRequestValidator.validateParticipants(reservationRequestModel, bindingResult, false)) {
             return handleParticipants(reservationRequestModel);
         }
         if (finish) {

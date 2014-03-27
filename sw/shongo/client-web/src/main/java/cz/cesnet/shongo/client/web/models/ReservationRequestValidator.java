@@ -14,6 +14,7 @@ import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -101,7 +102,7 @@ public class ReservationRequestValidator implements Validator
                     if (roomParticipantCount != null && roomParticipantCount <= 0) {
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
                     }
-                    validateParticipants(reservationRequestModel, errors);
+                    validateParticipants(reservationRequestModel, errors, true);
                     break;
             }
             switch (specificationType) {
@@ -212,12 +213,23 @@ public class ReservationRequestValidator implements Validator
     /**
      * @param reservationRequestModel to get validated participants
      * @param errors
+     * @param autoFixError specifies whether error should be automatically fixed instead of appending them to
+     *                     given {@code errors}. It is useful for validating on different page without the proper form
      * @return true whether validation succeeds, otherwise false
      */
-    public static boolean validateParticipants(ReservationRequestModel reservationRequestModel, Errors errors)
+    public static boolean validateParticipants(ReservationRequestModel reservationRequestModel, Errors errors,
+            boolean autoFixError)
     {
         if (reservationRequestModel.isRoomParticipantNotificationEnabled()) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomMeetingName", "validation.field.required");
+            if (autoFixError) {
+                String roomMeetingName = reservationRequestModel.getRoomMeetingName();
+                if (roomMeetingName == null ||!StringUtils.hasText(roomMeetingName)) {
+                    reservationRequestModel.setRoomParticipantNotificationEnabled(false);
+                }
+            }
+            else {
+                ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomMeetingName", "validation.field.required");
+            }
         }
         return !errors.hasErrors();
     }

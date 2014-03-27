@@ -20,7 +20,16 @@
     <tr>
         <th><spring:message code="views.participant.userId"/></th>
         <c:if test="${!hideRole}">
-            <th><spring:message code="views.participant.role"/></th>
+            <th>
+                <spring:message code="views.participant.role"/>
+                <tag:help>
+                    <spring:eval var="roles" expression="T(cz.cesnet.shongo.ParticipantRole).values()"/>
+                    <c:forEach items="${roles}" var="role">
+                        <strong><spring:message code="views.participant.role.${role}"/></strong>
+                        <p><spring:message code="views.participant.roleHelp.${role}"/></p>
+                    </c:forEach>
+                </tag:help>
+            </th>
         </c:if>
         <th><spring:message code="views.participant.email"/></th>
         <c:if test="${isWritable && (not empty modifyUrl || not empty deleteUrl)}">
