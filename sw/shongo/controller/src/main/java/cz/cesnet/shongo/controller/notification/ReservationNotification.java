@@ -113,8 +113,8 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             titleBuilder.append(renderContext.message("reservation.type." + getType()));
             titleBuilder.append(" ");
             titleBuilder.append(renderContext.message("reservation"));
-            titleBuilder.append(" (rsv:");
-            titleBuilder.append(ObjectIdentifier.parse(id).getPersistenceId());
+            titleBuilder.append(" (");
+            titleBuilder.append(getTitleReservationId(renderContext));
             titleBuilder.append(") ");
             titleBuilder.append(renderContext.formatInterval(slot));
         }
@@ -141,6 +141,18 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             templateFileName = "reservation.ftl";
         }
         return renderTemplateMessage(renderContext, titleBuilder.toString(), templateFileName);
+    }
+
+    /**
+     * @return "rsv:<reservation-id>" string
+     * @param renderContext
+     */
+    protected String getTitleReservationId(RenderContext renderContext)
+    {
+        StringBuilder titleReservationId = new StringBuilder();
+        titleReservationId.append("rsv:");
+        titleReservationId.append(ObjectIdentifier.parse(id).getPersistenceId());
+        return titleReservationId.toString();
     }
 
     @Override
@@ -232,15 +244,36 @@ public abstract class ReservationNotification extends AbstractReservationRequest
 
     public static class New extends ReservationNotification
     {
-        public New(Reservation reservation, AuthorizationManager authorizationManager)
+        private Long previousReservationId;
+
+        public New(Reservation reservation, Reservation previousReservation, AuthorizationManager authorizationManager)
         {
             super(reservation, getReservationRequest(reservation), authorizationManager);
+
+            this.previousReservationId = (previousReservation != null ? previousReservation.getId() : null);
         }
 
         @Override
         public String getType()
         {
             return "NEW";
+        }
+
+        @Override
+        protected String getTitleReservationId(RenderContext renderContext)
+        {
+            if (previousReservationId != null) {
+                StringBuilder titleReservationId = new StringBuilder();
+                titleReservationId.append(super.getTitleReservationId(renderContext));
+                titleReservationId.append(", ");
+                titleReservationId.append(renderContext.message("reservation.replace"));
+                titleReservationId.append(" rsv:");
+                titleReservationId.append(previousReservationId);
+                return titleReservationId.toString();
+            }
+            else {
+                return super.getTitleReservationId(renderContext);
+            }
         }
     }
 

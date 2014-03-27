@@ -458,7 +458,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 continue;
             }
 
-            // Set previous reservation as last reservation
+            // Set last existing reservation into previous reservation variable
             if (previousReservation == null || oldReservation.getSlotEnd().isAfter(previousReservation.getSlotEnd())) {
                 previousReservation = oldReservation;
             }
@@ -498,7 +498,8 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         }
 
         // Create notification
-        contextState.addNotification(new ReservationNotification.New(allocatedReservation, authorizationManager));
+        contextState.addNotification(new ReservationNotification.New(
+                allocatedReservation, previousReservation, authorizationManager));
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
