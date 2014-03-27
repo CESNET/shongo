@@ -223,7 +223,7 @@
                             <th width="200px">
                                 <pagination-sort column="STATE"><spring:message code="views.reservationRequest.state"/></pagination-sort><tag:helpReservationRequestState/>
                             </th>
-                            <th style="min-width: 85px; width: 85px;">
+                            <th style="min-width: 105px; width: 105px;">
                                 <spring:message code="views.list.action"/>
                                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                             </th>
@@ -234,8 +234,8 @@
                             ng-class="{'deprecated': reservationRequest.isDeprecated}">
                             <td>{{reservationRequest.typeMessage}}</td>
                             <td>
-                                <spring:message code="views.index.rooms.manageRoom" var="manageRoom"/>
-                                <a ng-show="reservationRequest.reservationId" href="${detailRuntimeManagementUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
+                                <spring:message code="views.index.rooms.showDetail" var="manageRoom"/>
+                                <a ng-show="reservationRequest.reservationId" href="${detailUrl}" title="${manageRoom}" tabindex="2">{{reservationRequest.roomName}}</a>
                                 <span ng-hide="reservationRequest.reservationId">{{reservationRequest.roomName}}</span>
                                 <span ng-show="reservationRequest.roomParticipantCountMessage">({{reservationRequest.roomParticipantCountMessage}})</span>
                             </td>
@@ -255,13 +255,16 @@
                                 </tag:help>
                             </td>
                             <td>
-                                <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
+                                <tag:url var="detailRuntimeManagementEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
                                     <tag:param name="objectId" value="{{reservationRequest.reservationId}}" escape="false"/>
                                 </tag:url>
                                 <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE') && reservationRequest.technology == 'ADOBE_CONNECT'">
-                                    <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/> |
+                                    <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/> |
                                 </span>
                                 <tag:listAction code="show" titleCode="views.index.rooms.showDetail" url="${detailUrl}" tabindex="2"/>
+                                <span ng-show="(reservationRequest.state == 'ALLOCATED_STARTED' || reservationRequest.state == 'ALLOCATED_STARTED_AVAILABLE')">
+                                    | <tag:listAction code="manageRoom" url="${detailRuntimeManagementUrl}" target="_blank" tabindex="4"/>
+                                </span>
                                 <span ng-show="reservationRequest.isWritable">
                                     <c:if test="${advancedUserInterface}">
                                         <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
@@ -370,11 +373,11 @@
                             </td>
                             <td>{{room.description}}</td>
                             <td>
-                                <tag:url var="roomEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
+                                <tag:url var="detailRuntimeManagementEnterUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_ENTER %>">
                                     <tag:param name="objectId" value="{{room.id}}" escape="false"/>
                                 </tag:url>
                                 <span ng-show="room.stateAvailable && room.technology == 'ADOBE_CONNECT'">
-                                    <tag:listAction code="enterRoom" url="${roomEnterUrl}" target="_blank" tabindex="4"/>
+                                    <tag:listAction code="enterRoom" url="${detailRuntimeManagementEnterUrl}" target="_blank" tabindex="4"/>
                                 </span>
                             </td>
                         </tr>

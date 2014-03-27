@@ -182,7 +182,7 @@
             <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="participants" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED'"
+            <tab id="participants" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED'"
                  heading="${detailParticipantsTitle}"
                  content-url="${detailParticipantsUrl}">
             </tab>
@@ -191,7 +191,7 @@
             <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED' || reservationRequest.roomState == 'NOT_STARTED'"
+            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.roomState != 'STARTED'"
                  heading="${detailRuntimeManagementTitle}"
                  content-url="${detailRuntimeManagementUrl}">
             </tab>
@@ -200,7 +200,7 @@
             <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="recordings" ng-controller="TabController" disabled="reservationRequest.allocationState == 'NOT_ALLOCATED' || !reservationRequest.roomRecordable"
+            <tab id="recordings" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomRecordable"
                  heading="${detailRecordingsTitle}"
                  content-url="${detailRecordingsUrl}">
             </tab>
