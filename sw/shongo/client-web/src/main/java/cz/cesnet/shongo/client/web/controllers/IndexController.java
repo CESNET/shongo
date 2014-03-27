@@ -1,14 +1,19 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Index controller.
@@ -37,6 +42,24 @@ public class IndexController
         }
         else {
             return "indexAnonymous";
+        }
+    }
+
+    /**
+     * Handle help view.
+     */
+    @RequestMapping(value = ClientWebUrl.LOGGED, method = RequestMethod.GET)
+    @IgnoreDateTimeZone
+    @ResponseBody
+    public String handleLogged(HttpServletResponse response)
+    {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof OpenIDConnectAuthenticationToken) {
+            return "YES";
+        }
+        else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return "NO";
         }
     }
 

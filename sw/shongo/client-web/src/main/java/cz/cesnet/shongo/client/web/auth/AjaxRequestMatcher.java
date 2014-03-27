@@ -21,7 +21,7 @@ public class AjaxRequestMatcher implements RequestMatcher
     /**
      * @param request to be checked
      * @return true whether given {@code request} is AJAX request,
-     *         false otherwise
+     * false otherwise
      */
     public static boolean isAjaxRequest(HttpServletRequest request)
     {

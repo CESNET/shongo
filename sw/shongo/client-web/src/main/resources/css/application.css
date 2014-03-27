@@ -158,7 +158,6 @@ dl.dl-horizontal dd select {
 }
 .tab-content {
     padding: 10px;
-    border-radius: 0 0 4px 4px;
     border: 1px solid #ddd;
     border-top: 0;
 }
@@ -708,6 +707,38 @@ div.not-available {
 }
 .not-available p {
     font-weight: bold;
+}
+
+/* logged out overlay */
+#logged-out-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    text-align: center;
+}
+#logged-out-overlay div {
+    margin-top: 100px;
+    display: inline-block;
+    padding: 10px 10px 10px 10px;
+    border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
+    border: 1px solid;
+    background-color: rgb(255, 255, 255);
+}
+#logged-out-overlay span {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 0px 10px;
+    line-height: 30px;
+    vertical-align: bottom;
+}
+#logged-out-overlay .btn {
+    margin-top: 0px;
 }
 
 /* vies/error.jsp */

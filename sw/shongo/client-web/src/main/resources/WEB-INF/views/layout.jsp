@@ -101,7 +101,8 @@
         <div class="navbar-inner">
             <%-- Left panel - application name and main links --%>
             <div class="main">
-                <a class="brand" href="/">${name}</a>
+                <spring:url value="/" var="homeUrl"/>
+                <a class="brand" href="${homeUrl}">${name}</a>
                 <div class="pull-left">
                     <ul class="nav" role="navigation">
                         <%-- Button which represents collapsed main links --%>
@@ -158,6 +159,29 @@
 
                 <%-- Logged user information --%>
                 <security:authorize access="isAuthenticated()">
+                    <%-- Logged out overlay --%>
+                    <div id="logged-out-overlay">
+                        <div>
+                            <span><spring:message code="views.layout.logout.auto"/></span>
+                            <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
+                            <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>
+                            <a class="btn" href="${homeUrl}"><spring:message code="navigation.home"/></a>
+                        </div>
+                    </div>
+                    <tag:url var="loggedUrl" value="<%= ClientWebUrl.LOGGED %>"/>
+                    <script type="text/javascript">
+                        var timer = setInterval(function(){
+                            console.debug("Checking if you are still logged in...");
+                            $.ajax("${loggedUrl}").fail(function(response){
+                                if (response.status == 401) {
+                                    clearInterval(timer);
+                                    $("#logged-out-overlay").show();
+                                }
+                            });
+                        }, 5 * 60 * 1000);
+                    </script>
+
+                    <%-- User information --%>
                     <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">
                         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
                     </tag:url>
