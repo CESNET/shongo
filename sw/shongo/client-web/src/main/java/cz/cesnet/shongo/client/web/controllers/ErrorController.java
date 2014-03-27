@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
@@ -123,7 +124,16 @@ public class ErrorController
             Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
             errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
         }
-        return handleError(errorModel, configuration, reCaptcha, commonService);
+
+        // Do not report AJAX 401 errors
+        if (AjaxRequestMatcher.isAjaxRequest(request) &&
+                errorModel.getStatusCode().equals(HttpServletResponse.SC_UNAUTHORIZED)) {
+            logger.warn("AJAX ", errorModel.getEmailSubject(), errorModel.getThrowable());
+            return null;
+        }
+        else {
+            return handleError(errorModel, configuration, reCaptcha, commonService);
+        }
     }
 
     /**

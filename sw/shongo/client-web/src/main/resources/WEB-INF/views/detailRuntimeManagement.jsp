@@ -32,7 +32,7 @@
         <tag:param name="executableId" value="${room.recordingService.executableId}"/>
         <tag:param name="executableServiceId" value="${room.recordingService.id}"/>
         </tag:url>
-        function RoomRecordingController($scope, $timeout) {
+        function RoomRecordingController($scope, $timeout, $application) {
             $scope.isRecordingActive = ${room.recordingService.active};
             $scope.recordingError = null;
             $scope.recordingRequestActive = false;
@@ -41,7 +41,8 @@
                     return;
                 }
                 $scope.recordingRequestActive = true;
-                $.post("${startRecordingUrl}", function(result){
+                $.post("${startRecordingUrl}", {
+                }).done(function(result){
                     $timeout(function(){
                         if (typeof(result) == "object" && result["error"] != null) {
                             $scope.recordingError = result["error"];
@@ -52,14 +53,15 @@
                         }
                         $scope.recordingRequestActive = false;
                     }, 0);
-                });
+                }).fail($application.handleAjaxFailure);
             };
             $scope.stopRecording = function() {
                 if ($scope.recordingRequestActive) {
                     return;
                 }
                 $scope.recordingRequestActive = true;
-                $.post("${stopRecordingUrl}", function(result){
+                $.post("${stopRecordingUrl}", {
+                }).done(function(result){
                     $timeout(function(){
                         if (typeof(result) == "object" && result["error"] != null) {
                             $scope.recordingError = result["error"];
@@ -72,7 +74,7 @@
                         }
                         $scope.recordingRequestActive = false;
                     }, 0);
-                });
+                }).fail($application.handleAjaxFailure);
             };
         }
     </script>
@@ -107,7 +109,7 @@
             if (newVal != oldVal) {
                 var url = "${modifyRoomUrl}";
                 url = url.replace(":layout", newVal);
-                $.post(url);
+                $.post(url).fail($application.handleAjaxFailure);
             }
         });
     </c:if>
@@ -217,7 +219,7 @@
 <%-- Participants --%>
 <c:if test="${isRoomAvailable}">
     <script type="text/javascript">
-        function RoomParticipantController($scope, $timeout, $roomParticipantDialog) {
+        function RoomParticipantController($scope, $timeout, $application, $roomParticipantDialog) {
             var roomParticipantAttributes = ["layout", "microphoneLevel", "audioMuted", "videoMuted"];
 
             /**
@@ -228,7 +230,7 @@
                     $timeout(function(){
                         $scope.$parent.refresh();
                     }, 0);
-                });
+                }).fail($application.handleAjaxFailure);
             };
 
             /**
@@ -261,7 +263,7 @@
                         }
                     }
                     url += "?" + $.param(urlQuery);
-                    $.post(url);
+                    $.post(url).fail($application.handleAjaxFailure);
                 });
             };
         }

@@ -78,6 +78,7 @@ public class DetailController extends AbstractDetailController implements Breadc
         modelAndView.addObject("technology",
                 TechnologyModel.find(reservationRequest.getSpecificationTechnologies()));
         modelAndView.addObject("allocationState", reservationRequest.getAllocationState());
+        modelAndView.addObject("reservationId", reservationId);
         modelAndView.addObject("roomState", roomState);
         modelAndView.addObject("isPeriodic", reservationRequest.getFutureSlotCount() != null);
         modelAndView.addObject("isPeriodicEvent", parentReservationRequestId != null);

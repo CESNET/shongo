@@ -138,14 +138,16 @@
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <c:if test="${reservationRequest.state != null}">
                     <td class="reservation-request-state">
-                        <span ng-show="reservationRequest.id == '${historyItem.id}' && reservationRequest.state">
-                            <span class="{{reservationRequest.state}}">{{reservationRequest.stateLabel}}</span>
-                        </span>
-                        <span ng-show="reservationRequest.id != '${historyItem.id}' || !reservationRequest.state">
-                            <span class="${historyItem.state}">
-                                <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/>
+                        <c:if test="${historyItem.state != nul}">
+                            <span ng-show="reservationRequest.id == '${historyItem.id}' && reservationRequest.state">
+                                <span class="{{reservationRequest.state}}">{{reservationRequest.stateLabel}}</span>
                             </span>
-                        </span>
+                            <span ng-show="reservationRequest.id != '${historyItem.id}' || !reservationRequest.state">
+                                <span class="${historyItem.state}">
+                                    <spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${historyItem.state}"/>
+                                </span>
+                            </span>
+                        </c:if>
                     </td>
                 </c:if>
                 <td>

@@ -79,29 +79,6 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         this.authorizationService = authorizationService;
     }
 
-    /**
-     *
-     * @param request
-     * @param response
-     * @return
-     */
-    private boolean isAjaxRequest(HttpServletRequest request, HttpServletResponse response)
-    {
-        HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
-        SavedRequest savedRequest = httpSessionRequestCache.getRequest(request, response);
-        if (savedRequest != null) {
-            List<String> ajaxHeaderValues = savedRequest.getHeaderValues("x-requested-with");
-            for (String value : ajaxHeaderValues) {
-                if (StringUtils.equalsIgnoreCase("XMLHttpRequest", value)) {
-                    // Remove ajax request from cache
-                    httpSessionRequestCache.removeRequest(request, response);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException
@@ -135,10 +112,6 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         }
         else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
             return handleAuthorizationCodeResponse(request, response);
-        }
-        else if (isAjaxRequest(request, response)) {
-            response.setStatus(HttpStatus.SC_UNAUTHORIZED);
-            return null;
         }
         else {
             handleAuthorizationRequest(request, response);

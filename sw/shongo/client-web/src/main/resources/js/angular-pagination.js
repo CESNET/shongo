@@ -187,11 +187,7 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
             $element.css('height', "auto");
 
             // Get error content
-            var errorContent = $('#page-content', response.data).html().trim();
-
-            // Replace back-url by current-url
-            var currentUrl = location.pathname + location.search;
-            errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
+            var errorContent = $application.getErrorContent(response.data);
 
             // Set error content
             $scope.errorContent = errorContent ;
@@ -317,10 +313,9 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
         return $scope.resource.list(listParameters, function(response) {
             callback(response);
         }, function(response){
-            if ($application.handleAjaxFailure(response)) {
-                return;
+            if (!$application.handleAjaxFailure(response)) {
+                $scope.setError(response);
             }
-            $scope.setError(response);
         });
     };
 

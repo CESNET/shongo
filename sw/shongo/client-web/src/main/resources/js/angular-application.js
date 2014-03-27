@@ -33,11 +33,17 @@ applicationModule.factory("$application", function() {
         },
         handleAjaxFailure: function(response) {
             if (response.status == 401) {
-                // User login timeout and thus refresh
+                // User login timeout and thus refresh whole page
                 window.location.reload();
                 return true;
             }
             return false;
+        },
+        getErrorContent: function(data) {
+            var currentUrl = location.pathname + location.search;
+            var errorContent = $('#page-content', data).html().trim();
+            errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
+            return errorContent;
         }
     };
 });
@@ -125,7 +131,7 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
 /**
  * URL for dynamic tab content.
  */
-applicationModule.directive('contentUrl', function ($http, $compile) {
+applicationModule.directive('contentUrl', function ($http, $compile, $application) {
     var SCRIPT_PATTERN = /\s*<script((?!<\/script>)[\s\S])*<\/script>/;
     var index = 0;
     return {
@@ -180,6 +186,18 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
     };
 
     /**
+     * Set content to given scope.
+     *
+     * @param scope
+     * @param element
+     */
+    function setContent(scope, element){
+        var oldElement = $("#" + scope.contentElementId);
+        oldElement.empty();
+        oldElement.append(element);
+    }
+
+    /**
      * Load content from given scope.
      *
      * @param scope
@@ -206,10 +224,14 @@ applicationModule.directive('contentUrl', function ($http, $compile) {
             $("head").append(scripts);
 
             // Replace element content
-            var oldElement = $("#" + scope.contentElementId);
-            var newElement = $compile("<div>" + html + "</div>")(scope.$parent);
-            oldElement.empty();
-            oldElement.append(newElement);
+            var element = $compile("<div>" + html + "</div>")(scope.$parent);
+            setContent(scope, element);
+
+        }).error(function(data, status){
+            if (!$application.handleAjaxFailure({status: status})) {
+                var errorContent = $($.parseHTML($application.getErrorContent(data)));
+                setContent(scope, errorContent);
+            }
         });
     }
 });

@@ -56,9 +56,22 @@
     </bean>
 
     <!-- Create authentication entry-point -->
-    <bean id="authenticationEntryPoint"
-          class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
-        <constructor-arg value="/login"/>
+    <bean id="authenticationEntryPoint" class="org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint">
+        <constructor-arg>
+            <map>
+                <entry>
+                    <key>
+                        <bean class="cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher"/>
+                    </key>
+                    <bean class="cz.cesnet.shongo.client.web.auth.Http401UnauthorizedEntryPoint"/>
+                </entry>
+            </map>
+        </constructor-arg>
+        <property name="defaultEntryPoint">
+            <bean class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+                <constructor-arg value="/login"/>
+            </bean>
+        </property>
     </bean>
 
     <!-- Create authentication filter for OpenID Connect -->

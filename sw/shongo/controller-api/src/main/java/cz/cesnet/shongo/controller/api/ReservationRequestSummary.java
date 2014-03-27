@@ -301,7 +301,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      */
     public String getAllocatedReservationId()
     {
-        if (allocationState.equals(AllocationState.NOT_ALLOCATED)) {
+        if (AllocationState.NOT_ALLOCATED.equals(allocationState)) {
             return null;
         }
         return lastReservationId;

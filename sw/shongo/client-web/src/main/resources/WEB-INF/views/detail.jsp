@@ -54,6 +54,7 @@
             isPeriodicEvent: ${isPeriodicEvent},
             technology: ${technology != null ? ('"'.concat(technology).concat('"')) : 'null'},
             allocationState: "${allocationState}",
+            reservationId : "${reservationId}",
             roomState: "${roomState}",
             roomStateStarted: ${roomState.started == true},
             roomRecordable: ${isRoomRecordable == true}
@@ -183,7 +184,7 @@
             <tag:url var="detailParticipantsUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="participants" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED'"
+            <tab id="participants" ng-controller="TabController" disabled="reservationRequest.reservationId == '' || reservationRequest.allocationState != 'ALLOCATED'"
                  heading="${detailParticipantsTitle}"
                  content-url="${detailParticipantsUrl}">
             </tab>
