@@ -20,6 +20,8 @@ import org.springframework.validation.Validator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Validator for {@link ReservationRequestModel}.
@@ -29,6 +31,8 @@ import java.util.Locale;
 public class ReservationRequestValidator implements Validator
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestValidator.class);
+
+    private static final Pattern PATTERN_ALPHA_NUM = Pattern.compile("^[a-zA-Z0-9_-]*$");
 
     private SecurityToken securityToken;
 
@@ -112,6 +116,7 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
+                    validateAlphaNum("roomName", errors);
                     break;
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(
@@ -169,7 +174,8 @@ public class ReservationRequestValidator implements Validator
                     errors.rejectValue(
                             "start", "validation.field.permanentRoomNotAvailable");
                 }
-                else if (userError instanceof AllocationStateReport.RecordingRoomCapacityExceed) {
+                else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded ||
+                        userError instanceof AllocationStateReport.RecordingRoomCapacityExceed) {
                     errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
                 }
                 else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
@@ -214,5 +220,19 @@ public class ReservationRequestValidator implements Validator
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomMeetingName", "validation.field.required");
         }
         return !errors.hasErrors();
+    }
+
+    /**
+     * @param field
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
+    public static void validateAlphaNum(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        Matcher matcher = PATTERN_ALPHA_NUM.matcher(value);
+        if (!matcher.matches()) {
+            errors.rejectValue(field, "validation.field.invalidAlphaNum");
+        }
     }
 }

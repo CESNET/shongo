@@ -28,6 +28,9 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
 {
     private static Logger logger = LoggerFactory.getLogger(ClientWebHandlerExceptionResolver.class);
 
+    private static final Pattern NOT_AUTHORIZED_PATTERN =
+            Pattern.compile("read .+ (shongo(:[-\\.a-zA-Z0-9]+)+:[0-9]+)");
+
     @Resource
     private ClientWebConfiguration configuration;
 
@@ -51,8 +54,7 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
                 ControllerReportSet.SecurityNotAuthorizedException securityNotAuthorizedException =
                         (ControllerReportSet.SecurityNotAuthorizedException) exception;
                 String action = securityNotAuthorizedException.getReport().getAction();
-                Pattern pattern = Pattern.compile("read .+ (shongo(:[-\\.a-zA-Z0-9]+)+:[0-9]+)");
-                Matcher matcher = pattern.matcher(action);
+                Matcher matcher = NOT_AUTHORIZED_PATTERN.matcher(action);
                 if (matcher.find()) {
                     ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
                     modelAndView.addObject("objectId", matcher.group(1));
