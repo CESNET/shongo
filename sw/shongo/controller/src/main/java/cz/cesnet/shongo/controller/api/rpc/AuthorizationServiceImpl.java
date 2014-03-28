@@ -171,6 +171,24 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public UserSettings getUserSettings(SecurityToken securityToken, String userId)
+    {
+        authorization.validate(securityToken);
+        if (!authorization.isAdministrator(securityToken) && !userId.equals(securityToken.getUserId())) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("get settings for user %s ", userId);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+        try {
+            return userSettingsManager.getUserSettings(userId);
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
     public void updateUserSettings(SecurityToken securityToken, UserSettings userSettingsApi)
     {
         authorization.validate(securityToken);
@@ -180,7 +198,30 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
 
-            userSettingsManager.updateUserSettings(securityToken, userSettingsApi);
+            userSettingsManager.updateUserSessionSettings(securityToken, userSettingsApi);
+            userSettingsManager.updateUserSettings(securityToken.getUserId(), userSettingsApi);
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void updateUserSettings(SecurityToken securityToken, String userId, UserSettings userSettingsApi)
+    {
+        authorization.validate(securityToken);
+        if (!authorization.isAdministrator(securityToken) && !userId.equals(securityToken.getUserId())) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update settings for user %s ", userId);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
+        try {
+            entityManager.getTransaction().begin();
+
+            userSettingsManager.updateUserSettings(userId, userSettingsApi);
 
             entityManager.getTransaction().commit();
         }

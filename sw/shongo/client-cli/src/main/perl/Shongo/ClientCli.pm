@@ -344,7 +344,13 @@ sub format_user
     if ( defined($user_information) ) {
         $name = $user_information->{'firstName'};
         if ( defined($user_information->{'lastName'}) ) {
-            $name .= ' ' . $user_information->{'lastName'};
+            if (defined($name)) {
+                $name .= ' ';
+            }
+            else {
+                $name = '';
+            }
+            $name .= $user_information->{'lastName'};
         }
     }
     if ( $long ) {

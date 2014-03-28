@@ -446,6 +446,33 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @param resource to be created
+     * @return new resource-id
+     */
+    public String createResource(Resource resource)
+    {
+        return getResourceService().createResource(SECURITY_TOKEN_ROOT, resource);
+    }
+
+    /**
+     * @param resourceId
+     * @return {@link Resource}
+     */
+    public <T extends Resource> T getResource(String resourceId, Class<T> resourceType)
+    {
+        return resourceType.cast(getResourceService().getResource(SECURITY_TOKEN_ROOT, resourceId));
+    }
+
+    /**
+     * @param resource to be created
+     * @return new resource-id
+     */
+    public String createResource(SecurityToken securityToken, Resource resource)
+    {
+        return getResourceService().createResource(securityToken, resource);
+    }
+
+    /**
      * @param reservationRequestId
      * @param reservationRequestClass
      * @return reservation request for given {@code reservationRequestId}

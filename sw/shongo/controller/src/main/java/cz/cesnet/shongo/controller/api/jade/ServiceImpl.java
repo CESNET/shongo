@@ -114,12 +114,13 @@ public class ServiceImpl implements Service
     public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
             final Map<String, String> titles, final Map<String, String> messages) throws CommandException
     {
+        Authorization authorization = Authorization.getInstance();
         List<PersonInformation> recipients = new LinkedList<PersonInformation>();
         switch (targetType) {
             case USER:
             {
                 try {
-                    recipients.add(Authorization.getInstance().getUserInformation(targetId));
+                    recipients.add(authorization.getUserInformation(targetId));
                 }
                 catch (Exception exception) {
                     throw new CommandException(String.format("Cannot notify user with id '%s'.", targetId), exception);
@@ -139,12 +140,11 @@ public class ServiceImpl implements Service
                         throw new CommandException(String.format(
                                 "No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
-                    Authorization authorization = Authorization.getInstance();
                     for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, ObjectRole.OWNER)) {
                         recipients.add(user);
                     }
-                    for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {
-                        recipients.add(resourceAdministrator.getInformation());
+                    for (PersonInformation resourceAdministrator : deviceResource.getAdministrators(authorization)) {
+                        recipients.add(resourceAdministrator);
                     }
                 }
                 finally {
@@ -158,8 +158,8 @@ public class ServiceImpl implements Service
                     throw new IllegalArgumentException("The targetId argument must be null.");
                 }
                 DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
-                for (AbstractPerson resourceAdministrator : deviceResource.getAdministrators()) {
-                    recipients.add(resourceAdministrator.getInformation());
+                for (PersonInformation resourceAdministrator : deviceResource.getAdministrators(authorization)) {
+                    recipients.add(resourceAdministrator);
                 }
                 break;
             }

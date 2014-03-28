@@ -8,7 +8,6 @@ import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -59,7 +58,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -104,7 +103,7 @@ public class ExecutableTest extends AbstractExecutorTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("9500872{digit:2}", AliasType.H323_E164));
-        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        String aliasProviderId = createResource(aliasProvider);
 
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -112,7 +111,7 @@ public class ExecutableTest extends AbstractExecutorTest
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
         terminal.setMode(new ManagedMode(terminalAgent.getName()));
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -120,7 +119,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -180,7 +179,7 @@ public class ExecutableTest extends AbstractExecutorTest
                 new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}"));
         connectServer.setAllocatable(true);
         connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        String mcuId = createResource(connectServer);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -226,7 +225,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -281,7 +280,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -348,7 +347,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -689,7 +688,7 @@ public class ExecutableTest extends AbstractExecutorTest
                 new AliasProviderCapability("fake",AliasType.ADOBE_CONNECT_URI, "{value}").withRestrictedToResource());
         connectServerFake.setAllocatable(true);
         connectServerFake.setMode(new ManagedMode(connectServerAgent.getName()));
-        getResourceService().createResource(SECURITY_TOKEN, connectServerFake);
+        createResource(connectServerFake);
 
         DeviceResource connectServer = new DeviceResource();
         connectServer.setName("connectServer");
@@ -700,7 +699,7 @@ public class ExecutableTest extends AbstractExecutorTest
                 new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{value}").withRestrictedToResource());
         connectServer.setAllocatable(true);
         connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
-        String connectServerId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        String connectServerId = createResource(connectServer);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot(dateTime, duration);
@@ -758,14 +757,14 @@ public class ExecutableTest extends AbstractExecutorTest
         connect.setAllocatable(true);
         connect.addTechnology(Technology.ADOBE_CONNECT);
         connect.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         // Create permanent room
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
@@ -852,7 +851,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -904,7 +903,7 @@ public class ExecutableTest extends AbstractExecutorTest
         connect.addTechnology(Technology.ADOBE_CONNECT);
         connect.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10));
         connect.setAllocatable(true);
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, connect);
+        String firstMcuId = createResource(connect);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -951,7 +950,7 @@ public class ExecutableTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);

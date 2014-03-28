@@ -64,7 +64,7 @@ public class CommandFailureTest extends AbstractControllerTest
         DeviceResource deviceResource = new DeviceResource();
         deviceResource.setName("mcu");
         deviceResource.addTechnology(Technology.H323);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, deviceResource);
+        String mcuId = createResource(deviceResource);
 
         getController().addJadeAgent("mcu", new ConnectorAgent());
         getController().waitForJadeAgentsToStart();

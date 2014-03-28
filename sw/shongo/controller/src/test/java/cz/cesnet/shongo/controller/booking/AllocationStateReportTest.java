@@ -27,7 +27,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
@@ -59,7 +59,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -89,7 +89,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
@@ -128,7 +128,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -164,7 +164,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         resource.setName("resource");
         resource.setAllocatable(true);
         resource.setMaximumFuture(new DateTime("2012-11-01T00:00"));
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
@@ -184,14 +184,14 @@ public class AllocationStateReportTest extends AbstractControllerTest
         aliasProviderFirst.setAllocatable(true);
         aliasProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
         aliasProviderFirst.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProviderFirst);
+        createResource(aliasProviderFirst);
 
         Resource aliasProviderSecond = new Resource();
         aliasProviderSecond.setName("aliasProvider2");
         aliasProviderSecond.setAllocatable(true);
         aliasProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
         aliasProviderSecond.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProviderSecond);
+        createResource(aliasProviderSecond);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
@@ -212,7 +212,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProviderFirst.setMaximumFuture(new DateTime("2012-11-01T00:00"));
         roomProviderFirst.addTechnology(Technology.H323);
         roomProviderFirst.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, roomProviderFirst);
+        createResource(roomProviderFirst);
 
         DeviceResource roomProviderSecond = new DeviceResource();
         roomProviderSecond.setName("roomProvider2");
@@ -220,7 +220,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProviderSecond.setMaximumFuture(new DateTime("2012-12-01T00:00"));
         roomProviderSecond.addTechnology(Technology.H323);
         roomProviderSecond.addCapability(new RoomProviderCapability(20));
-        getResourceService().createResource(SECURITY_TOKEN, roomProviderSecond);
+        createResource(roomProviderSecond);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T00:00", "PT1H");
@@ -241,7 +241,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProvider.addTechnology(Technology.H323);
         roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProvider.addCapability(new RoomProviderCapability(50, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+        createResource(roomProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -262,7 +262,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProviderFirst.addTechnology(Technology.H323);
         roomProviderFirst.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProviderFirst.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProviderFirst);
+        createResource(roomProviderFirst);
 
         DeviceResource roomProviderSecond = new DeviceResource();
         roomProviderSecond.setName("roomProvider2");
@@ -270,7 +270,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProviderSecond.addTechnology(Technology.H323);
         roomProviderSecond.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProviderSecond.addCapability(new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProviderSecond);
+        createResource(roomProviderSecond);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "PT1H");
@@ -298,7 +298,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
@@ -327,7 +327,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
@@ -358,7 +358,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProvider.addTechnology(Technology.H323);
         roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProvider.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+        createResource(roomProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -389,7 +389,7 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProvider.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
         roomProvider.addCapability(new RecordingCapability(1));
-        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+        createResource(roomProvider);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1D");
@@ -427,14 +427,14 @@ public class AllocationStateReportTest extends AbstractControllerTest
         roomProvider.addTechnology(Technology.H323);
         roomProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         roomProvider.addCapability(new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME}));
-        getResourceService().createResource(SECURITY_TOKEN, roomProvider);
+        createResource(roomProvider);
 
         DeviceResource recorder = new DeviceResource();
         recorder.setName("recorder");
         recorder.setAllocatable(true);
         recorder.addTechnology(Technology.H323);
         recorder.addCapability(new RecordingCapability(1));
-        getResourceService().createResource(SECURITY_TOKEN, recorder);
+        createResource(recorder);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1D");

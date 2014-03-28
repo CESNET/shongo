@@ -53,10 +53,10 @@ public class Resource extends IdentifiedComplexType
     private Object maximumFuture;
 
     /**
-     * List of persons that are notified when the {@link Resource} is allocated or when are
-     * encountered any technical issues.
+     * List of additional administrator emails (basic administrators are specified by owners in
+     * {@link cz.cesnet.shongo.controller.api.AclEntry}s).
      */
-    private List<AbstractPerson> administrators = new LinkedList<AbstractPerson>();
+    private List<String> administratorEmails = new LinkedList<String>();
 
     /**
      * Child resources shongo-ids.
@@ -189,27 +189,27 @@ public class Resource extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #administrators}
+     * @return {@link #administratorEmails}
      */
-    public List<AbstractPerson> getAdministrators()
+    public List<String> getAdministratorEmails()
     {
-        return administrators;
+        return administratorEmails;
     }
 
     /**
-     * @param person to be added to the {@link #administrators}
+     * @param administratorEmail to be added to the {@link #administratorEmails}
      */
-    public void addAdministrator(AbstractPerson person)
+    public void addAdministratorEmail(String administratorEmail)
     {
-        administrators.add(person);
+        administratorEmails.add(administratorEmail);
     }
 
     /**
-     * @param person to be removed from the {@link #administrators}
+     * @param administratorEmail to be removed from the {@link #administratorEmails}
      */
-    public void removeAdministrator(AbstractPerson person)
+    public void removeAdministratorEmail(String administratorEmail)
     {
-        administrators.remove(person);
+        administratorEmails.remove(administratorEmail);
     }
 
     /**
@@ -221,7 +221,7 @@ public class Resource extends IdentifiedComplexType
     }
 
     /**
-     * @param childResourceId shonog-id to be added to the {@link #childResourceIds}
+     * @param childResourceId shongo-id to be added to the {@link #childResourceIds}
      */
     public void addChildResourceId(String childResourceId)
     {
@@ -235,7 +235,7 @@ public class Resource extends IdentifiedComplexType
     public static final String CAPABILITIES = "capabilities";
     public static final String ALLOCATABLE = "allocatable";
     public static final String MAXIMUM_FUTURE = "maximumFuture";
-    public static final String ADMINISTRATORS = "administrators";
+    public static final String ADMINISTRATOR_EMAILS = "administratorEmails";
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
 
     @Override
@@ -248,7 +248,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(DESCRIPTION, description);
         dataMap.set(CAPABILITIES, capabilities);
         dataMap.set(ALLOCATABLE, allocatable);
-        dataMap.set(ADMINISTRATORS, administrators);
+        dataMap.set(ADMINISTRATOR_EMAILS, administratorEmails);
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
 
         if (maximumFuture instanceof DateTime) {
@@ -275,7 +275,7 @@ public class Resource extends IdentifiedComplexType
         capabilities = dataMap.getList(CAPABILITIES, Capability.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
-        administrators = dataMap.getList(ADMINISTRATORS, AbstractPerson.class);
+        administratorEmails = dataMap.getList(ADMINISTRATOR_EMAILS, String.class);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
     }
 }

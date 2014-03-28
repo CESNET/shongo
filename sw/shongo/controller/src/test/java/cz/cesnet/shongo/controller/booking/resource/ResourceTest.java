@@ -62,7 +62,7 @@ public class ResourceTest extends AbstractControllerTest
         cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T00:00", "P1Y");

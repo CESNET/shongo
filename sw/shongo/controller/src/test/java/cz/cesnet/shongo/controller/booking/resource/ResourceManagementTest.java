@@ -42,10 +42,10 @@ public class ResourceManagementTest extends AbstractControllerTest
         // Create resource
         resource = new cz.cesnet.shongo.controller.api.Resource();
         resource.setName("resource");
-        resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        resourceId = createResource(SECURITY_TOKEN, resource);
 
         // Check created resource
-        resource = getResourceService().getResource(SECURITY_TOKEN, resourceId);
+        resource = getResource(resourceId, Resource.class);
         Assert.assertEquals("resource", resource.getName());
         Assert.assertEquals(Boolean.FALSE, resource.getAllocatable());
 
@@ -87,10 +87,10 @@ public class ResourceManagementTest extends AbstractControllerTest
         deviceResource = new cz.cesnet.shongo.controller.api.DeviceResource();
         deviceResource.setName("deviceResource");
         deviceResource.addTechnology(Technology.H323);
-        deviceResourceId = getResourceService().createResource(SECURITY_TOKEN, deviceResource);
+        deviceResourceId = createResource(SECURITY_TOKEN, deviceResource);
 
         // Check created device resource
-        deviceResource = (cz.cesnet.shongo.controller.api.DeviceResource) getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
+        deviceResource = getResource(deviceResourceId, cz.cesnet.shongo.controller.api.DeviceResource.class);
         Assert.assertEquals(new HashSet<Technology>()
         {{
                 add(Technology.H323);
@@ -135,7 +135,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         terminal.setAllocatable(true);
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new StandaloneTerminalCapability());
-        getResourceService().createResource(SECURITY_TOKEN, terminal);
+        createResource(terminal);
 
         // Create MCU
         cz.cesnet.shongo.controller.api.DeviceResource mcu = new DeviceResource();
@@ -143,14 +143,14 @@ public class ResourceManagementTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(100));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         // Create alias provider
         cz.cesnet.shongo.controller.api.Resource aliasProvider = new cz.cesnet.shongo.controller.api.Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
     }
 
     /**
@@ -164,7 +164,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         cz.cesnet.shongo.controller.api.Resource firstResource = new cz.cesnet.shongo.controller.api.Resource();
         firstResource.setName("resource");
         firstResource.addCapability(new ValueProviderCapability("test"));
-        String firstResourceId = getResourceService().createResource(SECURITY_TOKEN, firstResource);
+        String firstResourceId = createResource(SECURITY_TOKEN, firstResource);
 
         cz.cesnet.shongo.controller.api.Resource secondResource = new cz.cesnet.shongo.controller.api.Resource();
         secondResource.setName("resource");
@@ -173,12 +173,12 @@ public class ResourceManagementTest extends AbstractControllerTest
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, firstResourceId));
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         secondResource.addCapability(aliasProviderCapability);
-        String secondResourceId = getResourceService().createResource(SECURITY_TOKEN, secondResource);
+        String secondResourceId = createResource(SECURITY_TOKEN, secondResource);
 
         cz.cesnet.shongo.controller.api.Resource thirdResource = new cz.cesnet.shongo.controller.api.Resource();
         thirdResource.setName("resource");
         thirdResource.addCapability(new AliasProviderCapability("test", AliasType.H323_E164));
-        String thirdResourceId = getResourceService().createResource(SECURITY_TOKEN, thirdResource);
+        String thirdResourceId = createResource(SECURITY_TOKEN, thirdResource);
 
         getResourceService().deleteResource(SECURITY_TOKEN, secondResourceId);
         getResourceService().deleteResource(SECURITY_TOKEN, firstResourceId);
@@ -198,7 +198,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         resource.setName("resource");
         resource.setAllocatable(true);
         resource.setMaximumFuture("P1M");
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(SECURITY_TOKEN, resource);
 
         // Create reservation request before P1M -> success
         ReservationRequest request = new ReservationRequest();
@@ -249,7 +249,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         resource.setName("resource");
         resource.setAllocatable(true);
         resource.setMaximumFuture("P1M");
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         String rootUserId = getUserId(SECURITY_TOKEN_ROOT);
         getAuthorizationService().setObjectUser(SECURITY_TOKEN_ROOT, resourceId, rootUserId);

@@ -38,14 +38,14 @@ public class CompartmentTest extends AbstractControllerTest
         terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
         firstTerminal.addCapability(terminalCapability);
         firstTerminal.setAllocatable(true);
-        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+        String firstTerminalId = createResource(firstTerminal);
 
         DeviceResource secondTerminal = new DeviceResource();
         secondTerminal.setName("secondTerminal");
         secondTerminal.addTechnology(Technology.H323);
         secondTerminal.addCapability(new StandaloneTerminalCapability());
         secondTerminal.setAllocatable(true);
-        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+        String secondTerminalId = createResource(secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -75,7 +75,7 @@ public class CompartmentTest extends AbstractControllerTest
         terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
         firstTerminal.addCapability(terminalCapability);
         firstTerminal.setAllocatable(true);
-        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+        String firstTerminalId = createResource(firstTerminal);
 
         DeviceResource secondTerminal = new DeviceResource();
         secondTerminal.setName("secondTerminal");
@@ -83,7 +83,7 @@ public class CompartmentTest extends AbstractControllerTest
         secondTerminal.addTechnology(Technology.ADOBE_CONNECT);
         secondTerminal.addCapability(new StandaloneTerminalCapability());
         secondTerminal.setAllocatable(true);
-        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+        String secondTerminalId = createResource(secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -109,7 +109,7 @@ public class CompartmentTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -117,7 +117,7 @@ public class CompartmentTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -161,14 +161,14 @@ public class CompartmentTest extends AbstractControllerTest
         firstTerminal.addTechnology(Technology.H323);
         firstTerminal.addCapability(new TerminalCapability());
         firstTerminal.setAllocatable(true);
-        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+        String firstTerminalId = createResource(firstTerminal);
 
         DeviceResource secondTerminal = new DeviceResource();
         secondTerminal.setName("secondTerminal");
         secondTerminal.addTechnology(Technology.SIP);
         secondTerminal.addCapability(new TerminalCapability());
         secondTerminal.setAllocatable(true);
-        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+        String secondTerminalId = createResource(secondTerminal);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -178,7 +178,7 @@ public class CompartmentTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -209,13 +209,13 @@ public class CompartmentTest extends AbstractControllerTest
         firstMcu.setName("firstMcu");
         firstMcu.addTechnology(Technology.H323);
         firstMcu.addCapability(new RoomProviderCapability(6));
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+        String firstMcuId = createResource(firstMcu);
 
         DeviceResource secondMcu = new DeviceResource();
         secondMcu.setName("secondMcu");
         secondMcu.addTechnology(Technology.H323);
         secondMcu.addCapability(new RoomProviderCapability(6));
-        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+        String secondMcuId = createResource(secondMcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -241,7 +241,7 @@ public class CompartmentTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -280,7 +280,7 @@ public class CompartmentTest extends AbstractControllerTest
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -322,7 +322,7 @@ public class CompartmentTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         mcu.addCapability(aliasProviderCapability);
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         DeviceResource connect = new DeviceResource();
         connect.setName("connect");
@@ -330,7 +330,7 @@ public class CompartmentTest extends AbstractControllerTest
         connect.addCapability(new RoomProviderCapability(10));
         connect.addCapability(new AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI));
         connect.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         // Create reservation request
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();

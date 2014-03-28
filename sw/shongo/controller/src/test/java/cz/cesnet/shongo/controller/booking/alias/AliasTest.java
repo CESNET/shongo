@@ -36,7 +36,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("test", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequestFirst = new ReservationRequest();
         reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
@@ -66,7 +66,7 @@ public class AliasTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("test"));
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(valueProvider);
 
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
@@ -75,7 +75,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.setValueProvider(valueProviderId);
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         firstAliasProvider.addCapability(aliasProviderCapability);
-        String firstAliasProviderId = getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        String firstAliasProviderId = createResource(firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
@@ -84,7 +84,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.setValueProvider(valueProviderId);
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         secondAliasProvider.addCapability(aliasProviderCapability);
-        String secondAliasProviderId = getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+        String secondAliasProviderId = createResource(secondAliasProvider);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -121,7 +121,7 @@ public class AliasTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("shongo-{hash:6}").withAllowedAnyRequestedValue());
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(valueProvider);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("firstAliasProvider");
@@ -132,7 +132,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -172,7 +172,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -196,7 +196,7 @@ public class AliasTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("{hash}").withAllowedAnyRequestedValue());
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(valueProvider);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("firstAliasProvider");
@@ -208,7 +208,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -233,7 +233,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
                 new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI).withAllowedAnyRequestedValue());
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -258,7 +258,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "950087{value}"));
         aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{number:090:099}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -282,14 +282,14 @@ public class AliasTest extends AbstractControllerTest
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
         connectServer.addCapability(
                 new cz.cesnet.shongo.controller.api.AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI).withRestrictedToResource());
-        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        createResource(connectServer);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
                 new cz.cesnet.shongo.controller.api.AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -311,13 +311,13 @@ public class AliasTest extends AbstractControllerTest
         firstAliasProvider.setName("firstAliasProvider");
         firstAliasProvider.setAllocatable(true);
         firstAliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.H323_URI));
-        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        createResource(firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
         secondAliasProvider.setAllocatable(true);
         secondAliasProvider.addCapability(new cz.cesnet.shongo.controller.api.AliasProviderCapability("{hash}", AliasType.SIP_URI));
-        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+        createResource(secondAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -353,7 +353,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");

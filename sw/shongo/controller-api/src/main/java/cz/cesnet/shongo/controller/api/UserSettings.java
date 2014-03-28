@@ -42,6 +42,18 @@ public class UserSettings extends AbstractComplexType
     private DateTimeZone currentTimeZone;
 
     /**
+     * Specifies whether user wants to receive system administrator notifications
+     * (in case that he is system administrator).
+     */
+    private boolean systemAdministratorNotifications;
+
+    /**
+     * Specifies whether user wants to receive resource administrator notifications
+     * (in case that he is resource administrator).
+     */
+    private boolean resourceAdministratorNotifications;
+
+    /**
      * Specifies whether user should act in administrator role (for active session).
      * Only valid when user have {@link SystemPermission#ADMINISTRATION}.
      */
@@ -114,6 +126,38 @@ public class UserSettings extends AbstractComplexType
     public void setCurrentTimeZone(DateTimeZone currentTimeZone)
     {
         this.currentTimeZone = currentTimeZone;
+    }
+
+    /**
+     * @return {@link #systemAdministratorNotifications}
+     */
+    public boolean isSystemAdministratorNotifications()
+    {
+        return systemAdministratorNotifications;
+    }
+
+    /**
+     * @param systemAdministratorNotifications sets the {@link #systemAdministratorNotifications}
+     */
+    public void setSystemAdministratorNotifications(boolean systemAdministratorNotifications)
+    {
+        this.systemAdministratorNotifications = systemAdministratorNotifications;
+    }
+
+    /**
+     * @return {@link #resourceAdministratorNotifications}
+     */
+    public boolean isResourceAdministratorNotifications()
+    {
+        return resourceAdministratorNotifications;
+    }
+
+    /**
+     * @param resourceAdministratorNotifications sets the {@link #resourceAdministratorNotifications}
+     */
+    public void setResourceAdministratorNotifications(boolean resourceAdministratorNotifications)
+    {
+        this.resourceAdministratorNotifications = resourceAdministratorNotifications;
     }
 
     /**
@@ -214,6 +258,8 @@ public class UserSettings extends AbstractComplexType
     private static final String LOCALE = "locale";
     private static final String HOME_TIME_ZONE = "homeTimeZone";
     private static final String CURRENT_TIME_ZONE = "currentTimeZone";
+    private static final String SYSTEM_ADMINISTRATOR_NOTIFICATIONS = "systemAdministratorNotifications";
+    private static final String RESOURCE_ADMINISTRATOR_NOTIFICATIONS = "resourceAdministratorNotifications";
     private static final String ADMINISTRATOR_MODE = "administratorMode";
     private static final String ATTRIBUTES = "attributes";
 
@@ -225,6 +271,8 @@ public class UserSettings extends AbstractComplexType
         dataMap.set(LOCALE, locale);
         dataMap.set(HOME_TIME_ZONE, homeTimeZone);
         dataMap.set(CURRENT_TIME_ZONE, currentTimeZone);
+        dataMap.set(SYSTEM_ADMINISTRATOR_NOTIFICATIONS, systemAdministratorNotifications);
+        dataMap.set(RESOURCE_ADMINISTRATOR_NOTIFICATIONS, resourceAdministratorNotifications);
         dataMap.set(ADMINISTRATOR_MODE, administratorMode);
         dataMap.set(ATTRIBUTES, attributes);
         return dataMap;
@@ -238,7 +286,9 @@ public class UserSettings extends AbstractComplexType
         locale = dataMap.getLocale(LOCALE);
         homeTimeZone = dataMap.getDateTimeZone(HOME_TIME_ZONE);
         currentTimeZone = dataMap.getDateTimeZone(CURRENT_TIME_ZONE);
-        administratorMode = dataMap.getBoolean(ADMINISTRATOR_MODE);
+        systemAdministratorNotifications = dataMap.getBool(SYSTEM_ADMINISTRATOR_NOTIFICATIONS);
+        resourceAdministratorNotifications = dataMap.getBool(RESOURCE_ADMINISTRATOR_NOTIFICATIONS);
+        administratorMode = dataMap.getBool(ADMINISTRATOR_MODE);
         attributes = dataMap.getMap(ATTRIBUTES, String.class, String.class);
     }
 }

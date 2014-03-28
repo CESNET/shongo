@@ -3,12 +3,10 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
-import cz.cesnet.shongo.controller.api.AliasSpecification;
 import cz.cesnet.shongo.controller.api.CompartmentSpecification;
 import cz.cesnet.shongo.controller.api.ExternalEndpointSetParticipant;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
@@ -52,7 +50,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("request");
@@ -126,7 +124,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("request");
@@ -199,7 +197,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
@@ -250,7 +248,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -312,7 +310,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -344,7 +342,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationService service = getReservationService();
 
@@ -547,7 +545,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot(Temporal.INTERVAL_INFINITE);
@@ -593,7 +591,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         resource.setName("resource");
         resource.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
         resource.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, resource);
+        createResource(resource);
 
         Interval interval = new Interval(DateTime.now(), Period.years(1));
         Object result;
@@ -724,7 +722,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         // Check ReservationRequestReusement.ARBITRARY
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();

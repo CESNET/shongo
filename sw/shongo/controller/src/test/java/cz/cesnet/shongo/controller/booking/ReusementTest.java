@@ -27,7 +27,7 @@ public class ReusementTest extends AbstractControllerTest
         terminal.setAllocatable(true);
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -57,7 +57,7 @@ public class ReusementTest extends AbstractControllerTest
         Resource lectureRoom = new Resource();
         lectureRoom.setName("lectureRoom");
         lectureRoom.setAllocatable(true);
-        String lectureRoomId = getResourceService().createResource(SECURITY_TOKEN, lectureRoom);
+        String lectureRoomId = createResource(lectureRoom);
 
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -65,7 +65,7 @@ public class ReusementTest extends AbstractControllerTest
         terminal.setAllocatable(true);
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         ReservationRequest lectureRoomReservationRequest = new ReservationRequest();
         lectureRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -102,7 +102,7 @@ public class ReusementTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -141,13 +141,13 @@ public class ReusementTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(100));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -183,7 +183,7 @@ public class ReusementTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-06-22T00:00", "PT15H");
@@ -210,7 +210,7 @@ public class ReusementTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = createResource(terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -241,7 +241,7 @@ public class ReusementTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -269,7 +269,7 @@ public class ReusementTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -316,14 +316,14 @@ public class ReusementTest extends AbstractControllerTest
         // Generates only single "test" alias for this connect server
         connectServerFirst.addCapability(new AliasProviderCapability(
                 "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withRestrictedToResource());
-        String connectServerFirstId = getResourceService().createResource(SECURITY_TOKEN, connectServerFirst);
+        String connectServerFirstId = createResource(connectServerFirst);
 
         DeviceResource connectServerSecond = new DeviceResource();
         connectServerSecond.setName("connectServerSecond");
         connectServerSecond.setAllocatable(true);
         connectServerSecond.addTechnology(Technology.ADOBE_CONNECT);
         connectServerSecond.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
-        String connectServerSecondId = getResourceService().createResource(SECURITY_TOKEN, connectServerSecond);
+        String connectServerSecondId = createResource(connectServerSecond);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -368,7 +368,7 @@ public class ReusementTest extends AbstractControllerTest
                 new AliasProviderCapability("{digit:3}", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(
                 new AliasProviderCapability("{digit:3}@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2013-01-01T00:00", "P1Y");
@@ -463,7 +463,7 @@ public class ReusementTest extends AbstractControllerTest
                 new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}"));
         connectServer.addCapability(
                 new AliasProviderCapability("test", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        createResource(connectServer);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -495,14 +495,14 @@ public class ReusementTest extends AbstractControllerTest
         connect.setAllocatable(true);
         connect.addTechnology(Technology.ADOBE_CONNECT);
         connect.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");

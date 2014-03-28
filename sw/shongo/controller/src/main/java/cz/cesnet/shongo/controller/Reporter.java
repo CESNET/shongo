@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -113,10 +115,10 @@ public class Reporter
 
             if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
                 Set<String> resourceAdministratorEmails = new HashSet<String>();
-                for (AbstractPerson resourceAdministrator : resource.getAdministrators()) {
-                    String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
-                    if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {
-                        resourceAdministratorEmails.add(resourceAdministratorEmail);
+                for (PersonInformation resourceAdmin : resource.getAdministrators(Authorization.getInstance())) {
+                    String administratorEmail = resourceAdmin.getPrimaryEmail();
+                    if (!domainAdministratorEmails.contains(administratorEmail)) {
+                        resourceAdministratorEmails.add(administratorEmail);
                     }
                 }
                 if (resourceAdministratorEmails.size() > 0) {

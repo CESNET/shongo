@@ -30,6 +30,22 @@ sub populate()
                 get_user($params->{'options'}, @args);
             }
         },
+        'get-user-settings' => {
+            desc => 'Get user settings',
+            args => '[<user-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_user_settings(@args);
+            }
+        },
+        'modify-user-settings' => {
+            desc => 'Modify user settings',
+            args => '[<user-id>]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                modify_user_settings(@args);
+            }
+        },
         'list-users' => {
             desc => 'List users',
             options => 'group=s',
@@ -173,6 +189,75 @@ sub get_user()
         $object->add_attribute('Email', {}, $user->{'email'});
         $object->add_attribute('Organization', {}, $user->{'organization'});
         console_print_text($object);
+    }
+}
+
+sub get_user_settings_object
+{
+    my (@args) = @_;
+    my $response;
+    if ( scalar(@args) == 0 ) {
+        $response = Shongo::ClientCli->instance()->secure_request('Authorization.getUserSettings');
+    }
+    else {
+        $response = Shongo::ClientCli->instance()->secure_request('Authorization.getUserSettings',
+            RPC::XML::string->new($args[0])
+        );
+    }
+    if ( defined($response) ) {
+        my $user_settings = $response;
+        my $object = Shongo::ClientCli::API::Object->new();
+        $object->set_object_class('UserSettings');
+        $object->set_object_name('User Settings');
+        $object->add_attribute('useWebService', {
+            'title' => 'Use Web Service',
+            'type' => 'bool'
+        });
+        $object->add_attribute('systemAdministratorNotifications', {
+            'title' => 'System Administrator Notifications',
+            'type' => 'bool'
+        });
+        $object->add_attribute('resourceAdministratorNotifications', {
+            'title' => 'Resource Administrator Notifications',
+            'type' => 'bool'
+        });
+        $object->from_hash($user_settings);
+        return $object;
+    }
+}
+
+sub get_user_settings()
+{
+    my (@args) = @_;
+    my $object = get_user_settings_object(@args);
+    if ( defined($object) ) {
+        console_print_text($object);
+    }
+}
+
+sub modify_user_settings()
+{
+    my (@args) = @_;
+    my $object = get_user_settings_object(@args);
+    if ( defined($object) ) {
+        $object->modify(undef, {
+            'on_confirm' => sub {
+                my ($object) = @_;
+                console_print_info("Modifying user settings...");
+                if ( scalar(@args) == 0 ) {
+                    Shongo::ClientCli->instance()->secure_request('Authorization.updateUserSettings',
+                        $object->to_xml()
+                    );
+                }
+                else {
+                    Shongo::ClientCli->instance()->secure_request('Authorization.updateUserSettings',
+                        RPC::XML::string->new($args[0]),
+                        $object->to_xml()
+                    );
+                }
+                return 1;
+            }
+        });
     }
 }
 

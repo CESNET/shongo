@@ -79,7 +79,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(agentName));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);

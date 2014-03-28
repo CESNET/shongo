@@ -2,10 +2,14 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
-import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import cz.cesnet.shongo.report.ReportableComplex;
 import org.joda.time.DateTime;
@@ -54,10 +58,15 @@ public class Resource extends PersistentObject implements ReportableComplex
     private List<Resource> childResources = new ArrayList<Resource>();
 
     /**
-     * List of persons that are notified when the {@link Resource} is allocated or when are
-     * encountered any technical issues.
+     * List of additional administrator emails (basic administrators are specified by owners in
+     * {@link cz.cesnet.shongo.controller.acl.AclEntry}s).
      */
-    private List<AbstractPerson> administrators = new ArrayList<AbstractPerson>();
+    private List<String> administratorEmails = new ArrayList<String>();
+
+    /**
+     * Temporary {@link PersonInformation} for {@link #administratorEmails}.
+     */
+    private List<PersonInformation> tmpAdministrators;
 
     /**
      * Defines a maximum future to which the resource is allocatable (e.g., can be set as relative date/time which
@@ -295,29 +304,35 @@ public class Resource extends PersistentObject implements ReportableComplex
     }
 
     /**
-     * @return {@link #administrators}
+     * @return {@link #administratorEmails}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @ElementCollection
     @Access(AccessType.FIELD)
-    public List<AbstractPerson> getAdministrators()
+    public List<String> getAdministratorEmails()
     {
-        return administrators;
+        return Collections.unmodifiableList(administratorEmails);
     }
 
     /**
-     * @param person person to be added to the {@link #administrators}
+     * @param administratorEmail to be added to the {@link #administratorEmails}
      */
-    public void addAdministrator(AbstractPerson person)
+    public void addAdministratorEmail(String administratorEmail)
     {
-        administrators.add(person);
+        administratorEmails.add(administratorEmail);
+        synchronized (this) {
+            tmpAdministrators = null;
+        }
     }
 
     /**
-     * @param person person to be removed from the {@link #administrators}
+     * @param administratorEmail to be removed from the {@link #administratorEmails}
      */
-    public void removeAdministrator(AbstractPerson person)
+    public void removeAdministratorEmail(String administratorEmail)
     {
-        administrators.remove(person);
+        administratorEmails.remove(administratorEmail);
+        synchronized (this) {
+            tmpAdministrators = null;
+        }
     }
 
     /**
@@ -382,7 +397,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     @Override
     public void loadLazyProperties()
     {
-        getAdministrators().size();
+        getAdministratorEmails().size();
         super.loadLazyProperties();
     }
 
@@ -435,8 +450,8 @@ public class Resource extends PersistentObject implements ReportableComplex
             resourceApi.addCapability(capability.toApi());
         }
 
-        for (AbstractPerson person : getAdministrators()) {
-            resourceApi.addAdministrator(person.toApi());
+        for (String administratorEmail : getAdministratorEmails()) {
+            resourceApi.addAdministratorEmail(administratorEmail);
         }
 
         for (Resource childResource : getChildResources()) {
@@ -477,7 +492,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
             newParentResourceId = ObjectIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class, resourceApi.getParentResourceId());
+                    Resource.class, resourceApi.getParentResourceId());
         }
         Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
         if ((newParentResourceId == null && oldParentResourceId != null)
@@ -516,23 +531,8 @@ public class Resource extends PersistentObject implements ReportableComplex
                         object.fromApi(objectApi, entityManager);
                     }
                 });
-        Synchronization.synchronizeCollection(administrators, resourceApi.getAdministrators(),
-                new Synchronization.Handler<AbstractPerson, cz.cesnet.shongo.controller.api.AbstractPerson>(
-                        AbstractPerson.class)
-                {
-                    @Override
-                    public AbstractPerson createFromApi(cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
-                    {
-                        return AbstractPerson.createFromApi(objectApi);
-                    }
-
-                    @Override
-                    public void updateFromApi(AbstractPerson object,
-                            cz.cesnet.shongo.controller.api.AbstractPerson objectApi)
-                    {
-                        object.fromApi(objectApi);
-                    }
-                });
+        administratorEmails.clear();
+        administratorEmails.addAll(resourceApi.getAdministratorEmails());
     }
 
     /**
@@ -556,6 +556,116 @@ public class Resource extends PersistentObject implements ReportableComplex
                 }
             }
             capabilityTypes.add(capability.getClass());
+        }
+    }
+
+    /**
+     * Get list of administrators which is constructed from {@link Resource} owners and {@link #administratorEmails}.
+     *
+     * @param authorizationManager to be used for determining {@link Resource} owners
+     * @return list of administrator {@link PersonInformation}s
+     */
+    public List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager)
+    {
+        List<PersonInformation> administrators = new LinkedList<PersonInformation>();
+        for (UserInformation administrator : authorizationManager.getUsersWithRole(this, ObjectRole.OWNER)) {
+            administrators.add(administrator);
+        }
+        synchronized (this) {
+            if (tmpAdministrators == null) {
+                tmpAdministrators = new LinkedList<PersonInformation>();
+                for (String administratorEmail : administratorEmails) {
+                    tmpAdministrators.add(new AnonymousAdministrator(administratorEmail));
+                }
+            }
+            administrators.addAll(tmpAdministrators);
+        }
+        return administrators;
+    }
+
+    /**
+     * Get list of administrators which is constructed from {@link Resource} owners and {@link #administratorEmails}.
+     *
+     * @param authorization to be used for determining {@link Resource} owners
+     * @return list of administrator {@link PersonInformation}s
+     */
+    public List<PersonInformation> getAdministrators(Authorization authorization)
+    {
+        List<PersonInformation> administrators = new LinkedList<PersonInformation>();
+        for (UserInformation administrator : authorization.getUsersWithRole(this, ObjectRole.OWNER)) {
+            administrators.add(administrator);
+        }
+        synchronized (this) {
+            if (tmpAdministrators == null) {
+                tmpAdministrators = new LinkedList<PersonInformation>();
+                for (String administratorEmail : administratorEmails) {
+                    tmpAdministrators.add(new AnonymousAdministrator(administratorEmail));
+                }
+            }
+            administrators.addAll(tmpAdministrators);
+        }
+        return administrators;
+    }
+
+    /**
+     * Additional resource administrator.
+     */
+    public static class AnonymousAdministrator implements PersonInformation
+    {
+        private final String administratorEmail;
+
+        public AnonymousAdministrator(String administratorEmail)
+        {
+            this.administratorEmail = administratorEmail;
+        }
+
+        @Override
+        public String getFullName()
+        {
+            return "Administrator";
+        }
+
+        @Override
+        public String getRootOrganization()
+        {
+            return null;
+        }
+
+        @Override
+        public String getPrimaryEmail()
+        {
+            return administratorEmail;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            AnonymousAdministrator that = (AnonymousAdministrator) o;
+
+            if (!administratorEmail.equals(that.administratorEmail)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return administratorEmail.hashCode();
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Administrator (" + administratorEmail + ")";
         }
     }
 }

@@ -23,7 +23,7 @@ public class ValueProviderTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("{hash}").withAllowedAnyRequestedValue());
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(SECURITY_TOKEN, valueProvider);
         Assert.assertEquals(1, getAliasProviderCount());
 
         Resource aliasProvider = new Resource();
@@ -34,7 +34,7 @@ public class ValueProviderTest extends AbstractControllerTest
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId));
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
-        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        String aliasProviderId = createResource(SECURITY_TOKEN, aliasProvider);
         Assert.assertEquals(2, getAliasProviderCount());
 
         // Test remove value provider from alias provider by setting resourceId

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
@@ -36,14 +35,14 @@ public class MigrationTest extends AbstractExecutorTest
         mcu1.setAllocatable(true);
         mcu1.addTechnology(Technology.H323);
         mcu1.addCapability(new RoomProviderCapability(5));
-        String mcu1Id = getResourceService().createResource(SECURITY_TOKEN, mcu1);
+        String mcu1Id = createResource(mcu1);
 
         DeviceResource mcu2 = new DeviceResource();
         mcu2.setName("mcu2");
         mcu2.setAllocatable(true);
         mcu2.addTechnology(Technology.H323);
         mcu2.addCapability(new RoomProviderCapability(10));
-        String mcu2Id = getResourceService().createResource(SECURITY_TOKEN, mcu2);
+        String mcu2Id = createResource(mcu2);
 
         ReservationService service = getReservationService();
 
@@ -118,7 +117,7 @@ public class MigrationTest extends AbstractExecutorTest
         connect.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
         connect.addCapability(new RecordingCapability());
         connect.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connect);
+        String mcuId = createResource(connect);
         Long mcuPersistenceId = ObjectIdentifier.parse(mcuId).getPersistenceId();
 
         ReservationService service = getReservationService();
@@ -200,7 +199,7 @@ public class MigrationTest extends AbstractExecutorTest
         mcu1.addTechnology(Technology.H323);
         mcu1.addCapability(new RoomProviderCapability(5));
         mcu1.setMode(new ManagedMode(mcuAgent1.getName()));
-        String mcu1Id = getResourceService().createResource(SECURITY_TOKEN, mcu1);
+        String mcu1Id = createResource(mcu1);
         Long mcu1PersistenceId = ObjectIdentifier.parse(mcu1Id).getPersistenceId();
 
         DeviceResource mcu2 = new DeviceResource();
@@ -209,7 +208,7 @@ public class MigrationTest extends AbstractExecutorTest
         mcu2.addTechnology(Technology.H323);
         mcu2.addCapability(new RoomProviderCapability(10));
         mcu2.setMode(new ManagedMode(mcuAgent2.getName()));
-        String mcu2Id = getResourceService().createResource(SECURITY_TOKEN, mcu2);
+        String mcu2Id = createResource(mcu2);
         Long mcu2PersistenceId = ObjectIdentifier.parse(mcu2Id).getPersistenceId();
 
         ReservationService service = getReservationService();

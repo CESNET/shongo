@@ -43,6 +43,18 @@ public class UserSettings extends SimplePersistentObject
     private DateTimeZone currentTimeZone;
 
     /**
+     * Specifies whether user wants to receive system administrator notifications
+     * (in case that he is system administrator).
+     */
+    private boolean systemAdministratorNotifications;
+
+    /**
+     * Specifies whether user wants to receive resource administrator notifications
+     * (in case that he is resource administrator).
+     */
+    private boolean resourceAdministratorNotifications;
+
+    /**
      * Other custom user settings attributes which should be globally stored.
      */
     private Map<String, String> attributes = new HashMap<String, String>();
@@ -139,6 +151,40 @@ public class UserSettings extends SimplePersistentObject
     }
 
     /**
+     * @return {@link #systemAdministratorNotifications}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean isSystemAdministratorNotifications()
+    {
+        return systemAdministratorNotifications;
+    }
+
+    /**
+     * @param systemAdministratorNotifications sets the {@link #systemAdministratorNotifications}
+     */
+    public void setSystemAdministratorNotifications(boolean systemAdministratorNotifications)
+    {
+        this.systemAdministratorNotifications = systemAdministratorNotifications;
+    }
+
+    /**
+     * @return {@link #resourceAdministratorNotifications}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean isResourceAdministratorNotifications()
+    {
+        return resourceAdministratorNotifications;
+    }
+
+    /**
+     * @param resourceAdministratorNotifications sets the {@link #resourceAdministratorNotifications}
+     */
+    public void setResourceAdministratorNotifications(boolean resourceAdministratorNotifications)
+    {
+        this.resourceAdministratorNotifications = resourceAdministratorNotifications;
+    }
+
+    /**
      * @return {@link #attributes}
      */
     @ElementCollection
@@ -161,6 +207,8 @@ public class UserSettings extends SimplePersistentObject
         setLocale(userSettingsApi.getLocale());
         setHomeTimeZone(userSettingsApi.getHomeTimeZone());
         setCurrentTimeZone(userSettingsApi.getCurrentTimeZone());
+        setSystemAdministratorNotifications(userSettingsApi.isSystemAdministratorNotifications());
+        setResourceAdministratorNotifications(userSettingsApi.isResourceAdministratorNotifications());
         attributes.clear();
         for (Map.Entry<String, String> attribute : userSettingsApi.getAttributes().entrySet()) {
             String attributeName = attribute.getKey();
@@ -182,6 +230,8 @@ public class UserSettings extends SimplePersistentObject
         userSettingsApi.setLocale(getLocale());
         userSettingsApi.setHomeTimeZone(getHomeTimeZone());
         userSettingsApi.setCurrentTimeZone(getCurrentTimeZone());
+        userSettingsApi.setResourceAdministratorNotifications(isResourceAdministratorNotifications());
+        userSettingsApi.setSystemAdministratorNotifications(isSystemAdministratorNotifications());
         for (Map.Entry<String, String> attribute : attributes.entrySet()) {
             userSettingsApi.setAttribute(attribute.getKey(), attribute.getValue());
         }

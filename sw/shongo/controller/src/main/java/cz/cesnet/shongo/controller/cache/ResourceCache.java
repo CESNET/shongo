@@ -52,7 +52,7 @@ public class ResourceCache extends AbstractCache<Resource>
     public void addObject(Resource resource)
     {
         // Load lazy collections
-        resource.getAdministrators().size();
+        resource.loadLazyProperties();
 
         // If resource is a device
         if (resource instanceof DeviceResource) {

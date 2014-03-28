@@ -67,11 +67,14 @@ sub new()
         },
         'read-only' => 1
     });
-    $self->add_attribute('administrators', {
+    $self->add_attribute('administratorEmails', {
+        'title' => 'Administrator Emails',
         'type' => 'collection',
         'item' => {
-            'title' => 'Administrator',
-            'class' => 'Shongo::ClientCli::API::Person'
+            'title' => 'Administrator Email',
+            'add' => sub {
+                console_read_value('Administrator Email', 1);
+            }
         },
         'display-empty' => 1
     });

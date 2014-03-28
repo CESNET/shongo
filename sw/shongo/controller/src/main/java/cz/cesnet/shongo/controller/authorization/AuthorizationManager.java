@@ -18,10 +18,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link AbstractManager} for managing {@link AclEntry}s.
@@ -145,11 +142,25 @@ public class AuthorizationManager extends AclEntryManager
                 .setParameter("objectIdentity", objectIdentity)
                 .setParameter("role", objectRole.toString())
                 .getResultList();
-        Set<String> userIds = new HashSet<String>();
+        Set<String> userIds = new LinkedHashSet<String>();
         for (AclEntry entry : entries) {
             userIds.addAll(authorization.getUserIds(entry.getIdentity()));
         }
         return userIds;
+    }
+
+    /**
+     * @param object
+     * @param objectRole
+     * @return list of users with given {@code role} for given {@code object}
+     */
+    public Collection<UserInformation> getUsersWithRole(PersistentObject object, ObjectRole objectRole)
+    {
+        List<UserInformation> users = new LinkedList<UserInformation>();
+        for (String userId : getUserIdsWithRole(object, objectRole)) {
+            users.add(getUserInformation(userId));
+        }
+        return users;
     }
 
     /**

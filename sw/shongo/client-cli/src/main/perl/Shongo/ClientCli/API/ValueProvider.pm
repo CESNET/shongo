@@ -60,7 +60,7 @@ sub on_init()
         case 'ValueProvider.Pattern' {
             $self->add_attribute('patterns', {
                 'type' => 'collection',
-                    'item' => {
+                'item' => {
                     'title' => 'Pattern',
                     'add' => sub {
                         console_read_value('Pattern', 1);

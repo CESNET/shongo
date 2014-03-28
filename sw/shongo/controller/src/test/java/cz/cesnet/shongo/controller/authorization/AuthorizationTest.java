@@ -44,7 +44,7 @@ public class AuthorizationTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN_ROOT, resource);
+        String resourceId = createResource(resource);
 
         try {
             getResourceService().getResource(SECURITY_TOKEN_USER1, resourceId);
@@ -70,7 +70,7 @@ public class AuthorizationTest extends AbstractControllerTest
         resource.setAllocatable(true);
         resource.addCapability(new AliasProviderCapability("{hash}",
                 AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(SECURITY_TOKEN, resource);
 
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
         Assert.assertEquals(aclEntries, getAclEntries());
@@ -92,7 +92,7 @@ public class AuthorizationTest extends AbstractControllerTest
         resource.setAllocatable(true);
         resource.addCapability(new AliasProviderCapability("{hash}",
                 AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(SECURITY_TOKEN, resource);
 
         aclEntries.add(new AclEntry(userId, resourceId, ObjectRole.OWNER));
         Assert.assertEquals(aclEntries, getAclEntries());
@@ -152,11 +152,9 @@ public class AuthorizationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(
-                new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
-        mcu.addCapability(
-                new AliasProviderCapability("{hash}", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
+        createResource(mcu);
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2013-01-01T12:00", "PT2H");
@@ -190,7 +188,7 @@ public class AuthorizationTest extends AbstractControllerTest
         resource.setAllocatable(true);
         resource.addCapability(new AliasProviderCapability("{hash}",
                 AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
-        getResourceService().createResource(SECURITY_TOKEN_ROOT, resource);
+        createResource(resource);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2013-01-01T12:00", "PT4H");

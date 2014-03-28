@@ -38,7 +38,7 @@ public class RoomTest extends AbstractControllerTest
         firstMcu.addTechnology(Technology.SIP);
         firstMcu.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10));
         firstMcu.setAllocatable(true);
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+        String firstMcuId = createResource(firstMcu);
 
         DeviceResource secondMcu = new DeviceResource();
         secondMcu.setName("secondMcu");
@@ -46,7 +46,7 @@ public class RoomTest extends AbstractControllerTest
         secondMcu.addTechnology(Technology.SIP);
         secondMcu.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10));
         secondMcu.setAllocatable(true);
-        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+        String secondMcuId = createResource(secondMcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -103,7 +103,7 @@ public class RoomTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        createResource(firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
@@ -113,7 +113,7 @@ public class RoomTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+        createResource(secondAliasProvider);
 
         Resource thirdAliasProvider = new Resource();
         thirdAliasProvider.setName("thirdAliasProvider");
@@ -123,7 +123,7 @@ public class RoomTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         thirdAliasProvider.addCapability(aliasProviderCapability);
         thirdAliasProvider.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, thirdAliasProvider);
+        createResource(thirdAliasProvider);
 
         // Rooms in first MCU require H323_URI and SIP_URI
         DeviceResource firstMcu = new DeviceResource();
@@ -133,7 +133,7 @@ public class RoomTest extends AbstractControllerTest
         firstMcu.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10,
                 new AliasType[]{AliasType.H323_URI, AliasType.SIP_URI}));
         firstMcu.setAllocatable(true);
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+        String firstMcuId = createResource(firstMcu);
 
         // Rooms in second MCU require ROOM_NAME and H323_E164
         DeviceResource secondMcu = new DeviceResource();
@@ -143,7 +143,7 @@ public class RoomTest extends AbstractControllerTest
         secondMcu.addCapability(new cz.cesnet.shongo.controller.api.RoomProviderCapability(10,
                 new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
         secondMcu.setAllocatable(true);
-        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+        String secondMcuId = createResource(secondMcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -208,7 +208,7 @@ public class RoomTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}#{value}"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        createResource(firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
@@ -217,7 +217,7 @@ public class RoomTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}/{value}"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+        createResource(secondAliasProvider);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -225,7 +225,7 @@ public class RoomTest extends AbstractControllerTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(15, new AliasType[]{AliasType.H323_URI}));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -276,7 +276,7 @@ public class RoomTest extends AbstractControllerTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(slot);

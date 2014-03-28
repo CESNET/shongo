@@ -66,7 +66,10 @@ public class UserSettingsManager
             userSettings.toApi(userSettingsApi);
         }
         else {
+            // Default values
             userSettingsApi.setUseWebService(true);
+            userSettingsApi.setSystemAdministratorNotifications(true);
+            userSettingsApi.setResourceAdministratorNotifications(true);
         }
 
         // Set web service data
@@ -78,7 +81,7 @@ public class UserSettingsManager
         return userSettingsApi;
     }
 
-    public void updateUserSettings(SecurityToken securityToken,
+    public void updateUserSessionSettings(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
     {
         cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
@@ -96,12 +99,15 @@ public class UserSettingsManager
             userSessionSettings.setAdministratorMode(administratorMode);
             authorization.updateUserSessionSettings(userSessionSettings);
         }
+    }
 
+    public void updateUserSettings(String userId, cz.cesnet.shongo.controller.api.UserSettings userSettingsApi)
+    {
         // Update user settings
-        UserSettings userSettings = getPersistentUserSettings(securityToken.getUserId());
+        UserSettings userSettings = getPersistentUserSettings(userId);
         if (userSettings == null) {
             userSettings = new cz.cesnet.shongo.controller.settings.UserSettings();
-            userSettings.setUserId(securityToken.getUserId());
+            userSettings.setUserId(userId);
         }
         userSettings.fromApi(userSettingsApi);
 

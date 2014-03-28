@@ -103,7 +103,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         tcs.addTechnology(Technology.SIP);
         tcs.addCapability(new RecordingCapability(3));
         tcs.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, tcs);
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, tcs);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -115,8 +115,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
         mcu.setAllocatable(true);
-        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        mcu.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, mcu);
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
@@ -187,8 +187,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         aliasProvider.addCapability(aliasProviderCapability);
         aliasProvider.setAllocatable(true);
-        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        aliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
 
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
         permanentRoomReservationRequest.setDescription("Alias Reservation Request");
@@ -255,8 +255,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 .addCapability(new AliasProviderCapability("001", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
-        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        aliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Alias Reservation Request");
@@ -308,8 +308,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        firstAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        firstAliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
@@ -318,8 +318,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
-        secondAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+        secondAliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, secondAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Alias Reservation Request");
@@ -362,8 +362,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
-        firstAliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+        createResource(SECURITY_TOKEN, firstAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("*/*");
@@ -399,8 +398,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
-        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        aliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
@@ -456,8 +455,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         aliasProvider.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         aliasProvider.setAllocatable(true);
         aliasProvider.setMaximumFuture("P1M");
-        aliasProvider.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        aliasProvider.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, aliasProvider);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setDescription("Alias Reservation Request");
@@ -510,8 +509,8 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
         mcu.setAllocatable(true);
-        mcu.addAdministrator(new AnonymousPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        mcu.addAdministratorEmail("martin.srom@cesnet.cz");
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Room Reservation Request\nTest multiline");
@@ -604,7 +603,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
         mcu.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
         mcu.setAllocatable(true);
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, mcu);
 
         // Disable automatic execution of notifications
         setNotificationExecutionEnabled(false);
@@ -776,7 +775,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        getResourceService().createResource(SECURITY_TOKEN_ROOT, mcu);
 
         // Create room
         ReservationRequest reservationRequest = new ReservationRequest();

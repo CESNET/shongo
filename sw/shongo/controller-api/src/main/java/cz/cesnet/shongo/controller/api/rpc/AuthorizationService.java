@@ -51,10 +51,26 @@ public interface AuthorizationService extends Service
 
     /**
      * @param securityToken token of the user requesting the operation
+     * @param userId for user to get his settings
+     * @return {@link UserSettings} for user with the given {@code userId}
+     */
+    @API
+    public UserSettings getUserSettings(SecurityToken securityToken, String userId);
+
+    /**
+     * @param securityToken token of the user requesting the operation
      * @param userSettings  to be updated for the requesting user
      */
     @API
     public void updateUserSettings(SecurityToken securityToken, UserSettings userSettings);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @param userId for user to update his settings
+     * @param userSettings  to be updated for user with the given {@code userId}
+     */
+    @API
+    public void updateUserSettings(SecurityToken securityToken, String userId, UserSettings userSettings);
 
     /**
      * @param securityToken token of the user requesting the operation

@@ -29,7 +29,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationService service = getReservationService();
 
@@ -83,7 +83,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(resource);
 
         ReservationService service = getReservationService();
 
@@ -125,12 +125,12 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Resource resource1 = new Resource();
         resource1.setName("resource");
         resource1.setAllocatable(true);
-        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+        String resource1Id = createResource(resource1);
 
         Resource resource2 = new Resource();
         resource2.setName("resource");
         resource2.setAllocatable(true);
-        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+        String resource2Id = createResource(resource2);
 
         ReservationService service = getReservationService();
 
@@ -173,12 +173,12 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Resource resource1 = new Resource();
         resource1.setName("resource");
         resource1.setAllocatable(true);
-        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+        String resource1Id = createResource(resource1);
 
         Resource resource2 = new Resource();
         resource2.setName("resource");
         resource2.setAllocatable(true);
-        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+        String resource2Id = createResource(resource2);
 
         ReservationService service = getReservationService();
 
@@ -223,12 +223,12 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         Resource resource1 = new Resource();
         resource1.setName("resource");
         resource1.setAllocatable(true);
-        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+        String resource1Id = createResource(resource1);
 
         Resource resource2 = new Resource();
         resource2.setName("resource");
         resource2.setAllocatable(true);
-        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+        String resource2Id = createResource(resource2);
 
         ReservationService service = getReservationService();
 
@@ -276,7 +276,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
                 new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}"));
         connectServer.addCapability(
                 new AliasProviderCapability("test", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        createResource(connectServer);
 
         // Allocate a new permanent room reservation
         ReservationRequest permanentRoomReservationRequest = new ReservationRequest();
@@ -320,7 +320,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}@cesnet.cz"));
         connect.addCapability(aliasProviderCapability);
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T12:00", "PT1H");
@@ -346,7 +346,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("{number:0:100}").withAllowedAnyRequestedValue());
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(valueProvider);
 
         // Allocate value
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -375,7 +375,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
         valueProvider.addCapability(new ValueProviderCapability("{number:0:100}").withAllowedAnyRequestedValue());
-        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+        String valueProviderId = createResource(valueProvider);
 
         // Allocate a value (#1)
         ReservationRequest reservationRequest1 = new ReservationRequest();
@@ -424,7 +424,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("{number:0:100}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         // Allocate alias
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -456,7 +456,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         aliasProvider.setAllocatable(true);
         aliasProvider.setMaximumFuture(Period.parse("P1Y"));
         aliasProvider.addCapability(new AliasProviderCapability("{number:0:100}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         // In 2013
         setWorkingInterval(Interval.parse("2013-01-01T00:00/2013-02-01T00:00"));
@@ -488,7 +488,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("{number:0:100}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         // Allocate alias set
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -548,7 +548,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         aliasProvider.setAllocatable(true);
         aliasProvider.setMaximumFuture(Period.parse("P1Y"));
         aliasProvider.addCapability(new AliasProviderCapability("{number:0:100}", AliasType.ROOM_NAME));
-        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        createResource(aliasProvider);
 
         // In 2013
         setWorkingInterval(Interval.parse("2013-01-01T00:00/2013-02-01T00:00"));
@@ -599,7 +599,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         multipoint.setAllocatable(true);
         multipoint.addTechnology(Technology.H323);
         multipoint.addCapability(new RoomProviderCapability(5));
-        getResourceService().createResource(SECURITY_TOKEN, multipoint);
+        createResource(multipoint);
 
         // Allocate a new room reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -628,7 +628,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         multipoint.setAllocatable(true);
         multipoint.addTechnology(Technology.H323);
         multipoint.addCapability(new RoomProviderCapability(5));
-        getResourceService().createResource(SECURITY_TOKEN, multipoint);
+        createResource(multipoint);
 
         // Allocate a new room reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -663,7 +663,7 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
                 "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withPermanentRoom());
         connectServer.addCapability(new AliasProviderCapability(
                 "test", AliasType.ROOM_NAME).withPermanentRoom());
-        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        createResource(connectServer);
 
         // Allocate a new alias reservation
         ReservationRequest aliasReservationRequest = new ReservationRequest();
@@ -708,14 +708,14 @@ public class ReservationRequestModificationTest extends AbstractControllerTest
         multipoint1.setAllocatable(true);
         multipoint1.addTechnology(Technology.H323);
         multipoint1.addCapability(new RoomProviderCapability(10));
-        String multipoint1Id = getResourceService().createResource(SECURITY_TOKEN, multipoint1);
+        String multipoint1Id = createResource(multipoint1);
 
         DeviceResource multipoint2 = new DeviceResource();
         multipoint2.setName("multipoint2");
         multipoint2.setAllocatable(true);
         multipoint2.addTechnology(Technology.H323);
         multipoint2.addCapability(new RoomProviderCapability(5));
-        String multipoint2Id = getResourceService().createResource(SECURITY_TOKEN, multipoint2);
+        String multipoint2Id = createResource(multipoint2);
 
         // Allocate a new room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();

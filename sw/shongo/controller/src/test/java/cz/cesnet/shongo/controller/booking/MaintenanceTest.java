@@ -34,7 +34,7 @@ public class MaintenanceTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = createResource(SECURITY_TOKEN, resource);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
@@ -82,7 +82,7 @@ public class MaintenanceTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        getResourceService().createResource(SECURITY_TOKEN, mcu);
+        createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -122,12 +122,12 @@ public class MaintenanceTest extends AbstractControllerTest
         Resource firstResource = new Resource();
         firstResource.setName("firstResource");
         firstResource.setAllocatable(true);
-        String firstResourceId = getResourceService().createResource(SECURITY_TOKEN, firstResource);
+        String firstResourceId = createResource(SECURITY_TOKEN, firstResource);
 
         Resource secondResource = new Resource();
         secondResource.setName("secondResource");
         secondResource.setAllocatable(true);
-        String secondResourceId = getResourceService().createResource(SECURITY_TOKEN, secondResource);
+        String secondResourceId = createResource(SECURITY_TOKEN, secondResource);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
@@ -185,7 +185,7 @@ public class MaintenanceTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");

@@ -124,9 +124,7 @@ $RUN_CLIENT_CLI <<EOF
             maximumFuture: 'P4Y',
             restrictedToResource: 1
         }],
-        administrators: [
-            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
-        ]
+        administratorEmails: ['$RESOURCE_ADMIN_EMAIL']
     }
 
     create-resource {
@@ -178,9 +176,7 @@ $RUN_CLIENT_CLI <<EOF
             maximumFuture: 'P4Y',
             restrictedToResource: 1
         }],
-        administrators: [
-            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
-        ]
+        administratorEmails: ['$RESOURCE_ADMIN_EMAIL']
     }
 
     create-resource {
@@ -230,9 +226,7 @@ $RUN_CLIENT_CLI <<EOF
             class: "RecordingCapability",
             licenseCount: $TCS_LICENSE_COUNT
         }],
-        administrators: [
-            { class: 'AnonymousPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
-        ]
+        administratorEmails: ['$RESOURCE_ADMIN_EMAIL']
     }
 
 EOF

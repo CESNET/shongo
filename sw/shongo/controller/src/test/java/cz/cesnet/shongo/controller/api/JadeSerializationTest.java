@@ -85,7 +85,7 @@ public class JadeSerializationTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(SECURITY_TOKEN, mcu);
 
         Room room = new Room();
         room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
@@ -109,7 +109,7 @@ public class JadeSerializationTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(SECURITY_TOKEN, mcu);
 
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
         room.addAlias(new Alias(AliasType.H323_URI, "test"));

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -15,7 +14,6 @@ import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.executor.ExecutionResult;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import jade.core.AID;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
@@ -51,7 +49,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
         connect.setAllocatable(true);
         connect.setMode(new ManagedMode(connectAgent.getName()));
-        String connectId = getResourceService().createResource(SECURITY_TOKEN, connect);
+        String connectId = createResource(connect);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
@@ -168,7 +166,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         DeviceResource tcs = new DeviceResource();
         tcs.setName("tcs");
@@ -177,7 +175,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(2));
         tcs.setAllocatable(true);
         tcs.setMode(new ManagedMode(tcsAgent.getName()));
-        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
+        String tcsId = createResource(tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
@@ -267,7 +265,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         DeviceResource tcs = new DeviceResource();
         tcs.setName("tcs");
@@ -276,7 +274,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         tcs.addCapability(new RecordingCapability(1));
         tcs.setAllocatable(true);
         tcs.setMode(new ManagedMode(tcsAgent.getName()));
-        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
+        String tcsId = createResource(tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
@@ -410,7 +408,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         mcu.addCapability(new AliasProviderCapability("{digit:9}", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = createResource(mcu);
 
         DeviceResource tcs = new DeviceResource();
         tcs.setName("tcs");
@@ -419,7 +417,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         tcs.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(2));
         tcs.setAllocatable(true);
         tcs.setMode(new ManagedMode(tcsAgent.getName()));
-        String tcsId = getResourceService().createResource(SECURITY_TOKEN, tcs);
+        String tcsId = createResource(tcs);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.hours(2));
@@ -525,7 +523,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability());
         connect.setAllocatable(true);
         connect.setMode(new ManagedMode(connectAgent.getName()));
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.minutes(120));
@@ -597,7 +595,7 @@ public class RecordingServiceTest extends AbstractExecutorTest
         connect.addCapability(new cz.cesnet.shongo.controller.api.RecordingCapability(1));
         connect.setAllocatable(true);
         connect.setMode(new ManagedMode(connectAgent.getName()));
-        getResourceService().createResource(SECURITY_TOKEN, connect);
+        createResource(connect);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot(dateTime, Period.minutes(120));
