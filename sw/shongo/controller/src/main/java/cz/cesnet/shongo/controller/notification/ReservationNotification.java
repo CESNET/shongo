@@ -172,47 +172,48 @@ public abstract class ReservationNotification extends AbstractReservationRequest
      * Add recipients by given {@code reservation}.
      *
      * @param reservation
-     * @param authorization
+     * @param authorizationManager
      */
-    private void addAdministratorRecipientsForReservation(Reservation reservation, AuthorizationManager authorization)
+    private void addAdministratorRecipientsForReservation(Reservation reservation,
+            AuthorizationManager authorizationManager)
     {
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             Resource resource = resourceReservation.getResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorization)) {
+            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
         }
         if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
             Resource resource = roomReservation.getDeviceResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorization)) {
+            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
         }
         if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             Resource resource = aliasReservation.getAliasProviderCapability().getResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorization)) {
+            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
         }
         if (reservation instanceof ValueReservation) {
             ValueReservation valueReservation = (ValueReservation) reservation;
             Resource resource = valueReservation.getValueProvider().getCapabilityResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorization)) {
+            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
         }
         if (reservation instanceof RecordingServiceReservation) {
             RecordingServiceReservation valueReservation = (RecordingServiceReservation) reservation;
             Resource resource = valueReservation.getDeviceResource();
-            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorization)) {
+            for (PersonInformation resourceAdministrator : resource.getAdministrators(authorizationManager)) {
                 addRecipient(resourceAdministrator, true);
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
-            addAdministratorRecipientsForReservation(childReservation, authorization);
+            addAdministratorRecipientsForReservation(childReservation, authorizationManager);
         }
     }
 

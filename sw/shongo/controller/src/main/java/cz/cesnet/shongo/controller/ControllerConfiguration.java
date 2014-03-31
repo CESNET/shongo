@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.apache.commons.configuration.CombinedConfiguration;
@@ -9,6 +11,7 @@ import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -159,11 +162,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SSL_HOST_VERIFICATION_MAPPINGS = "ssl.host-verification-mapping";
 
     /**
-     * Administrator emails to which error are reported.
-     */
-    public static final String ADMINISTRATOR_EMAIL = "administrator.email";
-
-    /**
      * Url where user can change his settings.
      */
     public static final String NOTIFICATION_USER_SETTINGS_URL = "notification.user-settings-url";
@@ -292,13 +290,14 @@ public class ControllerConfiguration extends CombinedConfiguration
     private List<PersonInformation> administrators;
 
     /**
-     * @return set of {@link #ADMINISTRATOR_EMAIL}
+     * @param authorizationManager
+     * @return set of administrators to which errors are reported.
      */
-    public synchronized List<PersonInformation> getAdministrators()
+    public synchronized List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager)
     {
         if (administrators == null) {
             administrators = new LinkedList<PersonInformation>();
-            for (Object item : getList(ControllerConfiguration.ADMINISTRATOR_EMAIL)) {
+            for (Object item : getList("administrator")) {
                 final String administratorEmail = (String) item;
                 administrators.add(new PersonInformation()
                 {
@@ -317,7 +316,7 @@ public class ControllerConfiguration extends CombinedConfiguration
                     @Override
                     public String getPrimaryEmail()
                     {
-                        return (String) administratorEmail;
+                        return administratorEmail;
                     }
 
                     @Override
@@ -329,6 +328,30 @@ public class ControllerConfiguration extends CombinedConfiguration
             }
         }
         return administrators;
+    }
+
+    /**
+     * @param entityManager
+     * @param authorization
+     * @return set of administrators to which errors are reported.
+     */
+    public List<PersonInformation> getAdministrators(EntityManager entityManager, Authorization authorization)
+    {
+        return getAdministrators(new AuthorizationManager(entityManager, authorization));
+    }
+
+    /**
+     * @param entityManager
+     * @param authorization
+     * @return set of administrator emails to which errors are reported.
+     */
+    public synchronized List<String> getAdministratorEmails(EntityManager entityManager, Authorization authorization)
+    {
+        List<String> administratorEmails = new LinkedList<String>();
+        for (PersonInformation administrator : getAdministrators(entityManager, authorization)) {
+            administratorEmails.add(administrator.getPrimaryEmail());
+        }
+        return administratorEmails;
     }
 
     /**

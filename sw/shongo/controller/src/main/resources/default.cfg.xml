@@ -131,9 +131,6 @@
     </notification>
 
     <!-- Configuration of domain administrators-->
-    <administrator>
-        <!--<email></email>-->
-        <!--<email></email>-->
-    </administrator>
+    <!--<administrator></administrator>-->
 
 </configuration>

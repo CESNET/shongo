@@ -6,10 +6,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
-import cz.cesnet.shongo.controller.AbstractExecutorTest;
-import cz.cesnet.shongo.controller.ControllerConfiguration;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -87,6 +84,38 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                     }
                 });
             }});
+    }
+
+    /**
+     * Test user settings.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testDisabledResourceAdministratorNotifications() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN_USER1, resource);
+
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN_USER1);
+        userSettings.setResourceAdministratorNotifications(false);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN_USER1, userSettings);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Resource Reservation Request");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        // 1x user: changes (new)
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                add(ReservationRequestNotification.class);
+            }}, getNotificationTypes());
     }
 
     /**

@@ -6,11 +6,13 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
+import cz.cesnet.shongo.controller.settings.UserSettingsManager;
 import cz.cesnet.shongo.report.ReportableComplex;
 import org.joda.time.DateTime;
 
@@ -560,16 +562,23 @@ public class Resource extends PersistentObject implements ReportableComplex
     }
 
     /**
-     * Get list of administrators which is constructed from {@link Resource} owners and {@link #administratorEmails}.
+     * Get list of administrators to be notified.
+     * The list is constructed from {@link Resource} owners and {@link #administratorEmails}.
      *
      * @param authorizationManager to be used for determining {@link Resource} owners
      * @return list of administrator {@link PersonInformation}s
      */
     public List<PersonInformation> getAdministrators(AuthorizationManager authorizationManager)
     {
+        EntityManager entityManager = authorizationManager.getEntityManager();
+        Authorization authorization = authorizationManager.getAuthorization();
+        UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
         List<PersonInformation> administrators = new LinkedList<PersonInformation>();
         for (UserInformation administrator : authorizationManager.getUsersWithRole(this, ObjectRole.OWNER)) {
-            administrators.add(administrator);
+            UserSettings userSettings = userSettingsManager.getUserSettings(administrator.getUserId());
+            if (userSettings.isResourceAdministratorNotifications()) {
+                administrators.add(administrator);
+            }
         }
         synchronized (this) {
             if (tmpAdministrators == null) {
@@ -584,27 +593,17 @@ public class Resource extends PersistentObject implements ReportableComplex
     }
 
     /**
-     * Get list of administrators which is constructed from {@link Resource} owners and {@link #administratorEmails}.
+     * Get list of administrators to be notified.
+     * The list is constructed from {@link Resource} owners and {@link #administratorEmails}.
      *
-     * @param authorization to be used for determining {@link Resource} owners
+     *
+     * @param authorization to be used for determining {@link cz.cesnet.shongo.controller.booking.resource.Resource} owners
      * @return list of administrator {@link PersonInformation}s
      */
-    public List<PersonInformation> getAdministrators(Authorization authorization)
+    public List<PersonInformation> getAdministrators(EntityManager entityManager, Authorization authorization)
     {
-        List<PersonInformation> administrators = new LinkedList<PersonInformation>();
-        for (UserInformation administrator : authorization.getUsersWithRole(this, ObjectRole.OWNER)) {
-            administrators.add(administrator);
-        }
-        synchronized (this) {
-            if (tmpAdministrators == null) {
-                tmpAdministrators = new LinkedList<PersonInformation>();
-                for (String administratorEmail : administratorEmails) {
-                    tmpAdministrators.add(new AnonymousAdministrator(administratorEmail));
-                }
-            }
-            administrators.addAll(tmpAdministrators);
-        }
-        return administrators;
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        return getAdministrators(authorizationManager);
     }
 
     /**

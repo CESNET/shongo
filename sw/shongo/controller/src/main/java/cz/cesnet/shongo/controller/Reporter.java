@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
-import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
@@ -80,55 +78,53 @@ public class Reporter
         }
 
         if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN) || report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN)) {
-            // Get resource which is referenced by report
-            Resource resource = null;
-            EntityManager entityManager = null;
-            if (report instanceof ResourceReport) {
-                ResourceReport resourceReport = (ResourceReport) report;
-                if (Controller.hasInstance()) {
-                    entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+            Authorization authorization = Authorization.getInstance();
+            Controller controller = Controller.getInstance();
+            EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
+            try {
+                // Get resource which is referenced by report
+                Resource resource = null;
+                if (report instanceof ResourceReport) {
+                    ResourceReport resourceReport = (ResourceReport) report;
                     try {
-                        ObjectIdentifier resourceId = ObjectIdentifier.parse(
-                                resourceReport.getResourceId(), ObjectType.RESOURCE);
+                        ObjectIdentifier resourceId =
+                                ObjectIdentifier.parse(resourceReport.getResourceId(), ObjectType.RESOURCE);
                         resource = entityManager.find(Resource.class, resourceId.getPersistenceId());
                     }
                     catch (Exception exception) {
                         logger.error("Failed to get resource " + resourceReport.getResourceId() + ".", exception);
                     }
                 }
-                else {
-                    logger.warn("Cannot get resource '{}' because controller doesn't exist.",
-                            resourceReport.getResourceId());
+                else if (reportContext instanceof ResourceContext) {
+                    ResourceContext resourceContext = (ResourceContext) reportContext;
+                    resource = resourceContext.getResource();
                 }
-            }
-            else if (reportContext instanceof ResourceContext) {
-                ResourceContext resourceContext = (ResourceContext) reportContext;
-                resource = resourceContext.getResource();
-            }
 
-            Set<String> domainAdministratorEmails = new HashSet<String>();
-            if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)) {
-                domainAdministratorEmails.addAll(getAdministratorEmails());
-                sendReportEmail(domainAdministratorEmails, name,
-                        getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
-            }
+                Set<String> administratorEmails = new HashSet<String>();
+                if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)) {
+                    ControllerConfiguration configuration = controller.getConfiguration();
+                    administratorEmails.addAll(configuration.getAdministratorEmails(entityManager, authorization));
+                    sendReportEmail(administratorEmails, name,
+                            getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
+                }
 
-            if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
-                Set<String> resourceAdministratorEmails = new HashSet<String>();
-                for (PersonInformation resourceAdmin : resource.getAdministrators(Authorization.getInstance())) {
-                    String administratorEmail = resourceAdmin.getPrimaryEmail();
-                    if (!domainAdministratorEmails.contains(administratorEmail)) {
-                        resourceAdministratorEmails.add(administratorEmail);
+                if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
+                    Set<String> resourceAdministratorEmails = new HashSet<String>();
+                    for (PersonInformation resourceAdmin : resource.getAdministrators(entityManager, authorization)) {
+                        String administratorEmail = resourceAdmin.getPrimaryEmail();
+                        if (!administratorEmails.contains(administratorEmail)) {
+                            resourceAdministratorEmails.add(administratorEmail);
+                        }
+                    }
+                    if (resourceAdministratorEmails.size() > 0) {
+                        String resourceAdminMessage = report.getMessage(
+                                Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
+                        sendReportEmail(resourceAdministratorEmails, name,
+                                getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
                     }
                 }
-                if (resourceAdministratorEmails.size() > 0) {
-                    String resourceAdminMessage = report.getMessage(
-                            Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
-                    sendReportEmail(resourceAdministratorEmails, name,
-                            getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
-                }
             }
-            if (entityManager != null) {
+            finally {
                 entityManager.close();
             }
         }
@@ -191,8 +187,17 @@ public class Reporter
             throw new RuntimeException(throwable);
         }
         else {
-            sendReportEmail(getAdministratorEmails(), name,
-                    getAdministratorEmailContent(message, reportContext, null, throwable));
+            Authorization authorization = Authorization.getInstance();
+            Controller controller = Controller.getInstance();
+            EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
+            try {
+                ControllerConfiguration configuration = controller.getConfiguration();
+                sendReportEmail(configuration.getAdministratorEmails(entityManager, authorization), name,
+                        getAdministratorEmailContent(message, reportContext, null, throwable));
+            }
+            finally {
+                entityManager.close();
+            }
         }
     }
 
@@ -205,25 +210,6 @@ public class Reporter
     public static void reportInternalError(ReportContext reportContext, Exception exception)
     {
         reportInternalError(reportContext, null, exception);
-    }
-
-    /**
-     * Other report.
-     *
-     * @param reportContext
-     * @param message
-     */
-    public static void reportOther(ReportContext reportContext, String title, String message)
-    {
-        StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append("[");
-        nameBuilder.append(reportContext.getReportContextName());
-        nameBuilder.append("] ");
-        nameBuilder.append(title);
-        String name = nameBuilder.toString();
-        logger.error(name);
-        sendReportEmail(getAdministratorEmails(), name,
-                getAdministratorEmailContent(message, reportContext, null, null));
     }
 
     /**
@@ -257,26 +243,6 @@ public class Reporter
         catch (MessagingException messagingException) {
             logger.error("Failed sending report email.", messagingException);
         }
-    }
-
-    /**
-     * @return list of administrator email addresses
-     */
-    private synchronized static Collection<String> getAdministratorEmails()
-    {
-        if (!Controller.hasInstance()) {
-            logger.warn("Cannot get administrator emails because controller doesn't exist.");
-            return Collections.emptySet();
-        }
-        ControllerConfiguration configuration = Controller.getInstance().getConfiguration();
-        Set<String> administratorEmails = new HashSet<String>();
-        for (PersonInformation administrator : configuration.getAdministrators()) {
-            String administratorEmail = administrator.getPrimaryEmail();
-            if (administratorEmail != null) {
-                administratorEmails.add(administratorEmail);
-            }
-        }
-        return administratorEmails;
     }
 
     /**

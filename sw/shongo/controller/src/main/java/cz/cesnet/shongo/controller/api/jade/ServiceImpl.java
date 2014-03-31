@@ -5,15 +5,12 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
-import cz.cesnet.shongo.controller.booking.executable.ExecutableService;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -23,8 +20,8 @@ import cz.cesnet.shongo.controller.executor.ExecutionReportSet;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
-import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -94,9 +91,9 @@ public class ServiceImpl implements Service
     @Override
     public Room getRoom(String agentName, String roomId) throws CommandException
     {
-        Long deviceResourceId = getDeviceResourceByAgentName(agentName).getId();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
+            Long deviceResourceId = getDeviceResourceByAgentName(agentName, entityManager).getId();
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, roomId);
             if (roomEndpoint == null) {
@@ -117,8 +114,7 @@ public class ServiceImpl implements Service
         Authorization authorization = Authorization.getInstance();
         List<PersonInformation> recipients = new LinkedList<PersonInformation>();
         switch (targetType) {
-            case USER:
-            {
+            case USER: {
                 try {
                     recipients.add(authorization.getUserInformation(targetId));
                 }
@@ -127,15 +123,13 @@ public class ServiceImpl implements Service
                 }
                 break;
             }
-            case ROOM_OWNERS:
-            {
-                DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
-                Long deviceResourceId = deviceResource.getId();
+            case ROOM_OWNERS: {
                 EntityManager entityManager = entityManagerFactory.createEntityManager();
                 try {
+                    DeviceResource resource = getDeviceResourceByAgentName(agentName, entityManager);
+                    Long deviceResourceId = resource.getId();
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
-                    RoomEndpoint roomEndpoint =
-                            executableManager.getRoomEndpoint(deviceResourceId, targetId);
+                    RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, targetId);
                     if (roomEndpoint == null) {
                         throw new CommandException(String.format(
                                 "No room '%s' was found for resource with agent '%s'.", targetId, agentName));
@@ -143,8 +137,8 @@ public class ServiceImpl implements Service
                     for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, ObjectRole.OWNER)) {
                         recipients.add(user);
                     }
-                    for (PersonInformation resourceAdministrator : deviceResource.getAdministrators(authorization)) {
-                        recipients.add(resourceAdministrator);
+                    for (PersonInformation administrator : resource.getAdministrators(entityManager, authorization)) {
+                        recipients.add(administrator);
                     }
                 }
                 finally {
@@ -152,14 +146,19 @@ public class ServiceImpl implements Service
                 }
                 break;
             }
-            case RESOURCE_ADMINS:
-            {
+            case RESOURCE_ADMINS: {
                 if (targetId != null) {
                     throw new IllegalArgumentException("The targetId argument must be null.");
                 }
-                DeviceResource deviceResource = getDeviceResourceByAgentName(agentName);
-                for (PersonInformation resourceAdministrator : deviceResource.getAdministrators(authorization)) {
-                    recipients.add(resourceAdministrator);
+                EntityManager entityManager = entityManagerFactory.createEntityManager();
+                try {
+                    DeviceResource resource = getDeviceResourceByAgentName(agentName, entityManager);
+                    for (PersonInformation administrator : resource.getAdministrators(entityManager, authorization)) {
+                        recipients.add(administrator);
+                    }
+                }
+                finally {
+                    entityManager.close();
                 }
                 break;
             }
@@ -226,9 +225,9 @@ public class ServiceImpl implements Service
     @Override
     public String getRecordingFolderId(String agentName, String roomId) throws CommandException
     {
-        Long deviceResourceId = getDeviceResourceByAgentName(agentName).getId();
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
+            Long deviceResourceId = getDeviceResourceByAgentName(agentName, entityManager).getId();
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             RecordableEndpoint recordableEndpoint =
                     (RecordableEndpoint) executableManager.getRoomEndpoint(deviceResourceId, roomId);
@@ -260,20 +259,15 @@ public class ServiceImpl implements Service
      * @param agentName of the managed device resource
      * @return device resource identifier
      */
-    private DeviceResource getDeviceResourceByAgentName(String agentName) throws CommandException
+    private DeviceResource getDeviceResourceByAgentName(String agentName, EntityManager entityManager)
+            throws CommandException
     {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            DeviceResource deviceResource = resourceManager.getManagedDeviceByAgent(agentName);
-            if (deviceResource != null) {
-                deviceResource.loadLazyProperties();
-                return deviceResource;
-            }
-            throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        DeviceResource deviceResource = resourceManager.getManagedDeviceByAgent(agentName);
+        if (deviceResource != null) {
+            deviceResource.loadLazyProperties();
+            return deviceResource;
         }
-        finally {
-            entityManager.close();
-        }
+        throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
     }
 }
