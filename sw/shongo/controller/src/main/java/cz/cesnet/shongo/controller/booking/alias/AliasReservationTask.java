@@ -246,7 +246,7 @@ public class AliasReservationTask extends ReservationTask
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(aliasProviderCapability, schedulerContext, this.slot);
+                resourceCache.checkCapabilityAvailable(aliasProviderCapability, this.slot, schedulerContext, this);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());

@@ -181,7 +181,7 @@ public class AvailableRoomTest extends AbstractSchedulerTest
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         for (RoomProviderCapability roomProviderCapability : cache.getRoomProviders(technologies)) {
             SchedulerContext schedulerContext = createSchedulerContext(slot);
-            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot);
+            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot, null);
             if (availableRoom.getAvailableLicenseCount() >= licenseCount) {
                 availableRooms.add(availableRoom);
             }

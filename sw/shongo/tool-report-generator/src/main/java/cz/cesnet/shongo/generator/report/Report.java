@@ -571,6 +571,11 @@ public class Report
             return processParam(param);
         }
 
+        public Object newLines(Param param)
+        {
+            return processParam(param);
+        }
+
         public Object jadeReportMessage(Param param)
         {
             return processParam(param);

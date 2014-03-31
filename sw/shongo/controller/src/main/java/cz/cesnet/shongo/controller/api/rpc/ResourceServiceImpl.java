@@ -340,7 +340,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
                 SchedulerContext schedulerContext = new SchedulerContext(slot.getStart(), cache, entityManager,
                         new AuthorizationManager(entityManager, authorization));
-                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot);
+                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot, null);
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

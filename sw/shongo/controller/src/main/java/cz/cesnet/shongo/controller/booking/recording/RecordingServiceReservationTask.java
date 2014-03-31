@@ -186,7 +186,7 @@ public class RecordingServiceReservationTask extends ReservationTask
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(recordingCapability, schedulerContext, this.slot);
+                resourceCache.checkCapabilityAvailable(recordingCapability, this.slot, schedulerContext, this);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());

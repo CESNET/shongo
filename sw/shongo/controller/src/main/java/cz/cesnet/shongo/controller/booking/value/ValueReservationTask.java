@@ -62,14 +62,14 @@ public class ValueReservationTask extends ReservationTask
 
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
-        resourceCache.checkCapabilityAvailable(capability, schedulerContext, slot);
+        resourceCache.checkCapabilityAvailable(capability, slot, schedulerContext, this);
 
         // Check target value provider
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
         if (targetValueProvider != valueProvider) {
             // Check whether target value provider can be allocated
             capability = targetValueProvider.getCapability();
-            resourceCache.checkCapabilityAvailable(capability, schedulerContext, slot);
+            resourceCache.checkCapabilityAvailable(capability, slot, schedulerContext, this);
         }
 
         // Already used values for targetValueProvider in the interval

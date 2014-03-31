@@ -40,7 +40,7 @@ public class MaintenanceTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
         reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "PT2H", "2012-01-01"));
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = allocate(SECURITY_TOKEN, reservationRequest);
 
         ReservationListRequest reservationListRequest = new ReservationListRequest(SECURITY_TOKEN, id);
 
@@ -88,15 +88,13 @@ public class MaintenanceTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSlot("2012-01-01T00:00", "PT1H");
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.H323));
-        String reservationRequestId =
-                getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String reservationRequestId = allocate(SECURITY_TOKEN, reservationRequest);
 
         ReservationRequest maintenanceReservationRequest = new ReservationRequest();
         maintenanceReservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
         maintenanceReservationRequest.setSlot("2012-01-01T00:00", "PT1H");
         maintenanceReservationRequest.setSpecification(new RoomSpecification(10, Technology.H323));
-        String maintenanceReservationRequestId =
-                getReservationService().createReservationRequest(SECURITY_TOKEN, maintenanceReservationRequest);
+        String maintenanceReservationRequestId = allocate(SECURITY_TOKEN, maintenanceReservationRequest);
 
         runPreprocessorAndScheduler();
 
@@ -208,5 +206,37 @@ public class MaintenanceTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestId);
         reallocate(secondReservationRequestId);
         checkAllocated(secondReservationRequestId);
+    }
+
+    @Test
+    public void testResource() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = createResource(SECURITY_TOKEN_USER1, resource);
+
+        ReservationRequest userReservationRequest1 = new ReservationRequest();
+        userReservationRequest1.setSlot("2014-01-10T12:00", "PT2H");
+        userReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        userReservationRequest1.setSpecification(new ResourceSpecification(resourceId));
+        String userReservationRequest1Id = allocate(SECURITY_TOKEN_USER2, userReservationRequest1);
+        checkAllocated(userReservationRequest1Id);
+
+        ReservationRequest userReservationRequest2 = new ReservationRequest();
+        userReservationRequest2.setSlot("2014-01-20T12:00", "PT2H");
+        userReservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        userReservationRequest2.setSpecification(new ResourceSpecification(resourceId));
+        String userReservationRequest2Id = allocate(SECURITY_TOKEN_USER3, userReservationRequest2);
+        checkAllocated(userReservationRequest2Id);
+
+        ReservationRequest maintenanceReservationRequest = new ReservationRequest();
+        maintenanceReservationRequest.setSlot("2014-01-01/2014-02-01");
+        maintenanceReservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
+        maintenanceReservationRequest.setPriority(1);
+        maintenanceReservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String maintenanceReservationRequestId = allocate(SECURITY_TOKEN_USER1, maintenanceReservationRequest);
+        checkAllocated(maintenanceReservationRequestId);
+
     }
 }

@@ -1582,6 +1582,36 @@
             </message>
         </report>
 
+        <report>
+            <id>colliding-reservations</id>
+            <classification severity="info"/>
+            <params>
+                <param name="reservations" type="List" type-element="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The following reservations are colliding: ${newLines(reservations)}
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>reallocating-reservations</id>
+            <classification severity="info"/>
+            <params>
+                <param name="reservations" type="List" type-element="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                The following reservations will be reallocated: ${newLines(reservations)}
+            </message>
+            <visible>user</visible>
+        </report>
+
 
         <!--
           - ERROR reports

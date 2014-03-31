@@ -26,6 +26,8 @@ import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -35,6 +37,8 @@ import java.util.*;
  */
 public class SchedulerContextState
 {
+    private static Logger logger = LoggerFactory.getLogger(SchedulerContextState.class);
+
     /**
      * Current {@link Savepoint} to which are recorded all performed changes.
      */
@@ -567,8 +571,9 @@ public class SchedulerContextState
     /**
      * @param reservationRequest to be reallocated
      */
-    public void addReservationRequestToReallocate(ReservationRequest reservationRequest)
+    public void addReservationRequestForReallocation(ReservationRequest reservationRequest)
     {
+        logger.debug("Adding req:{} for reallocation...", reservationRequest.getId());
         reservationRequestsToReallocate.add(reservationRequest);
     }
 

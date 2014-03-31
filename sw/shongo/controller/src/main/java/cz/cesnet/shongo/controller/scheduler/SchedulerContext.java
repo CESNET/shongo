@@ -5,23 +5,18 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
-import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
-import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
-import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
@@ -66,6 +61,11 @@ public class SchedulerContext
     private ReservationRequestPurpose purpose;
 
     /**
+     * @see {@link AbstractReservationRequest#priority}
+     */
+    private int priority;
+
+    /**
      * Set of user-ids for which the reservations are being allocated.
      */
     private Set<String> userIds = new HashSet<String>();
@@ -74,6 +74,12 @@ public class SchedulerContext
      * @see SchedulerContextState
      */
     private SchedulerContextState state = new SchedulerContextState();
+
+    /**
+     * {@link ReservationRequest} by it's allocated {@link Reservation}.
+     */
+    private Map<Reservation, ReservationRequest> reservationRequestByReservation =
+            new HashMap<Reservation, ReservationRequest>();
 
     /**
      * Constructor.
@@ -112,6 +118,7 @@ public class SchedulerContext
     {
         this.description = reservationRequest.getDescription();
         this.purpose = reservationRequest.getPurpose();
+        this.priority = reservationRequest.getPriority();
 
         userIds.clear();
         userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequest, ObjectRole.OWNER));
@@ -182,7 +189,7 @@ public class SchedulerContext
 
     /**
      * @return true whether executables should be allocated,
-     *         false otherwise
+     * false otherwise
      */
     public boolean isExecutableAllowed()
     {
@@ -191,16 +198,16 @@ public class SchedulerContext
 
     /**
      * @return true whether only owned resource by the reservation request owner can be allocated,
-     *         false otherwise
+     * false otherwise
      */
     public boolean isOwnerRestricted()
     {
-        return purpose != null && purpose.isByOwner();
+        return purpose != null && purpose.isByOwner() || priority > 0;
     }
 
     /**
      * @return true whether maximum future and maximum duration should be checked,
-     *         false otherwise
+     * false otherwise
      */
     public boolean isMaximumFutureAndDurationRestricted()
     {
@@ -208,9 +215,36 @@ public class SchedulerContext
     }
 
     /**
+     * @param reservations
+     * @return true whether all given {@code reservations} has lower priority than currently being allocated reservation,
+     * false otherwise
+     */
+    public boolean hasHigherPriority(Collection<? extends Reservation> reservations)
+    {
+        for (Reservation reservation : reservations) {
+            ReservationRequest reservationRequest = getReservationRequest(reservation);
+            if (priority <= reservationRequest.getPriority()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param reservations which should be reallocated
+     */
+    public void addReservationsForReallocation(Collection<? extends Reservation> reservations)
+    {
+        for (Reservation reservation : reservations) {
+            ReservationRequest reservationRequest = getReservationRequest(reservation);
+            state.addReservationRequestForReallocation(reservationRequest);
+        }
+    }
+
+    /**
      * @param resource whose owner should be checked
      * @return true if the {@link #userIds} contains an identifier of an owner
-     *         who is owner of given {@code resource}, false otherwise
+     * who is owner of given {@code resource}, false otherwise
      */
     public boolean containsOwnerUserId(Resource resource)
     {
@@ -224,12 +258,16 @@ public class SchedulerContext
 
     /**
      * @param roomProviderCapability
-     * @return {@link cz.cesnet.shongo.controller.booking.room.AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
+     * @param slot
+     * @param reservationTask
+     * @return {@link AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
      */
-    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability, Interval slot)
+    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability, Interval slot,
+            ReservationTask reservationTask)
     {
         int usedLicenseCount = 0;
-        if (cache.getResourceCache().isResourceAvailable(roomProviderCapability.getResource(), this, slot)) {
+        ResourceCache resourceCache = cache.getResourceCache();
+        if (resourceCache.isResourceAvailable(roomProviderCapability.getResource(), slot, this, reservationTask)) {
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
                     reservationManager.getRoomReservations(roomProviderCapability, slot);
@@ -321,6 +359,56 @@ public class SchedulerContext
             reservationManager.delete(reservation, minimumDateTime, authorizationManager);
         }
         return state.getNotifications();
+    }
+
+    /**
+     * @param reservation
+     * @return {@link ReservationRequest} for which is allocated given {@code reservation}
+     */
+    private ReservationRequest getReservationRequest(Reservation reservation)
+    {
+        ReservationRequest reservationRequest = reservationRequestByReservation.get(reservation);
+        if (reservationRequest == null) {
+            Reservation topReservation = reservation.getTopReservation();
+            Allocation allocation = topReservation.getAllocation();
+            if (allocation == null) {
+                throw new TodoImplementException("Reservation doesn't have allocation.");
+            }
+            reservationRequest = (ReservationRequest) allocation.getReservationRequest();
+            if (reservationRequest == null) {
+                throw new TodoImplementException("Reservation allocation doesn't have reservation request.");
+            }
+            reservationRequestByReservation.put(reservation, reservationRequest);
+        }
+        return reservationRequest;
+    }
+
+    /**
+     * @param reservationTask
+     * @param collidingReservations
+     * @param schedulerReport
+     * @return true whether a collision exists and the allocation should be aborted,
+     *         false otherwise
+     */
+    public boolean detectCollisions(ReservationTask reservationTask, List<? extends Reservation> collidingReservations,
+            SchedulerReport schedulerReport)
+            throws SchedulerException
+    {
+        if (collidingReservations.size() == 0) {
+            // No colliding reservation exists
+            return false;
+        }
+        if (hasHigherPriority(collidingReservations)) {
+            // Reallocate all colliding reservations
+            reservationTask.addReport(SchedulerReportSetHelper.createReallocatingReservations(collidingReservations));
+            addReservationsForReallocation(collidingReservations);
+            return false;
+        }
+        if (isOwnerRestricted()) {
+            // Add report with colliding reservations
+            reservationTask.addReport(SchedulerReportSetHelper.createCollidingReservations(collidingReservations));
+        }
+        throw new SchedulerException(schedulerReport);
     }
 
     /**

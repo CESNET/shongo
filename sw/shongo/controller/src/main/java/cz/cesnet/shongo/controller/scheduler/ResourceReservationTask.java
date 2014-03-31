@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
+import cz.cesnet.shongo.controller.booking.recording.RecordingServiceReservation;
 import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
@@ -61,7 +63,7 @@ public class ResourceReservationTask extends ReservationTask
         }
 
         // Check resource and parent resources availability
-        resourceCache.checkResourceAvailableByParent(resource, schedulerContext, slot);
+        resourceCache.checkResourceAvailableByParent(resource, slot, schedulerContext, this);
 
         // Get available resource reservations
         List<AvailableReservation<ResourceReservation>> availableResourceReservations =
@@ -69,10 +71,9 @@ public class ResourceReservationTask extends ReservationTask
         availableResourceReservations.addAll(schedulerContextState.getAvailableResourceReservations(resource, slot));
         sortAvailableReservations(availableResourceReservations);
 
-        // Find matching resource value reservation
+        // Find matching resource reservation
         for (AvailableReservation<ResourceReservation> availableResourceReservation : availableResourceReservations) {
             Reservation originalReservation = availableResourceReservation.getOriginalReservation();
-            ResourceReservation resourceReservation = availableResourceReservation.getTargetReservation();
 
             // Only reusable available reservations
             if (!availableResourceReservation.isType(AvailableReservation.Type.REUSABLE)) {
@@ -101,7 +102,9 @@ public class ResourceReservationTask extends ReservationTask
         // If resource is a device
         if (resource instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) resource;
-            // Check that no room is allocated
+
+            List<Reservation> collidingReservations = new LinkedList<Reservation>();
+            // Get room reservations
             RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
             if (roomProviderCapability != null) {
                 ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
@@ -109,11 +112,23 @@ public class ResourceReservationTask extends ReservationTask
                         reservationManager.getRoomReservations(roomProviderCapability, slot);
                 schedulerContextState.applyReservations(roomProviderCapability.getId(), slot,
                         roomReservations, RoomReservation.class);
-                if (roomReservations.size() > 0) {
-                    // Requested resource is not available in the requested slot
-                    throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
-                }
+                collidingReservations.addAll(roomReservations);
             }
+            // Get recording service reservations
+            RecordingCapability recordingCapability = deviceResource.getCapability(RecordingCapability.class);
+            if (recordingCapability != null) {
+                ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
+                List<RecordingServiceReservation> recordingServiceReservations =
+                        reservationManager.getRecordingServiceReservations(recordingCapability, slot);
+                schedulerContextState.applyReservations(recordingCapability.getId(), slot,
+                        recordingServiceReservations, RecordingServiceReservation.class);
+                collidingReservations.addAll(recordingServiceReservations);
+            }
+
+            // Check if requested resource is not fully available in the requested slot
+            schedulerContext.detectCollisions(this, collidingReservations,
+                    new SchedulerReportSet.ResourceAlreadyAllocatedReport(resource));
+
             // Allocate endpoint reservation
             if (deviceResource.isTerminal()) {
                 // Create new endpoint reservation

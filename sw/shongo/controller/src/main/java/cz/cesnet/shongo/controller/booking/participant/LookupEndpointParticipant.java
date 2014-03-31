@@ -64,7 +64,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
                     if (deviceResource == null) {
                         throw new RuntimeException("Device resource should be added to the cache.");
                     }
-                    if (resourceCache.isResourceAvailableByParent(deviceResource, schedulerContext, slot)) {
+                    if (resourceCache.isResourceAvailableByParent(deviceResource, slot, schedulerContext, this)) {
                         deviceResources.add(deviceResource);
                     }
                 }

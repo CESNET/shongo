@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomNotification;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -387,7 +388,8 @@ public class RoomReservationTask extends ReservationTask
 
             // Check whether room provider can be allocated
             try {
-                getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext, slot);
+                ResourceCache resourceCache = getCache().getResourceCache();
+                resourceCache.checkCapabilityAvailable(roomProviderCapability, slot, schedulerContext, this);
             }
             catch (SchedulerException exception) {
                 addReport(exception.getReport());
@@ -403,7 +405,7 @@ public class RoomReservationTask extends ReservationTask
                 // Lazy initialization of room provider (only when some technology variant matches)
                 if (roomProvider == null) {
                     roomProvider = new RoomProvider(roomProviderCapability,
-                            schedulerContext.getAvailableRoom(roomProviderCapability, slot));
+                            schedulerContext.getAvailableRoom(roomProviderCapability, slot, this));
                 }
 
                 RoomProviderVariant roomProviderVariant;

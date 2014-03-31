@@ -3584,6 +3584,140 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * The following reservation are colliding: {@link #reservations}
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("CollidingReservationsReport")
+    public static class CollidingReservationsReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected java.util.List<String> reservations;
+
+        public CollidingReservationsReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "colliding-reservations";
+        }
+
+        public CollidingReservationsReport(java.util.List<String> reservations)
+        {
+            setReservations(reservations);
+        }
+
+        @javax.persistence.ElementCollection
+        public java.util.List<String> getReservations()
+        {
+            return reservations;
+        }
+
+        public void setReservations(java.util.List<String> reservations)
+        {
+            this.reservations = reservations;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservations", reservations);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("colliding-reservations", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * The following reservation will be reallocated: {@link #reservations}
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReallocatingReservationsReport")
+    public static class ReallocatingReservationsReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected java.util.List<String> reservations;
+
+        public ReallocatingReservationsReport()
+        {
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getUniqueId()
+        {
+            return "reallocating-reservations";
+        }
+
+        public ReallocatingReservationsReport(java.util.List<String> reservations)
+        {
+            setReservations(reservations);
+        }
+
+        @javax.persistence.ElementCollection
+        public java.util.List<String> getReservations()
+        {
+            return reservations;
+        }
+
+        public void setReservations(java.util.List<String> reservations)
+        {
+            this.reservations = reservations;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("reservations", reservations);
+            return parameters;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return cz.cesnet.shongo.controller.AllocationStateReportMessages.getMessage("reallocating-reservations", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
      * Specification {@link #specification} is not ready.
      */
     @javax.persistence.Entity
@@ -4068,6 +4202,8 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(SpecificationCheckingAvailabilityReport.class);
         addReportClass(FindingAvailableResourceReport.class);
         addReportClass(SortingResourcesReport.class);
+        addReportClass(CollidingReservationsReport.class);
+        addReportClass(ReallocatingReservationsReport.class);
         addReportClass(SpecificationNotReadyReport.class);
         addReportClass(SpecificationNotAllocatableReport.class);
         addReportClass(MaximumDurationExceededReport.class);

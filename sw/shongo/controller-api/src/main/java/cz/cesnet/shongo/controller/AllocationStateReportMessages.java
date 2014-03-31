@@ -47,6 +47,8 @@ public class AllocationStateReportMessages
     public static final String SPECIFICATION_CHECKING_AVAILABILITY = "specification-checking-availability";
     public static final String FINDING_AVAILABLE_RESOURCE = "finding-available-resource";
     public static final String SORTING_RESOURCES = "sorting-resources";
+    public static final String COLLIDING_RESERVATIONS = "colliding-reservations";
+    public static final String REALLOCATING_RESERVATIONS = "reallocating-reservations";
     public static final String SPECIFICATION_NOT_READY = "specification-not-ready";
     public static final String SPECIFICATION_NOT_ALLOCATABLE = "specification-not-allocatable";
     public static final String MAXIMUM_DURATION_EXCEEDED = "maximum-duration-exceeded";
@@ -94,6 +96,8 @@ public class AllocationStateReportMessages
         addMessage(SPECIFICATION_CHECKING_AVAILABILITY, new Report.UserType[]{}, Report.Language.ENGLISH, "Checking specification availability report.");
         addMessage(FINDING_AVAILABLE_RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Finding available resource.");
         addMessage(SORTING_RESOURCES, new Report.UserType[]{}, Report.Language.ENGLISH, "Sorting resources.");
+        addMessage(COLLIDING_RESERVATIONS, new Report.UserType[]{}, Report.Language.ENGLISH, "The following reservation are colliding: ${newLines(reservations)}");
+        addMessage(REALLOCATING_RESERVATIONS, new Report.UserType[]{}, Report.Language.ENGLISH, "The following reservation will be reallocated: ${newLines(reservations)}");
         addMessage(SPECIFICATION_NOT_READY, new Report.UserType[]{}, Report.Language.ENGLISH, "Specification ${specification} is not ready.");
         addMessage(SPECIFICATION_NOT_ALLOCATABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "The specification ${specification} is not supposed to be allocated.");
         addMessage(MAXIMUM_DURATION_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "Duration ${duration} is longer than maximum ${maxDuration}.");

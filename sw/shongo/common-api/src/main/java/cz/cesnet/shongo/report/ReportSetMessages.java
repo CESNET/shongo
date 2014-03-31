@@ -277,6 +277,9 @@ public abstract class ReportSetMessages
                 if (name.equals("ifEmpty")) {
                     type = Type.IF_EMPTY;
                 }
+                else if (name.equals("newLines")) {
+                    type = Type.NEW_LINES;
+                }
                 else if (name.equals("jadeReportMessage")) {
                     type = Type.JADE_REPORT;
                 }
@@ -301,7 +304,7 @@ public abstract class ReportSetMessages
             {
                 switch (type) {
                     case IF_EMPTY:
-                        return params.get(0).getValue(parameters);
+                    case NEW_LINES:
                     case JADE_REPORT:
                         return params.get(0).getValue(parameters);
                     default:
@@ -324,6 +327,27 @@ public abstract class ReportSetMessages
                         else {
                             return param2;
                         }
+                    }
+                    case NEW_LINES:
+                    {
+                        Object param1 = params.get(0).getValue(parameters);
+                        StringBuilder output = new StringBuilder();
+                        if (param1 instanceof Object[]) {
+                            for (Object item : (Object[]) param1) {
+                                output.append("\n-");
+                                output.append(formatValue(item, language, timeZone, true));
+                            }
+                        }
+                        else if (param1 instanceof Collection) {
+                            for (Object item : (Collection) param1) {
+                                output.append("\n-");
+                                output.append(formatValue(item, language, timeZone, true));
+                            }
+                        }
+                        else {
+                            output.append(formatValue(param1, language, timeZone, true));
+                        }
+                        return output.toString();
                     }
                     case JADE_REPORT:
                     {
@@ -350,6 +374,7 @@ public abstract class ReportSetMessages
             private static enum Type
             {
                 IF_EMPTY,
+                NEW_LINES,
                 JADE_REPORT
             }
         }

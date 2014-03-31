@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -347,7 +346,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 slotStart = usageSlotEnd;
             }
             else {
-                contextState.addReservationRequestToReallocate(reservationRequestUsage);
+                contextState.addReservationRequestForReallocation(reservationRequestUsage);
             }
         }
         // Update requested slot start to be after active usages
