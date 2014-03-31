@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -268,17 +269,29 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserData> onListUserData(String search)
+    protected Collection<UserData> onListUserData(Set<String> filterUserIds, String search)
     {
-        String listUsersUrl = authorizationServer + USER_SERVICE_PATH;
-        if (search != null) {
+        String listUsersUrlQuery = "";
+        if (filterUserIds != null && filterUserIds.size() > 0) {
             try {
-                listUsersUrl = listUsersUrl + "?search=" + URLEncoder.encode(search, "UTF-8");
+                String userIds = StringUtils.join(filterUserIds, ",");
+                listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
+                listUsersUrlQuery += "filter_user_id=" + URLEncoder.encode(userIds, "UTF-8");
             }
             catch (UnsupportedEncodingException exception) {
                 throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
             }
         }
+        if (search != null) {
+            try {
+                listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
+                listUsersUrlQuery += "search=" + URLEncoder.encode(search, "UTF-8");
+            }
+            catch (UnsupportedEncodingException exception) {
+                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
+            }
+        }
+        String listUsersUrl = authorizationServer + USER_SERVICE_PATH + listUsersUrlQuery;
         return performGetRequest(listUsersUrl, "Retrieving user information failed",
                 new RequestHandler<Collection<UserData>>()
                 {
@@ -293,6 +306,29 @@ public class ServerAuthorization extends Authorization
                             }
                         }
                         return userDataList;
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        if (detail.contains("UserNotExistsException")) {
+                            String userId;
+                            int start = detail.lastIndexOf("id=");
+                            int end = -1;
+                            if (start != -1) {
+                                start += 3;
+                                end = detail.indexOf(" ", start);
+                            }
+                            if (start != -1 && end != -1) {
+                                userId = detail.substring(start, end);
+                            }
+                            else {
+                                userId = "<not-parsed>";
+                                logger.warn("User-id cannot be parsed from '{}'.", detail);
+                            }
+                            throw new ControllerReportSet.UserNotExistsException(userId);
+
+                        }
                     }
                 });
     }
@@ -323,7 +359,7 @@ public class ServerAuthorization extends Authorization
                     public void error(StatusLine statusLine, String detail)
                     {
                         int statusCode = statusLine.getStatusCode();
-                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupExistsException")) {
+                        if (statusCode == HttpStatus.SC_NOT_FOUND || detail.contains("GroupNotExistsException")) {
                             throw new ControllerReportSet.GroupNotExistsException(groupId);
                         }
                     }
@@ -331,9 +367,21 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    public List<Group> onListGroups()
+    public List<Group> onListGroups(Set<String> filterGroupIds)
     {
-        return performGetRequest(authorizationServer + GROUP_SERVICE_PATH, "Retrieving groups failed",
+        String listGroupsUrlQuery = "";
+        if (filterGroupIds != null && filterGroupIds.size() > 0) {
+            try {
+                String userIds = StringUtils.join(filterGroupIds, ",");
+                listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
+                listGroupsUrlQuery += "filter_group_id=" + URLEncoder.encode(userIds, "UTF-8");
+            }
+            catch (UnsupportedEncodingException exception) {
+                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
+            }
+        }
+        String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
+        return performGetRequest(listGroupsUrl, "Retrieving groups failed",
                 new RequestHandler<List<Group>>()
                 {
                     @Override
@@ -357,6 +405,29 @@ public class ServerAuthorization extends Authorization
                             }
                         }
                         return groups;
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        if (detail.contains("GroupNotExistsException")) {
+                            String userId;
+                            int start = detail.lastIndexOf("id=");
+                            int end = -1;
+                            if (start != -1) {
+                                start += 3;
+                                end = detail.indexOf(" ", start);
+                            }
+                            if (start != -1 && end != -1) {
+                                userId = detail.substring(start, end);
+                            }
+                            else {
+                                userId = "<not-parsed>";
+                                logger.warn("Group-id cannot be parsed from '{}'.", detail);
+                            }
+                            throw new ControllerReportSet.GroupNotExistsException(userId);
+
+                        }
                     }
                 });
     }

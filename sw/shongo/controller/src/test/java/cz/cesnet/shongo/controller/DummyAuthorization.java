@@ -183,11 +183,20 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserData> onListUserData(String search)
+    protected Collection<UserData> onListUserData(Set<String> filterUserIds, String search)
     {
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (UserData userData : userDataById.values()) {
-            users.add(userData.getUserInformation());
+        if (filterUserIds != null && filterUserIds.size() > 0) {
+            for (UserData userData : userDataById.values()) {
+                if (filterUserIds.contains(userData.getUserId())) {
+                    users.add(userData.getUserInformation());
+                }
+            }
+        }
+        else {
+            for (UserData userData : userDataById.values()) {
+                users.add(userData.getUserInformation());
+            }
         }
         UserInformation.filter(users, search);
         List<UserData> userData = new LinkedList<UserData>();
@@ -207,9 +216,20 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    public List<Group> onListGroups()
+    public List<Group> onListGroups(Set<String> filterGroupIds)
     {
-        return new LinkedList<Group>(groups.values());
+        if (filterGroupIds != null && filterGroupIds.size() > 0) {
+            List<Group> groups = new LinkedList<Group>();
+            for (String groupId : this.groups.keySet()) {
+                if (filterGroupIds.contains(groupId)) {
+                    groups.add(this.groups.get(groupId));
+                }
+            }
+            return groups;
+        }
+        else {
+            return new LinkedList<Group>(groups.values());
+        }
     }
 
     @Override

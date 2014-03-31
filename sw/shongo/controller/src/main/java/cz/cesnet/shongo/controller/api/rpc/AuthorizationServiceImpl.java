@@ -132,13 +132,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 }
             }
             else {
-                for (UserInformation userInformation : authorization.listUserInformation(search)) {
-                    // Filter by user-id
-                    if (userIds != null) {
-                        if (!userIds.contains(userInformation.getUserId())) {
-                            continue;
-                        }
-                    }
+                Collection<UserInformation> result = authorization.listUserInformation(userIds, search);
+                for (UserInformation userInformation : result) {
                     users.add(userInformation);
                 }
             }

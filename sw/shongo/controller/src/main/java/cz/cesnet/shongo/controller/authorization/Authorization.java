@@ -376,14 +376,15 @@ public abstract class Authorization
     /**
      * Retrieve all {@link UserInformation}s which match given {@code search} criteria.
      *
-     * @param search to filter users
+     * @param filterUserIds to filter users by id
+     * @param search to filter users by text attributes
      * @return collection of {@link UserInformation}s
      */
-    public final Collection<UserInformation> listUserInformation(String search)
+    public final Collection<UserInformation> listUserInformation(Set<String> filterUserIds, String search)
     {
         logger.debug("Retrieving list of user information...");
         List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-        for (UserData userData : onListUserData(search)) {
+        for (UserData userData : onListUserData(filterUserIds, search)) {
             userInformationList.add(userData.getUserInformation());
         }
         return userInformationList;
@@ -602,7 +603,15 @@ public abstract class Authorization
      */
     public final List<Group> listGroups()
     {
-        return onListGroups();
+        return listGroups(null);
+    }
+
+    /**
+     * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
+     */
+    public final List<Group> listGroups(Set<String> filterGroupIds)
+    {
+        return onListGroups(filterGroupIds);
     }
 
     /**
@@ -736,7 +745,7 @@ public abstract class Authorization
      * @param search to filter {@link UserData}s
      * @return collection of {@link UserData}s
      */
-    protected abstract Collection<UserData> onListUserData(String search);
+    protected abstract Collection<UserData> onListUserData(Set<String> filterUserIds, String search);
 
     /**
      * Retrieve {@link Group} for given {@code groupId}.
@@ -750,7 +759,7 @@ public abstract class Authorization
     /**
      * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
      */
-    protected abstract List<Group> onListGroups();
+    protected abstract List<Group> onListGroups(Set<String> filterGroupIds);
 
     /**
      * @return list of user-ids for users which are in group with given {@code groupId}

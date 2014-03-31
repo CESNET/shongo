@@ -4,6 +4,7 @@ import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.*;
@@ -184,12 +185,18 @@ public class Cache
     {
         UserInformation userInformation = userInformationByUserId.get(userId);
         if (userInformation == null) {
-            ListResponse<UserInformation> response = authorizationService.listUsers(
-                    new UserListRequest(securityToken, userId));
-            if (response.getCount() == 0) {
-                throw new RuntimeException("User with id '" + userId + "' doesn't exist.");
+            try {
+                ListResponse<UserInformation> response = authorizationService.listUsers(
+                        new UserListRequest(securityToken, userId));
+                if (response.getCount() == 0) {
+                    throw new ControllerReportSet.UserNotExistsException(userId);
+                }
+                userInformation = response.getItem(0);
             }
-            userInformation = response.getItem(0);
+            catch (ControllerReportSet.UserNotExistsException exception) {
+                logger.warn("User with id '" + userId + "' doesn't exist.", exception);
+                userInformation = createNotExistingUserInformation(userId);
+            }
             userInformationByUserId.put(userId, userInformation);
         }
         return userInformation;
@@ -211,15 +218,27 @@ public class Cache
             }
         }
         if (missingUserIds != null) {
-            ListResponse<UserInformation> response = authorizationService.listUsers(
-                    new UserListRequest(securityToken, missingUserIds));
-            for (UserInformation userInformation : response.getItems()) {
-                String userId = userInformation.getUserId();
-                userInformationByUserId.put(userId, userInformation);
-                missingUserIds.remove(userId);
-            }
-            if (missingUserIds.size() > 0) {
-                throw new RuntimeException("User with id '" + missingUserIds.iterator().next() + "' doesn't exist.");
+            while (missingUserIds.size() > 0) {
+                try {
+                    ListResponse<UserInformation> response = authorizationService.listUsers(
+                            new UserListRequest(securityToken, missingUserIds));
+                    for (UserInformation userInformation : response.getItems()) {
+                        String userId = userInformation.getUserId();
+                        userInformationByUserId.put(userId, userInformation);
+                        missingUserIds.remove(userId);
+                    }
+                    if (missingUserIds.size() > 0) {
+                        throw new ControllerReportSet.UserNotExistsException(missingUserIds.iterator().next());
+                    }
+                }
+                catch (ControllerReportSet.UserNotExistsException exception) {
+                    String userId = exception.getUser();
+                    logger.warn("User with id '" + userId + "' doesn't exist.", exception);
+                    UserInformation userInformation = createNotExistingUserInformation(userId);
+                    userInformationByUserId.put(userId, userInformation);
+                    missingUserIds.remove(userId);
+                    continue;
+                }
             }
         }
     }
@@ -510,5 +529,18 @@ public class Cache
             executableById.put(executableId, executable);
         }
         return executable;
+    }
+
+    /**
+     * @param userId
+     * @return {@link UserInformation} for not existing user with given {@code userId}
+     */
+    private static UserInformation createNotExistingUserInformation(String userId)
+    {
+        UserInformation userInformation = new UserInformation();
+        userInformation.setUserId(userId);
+        userInformation.setFirstName("Non-Existent-User");
+        userInformation.setLastName("(" + userId + ")");
+        return userInformation;
     }
 }
