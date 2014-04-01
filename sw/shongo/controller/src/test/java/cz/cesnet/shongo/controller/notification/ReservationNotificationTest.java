@@ -842,7 +842,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler(DateTime.parse("2012-06-22T14:50"));
 
-        // Check performed actions on connector agents
+        // Check executed notifications
         Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
         {{
                 // Create
@@ -868,6 +868,80 @@ public class ReservationNotificationTest extends AbstractExecutorTest
                 add(RoomNotification.RoomModified.class);
                 // Delete
                 add(ReservationRequestNotification.class);
+            }}, getNotificationTypes(AbstractNotification.class));
+    }
+
+    @Test
+    public void testResourceMaintenance() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = createResource(SECURITY_TOKEN_USER1, resource);
+
+        ReservationRequest userReservationRequest1 = new ReservationRequest();
+        userReservationRequest1.setSlot("2014-01-10T12:00", "PT2H");
+        userReservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        userReservationRequest1.setSpecification(new ResourceSpecification(resourceId));
+        String userRequest1Id = allocate(SECURITY_TOKEN_USER2, userReservationRequest1);
+        checkAllocated(userRequest1Id);
+        Assert.assertEquals(1, getSchedulerResult().getAllocatedReservationRequests());
+        Assert.assertEquals(0, getSchedulerResult().getFailedReservationRequests());
+        Assert.assertEquals(0, getSchedulerResult().getDeletedReservations());
+
+        ReservationRequest userRequest2 = new ReservationRequest();
+        userRequest2.setSlot("2014-01-20T12:00", "PT2H");
+        userRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        userRequest2.setSpecification(new ResourceSpecification(resourceId));
+        String userRequest2Id = allocate(SECURITY_TOKEN_USER3, userRequest2);
+        checkAllocated(userRequest2Id);
+        Assert.assertEquals(1, getSchedulerResult().getAllocatedReservationRequests());
+        Assert.assertEquals(0, getSchedulerResult().getFailedReservationRequests());
+        Assert.assertEquals(0, getSchedulerResult().getDeletedReservations());
+
+        ReservationRequest maintenanceRequest = new ReservationRequest();
+        maintenanceRequest.setSlot("2014-01-01/2014-02-01");
+        maintenanceRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
+        maintenanceRequest.setSpecification(new ResourceSpecification(resourceId));
+        String maintenanceRequestId = allocate(SECURITY_TOKEN_USER1, maintenanceRequest);
+        checkAllocationFailed(maintenanceRequestId);
+        checkAllocated(userRequest1Id);
+        checkAllocated(userRequest2Id);
+        Assert.assertEquals(0, getSchedulerResult().getAllocatedReservationRequests());
+        Assert.assertEquals(1, getSchedulerResult().getFailedReservationRequests());
+        Assert.assertEquals(0, getSchedulerResult().getDeletedReservations());
+
+        maintenanceRequest = getReservationRequest(maintenanceRequestId, ReservationRequest.class);
+        maintenanceRequest.setPriority(1);
+        maintenanceRequestId = allocate(SECURITY_TOKEN_USER1, maintenanceRequest);
+        checkAllocated(maintenanceRequestId);
+        checkAllocationFailed(userRequest1Id);
+        checkAllocationFailed(userRequest2Id);
+        Assert.assertEquals(1, getSchedulerResult().getAllocatedReservationRequests());
+        Assert.assertEquals(2, getSchedulerResult().getFailedReservationRequests());
+        Assert.assertEquals(2, getSchedulerResult().getDeletedReservations());
+
+        // Check executed notifications
+        Assert.assertEquals(new ArrayList<Class<? extends AbstractNotification>>()
+        {{
+                // Create
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                // Maintenance failed
+                add(ReservationRequestNotification.class);
+                add(AllocationFailedNotification.class);
+                // Maintenance succeeds
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.New.class);
+                // User requests deleted and failed
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(ReservationRequestNotification.class);
+                add(ReservationNotification.Deleted.class);
+                add(AllocationFailedNotification.class);
+                add(AllocationFailedNotification.class);
             }}, getNotificationTypes(AbstractNotification.class));
     }
 

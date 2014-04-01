@@ -1,35 +1,21 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
-import cz.cesnet.shongo.controller.booking.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
-import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
-import cz.cesnet.shongo.controller.booking.room.AvailableRoom;
-import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
-import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
-import cz.cesnet.shongo.controller.util.RangeSet;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -89,9 +75,14 @@ public class SchedulerContextState
             new HashMap<Class<? extends TargetedReservation>, ReservationTransaction<TargetedReservation>>();
 
     /**
-     * List of {@link ReservationRequest} which should be reallocated.
+     * List of {@link ReservationRequest} which should be forced to be reallocated.
      */
-    private List<ReservationRequest> reservationRequestsToReallocate = new LinkedList<ReservationRequest>();
+    private List<ReservationRequest> forceReservationRequestReallocation = new LinkedList<ReservationRequest>();
+
+    /**
+     * List of {@link ReservationRequest} which should be attempted to be reallocated.
+     */
+    private List<ReservationRequest> tryReservationRequestReallocation = new LinkedList<ReservationRequest>();
 
     /**
      * List of {@link Reservation}s which should be deleted.
@@ -194,6 +185,17 @@ public class SchedulerContextState
         if (referencedResources.remove(resource)) {
             onChange(ObjectType.REFERENCED_RESOURCE, resource, ObjectState.REMOVED);
         }
+    }
+
+    /**
+     * Remove all {@link #referencedResources}.
+     */
+    public void clearReferencedResources()
+    {
+        if (currentSavepoint != null) {
+            throw new TodoImplementException("Clear referenced resources when savepoint is active.");
+        }
+        referencedResources.clear();
     }
 
     /**
@@ -561,20 +563,35 @@ public class SchedulerContextState
     }
 
     /**
-     * @return iterator of {@link #reservationRequestsToReallocate}
+     * @return iterator of {@link #forceReservationRequestReallocation}
      */
-    public Iterator<ReservationRequest> getReservationRequestsToReallocate()
+    public List<ReservationRequest> getForceReallocation()
     {
-        return reservationRequestsToReallocate.iterator();
+        return Collections.unmodifiableList(forceReservationRequestReallocation);
     }
 
     /**
-     * @param reservationRequest to be reallocated
+     * @return iterator of {@link #tryReservationRequestReallocation}
      */
-    public void addReservationRequestForReallocation(ReservationRequest reservationRequest)
+    public Iterator<ReservationRequest> getTryReallocationIterator()
     {
-        logger.debug("Adding req:{} for reallocation...", reservationRequest.getId());
-        reservationRequestsToReallocate.add(reservationRequest);
+        return tryReservationRequestReallocation.iterator();
+    }
+
+    /**
+     * @param reservationRequest to be forced to be reallocated
+     */
+    public void forceReservationRequestReallocation(ReservationRequest reservationRequest)
+    {
+        forceReservationRequestReallocation.add(reservationRequest);
+    }
+
+    /**
+     * @param reservationRequest to be tried to be reallocated
+     */
+    public void tryReservationRequestReallocation(ReservationRequest reservationRequest)
+    {
+        tryReservationRequestReallocation.add(reservationRequest);
     }
 
     /**

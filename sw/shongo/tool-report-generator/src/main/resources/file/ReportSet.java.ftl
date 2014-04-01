@@ -79,7 +79,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
 
         public void ${param.getSetterName()}(${param.getTypeClassName()} ${param.getVariableName()})
         {
-            this.${param.getVariableName()} = ${param.getVariableName()};
+            this.${param.getVariableName()} = ${param.getSetterContent(report.isPersistent())};
         }
     </#list>
     <#list report.getTemporaryParams() as param>

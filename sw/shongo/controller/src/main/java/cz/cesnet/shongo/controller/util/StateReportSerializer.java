@@ -52,6 +52,12 @@ public class StateReportSerializer extends HashMap<String, Object>
                     put(name, collection);
                 }
             }
+            else if (value instanceof Map) {
+                Map map = (Map) value;
+                if (!map.isEmpty()) {
+                    put(name, map);
+                }
+            }
             else if (value instanceof Report) {
                 Report reportValue = (Report) value;
                 Map<String, Object> childReport = new StateReportSerializer(reportValue);

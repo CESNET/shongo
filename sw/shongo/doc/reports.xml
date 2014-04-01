@@ -1586,28 +1586,43 @@
             <id>colliding-reservations</id>
             <classification severity="info"/>
             <params>
-                <param name="reservations" type="List" type-element="String"/>
+                <param name="reservations" type="Map" type-key="String" type-element="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                The following reservations are colliding: ${newLines(reservations)}
+                The following reservations are colliding, trying to reallocate them: ${format(reservations, "\n-$key ($value)", "")}
             </message>
             <visible>user</visible>
         </report>
 
         <report>
-            <id>reallocating-reservations</id>
+            <id>reallocating-reservation-requests</id>
             <classification severity="info"/>
             <params>
-                <param name="reservations" type="List" type-element="String"/>
+                <param name="reservationRequests" type="List" type-element="String"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                The following reservations will be reallocated: ${newLines(reservations)}
+                The following reservation requests will be reallocated: ${format(reservationRequests, "\n-$value", "")}
+            </message>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>reallocating-reservation-request</id>
+            <classification severity="info"/>
+            <params>
+                <param name="reservationRequest" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reallocating reservation request ${reservationRequest}.
             </message>
             <visible>user</visible>
         </report>

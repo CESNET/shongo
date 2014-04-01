@@ -23,6 +23,11 @@ public abstract class Param
 
     public abstract String getTypeName();
 
+    public String getTypeKeyName()
+    {
+        return null;
+    }
+
     public String getTypeElementName()
     {
         return null;
@@ -30,7 +35,7 @@ public abstract class Param
 
     public Type getType()
     {
-        return Type.getType(getTypeName(), getTypeElementName());
+        return Type.getType(getTypeName(), getTypeKeyName(), getTypeElementName());
     }
 
     public String getTypeClassName()

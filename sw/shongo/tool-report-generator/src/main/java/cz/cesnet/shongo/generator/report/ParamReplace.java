@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  */
 public class ParamReplace extends PatternParser implements PatternParser.Callback
 {
-    private static final Pattern MESSAGE_PARAM_PATTERN = Pattern.compile("\\$\\{([^\\$]+)\\}");
+    private static final Pattern MESSAGE_PARAM_PATTERN = Pattern.compile("\\$\\{([^\\}]+)\\}");
 
     private static JexlEngine jexlEngine = new JexlEngine();
 
@@ -58,7 +58,8 @@ public class ParamReplace extends PatternParser implements PatternParser.Callbac
     @Override
     public final String processMatch(MatchResult match)
     {
-        Expression expression = jexlEngine.createExpression(match.group(1));
+        String code = match.group(1);
+        Expression expression = jexlEngine.createExpression(code);
         Object result = expression.evaluate(context);
         if (result == null) {
             throw new GeneratorException("Expression can't be evaluated '" + match.group(1) + "'.");

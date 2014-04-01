@@ -21,6 +21,7 @@ import org.joda.time.Period;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -206,11 +207,23 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     /**
-     * @param report to be added to the {@link #reports}
+     * @param report sets the {@link #reports}
      */
-    public void addReport(SchedulerReport report)
+    @Transient
+    public void setReport(SchedulerReport report)
+    {
+        this.reports.clear();
+        this.reports.add(report);
+    }
+
+    /**
+     * @param report to be added to the {@link #reports}
+     * @return given {@code report}
+     */
+    public SchedulerReport addReport(SchedulerReport report)
     {
         reports.add(report);
+        return report;
     }
 
     /**

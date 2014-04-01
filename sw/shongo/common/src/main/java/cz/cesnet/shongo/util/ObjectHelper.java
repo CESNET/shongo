@@ -3,8 +3,7 @@ package cz.cesnet.shongo.util;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.SimplePersistentObject;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Helper class for object equality.
@@ -107,6 +106,4 @@ public class ObjectHelper
         }
         return true;
     }
-
-
 }

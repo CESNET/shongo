@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
@@ -206,6 +207,14 @@ public class SchedulerContext
     }
 
     /**
+     * @return {@link #purpose} equals {@link ReservationRequestPurpose#MAINTENANCE}
+     */
+    public boolean isMaintenance()
+    {
+        return purpose.equals(ReservationRequestPurpose.MAINTENANCE);
+    }
+
+    /**
      * @return true whether maximum future and maximum duration should be checked,
      * false otherwise
      */
@@ -228,17 +237,6 @@ public class SchedulerContext
             }
         }
         return true;
-    }
-
-    /**
-     * @param reservations which should be reallocated
-     */
-    public void addReservationsForReallocation(Collection<? extends Reservation> reservations)
-    {
-        for (Reservation reservation : reservations) {
-            ReservationRequest reservationRequest = getReservationRequest(reservation);
-            state.addReservationRequestForReallocation(reservationRequest);
-        }
     }
 
     /**
@@ -352,11 +350,12 @@ public class SchedulerContext
      *
      * @return list of {@link AbstractNotification}s
      */
-    public List<AbstractNotification> finish()
+    public List<AbstractNotification> finish(Scheduler.Result result)
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (Reservation reservation : state.getReservationsToDelete()) {
             reservationManager.delete(reservation, minimumDateTime, authorizationManager);
+            result.deletedReservations++;
         }
         return state.getNotifications();
     }
@@ -398,15 +397,31 @@ public class SchedulerContext
             // No colliding reservation exists
             return false;
         }
+
         if (hasHigherPriority(collidingReservations)) {
             // Reallocate all colliding reservations
-            reservationTask.addReport(SchedulerReportSetHelper.createReallocatingReservations(collidingReservations));
-            addReservationsForReallocation(collidingReservations);
+            List<String> collection = new LinkedList<String>();
+            for (Reservation reservation : collidingReservations) {
+                ReservationRequest reservationRequest = getReservationRequest(reservation);
+                // Reallocate colliding reservation request
+                state.forceReservationRequestReallocation(reservationRequest);
+                // Add reservation request to collection
+                collection.add(ObjectIdentifier.formatId(reservation));
+            }
+            reservationTask.addReport(new SchedulerReportSet.ReallocatingReservationRequestsReport(collection));
             return false;
         }
-        if (isOwnerRestricted()) {
-            // Add report with colliding reservations
-            reservationTask.addReport(SchedulerReportSetHelper.createCollidingReservations(collidingReservations));
+        if (isMaintenance()) {
+            Map<String, String> map = new LinkedHashMap<String, String>();
+            for (Reservation reservation : collidingReservations) {
+                ReservationRequest reservationRequest = getReservationRequest(reservation);
+                // Reallocate colliding reservation request
+                state.tryReservationRequestReallocation(reservationRequest);
+                // Add reservation request by reservation to map
+                map.put(ObjectIdentifier.formatId(reservation), ObjectIdentifier.formatId(reservationRequest));
+            }
+            reservationTask.addReport(new SchedulerReportSet.CollidingReservationsReport(map));
+            return false;
         }
         throw new SchedulerException(schedulerReport);
     }

@@ -38,6 +38,11 @@ public abstract class Type
         return getterContent;
     }
 
+    public String getPersistentSetterContent(String setterContent)
+    {
+        return setterContent;
+    }
+
     public Collection<String> getPersistencePreRemove(String variableName)
     {
         return new LinkedList<String>();
@@ -71,7 +76,7 @@ public abstract class Type
 
     private static final Map<String, Type> types = new HashMap<String, Type>();
 
-    public static Type getType(String name, String elementName)
+    public static Type getType(String name, String keyName, String elementName)
     {
         Type type;
         if (elementName == null) {
@@ -83,6 +88,10 @@ public abstract class Type
             if (type == null) {
                 if (name.equals("Set") || name.equals("List")) {
                     type = new CollectionType("java.util." + name, elementName);
+                    types.put(fullName, type);
+                }
+                else if (name.equals("Map")) {
+                    type = new MapType("java.util.Map", keyName, elementName);
                     types.put(fullName, type);
                 }
                 else {
@@ -197,7 +206,7 @@ public abstract class Type
         public CollectionType(String className, String elementName)
         {
             super(className);
-            elementType = getType(elementName, null);
+            elementType = getType(elementName, null, null);
         }
 
         @Override
@@ -227,6 +236,50 @@ public abstract class Type
             else {
                 persistenceAnnotations.add("@javax.persistence.ElementCollection");
             }
+            return persistenceAnnotations;
+        }
+
+        @Override
+        public boolean isCollection()
+        {
+            return true;
+        }
+    }
+
+    private static class MapType extends Type
+    {
+        private Type keyType;
+
+        private Type elementType;
+
+        public MapType(String className, String keyName, String elementName)
+        {
+            super(className);
+            keyType = getType(keyName, null, null);
+            elementType = getType(elementName, null, null);
+        }
+
+        @Override
+        public String getClassName()
+        {
+            return super.getClassName() + "<" + keyType.getClassName() + ", " + elementType.getClassName() + ">";
+        }
+
+        public String getCollectionClassName()
+        {
+            return super.getClassName();
+        }
+
+        public String getElementTypeClassName()
+        {
+            return elementType.getClassName();
+        }
+
+        @Override
+        public List<String> getPersistenceAnnotations(String columnName)
+        {
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            persistenceAnnotations.add("@javax.persistence.ElementCollection");
             return persistenceAnnotations;
         }
 

@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.booking.participant.PersonParticipant;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -584,5 +585,21 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return reservationRequests;
+    }
+
+    /**
+     * Remove all {@link ReservationRequest#reports} and return them.
+     *
+     * @param reservationRequest
+     * @return {@link ReservationRequest#reports}
+     */
+    public List<SchedulerReport> detachReports(ReservationRequest reservationRequest)
+    {
+        List<SchedulerReport> reports = new LinkedList<SchedulerReport>();
+        for (SchedulerReport schedulerReport : reservationRequest.getReports()) {
+            reports.add(entityManager.merge(schedulerReport));
+        }
+        reservationRequest.clearReports();
+        return reports;
     }
 }

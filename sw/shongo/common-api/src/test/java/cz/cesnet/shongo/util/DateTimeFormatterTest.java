@@ -6,6 +6,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tests for {@link DateTimeFormatter#roundDuration},
@@ -14,6 +16,24 @@ import java.util.Locale;
  */
 public class DateTimeFormatterTest
 {
+    @Test
+    public void testXXX() throws Exception
+    {
+        String code = "format(reservations, \"af\", da, \"x\")";
+        Pattern pattern = Pattern.compile("^([\\w]+)\\(([\\w.-]+|\"[^\"]*\")?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?\\)$");
+        Matcher functionMatcher = pattern.matcher(code);
+        if (functionMatcher.matches()) {
+            int count = 0;
+            for (int i = 0; i <= functionMatcher.groupCount(); i++) {
+                if ( functionMatcher.group(i) == null) {
+                    break;
+                }
+                count++;
+                System.err.println(functionMatcher.group(i));
+            }
+        }
+    }
+
     @Test
     public void testCzech() throws Exception
     {

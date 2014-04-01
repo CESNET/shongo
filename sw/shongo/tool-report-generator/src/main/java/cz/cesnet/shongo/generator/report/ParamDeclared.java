@@ -50,6 +50,12 @@ public class ParamDeclared extends Param
     }
 
     @Override
+    public String getTypeKeyName()
+    {
+        return reportParam.getTypeKey();
+    }
+
+    @Override
     public String getTypeElementName()
     {
         return reportParam.getTypeElement();
@@ -81,6 +87,16 @@ public class ParamDeclared extends Param
     {
         if (isPersistent) {
             return getType().getPersistentGetterContent(getVariableName());
+        }
+        else {
+            return getVariableName();
+        }
+    }
+
+    public String getSetterContent(boolean isPersistent)
+    {
+        if (isPersistent) {
+            return getType().getPersistentSetterContent(getVariableName());
         }
         else {
             return getVariableName();

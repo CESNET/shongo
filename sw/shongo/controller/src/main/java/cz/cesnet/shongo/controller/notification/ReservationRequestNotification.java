@@ -218,8 +218,11 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     }
 
     @Override
-    public boolean group(NotificationManager notificationManager)
+    public boolean preprocess(NotificationManager notificationManager)
     {
+        if (notifications.size() == 0) {
+            return true;
+        }
         if (reusedReservationRequestId != null && notifications.size() == 1) {
             AbstractReservationRequestNotification notification = notifications.get(0);
             if (notification instanceof ReservationNotification.Deleted) {

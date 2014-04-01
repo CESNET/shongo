@@ -86,6 +86,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private Scheduler scheduler;
 
     /**
+     * Last {@link Scheduler.Result}.
+     */
+    private Scheduler.Result schedulerResult;
+
+    /**
      * Specifies whether automatic execution of notifications while scheduling is enabled.
      */
     private boolean notificationExecutionEnabled = true;
@@ -121,6 +126,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public DummyAuthorization getAuthorization()
     {
         return authorization;
+    }
+
+    /**
+     * @return {@link #schedulerResult}
+     */
+    public Scheduler.Result getSchedulerResult()
+    {
+        return schedulerResult;
     }
 
     /**
@@ -359,12 +372,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected Scheduler.Result runScheduler(Interval interval)
     {
         EntityManager entityManager = createEntityManager();
-        Scheduler.Result result = scheduler.run(interval, entityManager);
+        schedulerResult = scheduler.run(interval, entityManager);
         if (notificationExecutionEnabled) {
             executeNotifications(entityManager);
         }
         entityManager.close();
-        return result;
+        return schedulerResult;
     }
 
     /**

@@ -373,10 +373,8 @@ public class Report
             return null;
         }
         description = Formatter.formatString(description);
-        description = description.replace("\\n", "\n     * ");
-
         description = new ParamReplace(description, this, new JavaDocContext()).getString();
-
+        description = description.replace("\\n", "\n     * ");
         return description;
     }
 
@@ -571,7 +569,7 @@ public class Report
             return processParam(param);
         }
 
-        public Object newLines(Param param)
+        public Object format(Param param, String format, String separator)
         {
             return processParam(param);
         }

@@ -107,7 +107,7 @@ public abstract class ReportSetMessages
     {
         private static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
         private static final Pattern PARAM_PATTERN = Pattern.compile("^[\\w.-]+$");
-        private static final Pattern FUNCTION_PATTERN = Pattern.compile("^([\\w]+)\\(([\\w.-]+|\"[^\"]*\")(\\s*,\\s*([\\w.-]+|\"[^\"]*\")?)*\\)$");
+        private static final Pattern FUNCTION_PATTERN = Pattern.compile("^([\\w]+)\\(([\\w.-]+|\"[^\"]*\")?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?(\\s*,\\s*([\\w.-]+|\"[^\"]*\"))?\\)$");
 
         private List<Component> components = new LinkedList<Component>();
 
@@ -136,7 +136,14 @@ public abstract class ReportSetMessages
 
             Matcher functionMatcher = FUNCTION_PATTERN.matcher(expression);
             if (functionMatcher.matches()) {
-                int paramCount = (functionMatcher.groupCount() - 1) / 2 + 1;
+                int groupCount = 0;
+                for (int groupIndex = 0; groupIndex <= functionMatcher.groupCount(); groupIndex++) {
+                    if ( functionMatcher.group(groupIndex) == null) {
+                        break;
+                    }
+                    groupCount++;
+                }
+                int paramCount = (groupCount - 1) / 2 + 1;
                 String[] params = new String[paramCount];
                 for (int param = 0; param < paramCount; param ++) {
                     params[param] = functionMatcher.group((param * 2) + 2);
@@ -277,8 +284,8 @@ public abstract class ReportSetMessages
                 if (name.equals("ifEmpty")) {
                     type = Type.IF_EMPTY;
                 }
-                else if (name.equals("newLines")) {
-                    type = Type.NEW_LINES;
+                else if (name.equals("format")) {
+                    type = Type.FORMAT;
                 }
                 else if (name.equals("jadeReportMessage")) {
                     type = Type.JADE_REPORT;
@@ -304,7 +311,7 @@ public abstract class ReportSetMessages
             {
                 switch (type) {
                     case IF_EMPTY:
-                    case NEW_LINES:
+                    case FORMAT:
                     case JADE_REPORT:
                         return params.get(0).getValue(parameters);
                     default:
@@ -328,24 +335,43 @@ public abstract class ReportSetMessages
                             return param2;
                         }
                     }
-                    case NEW_LINES:
+                    case FORMAT:
                     {
-                        Object param1 = params.get(0).getValue(parameters);
+                        Object value = params.get(0).getValue(parameters);
+                        String format = params.get(1).format(userType, language, timeZone, null);
+                        String separator = params.get(2).format(userType, language, timeZone, null);
                         StringBuilder output = new StringBuilder();
-                        if (param1 instanceof Object[]) {
-                            for (Object item : (Object[]) param1) {
-                                output.append("\n-");
-                                output.append(formatValue(item, language, timeZone, true));
+                        if (value instanceof Object[]) {
+                            for (Object item : (Object[]) value) {
+                                if (output.length() > 0) {
+                                    output.append(separator);
+                                }
+                                String itemValue = formatValue(item, language, timeZone, true);
+                                output.append(format.replace("$value", itemValue));
                             }
                         }
-                        else if (param1 instanceof Collection) {
-                            for (Object item : (Collection) param1) {
-                                output.append("\n-");
-                                output.append(formatValue(item, language, timeZone, true));
+                        else if (value instanceof Collection) {
+                            for (Object item : (Collection) value) {
+                                if (output.length() > 0) {
+                                    output.append(separator);
+                                }
+                                String itemValue = formatValue(item, language, timeZone, true);
+                                output.append(format.replace("$value", itemValue));
+                            }
+                        }
+                        else if (value instanceof Map) {
+                            Map map = (Map) value;
+                            for (Object key : new TreeSet(map.keySet())) {
+                                if (output.length() > 0) {
+                                    output.append(separator);
+                                }
+                                String itemKey = formatValue(key, language, timeZone, true);
+                                String itemValue = formatValue(map.get(key), language, timeZone, true);
+                                output.append(format.replace("$key", itemKey).replace("$value", itemValue));
                             }
                         }
                         else {
-                            output.append(formatValue(param1, language, timeZone, true));
+                            output.append(formatValue(value, language, timeZone, true));
                         }
                         return output.toString();
                     }
@@ -374,7 +400,7 @@ public abstract class ReportSetMessages
             private static enum Type
             {
                 IF_EMPTY,
-                NEW_LINES,
+                FORMAT,
                 JADE_REPORT
             }
         }

@@ -173,10 +173,10 @@ public class NotificationManager extends Component implements Component.Authoriz
      */
     public synchronized void executeNotifications(EntityManager entityManager)
     {
-        // Group notifications
+        // Preprocess notifications
         for (Iterator<AbstractNotification> iterator = notifications.iterator(); iterator.hasNext(); ) {
             AbstractNotification notification = iterator.next();
-            if (notification.group(this)) {
+            if (notification.preprocess(this)) {
                 iterator.remove();
                 notification.onAfterRemoved(this);
             }

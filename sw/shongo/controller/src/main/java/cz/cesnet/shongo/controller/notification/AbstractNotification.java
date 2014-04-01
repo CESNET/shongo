@@ -36,11 +36,6 @@ public abstract class AbstractNotification
     protected static Logger logger = LoggerFactory.getLogger(AbstractNotification.class);
 
     /**
-     * Date/time when the {@link AbstractNotification} was created.
-     */
-    private final DateTime createdAt;
-
-    /**
      * List of recipients who should be notified about this {@link AbstractNotification}.
      */
     private final Set<PersonInformation> recipients = new LinkedHashSet<PersonInformation>();
@@ -55,15 +50,6 @@ public abstract class AbstractNotification
      */
     protected AbstractNotification()
     {
-        this.createdAt = DateTime.now();
-    }
-
-    /**
-     * @return {@link #createdAt}
-     */
-    public DateTime getCreatedAt()
-    {
-        return createdAt;
     }
 
     /**
@@ -234,15 +220,13 @@ public abstract class AbstractNotification
     }
 
     /**
-     * Try to group this {@link AbstractNotification} to another {@link AbstractNotification}
-     * from given {@code notificationManager}.
+     * Preprocess this {@link AbstractNotification}.
      *
      * @param notificationManager to be used
-     * @return true when this {@link AbstractNotification} was successfully grouped into another
-     * {@link AbstractNotification} and thus this {@link AbstractNotification} can be deleted,
+     * @return true when this {@link AbstractNotification} should be deleted and not executed,
      * false otherwise
      */
-    public boolean group(NotificationManager notificationManager)
+    public boolean preprocess(NotificationManager notificationManager)
     {
         return false;
     }
