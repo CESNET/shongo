@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.joda.time.ReadablePartial;
 
@@ -18,6 +19,11 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
      * Starting date/time for the first date/time slot.
      */
     private DateTime start;
+
+    /**
+     * Timezone in which the periodicity should be computed (to proper handling of daylight saving time).
+     */
+    private DateTimeZone timeZone;
 
     /**
      * Duration of each date/time slots.
@@ -51,6 +57,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     public PeriodicDateTimeSlot(DateTime start, Period duration, Period period)
     {
         setStart(start);
+        setTimeZone(start.getZone());
         setPeriod(period);
         setDuration(duration);
     }
@@ -65,6 +72,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     public PeriodicDateTimeSlot(DateTime start, Period duration, Period period, ReadablePartial end)
     {
         setStart(start);
+        setTimeZone(start.getZone());
         setDuration(duration);
         setPeriod(period);
         setEnd(end);
@@ -117,6 +125,22 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #timeZone}
+     */
+    public DateTimeZone getTimeZone()
+    {
+        return timeZone;
+    }
+
+    /**
+     * @param timeZone sets the {@link #timeZone}
+     */
+    public void setTimeZone(DateTimeZone timeZone)
+    {
+        this.timeZone = timeZone;
+    }
+
+    /**
      * @return {@link #duration}
      */
     public Period getDuration()
@@ -166,6 +190,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     }
 
     public static final String START = "start";
+    public static final String TIME_ZONE = "timeZone";
     public static final String DURATION = "duration";
     public static final String PERIOD = "period";
     public static final String END = "end";
@@ -175,6 +200,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(START, start);
+        dataMap.set(TIME_ZONE, timeZone);
         dataMap.set(DURATION, duration);
         dataMap.set(PERIOD, period);
         dataMap.set(END, end);
@@ -186,6 +212,7 @@ public class PeriodicDateTimeSlot extends IdentifiedComplexType
     {
         super.fromData(dataMap);
         start = dataMap.getDateTimeRequired(START);
+        timeZone = dataMap.getDateTimeZone(TIME_ZONE);
         duration = dataMap.getPeriod(DURATION);
         period = dataMap.getPeriodRequired(PERIOD);
         end = dataMap.getReadablePartial(END);

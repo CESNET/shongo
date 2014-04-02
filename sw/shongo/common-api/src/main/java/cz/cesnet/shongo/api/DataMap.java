@@ -349,4 +349,10 @@ public class DataMap
     {
         return Converter.convert(getRequired(property), requiredClasses);
     }
+
+    @Override
+    public String toString()
+    {
+        return data.toString();
+    }
 }

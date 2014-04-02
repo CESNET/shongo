@@ -294,7 +294,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     {
         // Create reservation request
         String reservationRequestId = reservationService.createReservationRequest(
-                securityToken, reservationRequest.toApi());
+                securityToken, reservationRequest.toApi(request));
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {

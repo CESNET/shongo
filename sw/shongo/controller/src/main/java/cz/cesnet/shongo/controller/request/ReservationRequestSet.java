@@ -95,7 +95,14 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public Collection<Interval> enumerateSlots(Interval interval)
     {
-        Set<Interval> enumeratedSlots = new HashSet<Interval>();
+        Set<Interval> enumeratedSlots = new TreeSet<Interval>(new Comparator<Interval>()
+        {
+            @Override
+            public int compare(Interval o1, Interval o2)
+            {
+                return o1.getStart().compareTo(o2.getStart());
+            }
+        });
         for (DateTimeSlot slot : slots) {
             enumeratedSlots.addAll(slot.enumerate(interval));
         }

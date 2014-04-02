@@ -128,4 +128,20 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
         count = dataMap.getInt(COUNT);
         items = (List<T>) dataMap.getList(ITEMS, Object.class);
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder output = new StringBuilder();
+        output.append("ListResponse(start: ");
+        output.append(start);
+        output.append(", count: ");
+        output.append(count);
+        output.append("):");
+        for (T item : items) {
+            output.append("\n -");
+            output.append(item);
+        }
+        return output.toString();
+    }
 }

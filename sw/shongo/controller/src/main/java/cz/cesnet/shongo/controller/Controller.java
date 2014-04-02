@@ -67,6 +67,11 @@ public class Controller
     protected Configuration configuration;
 
     /**
+     * {@link org.joda.time.DateTimeZone} old default timezone.
+     */
+    private DateTimeZone oldDefaultTimeZone;
+
+    /**
      * Entity manager factory.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -159,6 +164,10 @@ public class Controller
     public void destroy()
     {
         Domain.setLocalDomain(null);
+        if (oldDefaultTimeZone != null) {
+            logger.info("Configuring default timezone back to {}.", oldDefaultTimeZone.getID());
+            DateTimeZone.setDefault(oldDefaultTimeZone);
+        }
     }
 
     /**
@@ -200,6 +209,7 @@ public class Controller
         // Initialize default timezone
         String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
         if (timeZoneId != null && !timeZoneId.isEmpty()) {
+            oldDefaultTimeZone = DateTimeZone.getDefault();
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
             logger.info("Configuring default timezone to {}.", dateTimeZone.getID());
             DateTimeZone.setDefault(dateTimeZone);

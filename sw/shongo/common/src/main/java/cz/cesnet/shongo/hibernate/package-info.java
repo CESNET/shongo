@@ -6,6 +6,7 @@
 @TypeDefs({
         @TypeDef(name = "Locale", typeClass = PersistentLocale.class),
         @TypeDef(name = "DateTime", typeClass = PersistentDateTime.class),
+        @TypeDef(name = "DateTimeWithZone", typeClass = PersistentDateTimeWithZone.class),
         @TypeDef(name = "DateTimeZone", typeClass = PersistentDateTimeZone.class),
         @TypeDef(name = "Period", typeClass = PersistentPeriod.class),
         @TypeDef(name = "Interval", typeClass = PersistentInterval.class),

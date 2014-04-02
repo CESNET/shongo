@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.common;
 
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -170,6 +171,7 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         PeriodicDateTime periodicDateTime = getPeriodicDateTime();
         periodicDateTimeSlotApi.setId(getId());
         periodicDateTimeSlotApi.setStart(periodicDateTime.getStart());
+        periodicDateTimeSlotApi.setTimeZone(periodicDateTime.getTimeZone());
         periodicDateTimeSlotApi.setDuration(getDuration());
         periodicDateTimeSlotApi.setPeriod(periodicDateTime.getPeriod());
         periodicDateTimeSlotApi.setEnd(periodicDateTime.getEnd());
@@ -181,11 +183,12 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
     {
         cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot periodicDateTimeSlotApi =
                 (cz.cesnet.shongo.controller.api.PeriodicDateTimeSlot) slotApi;
-        PeriodicDateTime periodicDateTimeSpecification = new PeriodicDateTime();
-        periodicDateTimeSpecification.setStart(periodicDateTimeSlotApi.getStart());
-        periodicDateTimeSpecification.setPeriod(periodicDateTimeSlotApi.getPeriod());
-        periodicDateTimeSpecification.setEnd(periodicDateTimeSlotApi.getEnd());
-        setPeriodicDateTime(periodicDateTimeSpecification);
+        PeriodicDateTime periodicDateTime = new PeriodicDateTime();
+        periodicDateTime.setStart(periodicDateTimeSlotApi.getStart());
+        periodicDateTime.setTimeZone(periodicDateTimeSlotApi.getTimeZone());
+        periodicDateTime.setPeriod(periodicDateTimeSlotApi.getPeriod());
+        periodicDateTime.setEnd(periodicDateTimeSlotApi.getEnd());
+        setPeriodicDateTime(periodicDateTime);
         setDuration(periodicDateTimeSlotApi.getDuration());
     }
 

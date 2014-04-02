@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 import javax.persistence.*;
 import java.util.*;
@@ -33,6 +33,11 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
      * Date and time of the first periodic event.
      */
     private DateTime start;
+
+    /**
+     * Timezone in which the periodicity should be computed (to proper handling of daylight saving time).
+     */
+    private DateTimeZone timeZone;
 
     /**
      * Period of periodic events.
@@ -101,6 +106,28 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     public void setStart(DateTime start)
     {
         this.start = start;
+    }
+
+    /**
+     * @return {@link #timeZone}
+     */
+    @Column
+    @Type(type = "DateTimeZone")
+    @Access(AccessType.FIELD)
+    public DateTimeZone getTimeZone()
+    {
+        return timeZone;
+    }
+
+    /**
+     * @param timeZone sets the {@link #timeZone}
+     */
+    public void setTimeZone(DateTimeZone timeZone)
+    {
+        if (timeZone != null && timeZone.equals(DateTimeZone.getDefault())) {
+            timeZone = null;
+        }
+        this.timeZone = timeZone;
     }
 
     /**
@@ -275,6 +302,9 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     public final List<DateTime> enumerate(DateTime intervalStart, DateTime intervalTo, int maxCount)
     {
         DateTime start = this.start;
+        if (this.timeZone != null) {
+            start = start.withZone(this.timeZone);
+        }
 
         // Find all events in range from-to
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
@@ -545,7 +575,7 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
          * Checks whether rule has interval set or single date/time.
          *
          * @return true if rule has interval set (pair of date/times),
-         *         false otherwise
+         * false otherwise
          */
         @Transient
         public boolean isInterval()

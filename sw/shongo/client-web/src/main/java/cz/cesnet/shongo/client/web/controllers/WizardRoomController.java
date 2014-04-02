@@ -426,7 +426,7 @@ public class WizardRoomController extends WizardParticipantsController
     {
         // Create reservation request
         String reservationRequestId = reservationService.createReservationRequest(
-                securityToken, reservationRequest.toApi());
+                securityToken, reservationRequest.toApi(request));
 
         // Create user roles
         for (UserRoleModel userRole : reservationRequest.getUserRoles()) {

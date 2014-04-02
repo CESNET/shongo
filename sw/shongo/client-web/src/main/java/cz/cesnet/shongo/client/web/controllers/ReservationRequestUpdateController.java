@@ -162,7 +162,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
             BindingResult result)
     {
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
-            AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
+            AbstractReservationRequest reservationRequest = reservationRequestModel.toApi(request);
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
             return "redirect:" + BackUrl.getInstance(request).applyToUrl(
@@ -221,7 +221,7 @@ public class ReservationRequestUpdateController implements BreadcrumbProvider
                     " was requested but attributes for " + reservationRequestModel.getId() + " was present.");
         }
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService, request)) {
-            AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
+            AbstractReservationRequest reservationRequest = reservationRequestModel.toApi(request);
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
             sessionStatus.setComplete();
             return "redirect:" + BackUrl.getInstance(request).applyToUrl(

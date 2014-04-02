@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.DateTime;
@@ -29,6 +28,12 @@ import java.util.List;
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
     private static Logger logger = LoggerFactory.getLogger(AbstractControllerTest.class);
+
+    /**
+     * Test ports.
+     */
+    public static final int TEST_RPC_PORT = 8484;
+    public static final int TEST_JADE_PORT = 8585;
 
     /**
      * {@link SecurityToken} for admin.
@@ -196,14 +201,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Setup system properties for testing controller.
      */
-    public static void setupSystemProperties()
+    public void configureSystemProperties()
     {
         // Do not change default timezone by the controller
         System.setProperty(Configuration.TIMEZONE, "");
 
-        // Change XML-RPC port
-        System.setProperty(Configuration.RPC_PORT, "8484");
-        System.setProperty(Configuration.JADE_PORT, "8585");
+        // Change XML-RPC and JADE port
+        System.setProperty(Configuration.RPC_PORT, String.valueOf(TEST_RPC_PORT));
+        System.setProperty(Configuration.JADE_PORT, String.valueOf(TEST_JADE_PORT));
     }
 
     @Override
@@ -211,7 +216,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         super.before();
 
-        AbstractControllerTest.setupSystemProperties();
+        // Configure system properties
+        configureSystemProperties();
 
         // Enable throwing internal errors
         Reporter.setThrowInternalErrorsForTesting(true);
