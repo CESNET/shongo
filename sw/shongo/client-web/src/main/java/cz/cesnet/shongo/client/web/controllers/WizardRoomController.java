@@ -541,11 +541,11 @@ public class WizardRoomController extends WizardParticipantsController
         String reservationRequestId;
         if (Strings.isNullOrEmpty(reservationRequest.getId())) {
             reservationRequestId = reservationService.createReservationRequest(
-                    securityToken, reservationRequest.toApi());
+                    securityToken, reservationRequest.toApi(request));
         }
         else {
             reservationRequestId = reservationService.modifyReservationRequest(
-                    securityToken, reservationRequest.toApi());
+                    securityToken, reservationRequest.toApi(request));
         }
         reservationRequest.setId(reservationRequestId);
         if (!reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {

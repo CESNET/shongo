@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -859,7 +860,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @return {@link AbstractReservationRequest} with stored attributes
      */
-    public AbstractReservationRequest toApi()
+    public AbstractReservationRequest toApi(HttpServletRequest request)
     {
         // Determine slot
         Interval slot = getSlot();
@@ -890,6 +891,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
             periodicDateTimeSlot.setStart(slot.getStart());
+            periodicDateTimeSlot.setTimeZone(UserSession.getInstance(request).getTimeZone());
             periodicDateTimeSlot.setDuration(slot.toPeriod());
             periodicDateTimeSlot.setPeriod(period);
             periodicDateTimeSlot.setEnd(periodicityEnd);

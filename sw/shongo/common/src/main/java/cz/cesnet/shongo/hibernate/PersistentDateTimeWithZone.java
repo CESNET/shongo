@@ -2,9 +2,11 @@ package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.TimestampType;
 import org.hibernate.usertype.UserType;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -13,15 +15,15 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
- * Persist {@link org.joda.time.DateTime} via hibernate.
+ * Persist {@link org.joda.time.DateTime} with {@link org.joda.time.DateTimeZone} via hibernate.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTime implements UserType, Serializable
+public class PersistentDateTimeWithZone implements UserType, Serializable
 {
-    public static final PersistentDateTime INSTANCE = new PersistentDateTime();
+    public static final PersistentDateTimeWithZone INSTANCE = new PersistentDateTimeWithZone();
 
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP};
+    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.VARCHAR};
 
     @Override
     public int[] sqlTypes()
@@ -59,11 +61,12 @@ public class PersistentDateTime implements UserType, Serializable
     public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        Object timestamp = TimestampType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
-        if (timestamp == null) {
+        Object timestamp = StandardBasicTypes.TIMESTAMP.nullSafeGet(resultSet, names[0], session);
+        Object timezone = StandardBasicTypes.STRING.nullSafeGet(resultSet, names[1], session);
+        if (timestamp == null || timezone == null) {
             return null;
         }
-        DateTime dateTime = new DateTime(timestamp);
+        DateTime dateTime = new DateTime(timestamp, DateTimeZone.forID(timezone.toString()));
         return dateTime;
     }
 
@@ -72,11 +75,12 @@ public class PersistentDateTime implements UserType, Serializable
             throws HibernateException, SQLException
     {
         if (value == null) {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
-        }
-        else {
+            StandardBasicTypes.TIMESTAMP.nullSafeSet(preparedStatement, null, index, session);
+            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, null, index + 1, session);
+        } else {
             DateTime dateTime = (DateTime) value;
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, dateTime.toDate(), index, session);
+            StandardBasicTypes.TIMESTAMP.nullSafeSet(preparedStatement, dateTime.toDate(), index, session);
+            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, dateTime.getZone().getID(), index + 1, session);
         }
     }
 

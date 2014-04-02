@@ -32,6 +32,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private static Logger logger = LoggerFactory.getLogger(AbstractControllerTest.class);
 
     /**
+     * Test ports.
+     */
+    public static final int TEST_RPC_PORT = 8484;
+    public static final int TEST_JADE_PORT = 8585;
+
+    /**
      * {@link SecurityToken} for admin.
      */
     protected static final SecurityToken SECURITY_TOKEN_ROOT =
@@ -250,14 +256,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Setup system properties for testing controller.
      */
-    public static void setupSystemProperties()
+    public void configureSystemProperties()
     {
         // Do not change default timezone by the controller
         System.setProperty(ControllerConfiguration.TIMEZONE, "");
 
-        // Change XML-RPC port
-        System.setProperty(ControllerConfiguration.RPC_PORT, "8484");
-        System.setProperty(ControllerConfiguration.JADE_PORT, "8585");
+        // Change XML-RPC and JADE port
+        System.setProperty(ControllerConfiguration.RPC_PORT, String.valueOf(TEST_RPC_PORT));
+        System.setProperty(ControllerConfiguration.JADE_PORT, String.valueOf(TEST_JADE_PORT));
     }
 
     @Override
@@ -265,7 +271,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         super.before();
 
-        AbstractControllerTest.setupSystemProperties();
+        // Configure system properties
+        configureSystemProperties();
 
         // Enable throwing internal errors
         Reporter.setThrowInternalErrorsForTesting(true);

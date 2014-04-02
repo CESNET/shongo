@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * {@link ReservationRequestModel} for modification.
  *
@@ -62,9 +64,9 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     }
 
     @Override
-    public AbstractReservationRequest toApi()
+    public AbstractReservationRequest toApi(HttpServletRequest request)
     {
-        AbstractReservationRequest abstractReservationRequest = super.toApi();
+        AbstractReservationRequest abstractReservationRequest = super.toApi(request);
         Specification specification = abstractReservationRequest.getSpecification();
         if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;

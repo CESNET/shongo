@@ -82,6 +82,6 @@ public abstract class IdentifiedComplexType extends AbstractComplexType implemen
     @Override
     public String toString()
     {
-        return getClass().getSimpleName() + "{id=" + id + "}";
+        return getClass().getSimpleName() + toData();
     }
 }

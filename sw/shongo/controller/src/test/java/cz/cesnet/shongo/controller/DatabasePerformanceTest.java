@@ -75,7 +75,8 @@ public class DatabasePerformanceTest
 
     private void test(EntityManagerFactory entityManagerFactory) throws Exception
     {
-        AbstractControllerTest.setupSystemProperties();
+        System.setProperty(ControllerConfiguration.RPC_PORT, String.valueOf(AbstractControllerTest.TEST_RPC_PORT));
+        System.setProperty(ControllerConfiguration.JADE_PORT, String.valueOf(AbstractControllerTest.TEST_JADE_PORT));
         Reporter.setThrowInternalErrorsForTesting(true);
 
         cz.cesnet.shongo.controller.Controller controller = new cz.cesnet.shongo.controller.Controller();

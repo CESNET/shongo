@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.*;
+import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ public class Converter
     private static final long DATETIME_INFINITY_START_MILLIS = Temporal.DATETIME_INFINITY_START.getMillis();
 
     private static final long DATETIME_INFINITY_END_MILLIS = Temporal.DATETIME_INFINITY_END.getMillis();
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTimeParser();
 
     /**
      * Convert given {@code value} to {@link String}.
@@ -317,7 +320,7 @@ public class Converter
     {
         DateTime dateTime;
         try {
-            dateTime = ISODateTimeFormat.dateTimeParser().parseDateTime(value);
+            dateTime = DATE_TIME_FORMATTER.parseDateTime(value);
         }
         catch (Exception exception) {
             throw new CommonReportSet.TypeIllegalValueException(DateTime.class.getSimpleName(), value);

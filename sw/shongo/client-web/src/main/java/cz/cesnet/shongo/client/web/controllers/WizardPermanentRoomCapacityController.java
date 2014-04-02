@@ -359,11 +359,11 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
         String reservationRequestId;
         if (Strings.isNullOrEmpty(reservationRequest.getId())) {
             reservationRequestId = reservationService.createReservationRequest(
-                    securityToken, reservationRequest.toApi());
+                    securityToken, reservationRequest.toApi(request));
         }
         else {
             reservationRequestId = reservationService.modifyReservationRequest(
-                    securityToken, reservationRequest.toApi());
+                    securityToken, reservationRequest.toApi(request));
         }
         UserSettingsModel.updateSlotSettings(securityToken, reservationRequest, request, authorizationService);
 
