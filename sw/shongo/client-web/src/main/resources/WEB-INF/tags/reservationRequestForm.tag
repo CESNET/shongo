@@ -361,7 +361,10 @@
                     <form:select path="timeZone" tabindex="${tabIndex}">
                         <form:option value="">
                             <spring:message code="views.reservationRequest.timeZone.default"/>
-                            - <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(timeZone, locale)"/>
+                            <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(timeZone, locale)" var="timeZoneName"/>
+                            <c:if test="${not empty timeZoneName}">
+                                - ${timeZoneName}
+                            </c:if>
                             (<spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(timeZone)"/>)
                         </form:option>
                         <c:forEach items="${timeZones}" var="timeZone">
