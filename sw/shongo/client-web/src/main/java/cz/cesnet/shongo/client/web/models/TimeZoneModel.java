@@ -81,7 +81,7 @@ public class TimeZoneModel
      * @param locale
      * @return map time zone name by {@link DateTimeZone} for given {@code locale}
      */
-    private static Map<DateTimeZone, String> getTimeZones(Locale locale)
+    private static Map<DateTimeZone, String> getTimeZonesForLocale(Locale locale)
     {
         Map<DateTimeZone, String> timeZones = timeZonesByLocale.get(locale);
         if (timeZones == null) {
@@ -112,19 +112,29 @@ public class TimeZoneModel
     }
 
     /**
+     * @param locale
      * @param dateTime
      * @return map of timeZoneId => timeZoneName
      */
     public static Map<String, String> getTimeZones(Locale locale, DateTime dateTime)
     {
         Map<String, String> timeZones = new TreeMap<String, String>();
-        for (Map.Entry<DateTimeZone, String> timeZoneEntry : getTimeZones(locale).entrySet()) {
+        for (Map.Entry<DateTimeZone, String> timeZoneEntry : getTimeZonesForLocale(locale).entrySet()) {
             DateTimeZone timeZone = timeZoneEntry.getKey();
             String timeZoneName = timeZoneEntry.getValue();
             String timeZoneOffset = TIME_ZONE_FORMATTER.withZone(timeZone).print(dateTime);
             timeZones.put(timeZone.getID(), timeZoneName + " (" + timeZoneOffset + ")");
         }
         return timeZones;
+    }
+
+    /**
+     * @param locale
+     * @return map of timeZoneId => timeZoneName
+     */
+    public static Map<String, String> getTimeZones(Locale locale)
+    {
+        return getTimeZones(locale, DateTime.now());
     }
 
     /**
@@ -143,6 +153,6 @@ public class TimeZoneModel
      */
     public static String formatTimeZoneName(DateTimeZone timeZone, Locale locale)
     {
-        return getTimeZones(locale).get(timeZone);
+        return getTimeZonesForLocale(locale).get(timeZone);
     }
 }

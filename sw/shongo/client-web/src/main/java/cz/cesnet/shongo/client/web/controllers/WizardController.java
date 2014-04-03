@@ -2,23 +2,23 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModificationModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.support.BackUrl;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.client.web.support.editors.*;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import org.joda.time.DateTime;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.joda.time.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Controller for common wizard actions.
@@ -40,6 +40,20 @@ public class WizardController
 
     @Resource
     private Cache cache;
+
+    /**
+     * Initialize model editors for additional types.
+     *
+     * @param binder to be initialized
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
+    {
+        binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+        binder.registerCustomEditor(DateTimeZone.class, new DateTimeZoneEditor());
+        binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
+        binder.registerCustomEditor(LocalDateTime.class, new LocalDateTimeEditor());
+    }
 
     /**
      * Handle duplication of an existing reservation request.
@@ -97,8 +111,111 @@ public class WizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_UPDATE, method = {RequestMethod.POST})
     @ResponseBody
     public Object handleUpdate(
-            @ModelAttribute(WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
+            @ModelAttribute(
+                    WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest)
     {
         return null;
+    }
+
+    /**
+     * Handle periodic events request.
+     *
+     * @param request
+     * @return periodic events (null means "and more")
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_PERIODIC_EVENTS, method = RequestMethod.POST)
+    public
+    @ResponseBody
+    List<String> handlePeriodicEvents(
+            DateTimeZone currentTimeZone,
+            @RequestBody PeriodicEventsRequest request)
+    {
+        DateTimeZone timeZone = request.getTimeZone();
+        if (timeZone == null) {
+            timeZone = currentTimeZone;
+        }
+        DateTime start = request.getStart().toDateTime(timeZone);
+        Period period = request.getPeriodicityType().toPeriod();
+        LocalDate periodicityEnd = request.getPeriodicityEnd();
+
+        List<String> periodicEvents = new LinkedList<String>();
+        int availableCount = request.getMaxCount();
+        while (periodicityEnd == null || !start.isAfter(periodicityEnd.toDateTime(start))) {
+            if (availableCount <= 0) {
+                periodicEvents.add(null);
+                break;
+            }
+            // Add event
+            periodicEvents.add(start.withZone(timeZone).toString());
+
+            // Prepare next event
+            start = start.plus(period);
+            availableCount--;
+        }
+        return periodicEvents;
+    }
+
+    public static class PeriodicEventsRequest
+    {
+        private Integer maxCount = 10;
+
+        private DateTimeZone timeZone;
+
+        private LocalDateTime start;
+
+        private ReservationRequestModel.PeriodicityType periodicityType;
+
+        private LocalDate periodicityEnd;
+
+        public Integer getMaxCount()
+        {
+            return maxCount;
+        }
+
+        public void setMaxCount(Integer maxCount)
+        {
+            this.maxCount = maxCount;
+        }
+
+        public DateTimeZone getTimeZone()
+        {
+            return timeZone;
+        }
+
+        @JsonDeserialize(using = DateTimeZoneDeserializer.class)
+        public void setTimeZone(DateTimeZone timeZone)
+        {
+            this.timeZone = timeZone;
+        }
+
+        public LocalDateTime getStart()
+        {
+            return start;
+        }
+
+        public void setStart(LocalDateTime start)
+        {
+            this.start = start;
+        }
+
+        public ReservationRequestModel.PeriodicityType getPeriodicityType()
+        {
+            return periodicityType;
+        }
+
+        public void setPeriodicityType(ReservationRequestModel.PeriodicityType periodicityType)
+        {
+            this.periodicityType = periodicityType;
+        }
+
+        public LocalDate getPeriodicityEnd()
+        {
+            return periodicityEnd;
+        }
+
+        public void setPeriodicityEnd(LocalDate periodicityEnd)
+        {
+            this.periodicityEnd = periodicityEnd;
+        }
     }
 }

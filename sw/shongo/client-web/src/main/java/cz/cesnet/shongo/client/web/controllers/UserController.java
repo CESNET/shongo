@@ -38,7 +38,7 @@ import java.util.Locale;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"userSettings", "timeZones"})
+@SessionAttributes({"userSettings"})
 public class UserController
 {
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -66,7 +66,6 @@ public class UserController
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", new UserSettingsModel(userSettings));
-        model.addAttribute("timeZones", TimeZoneModel.getTimeZones(locale, DateTime.now()));
         return "userSettings";
     }
 

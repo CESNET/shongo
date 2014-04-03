@@ -93,6 +93,8 @@ public class ClientWebUrl
             "/wizard/{reservationRequestId:.+}/modify";
     public static final String WIZARD_UPDATE =
             "/wizard/update";
+    public static final String WIZARD_PERIODIC_EVENTS =
+            "/wizard/periodic-events";
 
     public static final String DETAIL_VIEW = "/detail/{objectId:.+}";
     public static final String DETAIL_USER_ROLES_VIEW = DETAIL_VIEW + "?tab=userRoles";

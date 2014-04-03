@@ -101,6 +101,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // We must check only the future (because scheduler allocates only in future)
             DateTime dateTimeNow = DateTime.now();
             Interval slot = request.getSlot();
+            if (slot.getEnd().isBefore(dateTimeNow)) {
+                throw new ControllerReportSet.ReservationRequestEmptyDurationException();
+            }
             if (slot.getStart().isBefore(dateTimeNow)) {
                 slot = slot.withStart(dateTimeNow);
             }

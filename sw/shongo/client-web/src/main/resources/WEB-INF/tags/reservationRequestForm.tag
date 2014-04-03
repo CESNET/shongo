@@ -2,6 +2,7 @@
   -- Reservation request form.
   --%>
 <%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
+<%@ tag import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -19,7 +20,7 @@
 
 <script type="text/javascript">
     var module = angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
-    module.controller("ReservationRequestFormController", function($scope) {
+    module.controller("ReservationRequestFormController", function($scope, $application) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
@@ -28,6 +29,7 @@
         // Get dynamic reservation request attributes
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
+        $scope.periodicityType = $scope.value('${reservationRequest.periodicityType}', 'NONE');
 
         // Update end when start is changed
         $("#start").change(function () {
@@ -42,6 +44,55 @@
                 endPicker.val(start.format("YYYY-MM-DD"));
             }
         });
+
+        $scope.getTimeZone = function() {
+            var timeZone = $("#timeZone").val();
+            if (timeZone != null && timeZone != "") {
+                return timeZone;
+            }
+            else {
+                return null;
+            }
+        };
+
+        $scope.getStart = function() {
+            var start = $("#start").val();
+            start = moment(start);
+            if (start.isValid()) {
+                return start;
+            }
+            else {
+                return null;
+            }
+        };
+
+        $scope.getEnd = function() {
+            var start = $scope.getStart();
+            if (start == null) {
+                return null;
+            }
+            var durationCount = parseInt($("#durationCount").val());
+            if (isNaN(durationCount)) {
+                durationCount = 0;
+            }
+            var durationType = $("#durationType").val().toLowerCase() + "s";
+            var end = start;
+            if (durationCount > 0) {
+                end = start.clone().add(durationType, durationCount);
+            }
+            return end;
+        };
+
+        $scope.getPeriodicityEnd = function() {
+            var periodicityEnd = $("#periodicityEnd").val();
+            periodicityEnd = moment(periodicityEnd);
+            if (periodicityEnd.isValid()) {
+                return periodicityEnd;
+            }
+            else {
+                return null;
+            }
+        };
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
@@ -63,7 +114,7 @@
         $scope.permanentRoom = $scope.permanentRooms["${reservationRequest.permanentRoomReservationRequestId}"];
         $scope.updatePermanentRooms = function (performApply) {
             // Determine requested slot
-            var requestedStart = moment($("#start").val());
+            var requestedStart = $scope.getStart();
             var requestedDuration = parseInt($("#durationCount").val());
             var durationType = $("#durationType").val().toLowerCase() + "s";
             var requestedEnd = (requestedStart != null && requestedDuration > 0) ? requestedStart.clone().add(durationType, requestedDuration) : null;
@@ -124,6 +175,57 @@
         // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
     </c:if>
+
+        <tag:url var="periodicEventsUrl" value="<%= ClientWebUrl.WIZARD_PERIODIC_EVENTS %>"/>
+        $scope.formatPeriodicEvents = function(event) {
+            var start = $scope.getStart();
+            if (start == null) {
+                return "Vyplnte datum.";
+            }
+            var periodicityEnd = $scope.getPeriodicityEnd();
+            var timeZone = $scope.getTimeZone();
+            var request = {
+                timeZone: timeZone,
+                maxCount: 10,
+                start: start.format('YYYY-MM-DDTHH:mm'),
+                periodicityType: $scope.periodicityType,
+                periodicityEnd: (periodicityEnd != null ? periodicityEnd.format('YYYY-MM-DD') : null)
+            };
+            $.ajax("${periodicEventsUrl}", {
+                type: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                dataType: 'json',
+                data: JSON.stringify(request)
+            }).done(function (data) {
+                var content = "<spring:message code="views.reservationRequest.periodicity.events"/>:";
+                content += "";
+                for ( var index = 0; index < data.length; index++) {
+                    var dateTime = data[index];
+                    content += "<br/>";
+                    if (dateTime == null) {
+                        content += "<spring:message code="views.reservationRequest.periodicity.events.more"/>...";
+                        break;
+                    }
+                    var periodicEvent = moment.parseZone(dateTime).lang("${requestContext.locale.language}");
+                    content += "<strong>" + (index + 1) + ")</strong> ";
+                    content += periodicEvent.format("dddd ");
+                    content += "<strong>" + periodicEvent.format("LLL") + "</strong>";
+                    content += " (" + periodicEvent.format("Z") + ")";
+                    content += "";
+                }
+                content += "";
+                event.setResult(content, false);
+            }).fail($application.handleAjaxFailure);
+            return "<spring:message code="views.loading"/>";
+        };
+    });
+
+
+    $(function(){
+        $("#timeZone").select2();
     });
 </script>
 
@@ -192,11 +294,11 @@
 
         <div class="control-group">
             <form:label class="control-label" path="description">
-                <spring:message code="views.reservationRequest.description"/>:
+                <spring:message code="views.reservationRequest.description" var="descriptionLabel"/>
+                <tag:help label="${descriptionLabel}:"><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
             </form:label>
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <tag:help><spring:message code="views.reservationRequest.descriptionHelp"/></tag:help>
                 <form:errors path="description" cssClass="error"/>
             </div>
         </div>
@@ -244,6 +346,30 @@
                     <form:errors path="roomParticipantCount" cssClass="error"/>
                 </div>
             </div>
+
+            <div class="control-group">
+                <form:label class="control-label" path="timeZone">
+                    <spring:message code="views.reservationRequest.timeZone" var="timeZoneLabel"/>
+                    <tag:help label="${timeZoneLabel}:">
+                        <spring:message code="views.reservationRequest.timeZone.help"/>
+                    </tag:help>
+                </form:label>
+                <div class="controls double-width">
+                    <c:set var="timeZone" value="${sessionScope.SHONGO_USER.timeZone}"/>
+                    <c:set var="locale" value="${sessionScope.SHONGO_USER.locale}"/>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).getTimeZones(locale)" var="timeZones"/>
+                    <form:select path="timeZone" tabindex="${tabIndex}">
+                        <form:option value="">
+                            <spring:message code="views.reservationRequest.timeZone.default"/>
+                            - <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZoneName(timeZone, locale)"/>
+                            (<spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).formatTimeZone(timeZone)"/>)
+                        </form:option>
+                        <c:forEach items="${timeZones}" var="timeZone">
+                            <form:option value="${timeZone.key}">${timeZone.value}</form:option>
+                        </c:forEach>
+                    </form:select>
+                </div>
+            </div>
         </c:if>
 
         <div class="control-group">
@@ -273,8 +399,8 @@
                             <form:option value="45">45</form:option>
                         </form:select>
                         <span class="add-on">
-                            <spring:message code="views.reservationRequest.slotBeforeMinutes"/>
-                            <tag:help><spring:message code="views.reservationRequest.slotBeforeMinutes.help"/></tag:help>
+                            <spring:message code="views.reservationRequest.slotBeforeMinutes" var="slotBeforeMinutesLabel"/>
+                            <tag:help label="${slotBeforeMinutesLabel}"><spring:message code="views.reservationRequest.slotBeforeMinutes.help"/></tag:help>
                         </span>
                     </div>
                     <form:errors path="slotBeforeMinutes" cssClass="error"/>
@@ -323,8 +449,8 @@
                             <form:option value="45">45</form:option>
                         </form:select>
                         <span class="add-on">
-                            <spring:message code="views.reservationRequest.slotAfterMinutes"/>
-                            <tag:help><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
+                            <spring:message code="views.reservationRequest.slotAfterMinutes" var="slotAfterMinutesLabel"/>
+                            <tag:help label="${slotAfterMinutesLabel}"><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
                         </span>
                     </div>
                     <form:errors path="slotAfterMinutes" cssClass="error"/>
@@ -337,15 +463,15 @@
                 </form:label>
                 <div class="controls">
                     <label class="radio inline" for="periodicity-none">
-                        <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}"/>
+                        <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}" ng-model="periodicityType"/>
                         <spring:message code="views.reservationRequest.periodicity.NONE"/>
                     </label>
                     <label class="radio inline" for="periodicity-daily">
-                        <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}"/>
+                        <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}" ng-model="periodicityType"/>
                         <spring:message code="views.reservationRequest.periodicity.DAILY"/>
                     </label>
                     <label class="radio inline" for="periodicity-weekly">
-                        <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}"/>
+                        <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}" ng-model="periodicityType"/>
                         <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
                     </label>
                     &nbsp;
@@ -353,8 +479,12 @@
                             <span class="add-on">
                                 <spring:message code="views.reservationRequest.periodicity.until"/>
                             </span>
-                        <form:input path="periodicityEnd" cssErrorClass="error" date-picker="true" tabindex="${tabIndex}"/>
+                        <form:input path="periodicityEnd" cssErrorClass="error" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                     </div>
+                    <span ng-show="periodicityType != 'NONE'">
+                        <c:set var="periodicEvents"><b class='icon-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>
+                        <tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true"/>
+                    </span>
                     <form:errors path="periodicityEnd" cssClass="error"/>
                 </div>
             </div>
@@ -399,11 +529,11 @@
         <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
                 <form:label class="control-label" path="roomRecorded">
-                    <spring:message code="views.reservationRequest.specification.roomRecorded"/>:
+                    <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>
+                    <tag:help label="${roomRecordedLabel}:"><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                 </form:label>
                 <div class="controls">
                     <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}"/>
-                    <tag:help><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
                     <form:errors path="roomRecorded" cssClass="error"/>
                 </div>
             </div>

@@ -92,6 +92,7 @@
             <div class="controls double-width">
                 <form:select path="homeTimeZone" tabindex="${tabIndex}" ng-model="homeTimeZone">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
+                    <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).getTimeZones(sessionScope.SHONGO_USER.locale)" var="timeZones"/>
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                     </c:forEach>

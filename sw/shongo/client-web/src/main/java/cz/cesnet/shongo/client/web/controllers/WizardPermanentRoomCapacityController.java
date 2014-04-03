@@ -6,6 +6,7 @@ import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -97,6 +98,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     public void initBinder(WebDataBinder binder, DateTimeZone timeZone)
     {
         binder.registerCustomEditor(DateTime.class, new DateTimeEditor(timeZone));
+        binder.registerCustomEditor(DateTimeZone.class, new DateTimeZoneEditor());
         binder.registerCustomEditor(LocalDate.class, new LocalDateEditor());
     }
 

@@ -19,13 +19,19 @@ tooltipModule.directive('tooltip', function($compile) {
                     if (callback.value == null) {
                         callback.value = scope.$eval(callback.expression, {
                             event: {
-                                setResult: function(result) {
-                                    api.set('content.text', result);
+                                setResult: function(result, persistent) {
+                                    callback.value = result;
+                                    callback.resetValue = (persistent != null && persistent != true);
+                                    api.set('content.text', callback);
                                 }
                             }
                         });
                     }
-                    return callback.value;
+                    var result = callback.value;
+                    if (callback.resetValue) {
+                        callback.value = null;
+                    }
+                    return result;
                 };
                 callback.expression = content;
                 callback.value = null;

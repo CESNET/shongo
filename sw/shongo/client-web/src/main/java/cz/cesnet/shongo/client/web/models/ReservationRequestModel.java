@@ -54,6 +54,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected TechnologyModel technology;
 
+    protected DateTimeZone timeZone;
+
     protected DateTime start;
 
     protected DateTime end;
@@ -212,6 +214,16 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     public void setTechnology(TechnologyModel technology)
     {
         this.technology = technology;
+    }
+
+    public DateTimeZone getTimeZone()
+    {
+        return timeZone;
+    }
+
+    public void setTimeZone(DateTimeZone timeZone)
+    {
+        this.timeZone = timeZone;
     }
 
     public DateTime getStart()
@@ -640,6 +652,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 throw new UnsupportedApiException("Periodicity is not allowed for permanent rooms.");
             }
             PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
+            timeZone = slot.getTimeZone();
             start = slot.getStart();
             duration = slot.getDuration();
             end = start.plus(duration);
@@ -847,6 +860,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public Interval getSlot()
     {
+        DateTime start = this.start;
+        if (timeZone != null) {
+            // Use specified time zone
+            LocalDateTime localDateTime = start.toLocalDateTime();
+            start = localDateTime.toDateTime(timeZone);
+        }
         switch (specificationType) {
             case PERMANENT_ROOM:
                 return new Interval(start.withTime(0, 0, 0, 0), getDuration());
@@ -875,23 +894,18 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         }
         else {
             // Determine period
-            Period period;
-            switch (periodicityType) {
-                case DAILY:
-                    period = Period.days(1);
-                    break;
-                case WEEKLY:
-                    period = Period.weeks(1);
-                    break;
-                default:
-                    throw new TodoImplementException(durationType);
-            }
+            Period period = periodicityType.toPeriod();
 
             // Create set of reservation requests
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
             periodicDateTimeSlot.setStart(slot.getStart());
-            periodicDateTimeSlot.setTimeZone(UserSession.getInstance(request).getTimeZone());
+            if (timeZone != null) {
+                periodicDateTimeSlot.setTimeZone(timeZone);
+            }
+            else {
+                periodicDateTimeSlot.setTimeZone(UserSession.getInstance(request).getTimeZone());
+            }
             periodicDateTimeSlot.setDuration(slot.toPeriod());
             periodicDateTimeSlot.setPeriod(period);
             periodicDateTimeSlot.setEnd(periodicityEnd);
@@ -1165,7 +1179,19 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         NONE,
         DAILY,
-        WEEKLY
+        WEEKLY;
+
+        public Period toPeriod()
+        {
+            switch (this) {
+                case DAILY:
+                    return Period.days(1);
+                case WEEKLY:
+                    return Period.weeks(1);
+                default:
+                    throw new TodoImplementException(this);
+            }
+        }
     }
 
     /**
