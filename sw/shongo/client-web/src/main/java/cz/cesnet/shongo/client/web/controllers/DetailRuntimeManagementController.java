@@ -13,6 +13,7 @@ import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -141,16 +142,9 @@ public class DetailRuntimeManagementController extends AbstractDetailController
         catch (Exception exception) {
             logger.warn("Failed to load participants", exception);
         }
-        int maxIndex = Math.max(0, roomParticipants.size() - 1);
-        if (start > maxIndex) {
-            start = maxIndex;
-        }
-        int end = start + count;
-        if (end > roomParticipants.size()) {
-            end = roomParticipants.size();
-        }
+        ListResponse<RoomParticipant> response = ListResponse.fromRequest(start, count, roomParticipants);
         List<Map> items = new LinkedList<Map>();
-        for (RoomParticipant roomParticipant : roomParticipants.subList(start, end)) {
+        for (RoomParticipant roomParticipant : response.getItems()) {
             UserInformation user = null;
             String userId = roomParticipant.getUserId();
             if (userId != null) {
@@ -173,8 +167,8 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", start);
-        data.put("count", roomParticipants.size());
+        data.put("start", response.getStart());
+        data.put("count", response.getCount());
         data.put("sort", sort);
         data.put("sort-desc", sortDescending);
         data.put("items", items);

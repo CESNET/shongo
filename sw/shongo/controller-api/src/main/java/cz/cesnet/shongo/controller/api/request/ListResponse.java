@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Group;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -143,5 +146,23 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
             output.append(item);
         }
         return output.toString();
+    }
+
+    public static <T> ListResponse<T> fromRequest(ListRequest request, List<T> data)
+    {
+        int start = request.getStart(0, data.size());
+        int end = start + request.getCount(data.size() - start);
+        ListResponse<T> response = new ListResponse<T>();
+        response.setStart(start);
+        response.setCount(data.size());
+        for (T item : data.subList(start, end)) {
+            response.addItem(item);
+        }
+        return response;
+    }
+
+    public static <T> ListResponse<T> fromRequest(Integer start, Integer count, List<T> data)
+    {
+        return fromRequest(new ListRequest(start, count), data);
     }
 }

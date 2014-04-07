@@ -925,29 +925,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 resourceRecordings = sortedRecordings;
             }
 
-            Integer start = request.getStart();
-            Integer count = request.getCount();
-            Integer maxIndex = Math.max(0, resourceRecordings.size() - 1);
-            if (start == null) {
-                start = 0;
-            }
-            else if (start > maxIndex) {
-                start = maxIndex;
-            }
-            if (count == null || count == -1) {
-                count = resourceRecordings.size();
-            }
-            int end = start + count;
-            if (end > resourceRecordings.size()) {
-                end = resourceRecordings.size();
-            }
-            ListResponse<ResourceRecording> response = new ListResponse<ResourceRecording>();
-            response.setStart(start);
-            response.setCount(resourceRecordings.size());
-            for (ResourceRecording recording : resourceRecordings.subList(start, end)) {
-                response.addItem(recording);
-            }
-            return response;
+            return ListResponse.fromRequest(request, resourceRecordings);
         }
         finally {
             entityManager.close();

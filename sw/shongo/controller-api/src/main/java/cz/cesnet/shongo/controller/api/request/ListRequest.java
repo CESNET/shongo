@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import com.sun.org.apache.regexp.internal.recompile;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
@@ -30,6 +31,18 @@ public class ListRequest extends AbstractRequest
     /**
      * Constructor.
      *
+     * @param start sets the {@link #start}
+     * @param count sets the {@link #count}
+     */
+    public ListRequest(Integer start, Integer count)
+    {
+        this.start = start;
+        this.count = count;
+    }
+
+    /**
+     * Constructor.
+     *
      * @param securityToken sets the {@link #securityToken}
      */
     public ListRequest(SecurityToken securityToken)
@@ -38,20 +51,30 @@ public class ListRequest extends AbstractRequest
     }
 
     /**
+     * @param minStart minimum {@link #start} which can be returned
      * @return {@link #start}
      */
-    public Integer getStart()
+    public int getStart(int minStart)
     {
+        if (start == null || start < minStart) {
+            return minStart;
+        }
         return start;
     }
 
     /**
-     * @param defaultStart to be returned if {@link #start} is null
-     * @return {@link #start} of {@code defaultStart}
+     * @param minStart minimum {@link #start} which can be returned
+     * @param maxCount number of items to determine maximum {@link #start} which can be returned
+     * @return {@link #start}
      */
-    public Integer getStart(Integer defaultStart)
+    public int getStart(Integer minStart, Integer maxCount)
     {
-        return (start != null ? start : defaultStart);
+        int start = getStart(minStart);
+        int maxIndex = Math.max(0, maxCount- 1);
+        if (start > maxIndex) {
+            return maxIndex;
+        }
+        return start;
     }
 
     /**
@@ -63,20 +86,26 @@ public class ListRequest extends AbstractRequest
     }
 
     /**
-     * @return {@link #count}
+     * @return {@link #count} or {@code -1} if it is null
      */
-    public Integer getCount()
+    public int getCount()
     {
+        if (count == null || count == -1) {
+            return -1;
+        }
         return count;
     }
 
     /**
-     * @param defaultCount to be returned if {@link #count} is null
-     * @return {@link #count} of {@code defaultCount}
+     * @param maxCount maximum {@link #count} which can be returned
+     * @return {@link #count}
      */
-    public Integer getCount(Integer defaultCount)
+    public int getCount(int maxCount)
     {
-        return (count != null ? count : defaultCount);
+        if (count == null || count == -1 || (count > maxCount)) {
+            return maxCount;
+        }
+        return count;
     }
 
     /**

@@ -139,15 +139,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             }
         }
 
-        int start = request.getStart(0);
-        int end = start + request.getCount(users.size() - start);
-        ListResponse<UserInformation> response = new ListResponse<UserInformation>();
-        response.setStart(start);
-        response.setCount(end - start);
-        for (UserInformation userInformation : users.subList(start, end)) {
-            response.addItem(userInformation);
-        }
-        return response;
+        return ListResponse.fromRequest(request, users);
     }
 
     @Override
@@ -372,15 +364,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             }
         }
 
-        int start = request.getStart(0);
-        int end = start + request.getCount(groups.size() - start);
-        ListResponse<Group> response = new ListResponse<Group>();
-        response.setStart(start);
-        response.setCount(end - start);
-        for (Group group : groups.subList(start, end)) {
-            response.addItem(group);
-        }
-        return response;
+        return ListResponse.fromRequest(request, groups);
     }
 
     @Override

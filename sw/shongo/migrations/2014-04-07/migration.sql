@@ -22,6 +22,19 @@ ALTER TABLE scheduler_report_technologies RENAME TO scheduler_report_technology_
 /* Rename collection for Set<AliasType> in AllocatingAliasReport */
 ALTER TABLE scheduler_report_set_allocating_alias_report_alias_types RENAME TO scheduler_report_alias_types;
 ALTER TABLE scheduler_report_alias_types RENAME COLUMN scheduler_report_set_allocating_alias_report_id TO scheduler_report_id;
+/* Refactorize values from enum index to enum name */
+ALTER TABLE scheduler_report_alias_types RENAME COLUMN alias_types TO old_alias_types;
+ALTER TABLE scheduler_report_alias_types ADD COLUMN alias_types varchar(255);
+UPDATE scheduler_report_alias_types SET alias_types = CASE old_alias_types
+    WHEN 0 THEN 'ROOM_NAME'
+    WHEN 1 THEN 'H323_E164'
+    WHEN 2 THEN 'H323_URI'
+    WHEN 3 THEN 'H323_IP'
+    WHEN 4 THEN 'SIP_URI'
+    WHEN 5 THEN 'SIP_IP'
+    ELSE 'ADOBE_CONNECT_URI'
+END;
+ALTER TABLE scheduler_report_alias_types DROP COLUMN old_alias_types;
 
 /* Rename collection for Map<String, String> in CollidingReservationsReport */
 ALTER TABLE scheduler_report_set_colliding_reservations_report_reservations RENAME TO scheduler_report_reservations;

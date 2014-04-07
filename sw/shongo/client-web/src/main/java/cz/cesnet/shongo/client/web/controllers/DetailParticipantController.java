@@ -6,6 +6,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -93,16 +94,9 @@ public class DetailParticipantController extends AbstractDetailController
         });
         participants.addAll(roomParticipants);
 
-        int maxIndex = Math.max(0, participants.size() - 1);
-        if (start > maxIndex) {
-            start = maxIndex;
-        }
-        int end = start + count;
-        if (end > participants.size()) {
-            end = participants.size();
-        }
+        ListResponse<AbstractParticipant> response = ListResponse.fromRequest(start, count, participants);
         List<Map> items = new LinkedList<Map>();
-        for (AbstractParticipant participant : participants.subList(start, end)) {
+        for (AbstractParticipant participant : response.getItems()) {
             ParticipantModel participantModel = new ParticipantModel(participant, cacheProvider);
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", participantModel.getId());
@@ -118,8 +112,8 @@ public class DetailParticipantController extends AbstractDetailController
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", start);
-        data.put("count", participants.size());
+        data.put("start", response.getStart());
+        data.put("count", response.getCount());
         data.put("items", items);
         return data;
     }

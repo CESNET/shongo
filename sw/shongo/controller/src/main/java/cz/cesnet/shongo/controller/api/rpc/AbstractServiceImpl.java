@@ -95,15 +95,12 @@ public abstract class AbstractServiceImpl extends Component
 
         // Restrict first result
         Integer firstResult = listRequest.getStart(0);
-        if (firstResult < 0) {
-            firstResult = 0;
-        }
         queryList.setFirstResult(firstResult);
 
         // Restrict result count
         Integer totalResultCount = null;
-        Integer maxResultCount = listRequest.getCount(-1);
-        if (maxResultCount != null && maxResultCount != -1) {
+        int maxResultCount = listRequest.getCount();
+        if (maxResultCount != -1) {
             totalResultCount = ((Number) queryCount.getSingleResult()).intValue();
             if ((firstResult + maxResultCount) > totalResultCount) {
                 maxResultCount = totalResultCount - firstResult;
