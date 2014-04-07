@@ -898,7 +898,9 @@ public class SchedulerReportSet extends AbstractReportSet
             setTechnologies(technologies);
         }
 
+        @javax.persistence.CollectionTable(name = "scheduler_report_technologies", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.Technology> getTechnologies()
         {
             return technologies;
@@ -1317,7 +1319,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
+        @javax.persistence.JoinColumn(name = "usage_reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
@@ -1328,7 +1330,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.usageReservationRequest = usageReservationRequest;
         }
 
-        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usageinterval_start"),@javax.persistence.Column(name="usageinterval_end")})
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usage_interval_start"),@javax.persistence.Column(name="usage_interval_end")})
         @org.hibernate.annotations.Type(type = "Interval")
         public org.joda.time.Interval getUsageInterval()
         {
@@ -1625,7 +1627,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST, fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "endpointfrom_id")
+        @javax.persistence.JoinColumn(name = "endpoint_from_id")
         public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointFrom()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointFrom);
@@ -1638,7 +1640,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST, fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "endpointto_id")
+        @javax.persistence.JoinColumn(name = "endpoint_to_id")
         public cz.cesnet.shongo.controller.booking.executable.Endpoint getEndpointTo()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(endpointTo);
@@ -1915,7 +1917,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        @javax.persistence.JoinColumn(name = "reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
@@ -2047,7 +2049,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        @javax.persistence.JoinColumn(name = "reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
@@ -2202,7 +2204,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        @javax.persistence.JoinColumn(name = "reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reservationRequest);
@@ -2215,7 +2217,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "usagereservationrequest_id")
+        @javax.persistence.JoinColumn(name = "usage_reservation_request_id")
         public cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest getUsageReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(usageReservationRequest);
@@ -2226,7 +2228,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.usageReservationRequest = usageReservationRequest;
         }
 
-        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usageinterval_start"),@javax.persistence.Column(name="usageinterval_end")})
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usage_interval_start"),@javax.persistence.Column(name="usage_interval_end")})
         @org.hibernate.annotations.Type(type = "Interval")
         public org.joda.time.Interval getUsageInterval()
         {
@@ -2767,7 +2769,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setServiceSlot(serviceSlot);
         }
 
-        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="executableslot_start"),@javax.persistence.Column(name="executableslot_end")})
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="executable_slot_start"),@javax.persistence.Column(name="executable_slot_end")})
         @org.hibernate.annotations.Type(type = "Interval")
         public org.joda.time.Interval getExecutableSlot()
         {
@@ -2779,7 +2781,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.executableSlot = executableSlot;
         }
 
-        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="serviceslot_start"),@javax.persistence.Column(name="serviceslot_end")})
+        @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="service_slot_start"),@javax.persistence.Column(name="service_slot_end")})
         @org.hibernate.annotations.Type(type = "Interval")
         public org.joda.time.Interval getServiceSlot()
         {
@@ -3071,7 +3073,9 @@ public class SchedulerReportSet extends AbstractReportSet
             setValue(value);
         }
 
+        @javax.persistence.CollectionTable(name = "scheduler_report_technologies", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.Technology> getTechnologies()
         {
             return technologies;
@@ -3082,7 +3086,9 @@ public class SchedulerReportSet extends AbstractReportSet
             this.technologies = technologies;
         }
 
+        @javax.persistence.CollectionTable(name = "scheduler_report_alias_types", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.AliasType> getAliasTypes()
         {
             return aliasTypes;
@@ -3193,14 +3199,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
     /**
      * Allocating room for the following specification: 
-     *     Technology: {@link #technologies} 
+     *     Technology: {@link #technologySets} 
      *   Participants: {@link #participantCount}
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
     public static class AllocatingRoomReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies;
+        protected java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets;
 
         protected Integer participantCount;
 
@@ -3215,21 +3221,22 @@ public class SchedulerReportSet extends AbstractReportSet
             return "allocating-room";
         }
 
-        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies, Integer participantCount)
+        public AllocatingRoomReport(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets, Integer participantCount)
         {
-            setTechnologies(technologies);
+            setTechnologySets(technologySets);
             setParticipantCount(participantCount);
         }
 
+        @javax.persistence.JoinTable(name = "scheduler_report_technology_sets", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
-        public java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> getTechnologies()
+        public java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> getTechnologySets()
         {
-            return technologies;
+            return technologySets;
         }
 
-        public void setTechnologies(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologies)
+        public void setTechnologySets(java.util.List<cz.cesnet.shongo.controller.booking.TechnologySet> technologySets)
         {
-            this.technologies = technologies;
+            this.technologySets = technologySets;
         }
 
         @javax.persistence.Column
@@ -3262,7 +3269,7 @@ public class SchedulerReportSet extends AbstractReportSet
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
-            parameters.put("technologies", technologies);
+            parameters.put("technologySets", technologySets);
             parameters.put("participantCount", participantCount);
             return parameters;
         }
@@ -3608,6 +3615,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setReservations(reservations);
         }
 
+        @javax.persistence.CollectionTable(name = "scheduler_report_reservations", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
         public java.util.Map<String, String> getReservations()
         {
@@ -3616,7 +3624,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         public void setReservations(java.util.Map<String, String> reservations)
         {
-            this.reservations = (reservations != null ? new java.util.TreeMap<String, String>(reservations) : null);
+            this.reservations = reservations;
         }
 
         @javax.persistence.Transient
@@ -3675,6 +3683,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setReservationRequests(reservationRequests);
         }
 
+        @javax.persistence.CollectionTable(name = "scheduler_report_reservation_requests", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
         public java.util.List<String> getReservationRequests()
         {

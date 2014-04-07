@@ -28,7 +28,7 @@ public abstract class Type
         return value + ".toString()";
     }
 
-    public List<String> getPersistenceAnnotations(String columnName)
+    public List<String> getPersistenceAnnotations(String reportName, String columnName)
     {
         return new LinkedList<String>();
     }
@@ -120,9 +120,9 @@ public abstract class Type
         types.put("DateTime", new PersistentAtomicType("org.joda.time.DateTime", "DateTime"));
         types.put("Interval", new PersistentAtomicType("org.joda.time.Interval", "Interval") {
             @Override
-            public List<String> getPersistenceAnnotations(String columnName)
+            public List<String> getPersistenceAnnotations(String reportName, String columnName)
             {
-                List<String> annotations = super.getPersistenceAnnotations(columnName);
+                List<String> annotations = super.getPersistenceAnnotations(reportName, columnName);
                 for (String annotation : annotations) {
                     if (annotation.contains("@javax.persistence.Column")) {
                         annotations.remove(annotation);
@@ -175,9 +175,9 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
             persistenceAnnotations.add("@javax.persistence.Column");
             return persistenceAnnotations;
         }
@@ -191,9 +191,9 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
             persistenceAnnotations.add("@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)");
             return persistenceAnnotations;
         }
@@ -226,15 +226,24 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
+            String tableName = reportName + "_" + columnName;
+            String joinColumn = reportName + "_id";
             if (elementType instanceof EntityType) {
+                persistenceAnnotations.add("@javax.persistence.JoinTable(name = \"" + tableName + "\", "
+                        + "joinColumns = @javax.persistence.JoinColumn(name = \"" + joinColumn + "\"))");
                 persistenceAnnotations.add("@javax.persistence.OneToMany("
                         + "cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)");
             }
             else {
+                persistenceAnnotations.add("@javax.persistence.CollectionTable(name = \"" + tableName + "\", "
+                        + "joinColumns = @javax.persistence.JoinColumn(name = \"" + joinColumn + "\"))");
                 persistenceAnnotations.add("@javax.persistence.ElementCollection");
+                if (elementType instanceof EnumAtomicType) {
+                    persistenceAnnotations.add("@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)");
+                }
             }
             return persistenceAnnotations;
         }
@@ -276,9 +285,13 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            String tableName = reportName + "_" + columnName;
+            String joinColumn = reportName + "_id";
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
+            persistenceAnnotations.add("@javax.persistence.CollectionTable(name = \"" + tableName + "\", "
+                    + "joinColumns = @javax.persistence.JoinColumn(name = \"" + joinColumn + "\"))");
             persistenceAnnotations.add("@javax.persistence.ElementCollection");
             return persistenceAnnotations;
         }
@@ -301,9 +314,9 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
             persistenceAnnotations.add("@org.hibernate.annotations.Type(type = \"" + persistentType + "\")");
             return persistenceAnnotations;
         }
@@ -340,9 +353,9 @@ public abstract class Type
         }
 
         @Override
-        public List<String> getPersistenceAnnotations(String columnName)
+        public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
-            List<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
+            List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
             String params = null;
             if (hasFlag(CASCADE_ALL)) {
                 params = "cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true";

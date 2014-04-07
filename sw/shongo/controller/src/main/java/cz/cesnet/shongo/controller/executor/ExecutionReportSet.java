@@ -50,7 +50,7 @@ public class ExecutionReportSet extends AbstractReportSet
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true, fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "jadereport_id")
+        @javax.persistence.JoinColumn(name = "jade_report_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(jadeReport);

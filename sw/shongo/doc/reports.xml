@@ -1492,7 +1492,7 @@
             <id>allocating-room</id>
             <classification severity="info"/>
             <params>
-                <param name="technologies" type="List" type-element="TechnologySet"/>
+                <param name="technologySets" type="List" type-element="TechnologySet"/>
                 <param name="participantCount" type="Integer"/>
             </params>
             <description>
@@ -1500,7 +1500,7 @@
             </description>
             <message>
                 Allocating room for the following specification:
-                \n    Technology: ${technologies}
+                \n    Technology: ${technologySets}
                 \n  Participants: ${participantCount}
             </message>
             <visible>user</visible>

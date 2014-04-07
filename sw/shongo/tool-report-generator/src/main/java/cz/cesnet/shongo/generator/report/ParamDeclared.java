@@ -69,8 +69,12 @@ public class ParamDeclared extends Param
 
     public Collection<String> getPersistenceAnnotations()
     {
-        String columnName = Formatter.formatConstant(getName()).toLowerCase();
-        return getType().getPersistenceAnnotations(columnName);
+        String[] reportNameParts = report.getBaseClassName().split("\\.");
+        String reportName = Formatter.splitCamelCase(reportNameParts[reportNameParts.length - 1]);
+        String columnName = Formatter.splitCamelCase(getName());
+        reportName = Formatter.formatConstant(reportName).toLowerCase();
+        columnName = Formatter.formatConstant(columnName).toLowerCase();
+        return getType().getPersistenceAnnotations(reportName, columnName);
     }
 
     public String getVariableName()

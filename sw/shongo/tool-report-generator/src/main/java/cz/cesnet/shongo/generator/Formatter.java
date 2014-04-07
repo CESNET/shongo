@@ -66,4 +66,12 @@ public class Formatter
         description = description.replaceAll("(?<!\\\\n\\s{0,5})(\\s+)", " ");
         return description;
     }
+
+    public static String splitCamelCase(String text)
+    {
+        return text.replaceAll(String.format("%s|%s|%s",
+                "(?<=[A-Z])(?=[A-Z][a-z])",
+                "(?<=[^A-Z])(?=[A-Z])",
+                "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+    }
 }

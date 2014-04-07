@@ -90,7 +90,7 @@ public class AllocationStateReportMessages
         addMessage(ALLOCATING_RESOURCE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating the resource ${resource.id}.");
         addMessage(ALLOCATING_ALIAS, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating alias for the following specification: \n  Technology: ${ifEmpty(technologies, \"Any\")} \n  Alias Type: ${ifEmpty(aliasTypes, \"Any\")} \n       Value: ${ifEmpty(value, \"Any\")}");
         addMessage(ALLOCATING_VALUE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating value in the resource ${resource.id}.");
-        addMessage(ALLOCATING_ROOM, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating room for the following specification: \n    Technology: ${technologies} \n  Participants: ${participantCount}");
+        addMessage(ALLOCATING_ROOM, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating room for the following specification: \n    Technology: ${technologySets} \n  Participants: ${participantCount}");
         addMessage(ALLOCATING_RECORDING_SERVICE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating recording service for the following specification: \n    Enabled: ${enabled}");
         addMessage(ALLOCATING_COMPARTMENT, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating compartment.");
         addMessage(ALLOCATING_EXECUTABLE, new Report.UserType[]{}, Report.Language.ENGLISH, "Allocating executable.");
