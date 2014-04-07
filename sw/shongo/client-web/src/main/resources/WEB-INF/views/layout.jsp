@@ -337,7 +337,8 @@
     <%-- Page footer --%>
     <div class="footer block">
         <p class="muted">
-            <a href="${changelogUrl}">Powered by Shongo&nbsp;<spring:message code="system.version"/></a>
+            Powered by <a href="https://shongo.cesnet.cz/" target="_blank">Shongo</a>
+            version <a href="${changelogUrl}"><spring:message code="system.version"/></a>
             &copy; 2012 - 2014&nbsp;&nbsp;&nbsp;
             <a title="CESNET" href="http://www.cesnet.cz/">
                 <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>

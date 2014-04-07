@@ -1,8 +1,8 @@
 # Shongo Resource Management System
 
-Implementation of main Shongo Resource Management System components.
+Implementation of main components of [Shongo Resource Management System](https://shongo.cesnet.cz/) (controller, connector, client-web, client-cli).
 
-The Shongo project is a project developed and supported by [CESNET](http://www.ces.net/).
+The [Shongo](https://shongo.cesnet.cz/) project is a project developed and supported by [CESNET](http://www.ces.net/).
 
 ## Authors
 
