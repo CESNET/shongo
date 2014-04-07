@@ -112,6 +112,18 @@ public abstract class ReservationNotification extends AbstractReservationRequest
             titleBuilder.append("] [");
             titleBuilder.append(renderContext.message("target.type." + target.getType()));
             titleBuilder.append("] ");
+            if (target instanceof Target.Room) {
+                Target.Room roomTarget = (Target.Room) target;
+                Target.Room reusedRoomTarget = roomTarget.getReusedRoom();
+                if (reusedRoomTarget != null) {
+                    String roomName = reusedRoomTarget.getName();
+                    if (roomName != null) {
+                        titleBuilder.append("[");
+                        titleBuilder.append(roomName);
+                        titleBuilder.append("] ");
+                    }
+                }
+            }
             titleBuilder.append(renderContext.message("reservation.type." + getType()));
             titleBuilder.append(" ");
             titleBuilder.append(renderContext.message("reservation"));
