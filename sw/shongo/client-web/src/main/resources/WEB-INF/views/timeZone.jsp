@@ -156,6 +156,10 @@
         <a class="btn btn-primary" href="javascript: cancelTimeZone();">
             <spring:message code="views.button.cancel"/>
         </a>
+        <br/>
+        <span class="description">
+            <spring:message code="views.timeZone.waiting"/>
+        </span>
     </div>
 </div>
 </body>

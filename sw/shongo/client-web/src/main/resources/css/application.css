@@ -729,6 +729,10 @@ div.information-box span {
     line-height: 30px;
     vertical-align: bottom;
 }
+div.information-box span.description {
+    margin-top: 10px;
+    font-size: 16px;
+}
 div.information-box .btn {
     margin-top: 0px;
 }
