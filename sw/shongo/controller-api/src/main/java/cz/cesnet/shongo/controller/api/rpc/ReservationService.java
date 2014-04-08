@@ -2,8 +2,12 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,7 +20,7 @@ public interface ReservationService extends Service
     /**
      * @param request {@link AvailabilityCheckRequest}
      * @return {@link Boolean#TRUE} when given {@code request} is available,
-     *         otherwise {@link AllocationStateReport} describing the reason why it is not available
+     * otherwise {@link AllocationStateReport} describing the reason why it is not available
      */
     @API
     public Object checkAvailability(AvailabilityCheckRequest request);
@@ -102,6 +106,14 @@ public interface ReservationService extends Service
             String reservationRequestId);
 
     /**
+     * @param token        token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation request to delete
+     * @return collection of already allocated {@link Reservation}s for reservation request with given {@code reservationRequestId}
+     */
+    @API
+    public List<Reservation> getReservationRequestReservations(SecurityToken token, String reservationRequestId);
+
+    /**
      * @param token
      * @param reservationId
      * @return reservation with given shongo-id
@@ -110,9 +122,18 @@ public interface ReservationService extends Service
     public Reservation getReservation(SecurityToken token, String reservationId);
 
     /**
-     * @param request {@link ReservationListRequest}
-     * @return collection of already allocated {@link Reservation}s
+     * @param token
+     * @param reservationIds
+     * @return reservations with given shongo-ids
      */
     @API
-    public ListResponse<Reservation> listReservations(ReservationListRequest request);
+    public List<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds);
+
+    /**
+     * @param request {@link ReservationListRequest}
+     * @return collection of already allocated {@link ReservationSummary}s
+     */
+    @API
+    public ListResponse<ReservationSummary> listReservations(ReservationListRequest request);
+
 }

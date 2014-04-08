@@ -7,6 +7,8 @@ import junit.framework.Assert;
 import org.joda.time.*;
 import org.junit.Test;
 
+import java.util.List;
+
 /**
  * Tests for {@link org.joda.time.DateTimeZone} handling.
  *
@@ -76,8 +78,8 @@ public class TimeZoneTest extends AbstractControllerTest
         String reservationRequestId = allocate(SECURITY_TOKEN, reservationRequest);
 
         // Check that reservations are allocated at the same time before and after the daylight saving change
-        ReservationListRequest reservationsRequest = new ReservationListRequest(SECURITY_TOKEN, reservationRequestId);
-        ListResponse<Reservation> reservations = getReservationService().listReservations(reservationsRequest);
+        List<Reservation> reservations =
+                getReservationService().getReservationRequestReservations(SECURITY_TOKEN, reservationRequestId);
         for (Reservation reservation : reservations) {
             Interval slot = reservation.getSlot();
             slot = new Interval(slot.getStart().withZone(timeZone), slot.getEnd().withZone(timeZone));

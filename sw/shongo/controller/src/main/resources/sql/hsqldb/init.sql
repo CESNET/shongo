@@ -2,6 +2,7 @@
 DROP VIEW specification_summary IF EXISTS;
 DROP VIEW reservation_request_summary IF EXISTS;
 DROP VIEW reservation_request_state IF EXISTS;
+DROP VIEW reservation_summary IF EXISTS;
 DROP VIEW executable_summary IF EXISTS;
 
 /**
@@ -80,6 +81,33 @@ LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_r
 LEFT JOIN allocation AS parent_allocation ON parent_allocation.id = reservation_request.parent_allocation_id
 LEFT JOIN reservation_request_set ON reservation_request_set.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id;
+
+/**
+ * @see reservation_summary in postgresql/init.sql
+ */
+CREATE VIEW reservation_summary AS
+SELECT
+    reservation.id AS id,
+    CASE
+        WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
+        WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
+        WHEN alias_reservation.id IS NOT NULL THEN 'ALIAS'
+        WHEN value_reservation.id IS NOT NULL THEN 'VALUE'
+        WHEN recording_service_reservation.id IS NOT NULL THEN 'RECORDING_SERVICE'
+        ELSE 'OTHER'
+    END AS type,
+    reservation.slot_start AS slot_start,
+    reservation.slot_end AS slot_end,
+    ISNULL(resource_reservation.resource_id, room_provider_capability.resource_id) AS resource_id,
+    room_reservation.license_count AS room_license_count,
+    NULL AS room_name
+FROM reservation
+LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
+LEFT JOIN room_reservation ON room_reservation.id = reservation.id
+LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = room_reservation.room_provider_capability_id
+LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
+LEFT JOIN value_reservation ON value_reservation.id = reservation.id
+LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id;
 
 /**
  * @see executable_summary in postgresql/init.sql

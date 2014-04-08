@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.booking.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -20,7 +19,6 @@ import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
-import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -136,6 +134,45 @@ public class ReservationManager extends AbstractManager
         catch (NoResultException exception) {
             return ControllerReportSetHelper.throwObjectNotExistFault(Reservation.class, reservationId);
         }
+    }
+
+    /**
+     * @param reservationIds
+     * @return {@link Reservation}s with given {@code reservationIds}
+     */
+    public List<Reservation> listByIds(Set<Long> reservationIds)
+    {
+        return entityManager.createQuery("SELECT reservation FROM Reservation reservation"
+                + " WHERE reservation.id IN(:reservationIds) "
+                + " ORDER BY reservation.slotStart",
+                Reservation.class)
+                .setParameter("reservationIds", reservationIds)
+                .getResultList();
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return {@link Reservation}s which are allocated for reservation request with given {@code reservationRequestId}
+     */
+    public List<Reservation> listByReservationRequest(Long reservationRequestId)
+    {
+        return entityManager.createQuery("SELECT reservation FROM Reservation reservation"
+                + " WHERE reservation.allocation IS NOT NULL "
+                + " AND (reservation.allocation IN ("
+                + "   SELECT allocation FROM AbstractReservationRequest reservationRequest"
+                + "   LEFT JOIN reservationRequest.allocation allocation"
+                + "   WHERE reservationRequest.id = :reservationRequestId"
+                + " ) OR reservation.allocation IN ("
+                + "   SELECT childAllocation FROM AbstractReservationRequest reservationRequest"
+                + "   LEFT JOIN reservationRequest.allocation allocation"
+                + "   LEFT JOIN allocation.childReservationRequests childReservationRequest"
+                + "   LEFT JOIN childReservationRequest.allocation childAllocation"
+                + "   WHERE reservationRequest.id = :reservationRequestId"
+                + "))"
+                + " ORDER BY reservation.slotStart",
+                Reservation.class)
+                .setParameter("reservationRequestId", reservationRequestId)
+                .getResultList();
     }
 
     /**

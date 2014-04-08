@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -525,6 +526,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             reservationRequestMap.put(reservationRequest.getId(), reservationRequest);
         }
         return reservationRequestMap;
+    }
+
+    /**
+     * @return list of {@link Reservation}s
+     */
+    public List<ReservationSummary> listReservations()
+    {
+        return getReservationService().listReservations(new ReservationListRequest(SECURITY_TOKEN_ROOT)).getItems();
     }
 
     /**

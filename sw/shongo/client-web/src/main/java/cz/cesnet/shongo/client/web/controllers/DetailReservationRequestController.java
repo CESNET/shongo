@@ -158,17 +158,16 @@ public class DetailReservationRequestController extends AbstractDetailController
         request.setSortDescending(sortDescending);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
-        ReservationListRequest reservationListRequest = new ReservationListRequest();
-        reservationListRequest.setSecurityToken(securityToken);
+        Set<String> reservationIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String lastReservationId = reservationRequest.getLastReservationId();
             if (lastReservationId != null) {
-                reservationListRequest.addReservationId(lastReservationId);
+                reservationIds.add(lastReservationId);
             }
         }
         Map<String, Reservation> reservationById = new HashMap<String, Reservation>();
-        if (reservationListRequest.getReservationIds().size() > 0) {
-            ListResponse<Reservation> reservations = reservationService.listReservations(reservationListRequest);
+        if (reservationIds.size() > 0) {
+            List<Reservation> reservations = reservationService.getReservations(securityToken, reservationIds);
             for (Reservation reservation : reservations) {
                 reservationById.put(reservation.getId(), reservation);
             }

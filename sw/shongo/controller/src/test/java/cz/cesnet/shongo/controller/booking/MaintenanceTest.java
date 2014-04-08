@@ -44,30 +44,19 @@ public class MaintenanceTest extends AbstractControllerTest
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
-        ReservationListRequest reservationListRequest = new ReservationListRequest(SECURITY_TOKEN, id);
-
         runWorker(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
-        Assert.assertEquals(4, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(4, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
         runWorker(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
-        Assert.assertEquals(8, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(8, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
         runWorker(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
-        Assert.assertEquals(12, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(12, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
         runPreprocessorAndScheduler();
-        Assert.assertEquals(12, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(12, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
-        List<Reservation> reservations = new ArrayList<Reservation>(
-                getReservationService().listReservations(reservationListRequest).getItems());
-        Collections.sort(reservations, new Comparator<Reservation>()
-        {
-            @Override
-            public int compare(Reservation o1, Reservation o2)
-            {
-                return o1.getSlot().getStart().compareTo(o2.getSlot().getStart());
-            }
-        });
+        List<Reservation> reservations = getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id);
         for (int index = 0; index < 12; index++) {
             ResourceReservation resourceReservation = (ResourceReservation) reservations.get(index);
             Assert.assertEquals(resourceId, resourceReservation.getResourceId());
@@ -103,10 +92,10 @@ public class MaintenanceTest extends AbstractControllerTest
         checkAllocated(ownerRequestId);
         checkAllocationFailed(userRequestId);
 
-        ListResponse<Reservation> reservations = getReservationService().listReservations(
-                new ReservationListRequest(SECURITY_TOKEN, ownerRequestId));
-        Assert.assertEquals(1, reservations.getItemCount());
-        RoomReservation roomReservation = (RoomReservation) reservations.getItem(0);
+        List<Reservation> reservations = getReservationService().getReservationRequestReservations(
+                SECURITY_TOKEN, ownerRequestId);
+        Assert.assertEquals(1, reservations.size());
+        RoomReservation roomReservation = (RoomReservation) reservations.get(0);
         Assert.assertEquals(10, roomReservation.getLicenseCount());
         Assert.assertNull(roomReservation.getExecutable());
     }
@@ -138,10 +127,8 @@ public class MaintenanceTest extends AbstractControllerTest
         // Create permanent reservation request
         String id = allocate(reservationRequest);
 
-        ReservationListRequest reservationListRequest = new ReservationListRequest(SECURITY_TOKEN, id);
-
         // Check created reservations
-        Assert.assertEquals(2, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(2, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
         // Remove slot from the request
         reservationRequest = getReservationRequest(id, ReservationRequestSet.class);
@@ -149,7 +136,7 @@ public class MaintenanceTest extends AbstractControllerTest
         id = allocate(reservationRequest);
 
         // Check deleted reservation
-        Assert.assertEquals(1, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(1, getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id).size());
 
         // Change resource in the request
         reservationRequest = getReservationRequest(id, ReservationRequestSet.class);
@@ -157,9 +144,9 @@ public class MaintenanceTest extends AbstractControllerTest
         id = allocate(reservationRequest);
 
         // Check modified reservation
-        ListResponse<Reservation> reservations = getReservationService().listReservations(reservationListRequest);
-        Assert.assertEquals(1, reservations.getItemCount());
-        ResourceReservation resourceReservation = (ResourceReservation) reservations.getItem(0);
+        List<Reservation> reservations = getReservationService().getReservationRequestReservations(SECURITY_TOKEN, id);
+        Assert.assertEquals(1, reservations.size());
+        ResourceReservation resourceReservation = (ResourceReservation) reservations.get(0);
         Assert.assertEquals(secondResourceId, resourceReservation.getResourceId());
 
         // Delete the request
@@ -167,8 +154,7 @@ public class MaintenanceTest extends AbstractControllerTest
 
         // Check deleted reservation
         runScheduler();
-        reservationListRequest = new ReservationListRequest(SECURITY_TOKEN);
-        Assert.assertEquals(0, getReservationService().listReservations(reservationListRequest).getItemCount());
+        Assert.assertEquals(0, listReservations().size());
     }
 
     /**

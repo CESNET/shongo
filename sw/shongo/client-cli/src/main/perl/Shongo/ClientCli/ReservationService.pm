@@ -115,7 +115,7 @@ sub populate()
         'list-reservations' => {
             desc => 'List existing reservations',
             options => 'user=s technology=s',
-            args => '[-user=*|<user-id>] [-technology]',
+            args => '[-user=*|<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservations($params->{'options'});
@@ -354,13 +354,6 @@ sub list_reservations()
 {
     my ($options) = @_;
     my $request = {};
-    if ( defined($options->{'technology'}) ) {
-        $request->{'technologies'} = [];
-        foreach my $technology (split(/,/, $options->{'technology'})) {
-            $technology =~ s/(^ +)|( +$)//g;
-            push(@{$request->{'technologies'}}, $technology);
-        }
-    }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Reservation.listReservations', $request);
     if ( !defined($response) ) {
@@ -368,17 +361,19 @@ sub list_reservations()
     }
     my $table = {
         'columns' => [
-            {'field' => 'id',   'title' => 'Identifier'},
-            {'field' => 'type', 'title' => 'Type'},
-            {'field' => 'slot', 'title' => 'Slot'},
+            {'field' => 'id',         'title' => 'Identifier'},
+            {'field' => 'type',       'title' => 'Type'},
+            {'field' => 'slot',       'title' => 'Slot'},
+            {'field' => 'resourceId', 'title' => 'Resource'},
         ],
         'data' => []
     };
     foreach my $reservation (@{$response->{'items'}}) {
         push(@{$table->{'data'}}, {
             'id' => $reservation->{'id'},
-            'type' => [$reservation->{'class'}, $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}}],
-            'slot' => [$reservation->{'slot'}, interval_format($reservation->{'slot'})]
+            'type' => $reservation->{'type'},
+            'slot' => [$reservation->{'slot'}, interval_format($reservation->{'slot'})],
+            'resourceId' => $reservation->{'resourceId'},
         });
     }
     console_print_table($table);

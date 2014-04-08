@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.*;
@@ -14,103 +14,83 @@ import java.util.*;
  */
 public class ReservationListRequest extends SortableListRequest<ReservationListRequest.Sort>
 {
-    private Collection<String> reservationIds = new LinkedList<String>();
+    /**
+     * {@link ReservationSummary.Type}s which should be returned.
+     */
+    private Set<ReservationSummary.Type> reservationTypes = new HashSet<ReservationSummary.Type>();
 
-    private String reservationRequestId;
+    /**
+     * Resource-id of resources which must be allocated by returned {@link Reservation}s.
+     */
+    private String resourceId;
 
-    private Set<Class<? extends Reservation>> reservationClasses = new HashSet<Class<? extends Reservation>>();
-
-    private Set<Technology> technologies = new HashSet<Technology>();
-
+    /**
+     * Constructor.
+     */
     public ReservationListRequest()
     {
         super(Sort.class);
     }
 
+    /**
+     * Constructor.
+     *
+     * @param securityToken sets the {@link #securityToken}
+     */
     public ReservationListRequest(SecurityToken securityToken)
     {
         super(Sort.class, securityToken);
     }
 
-    public ReservationListRequest(SecurityToken securityToken, String reservationRequestId)
+    /**
+     * @return {@link #reservationTypes}
+     */
+    public Set<ReservationSummary.Type> getReservationTypes()
     {
-        super(Sort.class, securityToken);
-        this.reservationRequestId = reservationRequestId;
+        return Collections.unmodifiableSet(reservationTypes);
     }
 
-    public Collection<String> getReservationIds()
+    /**
+     * @param reservationType to be added to the {@link #reservationTypes}
+     */
+    public void addReservationClass(ReservationSummary.Type reservationType)
     {
-        return reservationIds;
+        this.reservationTypes.add(reservationType);
     }
 
-    public void setReservationIds(Collection<String> reservationIds)
+    /**
+     * @return {@link #resourceId}
+     */
+    public String getResourceId()
     {
-        this.reservationIds = reservationIds;
+        return resourceId;
     }
 
-    public void addReservationId(String reservationId)
+    /**
+     * @param resourceId sets the {@link #resourceId}
+     */
+    public void setResourceId(String resourceId)
     {
-        this.reservationIds.add(reservationId);
+        this.resourceId = resourceId;
     }
 
-    public String getReservationRequestId()
-    {
-        return reservationRequestId;
-    }
-
-    public void setReservationRequestId(String reservationRequestId)
-    {
-        this.reservationRequestId = reservationRequestId;
-    }
-
-    public Set<Class<? extends Reservation>> getReservationClasses()
-    {
-        return Collections.unmodifiableSet(reservationClasses);
-    }
-
-    public void setReservationClasses(Set<Class<? extends Reservation>> reservationClasses)
-    {
-        this.reservationClasses = reservationClasses;
-    }
-
-    public void addReservationClass(Class<? extends Reservation> reservationClass)
-    {
-        this.reservationClasses.add(reservationClass);
-    }
-
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
-    }
-
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
+    /**
+     * Field by which the result should be sorted.
+     */
     public static enum Sort
     {
         SLOT
     }
 
-    private static final String RESERVATION_IDS = "reservationIds";
-    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
-    private static final String RESERVATION_CLASSES = "reservationClasses";
-    private static final String TECHNOLOGIES = "technologies";
+    private static final String RESERVATION_TYPES = "reservationTypes";
+    private static final String RESOURCE_ID = "resourceId";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(RESERVATION_IDS, reservationIds);
-        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
-        dataMap.set(RESERVATION_CLASSES, reservationClasses);
-        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(RESERVATION_TYPES, reservationTypes);
+        dataMap.set(RESOURCE_ID, resourceId);
         return dataMap;
     }
 
@@ -118,9 +98,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        reservationIds = dataMap.getSet(RESERVATION_IDS, String.class);
-        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
-        reservationClasses = (Set) dataMap.getSet(RESERVATION_CLASSES, Class.class);
-        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        reservationTypes = (Set) dataMap.getSet(RESERVATION_TYPES, Class.class);
+        resourceId = dataMap.getString(RESOURCE_ID);
     }
 }

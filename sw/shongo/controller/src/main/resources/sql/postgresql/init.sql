@@ -6,6 +6,7 @@ DROP VIEW IF EXISTS reservation_request_state;
 DROP VIEW IF EXISTS reservation_request_set_earliest_child;
 DROP VIEW IF EXISTS reservation_request_active_usage;
 DROP VIEW IF EXISTS reservation_request_earliest_usage;
+DROP VIEW IF EXISTS reservation_summary;
 DROP VIEW IF EXISTS executable_summary;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
@@ -249,6 +250,35 @@ FROM (
         LEFT JOIN reservation_request_active_usage ON reservation_request_active_usage.id = reservation_request.id OR reservation_request_active_usage.id = reservation_request_set_earliest_child.child_id
     ) AS reservation_request_summary
 ) AS reservation_request_summary;
+
+/**
+ * View of summary for each reservation.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW reservation_summary AS
+  SELECT
+    reservation.id AS id,
+    CASE
+    WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
+    WHEN room_reservation.id IS NOT NULL THEN 'ROOM'
+    WHEN alias_reservation.id IS NOT NULL THEN 'ALIAS'
+    WHEN value_reservation.id IS NOT NULL THEN 'VALUE'
+    WHEN recording_service_reservation.id IS NOT NULL THEN 'RECORDING_SERVICE'
+    ELSE 'OTHER'
+    END AS type,
+    reservation.slot_start AS slot_start,
+    reservation.slot_end AS slot_end,
+    COALESCE(resource_reservation.resource_id, room_provider_capability.resource_id) AS resource_id,
+    room_reservation.license_count AS room_license_count,
+    CAST(NULL AS TEXT) AS room_name
+  FROM reservation
+    LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
+    LEFT JOIN room_reservation ON room_reservation.id = reservation.id
+    LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = room_reservation.room_provider_capability_id
+    LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
+    LEFT JOIN value_reservation ON value_reservation.id = reservation.id
+    LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id;
 
 /**
  * View of id and time slot for the earliest usage for each room endpoint.
