@@ -69,7 +69,7 @@
 
     <%-- Styles and Javascript --%>
     <c:forEach items="${css}" var="file">
-        <link rel="stylesheet" href="${contextPath}/css/${file}"/>
+        <link rel="stylesheet" type="text/css" href="${contextPath}/css/${file}"/>
     </c:forEach>
     <c:forEach items="${js}" var="file">
         <script type="text/javascript" src="${contextPath}/js/${file}"></script>
@@ -164,7 +164,7 @@
                 <security:authorize access="isAuthenticated()">
                     <%-- Logged out overlay --%>
                     <div id="logged-out-overlay">
-                        <div>
+                        <div class="information-box">
                             <span><spring:message code="views.layout.logout.auto"/></span>
                             <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
                             <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>

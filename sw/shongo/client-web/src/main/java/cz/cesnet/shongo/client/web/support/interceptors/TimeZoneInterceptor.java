@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.support.interceptors;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -102,6 +103,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 
             // Render view for resolving timezone
             InternalResourceView view = new InternalResourceView("/WEB-INF/views/timeZone.jsp");
+            view.addStaticAttribute("name", ClientWebConfiguration.getInstance().getName(response.getLocale().getLanguage()));
             view.render(null, request, response);
             return false;
         }
