@@ -8,9 +8,11 @@
 .idea/workspace.xml
 .idea/sqldialects.xml
 .jade
+bin/create_test*
 data/
 keystore/
 log/
+migrations/backup
 migrations/meetings_*
 migrations/shongo-dev_*
 migrations/srom-dev_*

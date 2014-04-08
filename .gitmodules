@@ -1,6 +1,8 @@
 [submodule "sw/shongo/client-web/src/lib/bootstrap"]
 	path = sw/shongo/client-web/src/lib/bootstrap
 	url = https://github.com/twitter/bootstrap.git
+	ignore = dirty
 [submodule "sw/shongo/client-web/src/lib/font-awesome"]
 	path = sw/shongo/client-web/src/lib/font-awesome
 	url = https://github.com/FortAwesome/Font-Awesome.git
+	ignore = dirty
