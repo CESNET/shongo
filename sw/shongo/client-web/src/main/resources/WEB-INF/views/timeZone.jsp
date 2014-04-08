@@ -98,6 +98,7 @@
                     type: "GET",
                     url: url,
                     cache:false,
+                    dataType:'json',
                     success: function(results) {
                         if (results.status == "OK") {
                             console.debug("Getting timezone based on GEO location SUCCEEDED", results);
@@ -150,6 +151,7 @@
 <body>
 <div class="center">
     <div class="information-box">
+        <span class="spinner"></span>
         <span><spring:message code="views.timeZone.detect"/></span>
         <a class="btn btn-primary" href="javascript: cancelTimeZone();">
             <spring:message code="views.button.cancel"/>

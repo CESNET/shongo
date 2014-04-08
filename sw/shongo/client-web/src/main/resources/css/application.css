@@ -732,6 +732,10 @@ div.information-box span {
 div.information-box .btn {
     margin-top: 0px;
 }
+div.information-box .spinner {
+    margin: 0px;
+    padding-right: 0px;
+}
 
 /* logged out overlay */
 #logged-out-overlay {
