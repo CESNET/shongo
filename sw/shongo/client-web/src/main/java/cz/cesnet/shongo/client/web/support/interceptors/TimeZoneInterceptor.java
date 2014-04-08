@@ -36,15 +36,22 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 
         UserSession userSession = UserSession.getInstance(request);
 
-        String timeZoneOffset = request.getParameter("time-zone-offset");
-        if (!Strings.isNullOrEmpty(timeZoneOffset)) {
+        String timeZoneValue = request.getParameter("time-zone");
+        if (!Strings.isNullOrEmpty(timeZoneValue)) {
+            // Get time zone
+            DateTimeZone timeZone;
+            if (timeZoneValue.matches("-?\\d+")) {
+                timeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneValue) * 1000);
+            }
+            else {
+                timeZone = DateTimeZone.forID(timeZoneValue);
+            }
             // Set new time zone
-            DateTimeZone dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
             if (userSession.getTimeZone() == null) {
-                userSession.setTimeZone(dateTimeZone);
+                userSession.setTimeZone(timeZone);
             }
             if (userSession.getHomeTimeZone() == null) {
-                userSession.setHomeTimeZone(dateTimeZone);
+                userSession.setHomeTimeZone(timeZone);
             }
             userSession.update(request, null);
 

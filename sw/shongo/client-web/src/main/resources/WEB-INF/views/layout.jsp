@@ -23,16 +23,17 @@
 </tag:url>
 <tag:url var="changelogUrl" value="<%= ClientWebUrl.CHANGELOG %>"/>
 
+<%-- URL for changing language --%>
 <%
-    // URL for changing language
     String requestUrl = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
     UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUrl);
     languageUrlBuilder.replaceQueryParam("lang", ":lang");
     pageContext.setAttribute("languageUrl", languageUrlBuilder.build().toUriString());
 %>
 
-<%-- Header --%>
 <head>
+
+    <%-- Title --%>
     <title>
         ${name}
         <c:choose>
@@ -66,11 +67,12 @@
         </c:choose>
     </title>
 
+    <%-- Styles and Javascript --%>
     <c:forEach items="${css}" var="file">
         <link rel="stylesheet" href="${contextPath}/css/${file}"/>
     </c:forEach>
     <c:forEach items="${js}" var="file">
-        <script src="${contextPath}/js/${file}"></script>
+        <script type="text/javascript" src="${contextPath}/js/${file}"></script>
     </c:forEach>
     <c:if test="${requestContext.locale.language != 'en'}">
         <c:forEach items="${i18n}" var="file">
@@ -90,6 +92,7 @@
             });
         });
     </script>
+
 </head>
 
 <body id="top">
