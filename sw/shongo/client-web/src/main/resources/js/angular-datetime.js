@@ -21,6 +21,8 @@ dateTimeModule.directive('dateTimePicker', function() {
         link: function postLink(scope, element, attrs, controller) {
             // Create date/time picker
             element.datetimepicker({
+                pickerPosition: "bottom-left",
+                weekStart: 1,
                 minuteStep: 2,
                 autoclose: true,
                 todayBtn: true,
@@ -64,6 +66,8 @@ dateTimeModule.directive('datePicker', function() {
         link: function postLink(scope, element, attrs, controller) {
             // Create date/time picker
             element.datetimepicker({
+                pickerPosition: "bottom-left",
+                weekStart: 1,
                 minuteStep: 2,
                 autoclose: true,
                 todayBtn: true,

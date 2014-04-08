@@ -183,6 +183,11 @@ public class ClientWebUrl
     public static final String ROOM_DATA =
             "/room/{roomId:.+}/data";
 
+    public static final String RESOURCE_RESERVATIONS_VIEW =
+            "/resource/reservations";
+    public static final String RESOURCE_RESERVATIONS_TABLE =
+            "/resource/reservations/table";
+
     public static String format(String url, Object... variables)
     {
         for (Object variable : variables) {

@@ -51,7 +51,10 @@ public enum ClientWebNavigation
             "navigation.detail.participant.delete"),
 
     ROOM_LIST(HOME, ClientWebUrl.ROOM_LIST_VIEW,
-            "navigation.roomList");
+            "navigation.roomList"),
+
+    RESOURCE_RESERVATIONS(HOME, ClientWebUrl.RESOURCE_RESERVATIONS_VIEW,
+            "navigation.resourceReservations");
 
     private final NavigationPage navigationPage;
 

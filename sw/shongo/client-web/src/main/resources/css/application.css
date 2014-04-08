@@ -424,6 +424,7 @@ div.actions.collapsed>a {
 
 /* Spinner (demonstrates waiting state) */
 .spinner {
+    display: inline-block;
     background-image: url("/img/spinner.gif");
     background-repeat: no-repeat;
     background-position: center;

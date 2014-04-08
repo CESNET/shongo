@@ -27,6 +27,11 @@
         <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.CommonService" type="java.lang.Class"/>
     </bean>
 
+    <bean id="controllerResourceService" class="cz.cesnet.shongo.controller.api.rpc.ResourceService"
+          factory-bean="controllerClient" factory-method="getService">
+        <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.ResourceService" type="java.lang.Class"/>
+    </bean>
+
     <bean id="controllerReservationService" class="cz.cesnet.shongo.controller.api.rpc.ReservationService"
           factory-bean="controllerClient" factory-method="getService">
         <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.ReservationService" type="java.lang.Class"/>

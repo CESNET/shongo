@@ -180,4 +180,9 @@
         <put-attribute name="body" value="/WEB-INF/views/participant.jsp" type="template"/>
     </definition>
 
+    <definition name="resourceReservations" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.resourceReservations.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/resourceReservations.jsp" type="template"/>
+    </definition>
+
 </tiles-definitions>
