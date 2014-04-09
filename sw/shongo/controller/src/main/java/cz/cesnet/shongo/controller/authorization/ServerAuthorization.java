@@ -250,11 +250,11 @@ public class ServerAuthorization extends Authorization
                         if (!data.has("id")) {
                             throw new IllegalStateException("Principal service must return identifier.");
                         }
-                        String userId = data.get("id").asText();
-                        if (userId == null) {
+                        JsonNode dataId = data.get("id");
+                        if (dataId.isNull()) {
                             throw new IllegalStateException("Principal service must return not null identifier.");
                         }
-                        return userId;
+                        return dataId.asText();
                     }
 
                     @Override
@@ -345,12 +345,18 @@ public class ServerAuthorization extends Authorization
                     {
                         Group group = new Group();
                         group.setId(data.get("id").asText());
-                        if (data.has("parentId")) {
-                            group.setParentId(data.get("parentId").asText());
+                        if (data.has("parent_group_id")) {
+                            JsonNode parentId = data.get("parent_group_id");
+                            if (!parentId.isNull()) {
+                                group.setParentId(parentId.asText());
+                            }
                         }
                         group.setName(data.get("name").asText());
                         if (data.has("description")) {
-                            group.setDescription(data.get("description").asText());
+                            JsonNode description = data.get("description");
+                            if (!description.isNull()) {
+                                group.setDescription(description.asText());
+                            }
                         }
                         return group;
                     }
@@ -381,55 +387,59 @@ public class ServerAuthorization extends Authorization
             }
         }
         String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
-        return performGetRequest(listGroupsUrl, "Retrieving groups failed",
-                new RequestHandler<List<Group>>()
-                {
-                    @Override
-                    public List<Group> success(JsonNode data)
-                    {
-                        List<Group> groups = new LinkedList<Group>();
-                        if (data != null) {
-                            Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
-                            while (groupIterator.hasNext()) {
-                                JsonNode groupNode = groupIterator.next();
-                                Group group = new Group();
-                                group.setId(groupNode.get("id").asText());
-                                if (groupNode.has("parentId")) {
-                                    group.setParentId(groupNode.get("parentId").asText());
-                                }
-                                group.setName(groupNode.get("name").asText());
-                                if (groupNode.has("description")) {
-                                    group.setDescription(groupNode.get("description").asText());
-                                }
-                                groups.add(group);
+        return performGetRequest(listGroupsUrl, "Retrieving groups failed", new RequestHandler<List<Group>>()
+        {
+            @Override
+            public List<Group> success(JsonNode data)
+            {
+                List<Group> groups = new LinkedList<Group>();
+                if (data != null) {
+                    Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
+                    while (groupIterator.hasNext()) {
+                        JsonNode groupNode = groupIterator.next();
+                        Group group = new Group();
+                        group.setId(groupNode.get("id").asText());
+                        if (groupNode.has("parent_group_id")) {
+                            JsonNode parentId = groupNode.get("parent_group_id");
+                            if (!parentId.isNull()) {
+                                group.setParentId(parentId.asText());
                             }
                         }
-                        return groups;
-                    }
-
-                    @Override
-                    public void error(StatusLine statusLine, String detail)
-                    {
-                        if (detail.contains("GroupNotExistsException")) {
-                            String userId;
-                            int start = detail.lastIndexOf("id=");
-                            int end = -1;
-                            if (start != -1) {
-                                start += 3;
-                                end = detail.indexOf(" ", start);
+                        group.setName(groupNode.get("name").asText());
+                        if (groupNode.has("description")) {
+                            JsonNode description = groupNode.get("description");
+                            if (!description.isNull()) {
+                                group.setDescription(description.asText());
                             }
-                            if (start != -1 && end != -1) {
-                                userId = detail.substring(start, end);
-                            }
-                            else {
-                                userId = "<not-parsed>";
-                                logger.warn("Group-id cannot be parsed from '{}'.", detail);
-                            }
-                            throw new ControllerReportSet.GroupNotExistsException(userId);
-
                         }
+                        groups.add(group);
                     }
-                });
+                }
+                return groups;
+            }
+
+            @Override
+            public void error(StatusLine statusLine, String detail)
+            {
+                if (detail.contains("GroupNotExistsException")) {
+                    String userId;
+                    int start = detail.lastIndexOf("id=");
+                    int end = -1;
+                    if (start != -1) {
+                        start += 3;
+                        end = detail.indexOf(" ", start);
+                    }
+                    if (start != -1 && end != -1) {
+                        userId = detail.substring(start, end);
+                    }
+                    else {
+                        userId = "<not-parsed>";
+                        logger.warn("Group-id cannot be parsed from '{}'.", detail);
+                    }
+                    throw new ControllerReportSet.GroupNotExistsException(userId);
+                }
+            }
+        });
     }
 
     @Override
@@ -657,7 +667,10 @@ public class ServerAuthorization extends Authorization
                     try {
                         JsonNode jsonNode = jsonMapper.readTree(content);
                         if (jsonNode.has("detail")) {
-                            detail = jsonNode.get("detail").asText();
+                            JsonNode detailNode = jsonNode.get("description");
+                            if (!detailNode.isNull()) {
+                                detail = detailNode.asText();
+                            }
                         }
                     }
                     catch (Exception exception) {
@@ -782,10 +795,16 @@ public class ServerAuthorization extends Authorization
         userInformation.setFirstName(data.get("first_name").getTextValue());
         userInformation.setLastName(data.get("last_name").getTextValue());
         if (data.has("organization")) {
-            userInformation.setOrganization(data.get("organization").getTextValue());
+            JsonNode organization = data.get("organization");
+            if (!organization.isNull()) {
+                userInformation.setOrganization(organization.getTextValue());
+            }
         }
         if (data.has("mail")) {
-            userInformation.setEmail(data.get("mail").getTextValue());
+            JsonNode email = data.get("mail");
+            if (!email.isNull()) {
+                userInformation.setEmail(email.getTextValue());
+            }
         }
         if (data.has("principal_names")) {
             Iterator<JsonNode> principalNameIterator = data.get("principal_names").getElements();
@@ -797,8 +816,11 @@ public class ServerAuthorization extends Authorization
 
         // Additional user data
         if (data.has("language")) {
-            Locale locale = new Locale(data.get("language").getTextValue());
-            userData.setLocale(locale);
+            JsonNode language = data.get("mail");
+            if (!language.isNull()) {
+                Locale locale = new Locale(language.getTextValue());
+                userData.setLocale(locale);
+            }
         }
 
         if (data.has("authentication_info")) {
