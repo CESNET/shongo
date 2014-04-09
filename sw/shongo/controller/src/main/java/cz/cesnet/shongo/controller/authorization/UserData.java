@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.api.UserInformation;
+import org.joda.time.DateTimeZone;
 
 import java.util.Locale;
 
@@ -17,9 +18,14 @@ public class UserData
     private final UserInformation userInformation = new UserInformation();
 
     /**
-     * Use preferred language.
+     * User preferred language.
      */
     private Locale locale;
+
+    /**
+     * User preferred timezone.
+     */
+    private DateTimeZone timeZone;
 
     /**
      * User authorization data.
@@ -64,6 +70,22 @@ public class UserData
     public void setLocale(Locale locale)
     {
         this.locale = locale;
+    }
+
+    /**
+     * @return {@link #timeZone}
+     */
+    public DateTimeZone getTimeZone()
+    {
+        return timeZone;
+    }
+
+    /**
+     * @param timeZone sets the {@link #timeZone}
+     */
+    public void setTimeZone(DateTimeZone timeZone)
+    {
+        this.timeZone = timeZone;
     }
 
     /**

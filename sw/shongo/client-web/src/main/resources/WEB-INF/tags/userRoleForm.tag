@@ -96,7 +96,11 @@
                 case "GROUP":
                     placeholder = "<spring:message code="views.select.group"/>";
                     formatIdentity = function(group) {
-                        return "<b>" + group.name + "</b> (" + group.description + ")";
+                        var result = "<b>" + group.name + "</b>";
+                        if (group.description != null) {
+                            result += " (" + group.description + ")";
+                        }
+                        return result;
                     };
                     identityListUrl = "${groupListUrl}";
                     identityUrl = "${groupListUrl}?groupId=";

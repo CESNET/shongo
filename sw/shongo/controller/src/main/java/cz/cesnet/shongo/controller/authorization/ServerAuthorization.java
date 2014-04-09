@@ -23,6 +23,7 @@ import org.apache.ws.commons.util.Base64;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +179,7 @@ public class ServerAuthorization extends Authorization
                 if (jsonNode == null) {
                     throw new ControllerReportSet.UserNotExistsException(accessToken);
                 }
-                return createUserDataFromWebService(jsonNode);
+                return createUserDataFromWebServiceData(jsonNode);
             }
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
@@ -219,7 +220,7 @@ public class ServerAuthorization extends Authorization
                         if (data == null) {
                             throw new ControllerReportSet.UserNotExistsException(userId);
                         }
-                        return createUserDataFromWebService(data);
+                        return createUserDataFromWebServiceData(data);
                     }
 
                     @Override
@@ -273,14 +274,9 @@ public class ServerAuthorization extends Authorization
     {
         String listUsersUrlQuery = "";
         if (filterUserIds != null && filterUserIds.size() > 0) {
-            try {
-                String userIds = StringUtils.join(filterUserIds, ",");
-                listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
-                listUsersUrlQuery += "filter_user_id=" + URLEncoder.encode(userIds, "UTF-8");
-            }
-            catch (UnsupportedEncodingException exception) {
-                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
-            }
+            String userIds = StringUtils.join(filterUserIds, ",");
+            listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
+            listUsersUrlQuery += "filter_user_id=" + userIds;
         }
         if (search != null) {
             try {
@@ -301,7 +297,7 @@ public class ServerAuthorization extends Authorization
                         List<UserData> userDataList = new LinkedList<UserData>();
                         if (data != null) {
                             for (JsonNode childJsonNode : data.get("_embedded").get("users")) {
-                                UserData userData = createUserDataFromWebService(childJsonNode);
+                                UserData userData = createUserDataFromWebServiceData(childJsonNode);
                                 userDataList.add(userData);
                             }
                         }
@@ -343,22 +339,7 @@ public class ServerAuthorization extends Authorization
                     @Override
                     public Group success(JsonNode data)
                     {
-                        Group group = new Group();
-                        group.setId(data.get("id").asText());
-                        if (data.has("parent_group_id")) {
-                            JsonNode parentId = data.get("parent_group_id");
-                            if (!parentId.isNull()) {
-                                group.setParentId(parentId.asText());
-                            }
-                        }
-                        group.setName(data.get("name").asText());
-                        if (data.has("description")) {
-                            JsonNode description = data.get("description");
-                            if (!description.isNull()) {
-                                group.setDescription(description.asText());
-                            }
-                        }
-                        return group;
+                        return createGroupFromWebServiceData(data);
                     }
 
                     @Override
@@ -373,18 +354,25 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    public List<Group> onListGroups(Set<String> filterGroupIds)
+    public List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
         String listGroupsUrlQuery = "";
         if (filterGroupIds != null && filterGroupIds.size() > 0) {
-            try {
-                String userIds = StringUtils.join(filterGroupIds, ",");
-                listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
-                listGroupsUrlQuery += "filter_group_id=" + URLEncoder.encode(userIds, "UTF-8");
+            String groupIds = StringUtils.join(filterGroupIds, ",");
+            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
+            listGroupsUrlQuery += "filter_group_id=" + groupIds;
+        }
+        if (filterGroupTypes != null && filterGroupTypes.size() > 0) {
+            StringBuilder groupTypes = new StringBuilder();
+            for (Group.Type groupType : filterGroupTypes) {
+                String groupCode = groupType.toString().toLowerCase();
+                if (groupTypes.length() > 0) {
+                    groupTypes.append(",");
+                }
+                groupTypes.append(groupCode);
             }
-            catch (UnsupportedEncodingException exception) {
-                throw new CommonReportSet.UnknownErrorException(exception, "Url encoding failed");
-            }
+            listGroupsUrlQuery += (listGroupsUrlQuery.isEmpty() ? "?" : "&");
+            listGroupsUrlQuery += "filter_type=" + groupTypes.toString();
         }
         String listGroupsUrl = authorizationServer + GROUP_SERVICE_PATH + listGroupsUrlQuery;
         return performGetRequest(listGroupsUrl, "Retrieving groups failed", new RequestHandler<List<Group>>()
@@ -397,22 +385,7 @@ public class ServerAuthorization extends Authorization
                     Iterator<JsonNode> groupIterator = data.get("_embedded").get("groups").getElements();
                     while (groupIterator.hasNext()) {
                         JsonNode groupNode = groupIterator.next();
-                        Group group = new Group();
-                        group.setId(groupNode.get("id").asText());
-                        if (groupNode.has("parent_group_id")) {
-                            JsonNode parentId = groupNode.get("parent_group_id");
-                            if (!parentId.isNull()) {
-                                group.setParentId(parentId.asText());
-                            }
-                        }
-                        group.setName(groupNode.get("name").asText());
-                        if (groupNode.has("description")) {
-                            JsonNode description = groupNode.get("description");
-                            if (!description.isNull()) {
-                                group.setDescription(description.asText());
-                            }
-                        }
-                        groups.add(group);
+                        groups.add(createGroupFromWebServiceData(groupNode));
                     }
                 }
                 return groups;
@@ -471,7 +444,7 @@ public class ServerAuthorization extends Authorization
     @Override
     protected Set<String> onListUserGroupIds(String userId)
     {
-        return performGetRequest(authorizationServer + USER_SERVICE_PATH  + "/" + userId + "/groups",
+        return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId + "/groups",
                 "Retrieving group-ids for user " + userId + " failed",
                 new RequestHandler<Set<String>>()
                 {
@@ -497,13 +470,8 @@ public class ServerAuthorization extends Authorization
     @Override
     public String onCreateGroup(final Group group)
     {
-        ObjectNode content = jsonMapper.createObjectNode();
-        content.put("name", group.getName());
-        content.put("description", group.getDescription());
-        if (group.getParentId() != null) {
-            content.put("parent_group_id", group.getName());
-        }
-        return performPostRequest(authorizationServer + GROUP_SERVICE_PATH, content, "Creating group failed",
+        JsonNode groupData = createWebServiceDataFromGroup(group);
+        String groupId = performPostRequest(authorizationServer + GROUP_SERVICE_PATH, groupData, "Creating group failed",
                 new RequestHandler<String>()
                 {
                     @Override
@@ -520,6 +488,33 @@ public class ServerAuthorization extends Authorization
                         }
                     }
                 });
+        group.setId(groupId);
+        modifyGroupAdministrators(group);
+        return groupId;
+    }
+
+    @Override
+    protected void onModifyGroup(final Group group)
+    {
+        JsonNode groupData = createWebServiceDataFromGroup(group);
+        performPostRequest(authorizationServer + GROUP_SERVICE_PATH, groupData, "Creating group failed",
+                new RequestHandler<String>()
+                {
+                    @Override
+                    public String success(JsonNode data)
+                    {
+                        return data.get("id").asText();
+                    }
+
+                    @Override
+                    public void error(StatusLine statusLine, String detail)
+                    {
+                        if (detail.contains("GroupExistsException")) {
+                            throw new ControllerReportSet.GroupAlreadyExistsException(group.getName());
+                        }
+                    }
+                });
+        modifyGroupAdministrators(group);
     }
 
     @Override
@@ -777,17 +772,17 @@ public class ServerAuthorization extends Authorization
      * @param data from authorization server
      * @return {@link UserData}
      */
-    private static UserData createUserDataFromWebService(JsonNode data)
+    private static UserData createUserDataFromWebServiceData(JsonNode data)
     {
-        UserData userData = new UserData();
-
         // Required fields
         if (!data.has("id")) {
-            throw new IllegalArgumentException("User information must contain identifier.");
+            throw new IllegalArgumentException("User data must contain identifier.");
         }
         if (!data.has("first_name") || !data.has("last_name")) {
-            throw new IllegalArgumentException("User information must contain given and family name.");
+            throw new IllegalArgumentException("User data must contain given and family name.");
         }
+
+        UserData userData = new UserData();
 
         // Common user data
         UserInformation userInformation = userData.getUserInformation();
@@ -822,7 +817,13 @@ public class ServerAuthorization extends Authorization
                 userData.setLocale(locale);
             }
         }
-
+        if (data.has("timezone")) {
+            JsonNode timezone = data.get("timezone");
+            if (!timezone.isNull()) {
+                DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
+                userData.setTimeZone(timeZone);
+            }
+        }
         if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
@@ -833,6 +834,147 @@ public class ServerAuthorization extends Authorization
         }
 
         return userData;
+    }
+
+    /**
+     * @param data from authorization server
+     * @return {@link Group}
+     */
+    private static Group createGroupFromWebServiceData(JsonNode data)
+    {
+        // Required fields
+        if (!data.has("id")) {
+            throw new IllegalArgumentException("Group data must contain identifier.");
+        }
+
+        Group group = new Group();
+        group.setId(data.get("id").asText());
+        if (data.has("parent_group_id")) {
+            JsonNode parentId = data.get("parent_group_id");
+            if (!parentId.isNull()) {
+                group.setParentId(parentId.asText());
+            }
+        }
+        group.setName(data.get("name").asText());
+        if (data.has("description")) {
+            JsonNode description = data.get("description");
+            if (!description.isNull()) {
+                group.setDescription(description.asText());
+            }
+        }
+        if (data.has("admins")) {
+            Iterator<JsonNode> administratorIterator = data.get("admins").getElements();
+            while (administratorIterator.hasNext()) {
+                JsonNode administrator = administratorIterator.next();
+                if (!administrator.has("id")) {
+                    throw new IllegalArgumentException("Group data administrator must contain identifier.");
+                }
+                group.addAdministrator(administrator.get("id").asText());
+            }
+        }
+        return group;
+    }
+
+    /**
+     * @param group
+     * @return {@link JsonNode} from given {@code group}
+     */
+    private JsonNode createWebServiceDataFromGroup(Group group)
+    {
+        ObjectNode objectNode = jsonMapper.createObjectNode();
+        if (group.getId() != null) {
+            objectNode.put("id", group.getId());
+        }
+        objectNode.put("name", group.getName());
+        objectNode.put("description", group.getDescription());
+        objectNode.put("parent_group_id", group.getName());
+        return objectNode;
+    }
+
+    /**
+     * @param group for which the {@link Group#administrators} should be modified
+     */
+    private void modifyGroupAdministrators(final Group group)
+    {
+        final String groupId = group.getId();
+        String listUrl = authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/admins";
+        Set<String> groupAdministrators = group.getAdministrators();
+        Set<String> existingGroupAdministrators = performGetRequest(listUrl,
+                "Retrieving administrators for group " + groupId + " failed",
+                new RequestHandler<Set<String>>()
+                {
+                    @Override
+                    public Set<String> success(JsonNode data)
+                    {
+                        Set<String> groupIds = new HashSet<String>();
+                        if (data != null) {
+                            Iterator<JsonNode> userIterator = data.get("_embedded").get("groups").getElements();
+                            while (userIterator.hasNext()) {
+                                JsonNode groupNode = userIterator.next();
+                                if (!groupNode.has("id")) {
+                                    throw new IllegalStateException("Group must have identifier.");
+                                }
+                                groupIds.add(groupNode.get("id").asText());
+                            }
+                        }
+                        return groupIds;
+                    }
+                });
+        // Add administrators
+        for (final String administrator : groupAdministrators) {
+            if (existingGroupAdministrators.contains(administrator)) {
+                // Administrator already exists
+                continue;
+            }
+            // Create administrator
+            String addUrl = authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/admins/" + administrator;
+            performPutRequest(addUrl,
+                    "Adding administrator " + administrator + " to group " + groupId + " failed",
+                    new RequestHandler<Object>()
+                    {
+                        @Override
+                        public void error(StatusLine statusLine, String detail)
+                        {
+                            int statusCode = statusLine.getStatusCode();
+                            if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                                if (detail.contains("User")) {
+                                    throw new ControllerReportSet.UserNotExistsException(administrator);
+                                }
+                            }
+                            if (detail.contains("GroupNotExistsException")) {
+                                throw new ControllerReportSet.GroupNotExistsException(groupId);
+                            }
+                        }
+                    });
+        }
+
+        // Delete administrators
+        for (final String administrator : existingGroupAdministrators) {
+            if (groupAdministrators.contains(administrator)) {
+                // Administrator should exist
+                continue;
+            }
+            // Delete administrator
+            String deleteUrl = authorizationServer + GROUP_SERVICE_PATH + "/" + groupId + "/admins/" + administrator;
+            performDeleteRequest(deleteUrl,
+                    "Deleting administrator " + administrator + " from group " + groupId + " failed",
+                    new RequestHandler<Object>()
+                    {
+                        @Override
+                        public void error(StatusLine statusLine, String detail)
+                        {
+                            int statusCode = statusLine.getStatusCode();
+                            if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                                if (detail.contains("User")) {
+                                    throw new ControllerReportSet.UserNotExistsException(administrator);
+                                }
+                            }
+                            if (detail.contains("GroupNotExistsException")) {
+                                throw new ControllerReportSet.GroupNotExistsException(groupId);
+                            }
+                        }
+                    });
+        }
     }
 
     /**

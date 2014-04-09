@@ -88,12 +88,27 @@ public interface AuthorizationService extends Service
     public ListResponse<Group> listGroups(GroupListRequest request);
 
     /**
+     * @param token   token of the user requesting the operation
+     * @param groupId of the group to be deleted
+     * @return {@link Group} with given {@code #groupId}
+     */
+    @API
+    public Group getGroup(SecurityToken token, String groupId);
+
+    /**
      * @param token token of the user requesting the operation
      * @param group
      * @return identifier of the new group
      */
     @API
     public String createGroup(SecurityToken token, Group group);
+
+    /**
+     * @param token token of the user requesting the operation
+     * @param group to be modified
+     */
+    @API
+    public void modifyGroup(SecurityToken token, Group group);
 
     /**
      * @param token   token of the user requesting the operation

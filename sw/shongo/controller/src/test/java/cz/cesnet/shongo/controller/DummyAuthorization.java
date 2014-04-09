@@ -216,20 +216,24 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    public List<Group> onListGroups(Set<String> filterGroupIds)
+    public List<Group> onListGroups(Set<String> groupIds, Set<Group.Type> groupTypes)
     {
-        if (filterGroupIds != null && filterGroupIds.size() > 0) {
-            List<Group> groups = new LinkedList<Group>();
-            for (String groupId : this.groups.keySet()) {
-                if (filterGroupIds.contains(groupId)) {
-                    groups.add(this.groups.get(groupId));
+        List<Group> groups = new LinkedList<Group>();
+        for (String groupId : this.groups.keySet()) {
+            Group group = this.groups.get(groupId);
+            if (groupTypes != null && groupTypes.size() > 0) {
+                if (!groupTypes.contains(group.getType())) {
+                    continue;
                 }
             }
-            return groups;
+            if (groupIds != null && groupIds.size() > 0) {
+                if (!groupIds.contains(groupId)) {
+                    continue;
+                }
+            }
+            groups.add(group);
         }
-        else {
-            return new LinkedList<Group>(groups.values());
-        }
+        return groups;
     }
 
     @Override
@@ -270,6 +274,12 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
+    protected void onModifyGroup(Group group)
+    {
+        groups.put(group.getId(), group);
+    }
+
+    @Override
     public void onDeleteGroup(String groupId)
     {
         if (!groups.containsKey(groupId)) {
@@ -307,7 +317,7 @@ public class DummyAuthorization extends Authorization
     }
 
     /**
-     * @param configuration to be used for initialization
+     * @param configuration        to be used for initialization
      * @param entityManagerFactory
      * @return new instance of {@link DummyAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists

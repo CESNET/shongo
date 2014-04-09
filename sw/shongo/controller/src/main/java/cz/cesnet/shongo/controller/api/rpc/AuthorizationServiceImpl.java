@@ -342,7 +342,12 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
-        List<Group> groups = new LinkedList<Group>(authorization.listGroups());
+        Set<Group.Type> groupTypes = new HashSet<Group.Type>();
+        groupTypes.add(Group.Type.USER);
+        if (authorization.isAdministrator(securityToken)) {
+            groupTypes.add(Group.Type.SYSTEM);
+        }
+        List<Group> groups = new LinkedList<Group>(authorization.listGroups(null, groupTypes));
 
         String search = StringHelper.removeAccents(request.getSearch());
         if (search != null) {
@@ -368,6 +373,17 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
+    public Group getGroup(SecurityToken token, String groupId)
+    {
+        authorization.validate(token);
+        Group group = authorization.getGroup(groupId);
+        if (Group.Type.SYSTEM.equals(group.getType()) && !authorization.isAdministrator(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read system group");
+        }
+        return group;
+    }
+
+    @Override
     public String createGroup(SecurityToken token, Group group)
     {
         authorization.validate(token);
@@ -375,6 +391,18 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create group");
         }
         return authorization.createGroup(group);
+    }
+
+    @Override
+    public void modifyGroup(SecurityToken token, Group group)
+    {
+        authorization.validate(token);
+        String groupId = group.getId();
+        Group existingGroup = authorization.checkGroupExistence(groupId);
+        if (Group.Type.SYSTEM.equals(existingGroup.getType()) && !authorization.isAdministrator(token)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify system group");
+        }
+        authorization.modifyGroup(group);
     }
 
     @Override

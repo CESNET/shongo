@@ -171,8 +171,7 @@ public abstract class Authorization
      *
      * @param securityToken to be validated
      * @return {@link UserInformation}
-     * @throws ControllerReportSet.SecurityInvalidTokenException
-     *          when the validation fails
+     * @throws ControllerReportSet.SecurityInvalidTokenException when the validation fails
      */
     public final UserInformation validate(SecurityToken securityToken)
             throws ControllerReportSet.SecurityInvalidTokenException
@@ -215,8 +214,7 @@ public abstract class Authorization
      *
      * @param securityToken of an user
      * @return {@link UserInformation} for the user with given {@code securityToken}
-     * @throws ControllerReportSet.UserNotExistsException
-     *          when user not exists
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserInformation getUserInformation(SecurityToken securityToken)
             throws ControllerReportSet.UserNotExistsException
@@ -259,8 +257,7 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException
-     *          when user not exists
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserInformation getUserInformation(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -274,8 +271,7 @@ public abstract class Authorization
      *
      * @param principalName of an user
      * @return {@link UserInformation} for the user with given {@code principalName}
-     * @throws ControllerReportSet.UserNotExistsException
-     *          when user not exists
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public UserInformation getUserInformationByPrincipalName(String principalName)
             throws ControllerReportSet.UserNotExistsException
@@ -304,8 +300,7 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException
-     *          when user not exists
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserData getUserData(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -337,8 +332,7 @@ public abstract class Authorization
      * Checks whether user with given {@code userId} exists.
      *
      * @param userId of the user to be checked for existence
-     * @throws cz.cesnet.shongo.controller.ControllerReportSet.UserNotExistsException
-     *          when the user doesn't exist
+     * @throws cz.cesnet.shongo.controller.ControllerReportSet.UserNotExistsException when the user doesn't exist
      */
     public void checkUserExistence(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -350,13 +344,12 @@ public abstract class Authorization
      * Checks whether group with given {@code groupId} exists.
      *
      * @param groupId of the group to be checked for existence
-     * @throws cz.cesnet.shongo.controller.ControllerReportSet.GroupNotExistsException
-     *          when the group doesn't exist
+     * @throws cz.cesnet.shongo.controller.ControllerReportSet.GroupNotExistsException when the group doesn't exist
      */
-    public void checkGroupExistence(String groupId)
+    public Group checkGroupExistence(String groupId)
             throws ControllerReportSet.GroupNotExistsException
     {
-        getGroup(groupId);
+        return getGroup(groupId);
     }
 
     /**
@@ -364,8 +357,7 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserData} for the user with given {@code userId}
-     * @throws ControllerReportSet.UserNotExistsException
-     *          when user not exists
+     * @throws ControllerReportSet.UserNotExistsException when user not exists
      */
     public final UserPerson getUserPerson(String userId)
             throws ControllerReportSet.UserNotExistsException
@@ -377,7 +369,7 @@ public abstract class Authorization
      * Retrieve all {@link UserInformation}s which match given {@code search} criteria.
      *
      * @param filterUserIds to filter users by id
-     * @param search to filter users by text attributes
+     * @param search        to filter users by text attributes
      * @return collection of {@link UserInformation}s
      */
     public final Collection<UserInformation> listUserInformation(Set<String> filterUserIds, String search)
@@ -393,7 +385,7 @@ public abstract class Authorization
     /**
      * @param securityToken
      * @return true if the user is Shongo admin (should have all permissions),
-     *         false otherwise
+     * false otherwise
      */
     public final boolean isAdministrator(SecurityToken securityToken)
     {
@@ -405,7 +397,7 @@ public abstract class Authorization
      * @param entity           the entity
      * @param objectPermission which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
-     *         false otherwise
+     * false otherwise
      */
     public boolean hasObjectPermission(SecurityToken securityToken,
             PersistentObject entity, ObjectPermission objectPermission)
@@ -416,10 +408,10 @@ public abstract class Authorization
 
     /**
      * @param securityToken    of the user
-     * @param objectIdentity           the entity
+     * @param objectIdentity   the entity
      * @param objectPermission which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
-     *         false otherwise
+     * false otherwise
      */
     public boolean hasObjectPermission(SecurityToken securityToken,
             AclObjectIdentity objectIdentity, ObjectPermission objectPermission)
@@ -464,11 +456,11 @@ public abstract class Authorization
     }
 
     /**
-     * @param securityToken of the user
-     * @param objectClass of objects which should be returned
+     * @param securityToken    of the user
+     * @param objectClass      of objects which should be returned
      * @param objectPermission which the user must have for the entities
      * @return set of object identifiers for which the user with given {@code userId} has given {@code permission}
-     *         or null if the user can view all objects
+     * or null if the user can view all objects
      */
     public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, AclObjectClass objectClass,
             ObjectPermission objectPermission)
@@ -493,7 +485,7 @@ public abstract class Authorization
      * @param persistentObject for which the users must have given {@code role}
      * @param objectRole       which the users must have for given {@code persistentObject}
      * @return collection of {@link UserData} of users which have given {@code role}
-     *         for given {@code persistentObject}
+     * for given {@code persistentObject}
      */
     public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, ObjectRole objectRole)
     {
@@ -547,14 +539,13 @@ public abstract class Authorization
     /**
      * @param groupName
      * @return group-id for given {@code groupName}
-     * @throws ControllerReportSet.GroupNotExistsException
-     *          when the group doesn't exist
+     * @throws ControllerReportSet.GroupNotExistsException when the group doesn't exist
      */
     public final String getGroupIdByName(String groupName)
     {
         String groupId = cache.getGroupIdByName(groupName);
         if (groupId == null) {
-            for (Group group : listGroups()) {
+            for (Group group : listGroups(null, null)) {
                 if (group.getName().equals(groupName)) {
                     groupId = group.getId();
                     break;
@@ -573,8 +564,7 @@ public abstract class Authorization
      *
      * @param groupId of a group
      * @return {@link Group} for the group with given {@code groupId}
-     * @throws ControllerReportSet.GroupNotExistsException
-     *          when group not exists
+     * @throws ControllerReportSet.GroupNotExistsException when group not exists
      */
     public final Group getGroup(String groupId)
             throws ControllerReportSet.GroupNotExistsException
@@ -599,19 +589,13 @@ public abstract class Authorization
     }
 
     /**
+     * @param filterGroupIds   to filter groups
+     * @param filterGroupTypes to filter groups
      * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
      */
-    public final List<Group> listGroups()
+    public final List<Group> listGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes)
     {
-        return listGroups(null);
-    }
-
-    /**
-     * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
-     */
-    public final List<Group> listGroups(Set<String> filterGroupIds)
-    {
-        return onListGroups(filterGroupIds);
+        return onListGroups(filterGroupIds, filterGroupTypes);
     }
 
     /**
@@ -636,12 +620,20 @@ public abstract class Authorization
     }
 
     /**
-     * @param group
+     * @param group to be created
      * @return identifier of the new group
      */
     public final String createGroup(Group group)
     {
         return onCreateGroup(group);
+    }
+
+    /**
+     * @param group to be modified
+     */
+    public final void modifyGroup(Group group)
+    {
+        onModifyGroup(group);
     }
 
     /**
@@ -690,8 +682,7 @@ public abstract class Authorization
      *
      * @param securityToken to be validated
      * @return {@link UserInformation}
-     * @throws ControllerReportSet.SecurityInvalidTokenException
-     *          when the validation fails
+     * @throws ControllerReportSet.SecurityInvalidTokenException when the validation fails
      */
     protected UserInformation onValidate(SecurityToken securityToken)
             throws ControllerReportSet.SecurityInvalidTokenException
@@ -757,9 +748,11 @@ public abstract class Authorization
             throws ControllerReportSet.GroupNotExistsException;
 
     /**
+     * @param filterGroupIds   to filter groups
+     * @param filterGroupTypes to filter groups
      * @return list of {@link cz.cesnet.shongo.controller.api.Group}s
      */
-    protected abstract List<Group> onListGroups(Set<String> filterGroupIds);
+    protected abstract List<Group> onListGroups(Set<String> filterGroupIds, Set<Group.Type> filterGroupTypes);
 
     /**
      * @return list of user-ids for users which are in group with given {@code groupId}
@@ -772,10 +765,15 @@ public abstract class Authorization
     protected abstract Set<String> onListUserGroupIds(String userId);
 
     /**
-     * @param group
+     * @param group to be created
      * @return identifier of the new group
      */
     protected abstract String onCreateGroup(Group group);
+
+    /**
+     * @param group to be modified
+     */
+    protected abstract void onModifyGroup(Group group);
 
     /**
      * @param groupId of the group to be deleted

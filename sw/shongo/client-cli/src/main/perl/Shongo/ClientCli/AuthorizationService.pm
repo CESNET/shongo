@@ -309,6 +309,7 @@ sub list_groups()
     my $table = {
         'columns' => [
             {'field' => 'id',          'title' => 'ID'},
+            {'field' => 'type',        'title' => 'Type'},
             {'field' => 'parentId',    'title' => 'Parent ID'},
             {'field' => 'name',        'title' => 'Name'},
             {'field' => 'description', 'title' => 'Description'},
@@ -318,6 +319,7 @@ sub list_groups()
     foreach my $entry (@{$response->{'items'}}) {
         push(@{$table->{'data'}}, {
             'id' => $entry->{'id'},
+            'type' => $entry->{'type'},
             'parentId' => $entry->{'parentId'},
             'name' => $entry->{'name'},
             'description' => $entry->{'description'}
