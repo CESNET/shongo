@@ -816,7 +816,7 @@ public class ServerAuthorization extends Authorization
 
         // Additional user data
         if (data.has("language")) {
-            JsonNode language = data.get("mail");
+            JsonNode language = data.get("language");
             if (!language.isNull()) {
                 Locale locale = new Locale(language.getTextValue());
                 userData.setLocale(locale);
