@@ -15,14 +15,21 @@
         var resourceId = $("#resourceId").val();
         var intervalFrom = $("#intervalFrom").val();
         var intervalTo = $("#intervalTo").val();
-        var url = "<tag:url value="<%= ClientWebUrl.RESOURCE_RESERVATIONS_TABLE %>"/>";
+        var url = "<tag:url value="<%= ClientWebUrl.RESOURCE_RESERVATIONS_DATA %>"/>";
+        url += "?interval-from=" + intervalFrom + "&interval-to=" + intervalTo;
+        if (resourceId != null && resourceId != "") {
+            url += "&resource-id=" + resourceId;
+        }
         console.debug("update", resourceId, intervalFrom, intervalTo);
         $("#content").html("<div class='spinner'></div>");
         $.ajax({
             type: "GET",
             url: url,
             cache:false,
+            dataType: "json",
             success: function(result) {
+                console.debug(result);
+                result = "<pre style='text-align: left;'>" + JSON.stringify(result, null, 4) + "</pre>";
                 $("#content").html(result);
             }
         });

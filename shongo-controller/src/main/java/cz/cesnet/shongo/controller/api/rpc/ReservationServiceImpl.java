@@ -926,6 +926,15 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         request.getResourceId(), ObjectType.RESOURCE));
             }
 
+            // List only reservations in requested interval
+            Interval interval = request.getInterval();
+            if (interval != null) {
+                queryFilter.addFilter("reservation_summary.slot_start < :slotEnd");
+                queryFilter.addFilter("reservation_summary.slot_end > :slotStart");
+                queryFilter.addFilterParameter("slotStart", interval.getStart().toDate());
+                queryFilter.addFilterParameter("slotEnd", interval.getEnd().toDate());
+            }
+
             // Sort query part
             String queryOrderBy;
             ReservationListRequest.Sort sort = request.getSort();
@@ -1166,6 +1175,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
         if (record[6] != null) {
             reservationSummary.setRoomName(record[6] != null ? record[6].toString() : null);
+        }
+        if (record[7] != null) {
+            reservationSummary.setAliasTypes(record[7] != null ? record[7].toString() : null);
+        }
+        if (record[8] != null) {
+            reservationSummary.setValue(record[8] != null ? record[8].toString() : null);
         }
         return reservationSummary;
     }

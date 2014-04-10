@@ -118,13 +118,15 @@ SELECT
     reservation.slot_end AS slot_end,
     ISNULL(resource_reservation.resource_id, room_provider_capability.resource_id) AS resource_id,
     room_reservation.license_count AS room_license_count,
-    NULL AS room_name
+    NULL AS room_name,
+    NULL AS alias_types,
+    value_reservation.value AS value
 FROM reservation
 LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
 LEFT JOIN room_reservation ON room_reservation.id = reservation.id
 LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = room_reservation.room_provider_capability_id
 LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
-LEFT JOIN value_reservation ON value_reservation.id = reservation.id
+LEFT JOIN value_reservation ON value_reservation.id = reservation.id OR value_reservation.id = alias_reservation.value_reservation_id
 LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id;
 
 /**

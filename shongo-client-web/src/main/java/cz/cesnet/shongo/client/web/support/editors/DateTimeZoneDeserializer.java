@@ -15,10 +15,9 @@ import org.joda.time.DateTimeZone;
  */
 public class DateTimeZoneDeserializer extends JsonDeserializer<DateTimeZone>
 {
-
     @Override
     public DateTimeZone deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
+            throws IOException
     {
         final String text = jp.getText();
         return text != null ? DateTimeZone.forID(text) : null;

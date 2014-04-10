@@ -199,8 +199,8 @@ public class ClientWebUrl
             "/resource/list/data";
     public static final String RESOURCE_RESERVATIONS_VIEW =
             "/resource/reservations";
-    public static final String RESOURCE_RESERVATIONS_TABLE =
-            "/resource/reservations/table";
+    public static final String RESOURCE_RESERVATIONS_DATA =
+            "/resource/reservations/data";
 
     public static String format(String url, Object... variables)
     {

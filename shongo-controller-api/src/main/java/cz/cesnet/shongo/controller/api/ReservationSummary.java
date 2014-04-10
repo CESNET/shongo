@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.Interval;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Summary of {@link cz.cesnet.shongo.controller.api.Reservation}.
@@ -35,6 +39,16 @@ public class ReservationSummary extends IdentifiedComplexType
      * Allocated room name.
      */
     private String roomName;
+
+    /**
+     * Allocated alias types.
+     */
+    private String aliasTypes;
+
+    /**
+     * Allocated value.
+     */
+    private String value;
 
     /**
      * @return {@link #type}
@@ -116,11 +130,59 @@ public class ReservationSummary extends IdentifiedComplexType
         this.roomName = roomName;
     }
 
+    /**
+     * @return {@link #aliasTypes}
+     */
+    public String getAliasTypes()
+    {
+        return aliasTypes;
+    }
+
+    /**
+     * @return {@link #aliasTypes} as {@link AliasType}s
+     */
+    public Set<AliasType> getAliasTypesSet()
+    {
+        Set<AliasType> aliasTypes = new HashSet<AliasType>();
+        if (this.aliasTypes != null) {
+            for (String aliasType : this.aliasTypes.split(",")) {
+                aliasTypes.add(AliasType.valueOf(aliasType));
+            }
+        }
+        return aliasTypes;
+    }
+
+    /**
+     * @param aliasTypes sets the {@link #aliasTypes}
+     */
+    public void setAliasTypes(String aliasTypes)
+    {
+        this.aliasTypes = aliasTypes;
+    }
+
+    /**
+     * @return {@link #value}
+     */
+    public String getValue()
+    {
+        return value;
+    }
+
+    /**
+     * @param value sets the {@link #value}
+     */
+    public void setValue(String value)
+    {
+        this.value = value;
+    }
+
     private static final String TYPE = "type";
     private static final String SLOT = "slot";
     private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
     private static final String ROOM_NAME = "roomName";
+    private static final String ALIAS_TYPES = "aliasTypes";
+    private static final String VALUE = "value";
 
     @Override
     public DataMap toData()
@@ -131,6 +193,8 @@ public class ReservationSummary extends IdentifiedComplexType
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
         dataMap.set(ROOM_NAME, roomName);
+        dataMap.set(ALIAS_TYPES, aliasTypes);
+        dataMap.set(VALUE, value);
         return dataMap;
     }
 
@@ -141,8 +205,10 @@ public class ReservationSummary extends IdentifiedComplexType
         type = dataMap.getEnum(TYPE, Type.class);
         slot = dataMap.getInterval(SLOT);
         resourceId = dataMap.getString(RESOURCE_ID);
-        roomLicenseCount = Integer.getInteger(ROOM_LICENSE_COUNT);
+        roomLicenseCount = dataMap.getInteger(ROOM_LICENSE_COUNT);
         roomName = dataMap.getString(ROOM_NAME);
+        aliasTypes = dataMap.getString(ALIAS_TYPES);
+        value = dataMap.getString(VALUE);
     }
 
     /**

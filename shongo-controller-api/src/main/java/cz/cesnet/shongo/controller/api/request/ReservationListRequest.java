@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.ReservationSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -23,6 +24,11 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
      * Resource-id of resources which must be allocated by returned {@link Reservation}s.
      */
     private String resourceId;
+
+    /**
+     * Interval in only which the {@link Reservation}s should be returned.
+     */
+    private Interval interval;
 
     /**
      * Constructor.
@@ -75,6 +81,22 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
     }
 
     /**
+     * @return {@link #interval}
+     */
+    public Interval getInterval()
+    {
+        return interval;
+    }
+
+    /**
+     * @param interval sets the {@link #interval}
+     */
+    public void setInterval(Interval interval)
+    {
+        this.interval = interval;
+    }
+
+    /**
      * Field by which the result should be sorted.
      */
     public static enum Sort
@@ -84,6 +106,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
 
     private static final String RESERVATION_TYPES = "reservationTypes";
     private static final String RESOURCE_ID = "resourceId";
+    private static final String INTERVAL = "interval";
 
     @Override
     public DataMap toData()
@@ -91,6 +114,7 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
         DataMap dataMap = super.toData();
         dataMap.set(RESERVATION_TYPES, reservationTypes);
         dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(INTERVAL, interval);
         return dataMap;
     }
 
@@ -100,5 +124,6 @@ public class ReservationListRequest extends SortableListRequest<ReservationListR
         super.fromData(dataMap);
         reservationTypes = (Set) dataMap.getSet(RESERVATION_TYPES, Class.class);
         resourceId = dataMap.getString(RESOURCE_ID);
+        interval = dataMap.getInterval(INTERVAL);
     }
 }

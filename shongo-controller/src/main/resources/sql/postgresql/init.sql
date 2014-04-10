@@ -353,7 +353,7 @@ FROM (
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 CREATE VIEW reservation_summary AS
-  SELECT
+SELECT
     reservation.id AS id,
     CASE
     WHEN resource_reservation.id IS NOT NULL THEN 'RESOURCE'
@@ -365,16 +365,39 @@ CREATE VIEW reservation_summary AS
     END AS type,
     reservation.slot_start AS slot_start,
     reservation.slot_end AS slot_end,
-    COALESCE(resource_reservation.resource_id, room_provider_capability.resource_id) AS resource_id,
+    COALESCE(
+        resource_reservation.resource_id,
+        room_capability.resource_id,
+        alias_capability.resource_id,
+        value_capability.resource_id
+    ) AS resource_id,
     room_reservation.license_count AS room_license_count,
-    CAST(NULL AS TEXT) AS room_name
-  FROM reservation
-    LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
-    LEFT JOIN room_reservation ON room_reservation.id = reservation.id
-    LEFT JOIN capability AS room_provider_capability ON room_provider_capability.id = room_reservation.room_provider_capability_id
-    LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
-    LEFT JOIN value_reservation ON value_reservation.id = reservation.id
-    LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id;
+    CAST(NULL AS TEXT) AS room_name,
+    STRING_AGG(alias.type, ',') AS alias_types,
+    value_reservation.value AS value
+FROM reservation
+LEFT JOIN resource_reservation ON resource_reservation.id = reservation.id
+LEFT JOIN room_reservation ON room_reservation.id = reservation.id
+LEFT JOIN capability AS room_capability ON room_capability.id = room_reservation.room_provider_capability_id
+LEFT JOIN alias_reservation ON alias_reservation.id = reservation.id
+LEFT JOIN capability AS alias_capability ON alias_capability.id = alias_reservation.alias_provider_capability_id
+LEFT JOIN alias_provider_capability_aliases ON alias_provider_capability_aliases.alias_provider_capability_id = alias_reservation.alias_provider_capability_id
+LEFT JOIN alias ON alias.id = alias_provider_capability_aliases.alias_id
+LEFT JOIN value_reservation ON value_reservation.id = reservation.id OR value_reservation.id = alias_reservation.value_reservation_id
+LEFT JOIN value_provider_capability ON value_provider_capability.value_provider_id = value_reservation.value_provider_id
+LEFT JOIN capability AS value_capability ON value_capability.id = value_provider_capability.id
+LEFT JOIN recording_service_reservation ON recording_service_reservation.id = reservation.id
+GROUP BY reservation.id,
+         resource_reservation.id,
+         room_reservation.id,
+         room_capability.id,
+         alias_reservation.id,
+         alias_capability.id,
+         value_reservation.id,
+         value_capability.id,
+         recording_service_reservation.id;
+
+
 
 /**
  * View of id and time slot for the earliest usage for each room endpoint.
