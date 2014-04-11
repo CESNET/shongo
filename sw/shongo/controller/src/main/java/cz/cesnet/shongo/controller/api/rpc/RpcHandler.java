@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.api.rpc.TypeConverterFactory;
 import cz.cesnet.shongo.controller.Controller;
@@ -237,6 +238,7 @@ public class RpcHandler implements XmlRpcHandler
     public static Throwable convertThrowable(Throwable throwable)
     {
         ApiFault apiFault = null;
+        RpcRequestContext requestContext = null;
 
         // Report not API fault
         if (throwable instanceof RpcReportXmlRpcException) {
@@ -244,12 +246,12 @@ public class RpcHandler implements XmlRpcHandler
             AbstractReport report = reportXmlRpcException.getReport();
             apiFault = new CommonReportSet.UnknownErrorReport(report.getMessage());
             throwable = reportXmlRpcException.getCause();
+            requestContext = reportXmlRpcException.getRequestContext();
 
             Reporter.report(reportXmlRpcException.getRequestContext(), report, throwable);
         }
         // Report API fault
         else {
-            RpcRequestContext requestContext = null;
             if (throwable instanceof RpcApiFaultXmlRpcException) {
                 RpcApiFaultXmlRpcException apiFaultXmlRpcException = (RpcApiFaultXmlRpcException) throwable;
                 apiFault = apiFaultXmlRpcException.getApiFault();
@@ -259,7 +261,6 @@ public class RpcHandler implements XmlRpcHandler
             else if (throwable instanceof ApiFaultException) {
                 ApiFaultException apiFaultException = (ApiFaultException) throwable;
                 apiFault = apiFaultException.getApiFault();
-
             }
             else if (throwable instanceof RuntimeException || throwable instanceof SAXException) {
                 Throwable cause = throwable.getCause();
@@ -281,8 +282,23 @@ public class RpcHandler implements XmlRpcHandler
             Reporter.reportApiFault(requestContext, apiFault, throwable);
         }
 
+        String apiFaultMessage;
+        UserInformation userInformation = (requestContext != null ? requestContext.getUserInformation() : null);
+        if (apiFault instanceof AbstractReport && userInformation != null) {
+            AbstractReport report = (AbstractReport) apiFault;
+            Authorization authorization = Authorization.getInstance();
+            Report.UserType userType = Report.UserType.USER;
+            if (authorization.isAdministrator(userInformation.getUserId())) {
+                userType = Report.UserType.DOMAIN_ADMIN;
+            }
+            apiFaultMessage = report.getMessage(userType);
+        }
+        else {
+            apiFaultMessage = apiFault.getFaultString();
+        }
+
         ApiFaultString apiFaultString = new ApiFaultString();
-        apiFaultString.setMessage(apiFault.getFaultString());
+        apiFaultString.setMessage(apiFaultMessage);
         apiFault.writeParameters(apiFaultString);
         XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getFaultCode(), apiFaultString.toString(),
                 throwable.getCause());

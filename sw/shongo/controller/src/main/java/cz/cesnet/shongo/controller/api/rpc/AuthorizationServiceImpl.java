@@ -342,11 +342,18 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
-        Set<Group.Type> groupTypes = new HashSet<Group.Type>();
-        groupTypes.add(Group.Type.USER);
-        if (authorization.isAdministrator(securityToken)) {
-            groupTypes.add(Group.Type.SYSTEM);
+        boolean isAdministrator = authorization.isAdministrator(securityToken);
+        Set<Group.Type> groupTypes = request.getGroupTypes();
+        if (groupTypes.isEmpty()) {
+            groupTypes.add(Group.Type.USER);
+            if (isAdministrator) {
+                groupTypes.add(Group.Type.SYSTEM);
+            }
         }
+        else if (groupTypes.contains(Group.Type.SYSTEM) && !isAdministrator) {
+            groupTypes.remove(Group.Type.SYSTEM);
+        }
+
         List<Group> groups = new LinkedList<Group>(authorization.listGroups(null, groupTypes));
 
         String search = StringHelper.removeAccents(request.getSearch());

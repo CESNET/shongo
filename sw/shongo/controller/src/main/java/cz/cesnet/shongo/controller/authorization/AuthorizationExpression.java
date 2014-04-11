@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.api.UserInformation;
-import org.apache.commons.jexl2.Expression;
-import org.apache.commons.jexl2.JexlContext;
-import org.apache.commons.jexl2.JexlEngine;
-import org.apache.commons.jexl2.NamespaceResolver;
+import org.apache.commons.jexl2.*;
 
 import java.util.Set;
 
@@ -51,7 +48,16 @@ public class AuthorizationExpression
             expression = "false";
         }
         this.authorization = authorization;
-        this.expression = jexlEngine.createExpression(expression);
+        try {
+            this.expression = jexlEngine.createExpression(expression);
+        }
+        catch (JexlException exception) {
+            Throwable cause = exception.getCause();
+            if (cause == null) {
+                cause = exception;
+            }
+            throw new RuntimeException("Authorization expression [" + expression + "] cannot be parsed.", cause);
+        }
     }
 
     /**
@@ -63,12 +69,22 @@ public class AuthorizationExpression
     public boolean evaluate(UserInformation userInformation, UserAuthorizationData userAuthorizationData)
     {
         Context context = new Context(userInformation, userAuthorizationData);
-        Object result = expression.evaluate(context);
+        Object result;
+        try {
+            result = expression.evaluate(context);
+        }
+        catch (JexlException exception) {
+            Throwable cause = exception.getCause();
+            if (cause == null) {
+                cause = exception;
+            }
+            throw new RuntimeException("Authorization expression [" + expression + "] cannot be evaluated.", cause);
+        }
         if (result != null && result instanceof Boolean) {
             return (Boolean) result;
         }
         else {
-            throw new RuntimeException("Expression [" + expression + "] doesn't evaluate to boolean.");
+            throw new RuntimeException("Authorization expression [" + expression + "] doesn't evaluate to boolean.");
         }
     }
 

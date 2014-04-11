@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.api.Group;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
@@ -17,6 +18,11 @@ public class GroupListRequest extends ListRequest
      * Group-ids of groups which should be returned.
      */
     private Set<String> groupIds = new HashSet<String>();
+
+    /**
+     * Group types of groups which should be returned.
+     */
+    private Set<Group.Type> groupTypes = new HashSet<Group.Type>();
 
     /**
      * String for filtering users by name, email, etc.
@@ -52,33 +58,53 @@ public class GroupListRequest extends ListRequest
         groupIds.add(groupId);
     }
 
+    /**
+     * @return {@link #groupIds}
+     */
     public Set<String> getGroupIds()
     {
         return groupIds;
     }
 
-    public void setGroupIds(Set<String> groupIds)
-    {
-        this.groupIds.clear();
-        this.groupIds.addAll(groupIds);
-    }
-
+    /**
+     * @param groupId to be added to the {@link #groupIds}
+     */
     public void addGroupId(String groupId)
     {
         groupIds.add(groupId);
     }
 
+    public Set<Group.Type> getGroupTypes()
+    {
+        return groupTypes;
+    }
+
+    /**
+     * @param groupType to be added to the {@link #groupTypes}
+     */
+    public void addGroupType(Group.Type groupType)
+    {
+        groupTypes.add(groupType);
+    }
+
+    /**
+     * @return {@link #search}
+     */
     public String getSearch()
     {
         return search;
     }
 
+    /**
+     * @param search sets the {@link #search}
+     */
     public void setSearch(String search)
     {
         this.search = search;
     }
 
     private static final String GROUP_IDS = "groupIds";
+    private static final String GROUP_TYPES = "groupTypes";
     private static final String SEARCH = "search";
 
     @Override
@@ -86,6 +112,7 @@ public class GroupListRequest extends ListRequest
     {
         DataMap dataMap = super.toData();
         dataMap.set(GROUP_IDS, groupIds);
+        dataMap.set(GROUP_TYPES, groupTypes);
         dataMap.set(SEARCH, search);
         return dataMap;
     }
@@ -95,6 +122,7 @@ public class GroupListRequest extends ListRequest
     {
         super.fromData(dataMap);
         groupIds = dataMap.getSet(GROUP_IDS, String.class);
+        groupTypes = dataMap.getSet(GROUP_TYPES, Group.Type.class);
         search = dataMap.getString(SEARCH);
     }
 }

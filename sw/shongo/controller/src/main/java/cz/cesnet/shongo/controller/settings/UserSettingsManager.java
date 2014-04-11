@@ -76,6 +76,7 @@ public class UserSettingsManager
         if (userSettingsApi.isUseWebService()) {
             UserData userData = authorization.getUserData(userId);
             userSettingsApi.setLocale(userData.getLocale());
+            userSettingsApi.setHomeTimeZone(userData.getTimeZone());
         }
 
         return userSettingsApi;

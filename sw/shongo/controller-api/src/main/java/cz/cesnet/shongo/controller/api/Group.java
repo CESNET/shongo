@@ -4,7 +4,6 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -23,7 +22,7 @@ public class Group extends IdentifiedComplexType
     /**
      * Identifier of parent {@link Group} or {@code null}.
      */
-    private String parentId;
+    private String parentGroupId;
 
     /**
      * Name of the {@link Group}.
@@ -74,19 +73,19 @@ public class Group extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #parentId}
+     * @return {@link #parentGroupId}
      */
-    public String getParentId()
+    public String getParentGroupId()
     {
-        return parentId;
+        return parentGroupId;
     }
 
     /**
-     * @param parentId sets the {@link #parentId}
+     * @param parentGroupId sets the {@link #parentGroupId}
      */
-    public void setParentId(String parentId)
+    public void setParentGroupId(String parentGroupId)
     {
-        this.parentId = parentId;
+        this.parentGroupId = parentGroupId;
     }
 
     /**
@@ -145,14 +144,22 @@ public class Group extends IdentifiedComplexType
         administrators.add(administrator);
     }
 
+    /**
+     * @param groupAdministrators to be added to the {@link #administrators}
+     */
+    public void addAdministrators(Set<String> groupAdministrators)
+    {
+        administrators.addAll(groupAdministrators);
+    }
+
     @Override
     public String toString()
     {
-        return String.format(Group.class.getSimpleName() + "(id: %s, parentId: name: %s)", id, parentId, name);
+        return String.format(Group.class.getSimpleName() + "(id: %s, parentGroupId: name: %s)", id, parentGroupId, name);
     }
 
     private static final String TYPE = "type";
-    private static final String PARENT_ID = "parentId";
+    private static final String PARENT_GROUP_ID = "parentGroupId";
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
     private static final String ADMINISTRATORS = "administrators";
@@ -162,7 +169,7 @@ public class Group extends IdentifiedComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(TYPE, type);
-        dataMap.set(PARENT_ID, parentId);
+        dataMap.set(PARENT_GROUP_ID, parentGroupId);
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION, description);
         dataMap.set(ADMINISTRATORS, administrators);
@@ -173,9 +180,9 @@ public class Group extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        type = dataMap.getEnum(TYPE, Type.class);
-        parentId = dataMap.getString(PARENT_ID);
-        name = dataMap.getString(NAME);
+        type = dataMap.getEnumRequired(TYPE, Type.class);
+        parentGroupId = dataMap.getString(PARENT_GROUP_ID);
+        name = dataMap.getStringRequired(NAME);
         description = dataMap.getString(DESCRIPTION);
         administrators = dataMap.getSet(ADMINISTRATORS, String.class);
     }

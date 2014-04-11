@@ -342,8 +342,8 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         userSettings.setUseWebService(useWebService);
         if (!useWebService) {
             userSettings.setLocale(locale);
+            userSettings.setHomeTimeZone(homeTimeZone);
         }
-        userSettings.setHomeTimeZone(homeTimeZone);
         if (currentTimeZoneEnabled) {
             userSettings.setCurrentTimeZone(currentTimeZone);
         }

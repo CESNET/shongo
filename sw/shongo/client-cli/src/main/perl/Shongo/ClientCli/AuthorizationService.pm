@@ -11,6 +11,7 @@ use Text::Table;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::ClientCli::API::Group;
 
 #
 # Populate shell by options for management of authorization.
@@ -57,17 +58,44 @@ sub populate()
         },
         'list-groups' => {
             desc => 'List user groups',
+            options => 'type=s',
+            args => '[-type=USER|SYSTEM]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                list_groups();
+                list_groups($params->{'options'});
+            }
+        },
+        'get-group' => {
+            desc => 'Get existing group',
+            args => '[id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_group($id);
+                    }
+                } else {
+                    get_group();
+                }
             }
         },
         'create-group' => {
             desc => 'Create user group',
-            args => '<name> <description>',
+            args => '[<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_group(@args);
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    create_group($attributes, $params->{'options'});
+                }
+            }
+        },
+        'modify-group' => {
+            desc => 'Modify user group',
+            args => '<group-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                modify_group(@args);
             }
         },
         'delete-group' => {
@@ -300,19 +328,26 @@ sub list_users()
 
 sub list_groups()
 {
-    my (@args) = @_;
+    my ($options, @args) = @_;
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_hash_request('Authorization.listGroups', {});
+    my $request = {};
+    if ( defined($options->{'type'}) ) {
+        $request->{'groupTypes'} = [];
+        foreach my $groupType (split(/,/, $options->{'type'})) {
+            push(@{$request->{'groupTypes'}}, $groupType);
+        }
+    }
+    my $response = $application->secure_hash_request('Authorization.listGroups', $request);
     if ( !defined($response) ) {
         return;
     }
     my $table = {
         'columns' => [
-            {'field' => 'id',          'title' => 'ID'},
-            {'field' => 'type',        'title' => 'Type'},
-            {'field' => 'parentId',    'title' => 'Parent ID'},
-            {'field' => 'name',        'title' => 'Name'},
-            {'field' => 'description', 'title' => 'Description'},
+            {'field' => 'id',            'title' => 'ID'},
+            {'field' => 'type',          'title' => 'Type'},
+            {'field' => 'parentGroupId', 'title' => 'Parent ID'},
+            {'field' => 'name',          'title' => 'Name'},
+            {'field' => 'description',   'title' => 'Description'},
         ],
         'data' => []
     };
@@ -320,7 +355,7 @@ sub list_groups()
         push(@{$table->{'data'}}, {
             'id' => $entry->{'id'},
             'type' => $entry->{'type'},
-            'parentId' => $entry->{'parentId'},
+            'parentGroupId' => $entry->{'parentGroupId'},
             'name' => $entry->{'name'},
             'description' => $entry->{'description'}
         });
@@ -328,19 +363,88 @@ sub list_groups()
     console_print_table($table);
 }
 
-sub create_group()
+sub get_group()
 {
-    my (@args) = @_;
-    if ( scalar(@args) < 2 ) {
-        console_print_error("Arguments '<name> <description>' must be specified.");
+    my ($id) = @_;
+    $id = select_group($id);
+    if ( !defined($id) ) {
         return;
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.createGroup', {
-        'name' => RPC::XML::string->new($args[0]),
-        'description' => RPC::XML::string->new($args[1])
-    });
-    if ( defined($response) && !ref($response) ) {
-        console_print_info("Group '%s' has been created.", $response);
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Authorization.getGroup',
+        RPC::XML::string->new($id)
+    );
+    if ( defined($response) ) {
+        my $resource = Shongo::ClientCli::API::Group->from_hash($response);
+        if ( defined($resource) ) {
+            console_print_text($resource);
+        }
+    }
+}
+
+sub select_group
+{
+    my ($id, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'id'}) ) {
+        $id = $attributes->{'id'};
+    }
+    $id = console_read_value('Identifier of the group', 0, undef, $id);
+    return $id;
+}
+
+sub create_group()
+{
+    my ($attributes, $options) = @_;
+
+    $options->{'on_confirm'} = sub {
+        my ($group) = @_;
+        console_print_info("Creating group...");
+        my $response = Shongo::ClientCli->instance()->secure_request(
+            'Authorization.createGroup',
+            $group->to_xml()
+        );
+        if ( defined($response) ) {
+            return $response;
+        }
+        return undef;
+    };
+
+    my $id = Shongo::ClientCli::API::Group->create($attributes, $options);
+    if ( defined($id) ) {
+        console_print_info("Group '%s' successfully created.", $id);
+    }
+}
+
+sub modify_group()
+{
+    my ($id, $attributes, $options) = @_;
+    $id = select_group($id, $attributes);
+    if ( !defined($id) ) {
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Authorization.getGroup',
+        RPC::XML::string->new($id)
+    );
+
+    $options->{'on_confirm'} = sub {
+        my ($resource) = @_;
+        console_print_info("Modifying group...");
+        my $response = Shongo::ClientCli->instance()->secure_request(
+            'Authorization.modifyGroup',
+            $resource->to_xml()
+        );
+        if ( defined($response) ) {
+            return $resource->{'id'};
+        }
+        return undef;
+    };
+
+    if ( defined($response) ) {
+        my $resource = Shongo::ClientCli::API::Group->from_hash($response);
+        if ( defined($resource) ) {
+            $resource->modify($attributes, $options);
+        }
     }
 }
 

@@ -383,6 +383,16 @@ public abstract class Authorization
     }
 
     /**
+     * @param userId
+     * @return true if the user is Shongo admin (should have all permissions),
+     * false otherwise
+     */
+    public final boolean isAdministrator(String userId)
+    {
+        return userId.equals(ROOT_USER_ID);
+    }
+
+    /**
      * @param securityToken
      * @return true if the user is Shongo admin (should have all permissions),
      * false otherwise

@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.ApiFault;
 import org.apache.xmlrpc.XmlRpcException;
 
 /**
- * Method invocation throws exception with {@link cz.cesnet.shongo.report.AbstractReport} which isn't {@link cz.cesnet.shongo.report.ApiFault}.
+ * Method invocation throws exception with {@link AbstractReport} which isn't {@link ApiFault}.
  */
 class RpcReportXmlRpcException extends XmlRpcException
 {

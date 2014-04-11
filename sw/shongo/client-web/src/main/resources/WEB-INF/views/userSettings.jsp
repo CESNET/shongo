@@ -90,7 +90,7 @@
                 </tag:help>
             </form:label>
             <div class="controls double-width">
-                <form:select path="homeTimeZone" tabindex="${tabIndex}" ng-model="homeTimeZone">
+                <form:select path="homeTimeZone" tabindex="${tabIndex}" ng-model="homeTimeZone" ng-disabled="useWebService">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <spring:eval expression="T(cz.cesnet.shongo.client.web.models.TimeZoneModel).getTimeZones(sessionScope.SHONGO_USER.locale)" var="timeZones"/>
                     <c:forEach items="${timeZones}" var="timeZone">
@@ -98,7 +98,7 @@
                     </c:forEach>
                 </form:select>&nbsp;
                 <br/>
-                <div ng-show="homeTimeZone == '' && (!currentTimeZoneEnabled || currentTimeZone == '')">
+                <div ng-show="!useWebService && homeTimeZone == '' && (!currentTimeZoneEnabled || currentTimeZone == '')">
                     <form:checkbox path="timeZoneDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.timeZoneDefaultWarning"/>
                 </div>
             </div>

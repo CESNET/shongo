@@ -28,6 +28,14 @@ class RpcRequestContext implements Reporter.ReportContext
      */
     UserInformation userInformation;
 
+    /**
+     * @return {@link #userInformation}
+     */
+    public UserInformation getUserInformation()
+    {
+        return userInformation;
+    }
+
     @Override
     public String getReportContextName()
     {
