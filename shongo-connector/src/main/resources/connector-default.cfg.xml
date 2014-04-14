@@ -104,7 +104,7 @@
                     <default-bitrate>768</default-bitrate>
                     <alias>999</alias>
                     <storage-url>/media/shongo-dev/storage</storage-url>
-                    <metadata-local-storage>/media/shongo-dev/metadata</metadata-local-storage>
+                    <metadata-local-storage-url>/media/shongo-dev/metadata</metadata-local-storage-url>
                     <recordings-prefix>shongo-dev</recordings-prefix>
                     <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
                 </options>

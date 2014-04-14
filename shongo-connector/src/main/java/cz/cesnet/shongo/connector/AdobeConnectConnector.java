@@ -63,6 +63,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private Pattern urlPathExtractionFromUri = null;
 
     /**
+     * Recordings prefix.
+     */
+//    private String RECORDINGS_PREFIX = "";
+
+    /**
      * Name of folder for meetings
      */
     protected String meetingsFolderName;
@@ -161,6 +166,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
         this.recordingsFolderName = getOption("recordings-folder-name");
         this.meetingsFolderName = getOption("meetings-folder-name");
+//        this.RECORDINGS_PREFIX = getOption("recordings-prefix") == null ? "" : getOption("recordings-prefix");
 
         this.login();
 

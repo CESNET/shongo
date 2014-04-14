@@ -144,9 +144,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     private boolean DEBUG = false;
 
     /**
-     * Storage unit for recordings
+     * Storage unit for recordings (can have slow access)
      */
     private AbstractStorage storage;
+
+    /**
+     * Local storage unit for recordings (quick access)
+     */
+    private AbstractStorage localStorage;
 
     /**
      * Concurrent list of recordings to be moved to storage.
@@ -173,15 +178,17 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             this.DEFAULT_BITRATE = getOption("default-bitrate");
         }
 
-        if (getOption("recordings-prefix") != null) {
-            this.RECORDINGS_PREFIX = getOption("recordings-prefix");
-        }
+        this.RECORDINGS_PREFIX = getOption("recordings-prefix") == null ? "" : getOption("recordings-prefix");
 
         if (getOption("alias") != null) {
             this.ALIAS = getOption("alias");
         }
         else {
             throw new RuntimeException("Option alias must be set in connector config file.");
+        }
+
+        if (getOption("metadata-local-storage-url") == null) {
+            throw new RuntimeException("Option metadata-local-storage-url must be set in connector config file.");
         }
 
         if (getOption("storage-url") == null) {
@@ -197,6 +204,16 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         }
 
         storage = new ApacheStorage(getOption("storage-url"), getOption("downloadable-url-base"),
+                new AbstractStorage.UserInformationProvider()
+                {
+                    @Override
+                    public UserInformation getUserInformation(String userId) throws CommandException
+                    {
+                        return getUserInformationById(userId);
+                    }
+                });
+
+        localStorage = new ApacheStorage(getOption("metadata-local-storage-url"), getOption("downloadable-url-base"),
                 new AbstractStorage.UserInformationProvider()
                 {
                     @Override
@@ -296,10 +313,16 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     @Override
     public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        //TODO: return id even if storage not accessible, info saved in alias
+        // Folder for recordings
+        // TODO: return id even if storage not accessible, info saved in alias
         Storage.Folder folder = new Storage.Folder(null, recordingFolder.getName());
         String folderId = storage.createFolder(folder);
         storage.setFolderPermissions(folderId, recordingFolder.getUserPermissions());
+
+        // Folder on local storage for metadata
+        if (!localStorage.createFolder(folder).equals(folderId)) {
+            throw new TodoImplementException("Fix folderId for metadata's and recording's folders.");
+        }
 
         return folderId;
     }
@@ -322,6 +345,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         synchronized (CiscoTCSConnector.class) {
             logger.debug("Removing recording folder (" + recordingFolderId + ").");
             storage.deleteFolder(recordingFolderId);
+            localStorage.deleteFolder(recordingFolderId);
 
             // Stop moving recordings and delete them
             for (Recording recording : recordingsToMove) {
@@ -350,7 +374,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public Collection<Recording> listRecordings(String folderId) throws CommandException, CommandUnsupportedException
     {
         List<Recording> recordings = new ArrayList<Recording>();
-        for (Storage.File file : storage.listFiles(folderId, null)) {
+        for (Storage.File file : localStorage.listFiles(folderId, null)) {
             if (isMetadataFilename(file.getFileName())) {
                 Recording recording = getRecording(makeRecordingId(folderId, getFileId(file.getFileName()), "null"));
                 recordings.add(recording);
@@ -415,7 +439,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             String folderId = selectFolderId(recordingId);
             String fileId = selectFileId(recordingId);
 
-            InputStream inputStream = storage.getFileContent(folderId, getMetadataFilename(fileId));
+            InputStream inputStream = localStorage.getFileContent(folderId, getMetadataFilename(fileId));
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
@@ -605,7 +629,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
             // delete existing and create new metadata file
             try {
-            storage.deleteFile(recordingFolderId, getMetadataFilename(selectFileId(recordingId)));
+                storage.deleteFile(recordingFolderId, getMetadataFilename(selectFileId(recordingId)));
+                localStorage.deleteFile(recordingFolderId, getMetadataFilename(selectFileId(recordingId)));
             } catch (Exception e) {
                 logger.warn("Deleting of temporary metadata file failed (recording ID: " + recordingId + ")",e);
             }
@@ -627,6 +652,10 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         for (Storage.File file : storage.listFiles(folderId, fileId)) {
             if (file.getFileName().contains(fileId)) {
                 storage.deleteFile(folderId, file.getFileName());
+
+                if (isMetadataFilename(file.getFileName())) {
+                    localStorage.deleteFile(folderId, file.getFileName());
+                }
             }
         }
     }
@@ -914,6 +943,8 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         storage.createFile(metadataFile,
                 new ByteArrayInputStream(xmlOutputter.outputString(recordingXmlData).getBytes()));
+        localStorage.createFile(metadataFile,
+                new ByteArrayInputStream(xmlOutputter.outputString(recordingXmlData).getBytes()));
     }
 
     /**
@@ -1052,7 +1083,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                 List<Recording> allRecordings = getOriginalRecordingsByName(":flr:");
 
                 Set<String> existingFolderNames = new HashSet<String>();
-                for (Storage.Folder folder : storage.listFolders(null, null)) {
+                for (Storage.Folder folder : localStorage.listFolders(null, null)) {
                     existingFolderNames.add(folder.getFolderId());
                 }
 
