@@ -38,7 +38,7 @@ public class AuthorizationTest extends AbstractControllerTest
     {
         AuthorizationService authorization = getAuthorizationService();
         String userId = getUserId(SECURITY_TOKEN_USER1);
-        String groupId = authorization.createGroup(SECURITY_TOKEN_ROOT, new Group("test"));
+        String groupId = authorization.createGroup(SECURITY_TOKEN_ROOT, new Group("test", Group.Type.USER));
         authorization.addGroupUser(SECURITY_TOKEN_ROOT, groupId, userId);
 
         Resource resource = new Resource();

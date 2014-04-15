@@ -108,8 +108,8 @@ public class DummyAuthorization extends Authorization
         super(configuration, entityManagerFactory);
 
         this.administratorAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
-        createGroup(new Group(ADMINISTRATION_GROUP_NAME));
-        createGroup(new Group(RESERVATION_GROUP_NAME));
+        createGroup(new Group(ADMINISTRATION_GROUP_NAME, Group.Type.SYSTEM));
+        createGroup(new Group(RESERVATION_GROUP_NAME, Group.Type.SYSTEM));
 
         initialize();
     }

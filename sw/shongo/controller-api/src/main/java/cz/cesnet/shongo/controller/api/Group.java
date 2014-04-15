@@ -51,9 +51,10 @@ public class Group extends IdentifiedComplexType
      *
      * @param name sets the {@link #name}
      */
-    public Group(String name)
+    public Group(String name, Type type)
     {
         this.name = name;
+        this.type = type;
     }
 
     /**

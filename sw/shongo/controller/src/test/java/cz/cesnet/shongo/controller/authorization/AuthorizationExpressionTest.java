@@ -30,7 +30,7 @@ public class AuthorizationExpressionTest extends AbstractControllerTest
         authorization.setUserAuthorizationData(SECURITY_TOKEN_USER1, new UserAuthorizationData(2));
         Assert.assertTrue(evaluate("loa == 2", SECURITY_TOKEN_USER1));
 
-        String groupId = authorizationService.createGroup(SECURITY_TOKEN_ROOT, new Group("test"));
+        String groupId = authorizationService.createGroup(SECURITY_TOKEN_ROOT, new Group("test", Group.Type.USER));
         Assert.assertFalse(evaluate("group('test').contains(id)", SECURITY_TOKEN_USER2));
         authorizationService.addGroupUser(SECURITY_TOKEN_ROOT, groupId, getUserId(SECURITY_TOKEN_USER2));
         Assert.assertTrue(evaluate("group('test').contains(id)", SECURITY_TOKEN_USER2));
