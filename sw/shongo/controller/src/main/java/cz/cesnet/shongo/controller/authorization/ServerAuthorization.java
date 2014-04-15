@@ -447,7 +447,8 @@ public class ServerAuthorization extends Authorization
     @Override
     protected Set<String> onListUserGroupIds(String userId)
     {
-        return performGetRequest(authorizationServer + USER_SERVICE_PATH + "/" + userId + "/groups",
+        String url = authorizationServer + USER_SERVICE_PATH + "/" + userId + "/groups?filter_type=user";
+        return performGetRequest(url,
                 "Retrieving group-ids for user " + userId + " failed",
                 new RequestHandler<Set<String>>()
                 {
