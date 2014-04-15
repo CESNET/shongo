@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -35,6 +37,8 @@ import java.util.jar.Manifest;
  */
 public class ClientWeb
 {
+    private static Logger logger = LoggerFactory.getLogger(ClientWeb.class);
+
     public static void main(final String[] arguments) throws Exception
     {
         Locale.setDefault(UserSettings.LOCALE_ENGLISH);
@@ -72,6 +76,7 @@ public class ClientWeb
         webAppContext.setContextPath("/");
         webAppContext.setParentLoaderPriority(true);
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
+            logger.info("Using '{}' as resource base.", arguments[0]);
             webAppContext.setResourceBase(arguments[0]);
         }
         else {
