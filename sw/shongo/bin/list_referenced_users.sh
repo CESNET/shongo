@@ -16,7 +16,7 @@ do
         result=$(bin/client_cli.sh src --connect $HOST --root --scripting --cmd "get-user $user_id" \
             | tr -d '\n' \
             | grep "\[ " \
-            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Email" : "\([^"]\+\)".*/\1 \2;\3/g')
+            | sed 's/.*"First Name" : "\([^"]\+\)".*"Last Name" : "\([^"]\+\)".*"Principal Names" : \[ *"\([^"]\+\)".*"Email" : "\([^"]\+\)".*/\3;\1 \2;\4/g')
         if [[ -z "$result" ]]
         then
             result="<not-exist>; "
