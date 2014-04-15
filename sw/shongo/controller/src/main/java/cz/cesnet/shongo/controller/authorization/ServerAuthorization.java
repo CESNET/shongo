@@ -854,6 +854,13 @@ public class ServerAuthorization extends Authorization
                 userData.setTimeZone(timeZone);
             }
         }
+        if (data.has("zoneinfo")) {
+            JsonNode timezone = data.get("zoneinfo");
+            if (!timezone.isNull()) {
+                DateTimeZone timeZone = DateTimeZone.forID(timezone.getTextValue());
+                userData.setTimeZone(timeZone);
+            }
+        }
         if (data.has("authentication_info")) {
             JsonNode authenticationInfo = data.get("authentication_info");
             if (authenticationInfo.has("provider") && authenticationInfo.has("loa")) {
