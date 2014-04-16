@@ -173,6 +173,8 @@ public class ClientWebUrl
             USER_SETTINGS + "/{name}/{value}";
     public static final String USER_LIST_DATA =
             "/user/list/data";
+    public static final String USER_TOKEN =
+            "/user/token";
     public static final String GROUP_LIST_DATA =
             "/group/list/data";
 

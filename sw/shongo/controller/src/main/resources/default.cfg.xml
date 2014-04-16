@@ -46,8 +46,8 @@
         <!-- Client ID and secret for AA server  -->
         <client-id>shongo-controller</client-id>
         <client-secret>307e64dbdff788d7f85b814d609be38f</client-secret>
-        <!-- Specifies access token which won't be verified and can be used for testing purposes -->
-        <root-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</root-access-token>
+        <!-- Specifies filename where the root access token will be written when controller starts -->
+        <root-access-token>root.access-token</root-access-token>
         <!-- Specifies authorization cache expiration -->
         <expiration>
             <!-- Expiration of user-id by access-token -->

@@ -28,11 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.net.URLEncoder;
+import java.security.SecureRandom;
 import java.util.*;
 
 /**
@@ -121,21 +121,17 @@ public class ServerAuthorization extends Authorization
         requestAuthorizationHeader = "Basic " + Base64.encode(bytes, 0, bytes.length, 0, "");
 
         // Root access token
-        rootAccessToken = configuration.getString(ControllerConfiguration.SECURITY_ROOT_ACCESS_TOKEN);
+        rootAccessToken = new BigInteger(160, new SecureRandom()).toString(16);
+        String rootAccessTokenFile = configuration.getString(ControllerConfiguration.SECURITY_ROOT_ACCESS_TOKEN_FILE);
+        if (rootAccessTokenFile != null) {
+            writeRootAccessToken(rootAccessTokenFile, rootAccessToken);
+        }
         administratorAccessTokens.add(rootAccessToken);
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
 
         initialize();
-    }
-
-    /**
-     * @param rootAccessToken sets the {@link #rootAccessToken}
-     */
-    public void setRootAccessToken(String rootAccessToken)
-    {
-        this.rootAccessToken = rootAccessToken;
     }
 
     /**
@@ -503,7 +499,8 @@ public class ServerAuthorization extends Authorization
     {
         JsonNode groupData = createWebServiceDataFromGroup(group);
         String groupId = group.getId();
-        performPatchRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId, groupData, "Creating group failed",
+        performPatchRequest(authorizationServer + GROUP_SERVICE_PATH + "/" + groupId, groupData,
+                "Creating group failed",
                 new RequestHandler<String>()
                 {
                     @Override
@@ -633,7 +630,8 @@ public class ServerAuthorization extends Authorization
     /**
      * @see #performRequest
      */
-    private <T> T performPatchRequest(String url, JsonNode content, String description, RequestHandler<T> requestHandler)
+    private <T> T performPatchRequest(String url, JsonNode content, String description,
+            RequestHandler<T> requestHandler)
     {
         StringEntity entity;
         try {
@@ -1044,6 +1042,46 @@ public class ServerAuthorization extends Authorization
         ServerAuthorization serverAuthorization = new ServerAuthorization(configuration, entityManagerFactory);
         Authorization.setInstance(serverAuthorization);
         return serverAuthorization;
+    }
+
+    /**
+     * @param fileName    where to write
+     * @param accessToken to be written
+     */
+    private static void writeRootAccessToken(String fileName, String accessToken)
+    {
+        try {
+            File file = new File(fileName);
+            if (!file.exists()) {
+                file.createNewFile();
+                chmod(fileName, 0600);
+            }
+            BufferedWriter output = new BufferedWriter(new FileWriter(file));
+            output.write(accessToken);
+            output.close();
+        }
+        catch (IOException exception) {
+            logger.error("Cannot write root access token to file " + fileName, exception);
+        }
+    }
+
+    /**
+     * @param fileName
+     * @param mode
+     * @return result of chmod
+     */
+    private static int chmod(String fileName, int mode)
+    {
+        try {
+            Class<?> fspClass = Class.forName("java.util.prefs.FileSystemPreferences");
+            Method chmodMethod = fspClass.getDeclaredMethod("chmod", String.class, Integer.TYPE);
+            chmodMethod.setAccessible(true);
+            return (Integer) chmodMethod.invoke(null, fileName, mode);
+        }
+        catch (Throwable throwable) {
+            logger.error("Cannot chmod file " + fileName + " to mode " + mode, throwable);
+            return -1;
+        }
     }
 
     /**

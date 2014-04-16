@@ -141,9 +141,9 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SECURITY_EXPIRATION_GROUP = "security.expiration.group";
 
     /**
-     * Specifies access token which won't be verified and can be used for testing purposes.
+     * Specifies filename where the root access token will be written when controller starts.
      */
-    public static final String SECURITY_ROOT_ACCESS_TOKEN = "security.root-access-token";
+    public static final String SECURITY_ROOT_ACCESS_TOKEN_FILE = "security.root-access-token";
 
     /**
      * Specifies expression which decides whether user is a system administrator

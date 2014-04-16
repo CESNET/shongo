@@ -28,6 +28,7 @@ import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -166,6 +167,13 @@ public class UserController
             ListResponse<UserInformation> response = authorizationService.listUsers(request);
             return response.getItems();
         }
+    }
+
+    @RequestMapping(value = ClientWebUrl.USER_TOKEN, method = RequestMethod.GET)
+    @ResponseBody
+    public String handleUserToken(SecurityToken securityToken, HttpServletResponse response)
+    {
+        return securityToken.getAccessToken();
     }
 
     /**

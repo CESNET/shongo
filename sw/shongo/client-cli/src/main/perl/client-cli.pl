@@ -39,9 +39,8 @@ sub usage {
       $message,
       "usage: $command [options]\n" .
       "    -help                          Show this usage information\n" .
-      "    -connect=<URL>                 Connect to a controller\n" .
-      "    -root                          Use root access token for authentication\n" .
-      "    -access-token=<TOKEN>          Use specified access token for authentication\n" .
+      "    -connect=<URL>                 Connect to a specified controller\n" .
+      "    -token=<TOKEN>                 Use specified access token for authentication\n" .
       "    -authentication-server=<HOST>  Use given authentication server\n" .
       "    -scripting                     Switch to scripting mode\n" .
       "    -cmd=<COMMAND>                 Perform given command in controller\n" .
@@ -62,8 +61,7 @@ my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
-    'root' => \$root_access_token,
-    'access-token=s' => \$access_token,
+    'token=s' => \$access_token,
     'authentication-server:s' => \$authentication_server,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
@@ -81,13 +79,18 @@ my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
 $controller->set_authorization_url('https://' . $authentication_server);
 
-# Set root access token
-if (defined($root_access_token)) {
-    $controller->{'client'}->set_access_token('1e3f174ceaa8e515721b989b19f71727060d0839');
-}
 # Set specified access token
-elsif (defined($access_token)) {
+if (defined($access_token)) {
     $controller->{'client'}->set_access_token($access_token);
+}
+# Set root access token
+else {
+    my $root_access_token_file = 'root.access-token';
+    open(FILE, $root_access_token_file) || die "Error openning file $root_access_token_file: $!\n";
+    my @lines = <FILE>;
+    my $root_access_token = $lines[0];
+    close(FILE);
+    $controller->{'client'}->set_access_token($root_access_token);
 }
 
 if ( $scripting eq 0 ) {
@@ -95,18 +98,15 @@ if ( $scripting eq 0 ) {
     print "\n";
 }
 
-# Connect to controller
-if ( defined($connect) ) {
-    if ( $connect eq '') {
-        $connect = 'http://127.0.0.1:8181';
+if ( !defined($connect) || $connect eq '' ) {
+    $connect = 'http://127.0.0.1:8181';
+}
+if ( $controller->connect($connect)) {
+    if ( !$controller->is_scripting() ) {
+        $controller->status();
     }
-    if ( $controller->connect($connect)) {
-        if ( !$controller->is_scripting() ) {
-            $controller->status();
-        }
-    } else {
-        exit(-1);
-    }
+} else {
+    exit(-1);
 }
 
 # load history
