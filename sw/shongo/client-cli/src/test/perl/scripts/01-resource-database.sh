@@ -7,7 +7,7 @@ MCU_CESNET_LICENSE_COUNT=10
 MCU_CESNET_NUMBER_PREFIX=950087
 MCU_CESNET_NUMBER_RANGE=090:099
 
-bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
+bin/client_cli.sh --connect $CONTROLLER --scripting <<EOF
 
     create-resource {
         class: 'Resource',
@@ -157,7 +157,7 @@ bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
 
 EOF
 
-bin/client_cli.sh --connect $CONTROLLER --root \
+bin/client_cli.sh --connect $CONTROLLER \
 --cmd "list-resources" \
 --cmd "get-resource 1" \
 --cmd "get-resource 2" \

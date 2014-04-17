@@ -12,7 +12,7 @@ To run controller on localhost at port 8181 type:
 
 To connect to the controller use the client application:
 
-    bin/client_cli.sh --connect localhost --root
+    bin/client_cli.sh
 
 
 

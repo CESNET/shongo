@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 CONTROLLER=127.0.0.1:8686
 
-bin/client_cli.sh --connect $CONTROLLER --root --scripting <<EOF
+bin/client_cli.sh --connect $CONTROLLER --scripting <<EOF
 
     create-reservation-request {
         class: 'ReservationRequest',
@@ -65,7 +65,7 @@ EOF
 echo "Waiting for allocation..."
 sleep 2
 
-bin/client_cli.sh --connect $CONTROLLER --root \
+bin/client_cli.sh --connect $CONTROLLER \
 --cmd "list-reservation-requests" \
 --cmd "get-reservation-request 1" \
 --cmd "get-reservation-for-request 1" \

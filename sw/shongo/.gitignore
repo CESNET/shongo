@@ -8,6 +8,7 @@
 .idea/workspace.xml
 .idea/sqldialects.xml
 .jade
+backup/
 bin/create_test*
 data/
 keystore/
@@ -20,5 +21,6 @@ target/
 client-web.cfg.xml
 controller.cfg.xml
 connector.cfg.xml
+root.access-token
 *.fsps
 *.class
