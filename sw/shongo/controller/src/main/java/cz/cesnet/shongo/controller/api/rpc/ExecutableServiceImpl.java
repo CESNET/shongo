@@ -612,8 +612,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             executableToUpdate.setNextAttempt(null);
                         }
                     }
+                    // If executable is not started
+                    else if (executableState.equals(
+                            cz.cesnet.shongo.controller.booking.executable.Executable.State.NOT_STARTED)) {
+                        executableToUpdate.setState(
+                                cz.cesnet.shongo.controller.booking.executable.Executable.State.STOPPED);
+                    }
                     // If executable failed to finalize, set it as finalized or prepare the finalization again
-                    if (executableState.equals(
+                    else if (executableState.equals(
                             cz.cesnet.shongo.controller.booking.executable.Executable.State.FINALIZATION_FAILED)) {
                         if (Boolean.TRUE.equals(skipExecution)) {
                             executableToUpdate.setState(

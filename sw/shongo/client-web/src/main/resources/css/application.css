@@ -140,6 +140,10 @@ dl.dl-horizontal dt.control-label {
 dl.dl-horizontal dd select {
     margin-bottom: 0px;
 }
+dl.dl-horizontal .alert {
+    display: table;
+    margin-top: 5px;
+}
 
 /* Tabs */
 .tabbable {
@@ -525,6 +529,12 @@ b[class^="icon-"]:before {
     height: 14px;
     display: inline-block;
 }
+.icon-red {
+    color: red;
+}
+.icon-green {
+    color: green;
+}
 .icon-not-available {
     display: inline-block;
     width: 14px;
@@ -710,7 +720,7 @@ div.not-available {
 }
 
 /* information box */
-div.center {
+div.center-content {
     text-align: center;
 }
 div.information-box {

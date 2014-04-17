@@ -154,6 +154,11 @@
             <tag:help label="${stateLabel}" cssClass="${reservationRequest.detail.state}">
                 ${reservationRequest.detail.stateHelp}
             </tag:help>
+            <c:if test="${reservationRequest.detail.state == 'NOT_ALLOCATED' && reservationRequest.slot.afterNow}">
+                <div class="alert alert-warning">
+                    <spring:message code="views.reservationRequestDetail.waitingForAllocation"/>...
+                </div>
+            </c:if>
         </dd>
     </c:if>
 

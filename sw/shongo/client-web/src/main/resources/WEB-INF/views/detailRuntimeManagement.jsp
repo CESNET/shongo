@@ -287,6 +287,7 @@
             <tr>
                 <th><spring:message code="views.room.currentParticipant.name"/></th>
                 <c:if test="${room.technology == 'H323_SIP'}">
+                    <th><spring:message code="views.room.currentParticipant.alias"/></th>
                     <th style="min-width: 150px; width: 150px;">
                         <spring:message code="views.room.currentParticipant.preview"/>
                     </th>
@@ -302,11 +303,15 @@
             </thead>
             <tbody>
             <tr ng-repeat="roomParticipant in items">
-                <td>{{roomParticipant.name}}
+                <td>
+                    {{roomParticipant.name}}
                 </td>
                 <c:if test="${room.technology == 'H323_SIP'}">
                     <td>
-                        <span ng-show="roomParticipant.videoSnapshot">
+                        {{roomParticipant.alias}}
+                    </td>
+                    <td>
+                        <span ng-show="!roomParticipant.videoMuted && roomParticipant.videoSnapshot">
                             <tag:url var="participantVideoSnapshotUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_VIDEO_SNAPSHOT %>">
                                 <tag:param name="objectId" value="${room.id}"/>
                                 <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
@@ -334,13 +339,13 @@
                         <span ng-show="roomParticipant.audioMuted != null">
                             <spring:message var="participantAudioMuteTitle" code="views.room.currentParticipant.audioMuted.disable"/>
                             <spring:message var="participantAudioUnMuteTitle" code="views.room.currentParticipant.audioMuted.enable"/>
-                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?audioMuted=' + !roomParticipant.audioMuted)" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-{{roomParticipant.audioMuted ? 'off' : 'up'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?audioMuted=' + !roomParticipant.audioMuted)" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-up icon-{{roomParticipant.audioMuted ? 'red' : 'green'}}"></i></a>&nbsp;
                         </span>
                         <%-- Mute video --%>
                         <span ng-show="roomParticipant.videoMuted != null">
                             <spring:message var="participantVideoMuteTitle" code="views.room.currentParticipant.videoMuted.disable"/>
                             <spring:message var="participantVideoUnMuteTitle" code="views.room.currentParticipant.videoMuted.enable"/>
-                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?videoMuted=' + !roomParticipant.videoMuted)" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-{{roomParticipant.videoMuted ? 'minus-sign-alt' : 'facetime-video'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?videoMuted=' + !roomParticipant.videoMuted)" title="{{roomParticipant.videoMuted ? '${participantVideoUnMuteTitle}' : '${participantVideoMuteTitle}'}}"><i class="icon-{{roomParticipant.videoMuted ? 'minus-sign-alt' : 'facetime-video'}} icon-{{roomParticipant.videoMuted ? 'red' : 'green'}}"></i></a>&nbsp;
                         </span>
                         <%-- Modify dialog --%>
                         <span ng-show="isEditable(roomParticipant)">

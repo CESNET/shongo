@@ -64,6 +64,8 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
 
+    private static final Pattern E164_PATTERN = Pattern.compile("^\\+?\\d{9,14}$");
+
     /**
      * Options for the {@link CiscoMCUConnector}.
      */
@@ -1305,14 +1307,30 @@ ParamsLoop:
     private RoomParticipant extractRoomParticipant(Map<String, Object> participant)
     {
         RoomParticipant roomParticipant = new RoomParticipant();
+        RoomParticipantIdentifier identifier = new RoomParticipantIdentifier(participant);
+        String protocol = identifier.getParticipantProtocol();
 
         String roomId = (String) participant.get("conferenceName");
-        roomParticipant.setId(new RoomParticipantIdentifier(participant).toString());
+        roomParticipant.setId(identifier.toString());
         roomParticipant.setRoomId(roomId);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
 
+        String address = (String) state.get("address");
+        AliasType aliasType;
+        if (protocol.equals("sip")) {
+            aliasType = AliasType.SIP_URI;
+        }
+        else {
+            if (E164_PATTERN.matcher(address).matches()) {
+                aliasType = AliasType.H323_E164;
+            }
+            else {
+                aliasType = AliasType.H323_URI;
+            }
+        }
+        roomParticipant.setAlias(new Alias(aliasType, address));
         roomParticipant.setDisplayName((String) state.get("displayName"));
 
         roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));

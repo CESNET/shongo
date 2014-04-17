@@ -150,9 +150,11 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             if (userId != null) {
                 user = cacheProvider.getUserInformation(userId);
             }
+            Alias alias = roomParticipant.getAlias();
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", roomParticipant.getId());
             item.put("name", (user != null ? user.getFullName() : roomParticipant.getDisplayName()));
+            item.put("alias", (alias != null ? alias.getValue() : null));
             ParticipantRole roomParticipantRole = roomParticipant.getRole();
             if (roomParticipantRole != null) {
                 item.put("role",

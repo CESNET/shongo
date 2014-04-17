@@ -72,7 +72,7 @@
 
     </form>
 
-    <div id="content" class="center">
+    <div id="content" class="center-content">
     </div>
 
 

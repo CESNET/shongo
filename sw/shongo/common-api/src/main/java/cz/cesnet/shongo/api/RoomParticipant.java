@@ -21,6 +21,11 @@ public class RoomParticipant extends IdentifiedComplexType
     private String userId;
 
     /**
+     * {@link Alias} which uses the user for connecting.
+     */
+    private Alias alias;
+
+    /**
      * Name of the user displayed to the others (e.g., name of the person, physical room name...).
      */
     private String displayName;
@@ -107,6 +112,22 @@ public class RoomParticipant extends IdentifiedComplexType
     public void setUserId(String userId)
     {
         this.userId = userId;
+    }
+
+    /**
+     * @return {@link #alias}
+     */
+    public Alias getAlias()
+    {
+        return alias;
+    }
+
+    /**
+     * @param alias sets the {@link #alias}
+     */
+    public void setAlias(Alias alias)
+    {
+        this.alias = alias;
     }
 
     /**
@@ -244,6 +265,7 @@ public class RoomParticipant extends IdentifiedComplexType
 
     public static final String ROOM_ID = "roomId";
     public static final String USER_ID = "userId";
+    public static final String ALIAS = "alias";
     public static final String DISPLAY_NAME = "displayName";
     public static final String ROLE = "role";
     public static final String JOIN_TIME = "joinTime";
@@ -259,6 +281,7 @@ public class RoomParticipant extends IdentifiedComplexType
         DataMap dataMap = super.toData();
         dataMap.set(ROOM_ID, roomId);
         dataMap.set(USER_ID, userId);
+        dataMap.set(ALIAS, alias);
         dataMap.set(DISPLAY_NAME, displayName);
         dataMap.set(ROLE, role);
         dataMap.set(JOIN_TIME, joinTime);
@@ -276,6 +299,7 @@ public class RoomParticipant extends IdentifiedComplexType
         super.fromData(dataMap);
         roomId = dataMap.getString(ROOM_ID);
         userId = dataMap.getString(USER_ID);
+        alias = dataMap.getComplexType(ALIAS, Alias.class);
         displayName = dataMap.getString(DISPLAY_NAME);
         role = dataMap.getEnum(ROLE, ParticipantRole.class);
         joinTime = dataMap.getDateTime(JOIN_TIME);

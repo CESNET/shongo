@@ -149,7 +149,7 @@
 <%-- When user is logged in the detection can last longer and thus show message with cancel button --%>
 <security:authorize access="isAuthenticated()">
 <body>
-<div class="center">
+<div class="center-content">
     <div class="information-box">
         <span class="spinner"></span>
         <span><spring:message code="views.timeZone.detect"/></span>
