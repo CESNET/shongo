@@ -27,6 +27,11 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
     public final static String SLOT_AFTER_ATTRIBUTE = "client-web.slot.after";
 
     /**
+     * @see UserSettings
+     */
+    private UserSettings userSettings;
+
+    /**
      * @see UserSettings#useWebService
      */
     private boolean useWebService;
@@ -311,6 +316,7 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      */
     public void fromApi(UserSettings userSettings)
     {
+        this.userSettings = userSettings;
         this.useWebService = userSettings.isUseWebService();
         this.locale = userSettings.getLocale();
         this.localeDefaultWarning = !userSettings.getAttributeBool(IGNORE_DEFAULT_LOCALE_ATTRIBUTE);
@@ -337,8 +343,6 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
      */
     public UserSettings toApi()
     {
-
-        UserSettings userSettings = new UserSettings();
         userSettings.setUseWebService(useWebService);
         if (!useWebService) {
             userSettings.setLocale(locale);
