@@ -11,12 +11,13 @@ CONTROLLER=127.0.0.1
 
 function check_controller
 {
-    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --scripting --cmd "status" 2> /dev/null)
+    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --scripting --cmd "status" 2>&1)
     if echo $RESULT | grep -s '"status"\s*:\s*"AVAILABLE"' > /dev/null; then
         echo "OK (controller available at '$CONTROLLER' for domain '`echo $RESULT | sed -s 's/^.\+"name" : "\([^"]\+\)".\+$/\1/'`')"
         exit 0
     else
         echo "FAILED (controller not available at '$CONTROLLER')"
+        echo $RESULT
         exit 2
     fi
 }
@@ -24,9 +25,10 @@ function check_controller
 function check_connector
 {
     AGENTS=$(echo $1 | sed -s 's/,/ /g')
-    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --scripting --cmd "list-connectors" 2> /dev/null)
-    if [ -z "$RESULT" ]; then
+    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --scripting --cmd "list-connectors" 2>&1)
+    if [[ $RESULT != [* ]]; then
         echo "FAILED (controller not available at '$CONTROLLER')"
+        echo $RESULT
         exit 2
     fi
     RESULT=$(echo $RESULT | sed -s 's/}, {/\n/g' | sed -s 's/^.\+"status" : "\([^"]\+\)".\+"agent" : "\([^"]\+\)".\+$/\2=\1/')
@@ -84,7 +86,7 @@ case $1 in
     connector)
         check_connector $2
         ;;
-    client_web)
+    client-web)
         check_client_web
         ;;
     *)
