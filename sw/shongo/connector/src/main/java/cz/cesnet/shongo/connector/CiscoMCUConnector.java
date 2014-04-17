@@ -350,6 +350,10 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         cmd.setParameter("startLocked", Boolean.FALSE);
         cmd.setParameter("conferenceMeEnabled", Boolean.FALSE);
 
+        // Set default layout to SPEAKER_CORNER
+        if (room.getLayout() == null) {
+            room.setLayout(RoomLayout.SPEAKER_CORNER);
+        }
         setConferenceParametersByRoom(cmd, room);
 
         // Room name must be filled
