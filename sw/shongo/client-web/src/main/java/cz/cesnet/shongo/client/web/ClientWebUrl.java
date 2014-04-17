@@ -183,7 +183,7 @@ public class ClientWebUrl
     public static final String ROOM_LIST_DATA =
             "/room/list/data";
     public static final String ROOM_DATA =
-            "/room/{roomId:.+}/data";
+            "/room/{objectId:.+}/data";
 
     public static final String RESOURCE_RESERVATIONS_VIEW =
             "/resource/reservations";

@@ -82,7 +82,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     protected Integer roomParticipantCount;
 
-    protected Integer roomPin;
+    protected String roomPin;
 
     protected boolean roomRecorded;
 
@@ -390,12 +390,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         this.roomParticipantCount = roomParticipantCount;
     }
 
-    public Integer getRoomPin()
+    public String getRoomPin()
     {
         return roomPin;
     }
 
-    public void setRoomPin(Integer roomPin)
+    public void setRoomPin(String roomPin)
     {
         this.roomPin = roomPin;
     }
@@ -540,7 +540,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                     H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
                     if (h323RoomSetting.getPin() != null) {
                         try {
-                            roomPin = Integer.parseInt(h323RoomSetting.getPin());
+                            roomPin = String.valueOf(Integer.parseInt(h323RoomSetting.getPin()));
                         }
                         catch (NumberFormatException exception) {
                             logger.warn("Failed parsing pin", exception);
@@ -549,14 +549,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 }
                 if (roomSetting instanceof AdobeConnectRoomSetting) {
                     AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) roomSetting;
-                    if (adobeConnectRoomSetting.getPin() != null) {
-                        try {
-                            roomPin = Integer.parseInt(adobeConnectRoomSetting.getPin());
-                        }
-                        catch (NumberFormatException exception) {
-                            logger.warn("Failed parsing pin", exception);
-                        }
-                    }
+                    roomPin = adobeConnectRoomSetting.getPin();
                     roomAccessMode = adobeConnectRoomSetting.getAccessMode();
                 }
             }
@@ -776,15 +769,15 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             }
             roomSpecification.addParticipant(participant.toApi());
         }
-        if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
+        if (technology.equals(TechnologyModel.H323_SIP) && !Strings.isNullOrEmpty(roomPin)) {
             H323RoomSetting h323RoomSetting = new H323RoomSetting();
-            h323RoomSetting.setPin(roomPin.toString());
+            h323RoomSetting.setPin(roomPin);
             roomSpecification.addRoomSetting(h323RoomSetting);
         }
         if (technology.equals(TechnologyModel.ADOBE_CONNECT)) {
             AdobeConnectRoomSetting adobeConnectRoomSetting = new AdobeConnectRoomSetting();
-            if (roomPin != null) {
-                adobeConnectRoomSetting.setPin(roomPin.toString());
+            if (!Strings.isNullOrEmpty(roomPin)) {
+                adobeConnectRoomSetting.setPin(roomPin);
             }
             adobeConnectRoomSetting.setAccessMode(roomAccessMode);
             roomSpecification.addRoomSetting(adobeConnectRoomSetting);

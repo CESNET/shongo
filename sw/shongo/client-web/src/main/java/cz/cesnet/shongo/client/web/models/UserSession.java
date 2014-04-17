@@ -54,6 +54,13 @@ public class UserSession implements Serializable
     private boolean timeZoneDefaultWarning = true;
 
     /**
+     * {@link DateTimeZone} which was detected from client web-browser for current session.
+     *
+     * We don't want to perform multiple detections for single user session.
+     */
+    private DateTimeZone detectedTimeZone;
+
+    /**
      * @see UserSettingsModel
      */
     private UserSettingsModel userSettings;
@@ -144,6 +151,22 @@ public class UserSession implements Serializable
     }
 
     /**
+     * @return {@link #detectedTimeZone}
+     */
+    public DateTimeZone getDetectedTimeZone()
+    {
+        return detectedTimeZone;
+    }
+
+    /**
+     * @param detectedTimeZone sets the {@link #detectedTimeZone}
+     */
+    public void setDetectedTimeZone(DateTimeZone detectedTimeZone)
+    {
+        this.detectedTimeZone = detectedTimeZone;
+    }
+
+    /**
      * @return {@link #userSettings}
      */
     public UserSettingsModel getUserSettings()
@@ -223,6 +246,7 @@ public class UserSession implements Serializable
             localeDefaultWarning = userSettings.isLocaleDefaultWarning();
         }
 
+        // Set timezone from user settings
         homeTimeZone = userSettings.getHomeTimeZone();
         DateTimeZone timeZone = (userSettings.isCurrentTimeZoneEnabled() ? userSettings.getCurrentTimeZone() : null);
         if (timeZone == null) {
@@ -235,6 +259,14 @@ public class UserSession implements Serializable
         else {
             setTimeZone(null);
             timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
+        }
+
+        // When timezone should be detected and the detection is already done, use the already detected timezone
+        if (this.timeZone == null && detectedTimeZone != null) {
+            this.timeZone = detectedTimeZone;
+        }
+        if (this.homeTimeZone == null && detectedTimeZone != null) {
+            this.homeTimeZone = detectedTimeZone;
         }
 
         update(request, token.getUserInformation());

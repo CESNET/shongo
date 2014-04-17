@@ -66,7 +66,7 @@
         <tag:param name="participant-user-id" value="${userId}"/>
     </tag:url>
     <tag:url var="participantRoomUrl" value="<%= ClientWebUrl.ROOM_DATA %>">
-        <tag:param name="roomId" value=":roomId"/>
+        <tag:param name="objectId" value=":objectId"/>
     </tag:url>
     <tag:url var="helpUrl" value="<%= ClientWebUrl.HELP %>"/>
 
@@ -98,10 +98,15 @@
         });
         module.controller("ParticipantRoomController", function($scope, $application) {
             $scope.formatAliases = function(executableId, event){
-                $.ajax("${participantRoomUrl}".replace(":roomId", executableId), {
+                $.ajax("${participantRoomUrl}".replace(":objectId", executableId), {
                     dataType: "json"
                 }).done(function (data) {
-                    event.setResult(data.aliases);
+                    var result = data.aliases;
+                    console.debug(data);
+                    if (data.pin != null) {
+                        result += "<strong><spring:message code="views.room.pin"/>:</strong> " + data.pin;
+                    }
+                    event.setResult(result);
                 }).fail($application.handleAjaxFailure);
                 return "<spring:message code="views.loading"/>";
             };

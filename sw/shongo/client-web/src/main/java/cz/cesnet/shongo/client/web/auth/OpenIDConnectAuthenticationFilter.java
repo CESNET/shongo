@@ -229,6 +229,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             throw new AuthenticationServiceException("Cannot load user settings.", exception);
         }
         UserSession userSession = UserSession.getInstance(request);
+        userSession.setDetectedTimeZone(null);
         userSession.loadUserSettings(userSettings, request, securityToken);
         return authentication;
     }

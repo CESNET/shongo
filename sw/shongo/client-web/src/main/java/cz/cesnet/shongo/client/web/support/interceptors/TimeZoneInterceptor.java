@@ -54,6 +54,7 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
             if (userSession.getHomeTimeZone() == null) {
                 userSession.setHomeTimeZone(timeZone);
             }
+            userSession.setDetectedTimeZone(timeZone);
             userSession.update(request, null);
 
             String requestUrl = (String) WebUtils.getSessionAttribute(request, REQUEST_URL_SESSION_ATTRIBUTE);

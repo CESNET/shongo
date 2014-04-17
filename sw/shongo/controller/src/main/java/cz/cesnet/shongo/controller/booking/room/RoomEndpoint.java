@@ -392,15 +392,15 @@ public abstract class RoomEndpoint extends Endpoint
     {
         String pin = null;
         RoomConfiguration roomConfiguration = getRoomConfiguration();
-        Set<Technology> technologeis = roomConfiguration.getTechnologies();
         for (RoomSetting setting : roomConfiguration.getRoomSettings()) {
-            if (setting instanceof H323RoomSetting && technologeis.contains(Technology.H323)) {
+            if (setting instanceof H323RoomSetting
+                    && (Technology.H323.equals(technology) || Technology.SIP.equals(technology))) {
                 H323RoomSetting h323RoomSetting = (H323RoomSetting) setting;
                 if (h323RoomSetting.getPin() != null) {
                     pin = h323RoomSetting.getPin();
                 }
             }
-            else if (setting instanceof AdobeConnectRoomSetting && technologeis.contains(Technology.ADOBE_CONNECT)) {
+            else if (setting instanceof AdobeConnectRoomSetting && Technology.ADOBE_CONNECT.equals(technology)) {
                 AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) setting;
                 if (adobeConnectRoomSetting.getPin() != null) {
                     pin = adobeConnectRoomSetting.getPin();

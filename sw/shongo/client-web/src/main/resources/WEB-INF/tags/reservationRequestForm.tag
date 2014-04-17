@@ -102,7 +102,8 @@
                 name: "${permanentRoom.roomName} (${technology.title})",
                 formattedSlot: "<tag:format value="${permanentRoom.earliestSlot}" style="date"/>",
                 slot: "${permanentRoom.earliestSlot}",
-                technology: "${technology}"
+                technology: "${technology}",
+                reservationId: "${permanentRoom.lastReservationId}",
             }<c:if test="${!status.last}">, </c:if></c:forEach>
         };
         // Add all permanent rooms to the model
@@ -159,12 +160,37 @@
                 $scope.$apply();
             }
         };
+        // Watch whether PIN was modified
+        $scope.pinModified = false;
+        $("#roomPin").change(function () {
+            var pin = $("#roomPin").val();
+            if (pin != "") {
+                $scope.pinModified = true;
+            }
+            else {
+                $scope.pinModified = false;
+            }
+        });
         // Update permanent rooms model when start or duration changes
         $("#start,#durationCount,#slotBeforeMinutes,#slotAfterMinutes").change(function () {
             $scope.updatePermanentRooms();
         });
         // Set proper technology for selected permanent room
         $scope.$watch("permanentRoom", function () {
+            var reservationId = $scope.permanentRoom.reservationId;
+            if (reservationId != null) {
+                <tag:url var="roomDataUrl" value="<%= ClientWebUrl.ROOM_DATA %>">
+                    <tag:param name="objectId" value=":objectId"/>
+                </tag:url>
+                $.ajax("${roomDataUrl}".replace(":objectId", reservationId), {
+                    dataType: "json"
+                }).done(function (data) {
+                    if (!$scope.pinModified) {
+                        $("#roomPin").val(data.pin);
+                    }
+                }).fail($application.handleAjaxFailure);
+            }
+
             if ($scope.permanentRoom != null) {
                 $scope.technology = $scope.permanentRoom.technology;
             }
@@ -521,7 +547,11 @@
 
         <div class="control-group" ng-show="technology == 'H323_SIP' || technology == 'ADOBE_CONNECT'" class="hide">
             <form:label class="control-label" path="roomPin">
-                <spring:message code="views.reservationRequest.specification.roomPin"/>:
+                <spring:message code="views.reservationRequest.specification.roomPin" var="pinLabel"/>
+                <tag:help label="${pinLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomPin.help"/>
+                </tag:help>
+
             </form:label>
             <div class="controls">
                 <form:input path="roomPin" cssErrorClass="error" tabindex="${tabIndex}"/>

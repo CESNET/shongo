@@ -33,7 +33,9 @@ public class ReservationRequestValidator implements Validator
 {
     private static Logger logger = LoggerFactory.getLogger(ReservationRequestValidator.class);
 
-    private static final Pattern PATTERN_ALPHA_NUM = Pattern.compile("^[a-zA-Z0-9_-]*$");
+    private static final Pattern PATTERN_IDENTIFIER = Pattern.compile("^[a-zA-Z0-9_-]*$");
+    private static final Pattern PATTERN_ALPHA_NUM = Pattern.compile("^[a-zA-Z0-9]*$");
+    private static final Pattern PATTERN_NUM = Pattern.compile("^[0-9]*$");
 
     private SecurityToken securityToken;
 
@@ -89,6 +91,15 @@ public class ReservationRequestValidator implements Validator
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
 
+        if (!Strings.isNullOrEmpty(reservationRequestModel.getRoomPin())) {
+            if (TechnologyModel.H323_SIP.equals(reservationRequestModel.getTechnology())) {
+                validateNum("roomPin", errors);
+            }
+            else {
+                validateAlphaNum("roomPin", errors);
+            }
+        }
+
         if (specificationType != null) {
             switch (specificationType) {
                 case ADHOC_ROOM:
@@ -117,7 +128,7 @@ public class ReservationRequestValidator implements Validator
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
-                    validateAlphaNum("roomName", errors);
+                    validateIdentifier("roomName", errors);
                     break;
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(
@@ -239,12 +250,40 @@ public class ReservationRequestValidator implements Validator
      * @param errors
      * @return true whether validation succeeds, otherwise false
      */
+    public static void validateIdentifier(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        Matcher matcher = PATTERN_IDENTIFIER.matcher(value);
+        if (!matcher.matches()) {
+            errors.rejectValue(field, "validation.field.invalidIdentifier");
+        }
+    }
+
+    /**
+     * @param field
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
     public static void validateAlphaNum(String field, Errors errors)
     {
         String value = (String) errors.getFieldValue(field);
         Matcher matcher = PATTERN_ALPHA_NUM.matcher(value);
         if (!matcher.matches()) {
             errors.rejectValue(field, "validation.field.invalidAlphaNum");
+        }
+    }
+
+    /**
+     * @param field
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
+    public static void validateNum(String field, Errors errors)
+    {
+        String value = (String) errors.getFieldValue(field);
+        Matcher matcher = PATTERN_NUM.matcher(value);
+        if (!matcher.matches()) {
+            errors.rejectValue(field, "validation.field.invalidNum");
         }
     }
 }

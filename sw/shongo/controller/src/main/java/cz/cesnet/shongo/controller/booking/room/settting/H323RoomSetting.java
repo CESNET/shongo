@@ -4,7 +4,7 @@ import javax.persistence.Entity;
 
 /**
  * Represents a {@link RoomSetting} for a {@link cz.cesnet.shongo.controller.booking.room.RoomEndpoint} which
- * supports {@link cz.cesnet.shongo.Technology#H323}.
+ * supports {@link cz.cesnet.shongo.Technology#H323} or {@link cz.cesnet.shongo.Technology#SIP}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -2,9 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.api.*;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -301,5 +299,32 @@ public abstract class AbstractRoomExecutable extends Executable
         participantConfiguration = dataMap.getComplexType(
                 PARTICIPANT_CONFIGURATION, RoomExecutableParticipantConfiguration.class);
         recordable = dataMap.getBool(RECORDABLE);
+    }
+
+    public String getPin()
+    {
+        String pin = null;
+        for (RoomSetting setting : roomSettings) {
+            if (setting instanceof H323RoomSetting
+                    && (technologies.contains(Technology.H323) || technologies.contains(Technology.SIP))) {
+                H323RoomSetting h323RoomSetting = (H323RoomSetting) setting;
+                if (h323RoomSetting.getPin() != null) {
+                    if (pin != null) {
+                        throw new RuntimeException("Multiple PIN specified.");
+                    }
+                    pin = h323RoomSetting.getPin();
+                }
+            }
+            else if (setting instanceof AdobeConnectRoomSetting && technologies.contains(Technology.ADOBE_CONNECT)) {
+                AdobeConnectRoomSetting adobeConnectRoomSetting = (AdobeConnectRoomSetting) setting;
+                if (adobeConnectRoomSetting.getPin() != null) {
+                    if (pin != null) {
+                        throw new RuntimeException("Multiple PIN specified.");
+                    }
+                    pin = adobeConnectRoomSetting.getPin();
+                }
+            }
+        }
+        return pin;
     }
 }
