@@ -5,7 +5,6 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +26,7 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             // Get allocated room name
             ReservationRequestSummary reservationRequestSummary =
-                    cacheProvider.getReservationRequestSummary(reservationRequest.getId());
+                    cacheProvider.getAllocatedReservationRequestSummary(reservationRequest.getId());
             if (reservationRequestSummary != null) {
                 String reservationId = reservationRequestSummary.getAllocatedReservationId();
                 if (reservationId != null) {

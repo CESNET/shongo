@@ -339,7 +339,7 @@
                         <span ng-show="roomParticipant.audioMuted != null">
                             <spring:message var="participantAudioMuteTitle" code="views.room.currentParticipant.audioMuted.disable"/>
                             <spring:message var="participantAudioUnMuteTitle" code="views.room.currentParticipant.audioMuted.enable"/>
-                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?audioMuted=' + !roomParticipant.audioMuted)" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-volume-up icon-{{roomParticipant.audioMuted ? 'red' : 'green'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?audioMuted=' + !roomParticipant.audioMuted)" title="{{roomParticipant.audioMuted ? '${participantAudioUnMuteTitle}' : '${participantAudioMuteTitle}'}}"><i class="icon-microphone{{roomParticipant.audioMuted ? '-off' : ''}} icon-{{roomParticipant.audioMuted ? 'red' : 'green'}}"></i></a>&nbsp;
                         </span>
                         <%-- Mute video --%>
                         <span ng-show="roomParticipant.videoMuted != null">

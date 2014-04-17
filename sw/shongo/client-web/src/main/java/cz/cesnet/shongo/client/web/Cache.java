@@ -396,6 +396,9 @@ public class Cache
     }
 
     /**
+     * Retrieve {@link ReservationRequestSummary} from {@link Cache} or from {@link #reservationService}
+     * if it doesn't exist in the {@link Cache}.
+     *
      * @param securityToken
      * @param reservationRequestId
      * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
@@ -405,6 +408,24 @@ public class Cache
     {
         ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);
         if (reservationRequest == null) {
+            reservationRequest = getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
+        }
+        return reservationRequest;
+    }
+
+    /**
+     * Similar as {@link #getReservationRequestSummary} but the {@link ReservationRequestSummary} is loaded from
+     * the {@link #reservationService} also when it is in {@link AllocationState#NOT_ALLOCATED} state (to update it).
+     *
+     * @param securityToken
+     * @param reservationRequestId
+     * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
+     */
+    public synchronized ReservationRequestSummary getAllocatedReservationRequestSummary(SecurityToken securityToken,
+            String reservationRequestId)
+    {
+        ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);
+        if (reservationRequest == null || reservationRequest.getAllocatedReservationId() == null) {
             reservationRequest = getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
         }
         return reservationRequest;
@@ -491,14 +512,10 @@ public class Cache
         }
         else {
             if (objectId.contains(":req:")) {
-                ReservationRequestSummary reservationRequest = getReservationRequestSummary(securityToken, objectId);
-                String reservationId = reservationRequest.getAllocatedReservationId();
+                ReservationRequestSummary request = getAllocatedReservationRequestSummary(securityToken, objectId);
+                String reservationId = request.getAllocatedReservationId();
                 if (reservationId == null) {
-                    reservationRequest = getReservationRequestSummaryNotCached(securityToken, objectId);
-                    reservationId = reservationRequest.getAllocatedReservationId();
-                    if (reservationId == null) {
-                        throw new TodoImplementException("Reservation doesn't exist.");
-                    }
+                    throw new TodoImplementException("Reservation doesn't exist.");
                 }
                 objectId = reservationId;
             }

@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
+import org.apache.commons.cli.MissingArgumentException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -91,6 +92,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public Object checkAvailability(AvailabilityCheckRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
@@ -201,6 +203,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("reservationRequest", reservationRequestApi);
 
         // Check whether user can create reservation requests
         if (!authorization.hasSystemPermission(securityToken, SystemPermission.RESERVATION)) {
@@ -268,6 +271,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("reservationRequest", reservationRequestApi);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
@@ -383,14 +387,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public String revertReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
-        if (reservationRequestId == null) {
-            throw new IllegalArgumentException();
-        }
-        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        checkNotNull("reservationRequestId", reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -449,14 +451,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public void deleteReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
-        if (reservationRequestId == null) {
-            throw new IllegalArgumentException();
-        }
-        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        checkNotNull("reservationRequestId", reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -500,11 +500,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public void updateReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
         authorization.validate(securityToken);
-        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
+        checkNotNull("reservationRequestId", reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -560,6 +561,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
@@ -726,6 +728,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String reservationRequestId)
     {
         authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -750,6 +753,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String reservationRequestId)
     {
         authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -785,14 +789,24 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public List<Reservation> getReservationRequestReservations(SecurityToken securityToken, String reservationRequestId)
     {
+        authorization.validate(securityToken);
+        checkNotNull("reservationRequestId", reservationRequestId);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(reservationRequestId, ObjectType.RESERVATION_REQUEST);
         try {
-            Long reservationRequestPersistentId = ObjectIdentifier.parseId(
-                cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class, reservationRequestId);
+            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.get(objectId.getPersistenceId());
+
+            if (!authorization.hasObjectPermission(securityToken, reservationRequest, ObjectPermission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", objectId);
+            }
+
             List<Reservation> reservations = new LinkedList<Reservation>();
             for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
-                    reservationManager.listByReservationRequest(reservationRequestPersistentId)) {
+                    reservationManager.listByReservationRequest(objectId.getPersistenceId())) {
                 reservations.add(reservation.toApi(authorization.isAdministrator(securityToken)));
             }
             return reservations;
@@ -806,6 +820,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public Reservation getReservation(SecurityToken securityToken, String reservationId)
     {
         authorization.validate(securityToken);
+        checkNotNull("reservationId", reservationId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -829,13 +844,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public List<Reservation> getReservations(SecurityToken securityToken, Collection<String> reservationIds)
     {
+        authorization.validate(securityToken);
+        checkNotNull("reservationIds", reservationIds);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
         try {
             Set<Long> reservationPersistentIds = new HashSet<Long>();
             for (String reservationId : reservationIds) {
-                reservationPersistentIds.add(ObjectIdentifier.parseId(
-                        cz.cesnet.shongo.controller.booking.reservation.Reservation.class, reservationId));
+                ObjectIdentifier objectId = ObjectIdentifier.parse(reservationId, ObjectType.RESERVATION);
+                cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
+                        reservationManager.get(objectId.getPersistenceId());
+                if (!authorization.hasObjectPermission(securityToken, reservation, ObjectPermission.READ)) {
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", objectId);
+                }
+                reservationPersistentIds.add(objectId.getPersistenceId());
             }
             List<Reservation> reservations = new LinkedList<Reservation>();
             for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
@@ -852,6 +875,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ReservationSummary> listReservations(ReservationListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 

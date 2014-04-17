@@ -62,9 +62,9 @@ public class CacheProvider
      * @param reservationRequestId
      * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
      */
-    public ReservationRequestSummary getReservationRequestSummary(String reservationRequestId)
+    public ReservationRequestSummary getAllocatedReservationRequestSummary(String reservationRequestId)
     {
-        return cache.getReservationRequestSummary(securityToken, reservationRequestId);
+        return cache.getAllocatedReservationRequestSummary(securityToken, reservationRequestId);
     }
 
     /**

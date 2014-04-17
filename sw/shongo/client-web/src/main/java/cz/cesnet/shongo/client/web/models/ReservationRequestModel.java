@@ -364,8 +364,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (permanentRoomReservationRequestId != null && start != null) {
             for (ReservationRequestSummary permanentRoomSummary : permanentRooms) {
                 if (permanentRoomSummary.getId().equals(permanentRoomReservationRequestId)) {
-                    Interval permanentRoomSlot = permanentRoomSummary.getEarliestSlot();
+                    Reservation reservation = cacheProvider.getReservation(permanentRoomSummary.getLastReservationId());
+                    Interval permanentRoomSlot = reservation.getSlot();
+                    Period slotBefore = getSlotBefore();
                     DateTime permanentRoomStart = permanentRoomSlot.getStart().plus(getSlotBefore());
+                    permanentRoomStart = Temporal.roundDateTimeToMinutes(permanentRoomStart, 1);
                     if (permanentRoomStart.isAfter(start)) {
                         setStart(permanentRoomStart);
                     }
@@ -703,7 +706,8 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         if (permanentRoomReservationRequestId == null) {
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
         }
-        permanentRoomReservationRequest = cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
+        permanentRoomReservationRequest =
+                cacheProvider.getAllocatedReservationRequestSummary(permanentRoomReservationRequestId);
         roomName = permanentRoomReservationRequest.getRoomName();
         technology = TechnologyModel.find(permanentRoomReservationRequest.getSpecificationTechnologies());
         addPermanentRoomParticipants();

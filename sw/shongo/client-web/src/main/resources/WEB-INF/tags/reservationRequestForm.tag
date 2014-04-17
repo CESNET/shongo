@@ -103,7 +103,7 @@
                 formattedSlot: "<tag:format value="${permanentRoom.earliestSlot}" style="date"/>",
                 slot: "${permanentRoom.earliestSlot}",
                 technology: "${technology}",
-                reservationId: "${permanentRoom.lastReservationId}",
+                reservationId: "${permanentRoom.lastReservationId}"
             }<c:if test="${!status.last}">, </c:if></c:forEach>
         };
         // Add all permanent rooms to the model
@@ -414,7 +414,6 @@
                         <form:input path="start" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}"/>
                     </c:otherwise>
                 </c:choose>
-                <form:errors path="start" cssClass="error"/>
                 <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
                     &nbsp;
                     <div class="input-append">
@@ -432,6 +431,7 @@
                             <tag:help label="${slotBeforeMinutesLabel}"><spring:message code="views.reservationRequest.slotBeforeMinutes.help"/></tag:help>
                         </span>
                     </div>
+                    <form:errors path="start" cssClass="error"/>
                     <form:errors path="slotBeforeMinutes" cssClass="error"/>
                 </c:if>
             </div>
@@ -465,7 +465,6 @@
                         <form:option value="DAY"><spring:message
                                 code="views.reservationRequest.duration.days"/></form:option>
                     </form:select>
-                    <form:errors path="durationCount" cssClass="error"/>
                     &nbsp;
                     <div class="input-append">
                         <form:select path="slotAfterMinutes" cssStyle="width: 75px;" tabindex="${tabIndex}">
@@ -482,6 +481,7 @@
                             <tag:help label="${slotAfterMinutesLabel}"><spring:message code="views.reservationRequest.slotAfterMinutes.help"/></tag:help>
                         </span>
                     </div>
+                    <form:errors path="durationCount" cssClass="error"/>
                     <form:errors path="slotAfterMinutes" cssClass="error"/>
                 </div>
             </div>

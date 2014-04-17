@@ -32,6 +32,19 @@ public abstract class AbstractServiceImpl extends Component
     }
 
     /**
+     * Check whether argumetn is not null.
+     *
+     * @param argumentName
+     * @param argumentValue
+     */
+    protected void checkNotNull(String argumentName, Object argumentValue)
+    {
+        if (argumentValue == null) {
+            throw new IllegalArgumentException("Argument " + argumentName + " must be not null.");
+        }
+    }
+
+    /**
      * @param query            query
      * @param queryFilter      {@link QueryFilter} for filtering select and count statement
      * @param listRequest      {@link ListRequest}  object
