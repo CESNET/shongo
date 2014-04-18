@@ -24,7 +24,6 @@
     <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
     <tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
         <tag:param name="specification-type" value="PERMANENT_ROOM,ADHOC_ROOM"/>
-        <tag:param name="allocation-state" value="ALLOCATED"/>
     </tag:url>
     <tag:url var="permanentRoomCapacitiesUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
         <tag:param name="specification-type" value="PERMANENT_ROOM_CAPACITY"/>
@@ -271,14 +270,12 @@
                                     | <tag:listAction code="manageRoom" url="${detailRuntimeManagementUrl}" target="_blank" tabindex="4"/>
                                 </span>
                                 <span ng-show="reservationRequest.isWritable">
-                                    <c:if test="${advancedUserInterface}">
-                                        <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                            | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
-                                        </span>
-                                        <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                                            | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
-                                        </span>
-                                    </c:if>
+                                    <span ng-hide="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                        | <tag:listAction code="modify" url="${reservationRequestModifyUrl}" tabindex="4"/>
+                                    </span>
+                                    <span ng-show="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                                        | <tag:listAction code="duplicate" url="${reservationRequestDuplicateUrl}" tabindex="4"/>
+                                    </span>
                                     | <tag:listAction code="delete" url="${reservationRequestDeleteUrl}" tabindex="4"/>
                                 </span>
                             </td>

@@ -64,7 +64,7 @@ public class DetailReservationRequestController extends AbstractDetailController
         boolean isReservationVisible = true;
 
         // Get history of reservation request (only if it is not child reservation request)
-        if (!isChildReservationRequest && userSession.isAdvancedUserInterface()) {
+        if (!isChildReservationRequest) {
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
             boolean historyItemisReservationVisible = true;

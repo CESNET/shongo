@@ -5,8 +5,6 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="advancedUserInterface" value="${sessionScope.SHONGO_USER.advancedUserInterface}"/>
-
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
 </c:if>
@@ -211,16 +209,14 @@
 
 <div class="table-actions pull-right">
     <c:if test="${isWritable}">
-        <c:if test="${advancedUserInterface}">
-                <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                    <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
-                        <spring:message code="views.button.duplicate"/>
-                    </a>
-                    <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
-                        <spring:message code="views.button.modify"/>
-                    </a>
-                </span>
-        </c:if>
+        <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
+            <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
+                <spring:message code="views.button.duplicate"/>
+            </a>
+            <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
+                <spring:message code="views.button.modify"/>
+            </a>
+        </span>
         <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
             <spring:message code="views.button.delete"/>
         </a>

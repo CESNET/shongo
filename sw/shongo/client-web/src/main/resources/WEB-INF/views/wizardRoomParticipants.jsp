@@ -40,7 +40,7 @@
                     <legend>
                         <spring:message code="views.wizard.room.participants.notification"/>
                         <form:checkbox id="roomParticipantNotificationEnabled" path="roomParticipantNotificationEnabled" tabindex="${tabIndex}" ng-model="roomParticipantNotificationEnabled"/>
-                        <tag:help><spring:message code="views.wizard.room.participants.notification.help"/></tag:help>
+                        <tag:help><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/></tag:help>
                     </legend>
                     <div class="control-group">
                         <form:label class="control-label" path="roomMeetingName">

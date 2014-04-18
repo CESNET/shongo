@@ -207,7 +207,11 @@
 
     <dt><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled"/>:</dt>
     <dd>
-        <spring:message code="views.button.${reservationRequest.roomParticipantNotificationEnabled ? 'yes' : 'no'}"/>
+        <spring:message code="views.button.${reservationRequest.roomParticipantNotificationEnabled ? 'yes' : 'no'}" var="roomParticipantNotificationEnabled"/>
+        <tag:help label="${roomParticipantNotificationEnabled}">
+            <spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/>
+        </tag:help>
+
     </dd>
     <c:if test="${reservationRequest.roomParticipantNotificationEnabled}">
         <dt><spring:message code="views.reservationRequest.specification.roomMeetingName"/>:</dt>

@@ -123,10 +123,12 @@
                 </div>
                 <div class="nav-collapse collapse pull-left">
                     <ul class="nav" role="navigation">
-                        <li>
-                            <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
-                            <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
-                        </li>
+                        <c:if test="${sessionScope.SHONGO_USER.advancedUserInterface}">
+                            <li>
+                                <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
+                                <a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a>
+                            </li>
+                        </c:if>
                         <c:if test="${sessionScope.SHONGO_USER.administratorMode}">
                             <li>
                                 <tag:url var="roomListUrl" value="<%= ClientWebUrl.ROOM_LIST_VIEW %>"/>
