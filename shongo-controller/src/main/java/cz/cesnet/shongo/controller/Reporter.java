@@ -320,20 +320,6 @@ public class Reporter
         return configuration.toString();
     }
 
-    public static final ReportContext AUTHORIZATION = new ReportContext()
-    {
-        @Override
-        public String getReportContextName()
-        {
-            return "Authorization";
-        }
-
-        @Override
-        public String getReportContextDetail()
-        {
-            return null;
-        }
-    };
     public static final ReportContext WORKER = new ReportContext()
     {
         @Override

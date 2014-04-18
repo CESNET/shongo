@@ -644,6 +644,9 @@ public abstract class Authorization
     public final void modifyGroup(Group group)
     {
         onModifyGroup(group);
+
+        // Update cache
+        cache.putGroupByGroupId(group.getId(), group);
     }
 
     /**
@@ -706,10 +709,11 @@ public abstract class Authorization
                     });
             return userInformation;
         }
+        catch (ControllerReportSet.SecurityInvalidTokenException exception) {
+            throw exception;
+        }
         catch (Exception exception) {
-            String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
-            Reporter.reportInternalError(Reporter.AUTHORIZATION, message, exception);
-            throw new ControllerReportSet.SecurityInvalidTokenException(securityToken.getAccessToken());
+            throw new ControllerReportSet.SecurityInvalidTokenException(exception, securityToken.getAccessToken());
         }
     }
 

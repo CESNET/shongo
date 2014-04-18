@@ -193,13 +193,20 @@ public class ServerAuthorization extends Authorization
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
                 if (jsonNode != null) {
-                    errorReason = String.format("%s, %s",
-                            jsonNode.get("error").getTextValue(), jsonNode.get("error_description").getTextValue());
+                    String error = jsonNode.get("error").getTextValue();
+                    String errorDescription = jsonNode.get("error_description").getTextValue();
+                    if (error.contains("invalid_token")) {
+                        throw new ControllerReportSet.SecurityInvalidTokenException(accessToken);
+                    }
+                    errorReason = String.format("%s, %s", error, errorDescription);
                 }
                 else {
                     errorReason = "unknown";
                 }
             }
+        }
+        catch (ControllerReportSet.SecurityInvalidTokenException exception) {
+            throw exception;
         }
         catch (ControllerReportSet.UserNotExistsException exception) {
             throw exception;
