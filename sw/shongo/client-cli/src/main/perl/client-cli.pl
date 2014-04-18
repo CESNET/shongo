@@ -73,27 +73,29 @@ $controller->set_scripting($scripting);
 
 # Parse configuration file
 my $configuration_file = 'client-cli.cfg.xml';
-my $configuration = XML::Twig->new(
-    twig_handlers => {
-        'configuration/security/server' => sub {
-            my ($twig, $node) = @_;
-            $controller->{'authorization'}->set_url('https://' . $node->text);
-        },
-        'configuration/security/client-id' => sub {
-            my ($twig, $node) = @_;
-            $controller->{'authorization'}->set_client_id($node->text);
-        },
-        'configuration/security/client-secret' => sub {
-            my ($twig, $node) = @_;
-            $controller->{'authorization'}->set_client_secret($node->text);
-        },
-        'configuration/security/redirect-uri' => sub {
-            my ($twig, $node) = @_;
-            $controller->{'authorization'}->set_redirect_uri($node->text);
-        },
-    }
-);
-$configuration->parsefile($configuration_file);
+if (-e $configuration_file) {
+    my $configuration = XML::Twig->new(
+        twig_handlers => {
+            'configuration/security/server' => sub {
+                my ($twig, $node) = @_;
+                $controller->{'authorization'}->set_url('https://' . $node->text);
+            },
+            'configuration/security/client-id' => sub {
+                my ($twig, $node) = @_;
+                $controller->{'authorization'}->set_client_id($node->text);
+            },
+            'configuration/security/client-secret' => sub {
+                my ($twig, $node) = @_;
+                $controller->{'authorization'}->set_client_secret($node->text);
+            },
+            'configuration/security/redirect-uri' => sub {
+                my ($twig, $node) = @_;
+                $controller->{'authorization'}->set_redirect_uri($node->text);
+            },
+        }
+    );
+    $configuration->parsefile($configuration_file);
+}
 
 # Set specified access token
 if (defined($access_token)) {
