@@ -1,0 +1,120 @@
+Shongo Controller
+
+== BUILD ==============================================================================================================
+
+To build controller by maven go to the directory <shongo_repository> and type the following command:
+
+    mvn package
+
+To run controller on localhost at port 8181 type:
+
+    shongo-deployment/bin/shongo_controller.sh
+
+To connect to the controller use the client application:
+
+    shongo-deployment/bin/shongo_client_cli.sh
+
+
+
+== REQUIREMENTS =======================================================================================================
+
+Controller requires java and maven to compile and postgresql database to run.
+
+To install maven download the version 2.2.1 from http://maven.apache.org/download.html and follow the
+Installation Instructions on the same page.
+
+To install java on Ubuntu/Debian system use the following commands:
+
+    echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
+    echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
+    apt-get update
+    apt-get install oracle-java6-installer
+
+Source: [http://www.webupd8.org/2012/06/how-to-install-oracle-java-7-in-debian.html]
+
+To install postgresql database on Ubuntu/Debian type the following command:
+
+    apt-get install postgresql
+
+
+
+== CONFIGURATION OF POSTGRESQL DATABASE ===============================================================================
+
+Connect to PostgreSQL console (e.g., run 'psql' command as 'postgres' system user).
+
+Create database for the Shongo:
+
+    CREATE DATABASE shongo;
+
+Create user for connecting to the database:
+
+    CREATE USER shongo WITH PASSWORD 'shongo';
+
+Change the database owner to the created user:
+
+    ALTER DATABASE shongo OWNER TO shongo;
+
+Add the following lines to the configuration file pg_hba.conf:
+
+    host    all             all             127.0.0.1/32            md5
+    host    all             all             ::1/128                 md5
+
+The file may be located, e.g., in /etc/postgresql/9.1/main/ (Debian) or in /var/lib/pgsql/data/pg_hba.conf (Fedora).
+Then restart the PostgreSQL server:
+
+    service postgresql restart
+
+Add the following lines to shongo-controller.cfg.xml configuration file:
+
+    <database>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://127.0.0.1/shongo</url>
+        <username>shongo</username>
+        <password>shongo</password>
+    </database>
+
+
+
+== BACKUP/RESTORE OF POSTGRESQL DATABASE ==============================================================================
+
+Backup database:
+
+    su postgres -c "pg_dump <database> > /tmp/shongo.sql"
+
+Restore database:
+
+    su postgres -c "psql -c \"DROP DATABASE IF EXISTS <database>;\""
+    su postgres -c "psql -c \"CREATE DATABASE <database>;\""
+    su postgres -c "psql -d <database> < /tmp/shongo.sql"
+
+
+
+== NAGIOS NRPE ========================================================================================================
+
+Install nagios NRPE server:
+
+    apt-get install nagios-nrpe-server
+
+Add "nagios.cesnet.cz" to "allowed_hosts" in "/etc/nagios/nrpe.cfg".
+Add also the following to "/etc/nagios/nrpe.cfg":
+
+    command[check_shongo_controller]=<shongo>/shongo-deployment/bin/shongo_check.sh -c shongo-dev.cesnet.cz controller
+    command[check_shongo_connector]=<shongo>/shongo-deployment/bin/shongo_check.sh -c shongo-dev.cesnet.cz connector <agent-names>
+
+
+
+== HIBERNATE NOTES ====================================================================================================
+
+1) If OneToMany association without mappedBy attribute is declared as java.util.List, deletion of one item
+   cause delete all items and insert all that should not be deleted.
+
+   http://assarconsulting.blogspot.cz/2009/08/why-hibernate-does-delete-all-then-re.html
+
+2) Associations should by mapped by field access. Getter should return unmodifiableList or unmodifiableSet, setter
+   should not be present and addXXX/removeXXX methods should be present.
+
+   http://vard-lokkur.blogspot.cz/2011/04/jpa-and-unmodifiable-collections.html
+   http://www.javacodegeeks.com/2012/03/hibernate-performance-tips-dirty.html
+
+3) If association is bidirectional we must take care of sync of both sides.

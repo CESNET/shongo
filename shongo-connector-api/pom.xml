@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>shongo</artifactId>
+        <groupId>cz.cesnet.shongo</groupId>
+        <version>${shongo.version}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>shongo-connector-api</artifactId>
+    <name>Shongo Connector API</name>
+    <description>API for connectors from Shongo resource management system.</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>shongo-common-api</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

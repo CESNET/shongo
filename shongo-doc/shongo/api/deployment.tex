@@ -1,0 +1,255 @@
+\chapter{Deployment}
+
+This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
+
+\section{Applications}
+
+\Gls{g:shongo} consists of the following applications:
+\begin{enumerate}
+\item \textbf{\Gls{g:controller}} represents a command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
+\item \textbf{\Gls{g:connector}} represents a command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
+\item \textbf{Client CLI} is command-line interface to a \gls{g:controller} which can be used to setup \gls{g:resource} database and to create \glspl{g:reservation-request}. Multiple instances of \glspl{g:controller-client} can run at the same time.
+\item \textbf{Client WEB} \todo{describe web client}
+\end{enumerate}
+
+\section{Installation}
+
+You must install \gls{g:shongo} to each machine where you want to launch a \textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}. To install \gls{g:shongo} you need to get the source code. To get the \gls{g:shongo} source code you need to have Git\footnote{Git fast version control \url{http://git-scm.com/}} installed and use the following command:
+\begin{verbatim}
+git clone <username>@homeproj.cesnet.cz:shongo
+\end{verbatim}
+To get an username and password ask at \href{mailto:martin.srom@cesnet.cz}{\texttt{martin.srom@cesnet.cz}}. 
+
+\subsection{Controller and connector}
+To build and launch \textbf{\gls{g:controller}} or \textbf{\gls{g:connector}} you need to have Java Platform (JDK)\footnote{Java Platform (JDK) \url{http://www.oracle.com/technetwork/java/}} and Maven\footnote{Apache Maven Project \url{http://maven.apache.org/download.html}} installed (preferred Maven version is 2.2.1). Enter the following directory:
+\begin{verbatim}
+cd <repository>
+\end{verbatim}
+And type the following command:
+\begin{verbatim}
+mvn package
+\end{verbatim}
+\textbf{Controller} and \textbf{connector} should be successfully built and tested. 
+
+\subsection{Client CLI}
+To launch \textbf{command-line client} you need to have Perl\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
+\begin{compactenum}
+\item Term::ReadLine::Gnu
+\item RPC::XML
+\item XML::Twig
+\item Text::Table
+\item DateTime::Format::ISO8601
+\item JSON
+\item LWP::Protocol::https
+\end{compactenum}
+On Ubuntu/Debian system, Perl is installed by default and the modules
+can be installed by the following command:
+\begin{verbatim}
+sudo apt-get install libterm-readline-gnu-perl librpc-xml-perl libxml-twig-perl \
+        libtext-table-perl libdatetime-format-iso8601-perl \
+        libjson-perl liblwp-protocol-https-perl
+\end{verbatim}
+All applications (\textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}) can be launched by entering the following directory:
+\begin{verbatim}
+cd <repository>/shongo-deployment
+\end{verbatim}
+And type the \code{./<application>.sh} command:
+\begin{verbatim}
+bin/shongo_controller.sh
+bin/shongo_connector.sh
+bin/shongo_client_cli.sh
+\end{verbatim}
+
+\section{Controller}
+Controller by default runs on \codeValue{localhost} interface (\codeValue{127.0.0.1}) with XML-RPC server on port \codeValue{8181} and Jade middle-ware on port \codeValue{8282}. To change the default settings command-line attributes can be used:
+\begin{verbatim}
+bin/shongo_controller.sh --host <host> --jade-port <jade-port> --rpc-port <port>
+\end{verbatim}
+Another way to change the default settings is to use a configuration file which has more options. Create file \codeValue{<repository>/shongo-deployment/shongo-controller.cfg.xml} which should contain:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+\end{verbatim}
+The following options are available in the configuration file:
+\begin{itemize}
+\item Configuration of controlled \gls{g:domain}. It's code \code{name} and name of \code{organization} which run's the
+controller.
+\begin{verbatim}
+<domain>
+     <name>cz.cesnet</name>
+     <organization>CESNET, z.s.p.o.</organization>
+</domain>
+\end{verbatim}
+
+\item Configuration of XML-RPC (\code{host} and \code{port}).
+\begin{verbatim}
+<rpc>
+    <host>127.0.0.1</host>
+    <port>8181</port>
+</rpc>
+\end{verbatim}
+
+\item Configuration of XML-RPC authentication and authorization. An \code{authorization-server} URL can be specified. Also the expiration intervals for user-id (by access token) and user information (by user-id) caches can be specified. The last option is \code{testing-access-token} that contains access token which is always successfully validated (it is useful for testing purposes).
+\begin{verbatim}
+<security>
+    <authorization-server>
+        https://hroch.cesnet.cz/phpid-server/oic/
+    </authorization-server>
+    <user-id-cache-expiration>PT30M</user-id-cache-expiration>
+    <user-information-cache-expiration>PT5M</user-information-cache-expiration>
+    <testing-access-token>(access-token)</testing-access-token>
+</security>
+\end{verbatim}
+
+\item Configuration of Jade middle-ware (\code{host} and \code{port}).
+\begin{verbatim}
+<jade>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+</jade>
+\end{verbatim}
+
+\item Configuration of \glspl{g:reservation}. Maximum duration of \gls{g:resource} \gls{g:reservation} and \gls{g:device-alias} \gls{g:reservation} can be configured.
+\begin{verbatim}
+<reservation>
+    <resource>
+        <max-duration>P6D</max-duration>
+    </resource>
+    <value>
+        <max-duration>P1Y</max-duration>
+    </value>
+</reservation>
+\end{verbatim}
+
+\item Configuration of \gls{g:controller}'s worker which periodically runs \gls{g:scheduler} and \gls{g:preprocessor}. A \code{period} in which the worker runs and the length of a working \code{interval} can be configured. The \codeValue{PT10S} period means that every 10 seconds \gls{g:scheduler} and \gls{g:preprocessor} is executed. The \codeValue{P31D} interval means that \gls{g:preprocessor} and \gls{g:scheduler} will process only \glspl{g:reservation-request} which are 31 days ahead.
+\begin{verbatim}
+<worker>
+    <period>PT10S</period>
+    <interval>P31D</interval>
+</worker>
+\end{verbatim}
+
+\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:executable} (e.g., \glspl{g:compartment}) and executes them. A \code{period} can be configured in which the executor performs checking for \glspl{g:executable} to be executed. Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:executable} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:executable} will be started and ended 30 seconds beforehand). Option \code{room} in \code{starting-duration} specifies how long should the \gls{g:executor} wait after it sent commands for creating all \glspl{g:device-virtual-room} in a \gls{g:compartment} before it connects all allocated endpoints to proper \glspl{g:device-virtual-room}.
+\begin{verbatim}
+<executor>
+    <period>PT15S</period>
+    <executable>
+        <start>PT-30S</start>
+        <end>PT-30S</end>
+    </executable>
+    <starting-duration>
+        <room>PT10S</room>
+    </starting-duration>
+</executor>
+\end{verbatim}
+
+\item Configuration of SMTP server for sending info emails.
+\begin{verbatim}
+<smtp>
+    <sender>no-reply@shongo.cz</sender>
+    <host>rs.cesnet.cz</host>
+    <port>25</port>
+    <username>(username)</username>
+    <password>(password)</password>
+</smtp>
+\end{verbatim}
+
+\end{itemize}
+
+
+\section{Connector}
+Connector by default connects to the controller on \codeValue{127.0.0.1:8282} through Jade middle-ware and the connector runs Jade middle-ware on \codeValue{127.0.0.1:8383}. To change the default settings command-line attributes can be used:
+\begin{verbatim}
+bin/shongo_connector.sh --controller <host>:<port> --host <jade-host> --port <jade-port>
+\end{verbatim}
+Another way to change the default settings is to use a configuration file which has more options. Create file \codeValue{<repository>/shongo-deployment/shongo-connector.cfg.xml} which should contain:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+\end{verbatim}
+The following options are available in the configuration file:
+\begin{itemize}
+\item Configuration of the connection to the controller (\code{host} and \code{port}). The connection to the controller is periodically checked and in case of failure the connection is re-established. The option \code{connection-check-period} specifies how often the check is performed.
+\begin{verbatim}
+<controller>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+    <connection-check-period>PT10S</connection-check-period>
+</controller>
+\end{verbatim}
+
+\item Configuration of Jade middle-ware (\code{host} and \code{port}).
+\begin{verbatim}
+<jade>
+    <host>127.0.0.1</host>
+    <port>8383</port>
+</jade>
+\end{verbatim}
+
+\item Configuration of \gls{g:connector-agent} instances which are automatically started when the \gls{g:connector} is launched. Each \gls{g:connector} can run multiple \glspl{g:connector-agent}.
+\begin{verbatim}
+<instances>
+    <instance>
+        ...
+    </instance>
+    <instance>
+        ...
+    </instance>
+    ...
+</instances>
+\end{verbatim}
+
+Example of \gls{g:connector-agent} configuration for Tandberg Codec C90:
+\small\begin{verbatim}
+<instance>
+    <name>c90</name>
+    <device>
+        <connector-class>cz.cesnet.shongo.connector.CodecC90Connector</connector-class>
+        <host>147.251.54.102</host>
+        <port>22</port>
+        <auth>
+            <username>(username)</username>
+            <password>(password)</password>
+        </auth>
+    </device>
+</instance>
+\end{verbatim}\normalsize
+
+Example of \gls{g:connector-agent} configuration for Codian MCU 4515:
+\small\begin{verbatim}
+<instance>
+    <name>mcu</name>
+    <device>
+        <connector-class>cz.cesnet.shongo.connector.CiscoMCUConnector</connector-class>
+        <host>mcuc.cesnet.cz</host>
+        <auth>
+            <username>(username)</username>
+            <password>(password)</password>
+        </auth>
+    </device>
+</instance>
+\end{verbatim}\normalsize
+\end{itemize}
+
+
+\section{Client CLI}
+Command-line client can be started and connected to a \gls{g:controller} by the following commands:
+\begin{verbatim}
+./client-cli.sh --connect 127.0.0.1 [--testing-access-token]
+./client-cli.sh --connect 127.0.0.1:8181 [--testing-access-token]
+\end{verbatim}
+Option \codeValue{----testing-access-token} forces the client to skip the user authentication and to use a testing access token which is automatically validated in the \gls{g:controller}.
+The available commands in the client shell can be displayed by typing:
+\begin{verbatim}
+shongo> <TAB>
+\end{verbatim}
+Or by typing:
+\begin{verbatim}
+shongo> help <ENTER>
+\end{verbatim}
+
+

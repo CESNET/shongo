@@ -1,0 +1,10 @@
+backup/
+data/
+keystore/
+log/
+migrations/backup
+migrations/meetings_*
+migrations/shongo-dev_*
+migrations/srom-dev_*
+root.access-token
+

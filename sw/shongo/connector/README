@@ -1,9 +1,0 @@
-Shongo Connector for Devices
-
-USAGE
-
-To run connector application go to directory
-<shongo_repository>/sw/shongo and type the
-following command:
-
-    bin/connector.sh

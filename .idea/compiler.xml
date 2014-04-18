@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <option name="DEFAULT_COMPILER" value="Javac" />
+    <resourceExtensions />
+    <wildcardResourcePatterns>
+      <entry name="?*.properties" />
+      <entry name="?*.xml" />
+      <entry name="?*.gif" />
+      <entry name="?*.png" />
+      <entry name="?*.jpeg" />
+      <entry name="?*.jpg" />
+      <entry name="?*.html" />
+      <entry name="?*.dtd" />
+      <entry name="?*.tld" />
+      <entry name="?*.ftl" />
+    </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="false">
+        <processorPath useClasspath="true" />
+      </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="client-web" />
+        <module name="common" />
+        <module name="common-api" />
+        <module name="connector" />
+        <module name="connector-api" />
+        <module name="controller" />
+        <module name="controller-api" />
+        <module name="shongo-client-web" />
+        <module name="shongo-common" />
+        <module name="shongo-common-api" />
+        <module name="shongo-connector" />
+        <module name="shongo-connector-api" />
+        <module name="shongo-controller" />
+        <module name="shongo-controller-api" />
+        <module name="shongo-report-generator" />
+        <module name="tool-report-generator" />
+        <module name="xml-rpc-test" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="client-cli" target="1.6" />
+      <module name="client-common" target="1.6" />
+      <module name="client-web" target="1.6" />
+      <module name="client-web-perl" target="1.6" />
+      <module name="common" target="1.6" />
+      <module name="common-api" target="1.6" />
+      <module name="connector" target="1.6" />
+      <module name="connector-api" target="1.6" />
+      <module name="controller" target="1.6" />
+      <module name="controller-api" target="1.6" />
+      <module name="shongo" target="1.6" />
+      <module name="shongo-client-cli" target="1.6" />
+      <module name="shongo-client-web" target="1.6" />
+      <module name="shongo-common" target="1.6" />
+      <module name="shongo-common-api" target="1.6" />
+      <module name="shongo-connector" target="1.6" />
+      <module name="shongo-connector-api" target="1.6" />
+      <module name="shongo-controller" target="1.6" />
+      <module name="shongo-controller-api" target="1.6" />
+      <module name="shongo-report-generator" target="1.6" />
+      <module name="tool-maven-plugin-exec" target="1.6" />
+      <module name="tool-report-generator" target="1.6" />
+      <module name="xml-rpc-test" target="1.6" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
+

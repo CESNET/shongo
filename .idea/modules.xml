@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/shongo.iml" filepath="$PROJECT_DIR$/shongo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-client-cli/shongo-client-cli.iml" filepath="$PROJECT_DIR$/shongo-client-cli/shongo-client-cli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-client-web/shongo-client-web.iml" filepath="$PROJECT_DIR$/shongo-client-web/shongo-client-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-common/shongo-common.iml" filepath="$PROJECT_DIR$/shongo-common/shongo-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-common-api/shongo-common-api.iml" filepath="$PROJECT_DIR$/shongo-common-api/shongo-common-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-connector/shongo-connector.iml" filepath="$PROJECT_DIR$/shongo-connector/shongo-connector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-connector-api/shongo-connector-api.iml" filepath="$PROJECT_DIR$/shongo-connector-api/shongo-connector-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-controller/shongo-controller.iml" filepath="$PROJECT_DIR$/shongo-controller/shongo-controller.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-controller-api/shongo-controller-api.iml" filepath="$PROJECT_DIR$/shongo-controller-api/shongo-controller-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shongo-report-generator/shongo-report-generator.iml" filepath="$PROJECT_DIR$/shongo-report-generator/shongo-report-generator.iml" />
+    </modules>
+  </component>
+</project>
+

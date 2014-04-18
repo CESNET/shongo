@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>shongo</artifactId>
+        <groupId>cz.cesnet.shongo</groupId>
+        <version>${shongo.version}</version>
+    </parent>
+
+    <artifactId>shongo-common-api</artifactId>
+    <name>Shongo Common API</name>
+    <description>Common API classes for multiple components of Shongo resource management system.</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <!-- Joda Time is used as implementation of date/times/periods/intervals -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <!-- JADE is used as middle-ware for messaging -->
+        <dependency>
+            <groupId>com.tilab.jade</groupId>
+            <artifactId>jade</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <!-- Apache XML-RPC common is used for XmlRpcException class -->
+        <dependency>
+            <groupId>org.apache.xmlrpc</groupId>
+            <artifactId>xmlrpc-common</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+        <!-- Apache XML-RPC client is used for ControllerClient -->
+        <dependency>
+            <groupId>org.apache.xmlrpc</groupId>
+            <artifactId>xmlrpc-client</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+        <!-- Jackson (High-performance JSON processor) is used for serializing API fault strings from/to JSON -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.9.9</version>
+        </dependency>
+        <!-- Used for mime type detections
+             @see https://tika.apache.org/0.10/detection.html
+        -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.4</version>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,4 @@
+*.aux
+*.log
+*.pdf
+controller.vpp~*
