@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceAllocation;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import org.joda.time.Interval;
 
 import java.util.Collection;
@@ -57,13 +58,11 @@ public interface ResourceService extends Service
     /**
      * Lists all Shongo-managed resources matching the filter.
      *
-     * @param token  token of the user requesting the operation
-     * @param filter attributes for filtering resources (map of name => value pairs)::
-     *               -{@code userId}  restricts resource owner by his user-id
-     * @return array of resource summaries
+     * @param request
+     * @return collection of resource summaries
      */
     @API
-    Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter);
+    Collection<ResourceSummary> listResources(ResourceListRequest request);
 
     /**
      * Gets the complete resource object.

@@ -125,8 +125,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ExecutableSummary> listExecutables(ExecutableListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             QueryFilter queryFilter = new QueryFilter("executable_summary", true);
@@ -302,6 +304,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken securityToken, String executableId)
     {
         UserInformation userInformation = authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -335,6 +338,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> listExecutableServices(
             ExecutableServiceListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
@@ -446,6 +450,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             ExecutableConfiguration executableConfiguration)
     {
         authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
+        checkNotNull("executableConfiguration", executableConfiguration);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -515,6 +521,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public void deleteExecutable(SecurityToken securityToken, String executableId)
     {
         authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -555,6 +562,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public void updateExecutable(SecurityToken securityToken, String executableId, Boolean skipExecution)
     {
         authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -660,6 +668,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     public void attachRoomExecutable(SecurityToken securityToken, String roomExecutableId, String deviceRoomId)
     {
         authorization.validate(securityToken);
+        checkNotNull("roomExecutableId", roomExecutableId);
+        checkNotNull("deviceRoomId", deviceRoomId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -722,6 +732,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             String executableServiceId)
     {
         authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
+        checkNotNull("executableServiceId", executableServiceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -779,6 +791,8 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             String executableServiceId)
     {
         authorization.validate(securityToken);
+        checkNotNull("executableId", executableId);
+        checkNotNull("executableServiceId", executableServiceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -842,6 +856,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ResourceRecording> listExecutableRecordings(ExecutableRecordingListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 

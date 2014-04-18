@@ -195,22 +195,6 @@ public class QueryFilter
         return queryWhere.toString();
     }
 
-    /**
-     * @param filter from which the user-id should be parsed
-     * @return user-id from given {@code filter}
-     */
-    public static String getUserIdFromFilter(Map<String, Object> filter)
-    {
-        String userId = null;
-        if (filter != null && filter.containsKey("userId")) {
-            Object value = filter.get("userId");
-            if (!value.equals("*")) {
-                userId = (value != null ? value.toString() : null);
-            }
-        }
-        return userId;
-    }
-
     public static Set<Technology> getTechnologiesFromFilter(Map<String, Object> filter)
     {
         if (filter != null && filter.containsKey("technology")) {

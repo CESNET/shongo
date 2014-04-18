@@ -89,6 +89,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<UserInformation> listUsers(UserListRequest request)
     {
+        checkNotNull("request", request);
         authorization.validate(request.getSecurityToken());
 
         String search = StringHelper.removeAccents(request.getSearch());
@@ -161,6 +162,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public UserSettings getUserSettings(SecurityToken securityToken, String userId)
     {
         authorization.validate(securityToken);
+        checkNotNull("userId", userId);
         if (!authorization.isAdministrator(securityToken) && !userId.equals(securityToken.getUserId())) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("get settings for user %s ", userId);
         }
@@ -179,6 +181,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void updateUserSettings(SecurityToken securityToken, UserSettings userSettingsApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("userSettings", userSettingsApi);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         UserSettingsManager userSettingsManager = new UserSettingsManager(entityManager, authorization);
@@ -199,6 +202,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void updateUserSettings(SecurityToken securityToken, String userId, UserSettings userSettingsApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("userId", userId);
+        checkNotNull("userSettings", userSettingsApi);
         if (!authorization.isAdministrator(securityToken) && !userId.equals(securityToken.getUserId())) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update settings for user %s ", userId);
         }
@@ -221,8 +226,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void modifyUserId(SecurityToken securityToken, String oldUserId, String newUserId)
     {
         authorization.validate(securityToken);
+        checkNotNull("oldUserId", oldUserId);
+        checkNotNull("newUserId", newUserId);
         authorization.clearCache();
-
         if (!authorization.isAdministrator(securityToken)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user id %s to %s", oldUserId, newUserId);
         }
@@ -339,6 +345,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<Group> listGroups(GroupListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
@@ -383,6 +390,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public Group getGroup(SecurityToken token, String groupId)
     {
         authorization.validate(token);
+        checkNotNull("groupId", groupId);
+
         Group group = authorization.getGroup(groupId);
         if (Group.Type.SYSTEM.equals(group.getType()) && !authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read system group");
@@ -394,6 +403,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public String createGroup(SecurityToken token, Group group)
     {
         authorization.validate(token);
+        checkNotNull("group", group);
         if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create group");
         }
@@ -404,6 +414,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void modifyGroup(SecurityToken token, Group group)
     {
         authorization.validate(token);
+        checkNotNull("group", group);
         String groupId = group.getId();
         Group existingGroup = authorization.checkGroupExistence(groupId);
         if (Group.Type.SYSTEM.equals(existingGroup.getType()) && !authorization.isAdministrator(token)) {
@@ -416,6 +427,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void deleteGroup(SecurityToken token, String groupId)
     {
         authorization.validate(token);
+        checkNotNull("groupId", groupId);
         if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete group " + groupId);
         }
@@ -426,6 +438,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void addGroupUser(SecurityToken token, String groupId, String userId)
     {
         authorization.validate(token);
+        checkNotNull("groupId", groupId);
+        checkNotNull("userId", userId);
         if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("add user to group " + groupId);
         }
@@ -436,6 +450,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void removeGroupUser(SecurityToken token, String groupId, String userId)
     {
         authorization.validate(token);
+        checkNotNull("groupId", groupId);
+        checkNotNull("userId", userId);
         if (!authorization.isAdministrator(token)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("remove user from group " + groupId);
         }
@@ -446,6 +462,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public String createAclEntry(SecurityToken securityToken, AclEntry aclEntryApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("aclEntry", aclEntryApi);
         switch (aclEntryApi.getIdentityType()) {
             case USER:
                 authorization.checkUserExistence(aclEntryApi.getIdentityPrincipalId());
@@ -488,6 +505,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void deleteAclEntry(SecurityToken securityToken, String aclEntryId)
     {
         authorization.validate(securityToken);
+        checkNotNull("aclEntryId", aclEntryId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
         try {
@@ -515,6 +533,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<AclEntry> listAclEntries(AclEntryListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
@@ -625,8 +644,10 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public Map<String, ObjectPermissionSet> listObjectPermissions(ObjectPermissionListRequest request)
     {
+        checkNotNull("request", request);
         SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             Map<String, ObjectPermissionSet> response = new HashMap<String, ObjectPermissionSet>();
@@ -646,6 +667,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void setObjectUser(SecurityToken securityToken, String objectId, String newUserId)
     {
         authorization.validate(securityToken);
+        checkNotNull("objectId", objectId);
+        checkNotNull("newUserId", newUserId);
         authorization.checkUserExistence(newUserId);
         ObjectIdentifier objectIdentifier = ObjectIdentifier.parse(objectId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();

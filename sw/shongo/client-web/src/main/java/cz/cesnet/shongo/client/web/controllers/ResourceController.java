@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.springframework.stereotype.Controller;
@@ -37,7 +38,7 @@ public class ResourceController
     public ModelAndView handleRoomListView(SecurityToken securityToken)
     {
         Map<String, String> resources = new LinkedHashMap<String, String>();
-        for (ResourceSummary resourceSummary : resourceService.listResources(securityToken, null)) {
+        for (ResourceSummary resourceSummary : resourceService.listResources(new ResourceListRequest(securityToken))) {
             String resourceId = resourceSummary.getId();
             StringBuilder resourceTitle = new StringBuilder();
             resourceTitle.append("<b>");

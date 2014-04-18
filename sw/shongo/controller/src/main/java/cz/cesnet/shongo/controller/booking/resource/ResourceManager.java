@@ -100,14 +100,16 @@ public class ResourceManager extends AbstractManager
 
     /**
      * @param ids    requested identifiers
-     * @param userId requested userId
+     * @param userIds requested userIds
      * @return list of all resources in the database
      */
-    public List<Resource> list(Set<Long> ids, String userId)
+    public List<Resource> list(Set<Long> ids, Set<String> userIds)
     {
         QueryFilter filter = new QueryFilter("resource");
         filter.addFilterIn("id", ids);
-        filter.addUserId(userId);
+        if (userIds != null && !userIds.isEmpty()) {
+            filter.addFilterIn("userId", userIds);
+        }
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
                 + " WHERE " + filter.toQueryWhere(),
                 Resource.class);

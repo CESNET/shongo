@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.AclIdentityType;
 import cz.cesnet.shongo.controller.acl.AclObjectClass;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ResourceListRequest;
 import cz.cesnet.shongo.controller.authorization.*;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
@@ -97,6 +98,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public String createResource(SecurityToken securityToken, Resource resourceApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("resource", resourceApi);
 
         // Change user id (only root can do that)
         String userId = securityToken.getUserId();
@@ -148,6 +150,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void modifyResource(SecurityToken securityToken, Resource resourceApi)
     {
         authorization.validate(securityToken);
+        checkNotNull("resource", resourceApi);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -189,11 +192,12 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public void deleteResource(SecurityToken securityToken, String resourceId)
     {
         authorization.validate(securityToken);
-        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
+        checkNotNull("resourceId", resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager, authorization);
+        ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
         try {
             authorizationManager.beginTransaction();
             entityManager.getTransaction().begin();
@@ -244,21 +248,21 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<ResourceSummary> listResources(SecurityToken securityToken, Map<String, Object> filter)
+    public Collection<ResourceSummary> listResources(ResourceListRequest request)
     {
+        checkNotNull("request", request);
+        SecurityToken securityToken = request.getSecurityToken();
         authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-
         try {
             AclObjectClass aclObjectClass = authorization.getAclProvider().getObjectClass(
                     cz.cesnet.shongo.controller.booking.resource.Resource.class);
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
                     aclObjectClass, ObjectPermission.READ);
-            String filterUserId = QueryFilter.getUserIdFromFilter(filter);
-            List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
-
+            List<cz.cesnet.shongo.controller.booking.resource.Resource> list =
+                    resourceManager.list(resourceIds, request.getUserIds());
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.booking.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();
@@ -292,11 +296,11 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public Resource getResource(SecurityToken securityToken, String resourceId)
     {
         authorization.validate(securityToken);
+        checkNotNull("resourceId", resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ObjectIdentifier objectId = ObjectIdentifier.parse(resourceId, ObjectType.RESOURCE);
-
         try {
             cz.cesnet.shongo.controller.booking.resource.Resource resource = resourceManager.get(
                     objectId.getPersistenceId());
@@ -316,6 +320,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     public ResourceAllocation getResourceAllocation(SecurityToken securityToken, String resourceId, Interval slot)
     {
         authorization.validate(securityToken);
+        checkNotNull("resourceId", resourceId);
 
         if (slot == null) {
             slot = new Interval(DateMidnight.now(), Period.days(31));

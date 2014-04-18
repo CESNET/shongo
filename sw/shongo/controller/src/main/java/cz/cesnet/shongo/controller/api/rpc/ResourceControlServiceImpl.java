@@ -356,11 +356,14 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     @Override
     public void deleteRecording(SecurityToken token, String deviceResourceId, String recordingId)
     {
+        authorization.validate(token);
+        checkNotNull("deviceResourceId", deviceResourceId);
+        checkNotNull("recordingId", recordingId);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         try {
-            authorization.validate(token);
             ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
@@ -404,10 +407,12 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
      */
     private String validate(SecurityToken securityToken, String deviceResourceId)
     {
+        authorization.validate(securityToken);
+        checkNotNull("deviceResourceId", deviceResourceId);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            authorization.validate(securityToken);
             ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
@@ -429,10 +434,13 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
      */
     private String validateRoom(SecurityToken securityToken, String deviceResourceId, String roomId)
     {
+        authorization.validate(securityToken);
+        checkNotNull("deviceResourceId", deviceResourceId);
+        checkNotNull("roomId", deviceResourceId);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         try {
-            authorization.validate(securityToken);
             ObjectIdentifier deviceResourceIdentifier = ObjectIdentifier.parse(deviceResourceId, ObjectType.RESOURCE);
             DeviceResource deviceResource = resourceManager.getDevice(deviceResourceIdentifier.getPersistenceId());
             String agentName = getAgentName(deviceResource);
@@ -461,7 +469,6 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
      */
     protected String getAgentName(DeviceResource deviceResource)
     {
-
         Mode mode = deviceResource.getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
@@ -469,6 +476,5 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
         }
         throw new RuntimeException(String.format("Resource '%s' is not managed!",
                 ObjectIdentifier.formatId(deviceResource)));
-
     }
 }

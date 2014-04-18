@@ -185,10 +185,10 @@ sub list_resources()
     my ($options) = @_;
     my $filter = {};
     if ( defined($options->{'user'}) ) {
-        $filter->{'userId'} = $options->{'user'};
+        $filter->{'userIds'} = [$options->{'user'}];
     }
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Resource.listResources', $filter);
+    my $response = $application->secure_hash_request('Resource.listResources', $filter);
     if ( !defined($response) ) {
         return
     }
