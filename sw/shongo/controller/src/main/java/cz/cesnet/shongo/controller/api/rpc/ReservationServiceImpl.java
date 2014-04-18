@@ -100,13 +100,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             // We must check only the future (because scheduler allocates only in future)
-            DateTime dateTimeNow = DateTime.now();
+            DateTime minimumDateTime = DateTime.now();
             Interval slot = request.getSlot();
-            if (slot.getEnd().isBefore(dateTimeNow)) {
+            if (slot.getEnd().isBefore(minimumDateTime)) {
                 throw new ControllerReportSet.ReservationRequestEmptyDurationException();
             }
-            if (slot.getStart().isBefore(dateTimeNow)) {
-                slot = slot.withStart(dateTimeNow);
+            if (slot.getStart().isBefore(minimumDateTime)) {
+                slot = slot.withStart(minimumDateTime);
             }
 
             Specification specificationApi = request.getSpecification();
@@ -117,7 +117,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                          specificationApi, entityManager);
                 if (specification instanceof SpecificationIntervalUpdater) {
                     SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
-                    allocationSlot = intervalUpdater.updateInterval(allocationSlot);
+                    allocationSlot = intervalUpdater.updateInterval(allocationSlot, minimumDateTime);
                 }
             }
 

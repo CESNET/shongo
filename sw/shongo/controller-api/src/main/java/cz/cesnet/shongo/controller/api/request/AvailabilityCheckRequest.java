@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 import org.joda.time.Interval;
@@ -53,6 +54,35 @@ public class AvailabilityCheckRequest extends AbstractRequest
     public AvailabilityCheckRequest(SecurityToken securityToken)
     {
         super(securityToken);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param securityToken        sets the {@link #securityToken}
+     * @param slot                 sets the {@link #slot}
+     * @param specification        sets the {@link #specification}
+     * @param reservationRequestId sets the {@link #reservationRequestId}
+     */
+    public AvailabilityCheckRequest(SecurityToken securityToken, Interval slot,
+            Specification specification, String reservationRequestId)
+    {
+        super(securityToken);
+        this.slot = slot;
+        this.specification = specification;
+        this.reservationRequestId = reservationRequestId;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param securityToken sets the {@link #securityToken}
+     * @param reservationRequest to be initialized from
+     */
+    public AvailabilityCheckRequest(SecurityToken securityToken, ReservationRequest reservationRequest)
+    {
+        this(securityToken, reservationRequest.getSlot(), reservationRequest.getSpecification(),
+                reservationRequest.getReusedReservationRequestId());
     }
 
     /**

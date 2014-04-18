@@ -40,6 +40,9 @@ applicationModule.factory("$application", function() {
             return false;
         },
         getErrorContent: function(data) {
+            if (data == null || data == "") {
+                return null;
+            }
             var currentUrl = location.pathname + location.search;
             var errorContent = $('#page-content', data).html().trim();
             errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
@@ -229,8 +232,11 @@ applicationModule.directive('contentUrl', function ($http, $compile, $applicatio
 
         }).error(function(data, status){
             if (!$application.handleAjaxFailure({status: status})) {
-                var errorContent = $($.parseHTML($application.getErrorContent(data)));
-                setContent(scope, errorContent);
+                var errorContent = $application.getErrorContent(data);
+                if (errorContent != null) {
+                    errorContent = $($.parseHTML(errorContent));
+                    setContent(scope, errorContent);
+                }
             }
         });
     }

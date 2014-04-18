@@ -377,7 +377,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         Interval allocationSlot = slot;
         if (specification instanceof SpecificationIntervalUpdater) {
             SpecificationIntervalUpdater intervalUpdater = (SpecificationIntervalUpdater) specification;
-            allocationSlot = intervalUpdater.updateInterval(allocationSlot);
+            allocationSlot = intervalUpdater.updateInterval(allocationSlot, minimumDateTime);
         }
         slotStart = allocationSlot.getStart();
         Allocation allocation = reservationRequest.getAllocation();

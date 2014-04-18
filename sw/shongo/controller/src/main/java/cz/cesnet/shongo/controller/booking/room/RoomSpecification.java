@@ -21,7 +21,10 @@ import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -97,6 +100,11 @@ public class RoomSpecification extends Specification
      * List of {@link cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification}s for the room.
      */
     private List<ExecutableServiceSpecification> serviceSpecifications = new LinkedList<ExecutableServiceSpecification>();
+
+    /**
+     * {@link #slotMinutesBefore} overridden by {@link #updateInterval} for {@link #createReservationTask}.
+     */
+    private Integer tmpOverriddenSlotMinutesBefore;
 
     /**
      * Constructor.
@@ -432,8 +440,9 @@ public class RoomSpecification extends Specification
             roomProviderCapability = deviceResource.getCapabilityRequired(RoomProviderCapability.class);
         }
 
-        RoomReservationTask roomReservationTask =
-                new RoomReservationTask(schedulerContext, slot, slotMinutesBefore, slotMinutesAfter);
+        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, slot,
+                (tmpOverriddenSlotMinutesBefore != null ? tmpOverriddenSlotMinutesBefore : this.slotMinutesBefore),
+                slotMinutesAfter);
         roomReservationTask.setMeetingName(getMeetingName());
         roomReservationTask.setMeetingDescription(getMeetingDescription());
         roomReservationTask.setParticipantCount(getParticipantCount());
@@ -717,8 +726,15 @@ public class RoomSpecification extends Specification
     }
 
     @Override
-    public Interval updateInterval(Interval interval)
+    public Interval updateInterval(Interval interval, DateTime minimumDateTime)
     {
+        long availableMinutesBeforeInterval = new Duration(minimumDateTime, interval.getStart()).getStandardMinutes();
+        if (availableMinutesBeforeInterval < 0) {
+            throw new IllegalStateException();
+        }
+        if (slotMinutesBefore > availableMinutesBeforeInterval) {
+            tmpOverriddenSlotMinutesBefore = (int) availableMinutesBeforeInterval;
+        }
         return new Interval(interval.getStart().minusMinutes(slotMinutesBefore),
                 interval.getEnd().plusMinutes(slotMinutesAfter));
     }

@@ -186,11 +186,8 @@ paginationModule.controller('PaginationController', function ($scope, $applicati
             // Update element height
             $element.css('height', "auto");
 
-            // Get error content
-            var errorContent = $application.getErrorContent(response.data);
-
             // Set error content
-            $scope.errorContent = errorContent ;
+            $scope.errorContent = $application.getErrorContent(response.data);
             if ($scope.$parent != null) {
                 $scope.$parent.error = true;
                 $scope.$parent.errorContent = $scope.errorContent;

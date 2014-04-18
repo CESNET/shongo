@@ -7,8 +7,10 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 

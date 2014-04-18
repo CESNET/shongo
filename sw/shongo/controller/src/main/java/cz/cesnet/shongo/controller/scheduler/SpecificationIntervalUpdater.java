@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 /**
@@ -16,5 +17,5 @@ public interface SpecificationIntervalUpdater
      * @param interval
      * @return new {@link org.joda.time.Interval}
      */
-    public Interval updateInterval(Interval interval);
+    public Interval updateInterval(Interval interval, DateTime minimumDateTime);
 }
