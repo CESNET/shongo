@@ -36,8 +36,8 @@ sub new
     $self->{'state'} = $state;
     $self->{'url'} = '';
     $self->{'client_id'} = '';
+    $self->{'client_secret'} = '';
     $self->{'redirect_uri'} = '';
-    $self->{'secret'} = '';
 
     return $self;
 }
@@ -79,6 +79,24 @@ sub set_client_id()
 }
 
 #
+# @return $client_secret
+#
+sub get_client_secret()
+{
+    my ($self) = @_;
+    return $self->{'client_secret'};
+}
+
+#
+# @param $secret
+#
+sub set_client_secret()
+{
+    my ($self, $secret) = @_;
+    $self->{'client_secret'} = $secret;
+}
+
+#
 # @return redirect_uri
 #
 sub get_redirect_uri()
@@ -94,24 +112,6 @@ sub set_redirect_uri()
 {
     my ($self, $redirect_uri) = @_;
     $self->{'redirect_uri'} = $redirect_uri;
-}
-
-#
-# @return secret
-#
-sub get_secret()
-{
-    my ($self) = @_;
-    return $self->{'secret'};
-}
-
-#
-# @param $secret
-#
-sub set_secret()
-{
-    my ($self, $secret) = @_;
-    $self->{'secret'} = $secret;
 }
 
 #
@@ -202,8 +202,8 @@ sub authentication_token
     my ($self, $authorization_code) = @_;
     my $request = HTTP::Request->new(POST => $self->get_url() . '/authn/oic/token');
     $request->content_type('application/x-www-form-urlencoded');
-    if ( defined($self->{'secret'}) ) {
-        my $secret_string = $self->{'secret'};
+    if ( defined($self->{'client_secret'}) ) {
+        my $secret_string = $self->{'client_secret'};
         $request->header('Authorization' => "secret auth=$secret_string");
     }
     $request->content($self->escape_hash(

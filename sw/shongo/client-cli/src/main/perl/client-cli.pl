@@ -41,7 +41,6 @@ sub usage {
       "    -help                          Show this usage information\n" .
       "    -connect=<URL>                 Connect to a specified controller\n" .
       "    -token=<TOKEN>                 Use specified access token for authentication\n" .
-      "    -authentication-server=<HOST>  Use given authentication server\n" .
       "    -scripting                     Switch to scripting mode\n" .
       "    -cmd=<COMMAND>                 Perform given command in controller\n" .
       "    -file=<FILE>                   Perform commands from file in controller\n"
@@ -53,7 +52,6 @@ sub usage {
 my $connect;
 my $cmd;
 my $file;
-my $authentication_server = undef;
 my $root_access_token = undef;
 my $access_token = undef;
 my $scripting = 0;
@@ -62,7 +60,6 @@ Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
     'token=s' => \$access_token,
-    'authentication-server:s' => \$authentication_server,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
@@ -71,13 +68,32 @@ if ( $help == 1) {
     usage();
 }
 
-if ( !defined($authentication_server) ) {
-    $authentication_server = 'shongo-auth-dev.cesnet.cz';
-}
-
 my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
-$controller->set_authorization_url('https://' . $authentication_server);
+
+# Parse configuration file
+my $configuration_file = 'client-cli.cfg.xml';
+my $configuration = XML::Twig->new(
+    twig_handlers => {
+        'configuration/security/server' => sub {
+            my ($twig, $node) = @_;
+            $controller->{'authorization'}->set_url('https://' . $node->text);
+        },
+        'configuration/security/client-id' => sub {
+            my ($twig, $node) = @_;
+            $controller->{'authorization'}->set_client_id($node->text);
+        },
+        'configuration/security/client-secret' => sub {
+            my ($twig, $node) = @_;
+            $controller->{'authorization'}->set_client_secret($node->text);
+        },
+        'configuration/security/redirect-uri' => sub {
+            my ($twig, $node) = @_;
+            $controller->{'authorization'}->set_redirect_uri($node->text);
+        },
+    }
+);
+$configuration->parsefile($configuration_file);
 
 # Set specified access token
 if (defined($access_token)) {

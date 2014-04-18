@@ -18,6 +18,7 @@ migrations/meetings_*
 migrations/shongo-dev_*
 migrations/srom-dev_*
 target/
+client-cli.cfg.xml
 client-web.cfg.xml
 controller.cfg.xml
 connector.cfg.xml

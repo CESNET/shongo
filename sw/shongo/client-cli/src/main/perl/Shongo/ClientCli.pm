@@ -65,15 +65,6 @@ sub client()
 }
 
 #
-# @param $url
-#
-sub set_authorization_url()
-{
-    my ($self, $url) = @_;
-    $self->{'authorization'}->set_url($url);
-}
-
-#
 # Enable/disable scripting mode.
 #
 # @param $scripting  enable/disable scripting mode (0|1).
