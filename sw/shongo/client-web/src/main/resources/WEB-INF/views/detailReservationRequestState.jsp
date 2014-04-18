@@ -12,6 +12,7 @@
         <c:if test="${reservationRequest.detail.room != null}">
             $scope.reservationRequest.roomState = "${reservationRequest.detail.room.state}";
             $scope.reservationRequest.roomStateStarted = ${reservationRequest.detail.room.state.started == true};
+            $scope.reservationRequest.roomStateAvailable = ${reservationRequest.detail.room.state.available == true};
             <c:if test="${reservationRequest.detail.room.recordable}">
                 if ($scope.reservationRequest.roomRecordable == false) {
                     $scope.reservationRequest.roomRecordable = true;

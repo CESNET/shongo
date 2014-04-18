@@ -57,6 +57,7 @@
             reservationId : "${reservationId}",
             roomState: "${roomState}",
             roomStateStarted: ${roomState.started == true},
+            roomStateAvailable: ${roomState.available == true},
             roomRecordable: ${isRoomRecordable == true}
         };
 
@@ -193,7 +194,7 @@
             <tag:url var="detailRuntimeManagementUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || reservationRequest.roomState != 'STARTED'"
+            <tab id="runtimeManagement" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomStateAvailable"
                  heading="${detailRuntimeManagementTitle}"
                  content-url="${detailRuntimeManagementUrl}">
             </tab>
