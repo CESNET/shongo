@@ -11,9 +11,9 @@ case "$1" in
         ./shongo-client-web.sh start
         ;;
     stop)
-        ./shongo-controller.sh stop
-        ./shongo-connector.sh stop
         ./shongo-client-web.sh stop
+        ./shongo-connector.sh stop
+        ./shongo-controller.sh stop
         ;;
     restart)
         cd $ORIGINAL_DIR
