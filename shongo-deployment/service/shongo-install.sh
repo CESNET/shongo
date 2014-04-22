@@ -70,7 +70,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-controller
-update-rc.d shongo-controller defaults 90 10
+update-rc.d shongo-controller defaults 90 11
 
 fi
 
