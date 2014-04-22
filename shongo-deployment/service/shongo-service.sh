@@ -35,10 +35,14 @@ LOG_FILE="$LOG_DIR/${NAME}_$DATE.log"
 PID_FILE="$PID_DIR/$NAME.pid"
 
 if [ ! -d "$LOG_DIR" ]; then
-    mkdir -p $LOG_DIR
+    if ! mkdir -p $LOG_DIR; then
+        exit 1
+    fi
 fi
 if [ ! -d "$PID_DIR" ]; then
-    mkdir -p $PID_DIR
+    if ! mkdir -p $PID_DIR; then
+        exit 1
+    fi
 fi
 
 COLOR_RED="\e[0;31m"
@@ -52,16 +56,19 @@ case "$1" in
             echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is already started."
             exit 0
         fi
+        if ! touch $PID_FILE ]; then
+            exit 1
+        fi
         echo Starting $NAME $VERSION...
         nohup $BIN > $LOG_FILE 2>&1 &
-        # Create pid file
-        echo "$!" > $PID_FILE
-        PID=$(cat $PID_FILE)
+        # Get pid
+        PID="$!"
         # Wait for process to start
         while ps -p $PID > /dev/null && ! grep -q "$BIN_STARTED" $LOG_FILE ; do sleep 1; done;
         # Check whether process is started
         if ps -p $PID > /dev/null;
         then
+            echo "$PID" > $PID_FILE
             echo -e "[${COLOR_GREEN}OK${COLOR_DEFAULT}] The $NAME was started".
             exit 0
         else
@@ -78,11 +85,15 @@ case "$1" in
         fi
         PID=$(cat $PID_FILE)
         # Stop process
-        if ps -p $PID > /dev/null;
-        then
+        if ps -p $PID > /dev/null; then
+            if ! touch $PID_FILE ]; then
+                exit 1
+            fi
             echo Stopping $NAME $VERSION...
             # Stop process
-            kill $PID;
+            if ! kill $PID; then
+                exit 1
+            fi
             # Wait for process to end
             while ps -p $PID > /dev/null; do sleep 1; done;
             echo -e "[${COLOR_GREEN}OK${COLOR_DEFAULT}] The $NAME was stopped."
@@ -90,13 +101,28 @@ case "$1" in
             echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is not started."
         fi
         # Delete pid file
-        rm $PID_FILE
+        if ! rm $PID_FILE; then
+            exit 1
+        fi
         exit 0
         ;;
     restart)
         cd $ORIGINAL_DIR
         $0 stop
         $0 start
+        ;;
+    status)
+        if [ -f $PID_FILE ]; then
+            PID=$(cat $PID_FILE)
+            if [[ ! -z "$PID" ]] && ps -p $PID > /dev/null; then
+                echo -e "[${COLOR_GREEN}STARTED${COLOR_DEFAULT}] The $NAME service is started."
+            else
+                echo -e "[${COLOR_YELLOW}STARTING${COLOR_DEFAULT}] The $NAME service is starting."
+
+            fi
+        else
+            echo -e "[${COLOR_RED}NOT_STARTED${COLOR_DEFAULT}] The $NAME service is not started."
+        fi
         ;;
     *)
         echo "Usage: $0 {start|stop|restart}"

@@ -20,8 +20,13 @@ case "$1" in
         $0 stop
         $0 start
         ;;
+    status)
+        ./shongo-client-web.sh status
+        ./shongo-connector.sh status
+        ./shongo-controller.sh status
+        ;;
     *)
-        echo "Usage: $0 {start|stop|restart}"
+        echo "Usage: $0 {start|stop|restart|status}"
         exit 1
         ;;
 esac

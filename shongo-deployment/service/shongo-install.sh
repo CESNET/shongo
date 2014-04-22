@@ -11,12 +11,52 @@ if [ ! -d "$SERVICE_DIR" ]; then
     mkdir -p $SERVICE_DIR
 fi
 
+# Parse arguments
+SHONGO_CONTROLLER=false
+SHONGO_CONNECTOR=false
+SHONGO_CLIENT_WEB=false
+for argument in "$@"
+do
+    case "$argument" in
+        shongo-controller)
+            SHONGO_CONTROLLER=true
+            ;;
+        shongo-connector)
+            SHONGO_CONNECTOR=true
+            ;;
+        shongo-client-web)
+            SHONGO_CLIENT_WEB=true
+            ;;
+    esac
+done
+
+# No arguments
+if [[ $# -eq 0 ]] ; then
+    echo Installing all shongo services...
+    SHONGO_CONTROLLER=true
+    SHONGO_CONNECTOR=true
+    SHONGO_CLIENT_WEB=true
+fi
+
 ################################################################################
 #
 # Install shongo-controller service
 #
+if [ "$SHONGO_CONTROLLER" = true ] ; then
+
+echo Installing shongo-controller...
 cat > $SERVICE_DIR/shongo-controller <<EOF
 #!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          shongo-controller
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: shongo-controller
+# Description:       shongo main backend application
+### END INIT INFO
 
 NAME=shongo-controller
 BIN="java -jar $DEPLOYMENT_DIR/../shongo-controller/target/shongo-controller-:VERSION:.jar --daemon"
@@ -28,13 +68,29 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-controller
+update-rc.d shongo-controller defaults
+
+fi
 
 ################################################################################
 #
 # Install shongo-connector service
 #
+if [ "$SHONGO_CONNECTOR" = true ] ; then
+
+echo Installing shongo-connector...
 cat > $SERVICE_DIR/shongo-connector <<EOF
 #!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          shongo-connector
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: shongo-connector
+# Description:       shongo device driver application
+### END INIT INFO
 
 NAME=shongo-connector
 BIN="java -jar $DEPLOYMENT_DIR/../shongo-connector/target/shongo-connector-:VERSION:.jar --daemon"
@@ -46,13 +102,29 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-connector
+update-rc.d shongo-connector defaults
+
+fi
 
 ################################################################################
 #
 # Install shongo-client-web service
 #
+if [ "$SHONGO_CLIENT_WEB" = true ] ; then
+
+echo Installing shongo-client-web...
 cat > $SERVICE_DIR/shongo-client-web <<EOF
 #!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          shongo-client-web
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: shongo-client-web
+# Description:       shongo web interface
+### END INIT INFO
 
 NAME=shongo-client-web
 BIN="java -jar $DEPLOYMENT_DIR/../shongo-client-web/target/shongo-client-web-:VERSION:.jar --daemon"
@@ -64,6 +136,9 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-client-web
+update-rc.d shongo-client-web defaults
+
+fi
 
 ################################################################################
 #
@@ -72,23 +147,56 @@ chmod a+x $SERVICE_DIR/shongo-client-web
 cat > $SERVICE_DIR/shongo <<EOF
 #!/bin/bash
 
+### BEGIN INIT INFO
+# Provides:          shongo
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: shongo
+# Description:       all installed shongo applications
+### END INIT INFO
+
 case "\$1" in
     start)
-        $SERVICE_DIR/shongo-controller start
-        $SERVICE_DIR/shongo-connector start
-        $SERVICE_DIR/shongo-client-web start
+        if [ "$SHONGO_CONTROLLER" = true ] ; then
+            $SERVICE_DIR/shongo-controller start
+        fi
+        if [ "$SHONGO_CONNECTOR" = true ] ; then
+            $SERVICE_DIR/shongo-connector start
+        fi
+        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
+            $SERVICE_DIR/shongo-client-web start
+        fi
         ;;
     stop)
-        $SERVICE_DIR/shongo-controller stop
-        $SERVICE_DIR/shongo-connector stop
-        $SERVICE_DIR/shongo-client-web stop
+        if [ "$SHONGO_CONTROLLER" = true ] ; then
+            $SERVICE_DIR/shongo-controller stop
+        fi
+        if [ "$SHONGO_CONNECTOR" = true ] ; then
+            $SERVICE_DIR/shongo-connector stop
+        fi
+        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
+            $SERVICE_DIR/shongo-client-web stop
+        fi
         ;;
     restart)
         \$0 stop
         \$0 start
         ;;
+    status)
+        if [ "$SHONGO_CONTROLLER" = true ] ; then
+            $SERVICE_DIR/shongo-controller status
+        fi
+        if [ "$SHONGO_CONNECTOR" = true ] ; then
+            $SERVICE_DIR/shongo-connector status
+        fi
+        if [ "$SHONGO_CLIENT_WEB" = true ] ; then
+            $SERVICE_DIR/shongo-client-web status
+        fi
+        ;;
     *)
-        echo "Usage: \$0 {start|stop|restart}"
+        echo "Usage: \$0 {start|stop|restart|status}"
         exit 1
         ;;
 esac

@@ -5,8 +5,25 @@ SERVICE_DIR="/etc/init.d"
 cd $(dirname $0)/../
 
 if [ -d "$SERVICE_DIR" ]; then
-    rm $SERVICE_DIR/shongo-controller
-    rm $SERVICE_DIR/shongo-connector
-    rm $SERVICE_DIR/shongo-client-web
-    rm $SERVICE_DIR/shongo
+    if [ -f $SERVICE_DIR/shongo-controller ]; then
+        echo Uninstalling shongo-controller...
+        $SERVICE_DIR/shongo-controller stop
+        rm $SERVICE_DIR/shongo-controller
+        update-rc.d shongo-controller remove
+    fi
+    if [ -f $SERVICE_DIR/shongo-connector ]; then
+        echo Uninstalling shongo-connector...
+        $SERVICE_DIR/shongo-connector stop
+        rm $SERVICE_DIR/shongo-connector
+        update-rc.d shongo-connector remove
+    fi
+    if [ -f $SERVICE_DIR/shongo-client-web ]; then
+        echo Uninstalling shongo-client-web...
+        $SERVICE_DIR/shongo-client-web stop
+        rm $SERVICE_DIR/shongo-client-web
+        update-rc.d shongo-client-web remove
+    fi
+    if [ -f $SERVICE_DIR/shongo ]; then
+        rm $SERVICE_DIR/shongo
+    fi
 fi
