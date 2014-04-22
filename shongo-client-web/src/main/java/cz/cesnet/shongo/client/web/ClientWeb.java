@@ -2,10 +2,9 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.apache.commons.cli.*;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.SecurityHandler;
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
@@ -15,19 +14,14 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
@@ -42,6 +36,49 @@ public class ClientWeb
     public static void main(final String[] arguments) throws Exception
     {
         Locale.setDefault(UserSettings.LOCALE_ENGLISH);
+
+        // Create options
+        Option optionHelp = new Option(null, "help", false, "Print this usage information");
+        Option optionDaemon = OptionBuilder.withLongOpt("daemon")
+                .withDescription("Web interface will be started as daemon not waiting to EOF")
+                .create("d");
+        Options options = new Options();
+        options.addOption(optionHelp);
+        options.addOption(optionDaemon);
+
+        // Parse command line
+        CommandLine commandLine = null;
+        try {
+            CommandLineParser parser = new PosixParser();
+            commandLine = parser.parse(options, arguments);
+        }
+        catch (ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        // Print help
+        if (commandLine.hasOption(optionHelp.getLongOpt())) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.setOptionComparator(new Comparator<Option>()
+            {
+                public int compare(Option opt1, Option opt2)
+                {
+                    if (opt1.getOpt() == null && opt2.getOpt() != null) {
+                        return -1;
+                    }
+                    if (opt1.getOpt() != null && opt2.getOpt() == null) {
+                        return 1;
+                    }
+                    if (opt1.getOpt() == null && opt2.getOpt() == null) {
+                        return opt1.getLongOpt().compareTo(opt2.getLongOpt());
+                    }
+                    return opt1.getOpt().compareTo(opt2.getOpt());
+                }
+            });
+            formatter.printHelp("client-web", options);
+            System.exit(0);
+        }
 
         // Setup class-path for JAR file
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -124,7 +161,52 @@ public class ClientWeb
             server.addConnector(httpsConnector);
         }
 
-        server.setHandler(webAppContext);
-        server.start();
+        // Configure shutdown hook
+        Runnable shutdown = new Runnable()
+        {
+            private boolean handled = false;
+
+            public void run()
+            {
+                try {
+                    if (handled) {
+                        return;
+                    }
+                    logger.info("Shutdown has been started...");
+                    server.stop();
+                    logger.info("Shutdown successfully completed.");
+                }
+                catch (Exception exception) {
+                    logger.error("Shutdown failed", exception);
+                }
+                finally {
+                    handled = true;
+                }
+            }
+        };
+
+        // Run client-web
+        boolean waitEof = !commandLine.hasOption(optionDaemon.getOpt());
+        try {
+            server.setHandler(webAppContext);
+            server.start();
+            logger.info("ClientWeb successfully started.");
+
+            // Configure shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(shutdown));
+
+            if (waitEof) {
+                // Shutdown when EOF reached
+                while (System.in.read() != -1) {
+                    continue;
+                }
+                shutdown.run();
+            }
+        }
+        catch (Exception exception) {
+            // Shutdown
+            shutdown.run();
+            throw exception;
+        }
     }
 }

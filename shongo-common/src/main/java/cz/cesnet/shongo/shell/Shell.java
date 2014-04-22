@@ -185,6 +185,7 @@ public class Shell extends CommandSet
                 String line = console.readLine(prompt + "> ");
                 active = null;
                 if (!parserCommandLine(line)) {
+                    System.out.printf("\n");
                     break;
                 }
             }

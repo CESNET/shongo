@@ -609,7 +609,7 @@ public class Controller
     /**
      * Run controller shell
      */
-    public void run()
+    public void runShell()
     {
         ControllerShell controllerShell = new ControllerShell(this);
         controllerShell.run();
@@ -733,9 +733,9 @@ public class Controller
     /**
      * Main controller method
      *
-     * @param args
+     * @param arguments
      */
-    public static void main(String[] args) throws Exception
+    public static void main(String[] arguments) throws Exception
     {
         logger.info("Controller {}", getVersion());
 
@@ -768,6 +768,9 @@ public class Controller
                 .hasArg()
                 .withDescription("Controller XML configuration file")
                 .create("g");
+        Option optionDaemon = OptionBuilder.withLongOpt("daemon")
+                .withDescription("Controller will be started as daemon without the interactive shell")
+                .create("d");
         Options options = new Options();
         options.addOption(optionHost);
         options.addOption(optionRpcPort);
@@ -775,12 +778,13 @@ public class Controller
         options.addOption(optionJadePlatform);
         options.addOption(optionHelp);
         options.addOption(optionConfig);
+        options.addOption(optionDaemon);
 
         // Parse command line
         CommandLine commandLine = null;
         try {
             CommandLineParser parser = new PosixParser();
-            commandLine = parser.parse(options, args);
+            commandLine = parser.parse(options, arguments);
         }
         catch (ParseException e) {
             System.out.println("Error: " + e.getMessage());
@@ -832,7 +836,7 @@ public class Controller
             configurationFileName = commandLine.getOptionValue(optionConfig.getOpt());
         }
         // Create controller
-        Controller controller = new Controller(configurationFileName);
+        final Controller controller = new Controller(configurationFileName);
         NotificationManager notificationManager = controller.getNotificationManager();
 
         // Configure SSL host verification mappings
@@ -892,19 +896,55 @@ public class Controller
         // Add JADE service
         controller.setJadeService(new ServiceImpl(entityManagerFactory, notificationManager, executor, authorization));
 
-        // Start, run and stop the controller
+        // Prepare shutdown runnable
+        Runnable shutdown = new Runnable()
+        {
+            private boolean handled = false;
+
+            public void run()
+            {
+                try {
+                    if (handled) {
+                        return;
+                    }
+                    logger.info("Shutdown has been started...");
+                    logger.info("Stopping controller...");
+                    controller.stop();
+                    controller.destroy();
+                    Container.killAllJadeThreads();
+                    logger.info("Shutdown successfully completed.");
+                }
+                catch (Exception exception) {
+                    logger.error("Shutdown failed", exception);
+                }
+                finally {
+                    handled = true;
+                }
+            }
+        };
+
+        // Run controller
+        boolean shell = !commandLine.hasOption(optionDaemon.getOpt());
         try {
+            // Start
             controller.startAll();
             authorization.initRootAccessToken();
             logger.info("Controller successfully started.");
-            controller.run();
-        }
-        finally {
-            logger.info("Stopping controller...");
-            controller.stop();
-            controller.destroy();
-        }
 
-        Container.killAllJadeThreads();
+            // Configure shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(shutdown));
+
+            if (shell) {
+                // Run shell
+                controller.runShell();
+                // Shutdown
+                shutdown.run();
+            }
+        }
+        catch (Exception exception) {
+            // Shutdown
+            shutdown.run();
+            throw exception;
+        }
     }
 }

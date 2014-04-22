@@ -62,7 +62,7 @@ echo "  Resource admin: $RESOURCE_ADMIN_EMAIL"
 echo -n "Presse enter to continue..."; read line
 
 RUN_CLIENT_CLI="cat"
-RUN_CLIENT_CLI="./shongo_client_cli.sh --connect $CONTROLLER --scripting"
+RUN_CLIENT_CLI="./shongo-client-cli.sh --connect $CONTROLLER --scripting"
 
 ################################################################################
 #
@@ -238,7 +238,7 @@ EOF
 
 # Command for listing not-shongo MCU rooms
 <<COMMENT
-bin/shongo_client_cli.sh --connect meetings.cesnet.cz --cmd "control-resource 4 list-rooms" \
+bin/shongo-client-cli.sh --connect meetings.cesnet.cz --cmd "control-resource 4 list-rooms" \
     | grep "^|.\+|.\+|" \
     | grep -v "exe:\|-+-\|| Description" \
     | sed -r -e "s/^\| *([^\|]+) *\|.*/\1/g" \
@@ -248,7 +248,7 @@ COMMENT
 
 # Command for listing not-shongo ADOBE CONNECT rooms
 <<COMMENT
-bin/shongo_client_cli.sh --connect meetings.cesnet.cz --cmd "control-resource 24 list-rooms" \
+bin/shongo-client-cli.sh --connect meetings.cesnet.cz --cmd "control-resource 24 list-rooms" \
     | grep "^|.\+|.\+|" \
     | grep -v "exe:\|-+-\|| Description" \
     | sed -r -e "s/^\|[^\|]+\|[^\|]+\|[^\|]+\| *\/([^\|]+)\/ *\|.*/\1/g" \

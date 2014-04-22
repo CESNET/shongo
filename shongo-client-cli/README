@@ -6,11 +6,11 @@ To run client application go to directory
 <shongo_repository> and type the
 following command:
 
-    shongo-deployment/bin/shongo_client_cli.sh
+    shongo-deployment/bin/shongo-client-cli.sh
 
 For printing application help type:
 
-    shongo-deployment/bin/shongo_client_cli.sh --help
+    shongo-deployment/bin/shongo-client-cli.sh --help
 
 REQUIREMENTS
 

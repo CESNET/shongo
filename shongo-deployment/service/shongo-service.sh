@@ -1,0 +1,107 @@
+#!/bin/bash
+
+ORIGINAL_DIR=$(pwd)
+
+if [[ -z "$DEPLOYMENT_DIR" ]]; then
+    cd $(dirname $0)/../
+else
+    cd $DEPLOYMENT_DIR
+fi
+DEPLOYMENT_DIR="."
+
+if [[ -z "$NAME" ]]; then
+   echo "Variable NAME must be present."
+   exit 1
+fi
+if [[ -z "$BIN" ]]; then
+   echo "Variable BIN must be present."
+   exit 1
+fi
+if [[ -z "$BIN_STARTED" ]]; then
+   echo "Variable BIN_STARTED must be present."
+   exit 1
+fi
+if [[ -z "$LOG_DIR" ]]; then
+    LOG_DIR="$DEPLOYMENT_DIR/service"
+fi
+if [[ -z "$PID_DIR" ]]; then
+    PID_DIR="$DEPLOYMENT_DIR/service"
+fi
+
+DATE=$(date +"%Y-%m-%d")
+VERSION=`cat $DEPLOYMENT_DIR/../pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`
+BIN=$(echo $BIN | sed "s/:VERSION:/$VERSION/g")
+LOG_FILE="$LOG_DIR/${NAME}_$DATE.log"
+PID_FILE="$PID_DIR/$NAME.pid"
+
+if [ ! -d "$LOG_DIR" ]; then
+    mkdir -p $LOG_DIR
+fi
+if [ ! -d "$PID_DIR" ]; then
+    mkdir -p $PID_DIR
+fi
+
+COLOR_RED="\e[0;31m"
+COLOR_GREEN="\e[0;32m"
+COLOR_YELLOW="\e[0;33m"
+COLOR_DEFAULT="\e[0m"
+
+case "$1" in
+    start)
+        if [ -f $PID_FILE ]; then
+            echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is already started."
+            exit 0
+        fi
+        echo Starting $NAME $VERSION...
+        nohup $BIN > $LOG_FILE 2>&1 &
+        # Create pid file
+        echo "$!" > $PID_FILE
+        PID=$(cat $PID_FILE)
+        # Wait for process to start
+        while ps -p $PID > /dev/null && ! grep -q "$BIN_STARTED" $LOG_FILE ; do sleep 1; done;
+        # Check whether process is started
+        if ps -p $PID > /dev/null;
+        then
+            echo -e "[${COLOR_GREEN}OK${COLOR_DEFAULT}] The $NAME was started".
+            exit 0
+        else
+            rm $PID_FILE
+            cat $LOG_FILE
+            echo -e "[${COLOR_RED}FAILED${COLOR_DEFAULT}] The $NAME failed to start."
+            exit 1
+        fi
+        ;;
+    stop)
+        if [ ! -f $PID_FILE ]; then
+            echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is not started."
+            exit 0
+        fi
+        PID=$(cat $PID_FILE)
+        # Stop process
+        if ps -p $PID > /dev/null;
+        then
+            echo Stopping $NAME $VERSION...
+            # Stop process
+            kill $PID;
+            # Wait for process to end
+            while ps -p $PID > /dev/null; do sleep 1; done;
+            echo -e "[${COLOR_GREEN}OK${COLOR_DEFAULT}] The $NAME was stopped."
+        else
+            echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is not started."
+        fi
+        # Delete pid file
+        rm $PID_FILE
+        exit 0
+        ;;
+    restart)
+        cd $ORIGINAL_DIR
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

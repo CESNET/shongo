@@ -8,11 +8,11 @@ To build controller by maven go to the directory <shongo_repository> and type th
 
 To run controller on localhost at port 8181 type:
 
-    shongo-deployment/bin/shongo_controller.sh
+    shongo-deployment/service/shongo-controller.sh start
 
 To connect to the controller use the client application:
 
-    shongo-deployment/bin/shongo_client_cli.sh
+    shongo-deployment/bin/shongo-client-cli.sh
 
 
 

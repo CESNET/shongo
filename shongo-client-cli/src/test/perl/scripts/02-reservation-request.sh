@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 CONTROLLER=127.0.0.1:8686
 
-shongo-deployment/bin/shongo_client_cli.sh --connect $CONTROLLER --scripting <<EOF
+shongo-deployment/bin/shongo-client-cli.sh --connect $CONTROLLER --scripting <<EOF
 
     create-reservation-request {
         class: 'ReservationRequest',
@@ -65,7 +65,7 @@ EOF
 echo "Waiting for allocation..."
 sleep 2
 
-shongo-deployment/bin/shongo_client_cli.sh --connect $CONTROLLER \
+shongo-deployment/bin/shongo-client-cli.sh --connect $CONTROLLER \
 --cmd "list-reservation-requests" \
 --cmd "get-reservation-request 1" \
 --cmd "get-reservation-for-request 1" \

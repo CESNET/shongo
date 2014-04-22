@@ -4,7 +4,7 @@ cd `dirname $0`/../
 #
 
 CONTROLLER=127.0.0.1
-RUN_CLIENT_CLI="./shongo_client_cli.sh --connect $CONTROLLER --scripting"
+RUN_CLIENT_CLI="./shongo-client-cli.sh --connect $CONTROLLER --scripting"
 
 $RUN_CLIENT_CLI <<EOF
 

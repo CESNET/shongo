@@ -6,5 +6,7 @@ migrations/backup
 migrations/meetings_*
 migrations/shongo-dev_*
 migrations/srom-dev_*
+service/*.log
+service/*.pid
 root.access-token
 

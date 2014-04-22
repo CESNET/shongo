@@ -200,15 +200,22 @@ public class Connector
     }
 
     /**
-     * Run connector shell.
+     * Adds an agent of a given name to the connector.
+     *
+     * @param name
      */
-    public void run()
+    private void addAgent(String name, ConnectorConfiguration configuration)
+    {
+        jadeContainer.addAgent(name, ConnectorAgent.class, new Object[]{configuration});
+        jadeAgents.add(name);
+    }
+
+    private void runShell()
     {
         final Shell shell = new Shell();
         shell.setPrompt("connector");
         shell.setExitCommand("exit", "Shutdown the connector");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-
         shell.addCommand("add", "Add a new connector instance", new CommandHandler()
         {
             @Override
@@ -248,65 +255,15 @@ public class Connector
                 for (String agent : jadeAgents) {
                     if (agent.equals(agentName)) {
                         shell.setPrompt(agentName + "@connector");
-                        shell.addCommands(ConnectorContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
-
+                        shell.addCommands(ConnectorContainerCommandSet.createContainerAgentCommandSet(
+                                jadeContainer, agentName));
                         return;
                     }
                 }
                 Shell.printError("Agent [%s] was not found!", agentName);
             }
         });
-
-        // Thread that checks the connection to the main controller
-        // and if it is down it tries to connect.
-        final Thread connectThread = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                boolean startFailed = false;
-                while (!Thread.interrupted()) {
-                    try {
-                        Thread.sleep(getControllerConnectionCheckPeriod().getMillis());
-                    }
-                    catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        continue;
-                    }
-                    // We want to reconnect if container is not started or when the
-                    // previous start failed
-                    if (startFailed || jadeContainer.isStarted() == false) {
-                        logger.warn("Reconnecting to the JADE main container {}:{}...", getControllerHost(),
-                                getControllerPort());
-                        startFailed = false;
-                        if (jadeContainer.start()) {
-                            configureAgents();
-                        }
-                        else {
-                            startFailed = true;
-                        }
-                    }
-                }
-            }
-        });
-        connectThread.start();
-
         shell.run();
-
-        connectThread.interrupt();
-
-        stop();
-    }
-
-    /**
-     * Adds an agent of a given name to the connector.
-     *
-     * @param name
-     */
-    private void addAgent(String name, ConnectorConfiguration configuration)
-    {
-        jadeContainer.addAgent(name, ConnectorAgent.class, new Object[]{configuration});
-        jadeAgents.add(name);
     }
 
     /**
@@ -341,9 +298,9 @@ public class Connector
     /**
      * Main method of device connector.
      *
-     * @param args
+     * @param arguments
      */
-    public static void main(String[] args)
+    public static void main(String[] arguments) throws Exception
     {
         logger.info("Connector {}", getVersion());
 
@@ -371,18 +328,22 @@ public class Connector
                 .hasArg()
                 .withDescription("Connector XML configuration file")
                 .create("g");
+        Option optionDaemon = OptionBuilder.withLongOpt("daemon")
+                .withDescription("Connector will be started as daemon without the interactive shell")
+                .create("d");
         Options options = new Options();
         options.addOption(optionHost);
         options.addOption(optionPort);
         options.addOption(optionController);
         options.addOption(optionConfig);
         options.addOption(optionHelp);
+        options.addOption(optionDaemon);
 
         // Parse command line
         CommandLine commandLine = null;
         try {
             CommandLineParser parser = new PosixParser();
-            commandLine = parser.parse(options, args);
+            commandLine = parser.parse(options, arguments);
         }
         catch (ParseException e) {
             System.out.println("Error: " + e.getMessage());
@@ -455,14 +416,87 @@ public class Connector
             connector.loadDefaultConfiguration();
         }
 
-        connector.start();
+        // Thread that checks the connection to the main controller
+        // and if it is down it tries to connect.
+        final Thread connectThread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                boolean startFailed = false;
+                while (!Thread.interrupted()) {
+                    try {
+                        Thread.sleep(connector.getControllerConnectionCheckPeriod().getMillis());
+                    }
+                    catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        continue;
+                    }
+                    // We want to reconnect if container is not started or when the
+                    // previous start failed
+                    if (startFailed || connector.jadeContainer.isStarted() == false) {
+                        logger.warn("Reconnecting to the JADE main container {}:{}...", connector.getControllerHost(),
+                                connector.getControllerPort());
+                        startFailed = false;
+                        if (connector.jadeContainer.start()) {
+                            connector.configureAgents();
+                        }
+                        else {
+                            startFailed = true;
+                        }
+                    }
+                }
+            }
+        });
 
-        logger.info("Connector successfully started.");
+        // Prepare shutdown runnable
+        Runnable shutdown = new Runnable()
+        {
+            private boolean handled = false;
 
-        connector.run();
+            public void run()
+            {
+                try {
+                    if (handled) {
+                        return;
+                    }
+                    logger.info("Shutdown has been started...");
+                    logger.info("Stopping connector...");
+                    connectThread.interrupt();
+                    connector.stop();
+                    Container.killAllJadeThreads();
+                    logger.info("Shutdown successfully completed.");
+                }
+                catch (Exception exception) {
+                    logger.error("Shutdown failed", exception);
+                }
+                finally {
+                    handled = true;
+                }
+            }
+        };
 
-        logger.info("Connector exiting...");
+        // Run connector
+        boolean shell = !commandLine.hasOption(optionDaemon.getOpt());
+        try {
+            connector.start();
+            connectThread.start();
+            logger.info("Connector successfully started.");
 
-        Container.killAllJadeThreads();
+            // Configure shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(shutdown));
+
+            if (shell) {
+                // Run shell
+                connector.runShell();
+                // Shutdown
+                shutdown.run();
+            }
+        }
+        catch (Exception exception) {
+            // Shutdown
+            shutdown.run();
+            throw exception;
+        }
     }
 }
