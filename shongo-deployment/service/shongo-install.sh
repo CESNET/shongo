@@ -106,7 +106,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-connector
-update-rc.d shongo-connector defaults 90 10
+update-rc.d shongo-connector defaults 91 10
 
 fi
 
@@ -142,7 +142,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-client-web
-update-rc.d shongo-client-web defaults 90 10
+update-rc.d shongo-client-web defaults 91 10
 
 fi
 
