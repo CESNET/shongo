@@ -52,6 +52,8 @@ cat > $SERVICE_DIR/shongo-controller <<EOF
 # Provides:          shongo-controller
 # Required-Start:    $local_fs $network
 # Required-Stop:     $local_fs
+# Should-Start:      postgresql
+# Should-Stop:       postgresql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: shongo-controller
@@ -68,7 +70,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-controller
-update-rc.d shongo-controller defaults
+update-rc.d shongo-controller defaults 90 10
 
 fi
 
@@ -86,6 +88,8 @@ cat > $SERVICE_DIR/shongo-connector <<EOF
 # Provides:          shongo-connector
 # Required-Start:    $local_fs $network
 # Required-Stop:     $local_fs
+# Should-Start:      shongo-controller
+# Should-Stop:       shongo-controller
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: shongo-connector
@@ -102,7 +106,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-connector
-update-rc.d shongo-connector defaults
+update-rc.d shongo-connector defaults 90 10
 
 fi
 
@@ -120,6 +124,8 @@ cat > $SERVICE_DIR/shongo-client-web <<EOF
 # Provides:          shongo-client-web
 # Required-Start:    $local_fs $network
 # Required-Stop:     $local_fs
+# Should-Start:      shongo-controller
+# Should-Stop:       shongo-controller
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: shongo-client-web
@@ -136,7 +142,7 @@ PID_DIR="$PID_DIR"
 source $DEPLOYMENT_DIR/service/shongo-service.sh
 EOF
 chmod a+x $SERVICE_DIR/shongo-client-web
-update-rc.d shongo-client-web defaults
+update-rc.d shongo-client-web defaults 90 10
 
 fi
 
