@@ -56,7 +56,7 @@ case "$1" in
             echo -e "[${COLOR_YELLOW}WARN${COLOR_DEFAULT}] The $NAME is already started."
             exit 0
         fi
-        if ! touch $PID_FILE ]; then
+        if ! touch $PID_FILE; then
             exit 1
         fi
         echo Starting $NAME $VERSION...
@@ -86,7 +86,7 @@ case "$1" in
         PID=$(cat $PID_FILE)
         # Stop process
         if ps -p $PID > /dev/null; then
-            if ! touch $PID_FILE ]; then
+            if ! touch $PID_FILE; then
                 exit 1
             fi
             echo Stopping $NAME $VERSION...
