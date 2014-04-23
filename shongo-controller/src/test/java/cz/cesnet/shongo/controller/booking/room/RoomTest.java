@@ -305,6 +305,39 @@ public class RoomTest extends AbstractControllerTest
         checkAllocated(reservationRequestId);
     }
 
+    /**
+     * Test modification of virtual room which starts/ends specific amount of minutes before/after.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomBeforeModified() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        createResource(mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2014-01-01T14:00/2014-01-01T16:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification(Technology.H323);
+        RoomAvailability roomAvailability = roomSpecification.createAvailability();
+        roomAvailability.setSlotMinutesBefore(10);
+        roomAvailability.setSlotMinutesAfter(5);
+        roomAvailability.setParticipantCount(5);
+        reservationRequest.setSpecification(roomSpecification);
+        String reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:00"));
+        checkAllocated(reservationRequestId);
+
+        reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
+        reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:10"));
+        checkAllocated(reservationRequestId);
+    }
+
     @Test
     public void testRoomBeforeNotInHistory() throws Exception
     {

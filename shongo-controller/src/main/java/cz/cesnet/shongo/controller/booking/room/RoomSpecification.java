@@ -732,8 +732,10 @@ public class RoomSpecification extends Specification
         if (availableMinutesBeforeInterval < 0) {
             throw new IllegalStateException();
         }
+        int slotMinutesBefore = this.slotMinutesBefore;
         if (slotMinutesBefore > availableMinutesBeforeInterval) {
-            tmpOverriddenSlotMinutesBefore = (int) availableMinutesBeforeInterval;
+            slotMinutesBefore = (int) availableMinutesBeforeInterval;
+            tmpOverriddenSlotMinutesBefore = slotMinutesBefore;
         }
         return new Interval(interval.getStart().minusMinutes(slotMinutesBefore),
                 interval.getEnd().plusMinutes(slotMinutesAfter));
