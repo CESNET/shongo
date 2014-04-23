@@ -23,7 +23,7 @@ public class Changelog extends LinkedList<Changelog.Version>
 
     private Changelog()
     {
-        File changelogFile = new File("./CHANGELOG");
+        File changelogFile = new File("../CHANGELOG");
         if (!changelogFile.exists()) {
             return;
         }
