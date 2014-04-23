@@ -9,6 +9,7 @@
     function ReservationRequestStateController($scope) {
     <c:if test="${reservationRequest.detail.state != null}">
         $scope.reservationRequest.allocationState = "${reservationRequest.detail.allocationState}";
+        $scope.reservationRequest.reservationId = "${reservationRequest.detail.reservationId}";
         <c:if test="${reservationRequest.detail.room != null}">
             $scope.reservationRequest.roomState = "${reservationRequest.detail.room.state}";
             $scope.reservationRequest.roomStateStarted = ${reservationRequest.detail.room.state.started == true};

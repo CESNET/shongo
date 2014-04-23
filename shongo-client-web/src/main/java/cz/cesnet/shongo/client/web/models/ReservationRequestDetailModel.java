@@ -22,6 +22,8 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
     private String allocationStateHelp;
 
+    private String reservationId;
+
     private RoomModel room;
 
     public ReservationRequestDetailModel(AbstractReservationRequest abstractReservationRequest, Reservation reservation,
@@ -39,6 +41,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Allocation state
             allocationState = reservationRequest.getAllocationState();
+            reservationId = reservationRequest.getLastReservationId();
             if (allocationState != null) {
                 allocationStateHelp = messageProvider.getMessage("views.reservationRequest.allocationStateHelp." + allocationState);
 
@@ -117,6 +120,11 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     public String getAllocationStateHelp()
     {
         return allocationStateHelp;
+    }
+
+    public String getReservationId()
+    {
+        return reservationId;
     }
 
     public RoomModel getRoom()

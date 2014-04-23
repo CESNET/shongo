@@ -5,9 +5,6 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
-<c:if test="${!isStopped}">
-
-</c:if>
 
 <div class="table-actions-left">
 
