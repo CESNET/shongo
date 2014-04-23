@@ -30,12 +30,12 @@ public class H323RoomSetting extends RoomSetting
     /**
      * A boolean option whether audio should be muted on join. Defaults to false.
      */
-    private Boolean joinAudioMuted;
+    private Boolean joinMicrophoneDisabled;
 
     /**
      * A boolean option whether video should be muted on join. Defaults to false.
      */
-    private Boolean joinVideoMuted;
+    private Boolean joinVideoDisabled;
 
 
     /**
@@ -133,35 +133,35 @@ public class H323RoomSetting extends RoomSetting
     }
 
     /**
-     * @return {@link #joinAudioMuted}
+     * @return {@link #joinMicrophoneDisabled}
      */
-    public Boolean getJoinAudioMuted()
+    public Boolean getJoinMicrophoneDisabled()
     {
-        return joinAudioMuted;
+        return joinMicrophoneDisabled;
     }
 
     /**
-     * @param joinAudioMuted sets the {@link #joinAudioMuted}
+     * @param joinMicrophoneDisabled sets the {@link #joinMicrophoneDisabled}
      */
-    public void setJoinAudioMuted(Boolean joinAudioMuted)
+    public void setJoinMicrophoneDisabled(Boolean joinMicrophoneDisabled)
     {
-        this.joinAudioMuted = joinAudioMuted;
+        this.joinMicrophoneDisabled = joinMicrophoneDisabled;
     }
 
     /**
-     * @return {@link #joinVideoMuted}
+     * @return {@link #joinVideoDisabled}
      */
-    public Boolean getJoinVideoMuted()
+    public Boolean getJoinVideoDisabled()
     {
-        return joinVideoMuted;
+        return joinVideoDisabled;
     }
 
     /**
-     * @param joinVideoMuted sets the {@link #joinVideoMuted}
+     * @param joinVideoDisabled sets the {@link #joinVideoDisabled}
      */
-    public void setJoinVideoMuted(Boolean joinVideoMuted)
+    public void setJoinVideoDisabled(Boolean joinVideoDisabled)
     {
-        this.joinVideoMuted = joinVideoMuted;
+        this.joinVideoDisabled = joinVideoDisabled;
     }
 
     /**
@@ -232,8 +232,8 @@ public class H323RoomSetting extends RoomSetting
     public static final String LISTED_PUBLICLY = "listedPublicly";
     public static final String ALLOW_CONTENT = "allowContent";
     public static final String ALLOW_GUESTS = "allowGuests";
-    public static final String JOIN_AUDIO_MUTED = "joinAudioMuted";
-    public static final String JOIN_VIDEO_MUTED = "joinVideoMuted";
+    public static final String JOIN_MICROPHONE_DISABLED = "joinMicrophoneDisabled";
+    public static final String JOIN_VIDEO_DISABLED = "joinVideoDisabled";
     public static final String REGISTER_WITH_GATEKEEPER = "registerWithGatekeeper";
     public static final String REGISTER_WITH_REGISTRAR = "registerWithRegistrar";
     public static final String START_LOCKED = "startLocked";
@@ -247,8 +247,8 @@ public class H323RoomSetting extends RoomSetting
         dataMap.set(LISTED_PUBLICLY, listedPublicly);
         dataMap.set(ALLOW_CONTENT, allowContent);
         dataMap.set(ALLOW_GUESTS, allowGuests);
-        dataMap.set(JOIN_AUDIO_MUTED, joinAudioMuted);
-        dataMap.set(JOIN_VIDEO_MUTED, joinVideoMuted);
+        dataMap.set(JOIN_MICROPHONE_DISABLED, joinMicrophoneDisabled);
+        dataMap.set(JOIN_VIDEO_DISABLED, joinVideoDisabled);
         dataMap.set(REGISTER_WITH_GATEKEEPER, registerWithGatekeeper);
         dataMap.set(REGISTER_WITH_REGISTRAR, registerWithRegistrar);
         dataMap.set(START_LOCKED, startLocked);
@@ -264,8 +264,8 @@ public class H323RoomSetting extends RoomSetting
         listedPublicly = dataMap.getBoolean(LISTED_PUBLICLY);
         allowContent = dataMap.getBoolean(ALLOW_CONTENT);
         allowGuests = dataMap.getBoolean(ALLOW_GUESTS);
-        joinAudioMuted = dataMap.getBoolean(JOIN_AUDIO_MUTED);
-        joinVideoMuted = dataMap.getBoolean(JOIN_VIDEO_MUTED);
+        joinMicrophoneDisabled = dataMap.getBoolean(JOIN_MICROPHONE_DISABLED);
+        joinVideoDisabled = dataMap.getBoolean(JOIN_VIDEO_DISABLED);
         registerWithGatekeeper = dataMap.getBoolean(REGISTER_WITH_GATEKEEPER);
         registerWithRegistrar = dataMap.getBoolean(REGISTER_WITH_REGISTRAR);
         startLocked = dataMap.getBoolean(START_LOCKED);
@@ -292,11 +292,11 @@ public class H323RoomSetting extends RoomSetting
         if (h323RoomSetting.getAllowGuests() != null) {
             setAllowGuests(h323RoomSetting.getAllowGuests());
         }
-        if (h323RoomSetting.getJoinAudioMuted() != null) {
-            setJoinAudioMuted(h323RoomSetting.getJoinAudioMuted());
+        if (h323RoomSetting.getJoinMicrophoneDisabled() != null) {
+            setJoinMicrophoneDisabled(h323RoomSetting.getJoinMicrophoneDisabled());
         }
-        if (h323RoomSetting.getJoinVideoMuted() != null) {
-            setJoinVideoMuted(h323RoomSetting.getJoinVideoMuted());
+        if (h323RoomSetting.getJoinVideoDisabled() != null) {
+            setJoinVideoDisabled(h323RoomSetting.getJoinVideoDisabled());
         }
         if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
             setRegisterWithGatekeeper(h323RoomSetting.getRegisterWithGatekeeper());

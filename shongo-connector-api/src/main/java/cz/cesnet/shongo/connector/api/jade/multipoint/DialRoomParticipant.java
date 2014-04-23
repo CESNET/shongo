@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.rooms;
+package cz.cesnet.shongo.connector.api.jade.multipoint;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -8,18 +8,19 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @see {@link cz.cesnet.shongo.connector.api.RoomService#dialRoomParticipant}
  */
-public class DialParticipant extends ConnectorCommand
+public class DialRoomParticipant extends ConnectorCommand
 {
     private String roomId;
 
     private Alias alias = null;
 
-    public DialParticipant()
+    public DialRoomParticipant()
     {
     }
 
-    public DialParticipant(String roomId, Alias alias)
+    public DialRoomParticipant(String roomId, Alias alias)
     {
         this.roomId = roomId;
         this.alias = alias;
@@ -58,7 +59,7 @@ public class DialParticipant extends ConnectorCommand
     public String toString()
     {
 
-        return String.format(DialParticipant.class.getSimpleName() + " (roomId: %s, alias: %s)",
+        return String.format(DialRoomParticipant.class.getSimpleName() + " (roomId: %s, alias: %s)",
                 roomId, alias.toString());
     }
 }

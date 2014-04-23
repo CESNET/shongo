@@ -8,7 +8,10 @@ import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
@@ -80,8 +83,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -152,8 +155,8 @@ public class ExecutableTest extends AbstractExecutorTest
             }}, terminalAgent.getPerformedCommandClasses());
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -201,8 +204,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, connectServerAgent.getPerformedCommandClasses());
     }
 
@@ -249,12 +252,12 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
-        cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom createRoomAction =
+        CreateRoom createRoomAction =
                 mcuAgent.getPerformedCommandByClass(
-                        cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                        CreateRoom.class);
         Assert.assertEquals("1234", createRoomAction.getRoom().getRoomSetting(H323RoomSetting.class).getPin());
     }
 
@@ -320,9 +323,9 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -383,8 +386,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -444,10 +447,10 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -547,13 +550,13 @@ public class ExecutableTest extends AbstractExecutorTest
         List<Class<? extends Command>> performedCommandClasses = connectAgent.getPerformedCommandClasses();
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(GetRoom.class);
+                add(ModifyRoom.class);
+                add(GetRoom.class);
+                add(ModifyRoom.class);
+                add(GetRoom.class);
+                add(DeleteRoom.class);
             }}, performedCommandClasses);
     }
 
@@ -656,13 +659,13 @@ public class ExecutableTest extends AbstractExecutorTest
         List<Class<? extends Command>> performedCommandClasses = connectServerAgent.getPerformedCommandClasses();
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(GetRoom.class);
+                add(ModifyRoom.class);
+                add(GetRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, performedCommandClasses);
     }
 
@@ -735,10 +738,10 @@ public class ExecutableTest extends AbstractExecutorTest
         List<Class<? extends Command>> performedCommandClasses = connectServerAgent.getPerformedCommandClasses();
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, performedCommandClasses);
     }
 
@@ -883,8 +886,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -983,8 +986,8 @@ public class ExecutableTest extends AbstractExecutorTest
         // Check performed actions on connector agents
         Assert.assertEquals(new ArrayList<Object>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 }

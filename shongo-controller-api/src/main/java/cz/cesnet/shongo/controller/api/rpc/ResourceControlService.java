@@ -23,8 +23,8 @@ public interface ResourceControlService extends Service
      * Gets collection of method names supported by the identified device.
      * <p/>
      * Watch out, that the names refer to methods on the connector interfaces, not from this API!
-     * For example, the listRooms() method from this interface was in fact implemented by calling the getRoomList()
-     * method on connector, so the returned list of supported methods must have contained "getRoomList" rather than
+     * For example, the listRooms() method from this interface was in fact implemented by calling the listRooms()
+     * method on connector, so the returned list of supported methods must have contained "listRooms" rather than
      * "listRooms".
      * <p/>
      * FIXME: fix the aforementioned shortcoming - return directly the names from this interface
@@ -132,28 +132,7 @@ public interface ResourceControlService extends Service
     public void modifyRoomParticipant(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipant);
 
     @API
-    public void muteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId);
-
-    @API
-    public void unmuteRoomParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId);
-
-    @API
-    public void enableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId);
-
-    @API
-    public void disableRoomParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId);
-
-    @API
-    public void setRoomParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId, int level);
-
-    @API
-    public void setRoomParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomParticipantId, int level);
+    public void modifyRoomParticipants(SecurityToken token, String deviceResourceId, RoomParticipant roomParticipants);
 
     @API
     public void showMessage(SecurityToken token, String deviceResourceId, int duration, String text);

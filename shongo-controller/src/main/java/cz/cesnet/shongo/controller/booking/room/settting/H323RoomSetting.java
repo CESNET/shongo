@@ -32,14 +32,14 @@ public class H323RoomSetting extends RoomSetting
     private Boolean allowGuests;
 
     /**
-     * A boolean option whether audio should be muted on join. Defaults to false.
+     * A boolean option whether microphone should be muted on join. Defaults to false.
      */
-    private Boolean joinAudioMuted;
+    private Boolean joinMicrophoneDisabled;
 
     /**
      * A boolean option whether video should be muted on join. Defaults to false.
      */
-    private Boolean joinVideoMuted;
+    private Boolean joinVideoDisabled;
 
     /**
      * A boolean option whether to register the aliases with the gatekeeper. Defaults to false.
@@ -126,35 +126,35 @@ public class H323RoomSetting extends RoomSetting
     }
 
     /**
-     * @return {@link #joinAudioMuted}
+     * @return {@link #joinMicrophoneDisabled}
      */
-    public Boolean getJoinAudioMuted()
+    public Boolean getJoinMicrophoneDisabled()
     {
-        return joinAudioMuted;
+        return joinMicrophoneDisabled;
     }
 
     /**
-     * @param joinAudioMuted sets the {@link #joinAudioMuted}
+     * @param joinMicrophoneDisabled sets the {@link #joinMicrophoneDisabled}
      */
-    public void setJoinAudioMuted(Boolean joinAudioMuted)
+    public void setJoinMicrophoneDisabled(Boolean joinMicrophoneDisabled)
     {
-        this.joinAudioMuted = joinAudioMuted;
+        this.joinMicrophoneDisabled = joinMicrophoneDisabled;
     }
 
     /**
-     * @return {@link #joinVideoMuted}
+     * @return {@link #joinVideoDisabled}
      */
-    public Boolean getJoinVideoMuted()
+    public Boolean getJoinVideoDisabled()
     {
-        return joinVideoMuted;
+        return joinVideoDisabled;
     }
 
     /**
-     * @param joinVideoMuted sets the {@link #joinVideoMuted}
+     * @param joinVideoDisabled sets the {@link #joinVideoDisabled}
      */
-    public void setJoinVideoMuted(Boolean joinVideoMuted)
+    public void setJoinVideoDisabled(Boolean joinVideoDisabled)
     {
-        this.joinVideoMuted = joinVideoMuted;
+        this.joinVideoDisabled = joinVideoDisabled;
     }
 
     /**
@@ -254,11 +254,11 @@ public class H323RoomSetting extends RoomSetting
         if (allowGuests != null) {
             roomSettingH323Api.setAllowGuests(allowGuests);
         }
-        if (joinAudioMuted != null) {
-            roomSettingH323Api.setJoinAudioMuted(joinAudioMuted);
+        if (joinMicrophoneDisabled != null) {
+            roomSettingH323Api.setJoinMicrophoneDisabled(joinMicrophoneDisabled);
         }
-        if (joinVideoMuted != null) {
-            roomSettingH323Api.setJoinVideoMuted(joinVideoMuted);
+        if (joinVideoDisabled != null) {
+            roomSettingH323Api.setJoinVideoDisabled(joinVideoDisabled);
         }
         if (registerWithGatekeeper != null) {
             roomSettingH323Api.setRegisterWithGatekeeper(registerWithGatekeeper);
@@ -285,8 +285,8 @@ public class H323RoomSetting extends RoomSetting
         setListedPublicly(roomSettingH323Api.getListedPublicly());
         setAllowContent(roomSettingH323Api.getAllowContent());
         setAllowGuests(roomSettingH323Api.getAllowGuests());
-        setJoinAudioMuted(roomSettingH323Api.getJoinAudioMuted());
-        setJoinVideoMuted(roomSettingH323Api.getJoinVideoMuted());
+        setJoinMicrophoneDisabled(roomSettingH323Api.getJoinMicrophoneDisabled());
+        setJoinVideoDisabled(roomSettingH323Api.getJoinVideoDisabled());
         setRegisterWithGatekeeper(roomSettingH323Api.getRegisterWithGatekeeper());
         setRegisterWithRegistrar(roomSettingH323Api.getRegisterWithRegistrar());
         setStartLocked(roomSettingH323Api.getStartLocked());
@@ -315,10 +315,11 @@ public class H323RoomSetting extends RoomSetting
                 .equals(that.conferenceMeEnabled) : that.conferenceMeEnabled != null) {
             return false;
         }
-        if (joinAudioMuted != null ? !joinAudioMuted.equals(that.joinAudioMuted) : that.joinAudioMuted != null) {
+        if (joinMicrophoneDisabled != null ? !joinMicrophoneDisabled
+                .equals(that.joinMicrophoneDisabled) : that.joinMicrophoneDisabled != null) {
             return false;
         }
-        if (joinVideoMuted != null ? !joinVideoMuted.equals(that.joinVideoMuted) : that.joinVideoMuted != null) {
+        if (joinVideoDisabled != null ? !joinVideoDisabled.equals(that.joinVideoDisabled) : that.joinVideoDisabled != null) {
             return false;
         }
         if (listedPublicly != null ? !listedPublicly.equals(that.listedPublicly) : that.listedPublicly != null) {

@@ -18,7 +18,7 @@ public interface RoomService
      *
      * @return array of rooms
      */
-    Collection<RoomSummary> getRoomList() throws CommandException, CommandUnsupportedException;
+    Collection<RoomSummary> listRooms() throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets info about an existing room.
@@ -109,6 +109,16 @@ public interface RoomService
      * @param roomParticipant room participant
      */
     void modifyRoomParticipant(RoomParticipant roomParticipant)
+            throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Modifies participant settings for all participants in the room.
+     * <p/>
+     * Suitable for setting muting/unmuting all participants...
+     *
+     * @param roomParticipantConfiguration configuration for all room participants
+     */
+    void modifyRoomParticipants(RoomParticipant roomParticipantConfiguration)
             throws CommandException, CommandUnsupportedException;
 
     /**

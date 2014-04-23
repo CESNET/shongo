@@ -263,7 +263,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
+    public Collection<RoomSummary> listRooms() throws CommandException
     {
         Command cmd = new Command("conference.enumerate");
         cmd.setParameter("moreThanFour", Boolean.TRUE);
@@ -316,8 +316,8 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         }
         h323RoomSetting.setListedPublicly(!(Boolean) result.get("private"));
         h323RoomSetting.setAllowContent((Boolean) result.get("contentContribution"));
-        h323RoomSetting.setJoinAudioMuted((Boolean) result.get("joinAudioMuted"));
-        h323RoomSetting.setJoinVideoMuted((Boolean) result.get("joinVideoMuted"));
+        h323RoomSetting.setJoinMicrophoneDisabled((Boolean) result.get("joinAudioMuted"));
+        h323RoomSetting.setJoinVideoDisabled((Boolean) result.get("joinVideoMuted"));
         h323RoomSetting.setRegisterWithGatekeeper((Boolean) result.get("registerWithGatekeeper"));
         h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
         h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
@@ -474,11 +474,11 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             if (h323RoomSetting.getAllowContent() != null) {
                 cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
             }
-            if (h323RoomSetting.getJoinAudioMuted() != null) {
-                cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
+            if (h323RoomSetting.getJoinMicrophoneDisabled() != null) {
+                cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinMicrophoneDisabled());
             }
-            if (h323RoomSetting.getJoinVideoMuted() != null) {
-                cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
+            if (h323RoomSetting.getJoinVideoDisabled() != null) {
+                cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoDisabled());
             }
             if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
                 cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
@@ -674,13 +674,14 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             cmd.setParameter("displayNameOverrideValue", truncateString(roomParticipant.getDisplayName()));
             cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
         }
-        if (roomParticipant.getAudioMuted() != null) {
-            cmd.setParameter("audioRxMuted", roomParticipant.getAudioMuted());
+        if (roomParticipant.getMicrophoneEnabled() != null) {
+            cmd.setParameter("audioRxMuted", !roomParticipant.getMicrophoneEnabled());
         }
-        if (roomParticipant.getVideoMuted() != null) {
-            cmd.setParameter("videoRxMuted", roomParticipant.getVideoMuted());
+        if (roomParticipant.getVideoEnabled() != null) {
+            cmd.setParameter("videoRxMuted", !roomParticipant.getVideoEnabled());
         }
-        if (roomParticipant.getMicrophoneLevel() != null) {
+        Integer microphoneLevel = roomParticipant.getMicrophoneLevel();
+        if (microphoneLevel != null && !microphoneLevel.equals(RoomParticipant.DEFAULT_MICROPHONE_LEVEL)) {
             double gainDb = MathHelper.getDbFromPercent(
                     ((double) roomParticipant.getMicrophoneLevel() - 5.0) / 5.0, MAX_ABS_GAIN_DB);
             cmd.setParameter("audioRxGainMillidB", (int)(gainDb * 1000.0));
@@ -689,7 +690,24 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         else {
             cmd.setParameter("audioRxGainMode", "default");
         }
+
+        // Content
+        // NOTE: it seems it is not possible to enable content using current API (2.9)
+        //throw new CommandUnsupportedException();
+
         execApi(cmd);
+    }
+
+    @Override
+    public void modifyRoomParticipants(RoomParticipant roomParticipantConfiguration)
+            throws CommandException, CommandUnsupportedException
+    {
+        for (RoomParticipant roomParticipant : getRoomParticipants(roomParticipantConfiguration.getRoomId(), false)) {
+            roomParticipantConfiguration.setId(roomParticipant.getId());
+            if (!roomParticipantConfiguration.isSame(roomParticipant)) {
+                modifyRoomParticipant(roomParticipantConfiguration);
+            }
+        }
     }
 
     @Override
@@ -727,84 +745,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         identifyParticipant(cmd, roomId, roomParticipantId);
 
         execApi(cmd);
-    }
-
-    @Override
-    public void enableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // NOTE: it seems it is not possible to enable content using current API (2.9)
-        throw new CommandUnsupportedException();
-    }
-
-    @Override
-    public void disableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // NOTE: it seems it is not possible to disable content using current API (2.9)
-        throw new CommandUnsupportedException();
-    }
-
-    //</editor-fold>
-
-    //<editor-fold desc="I/O SERVICE">
-
-    @Override
-    public void disableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setVideoMuted(Boolean.TRUE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void enableParticipantVideo(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setVideoMuted(Boolean.FALSE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setAudioMuted(Boolean.TRUE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setAudioMuted(Boolean.FALSE);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level)
-            throws CommandException
-    {
-        RoomParticipant roomParticipant = new RoomParticipant();
-        roomParticipant.setId(roomParticipantId);
-        roomParticipant.setRoomId(roomId);
-        roomParticipant.setMicrophoneLevel(level);
-        modifyRoomParticipant(roomParticipant);
-    }
-
-    @Override
-    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException();
     }
 
     //</editor-fold>
@@ -1337,11 +1277,14 @@ ParamsLoop:
         roomParticipant.setAlias(new Alias(aliasType, address));
         roomParticipant.setDisplayName((String) state.get("displayName"));
 
-        roomParticipant.setAudioMuted((Boolean) state.get("audioRxMuted"));
-        roomParticipant.setVideoMuted((Boolean) state.get("videoRxMuted"));
+        roomParticipant.setMicrophoneEnabled(!(Boolean) state.get("audioRxMuted"));
+        roomParticipant.setVideoEnabled(!(Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
             double gainDb = (double)((Integer) state.get("audioRxGainMillidB")) / 1000.0;
             roomParticipant.setMicrophoneLevel((int) (MathHelper.getPercentFromDb(gainDb, MAX_ABS_GAIN_DB * 5.0) + 5));
+        }
+        else {
+            roomParticipant.setMicrophoneLevel(RoomParticipant.DEFAULT_MICROPHONE_LEVEL);
         }
         roomParticipant.setJoinTime(new DateTime(state.get("connectTime")));
 
@@ -1513,8 +1456,8 @@ ParamsLoop:
 //        Map<String, Object> gkInfo = conn.execApi(new Command("gatekeeper.query"));
 //        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
 
-        // test of getRoomList() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
+        // test of listRooms() command
+//        Collection<RoomInfo> roomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
 //            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
@@ -1541,14 +1484,14 @@ ParamsLoop:
 //        System.out.println(shongoTestRoom);
 
         // test of deleteRoom() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        Collection<RoomInfo> roomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
 //        }
 //        System.out.println("Deleting 'shongo-test'");
 //        conn.deleteRoom("shongo-test");
-//        roomList = conn.getRoomList();
+//        roomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
@@ -1561,7 +1504,7 @@ ParamsLoop:
 //        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
 //        String newRoomId = conn.createRoom(newRoom);
 //        System.out.println("Created room " + newRoomId);
-//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        Collection<RoomInfo> roomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
@@ -1571,7 +1514,7 @@ ParamsLoop:
 //        Room newRoom = new Room("shongo-testX", 5);
 //        String newRoomId = conn.createRoom(newRoom);
 //        System.out.println("Created room " + newRoomId);
-//        Collection<RoomSummary> roomList = conn.getRoomList();
+//        Collection<RoomSummary> roomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomSummary roomSummary : roomList) {
 //            System.out.println(roomSummary);
@@ -1581,7 +1524,7 @@ ParamsLoop:
 //        Map<String, Object> atts = new HashMap<String, Object>();
 //        atts.put(Room.NAME, "shongo-testing");
 //        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
-//        Collection<RoomSummary> newRoomList = conn.getRoomList();
+//        Collection<RoomSummary> newRoomList = conn.listRooms();
 //        System.out.println("Existing rooms:");
 //        for (RoomSummary roomSummary : newRoomList) {
 //            System.out.println(roomSummary);
@@ -1623,7 +1566,7 @@ ParamsLoop:
 
         // test of modifyRoomParticipant
 //        Map<String, Object> attributes = new HashMap<String, Object>();
-//        attributes.put(RoomParticipant.VIDEO_MUTED, Boolean.TRUE);
+//        attributes.put(RoomParticipant.VIDEO_ENABLED, Boolean.TRUE);
 //        attributes.put(RoomParticipant.DISPLAY_NAME, "Ondrej Bouda");
 //        conn.modifyRoomParticipant("shongo-test", "3447", attributes);
 

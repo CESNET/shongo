@@ -26,7 +26,7 @@
     });
     module.controller("RoomParticipantDialogController", function($scope, $modalInstance, data, $timeout) {
         $scope.data = data;
-        $scope.data.enableMicrophoneLevel = $scope.data.microphoneLevel != null;
+        $scope.data.enableMicrophoneLevel = $scope.data.microphoneLevel != null && $scope.data.microphoneLevel != 0;
         if (!$scope.data.enableMicrophoneLevel) {
             $scope.data.microphoneLevel = 5;
         }
@@ -36,7 +36,7 @@
                 $scope.data.microphoneLevel = $scope.originalMicrophoneLevel;
             }
             if (!$scope.data.enableMicrophoneLevel) {
-                $scope.data.microphoneLevel = null;
+                $scope.data.microphoneLevel = 0;
             }
             $modalInstance.close($scope.data);
         };
@@ -94,20 +94,20 @@
                     </div>
                 </div>
             </c:if>
-            <div class="control-group" ng-show="data.audioMuted != null">
+            <div class="control-group" ng-show="data.microphoneEnabled != null">
                 <div class="controls">
                     <div>
                         <label class="checkbox inline">
-                            <input type="checkbox" tabindex="1" ng-model="data.audioMuted"/><spring:message code="views.room.currentParticipant.audioMuted"/>
+                            <input type="checkbox" tabindex="1" ng-model="data.microphoneEnabled"/><spring:message code="views.room.currentParticipant.microphoneEnabled"/>
                         </label>
                     </div>
                 </div>
             </div>
-            <div class="control-group" ng-show="data.videoMuted != null">
+            <div class="control-group" ng-show="data.videoEnabled != null">
                 <div class="controls">
                     <div>
                         <label class="checkbox inline">
-                            <input type="checkbox" tabindex="1" ng-model="data.videoMuted"/><spring:message code="views.room.currentParticipant.videoMuted"/>
+                            <input type="checkbox" tabindex="1" ng-model="data.videoEnabled"/><spring:message code="views.room.currentParticipant.videoEnabled"/>
                         </label>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.rooms;
+package cz.cesnet.shongo.connector.api.jade.multipoint;
 
 import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -8,16 +8,17 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @see {@link cz.cesnet.shongo.connector.api.RoomService#modifyRoomParticipant}
  */
-public class ModifyParticipant extends ConnectorCommand
+public class ModifyRoomParticipant extends ConnectorCommand
 {
     private RoomParticipant roomParticipant;
 
-    public ModifyParticipant()
+    public ModifyRoomParticipant()
     {
     }
 
-    public ModifyParticipant(RoomParticipant roomParticipant)
+    public ModifyRoomParticipant(RoomParticipant roomParticipant)
     {
         this.roomParticipant = roomParticipant;
     }
@@ -43,6 +44,6 @@ public class ModifyParticipant extends ConnectorCommand
     @Override
     public String toString()
     {
-        return String.format(ModifyParticipant.class.getSimpleName() + " %s", roomParticipant);
+        return String.format(ModifyRoomParticipant.class.getSimpleName() + " %s", roomParticipant);
     }
 }

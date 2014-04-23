@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.booking.compartment;
 
 import cz.cesnet.shongo.connector.api.jade.endpoint.Dial;
 import cz.cesnet.shongo.connector.api.jade.endpoint.HangUpAll;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DialParticipant;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DisconnectParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DialRoomParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DisconnectRoomParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.executor.Executor;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
 import cz.cesnet.shongo.controller.booking.executable.ManagedEndpoint;
-import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
@@ -147,7 +146,7 @@ public class Connection extends Executable
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
                 sendLocalCommand = controllerAgent.sendCommand(agentName,
-                        new DialParticipant(roomEndpoint.getRoomId(), getAlias().toApi()));
+                        new DialRoomParticipant(roomEndpoint.getRoomId(), getAlias().toApi()));
             }
             else {
                 sendLocalCommand = controllerAgent.sendCommand(agentName, new Dial(getAlias().toApi()));
@@ -179,7 +178,7 @@ public class Connection extends Executable
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
                 sendLocalCommand = controllerAgent.sendCommand(agentName,
-                        new DisconnectParticipant(roomEndpoint.getRoomId(), getConnectionId()));
+                        new DisconnectRoomParticipant(roomEndpoint.getRoomId(), getConnectionId()));
             }
             else {
                 // TODO: use connection id to hangup

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.rooms;
+package cz.cesnet.shongo.connector.api.jade.multipoint;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -12,17 +12,18 @@ import java.util.Set;
  * Gets snapshots for participants in a room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see {@link cz.cesnet.shongo.connector.api.RoomService#getRoomParticipantSnapshots}
  */
-public class GetParticipantSnapshots extends ConnectorCommand
+public class GetRoomParticipantSnapshots extends ConnectorCommand
 {
     private String roomId;
     private Set<String> roomParticipantIds = new HashSet<String>();
 
-    public GetParticipantSnapshots()
+    public GetRoomParticipantSnapshots()
     {
     }
 
-    public GetParticipantSnapshots(String roomId, Set<String> roomParticipantIds)
+    public GetRoomParticipantSnapshots(String roomId, Set<String> roomParticipantIds)
     {
         this.roomId = roomId;
         this.roomParticipantIds.addAll(roomParticipantIds);
@@ -58,7 +59,8 @@ public class GetParticipantSnapshots extends ConnectorCommand
     @Override
     public String toString()
     {
-        return String.format(GetParticipantSnapshots.class.getSimpleName() + " (roomId: %s, roomParticipantIds: %s)",
-                roomId, roomParticipantIds);
+        return String
+                .format(GetRoomParticipantSnapshots.class.getSimpleName() + " (roomId: %s, roomParticipantIds: %s)",
+                        roomId, roomParticipantIds);
     }
 }

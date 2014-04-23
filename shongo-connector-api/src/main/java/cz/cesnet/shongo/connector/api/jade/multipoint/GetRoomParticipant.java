@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.io;
+package cz.cesnet.shongo.connector.api.jade.multipoint;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -6,18 +6,21 @@ import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
+ * Gets user information and settings in a room.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @see {@link cz.cesnet.shongo.connector.api.RoomService#getRoomParticipant}
  */
-public class EnableParticipantVideo extends ConnectorCommand
+public class GetRoomParticipant extends ConnectorCommand
 {
     private String roomId;
     private String roomParticipantId;
 
-    public EnableParticipantVideo()
+    public GetRoomParticipant()
     {
     }
 
-    public EnableParticipantVideo(String roomId, String roomParticipantId)
+    public GetRoomParticipant(String roomId, String roomParticipantId)
     {
         this.roomId = roomId;
         this.roomParticipantId = roomParticipantId;
@@ -46,15 +49,14 @@ public class EnableParticipantVideo extends ConnectorCommand
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Enabling video for participant {} in room {}", roomParticipantId, roomId);
-        getMultipoint(connector).enableParticipantVideo(roomId, roomParticipantId);
-        return null;
+        logger.debug("Getting participant info for {} in room {}", roomParticipantId, roomId);
+        return getMultipoint(connector).getRoomParticipant(roomId, roomParticipantId);
     }
 
     @Override
     public String toString()
     {
-        return String.format(EnableParticipantVideo.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
+        return String.format(GetRoomParticipant.class.getSimpleName() + " (roomId: %s, roomParticipantId: %s)",
                 roomId, roomParticipantId);
     }
 }

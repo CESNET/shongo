@@ -50,7 +50,7 @@ public class CiscoMCUConnectorTest
         };
         connector.connect(Address.parseAddress("http://127.0.0.1:" + webServer.getPort()), "test", "test");
         invokeConnectionReset = true;
-        connector.getRoomList();
+        connector.listRooms();
         Assert.assertFalse(invokeConnectionReset);
     }
 

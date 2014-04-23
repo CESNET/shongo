@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;

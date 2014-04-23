@@ -280,7 +280,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'getRoomList', @supportedMethods) {
+    if (grep $_ eq 'listRooms', @supportedMethods) {
         $shell->add_commands({
             "list-rooms" => {
                 desc => "List virtual rooms",
@@ -375,84 +375,6 @@ sub control_resource()
                 method => sub {
                     my ($shell, $params, @args) = @_;
                     resource_modify_participant($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'muteRoomParticipant', @supportedMethods) {
-        $shell->add_commands({
-            "mute-participant" => {
-                desc => "Mutes a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_mute_participant($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'unmuteRoomParticipant', @supportedMethods) {
-        $shell->add_commands({
-            "unmute-participant" => {
-                desc => "Unmutes a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_unmute_participant($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'enableRoomParticipantVideo', @supportedMethods) {
-        $shell->add_commands({
-            "enable-participant-video" => {
-                desc => "Enables video from a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_enable_participant_video($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'disableRoomParticipantVideo', @supportedMethods) {
-        $shell->add_commands({
-            "disable-participant-video" => {
-                desc => "Disables video from a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_disable_participant_video($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'setRoomParticipantMicrophoneLevel', @supportedMethods) {
-        $shell->add_commands({
-            "set-participant-microphone-level" => {
-                desc => "Sets microphone level of a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_set_participant_microphone_level($resourceId, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'setRoomParticipantPlaybackLevel', @supportedMethods) {
-        $shell->add_commands({
-            "set-participant-playback-level" => {
-                desc => "Sets playback level of a participant in a room",
-                options => 'roomId=s participantId=s',
-                args => '[-roomId] [-participantId]',
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_set_participant_playback_level($resourceId, $params->{'options'});
                 }
             }
         });
@@ -906,9 +828,9 @@ sub resource_get_participant
         printf("User identity:    %s\n", ($participant->{'userIdentity'} ? $participant->{'userIdentity'} : "(not defined)"));
         printf("Display name:     %s\n", $participant->{'displayName'});
         printf("Join time:        %s\n", datetime_format($participant->{'joinTime'}));
-        printf("Audio muted:      %s\n", ($participant->{'audioMuted'} ? "yes" : "no"));
-        printf("Video muted:      %s\n", ($participant->{'videoMuted'} ? "yes" : "no"));
+        printf("Microphone muted: %s\n", ($participant->{'microphoneEnabled'} ? "no" : "yes"));
         printf("Microphone level: %s\n", $participant->{'microphoneLevel'});
+        printf("Video enabled:    %s\n", ($participant->{'videoEnabled'} ? "yes" : "no"));
         printf("Playback level:   %s\n", $participant->{'playbackLevel'});
         printf("Layout:           %s\n", $participant->{'layout'});
     }
@@ -923,8 +845,8 @@ sub resource_modify_participant
 
     printf("\n");
     my $displayName = console_read_value('New display name', 0, undef, undef);
-    my $audioMuted = console_read_value('Audio muted (y/n)', 0, '^[yn]$', undef);
-    my $videoMuted = console_read_value('Video muted (y/n)', 0, '^[yn]$', undef);
+    my $microphoneMuted = console_read_value('Microphone muted (y/n)', 0, '^[yn]$', undef);
+    my $videoEnabled = console_read_value('Video enabled (y/n)', 0, '^[yn]$', undef);
     my $microphoneLevel = console_read_value('Microphone level', 0, '^\\d+$', undef);
     my $playbackLevel = console_read_value('Playback level', 0, '^\\d+$', undef);
 
@@ -933,11 +855,11 @@ sub resource_modify_participant
     if ( defined $displayName ) {
         $attributes{'displayName'} = $displayName;
     }
-    if ( defined $audioMuted ) {
-        $attributes{'audioMuted'} = RPC::XML::boolean->new(($audioMuted eq 'y'));
+    if ( defined $microphoneMuted ) {
+        $attributes{'microphoneEnabled'} = RPC::XML::boolean->new(($microphoneMuted ne 'y'));
     }
-    if ( defined $videoMuted ) {
-        $attributes{'videoMuted'} = RPC::XML::boolean->new(($videoMuted eq 'y'));
+    if ( defined $videoEnabled ) {
+        $attributes{'videoEnabled'} = RPC::XML::boolean->new(($videoEnabled eq 'y'));
     }
     if ( defined $microphoneLevel ) {
         $attributes{'microphoneLevel'} = $microphoneLevel;
@@ -953,100 +875,6 @@ sub resource_modify_participant
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
         RPC::XML::struct->new(%attributes)
-    );
-}
-
-sub resource_mute_participant
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.muteRoomParticipant',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId)
-    );
-}
-
-sub resource_unmute_participant
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.unmuteRoomParticipant',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId)
-    );
-}
-
-sub resource_enable_participant_video
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.enableRoomParticipantVideo',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId)
-    );
-}
-
-sub resource_disable_participant_video
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.disableRoomParticipantVideo',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId)
-    );
-}
-
-sub resource_set_participant_microphone_level
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-    my $level = console_read_value('Level', 1, '^\\d+$', undef);
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.setRoomParticipantMicrophoneLevel',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId),
-        RPC::XML::int->new($level)
-    );
-}
-
-sub resource_set_participant_playback_level
-{
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
-    my $level = console_read_value('Level', 1, '^\\d+$', undef);
-
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.setRoomParticipantPlaybackLevel',
-        RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($roomId),
-        RPC::XML::string->new($participantId),
-        RPC::XML::int->new($level)
     );
 }
 

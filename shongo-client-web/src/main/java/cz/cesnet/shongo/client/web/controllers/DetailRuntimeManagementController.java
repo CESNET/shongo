@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.CacheProvider;
@@ -12,7 +11,6 @@ import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import org.joda.time.DateTimeZone;
@@ -162,9 +160,9 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             }
             item.put("email", (user != null ? user.getPrimaryEmail() : null));
             item.put("layout", roomParticipant.getLayout());
+            item.put("microphoneEnabled", roomParticipant.getMicrophoneEnabled());
             item.put("microphoneLevel", roomParticipant.getMicrophoneLevel());
-            item.put("audioMuted", roomParticipant.getAudioMuted());
-            item.put("videoMuted", roomParticipant.getVideoMuted());
+            item.put("videoEnabled", roomParticipant.getVideoEnabled());
             item.put("videoSnapshot", roomParticipant.isVideoSnapshot());
             items.add(item);
         }
@@ -208,36 +206,38 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "participantId") String participantId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneEnabled", required = false) Boolean microphoneEnabled,
             @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
-            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
-            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
+            @RequestParam(value = "videoEnabled", required = false) Boolean videoEnabled)
     {
         String executableId = getExecutableId(securityToken, objectId);
-        RoomParticipant oldRoomParticipant = roomCache.getRoomParticipant(securityToken, executableId, participantId);
-        RoomParticipant roomParticipant = new RoomParticipant(participantId);
-        if (layout != null) {
-            if (oldRoomParticipant.getLayout() == null) {
-                throw new IllegalStateException("Layout is not available.");
-            }
-            roomParticipant.setLayout(layout);
+        RoomParticipant oldRoomParticipant = null;
+        if (!participantId.equals("*")) {
+            oldRoomParticipant = roomCache.getRoomParticipant(securityToken, executableId, participantId);
         }
+        RoomParticipant roomParticipant = new RoomParticipant(participantId);
         if (microphoneLevel != null) {
             roomParticipant.setMicrophoneLevel(microphoneLevel);
         }
-        if (audioMuted != null) {
-            if (oldRoomParticipant.getAudioMuted() == null) {
-                throw new IllegalStateException("Audio muting is not available.");
+        if (microphoneEnabled != null) {
+            if (oldRoomParticipant != null && oldRoomParticipant.getMicrophoneEnabled() == null) {
+                throw new IllegalStateException("Mute microphone is not available.");
             }
-            roomParticipant.setAudioMuted(audioMuted);
+            roomParticipant.setMicrophoneEnabled(microphoneEnabled);
         }
-        if (videoMuted != null) {
-            if (oldRoomParticipant.getVideoMuted() == null) {
-                throw new IllegalStateException("Video muting is not available.");
+        if (videoEnabled != null) {
+            if (oldRoomParticipant != null && oldRoomParticipant.getVideoEnabled() == null) {
+                throw new IllegalStateException("Disable video is not available.");
             }
-            roomParticipant.setVideoMuted(videoMuted);
+            roomParticipant.setVideoEnabled(videoEnabled);
         }
-        roomCache.modifyRoomParticipant(securityToken, executableId, roomParticipant);
+        if (participantId.equals("*")) {
+            roomParticipant.setId((String) null);
+            roomCache.modifyRoomParticipants(securityToken, executableId, roomParticipant);
+        }
+        else {
+            roomCache.modifyRoomParticipant(securityToken, executableId, roomParticipant);
+        }
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_VIEW, objectId);
     }
 
@@ -247,13 +247,12 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "participantId") String participantId,
-            @RequestParam(value = "layout", required = false) RoomLayout layout,
+            @RequestParam(value = "microphoneEnabled", required = false) Boolean microphoneEnabled,
             @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
-            @RequestParam(value = "audioMuted", required = false) Boolean audioMuted,
-            @RequestParam(value = "videoMuted", required = false) Boolean videoMuted)
+            @RequestParam(value = "videoEnabled", required = false) Boolean videoEnabled)
     {
         handleRoomParticipantModify(
-                securityToken, objectId, participantId, layout, microphoneLevel, audioMuted, videoMuted);
+                securityToken, objectId, participantId, microphoneEnabled, microphoneLevel, videoEnabled);
     }
 
     @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)

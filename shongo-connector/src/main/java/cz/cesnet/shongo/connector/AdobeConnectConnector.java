@@ -143,7 +143,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         this.breezesession = breezesession;
     }*/
 
-    @java.lang.Override
+    @Override
     public void connect(Address address, String username, String password) throws CommandException
     {
         this.info.setDeviceAddress(address);
@@ -171,7 +171,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return (this.info.getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
 
-    @java.lang.Override
+    @Override
     public void disconnect() throws CommandException
     {
         this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
@@ -373,69 +373,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         setRoomAccessMode(roomId,AdobeConnectAccessMode.PRIVATE);
     }
 
-    /**
-     * This method is not supported, cause the AC XML API (secret one) is not working
-     *
-     * @throws cz.cesnet.shongo.api.jade.CommandUnsupportedException
-     *
-     */
-    @java.lang.Override
-    public void muteParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(
-                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
-    }
-
-    /**
-     * This method is not supported, cause the AC XML API (secret one) is not working
-     *
-     * @throws CommandUnsupportedException
-     */
-    @java.lang.Override
-    public void unmuteParticipant(String roomId, String roomParticipantId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(
-                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
-    }
-
-    @java.lang.Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomParticipantId, int level)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(
-                "Adobe Connect does not support changing microphone level. This setting is accessible in Adobe Connect virtual room.");
-    }
-
-    @java.lang.Override
-    public void setParticipantPlaybackLevel(String roomId, String roomParticipantId, int level)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support changing playback level.");
-    }
-
-    @java.lang.Override
-    public void enableParticipantVideo(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(
-                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
-    }
-
-    @java.lang.Override
-    public void disableParticipantVideo(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(
-                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
-    }
-
-    @java.lang.Override
+    @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
     {
         return null;  //TODO
     }
 
-    @java.lang.Override
+    @Override
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
     {
         //report-bulk-consolidated-transactions
@@ -768,7 +712,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
-    @java.lang.Override
+    @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
         RequestAttributeList attributes = new RequestAttributeList();
@@ -782,7 +726,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @java.lang.Override
+    @Override
     public void addRoomContent(String roomId, String name, MediaData data)
             throws CommandException, CommandUnsupportedException
     {
@@ -790,7 +734,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @java.lang.Override
+    @Override
     public void removeRoomContentFile(String roomId, String name) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
@@ -804,14 +748,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
-    @java.lang.Override
+    @Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
         // TODO: erase content and re-create room?
     }
 
-    @java.lang.Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
+    @Override
+    public Collection<RoomSummary> listRooms() throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("filter-type", "meeting");
@@ -842,7 +786,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return Collections.unmodifiableList(meetings);
     }
 
-    @java.lang.Override
+    @Override
     public Room getRoom(String roomId) throws CommandException
     {
         Room room = new Room();
@@ -1050,7 +994,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         request("permissions-reset", permissionsResetAttributes);
     }
 
-    @java.lang.Override
+    @Override
     public String createRoom(Room room) throws CommandException
     {
         try {
@@ -1216,7 +1160,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return (uriArray.length > 1 ? uriArray[uriArray.length - 1] : null);
     }
 
-    @java.lang.Override
+    @Override
     public void deleteRoom(String roomId) throws CommandException
     {
         endMeeting(roomId);
@@ -1236,7 +1180,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         deleteSCO(roomId);
     }
 
-    @java.lang.Override
+    @Override
     public String exportRoomSettings(String roomId) throws CommandException
     {
         Element scoInfo = getScoInfo(roomId);
@@ -1248,7 +1192,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return xmlString;
     }
 
-    @java.lang.Override
+    @Override
     public void importRoomSettings(String roomId, String settings) throws CommandException
     {
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -1307,7 +1251,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return userPrincipalName;
     }
 
-    @java.lang.Override
+    @Override
     public Collection<RoomParticipant> listRoomParticipants(String roomId) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
@@ -1366,7 +1310,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return Collections.unmodifiableList(participantList);
     }
 
-    @java.lang.Override
+    @Override
     public RoomParticipant getRoomParticipant(String roomId, String roomParticipantId) throws CommandException
     {
         Collection<RoomParticipant> participants = this.listRoomParticipants(roomId);
@@ -1385,19 +1329,26 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
-    @java.lang.Override
+    @Override
     public void modifyRoomParticipant(RoomParticipant roomParticipant) throws CommandUnsupportedException
     {
-        throw new TodoImplementException("Modify participant " + roomParticipant);
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
-    @java.lang.Override
+    @Override
+    public void modifyRoomParticipants(RoomParticipant roomParticipantConfiguration)
+            throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
+    }
+
+    @Override
     public String dialRoomParticipant(String roomId, Alias alias) throws CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
-    @java.lang.Override
+    @Override
     public void disconnectRoomParticipant(String roomId, String roomParticipantId)
             throws CommandException
     {
@@ -1406,20 +1357,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("user-id", roomParticipantId);
 
         request("meeting-usermanager-remove-user", attributes);
-    }
-
-    @java.lang.Override
-    public void enableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
-    }
-
-    @java.lang.Override
-    public void disableContentProvider(String roomId, String roomParticipantId)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
     }
 
     private Recording extractRecording(Element resultRecording)

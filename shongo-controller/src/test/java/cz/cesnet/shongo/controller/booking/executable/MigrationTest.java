@@ -3,6 +3,9 @@ package cz.cesnet.shongo.controller.booking.executable;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
+import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -174,12 +177,12 @@ public class MigrationTest extends AbstractExecutorTest
 
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(ModifyRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
 
@@ -237,7 +240,7 @@ public class MigrationTest extends AbstractExecutorTest
         Assert.assertEquals(5, room1.getLicenseCount());
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(CreateRoom.class);
             }}, mcuAgent1.getPerformedCommandClasses());
         Assert.assertEquals(new LinkedList<Class<? extends Command>>(), mcuAgent2.getPerformedCommandClasses());
 
@@ -263,11 +266,11 @@ public class MigrationTest extends AbstractExecutorTest
         Assert.assertEquals(7, room2.getLicenseCount());
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent1.getPerformedCommandClasses());
         Assert.assertEquals(new LinkedList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(CreateRoom.class);
             }}, mcuAgent2.getPerformedCommandClasses());
     }
 }

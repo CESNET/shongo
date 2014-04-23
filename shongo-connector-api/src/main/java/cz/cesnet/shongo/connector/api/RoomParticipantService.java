@@ -6,7 +6,7 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public interface IOService
+public interface RoomParticipantService
 {
     /**
      * Mutes a user in a room.

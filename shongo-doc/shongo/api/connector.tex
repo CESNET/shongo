@@ -205,7 +205,7 @@ Lists names of all implemented methods supported by the implementing connector.
 \subsection{Room Management}
 \begin{Api}
 
-\ApiItem{\ApiCode{Collection<RoomSummary> getRoomList()}}
+\ApiItem{\ApiCode{Collection<RoomSummary> listRooms()}}
 Gets a list of all rooms at a given server.
 
 \ApiItem{\ApiCode{Room getRoom(String roomId)}}
@@ -244,7 +244,7 @@ Gets user information and settings in a room.
 Dials a device -- multipoint or endpoint. Dialing an endpoint is available only on \textbf{H.323} and \textbf{SIP}.
 
 \ApiItem{\ApiCode{modifyParticipant(String roomId, String roomUserId, Map<String,Object> attributes)}}
-Modifies user settings in the room (suitable for setting microphone level, muting/unmuting, user layout\ldots). In the \ApiCode{attributes} map, any \ApiCode{RoomUser} attribute name (\ApiCode{displayName}, \ApiCode{audioMuted}, \ldots) may be used as the key mapped to a value of the corresponding type, except \ApiCode{userId}, \ApiCode{roomId}, \ApiCode{userIdentity}, and \ApiCode{joinTime}, which cannot be modified.
+Modifies user settings in the room (suitable for setting microphone level, muting/unmuting, user layout\ldots). In the \ApiCode{attributes} map, any \ApiCode{RoomUser} attribute name (\ApiCode{displayName}, \ApiCode{microphoneEnabled}, \ldots) may be used as the key mapped to a value of the corresponding type, except \ApiCode{userId}, \ApiCode{roomId}, \ApiCode{userIdentity}, and \ApiCode{joinTime}, which cannot be modified.
 
 \ApiItem{\ApiCode{disconnectParticipant(String roomId, String roomUserId)}}
 Disconnect user from the room.

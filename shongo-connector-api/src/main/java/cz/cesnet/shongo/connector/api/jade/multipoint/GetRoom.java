@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api.jade.multipoint.rooms;
+package cz.cesnet.shongo.connector.api.jade.multipoint;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -7,16 +7,17 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @see {@link cz.cesnet.shongo.connector.api.RoomService#getRoom}
  */
-public class ListParticipants extends ConnectorCommand
+public class GetRoom extends ConnectorCommand
 {
     private String roomId;
 
-    public ListParticipants()
+    public GetRoom()
     {
     }
 
-    public ListParticipants(String roomId)
+    public GetRoom(String roomId)
     {
         this.roomId = roomId;
     }
@@ -34,12 +35,13 @@ public class ListParticipants extends ConnectorCommand
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.debug("Getting list of all participants in room {}", roomId);
-        return getMultipoint(connector).listRoomParticipants(roomId);
+        logger.debug("Getting room {}", roomId);
+        return getMultipoint(connector).getRoom(roomId);
     }
 
+    @Override
     public String toString()
     {
-        return String.format(ListParticipants.class.getSimpleName() + " (roomId: %s)", roomId);
+        return String.format(GetRoom.class.getSimpleName() + " (roomId: %s)", roomId);
     }
 }

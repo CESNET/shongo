@@ -1,4 +1,4 @@
-0.6.1 (2014-02-14)
+0.7.0 (2014-05-01)
 
     * Management of Adobe Connect and MCU recordings.
 
@@ -11,6 +11,8 @@
     * Restrict the creation of new rooms to users with certain level of authenticity.
 
     * Added option to send automatic email notifications to participants with iCalendar (.ics) attachment.
+
+    * Fixed runtime management of H.323/SIP rooms.
 
 0.6.0 (2013-10-18)
 

@@ -3,20 +3,15 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.MediaData;
-import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomParticipant;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.request.ExecutableRecordingListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
-import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,6 +184,28 @@ public class RoomCache
         resourceControlService.modifyRoomParticipant(securityToken, resourceId, roomParticipant);
         synchronized (roomParticipantCache) {
             roomParticipantCache.remove(roomParticipant.getId());
+        }
+        synchronized (roomParticipantsCache) {
+            roomParticipantsCache.remove(roomExecutableId);
+        }
+    }
+
+    /**
+     * @param securityToken
+     * @param roomExecutableId
+     * @param roomParticipants configuration to which all room participants should be modified in the given {@code roomExecutableId}
+     */
+    public void modifyRoomParticipants(SecurityToken securityToken, String roomExecutableId, RoomParticipant roomParticipants)
+    {
+        RoomExecutable roomExecutable = getRoomExecutable(securityToken, roomExecutableId);
+        String resourceId = roomExecutable.getResourceId();
+        String resourceRoomId = roomExecutable.getRoomId();
+        roomParticipants.setRoomId(resourceRoomId);
+        resourceControlService.modifyRoomParticipants(securityToken, resourceId, roomParticipants);
+        synchronized (roomParticipantCache) {
+            for (RoomParticipant roomParticipant : roomParticipantsCache.get(roomExecutableId)) {
+                roomParticipantCache.remove(roomExecutableId + ":" + roomParticipant.getId());
+            }
         }
         synchronized (roomParticipantsCache) {
             roomParticipantsCache.remove(roomExecutableId);

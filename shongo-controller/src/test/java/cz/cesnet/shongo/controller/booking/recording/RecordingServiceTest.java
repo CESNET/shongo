@@ -5,6 +5,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -128,14 +131,14 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
@@ -222,15 +225,15 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
         Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(5, mcuAgent.getPerformedCommand(2,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
@@ -341,21 +344,21 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
         Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(5, mcuAgent.getPerformedCommand(2,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(6, mcuAgent.getPerformedCommand(3,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(5, mcuAgent.getPerformedCommand(4,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
@@ -474,20 +477,20 @@ public class RecordingServiceTest extends AbstractExecutorTest
         // Check performed actions on MCU
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
         Assert.assertEquals(5, mcuAgent.getPerformedCommand(0,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class).getRoom().getLicenseCount());
+                CreateRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(6, mcuAgent.getPerformedCommand(1,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(6, mcuAgent.getPerformedCommand(2,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
         Assert.assertEquals(5, mcuAgent.getPerformedCommand(3,
-                cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class).getRoom().getLicenseCount());
+                ModifyRoom.class).getRoom().getLicenseCount());
 
         // Check performed actions on TCS
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
@@ -563,13 +566,13 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
     }
@@ -636,15 +639,15 @@ public class RecordingServiceTest extends AbstractExecutorTest
         Assert.assertEquals(new ArrayList<Class<? extends Command>>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(CreateRoom.class);
+                add(ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.CreateRecordingFolder.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StartRecording.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.IsRecordingActive.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.StopRecording.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+                add(ModifyRoom.class);
+                add(DeleteRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder.class);
             }}, connectAgent.getPerformedCommandClasses());
     }

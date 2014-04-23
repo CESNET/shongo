@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
  */
 public class RoomParticipant extends IdentifiedComplexType
 {
+    public static final Integer DEFAULT_MICROPHONE_LEVEL = 0;
+
     /**
      * {@link Room#id}
      */
@@ -48,22 +50,22 @@ public class RoomParticipant extends IdentifiedComplexType
     /**
      * Specifies whether video is switched off or {@code null} if this option isn't available.
      */
-    private Boolean audioMuted;
-
-    /**
-     * Specifies whether video is switched off or {@code null} if this option isn't available.
-     */
-    private Boolean videoMuted;
-
-    /**
-     * Specifies whether participant has video snapshot.
-     */
-    private boolean videoSnapshot;
+    private Boolean microphoneEnabled;
 
     /**
      * Specifies whether level of microphone (range 0-100) or {@code null} if this option isn't available.
      */
     private Integer microphoneLevel;
+
+    /**
+     * Specifies whether video is switched off or {@code null} if this option isn't available.
+     */
+    private Boolean videoEnabled;
+
+    /**
+     * Specifies whether participant has video snapshot.
+     */
+    private Boolean videoSnapshot;
 
     /**
      * Constructor.
@@ -189,51 +191,19 @@ public class RoomParticipant extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #audioMuted}
+     * @return {@link #microphoneEnabled}
      */
-    public Boolean getAudioMuted()
+    public Boolean getMicrophoneEnabled()
     {
-        return audioMuted;
+        return microphoneEnabled;
     }
 
     /**
-     * @param audioMuted sets the {@link #audioMuted}
+     * @param microphoneEnabled sets the {@link #microphoneEnabled}
      */
-    public void setAudioMuted(Boolean audioMuted)
+    public void setMicrophoneEnabled(Boolean microphoneEnabled)
     {
-        this.audioMuted = audioMuted;
-    }
-
-    /**
-     * @return {@link #videoMuted}
-     */
-    public Boolean getVideoMuted()
-    {
-        return videoMuted;
-    }
-
-    /**
-     * @param videoMuted sets the {@link #videoMuted}
-     */
-    public void setVideoMuted(Boolean videoMuted)
-    {
-        this.videoMuted = videoMuted;
-    }
-
-    /**
-     * @return {@link #videoSnapshot}
-     */
-    public boolean isVideoSnapshot()
-    {
-        return videoSnapshot;
-    }
-
-    /**
-     * @param videoSnapshot sets the {@link #videoSnapshot}
-     */
-    public void setVideoSnapshot(boolean videoSnapshot)
-    {
-        this.videoSnapshot = videoSnapshot;
+        this.microphoneEnabled = microphoneEnabled;
     }
 
     /**
@@ -249,18 +219,107 @@ public class RoomParticipant extends IdentifiedComplexType
      */
     public void setMicrophoneLevel(Integer microphoneLevel)
     {
-        if (microphoneLevel != null && (microphoneLevel < 1 || microphoneLevel > 10)) {
+        if (microphoneLevel != null && !microphoneLevel.equals(DEFAULT_MICROPHONE_LEVEL)
+                && (microphoneLevel < 1 || microphoneLevel > 10)) {
             throw new IllegalArgumentException("Microphone level " + microphoneLevel + " is out of range 1-10.");
         }
         this.microphoneLevel = microphoneLevel;
+    }
+
+    /**
+     * @return {@link #videoEnabled}
+     */
+    public Boolean getVideoEnabled()
+    {
+        return videoEnabled;
+    }
+
+    /**
+     * @param videoEnabled sets the {@link #videoEnabled}
+     */
+    public void setVideoEnabled(Boolean videoEnabled)
+    {
+        this.videoEnabled = videoEnabled;
+    }
+
+    /**
+     * @return {@link #videoSnapshot}
+     */
+    public boolean isVideoSnapshot()
+    {
+        return Boolean.TRUE.equals(videoEnabled);
+    }
+
+    /**
+     * @param videoSnapshot sets the {@link #videoSnapshot}
+     */
+    public void setVideoSnapshot(Boolean videoSnapshot)
+    {
+        this.videoSnapshot = videoSnapshot;
+    }
+
+    /**
+     * @param roomParticipant
+     * @return true when this {@link cz.cesnet.shongo.api.RoomParticipant} is same as given {@code roomParticipant},
+     * false otherwise
+     */
+    public boolean isSame(RoomParticipant roomParticipant)
+    {
+        if (roomParticipant == null) {
+            return false;
+        }
+
+        if (id != null ? !id.equals(roomParticipant.id) : roomParticipant.id != null) {
+            return false;
+        }
+        if (alias != null ? !alias.equals(roomParticipant.alias) : roomParticipant.alias != null) {
+            return false;
+        }
+        if (displayName != null ? !displayName.equals(
+                roomParticipant.displayName) : roomParticipant.displayName != null) {
+            return false;
+        }
+        if (joinTime != null ? !joinTime.equals(roomParticipant.joinTime) : roomParticipant.joinTime != null) {
+            return false;
+        }
+        if (layout != roomParticipant.layout) {
+            return false;
+        }
+        if (microphoneEnabled != null ? !microphoneEnabled.equals(
+                roomParticipant.microphoneEnabled) : roomParticipant.microphoneEnabled != null) {
+            return false;
+        }
+        if (microphoneLevel != null ? !microphoneLevel.equals(
+                roomParticipant.microphoneLevel) : roomParticipant.microphoneLevel != null) {
+            return false;
+        }
+        if (role != roomParticipant.role) {
+            return false;
+        }
+        if (roomId != null ? !roomId.equals(roomParticipant.roomId) : roomParticipant.roomId != null) {
+            return false;
+        }
+        if (userId != null ? !userId.equals(roomParticipant.userId) : roomParticipant.userId != null) {
+            return false;
+        }
+        if (videoEnabled != null ? !videoEnabled.equals(
+                roomParticipant.videoEnabled) : roomParticipant.videoEnabled != null) {
+            return false;
+        }
+        if (videoSnapshot != null ? !videoSnapshot.equals(
+                roomParticipant.videoSnapshot) : roomParticipant.videoSnapshot != null) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public String toString()
     {
         return String.format(RoomParticipant.class.getSimpleName() +
-                " (roomId: %s, roomParticipantId: %s, name: %s, layout: %s, audioMuted: %s, videoMuted: %s, videoSnapshot: %s, microphoneLevel: %d)",
-                roomId, id, displayName, layout, audioMuted, videoMuted, videoSnapshot, microphoneLevel);
+                " (roomId: %s, roomParticipantId: %s, name: %s, layout: %s, microphoneEnabled: %s, microphoneLevel: %d, videoEnabled: %s, videoSnapshot: %s)",
+                roomId, id, displayName, layout, microphoneEnabled, microphoneLevel, videoEnabled, videoSnapshot);
     }
 
     public static final String ROOM_ID = "roomId";
@@ -270,10 +329,10 @@ public class RoomParticipant extends IdentifiedComplexType
     public static final String ROLE = "role";
     public static final String JOIN_TIME = "joinTime";
     public static final String LAYOUT = "layout";
-    public static final String AUDIO_MUTED = "audioMuted";
-    public static final String VIDEO_MUTED = "videoMuted";
-    public static final String VIDEO_SNAPSHOT = "videoSnapshot";
+    public static final String MICROPHONE_ENABLED = "microphoneEnabled";
     public static final String MICROPHONE_LEVEL = "microphoneLevel";
+    public static final String VIDEO_ENABLED = "videoEnabled";
+    public static final String VIDEO_SNAPSHOT = "videoSnapshot";
 
     @Override
     public DataMap toData()
@@ -286,10 +345,10 @@ public class RoomParticipant extends IdentifiedComplexType
         dataMap.set(ROLE, role);
         dataMap.set(JOIN_TIME, joinTime);
         dataMap.set(LAYOUT, layout);
-        dataMap.set(AUDIO_MUTED, audioMuted);
-        dataMap.set(VIDEO_MUTED, videoMuted);
-        dataMap.set(VIDEO_SNAPSHOT, videoSnapshot);
+        dataMap.set(MICROPHONE_ENABLED, microphoneEnabled);
         dataMap.set(MICROPHONE_LEVEL, microphoneLevel);
+        dataMap.set(VIDEO_ENABLED, videoEnabled);
+        dataMap.set(VIDEO_SNAPSHOT, videoSnapshot);
         return dataMap;
     }
 
@@ -304,9 +363,10 @@ public class RoomParticipant extends IdentifiedComplexType
         role = dataMap.getEnum(ROLE, ParticipantRole.class);
         joinTime = dataMap.getDateTime(JOIN_TIME);
         layout = dataMap.getEnum(LAYOUT, RoomLayout.class);
-        audioMuted = dataMap.getBoolean(AUDIO_MUTED);
-        videoMuted = dataMap.getBoolean(VIDEO_MUTED);
+        microphoneEnabled = dataMap.getBoolean(MICROPHONE_ENABLED);
+        setMicrophoneLevel(dataMap.getInteger(MICROPHONE_LEVEL));
+        ;
+        videoEnabled = dataMap.getBoolean(VIDEO_ENABLED);
         videoSnapshot = dataMap.getBool(VIDEO_SNAPSHOT);
-        setMicrophoneLevel(dataMap.getInteger(MICROPHONE_LEVEL));;
     }
 }
