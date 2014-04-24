@@ -202,13 +202,6 @@ public class ExecutionReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public int getVisibleFlags()
-        {
-            return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
-        }
-
-        @javax.persistence.Transient
-        @Override
         public java.util.Map<String, Object> getParameters()
         {
             java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();

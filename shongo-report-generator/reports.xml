@@ -1730,6 +1730,7 @@
             <example>
                 TODO:
             </example>
+            <visible>none</visible>
             <resolution>try-again</resolution>
         </report>
 

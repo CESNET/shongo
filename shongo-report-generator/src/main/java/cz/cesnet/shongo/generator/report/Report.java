@@ -491,20 +491,22 @@ public class Report
         StringBuilder visibleFlags = new StringBuilder();
         List<ReportFor> visible = report.getVisible();
         if (visible != null) {
-            if (visible.contains(ReportFor.USER)) {
-                visibleFlags.append("VISIBLE_TO_USER");
-            }
-            if (visible.contains(ReportFor.DOMAIN_ADMIN)) {
-                if (visibleFlags.length() > 0) {
-                    visibleFlags.append(" | ");
+            if (!visible.contains(ReportFor.NONE)) {
+                if (visible.contains(ReportFor.USER)) {
+                    visibleFlags.append("VISIBLE_TO_USER");
                 }
-                visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
-            }
-            if (visible.contains(ReportFor.RESOURCE_ADMIN)) {
-                if (visibleFlags.length() > 0) {
-                    visibleFlags.append(" | ");
+                if (visible.contains(ReportFor.DOMAIN_ADMIN)) {
+                    if (visibleFlags.length() > 0) {
+                        visibleFlags.append(" | ");
+                    }
+                    visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
                 }
-                visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+                if (visible.contains(ReportFor.RESOURCE_ADMIN)) {
+                    if (visibleFlags.length() > 0) {
+                        visibleFlags.append(" | ");
+                    }
+                    visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+                }
             }
         }
         return (visibleFlags.length() > 0 ? visibleFlags.toString() : null);

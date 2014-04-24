@@ -204,6 +204,7 @@ public class RpcHandler implements XmlRpcHandler
         }
         catch (InvocationTargetException exception) {
             Throwable throwable = exception.getTargetException();
+            requestState = "FAILED: " + throwable.getMessage();
             if (throwable instanceof ApiFaultException) {
                 ApiFaultException apiFaultException = (ApiFaultException) throwable;
                 throw new RpcApiFaultXmlRpcException(requestContext, apiFaultException.getApiFault(), throwable);
@@ -216,10 +217,11 @@ public class RpcHandler implements XmlRpcHandler
                 ReportRuntimeException reportRuntimeException = (ReportRuntimeException) throwable;
                 throw new RpcReportXmlRpcException(requestContext, reportRuntimeException.getReport(), throwable);
             }
-            String message = "Failed to invoke " + ((Service) pInstance).getServiceName() + "." + pMethod.getName()
-                    + ": " + throwable.getMessage();
-            requestState = "FAILED: " + message;
-            throw new XmlRpcException(message, exception);
+            else {
+                String message = "Failed to invoke " + ((Service) pInstance).getServiceName() + "." + pMethod.getName()
+                        + ": " + throwable.getMessage();
+                throw new XmlRpcException(message, exception);
+            }
         }
         finally {
             // Log request end

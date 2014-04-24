@@ -97,6 +97,7 @@
 
     <xs:simpleType name="report-for">
         <xs:restriction base="xs:string">
+            <xs:enumeration value="none"/>
             <xs:enumeration value="domain-admin"/>
             <xs:enumeration value="resource-admin"/>
             <xs:enumeration value="user"/>
