@@ -117,12 +117,14 @@ sub connect()
     my $ssl_opts;
     if ($ssl_unverified) {
         $ssl_opts = {
-                SSL_use_cert => 0,
-                SSL_verify_mode => 'SSL_VERIFY_NONE',
+            SSL_use_cert => 0,
+            SSL_verify_mode => 'SSL_VERIFY_NONE',
         };
     }
     else {
-        $ssl_opts = {};
+        $ssl_opts = {
+            SSL_verify_mode => 'SSL_VERIFY_PEER'
+        };
     }
     $self->{'controller-url'} = $url;
     $self->{'controller-client'} = RPC::XML::Client->new($url,
