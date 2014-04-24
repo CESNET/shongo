@@ -28,7 +28,7 @@ if [[ -z "$PID_DIR" ]]; then
     PID_DIR="$DEPLOYMENT_DIR/service"
 fi
 
-DATE=$(date +"%Y-%m-%d")
+DATE=$(date +"%Y-%m-%dT%H:%M")
 VERSION=`cat $DEPLOYMENT_DIR/../pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`
 BIN=$(echo $BIN | sed "s/:VERSION:/$VERSION/g")
 LOG_FILE="$LOG_DIR/${NAME}_$DATE.log"
