@@ -653,7 +653,35 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         moveAttributes.add("folder-id", recordingFolderId);
 
         logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
-        request("sco-move", moveAttributes);
+        // Counter for duplicate names
+        int i = 0;
+        // Move or rename if duplicate name (add "_X")
+        while (true) {
+            try {
+                request("sco-move", moveAttributes);
+            } catch (RequestFailedCommandException ex) {
+                    if ("invalid".equals(ex.getCode()) && "duplicate".equals(ex.getSubCode())) {
+                        RequestAttributeList newMoveAttributes = new RequestAttributeList();
+                        for (AdobeConnectConnector.Entry entry : moveAttributes) {
+                            if (!"name".equals(entry.getKey())) {
+                                newMoveAttributes.add(entry);
+                            } else {
+                                moveAttributes.add("name",moveAttributes.getEntry("name") + "_" + i);
+                            }
+                        }
+
+                        moveAttributes = newMoveAttributes;
+
+                        if (i > 25) throw ex;
+                        i++;
+
+                        continue;
+                    }
+
+                    throw ex;
+                }
+
+            }
     }
 
     /**
