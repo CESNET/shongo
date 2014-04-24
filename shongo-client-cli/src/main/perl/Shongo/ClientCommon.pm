@@ -12,6 +12,7 @@ use Shongo::Common;
 use RPC::XML;
 use RPC::XML::Client;
 use XML::Twig;
+use IO::Socket::SSL qw(debug1);
 
 #
 # Create a new instance of common client.
@@ -78,7 +79,7 @@ sub get_access_token()
 #
 sub update_url()
 {
-    my ($self, $url) = @_;
+    my ($self, $url, $ssl) = @_;
 
     # Append default port if not presented
     if ( !($url =~ /.+:[0-9]+$/ ) ) {
@@ -87,6 +88,10 @@ sub update_url()
     # Prepend http:// if not presented
     if ( !($url =~ /^http(s)?:\/\// ) ) {
         $url = 'http://' . $url;
+    }
+    # Replace http by https if $ssl
+    if ( $ssl && $url =~ /^http:\/\// ) {
+        $url =~ s/^http/https/g;
     }
     return $url;
 }
@@ -107,14 +112,22 @@ sub get_url()
 #
 sub connect()
 {
-    my ($self, $url) = @_;
+    my ($self, $url, $ssl_unverified) = @_;
 
+    my $ssl_opts;
+    if ($ssl_unverified) {
+        $ssl_opts = {
+                SSL_use_cert => 0,
+                SSL_verify_mode => 'SSL_VERIFY_NONE',
+        };
+    }
+    else {
+        $ssl_opts = {};
+    }
     $self->{'controller-url'} = $url;
     $self->{'controller-client'} = RPC::XML::Client->new($url,
         useragent => [
-            ssl_opts => {
-                SSL_verify_mode => 'SSL_VERIFY_NONE',
-            },
+            ssl_opts => $ssl_opts,
         ]
     );
 }

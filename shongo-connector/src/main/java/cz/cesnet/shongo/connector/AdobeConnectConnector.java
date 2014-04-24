@@ -1783,13 +1783,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             notifyTarget.addMessage("en",
                     "Room capacity exceeded: " + room.getName(),
                     "Capacity has been exceeded in your room \"" + room.getName() + "\".\n\n"
-                    + "Licence count: " + room.getLicenseCount() + "\n"
-                    + "Number of participants: " + participants + "\n\n");
+                    + "Booked licence count: " + room.getLicenseCount() + "\n"
+                    + "Number of connected participants: " + participants
+                    + "Please use only the booked license count and disconnect participants who exceed it.");
             notifyTarget.addMessage("cs",
                     "Kapacita místnosti překročena: " + room.getName(),
                     "Kapacita vaší místnosti \"" + room.getName() + "\" byla překročena.\n\n"
-                            + "Počet licencí: " + room.getLicenseCount() + "\n"
-                            + "Počet účastníků: " + participants + "\n\n");
+                            + "Počet zarezervovaných licencí: " + room.getLicenseCount() + "\n"
+                            + "Počet připojených účastníků: " + participants + "\n\n"
+                            + "Prosíme dodržujte zarezervovaný počet licencí a odpojte účastníky, kteří jej překračují.");
 
             performControllerAction(notifyTarget);
         }

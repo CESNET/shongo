@@ -34,6 +34,8 @@ sub instance
         $singleInstance->{'scripting'} = 0;
         $singleInstance->{'scripting-variables'} = {};
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
+        $singleInstance->{'ssl'} = 0;
+        $singleInstance->{'ssl_unverified'} = 0;
 
         # Initialize client
         $singleInstance->{'client'} = Shongo::ClientCommon->new();
@@ -80,11 +82,35 @@ sub set_scripting()
 #
 sub is_scripting()
 {
-    my ($self, $scripting) = @_;
+    my ($self) = @_;
     if ( !ref($self) ) {
         $self = instance();
     }
     return $self->{'scripting'};
+}
+
+#
+# Enable/disable SSL connection.
+#
+# @param $ssl  enable/disable SSL connection
+#
+sub set_ssl()
+{
+    my ($self, $ssl, $ssl_unverified) = @_;
+    $self->{'ssl'} = $ssl;
+    $self->{'ssl_unverified'} = $ssl_unverified;
+}
+
+#
+# @return true if the SSL connection is enabled
+#
+sub is_ssl()
+{
+    my ($self) = @_;
+    if ( !ref($self) ) {
+        $self = instance();
+    }
+    return $self->{'ssl'};
 }
 
 #
@@ -225,11 +251,11 @@ sub connect()
 {
     my ($self, $url) = @_;
 
-    $url = $self->{'client'}->update_url($url);
+    $url = $self->{'client'}->update_url($url, $self->{'ssl'});
 
     console_print_debug("Connecting to controller at '$url'...");
 
-    $self->{'client'}->connect($url);
+    $self->{'client'}->connect($url, $self->{'ssl_unverified'});
 
     my $response = $self->{'client'}->request("Common.getController");
     if ( ref($response) ) {

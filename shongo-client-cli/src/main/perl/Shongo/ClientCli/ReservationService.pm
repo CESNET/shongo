@@ -258,12 +258,14 @@ sub list_reservation_requests()
     };
     my $table = {
         'columns' => [
-            {'field' => 'id',            'title' => 'Identifier'},
-            {'field' => 'dateTime',      'title' => 'Created'},
-            {'field' => 'user',          'title' => 'User'},
-            {'field' => 'specification', 'title' => 'Type'},
-            {'field' => 'technology',    'title' => 'Technology'},
-            {'field' => 'description',   'title' => 'Description'}
+            {'field' => 'id',              'title' => 'Identifier'},
+            {'field' => 'dateTime',        'title' => 'Created'},
+            {'field' => 'user',            'title' => 'User'},
+            {'field' => 'specification',   'title' => 'Type'},
+            {'field' => 'technology',      'title' => 'Technology'},
+            {'field' => 'allocationState', 'title' => 'Allocation'},
+            {'field' => 'executableState', 'title' => 'Executable'},
+            {'field' => 'description',     'title' => 'Description'}
         ],
         'data' => []
     };
@@ -271,6 +273,29 @@ sub list_reservation_requests()
         my $specification = 'Other';
         if ( defined($reservation_request->{'specificationType'}) && defined($SpecificationType->{$reservation_request->{'specificationType'}}) ) {
             $specification = $SpecificationType->{$reservation_request->{'specificationType'}};
+        }
+        if ( $reservation_request->{'specificationType'} eq 'ROOM') {
+            $specification .= ' (';
+            $specification .= $reservation_request->{'roomParticipantCount'};
+            if ( $reservation_request->{'roomRecordable'}) {
+                $specification .= ', recorded';
+            }
+            $specification .= ')';
+        }
+        elsif ( $reservation_request->{'specificationType'} eq 'USED_ROOM' ) {
+            $specification .= ' (';
+            $specification .= $reservation_request->{'roomName'};
+            $specification .= ', ';
+            $specification .= $reservation_request->{'roomParticipantCount'};
+            if ( $reservation_request->{'roomRecordable'}) {
+                $specification .= ', recorded';
+            }
+            $specification .= ')';
+        }
+        elsif ( $reservation_request->{'specificationType'} eq 'PERMANENT_ROOM' ) {
+            $specification .= ' (';
+            $specification .= $reservation_request->{'roomName'};
+            $specification .= ')';
         }
         my $technologies = '';
         foreach my $technology (@{$reservation_request->{'specificationTechnologies'}}) {
@@ -285,6 +310,8 @@ sub list_reservation_requests()
             'user' => [$reservation_request->{'userId'}, $application->format_user($reservation_request->{'userId'})],
             'specification' => [$reservation_request->{'specificationType'}, $specification],
             'technology' => $technologies,
+            'allocationState' => Shongo::ClientCli::API::ReservationRequest::format_state($reservation_request->{'allocationState'}),
+            'executableState' => Shongo::ClientCli::API::ReservationRequest::format_state($reservation_request->{'executableState'}),
             'description' => $reservation_request->{'description'}
         });
     }

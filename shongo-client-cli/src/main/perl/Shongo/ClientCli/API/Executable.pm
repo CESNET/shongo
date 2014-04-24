@@ -82,7 +82,7 @@ sub on_init()
     $self->add_attribute('state', {
         'format' => sub {
             my ($attribute_value) = @_;
-            my $state = format_state($attribute_value, $State);
+            my $state = '[' . format_state($attribute_value, $State) . ']';
             if ( defined($state) ) {
                 my $color = 'blue';
                 if ( defined($self->get('state')) && $self->get('state') eq 'STARTING_FAILED'  || $self->get('state') eq 'STOPPING_FAILED') {
@@ -130,7 +130,7 @@ sub on_init()
                                 $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
                                 $string =~ s/\n$//g;
                             }
-                            $string .= "\nstate: " . format_state($roomEndpoint->{'state'}, $RoomState);
+                            $string .= "\nstate: [" . format_state($roomEndpoint->{'state'}, $RoomState) . ']';
                             return $string;
                         }
                     },
@@ -153,7 +153,7 @@ sub on_init()
                             }
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
                             $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
-                            $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
+                            $string .= "\nstate: [" . format_state($connection->{'state'}, $ConnectionState) . ']';
                             return $string;
                         }
                     },
@@ -275,7 +275,7 @@ sub format_state
     if ( defined($state->{'color'}) ) {
         $title = colored($title, $state->{'color'});
     }
-    return '[' . $title . ']';
+    return $title;
 }
 
 1;

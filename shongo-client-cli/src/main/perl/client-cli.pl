@@ -40,6 +40,8 @@ sub usage {
       "usage: $command [options]\n" .
       "    -help                          Show this usage information\n" .
       "    -connect=<URL>                 Connect to a specified controller\n" .
+      "    -ssl                           Explicitly use SSL connection\n" .
+      "    -ssl-unverified                Do not verify hostname for SSL connection\n" .
       "    -token=<TOKEN>                 Use specified access token for authentication\n" .
       "    -scripting                     Switch to scripting mode\n" .
       "    -cmd=<COMMAND>                 Perform given command in controller\n" .
@@ -50,6 +52,8 @@ sub usage {
 
 # Parse command line
 my $connect;
+my $ssl;
+my $ssl_unverified;
 my $cmd;
 my $file;
 my $root_access_token = undef;
@@ -59,6 +63,8 @@ my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
+    'ssl' => \$ssl,
+    'ssl-unverified' => \$ssl_unverified,
     'token=s' => \$access_token,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
@@ -70,6 +76,7 @@ if ( $help == 1) {
 
 my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
+$controller->set_ssl($ssl, $ssl_unverified);
 
 # Parse configuration file
 my $configuration_file = 'shongo-client-cli.cfg.xml';
@@ -119,7 +126,7 @@ if ( $scripting eq 0 ) {
 if ( !defined($connect) || $connect eq '' ) {
     $connect = 'http://127.0.0.1:8181';
 }
-if ( $controller->connect($connect)) {
+if ( $controller->connect($connect, $ssl)) {
     if ( !$controller->is_scripting() ) {
         $controller->status();
     }

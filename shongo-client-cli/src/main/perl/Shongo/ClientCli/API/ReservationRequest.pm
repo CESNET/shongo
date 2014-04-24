@@ -15,13 +15,14 @@ use Shongo::ClientCli::API::Specification;
 
 # Enumeration of state
 our $State = ordered_hash(
-    'NOT_COMPLETE' => {'title' => 'Not Complete', 'color' => 'yellow'},
     'NOT_ALLOCATED' => {'title' => 'Not Allocated', 'color' => 'yellow'},
     'ALLOCATED' => {'title' => 'Allocated', 'color' => 'green'},
     'ALLOCATION_FAILED' => {'title' => 'Allocation Failed', 'color' => 'red'},
+    'NOT_STARTED' => {'title' => 'Not Started', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Started', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Starting Failed', 'color' => 'red'},
-    'FINISHED' => {'title' => 'Finished', 'color' => 'blue'},
+    'STOPPED' => {'title' => 'Finished', 'color' => 'blue'},
+    'STOPPING_FAILED' => {'title' => 'Stopping Failed', 'color' => 'red'},
 );
 
 #
@@ -52,7 +53,7 @@ sub new()
     $self->add_attribute('allocationState', {
         'title' =>'Current State',
         'format' => sub {
-            my $state = $self->get_state();
+            my $state = '[' . format_state($self->{'allocationState'}) . ']';
             if ( defined($state) ) {
                 if ( defined($self->get('allocationState')) && $self->get('allocationState') eq 'ALLOCATED' ) {
                     my $reservations = '';
@@ -84,15 +85,15 @@ sub new()
 #
 # @return state
 #
-sub get_state
+sub format_state
 {
-    my ($self) = @_;
-    if ( !defined($self->{'allocationState'}) ) {
+    my ($state) = @_;
+    if ( !defined($state) ) {
         return undef;
     }
-    my $state = $State->{$self->{'allocationState'}}->{'title'};
-    $state = colored($state, $State->{$self->{'allocationState'}}->{'color'});
-    return '[' . $state . ']';
+    my $output = $State->{$state}->{'title'};
+    $output = colored($output, $State->{$state}->{'color'});
+    return $output;
 }
 
 1;
