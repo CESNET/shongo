@@ -318,7 +318,9 @@ public class RoomReservationTask extends ReservationTask
             ResourceRoomEndpoint newRoomEndpoint = (ResourceRoomEndpoint) newExecutable;
 
             // Migrate recording folders
-            for(Map.Entry<RecordingCapability, String> entry : oldRoomEndpoint.getRecordingFolderIds().entrySet()) {
+            Map<RecordingCapability, String> recordingFolderIds =
+                    new HashMap<RecordingCapability, String>(oldRoomEndpoint.getRecordingFolderIds());
+            for(Map.Entry<RecordingCapability, String> entry : recordingFolderIds.entrySet()) {
                 newRoomEndpoint.putRecordingFolderId(entry.getKey(), entry.getValue());
                 oldRoomEndpoint.removeRecordingFolderId(entry.getKey());
             }
