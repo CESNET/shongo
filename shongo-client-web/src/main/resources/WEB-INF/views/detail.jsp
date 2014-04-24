@@ -2,7 +2,25 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
+
+<c:if test="${isActive && !isPeriodicEvent}">
+    <security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
+</c:if>
+
+<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
+    <tag:param name="reservationRequestId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
+<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
+    <tag:param name="reservationRequestId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
+<tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+    <tag:param name="reservationRequestId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
 
 <script type="text/javascript">
     var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
@@ -213,7 +231,38 @@
 
     </tabset>
 
-    <div class="table-actions pull-right">
+    <c:if test="${isWritable}">
+        <div class="table-actions pull-right">
+            <c:if test="${specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+                <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyUrl}" title="${modifyExtendHelp}" tabindex="1">
+                    <spring:message code="views.detail.action.modifyExtend"/>
+                </a>
+                <spring:message code="views.detail.action.modifyEnlarge.help" var="modifyEnlargeHelp"/>
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyUrl}" title="${modifyEnlargeHelp}" tabindex="1">
+                    <spring:message code="views.detail.action.modifyEnlarge"/>
+                </a>
+                <spring:message code="views.detail.action.modifyRecordable.help" var="modifyRecordableHelp"/>
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable" class="btn" href="${reservationRequestModifyUrl}" title="${modifyRecordableHelp}" tabindex="1">
+                    <spring:message code="views.detail.action.modifyRecordable"/>
+                </a>
+            </c:if>
+
+            <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
+                <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
+                    <spring:message code="views.button.duplicate"/>
+                </a>
+                <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
+                    <spring:message code="views.button.modify"/>
+                </a>
+            </span>
+            <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
+                <spring:message code="views.button.delete"/>
+            </a>
+        </div>
+    </c:if>
+
+    <div class="table-actions">
         <tag:url var="backUrl" value="${requestScope.backUrl}"/>
         <a class="btn btn-primary" href="${backUrl}" tabindex="1">
             <spring:message code="views.button.back"/>

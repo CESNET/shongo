@@ -88,7 +88,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private SpecificationType specificationType;
 
     /**
-     * Technologies which are .
+     * Technologies which are specified.
      */
     private Set<Technology> specificationTechnologies = new HashSet<Technology>();
 

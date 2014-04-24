@@ -573,9 +573,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             queryFilter.addFilterId("allocation_id", authorization, securityToken,
                     Allocation.class, ObjectPermission.READ);
 
-            // List only reservation requests which are requested
+            // List only reservation requests which are requested (but latest versions of them)
             if (request.getReservationRequestIds().size() > 0) {
-                queryFilter.addFilter("reservation_request_summary.id IN (:reservationRequestIds)");
+                queryFilter.addFilter("reservation_request_summary.id IN ("
+                        + " SELECT allocation.abstract_reservation_request_id"
+                        + " FROM abstract_reservation_request"
+                        + " LEFT JOIN allocation ON allocation.id = abstract_reservation_request.allocation_id"
+                        + " WHERE abstract_reservation_request.id IN(:reservationRequestIds)"
+                        + ")");
                 Set<Long> reservationRequestIds = new HashSet<Long>();
                 for (String reservationRequestId : request.getReservationRequestIds()) {
                     reservationRequestIds.add(ObjectIdentifier.parseId(

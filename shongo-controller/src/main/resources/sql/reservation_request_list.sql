@@ -7,6 +7,7 @@ SELECT
     reservation_request_summary.id AS id,
     reservation_request_summary.parent_reservation_request_id AS parent_reservation_request_id,
     CASE
+        WHEN reservation_request_summary.state = 'DELETED' THEN 'DELETED'
         WHEN reservation_request_summary.modified_reservation_request_id IS NOT NULL THEN 'MODIFIED'
         ELSE 'NEW'
     END AS type,

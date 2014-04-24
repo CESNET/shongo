@@ -5,9 +5,6 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
-    <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
-</c:if>
 <security:authorize access="hasPermission(RESERVATION)">
     <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
                                 domainObject="${reservationRequest}" var="canCreatePermanentRoomCapacity"/>
@@ -17,18 +14,6 @@
 </c:if>
 
 <tag:url var="detailUrl" value="<%= ClientWebUrl.DETAIL_VIEW %>"/>
-<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
-    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
-<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
-    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
-<tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="${reservationRequest.id}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
 
 <script type="text/javascript">
     function DetailReservationRequestController($scope) {
@@ -135,7 +120,7 @@
             </thead>
             <tbody>
             <c:forEach items="${history}" var="historyItem" varStatus="status">
-                <tr ng-class="{selected: reservationRequest.historyItemId == '${historyItem.id}'}">
+                <tr ng-class="{selected: ${historyItem.type != 'DELETED'} && reservationRequest.historyItemId == '${historyItem.id}'}">
                 <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
@@ -158,8 +143,8 @@
                         <span ng-show="reservationRequest.historyItemId != '${historyItem.id}'">
                             <tag:listAction code="show" ngClick="setReservationRequest('${historyItem.id}', ${historyItem.isActive}, ${historyItem.isLatestAllocated})" tabindex="2"/>
                         </span>
+                        <span ng-show="reservationRequest.historyItemId == '${historyItem.id}'">(<spring:message code="views.list.selected"/>)</span>
                     </c:if>
-                    <span ng-show="reservationRequest.historyItemId == '${historyItem.id}'">(<spring:message code="views.list.selected"/>)</span>
                     <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
                         <tag:url var="historyItemRevertUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_REVERT %>">
                             <tag:param name="reservationRequestId" value="${historyItem.id}"/>
@@ -210,20 +195,4 @@
 
 </c:if>
 
-</div>
-
-<div class="table-actions pull-right">
-    <c:if test="${isWritable}">
-        <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
-            <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
-                <spring:message code="views.button.duplicate"/>
-            </a>
-            <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
-                <spring:message code="views.button.modify"/>
-            </a>
-        </span>
-        <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
-            <spring:message code="views.button.delete"/>
-        </a>
-    </c:if>
 </div>

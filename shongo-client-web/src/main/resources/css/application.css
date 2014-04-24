@@ -148,7 +148,7 @@ dl.dl-horizontal .alert {
 /* Tabs */
 .tabbable {
     margin-top: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
 }
 .tabbable a {
     cursor: pointer;

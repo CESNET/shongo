@@ -72,6 +72,8 @@ public class DetailController extends AbstractDetailController implements Breadc
                 "views.detail.title." + specificationType, new Object[]{roomName != null ? roomName : ""}, locale);
 
         ModelAndView modelAndView = new ModelAndView("detail");
+        modelAndView.addObject("objectId", reservationRequest.getId());
+        modelAndView.addObject("isActive", !reservationRequest.getType().equals(ReservationRequestType.DELETED));
         modelAndView.addObject("titleDescription", titleDescription);
         modelAndView.addObject("tab", tab);
         modelAndView.addObject("specificationType", specificationType);
