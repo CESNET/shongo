@@ -203,8 +203,11 @@ public class RoomCache
         roomParticipants.setRoomId(resourceRoomId);
         resourceControlService.modifyRoomParticipants(securityToken, resourceId, roomParticipants);
         synchronized (roomParticipantCache) {
-            for (RoomParticipant roomParticipant : roomParticipantsCache.get(roomExecutableId)) {
-                roomParticipantCache.remove(roomExecutableId + ":" + roomParticipant.getId());
+            List<RoomParticipant> participants = roomParticipantsCache.get(roomExecutableId);
+            if (participants != null) {
+                for (RoomParticipant roomParticipant : participants) {
+                    roomParticipantCache.remove(roomExecutableId + ":" + roomParticipant.getId());
+                }
             }
         }
         synchronized (roomParticipantsCache) {

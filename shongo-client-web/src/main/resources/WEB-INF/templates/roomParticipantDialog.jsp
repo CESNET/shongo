@@ -43,12 +43,7 @@
         $scope.cancel = function () {
             $modalInstance.dismiss();
         };
-        $timeout(function () {
-            // init room layout
-            tagRoomLayout_participantLayoutInit();
-        }, 0);
     });
-    <tag:roomLayout id="participantLayout" content="javascript"/>
 </script>
 
 <script type="text/ng-template" id="/roomParticipantDialog.html">
@@ -62,27 +57,19 @@
                     <spring:message code="views.room.currentParticipant.name"/>:
                 </label>
                 <div class="controls">
-                    <input id="name" type="text" readonly="true" tabindex="1" ng-model="data.name"/>
+                    <input id="name" type="text" tabindex="1" ng-model="data.name"/>
                 </div>
             </div>
             <c:if test="${technology == 'H323_SIP'}">
                 <div class="control-group">
-                    <label class="control-label" for="name">
+                    <label class="control-label" for="alias">
                         <spring:message code="views.room.currentParticipant.alias"/>:
                     </label>
                     <div class="controls">
-                        <input id="name" type="text" readonly="true" tabindex="1" ng-model="data.alias"/>
+                        <input id="alias" type="text" readonly="true" tabindex="1" ng-model="data.alias"/>
                     </div>
                 </div>
             </c:if>
-            <div class="control-group" ng-show="data.layout != null">
-                <label class="control-label" for="participantLayout">
-                    <spring:message code="views.room.currentParticipant.layout"/>:
-                </label>
-                <div class="controls">
-                    <tag:roomLayout id="participantLayout" model="data.layout" content="html"/>
-                </div>
-            </div>
             <c:if test="${technology == 'H323_SIP'}">
                 <div class="control-group" >
                     <label class="control-label">

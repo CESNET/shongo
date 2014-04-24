@@ -206,6 +206,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "microphoneEnabled", required = false) Boolean microphoneEnabled,
             @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
             @RequestParam(value = "videoEnabled", required = false) Boolean videoEnabled)
@@ -216,6 +217,9 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             oldRoomParticipant = roomCache.getRoomParticipant(securityToken, executableId, participantId);
         }
         RoomParticipant roomParticipant = new RoomParticipant(participantId);
+        if (name != null) {
+            roomParticipant.setDisplayName(name);
+        }
         if (microphoneLevel != null) {
             roomParticipant.setMicrophoneLevel(microphoneLevel);
         }
@@ -247,12 +251,13 @@ public class DetailRuntimeManagementController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @PathVariable(value = "participantId") String participantId,
+            @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "microphoneEnabled", required = false) Boolean microphoneEnabled,
             @RequestParam(value = "microphoneLevel", required = false) Integer microphoneLevel,
             @RequestParam(value = "videoEnabled", required = false) Boolean videoEnabled)
     {
         handleRoomParticipantModify(
-                securityToken, objectId, participantId, microphoneEnabled, microphoneLevel, videoEnabled);
+                securityToken, objectId, participantId, name, microphoneEnabled, microphoneLevel, videoEnabled);
     }
 
     @RequestMapping(value = ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT, method = RequestMethod.GET)

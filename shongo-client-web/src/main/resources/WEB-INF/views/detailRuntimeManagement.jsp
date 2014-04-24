@@ -235,7 +235,7 @@
             };
         }
         function RoomParticipantController($scope, $timeout, $application, $roomParticipantDialog) {
-            var roomParticipantAttributes = ["layout", "microphoneEnabled", "microphoneLevel", "videoEnabled"];
+            var roomParticipantAttributes = ["name", "microphoneEnabled", "microphoneLevel", "videoEnabled"];
 
             /**
              * @param url for modifying participant
