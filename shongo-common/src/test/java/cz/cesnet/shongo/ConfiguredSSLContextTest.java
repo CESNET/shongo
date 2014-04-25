@@ -26,9 +26,9 @@ public class ConfiguredSSLContextTest
     {
         ConfiguredSSLContext sslContext = ConfiguredSSLContext.getInstance();
 
-        /*sslContext.addAdditionalCertificates("actest-w3.cesnet.cz");
-        System.out.println(requestByConnection("https://actest-w3.cesnet.cz/api/xml"));
-        System.out.println(requestByHttpClient("https://actest-w3.cesnet.cz/api/xml"));
+        /*sslContext.addAdditionalCertificates("tconn.cesnet.cz");
+        System.out.println(requestByConnection("https://tconn.cesnet.cz/api/xml"));
+        System.out.println(requestByHttpClient("https://tconn.cesnet.cz/api/xml"));
 
         sslContext.addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
         System.out.println(requestByConnection("https://shongo-auth-dev.cesnet.cz/authn/oic/authorize"));

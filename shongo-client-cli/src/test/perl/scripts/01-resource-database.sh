@@ -94,7 +94,7 @@ shongo-deployment/bin/shongo-client-cli.sh --connect $CONTROLLER --scripting <<E
         description: 'Adobe Connect server at CESNET',
         allocatable: 1,
         maximumFuture: 'P4M',
-        address: 'https://actest-w3.cesnet.cz',
+        address: 'https://tconn.cesnet.cz',
         technologies: ['ADOBE_CONNECT'],
         mode: {
             connectorAgentName: 'connect-cesnet'

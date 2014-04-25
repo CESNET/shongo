@@ -2006,12 +2006,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         try {
             /* Testovaci AC server */
-            String server = "actest-w3.cesnet.cz";
+            String server = "tconn.cesnet.cz";
 
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
-            acc.connect(address, "admin", "cip9skovi3t2");
+            acc.connect(address, "admin", "<password>");
 
             /************************/
 
