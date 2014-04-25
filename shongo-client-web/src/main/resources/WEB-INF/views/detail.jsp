@@ -50,6 +50,7 @@
          */
         $scope.reservationRequest = {
             id: "${objectId}",
+            historyItemId: "${objectId}",
             isPeriodic: ${isPeriodic},
             isPeriodicEvent: ${isPeriodicEvent},
             technology: ${technology != null ? ('"'.concat(technology).concat('"')) : 'null'},

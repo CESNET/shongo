@@ -104,7 +104,7 @@ public class ClientWebUrl
     public static final String DETAIL_RESERVATION_REQUEST_TAB =
             "/detail/{objectId:.+}/reservation-request";
     public static final String DETAIL_RESERVATION_REQUEST_STATE =
-            "/detail/{objectId:.+}/reservation-request/state/{isReservationVisible}";
+            "/detail/{objectId:.+}/reservation-request/state/{isLatestAllocated}";
     public static final String DETAIL_RESERVATION_REQUEST_CHILDREN =
             "/detail/{objectId:.+}/reservation-request/children";
     public static final String DETAIL_RESERVATION_REQUEST_USAGES =

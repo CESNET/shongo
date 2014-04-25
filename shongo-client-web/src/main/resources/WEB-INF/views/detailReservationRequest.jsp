@@ -37,7 +37,7 @@
          */
         <tag:url var="detailReservationRequestStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
             <tag:param name="objectId" value=":reservationRequestId"/>
-            <tag:param name="isReservationVisible" value=":isReservationVisible"/>
+            <tag:param name="isLatestAllocated" value=":isLatestAllocated"/>
         </tag:url>
         var RESERVATION_REQUEST_STATE_URL = "${detailReservationRequestStateUrl}";
 
@@ -49,15 +49,20 @@
         /**
          * Set version of reservation request for the state.
          */
-        $scope.setReservationRequest = function(reservationRequestId, isActive, isReservationVisible) {
+        $scope.setReservationRequest = function(reservationRequestId, isActive, isLatestAllocated) {
             var url = null;
             if (reservationRequestId != null) {
-                $scope.reservationRequest.id = reservationRequestId;
+                $scope.reservationRequest.historyItemId = reservationRequestId;
                 $scope.reservationRequest.isActive = isActive;
-                $scope.reservationRequest.state = null;
+                if (isLatestAllocated) {
+                    // Check whether reservation request is still latest allocated (doesn't exist any newer version which become allocated)
+                    if (reservationRequestId != $scope.reservationRequest.id && $scope.reservationRequest.allocationState == 'ALLOCATED') {
+                        isLatestAllocated = false;
+                    }
+                }
                 url = RESERVATION_REQUEST_STATE_URL;
                 url = url.replace(":reservationRequestId", reservationRequestId);
-                url = url.replace(":isReservationVisible", (isReservationVisible ? true : false));
+                url = url.replace(":isLatestAllocated", (isLatestAllocated ? true : false));
             }
             $scope.refreshReservationRequestState(url);
         };
@@ -130,13 +135,13 @@
             </thead>
             <tbody>
             <c:forEach items="${history}" var="historyItem" varStatus="status">
-                <tr ng-class="{selected: reservationRequest.id == '${historyItem.id}'}">
+                <tr ng-class="{selected: reservationRequest.historyItemId == '${historyItem.id}'}">
                 <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <c:if test="${reservationRequest.state != null}">
                     <td class="reservation-request-state">
-                        <c:if test="${historyItem.state != nul}">
+                        <c:if test="${historyItem.state != null}">
                             <span ng-show="reservationRequest.id == '${historyItem.id}' && reservationRequest.state">
                                 <span class="{{reservationRequest.state}}">{{reservationRequest.stateLabel}}</span>
                             </span>
@@ -150,11 +155,11 @@
                 </c:if>
                 <td>
                     <c:if test="${historyItem.type != 'DELETED'}">
-                        <span ng-show="reservationRequest.id != '${historyItem.id}'">
-                            <tag:listAction code="show" ngClick="setReservationRequest('${historyItem.id}', ${historyItem.isActive}, ${historyItem.isReservationVisible})" tabindex="2"/>
+                        <span ng-show="reservationRequest.historyItemId != '${historyItem.id}'">
+                            <tag:listAction code="show" ngClick="setReservationRequest('${historyItem.id}', ${historyItem.isActive}, ${historyItem.isLatestAllocated})" tabindex="2"/>
                         </span>
                     </c:if>
-                    <span ng-show="reservationRequest.id == '${historyItem.id}'">(<spring:message code="views.list.selected"/>)</span>
+                    <span ng-show="reservationRequest.historyItemId == '${historyItem.id}'">(<spring:message code="views.list.selected"/>)</span>
                     <c:if test="${historyItem.type == 'MODIFIED' && status.first}">
                         <tag:url var="historyItemRevertUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_REVERT %>">
                             <tag:param name="reservationRequestId" value="${historyItem.id}"/>
@@ -174,7 +179,7 @@
 <%-- Reservation request state (refreshable by dynamic content controller) --%>
 <tag:url var="reservationRequestStateUrl" value="<%= ClientWebUrl.DETAIL_RESERVATION_REQUEST_STATE %>">
     <tag:param name="objectId" value="${objectId}"/>
-    <tag:param name="isReservationVisible" value="${isReservationVisible}"/>
+    <tag:param name="isLatestAllocated" value="${isLatestAllocated}"/>
 </tag:url>
 <div id="reservationRequestState" ng-controller="DynamicContentController" content-url="${reservationRequestStateUrl}" content-loaded="true">
     <c:import url="detailReservationRequestState.jsp"/>

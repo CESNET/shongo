@@ -240,8 +240,8 @@ public class Reporter
         try {
             emailSender.sendEmail(new EmailSender.Email(recipients, title, content));
         }
-        catch (MessagingException messagingException) {
-            logger.error("Failed sending report email.", messagingException);
+        catch (Exception exception) {
+            logger.error("Failed sending report email.", exception);
         }
     }
 

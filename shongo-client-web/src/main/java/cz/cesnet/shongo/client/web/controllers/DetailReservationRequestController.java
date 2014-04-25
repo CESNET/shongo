@@ -61,13 +61,13 @@ public class DetailReservationRequestController extends AbstractDetailController
         // Specifies whether reservation request is last version which can be modified
         boolean isActive = true;
         // Specifies whether reservation should be visible for the reservation request
-        boolean isReservationVisible = true;
+        boolean isLatestAllocated = true;
 
         // Get history of reservation request (only if it is not child reservation request)
         if (!isChildReservationRequest) {
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
-            boolean historyItemisReservationVisible = true;
+            boolean historyItemLatestAllocated = true;
             for (ReservationRequestSummary historyItem :
                     reservationService.getReservationRequestHistory(securityToken, reservationRequestId)) {
                 String historyItemId = historyItem.getId();
@@ -81,15 +81,15 @@ public class DetailReservationRequestController extends AbstractDetailController
                 UserInformation user = cache.getUserInformation(securityToken, historyItem.getUserId());
                 item.put("user", user.getFullName());
                 item.put("type", historyItemType);
-                item.put("isActive", (history.size() == 0 && !historyItemType.equals(ReservationRequestType.DELETED)));
-                item.put("isReservationVisible", historyItemisReservationVisible);
                 item.put("allocationState", historyItemAllocationState);
                 item.put("state", historyItemState);
+                item.put("isActive", (history.size() == 0 && !historyItemType.equals(ReservationRequestType.DELETED)));
+                item.put("isLatestAllocated", historyItemLatestAllocated);
                 history.add(item);
 
                 if (AllocationState.ALLOCATED.equals(historyItemAllocationState)) {
-                    // Reservation is visible only for reservation requests until first allocated
-                    historyItemisReservationVisible = false;
+                    // Latest allocated reservation request is only until first allocated
+                    historyItemLatestAllocated = false;
                 }
                 if (historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
@@ -100,13 +100,13 @@ public class DetailReservationRequestController extends AbstractDetailController
             }
             modelAndView.addObject("history", history);
             isActive = (Boolean) currentHistoryItem.get("isActive");
-            isReservationVisible = (Boolean) currentHistoryItem.get("isReservationVisible");
+            isLatestAllocated = (Boolean) currentHistoryItem.get("isLatestAllocated");
         }
 
         modelAndView.addObject("isActive", isActive);
-        modelAndView.addObject("isReservationVisible", isReservationVisible);
+        modelAndView.addObject("isLatestAllocated", isLatestAllocated);
         modelAndView.addObject("reservationRequest", getReservationRequestState(
-                securityToken, userSession, abstractReservationRequest, isReservationVisible));
+                securityToken, userSession, abstractReservationRequest, isLatestAllocated));
 
         return modelAndView;
     }
@@ -119,7 +119,7 @@ public class DetailReservationRequestController extends AbstractDetailController
             SecurityToken securityToken,
                 UserSession userSession,
                 @PathVariable(value = "objectId") String objectId,
-                @PathVariable(value = "isReservationVisible") boolean isReservationVisible)
+                @PathVariable(value = "isLatestAllocated") boolean isLatestAllocated)
     {
         String reservationRequestId = getReservationRequestId(securityToken, objectId);
         AbstractReservationRequest abstractReservationRequest =
@@ -127,7 +127,7 @@ public class DetailReservationRequestController extends AbstractDetailController
 
         ModelAndView modelAndView = new ModelAndView("detailReservationRequestState");
         modelAndView.addObject("reservationRequest", getReservationRequestState(
-                securityToken, userSession, abstractReservationRequest, isReservationVisible));
+                securityToken, userSession, abstractReservationRequest, isLatestAllocated));
         return modelAndView;
     }
 
@@ -305,11 +305,11 @@ public class DetailReservationRequestController extends AbstractDetailController
      * @param securityToken
      * @param userSession
      * @param reservationRequest
-     * @param isReservationVisible
+     * @param isLatestAllocated
      * @return {@link cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel} state
      */
     public ReservationRequestDetailModel getReservationRequestState(SecurityToken securityToken,
-            UserSession userSession, AbstractReservationRequest reservationRequest, boolean isReservationVisible)
+            UserSession userSession, AbstractReservationRequest reservationRequest, boolean isLatestAllocated)
     {
         final Locale locale = userSession.getLocale();
         final DateTimeZone timeZone = userSession.getTimeZone();
@@ -318,7 +318,7 @@ public class DetailReservationRequestController extends AbstractDetailController
 
         // Get reservation
         Reservation reservation = null;
-        if (isReservationVisible) {
+        if (isLatestAllocated) {
             reservation = reservationRequest.getLastReservation(reservationService, securityToken);
         }
 
