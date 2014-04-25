@@ -1,6 +1,6 @@
 cd `dirname $0`/../
 #
-# Create testing infrastructure in running Shongo controller.
+# Create testing CESNET infrastructure in running Shongo controller.
 #
 #   "create_infrastructure.sh (localhost)"  Create infrastructure on localhost
 #   "create_infrastructure.sh meetings"     Create infrastructure on meetings.cesnet.cz
@@ -62,7 +62,7 @@ echo "  Resource admin: $RESOURCE_ADMIN_EMAIL"
 echo -n "Presse enter to continue..."; read line
 
 RUN_CLIENT_CLI="cat"
-RUN_CLIENT_CLI="./shongo-client-cli.sh --connect $CONTROLLER --scripting"
+RUN_CLIENT_CLI="bin/shongo-client-cli.sh --connect $CONTROLLER --scripting"
 
 ################################################################################
 #
@@ -276,8 +276,8 @@ $RUN_CLIENT_CLI <<EOF
             class: 'ValueSpecification',
             resourceId: '1',
             values: [
-`cat rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g"`
-`cat rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g"`
+`cat bin/cesnet-rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g"`
+`cat bin/cesnet-rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g"`
             ]
         }
     }

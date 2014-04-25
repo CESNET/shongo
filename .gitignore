@@ -1,12 +1,6 @@
 .idea-data
-.idea/.name
-.idea/dataSources*
-.idea/dictionaries
-.idea/libraries/
-.idea/misc.xml
-.idea/tasks.xml
-.idea/workspace.xml
-.idea/sqldialects.xml
+.idea
+*.iml
 .jade
 target/
 shongo-client-cli.cfg.xml
