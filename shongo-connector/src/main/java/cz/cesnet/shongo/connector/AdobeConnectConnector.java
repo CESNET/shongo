@@ -52,6 +52,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public static final String URL_PATH_EXTRACTION_FROM_URI = "url-path-extraction-from-uri";
 
     /**
+     * Pattern for recording names (with _[])
+     */
+    private final Pattern RECRDING_AC_TITLE_PATTERN = Pattern.compile("(.*)_([0-9]+)$");
+
+    /**
      * Patterns for options.
      */
     private Pattern urlPathExtractionFromUri = null;
@@ -659,21 +664,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         while (true) {
             try {
                 request("sco-move", moveAttributes);
+                break;
             } catch (RequestFailedCommandException ex) {
-                    if ("invalid".equals(ex.getCode()) && "duplicate".equals(ex.getSubCode())) {
-                        RequestAttributeList newMoveAttributes = new RequestAttributeList();
-                        for (AdobeConnectConnector.Entry entry : moveAttributes) {
-                            if (!"name".equals(entry.getKey())) {
-                                newMoveAttributes.add(entry);
-                            } else {
-                                moveAttributes.add("name",moveAttributes.getEntry("name") + "_" + i);
-                            }
-                        }
+                    if ("invalid".equals(ex.getCode()) && "duplicate".equals(ex.getRequestResult().getChild("status").getChild("invalid").getAttributeValue("subcode"))) {
+                        String field = ex.getRequestResult().getChild(
+                                "status").getChild(ex.getCode()).getAttributeValue("field");
+                        String name = getScoInfo(recordingId).getChildText(field);
 
-                        moveAttributes = newMoveAttributes;
-
-                        if (i > 25) throw ex;
-                        i++;
+                        renameSco(recordingId,incrementNameSufix(name));
 
                         continue;
                     }
@@ -1433,6 +1431,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
+    protected void renameSco(String scoId, String name) throws CommandException
+    {
+        RequestAttributeList attributes = new RequestAttributeList();
+        attributes.add("sco-id",scoId);
+        attributes.add("name",name);
+
+        request("sco-update",attributes);
+    }
+
     protected String getScoByUrl(String url) throws CommandException
     {
         RequestAttributeList attributes = new RequestAttributeList();
@@ -1447,6 +1454,24 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("sco-id", scoId);
 
         request("sco-delete", attributes);
+    }
+
+    /**
+     * Add sufix _[0-9] to name or increment it
+     *
+     * @param name
+     * @return
+     */
+    private String incrementNameSufix(String name)
+    {
+        Matcher matcher = RECRDING_AC_TITLE_PATTERN.matcher(name);
+        if (!matcher.find()) {
+            return name + "_0";
+        } else {
+            int nextNumber = Integer.parseInt(matcher.group(2)) + 1;
+            System.out.println(Integer.parseInt(matcher.group(2)));
+            return matcher.group(1) + "_" + nextNumber;
+        }
     }
 
     /**
@@ -2111,6 +2136,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         {
             Element status = requestResult.getRootElement().getChild("status");
             return status.getAttributeValue("subcode");
+        }
+
+        public Element getRequestResult()
+        {
+            return this.requestResult.getRootElement();
         }
     }
 

@@ -700,7 +700,14 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         return xml.toString();
     }
 
-
+    /**
+     * Execute command on Cisco TCS server
+     *
+     * @param command to execute
+     * @param debug
+     * @return Document Element
+     * @throws CommandException
+     */
     protected synchronized Element exec(Command command, boolean debug) throws CommandException
     {
         try {
