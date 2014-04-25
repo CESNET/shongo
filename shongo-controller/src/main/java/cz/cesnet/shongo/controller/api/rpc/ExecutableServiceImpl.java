@@ -760,8 +760,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
 
             // Reporting
+            Reporter reporter = Reporter.getInstance();
             for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
-                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+                reporter.report(executionReport.getExecutionTarget(), executionReport);
             }
 
             // Check activation failed
@@ -820,8 +821,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             entityManager.getTransaction().commit();
 
             // Reporting
+            Reporter reporter = Reporter.getInstance();
             for (ExecutionReport executionReport : executableManager.getExecutionReports()) {
-                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+                reporter.report(executionReport.getExecutionTarget(), executionReport);
             }
 
             // Check deactivation failed

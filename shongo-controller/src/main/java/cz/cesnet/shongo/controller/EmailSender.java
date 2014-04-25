@@ -299,6 +299,10 @@ public class EmailSender
             this.content = content;
         }
 
+        public String getContent() {
+            return content;
+        }
+
         public void addAttachment(String fileName, String fileContent)
         {
             try {

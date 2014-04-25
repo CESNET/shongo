@@ -267,7 +267,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                     }
                     else {
                         // Report allocation failure internal error
-                        Reporter.reportInternalError(Reporter.SCHEDULER, exception);
+                        Reporter.getInstance().reportInternalError(Reporter.SCHEDULER, exception);
                     }
                 }
             }
@@ -288,7 +288,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            Reporter.reportInternalError(Reporter.SCHEDULER, exception);
+            Reporter.getInstance().reportInternalError(Reporter.SCHEDULER, exception);
         }
 
         if (!result.isEmpty()) {

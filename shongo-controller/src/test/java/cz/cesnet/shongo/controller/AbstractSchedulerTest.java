@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;
@@ -31,6 +32,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
         super.before();
 
         Domain.setLocalDomain(new Domain("test"));
+        Reporter.create();
 
         // Init cache
         cache =  new Cache();
@@ -51,6 +53,7 @@ public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
 
         cache.destroy();
 
+        Reporter.getInstance().destroy();
         Domain.setLocalDomain(null);
     }
 

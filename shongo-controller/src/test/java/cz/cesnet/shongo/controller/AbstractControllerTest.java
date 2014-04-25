@@ -275,11 +275,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         // Configure system properties
         configureSystemProperties();
 
-        // Enable throwing internal errors
-        Reporter.setThrowInternalErrorsForTesting(true);
-
         // Create controller
-        controller = new cz.cesnet.shongo.controller.Controller()
+        controller = cz.cesnet.shongo.controller.Controller.create(new Controller(null)
         {
             @Override
             public Container startJade()
@@ -314,9 +311,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
                     super.stop();
                 }
             }
-        };
+        });
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
+
+        // Enable throwing internal errors
+        controller.setThrowInternalErrorsForTesting(true);
 
         // Create authorization
         authorization = DummyAuthorization.createInstance(controller.getConfiguration(), getEntityManagerFactory());
@@ -338,13 +338,13 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     @Override
     public void after() throws Exception
     {
+        // Disable throwing internal errors
+        controller.setThrowInternalErrorsForTesting(false);
+
         controller.stop();
         controller.destroy();
         preprocessor.destroy();
         scheduler.destroy();
-
-        // Disable throwing internal errors
-        Reporter.setThrowInternalErrorsForTesting(false);
 
         super.after();
     }

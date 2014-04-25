@@ -173,6 +173,7 @@ public abstract class ExecutionAction<T> extends Thread
         }
         EntityManager entityManager = getExecutor().getEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        Reporter reporter = Reporter.getInstance();
         try {
             entityManager.getTransaction().begin();
 
@@ -183,11 +184,11 @@ public abstract class ExecutionAction<T> extends Thread
 
             // Reporting
             for (cz.cesnet.shongo.controller.executor.ExecutionReport executionReport : executableManager.getExecutionReports()) {
-                Reporter.report(executionReport.getExecutionTarget(), executionReport);
+                reporter.report(executionReport.getExecutionTarget(), executionReport);
             }
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.EXECUTOR, exception);
+            reporter.reportInternalError(Reporter.EXECUTOR, exception);
         }
         finally {
             // Remove action from plan
@@ -332,7 +333,7 @@ public abstract class ExecutionAction<T> extends Thread
                 }
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Starting failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Starting failed", exception);
             }
         }
 
@@ -386,7 +387,7 @@ public abstract class ExecutionAction<T> extends Thread
                 result = executable.update(getExecutor(), executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Updating failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Updating failed", exception);
             }
         }
 
@@ -452,7 +453,7 @@ public abstract class ExecutionAction<T> extends Thread
                 executable.stop(getExecutor(), executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Stopping failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Stopping failed", exception);
             }
         }
 
@@ -498,7 +499,7 @@ public abstract class ExecutionAction<T> extends Thread
                 executable.finalize(getExecutor(), executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Finalizing failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Finalizing failed", exception);
             }
         }
 
@@ -613,7 +614,8 @@ public abstract class ExecutionAction<T> extends Thread
                 executableService.activate(executor, executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Activation executable service failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Activation executable service failed",
+                        exception);
             }
         }
 
@@ -673,7 +675,8 @@ public abstract class ExecutionAction<T> extends Thread
                 executableService.deactivate(executor, executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Deactivation executable service failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Deactivation executable service failed",
+                        exception);
             }
         }
 
@@ -725,7 +728,8 @@ public abstract class ExecutionAction<T> extends Thread
                 executableService.check(executor, executableManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, "Check executable service failed", exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, "Check executable service failed",
+                        exception);
             }
         }
 

@@ -118,6 +118,11 @@ public class Controller
     protected ControllerAgent jadeAgent;
 
     /**
+     * @see cz.cesnet.shongo.controller.Reporter
+     */
+    private Reporter reporter;
+
+    /**
      * @see EmailSender
      */
     private EmailSender emailSender;
@@ -129,39 +134,12 @@ public class Controller
 
     /**
      * Constructor.
-     */
-    public Controller()
-    {
-        setConfiguration(null);
-    }
-
-    /**
-     * Constructor.
      *
      * @param configuration sets the {@link #configuration}
      */
-    public Controller(org.apache.commons.configuration.AbstractConfiguration configuration)
+    protected Controller(org.apache.commons.configuration.AbstractConfiguration configuration)
     {
         setConfiguration(configuration);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param configurationFileName
-     */
-    public Controller(String configurationFileName)
-    {
-        try {
-            XMLConfiguration xmlConfiguration = new XMLConfiguration();
-            xmlConfiguration.setDelimiterParsingDisabled(true);
-            xmlConfiguration.load(configurationFileName);
-            setConfiguration(xmlConfiguration);
-        }
-        catch (Exception exception) {
-            logger.warn(exception.getMessage());
-            setConfiguration(null);
-        }
     }
 
     /**
@@ -169,7 +147,16 @@ public class Controller
      */
     public void destroy()
     {
+        // Destroy reporter
+        reporter.destroy();
+
+        // Reset single instance of controller
+        instance = null;
+
+        // Local domain
         Domain.setLocalDomain(null);
+
+        // Default time zone
         if (oldDefaultTimeZone != null) {
             logger.info("Configuring default timezone back to {}.", oldDefaultTimeZone.getID());
             DateTimeZone.setDefault(oldDefaultTimeZone);
@@ -200,7 +187,7 @@ public class Controller
         try {
             XMLConfiguration xmlConfiguration = new XMLConfiguration();
             xmlConfiguration.setDelimiterParsingDisabled(true);
-            xmlConfiguration.load(getClass().getClassLoader().getResource("default.cfg.xml"));
+            xmlConfiguration.load(getClass().getClassLoader().getResource("controller-default.cfg.xml"));
             this.configuration.addConfiguration(xmlConfiguration);
         }
         catch (Exception exception) {
@@ -401,6 +388,14 @@ public class Controller
     }
 
     /**
+     * @param throwInternalErrorsForTesting sets the {@link #reporter#setThrowInternalErrorsForTesting}
+     */
+    public void setThrowInternalErrorsForTesting(boolean throwInternalErrorsForTesting)
+    {
+        reporter.setThrowInternalErrorsForTesting(throwInternalErrorsForTesting);
+    }
+
+    /**
      * @return {@link #emailSender}
      */
     public EmailSender getEmailSender()
@@ -439,11 +434,6 @@ public class Controller
      */
     public void start()
     {
-        // Set single instance of domain controller.
-        if (instance == null) {
-            instance = this;
-        }
-
         // Check authorization
         if (authorization == null) {
             throw new IllegalStateException("Authorization is not set.");
@@ -659,9 +649,6 @@ public class Controller
             authorization.destroy();
         }
 
-        // Reset single instance of domain controller.
-        instance = null;
-
         logger.info("Controller exiting...");
     }
 
@@ -669,6 +656,50 @@ public class Controller
      * Single instance of controller that is created by spring context.
      */
     private static Controller instance;
+
+    /**
+     * Constructor.
+     */
+    public static Controller create()
+    {
+        return create(new Controller(null));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param configurationFileName
+     */
+    public static Controller create(String configurationFileName)
+    {
+        Controller controller;
+        try {
+            XMLConfiguration xmlConfiguration = new XMLConfiguration();
+            xmlConfiguration.setDelimiterParsingDisabled(true);
+            xmlConfiguration.load(configurationFileName);
+            controller = new Controller(xmlConfiguration);
+        }
+        catch (Exception exception) {
+            logger.warn(exception.getMessage());
+            controller = new Controller(null);
+        }
+        return create(controller);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param controller
+     */
+    public static Controller create(Controller controller)
+    {
+        if (instance != null) {
+            throw new IllegalStateException("Another instance of controller already exists.");
+        }
+        controller.reporter = Reporter.create(controller);
+        instance = controller;
+        return instance;
+    }
 
     /**
      * @return {@link #instance}
@@ -836,7 +867,7 @@ public class Controller
             configurationFileName = commandLine.getOptionValue(optionConfig.getOpt());
         }
         // Create controller
-        final Controller controller = new Controller(configurationFileName);
+        final Controller controller = Controller.create(configurationFileName);
         NotificationManager notificationManager = controller.getNotificationManager();
 
         // Configure SSL host verification mappings

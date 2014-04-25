@@ -1,11 +1,10 @@
 package cz.cesnet.shongo;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a map of {@link V} by {@link K} with {@link #expiration}.
@@ -164,16 +163,40 @@ public class ExpirationMap<K, V> implements Iterable<V>
      *
      * @param dateTime which represents "now"
      */
-    public void clearExpired(DateTime dateTime)
+    public List<Map.Entry<K, V>> clearExpired(DateTime dateTime)
     {
+        List<Map.Entry<K, V>> cleared = new LinkedList<Map.Entry<K, V>>();
         Iterator<Map.Entry<K, Entry<V>>> iterator = entries.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<K, Entry<V>> itemEntry = iterator.next();
             Entry<V> entry = itemEntry.getValue();
+            final K key = itemEntry.getKey();
+            final V value = entry.value;
             if (entry.expirationDateTime != null && !entry.expirationDateTime.isAfter(dateTime)) {
+                cleared.add(new Map.Entry<K, V>()
+                {
+                    @Override
+                    public K getKey()
+                    {
+                        return key;
+                    }
+
+                    @Override
+                    public V getValue()
+                    {
+                        return value;
+                    }
+
+                    @Override
+                    public V setValue(V value)
+                    {
+                        throw new NotImplementedException();
+                    }
+                });
                 iterator.remove();
             }
         }
+        return cleared;
     }
 
     /**

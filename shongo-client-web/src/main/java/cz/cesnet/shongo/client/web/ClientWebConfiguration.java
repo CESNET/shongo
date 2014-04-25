@@ -68,7 +68,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
         }
         // Default configuration has the lowest priority
         try {
-            addConfiguration(new XMLConfiguration("default.cfg.xml"));
+            addConfiguration(new XMLConfiguration("client-web-default.cfg.xml"));
         }
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default configuration.", exception);

@@ -16,6 +16,8 @@ import cz.cesnet.shongo.shell.Shell;
 import jade.core.AID;
 import org.apache.commons.cli.CommandLine;
 
+import java.net.URL;
+
 /**
  * Jade Agent for Domain Controller
  *

@@ -121,7 +121,7 @@ public class Connector
         try {
             XMLConfiguration xmlConfiguration = new XMLConfiguration();
             xmlConfiguration.setDelimiterParsingDisabled(true);
-            xmlConfiguration.load(getClass().getClassLoader().getResource("default.cfg.xml"));
+            xmlConfiguration.load(getClass().getClassLoader().getResource("connector-default.cfg.xml"));
             configuration.addConfiguration(xmlConfiguration);
         }
         catch (Exception exception) {

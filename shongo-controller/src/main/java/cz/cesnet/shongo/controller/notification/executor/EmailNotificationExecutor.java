@@ -131,7 +131,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
             emailSender.sendEmail(email);
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
+            Reporter.getInstance().reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
         }
     }
 }

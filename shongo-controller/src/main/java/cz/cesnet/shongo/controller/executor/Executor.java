@@ -343,7 +343,7 @@ public class Executor extends SwitchableComponent
                 return executionResult;
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.EXECUTOR, exception);
+                Reporter.getInstance().reportInternalError(Reporter.EXECUTOR, exception);
                 return null;
             }
             finally {

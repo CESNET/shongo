@@ -239,6 +239,7 @@ public class RpcHandler implements XmlRpcHandler
 
     public static Throwable convertThrowable(Throwable throwable)
     {
+        Reporter reporter = Reporter.getInstance();
         ApiFault apiFault = null;
         RpcRequestContext requestContext = null;
 
@@ -250,7 +251,7 @@ public class RpcHandler implements XmlRpcHandler
             throwable = reportXmlRpcException.getCause();
             requestContext = reportXmlRpcException.getRequestContext();
 
-            Reporter.report(reportXmlRpcException.getRequestContext(), report, throwable);
+            reporter.report(reportXmlRpcException.getRequestContext(), report, throwable);
         }
         // Report API fault
         else {
@@ -281,7 +282,7 @@ public class RpcHandler implements XmlRpcHandler
                 apiFault = new CommonReportSet.UnknownErrorReport(throwable.getMessage());
             }
 
-            Reporter.reportApiFault(requestContext, apiFault, throwable);
+            reporter.reportApiFault(requestContext, apiFault, throwable);
         }
 
         String apiFaultMessage;
@@ -302,8 +303,8 @@ public class RpcHandler implements XmlRpcHandler
         ApiFaultString apiFaultString = new ApiFaultString();
         apiFaultString.setMessage(apiFaultMessage);
         apiFault.writeParameters(apiFaultString);
-        XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getFaultCode(), apiFaultString.toString(),
-                throwable.getCause());
+        XmlRpcException xmlRpcException = new XmlRpcException(
+                apiFault.getFaultCode(), apiFaultString.toString(), throwable.getCause());
         xmlRpcException.setStackTrace(throwable.getStackTrace());
         return xmlRpcException;
     }

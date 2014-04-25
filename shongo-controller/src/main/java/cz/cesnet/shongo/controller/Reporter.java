@@ -6,10 +6,11 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 import cz.cesnet.shongo.report.*;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.MessagingException;
 import javax.persistence.EntityManager;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,21 +23,94 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Reporter
+public class Reporter implements ReporterCache.EntryCallback
 {
     private static Logger logger = LoggerFactory.getLogger(Reporter.class);
 
     /**
+     * {@link cz.cesnet.shongo.controller.EmailSender} to be used for sending emails.
+     */
+    private EmailSender emailSender;
+
+    /**
+     * To be used.
+     */
+    private Controller controller;
+
+    /**
      * Specifies whether {@link #reportInternalError} should throw the error as {@link RuntimeException}s.
      */
-    private static boolean throwInternalErrorsForTesting = false;
+    private boolean throwInternalErrorsForTesting = false;
+
+    /**
+     * @see ReporterCache
+     */
+    private ReporterCache cache = new ReporterCache();
+
+    /**
+     * Constructor.
+     *
+     * @param emailSender sets the {@link #emailSender}
+     */
+    protected Reporter(EmailSender emailSender, Controller controller)
+    {
+        this.emailSender = emailSender;
+        this.controller = controller;
+    }
+
+    /**
+     * Destroy {@link Reporter}.
+     */
+    public void destroy()
+    {
+        // Reset single instance of reporter
+        instance = null;
+    }
 
     /**
      * @param throwInternalErrorsForTesting sets the {@link #throwInternalErrorsForTesting}
      */
-    public static void setThrowInternalErrorsForTesting(boolean throwInternalErrorsForTesting)
+    public void setThrowInternalErrorsForTesting(boolean throwInternalErrorsForTesting)
     {
-        Reporter.throwInternalErrorsForTesting = throwInternalErrorsForTesting;
+        this.throwInternalErrorsForTesting = throwInternalErrorsForTesting;
+    }
+
+    /**
+     * @param expiration to be set to the {@link #cache}
+     */
+    public void setCacheExpiration(Duration expiration)
+    {
+        cache.setExpiration(expiration);
+    }
+
+    /**
+     * Clear expired {@link #cache}.
+     *
+     * @param dateTime
+     */
+    public void clearCache(DateTime dateTime)
+    {
+        cache.clear(dateTime, this);
+    }
+
+    /**
+     * @return list of system administrator emails
+     */
+    protected List<String> getAdministratorEmails()
+    {
+        if (controller == null) {
+            logger.warn("Cannot get list of administrators, because controller isn't specified...");
+            return Collections.emptyList();
+        }
+        Authorization authorization = controller.getAuthorization();
+        EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
+        try {
+            ControllerConfiguration configuration = controller.getConfiguration();
+            return configuration.getAdministratorEmails(entityManager, authorization);
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -45,7 +119,7 @@ public class Reporter
      * @param reportContext in which the {@code report} has been created
      * @param report to be reported
      */
-    public static void report(ReportContext reportContext, AbstractReport report)
+    public void report(ReportContext reportContext, AbstractReport report)
     {
         report(reportContext, report, null);
     }
@@ -57,7 +131,7 @@ public class Reporter
      * @param report    to be reported
      * @param throwable to be reported with the {@code report}
      */
-    public static void report(ReportContext reportContext, AbstractReport report, Throwable throwable)
+    public void report(ReportContext reportContext, AbstractReport report, Throwable throwable)
     {
         String name = report.getName();
         if (reportContext != null) {
@@ -77,9 +151,13 @@ public class Reporter
             logger.debug(name + ": " + domainAdminMessage, throwable);
         }
 
-        if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN) || report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN)) {
-            Authorization authorization = Authorization.getInstance();
-            Controller controller = Controller.getInstance();
+        if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)
+                || report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN)) {
+            if (controller == null) {
+                logger.warn("Cannot send administrator report, because controller isn't specified...");
+                return;
+            }
+            Authorization authorization = controller.getAuthorization();
             EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
             try {
                 // Get resource which is referenced by report
@@ -104,8 +182,8 @@ public class Reporter
                 if (report.isVisible(AbstractReport.VISIBLE_TO_DOMAIN_ADMIN)) {
                     ControllerConfiguration configuration = controller.getConfiguration();
                     administratorEmails.addAll(configuration.getAdministratorEmails(entityManager, authorization));
-                    sendReportEmail(administratorEmails, name,
-                            getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
+                    String content = getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable);
+                    sendReportEmail(administratorEmails, name, content, false);
                 }
 
                 if (report.isVisible(AbstractReport.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
@@ -117,10 +195,9 @@ public class Reporter
                         }
                     }
                     if (resourceAdministratorEmails.size() > 0) {
-                        String resourceAdminMessage = report.getMessage(
-                                Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
-                        sendReportEmail(resourceAdministratorEmails, name,
-                                getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
+                        String message = report.getMessage(Report.UserType.RESOURCE_ADMIN, Report.Language.ENGLISH);
+                        String content = getAdministratorEmailContent(message, reportContext, resource, throwable);
+                        sendReportEmail(resourceAdministratorEmails, name, content, false);
                     }
                 }
             }
@@ -137,7 +214,7 @@ public class Reporter
      * @param apiFault      to be reported
      * @param throwable     to be reported with the {@code apiFault}
      */
-    public static void reportApiFault(ReportContext reportContext, ApiFault apiFault, Throwable throwable)
+    public void reportApiFault(ReportContext reportContext, ApiFault apiFault, Throwable throwable)
     {
         // Get report for the API fault
         AbstractReport apiFaultReport;
@@ -166,7 +243,7 @@ public class Reporter
      * @param message
      * @param throwable
      */
-    public static void reportInternalError(ReportContext reportContext, String message, Throwable throwable)
+    public void reportInternalError(ReportContext reportContext, String message, Throwable throwable)
     {
         StringBuilder nameBuilder = new StringBuilder();
         if (reportContext != null) {
@@ -183,20 +260,14 @@ public class Reporter
         else {
             logger.error(name, throwable);
         }
-        if (Reporter.throwInternalErrorsForTesting) {
+        if (throwInternalErrorsForTesting) {
             throw new RuntimeException(throwable);
         }
         else {
-            Authorization authorization = Authorization.getInstance();
-            Controller controller = Controller.getInstance();
-            EntityManager entityManager = controller.getEntityManagerFactory().createEntityManager();
-            try {
-                ControllerConfiguration configuration = controller.getConfiguration();
-                sendReportEmail(configuration.getAdministratorEmails(entityManager, authorization), name,
-                        getAdministratorEmailContent(message, reportContext, null, throwable));
-            }
-            finally {
-                entityManager.close();
+            List<String> administratorEmails = getAdministratorEmails();
+            if (!administratorEmails.isEmpty()) {
+                String content = getAdministratorEmailContent(message, reportContext, null, throwable);
+                sendReportEmail(administratorEmails, name, content, true);
             }
         }
     }
@@ -207,42 +278,9 @@ public class Reporter
      * @param reportContext
      * @param exception
      */
-    public static void reportInternalError(ReportContext reportContext, Exception exception)
+    public void reportInternalError(ReportContext reportContext, Exception exception)
     {
         reportInternalError(reportContext, null, exception);
-    }
-
-    /**
-     * Report error.
-     *
-     * @param title
-     * @param content
-     */
-    private static void sendReportEmail(Collection<String> recipients, String title, String content)
-    {
-        if (!Controller.hasInstance()) {
-            logger.warn("Cannot send email because controller doesn't exist.");
-            return;
-        }
-        EmailSender emailSender = Controller.getInstance().getEmailSender();
-
-        // If error email can't be sent, propagate runtime exception
-        if (!emailSender.isInitialized()) {
-            logger.warn("Email report can't be sent because email sender is not initialized.");
-            return;
-        }
-        if (recipients.size() == 0) {
-            logger.warn("Email report can't be sent because no recipients are specified.");
-            return;
-        }
-
-        // Send error email to administrators
-        try {
-            emailSender.sendEmail(new EmailSender.Email(recipients, title, content));
-        }
-        catch (Exception exception) {
-            logger.error("Failed sending report email.", exception);
-        }
     }
 
     /**
@@ -251,7 +289,7 @@ public class Reporter
      * @param throwable
      * @return email content
      */
-    private static String getAdministratorEmailContent(String message, ReportContext reportContext,
+    private String getAdministratorEmailContent(String message, ReportContext reportContext,
             Resource resource, Throwable throwable)
     {
         // Prepare error email content
@@ -289,7 +327,7 @@ public class Reporter
     /**
      * @return string describing controller configuration
      */
-    private static String getConfiguration()
+    private String getConfiguration()
     {
         StringBuilder configuration = new StringBuilder();
         configuration.append("CONFIGURATION\n\n");
@@ -302,8 +340,8 @@ public class Reporter
                 .append(")\n");
 
         String hostName = null;
-        if (Controller.hasInstance()) {
-            hostName = Controller.getInstance().getRpcHost();
+        if (controller != null) {
+            hostName = controller.getRpcHost();
         }
         if (hostName == null || hostName.isEmpty()) {
             try {
@@ -318,6 +356,117 @@ public class Reporter
                 .append("\n");
 
         return configuration.toString();
+    }
+
+    /**
+     * Report error.
+     *
+     * @param title
+     * @param content
+     */
+    private void sendReportEmail(Collection<String> recipients, String title, String content, boolean cache)
+    {
+        // If error email can't be sent, propagate runtime exception
+        if (!emailSender.isInitialized()) {
+            logger.warn("Email report can't be sent because email sender is not initialized.");
+            return;
+        }
+        if (recipients.size() == 0) {
+            logger.warn("Email report can't be sent because no recipients are specified.");
+            return;
+        }
+
+        int count = 1;
+        if (cache) {
+            count = this.cache.apply(recipients, title, content);
+        }
+        sendEmail(recipients, title, content, count);
+    }
+
+    @Override
+    public void sendEmail(Collection<String> recipients, String title, String content, int count)
+    {
+        switch (count) {
+            case 0:
+                // Email should not be sent
+                return;
+            case 1:
+                // Email should be sent normally
+                break;
+            default:
+                // Email should be sent as multiple events
+                title += " (" + count + "x)";
+                break;
+        }
+
+        // Send error email to administrators
+        try {
+            emailSender.sendEmail(new EmailSender.Email(recipients, title, content));
+        }
+            catch (Exception exception) {
+            logger.error("Failed sending report email.", exception);
+        }
+    }
+
+    /**
+     * Current single instance of {@link Reporter}.
+     */
+    private static Reporter instance;
+
+    /**
+     * Constructor.
+     *
+     * @return {@link #instance}
+     */
+    public static Reporter create()
+    {
+        return create(new Reporter(new EmailSender(null, null), null));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param controller
+     * @return {@link #instance}
+     */
+    public static Reporter create(Controller controller)
+    {
+        return create(new Reporter(controller.getEmailSender(), controller));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @return {@link #instance}
+     */
+    public static Reporter create(EmailSender emailSender)
+    {
+        return create(new Reporter(emailSender, null));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @return {@link #instance}
+     */
+    public static Reporter create(Reporter reporter)
+    {
+        if (instance != null) {
+            throw new IllegalStateException("Another instance of controller already exists.");
+        }
+        instance = reporter;
+        return instance;
+    }
+
+    /**
+     * @return {@link #instance}
+     */
+    public static Reporter getInstance()
+    {
+        if (instance == null) {
+            throw new RuntimeException("No reporter was initialized.");
+        }
+        return instance;
     }
 
     public static final ReportContext WORKER = new ReportContext()
@@ -397,12 +546,12 @@ public class Reporter
     public static interface ReportContext
     {
         /**
-         * @return name of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
+         * @return name of the {@link Reporter.ReportContext}
          */
         public String getReportContextName();
 
         /**
-         * @return detailed description of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
+         * @return detailed description of the {@link Reporter.ReportContext}
          */
         public String getReportContextDetail();
     }

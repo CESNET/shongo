@@ -109,7 +109,7 @@ public class Preprocessor extends SwitchableComponent implements Component.Autho
 
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.PREPROCESSOR, exception);
+            Reporter.getInstance().reportInternalError(Reporter.PREPROCESSOR, exception);
         }
         return result;
     }

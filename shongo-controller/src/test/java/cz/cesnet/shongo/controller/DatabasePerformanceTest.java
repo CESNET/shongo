@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.log4j.Level;
 import org.junit.Test;
@@ -77,11 +78,11 @@ public class DatabasePerformanceTest
     {
         System.setProperty(ControllerConfiguration.RPC_PORT, String.valueOf(AbstractControllerTest.TEST_RPC_PORT));
         System.setProperty(ControllerConfiguration.JADE_PORT, String.valueOf(AbstractControllerTest.TEST_JADE_PORT));
-        Reporter.setThrowInternalErrorsForTesting(true);
 
-        cz.cesnet.shongo.controller.Controller controller = new cz.cesnet.shongo.controller.Controller();
+        cz.cesnet.shongo.controller.Controller controller = cz.cesnet.shongo.controller.Controller.create();
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(entityManagerFactory);
+        controller.setThrowInternalErrorsForTesting(true);
 
         Authorization authorization = DummyAuthorization.createInstance(
                 controller.getConfiguration(), entityManagerFactory);
@@ -139,11 +140,11 @@ public class DatabasePerformanceTest
             entityManager.close();
         }
 
+        controller.setThrowInternalErrorsForTesting(false);
         controller.stop();
         controller.destroy();
         preprocessor.destroy();
         scheduler.destroy();
-        Reporter.setThrowInternalErrorsForTesting(false);
     }
 
     private void enableSqlLogger(boolean enable)

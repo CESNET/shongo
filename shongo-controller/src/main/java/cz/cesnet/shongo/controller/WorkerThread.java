@@ -125,7 +125,7 @@ public class WorkerThread extends Thread
                 notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.WORKER, exception);
+                Reporter.getInstance().reportInternalError(Reporter.WORKER, exception);
             }
             finally {
                 entityManager.close();
@@ -156,7 +156,7 @@ public class WorkerThread extends Thread
                 notificationManager.executeNotifications(entityManager);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.WORKER, exception);
+                Reporter.getInstance().reportInternalError(Reporter.WORKER, exception);
             }
             finally {
                 entityManager.close();
