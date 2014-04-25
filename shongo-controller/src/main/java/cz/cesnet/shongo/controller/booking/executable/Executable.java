@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
+import cz.cesnet.shongo.controller.executor.Migration;
 import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
@@ -143,6 +144,7 @@ public abstract class Executable extends ExecutionTarget
      */
     @OneToOne
     @JoinColumn(name = "migrate_from_executable_id")
+    @Access(AccessType.FIELD)
     public Executable getMigrateFromExecutable()
     {
         return migrateFromExecutable;
@@ -172,6 +174,7 @@ public abstract class Executable extends ExecutionTarget
      */
     @OneToOne
     @JoinColumn(name = "migrate_to_executable_id")
+    @Access(AccessType.FIELD)
     public Executable getMigrateToExecutable()
     {
         return migrateToExecutable;

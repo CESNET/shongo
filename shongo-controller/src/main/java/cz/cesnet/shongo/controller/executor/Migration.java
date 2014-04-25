@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
-import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
-import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.RoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
-
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a migration from {@link #sourceExecutable} to {@link #targetExecutable}.
@@ -17,6 +15,8 @@ import java.util.Map;
  */
 public class Migration
 {
+    private static Logger logger = LoggerFactory.getLogger(Migration.class);
+
     /**
      * {@link cz.cesnet.shongo.controller.booking.executable.Executable} from which the migration should be performed.
      */
@@ -35,8 +35,18 @@ public class Migration
      */
     public Migration(Executable sourceExecutable, Executable targetExecutable)
     {
+        if (!sourceExecutable.getState().isStarted()) {
+            throw new RuntimeException("Source executable must be started.");
+        }
+        if (!targetExecutable.getState().equals(Executable.State.NOT_STARTED)) {
+            throw new RuntimeException("Target executable must be not started.");
+        }
         if (!sourceExecutable.getSlotEnd().equals(targetExecutable.getSlotStart())) {
-            throw new RuntimeException("Target executable doesn't start exactly when source executable ends.");
+            logger.warn("Target executable {} ({}) doesn't start exactly when source executable {} ({}) ends.",
+                    new Object[]{
+                            targetExecutable.getId(), targetExecutable.getSlot(),
+                            sourceExecutable.getId(), sourceExecutable.getSlot()
+                    });
         }
         this.sourceExecutable = sourceExecutable;
         this.targetExecutable = targetExecutable;
@@ -60,8 +70,8 @@ public class Migration
 
     /**
      * @return true whether the migration is replacement for starting/stopping actions of target/source executables
-     *         (and thus the starting/stopping actions should not be performed),
-     *         false otherwise
+     * (and thus the starting/stopping actions should not be performed),
+     * false otherwise
      */
     public boolean isReplacement()
     {

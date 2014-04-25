@@ -221,6 +221,15 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
         cachedSortedReports.clear();
     }
 
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate()
+    {
+        if (slotStart.isAfter(slotEnd)) {
+            throw new RuntimeException("Slot start can't be after slot end.");
+        }
+    }
+
     /**
      * @return last added {@link cz.cesnet.shongo.controller.executor.ExecutionReport}
      */

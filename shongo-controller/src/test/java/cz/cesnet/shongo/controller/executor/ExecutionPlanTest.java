@@ -130,8 +130,10 @@ public class ExecutionPlanTest
         final SimpleExecutable executable3 = new SimpleExecutable();
         final SimpleExecutable executable4 = new SimpleExecutable();
         executable4.setSlot(new Interval("2014/2015"));
+        executable4.setState(Executable.State.STARTED);
         final SimpleExecutable executable5 = new SimpleExecutable();
         executable5.setSlot(new Interval("2015/2016"));
+        executable5.setState(Executable.State.NOT_STARTED);
         final Migration migration = new Migration(executable4, executable5)
         {
             @Override

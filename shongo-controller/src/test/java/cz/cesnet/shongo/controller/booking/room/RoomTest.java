@@ -330,11 +330,11 @@ public class RoomTest extends AbstractControllerTest
         roomAvailability.setSlotMinutesAfter(5);
         roomAvailability.setParticipantCount(5);
         reservationRequest.setSpecification(roomSpecification);
-        String reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:00"));
+        String reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:30"));
         checkAllocated(reservationRequestId);
 
         reservationRequest = getReservationRequest(reservationRequestId, ReservationRequest.class);
-        reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:10"));
+        reservationRequestId = allocate(reservationRequest, DateTime.parse("2014-01-01T13:51:35"));
         checkAllocated(reservationRequestId);
     }
 

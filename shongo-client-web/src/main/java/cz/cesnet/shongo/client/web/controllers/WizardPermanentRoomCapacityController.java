@@ -170,9 +170,6 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             permanentRoomId = cache.getReservationRequestId(securityToken, permanentRoomId);
             reservationRequest.setPermanentRoomReservationRequestId(permanentRoomId, permanentRooms);
         }
-        else if (reservationRequest.getPermanentRoomReservationRequestId() == null) {
-            throw new IllegalStateException("Permanent room capacity must be not null.");
-        }
 
         return wizardView;
     }

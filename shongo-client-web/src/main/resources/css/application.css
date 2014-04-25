@@ -704,13 +704,14 @@ table.aliases td.label {
  ** APPLICATION VIES AND TAGS *****************************************************************************************
  **********************************************************************************************************************/
 
-/** Not available block for views/room.jsp and views/errorontrollerNotAvailable.jsp */
+/** Not available block for views/errorRoomNotAvailable.jsp and views/errorControllerNotAvailable.jsp */
 div.not-available {
     margin: 20px 20px;
     padding: 10px 30px;
     border: 1px solid #BBBBBB;
     border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;
     text-align: center;
+    clear: both;
 }
 .not-available h2 {
     color: red;

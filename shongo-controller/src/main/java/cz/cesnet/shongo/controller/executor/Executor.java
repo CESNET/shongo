@@ -272,9 +272,16 @@ public class Executor extends SwitchableComponent
                 for (Executable executable : executableManager.listExecutablesForStart(start, maxAttemptCount)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));
                     Executable migrateFromExecutable = executable.getMigrateFromExecutable();
-                    if (migrateFromExecutable != null && migrateFromExecutable.getState().isStarted()) {
-                        executionPlan.addExecutionAction(
-                                new ExecutionAction.MigrationAction(new Migration(migrateFromExecutable, executable)));
+                    if (migrateFromExecutable != null) {
+                        if (migrateFromExecutable.getState().isStarted()) {
+                            Migration migration = new Migration(migrateFromExecutable, executable);
+                            executionPlan.addExecutionAction(new ExecutionAction.MigrationAction(migration));
+                        }
+                        else {
+                            logger.warn("Cannot migrate executable {} ({}) from {} ({}, {}).", new Object[]{
+                                    executable.getId(), executable.getSlot(), migrateFromExecutable.getId(),
+                                    migrateFromExecutable.getSlot(), migrateFromExecutable.getState()});
+                        }
                     }
                 }
                 for (Executable executable : executableManager.listExecutablesForUpdate(dateTime, maxAttemptCount)) {

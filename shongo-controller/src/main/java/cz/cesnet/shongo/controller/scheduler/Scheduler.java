@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.Reporter;
@@ -327,7 +328,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
     private void allocateReservationRequest(ReservationRequest reservationRequest, SchedulerContext context)
             throws SchedulerException
     {
-        logger.debug("Allocating reservation request '{}'...", reservationRequest.getId());
+        logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
         EntityManager entityManager = context.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -467,6 +468,7 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
         Reservation previousReservation = null;
         for (Reservation oldReservation : oldReservations) {
             // If old reservation has been reallocated to a new reservation
+            // NOTE: Currently always FALSE because Scheduler can't reallocate reservations
             if (newReservations.contains(oldReservation)) {
                 // Remove reallocated reservation from allocation (it will be re-added be new reservation)
                 allocation.removeReservation(oldReservation);
@@ -474,24 +476,24 @@ public class Scheduler extends SwitchableComponent implements Component.Authoriz
                 continue;
             }
 
-            // Set last existing reservation into previous reservation variable
+            // Assign last old existing reservation into previousReservation variable
             if (previousReservation == null || oldReservation.getSlotEnd().isAfter(previousReservation.getSlotEnd())) {
                 previousReservation = oldReservation;
             }
 
-            // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
-            if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
+            // If old reservation is in history (takes place before minimum date/time slot or has started executable)
+            if (oldReservation.isHistory(minimumDateTime)) {
                 // If old reservation time slot intersects the new reservation time slot
                 if (oldReservation.getSlotEnd().isAfter(slotStart)) {
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
-                    oldReservation.setSlotEnd(slotStart);
-
+                    oldReservation.setSlotEnd(Temporal.max(slotStart, oldReservation.getSlotStart()));
                     // Finalize reservation
                     contextState.addNotifications(finalizeActiveReservation(oldReservation, entityManager));
                 }
             }
-            // Old reservation which takes place in the future should be deleted
+            // Else old reservation is not active (takes place in the future and doesn't have started executable)
             else {
+                // Old reservation should be deleted
                 deleteReservation(oldReservation, context);
             }
         }

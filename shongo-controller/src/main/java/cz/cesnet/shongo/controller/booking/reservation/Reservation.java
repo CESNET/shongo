@@ -2,15 +2,15 @@ package cz.cesnet.shongo.controller.booking.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.AliasReservation;
+import cz.cesnet.shongo.controller.booking.executable.Executable;
+import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
-import cz.cesnet.shongo.controller.booking.executable.Executable;
-import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.booking.Allocation;
-import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.report.ReportableSimple;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -342,6 +342,15 @@ public class Reservation extends PersistentObject implements ReportableSimple
         this.executable = executable;
     }
 
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate()
+    {
+        if (slotStart.isAfter(slotEnd)) {
+            throw new RuntimeException("Slot start can't be after slot end.");
+        }
+    }
+
     /**
      * @return set of this and all child {@link Reservation}s (recursive)
      */
@@ -398,7 +407,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
 
     /**
      * @return {@link Reservation} which allocates any resources (it can be overridden, e.g., by
-     *         {@link ExistingReservation} to return proper reused {@link Reservation})
+     * {@link ExistingReservation} to return proper reused {@link Reservation})
      */
     @Transient
     public Reservation getAllocationReservation()
@@ -424,8 +433,8 @@ public class Reservation extends PersistentObject implements ReportableSimple
     }
 
     /**
-     * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
      * @param administrator
+     * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
      */
     public cz.cesnet.shongo.controller.api.Reservation toApi(boolean administrator)
     {
@@ -443,7 +452,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
     }
 
     /**
-     * @param api   {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api           {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      * @param administrator
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
@@ -506,5 +515,29 @@ public class Reservation extends PersistentObject implements ReportableSimple
             throw new TodoImplementException(reservationApiClass);
         }
         return reservationClass;
+    }
+
+    /**
+     * @param dateTime
+     * @return true whether this {@link Reservation} takes place before given {@code dateTime} or it contains started {@link Executable}
+     * false otherwise
+     */
+    public boolean isHistory(DateTime dateTime)
+    {
+        if (slotStart.isBefore(dateTime)) {
+            // Reservation starts before given dateTime
+            return true;
+        }
+        if (executable != null && executable.getState().isStarted()) {
+            // Reservation has active executable
+            return true;
+        }
+        for (Reservation childReservation : childReservations) {
+            if (childReservation.isHistory(dateTime)) {
+                // Reservation has a active child reservation
+                return true;
+            }
+        }
+        return false;
     }
 }

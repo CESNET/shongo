@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -19,10 +20,7 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a request created by an user to get allocated some resources for conference calls.
@@ -368,8 +366,8 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setAllocationState(allocationState.toApi());
         reservationRequestApi.setAllocationStateReport(getAllocationStateReport(userType));
-        for (Reservation reservation : getAllocation().getReservations()) {
-            reservationRequestApi.addReservationId(ObjectIdentifier.formatId(reservation));
+        for (Long reservationId : getAllocation().getReservationIds()) {
+            reservationRequestApi.addReservationId(ObjectIdentifier.formatId(ObjectType.RESERVATION, reservationId));
         }
         super.toApi(api, userType);
     }

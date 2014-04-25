@@ -8,10 +8,7 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents child {@link ReservationRequest}s and allocated reservations for the {@link #reservationRequest}.
@@ -125,6 +122,20 @@ public class Allocation extends SimplePersistentObject
     public List<Reservation> getReservations()
     {
         return Collections.unmodifiableList(reservations);
+    }
+
+    /**
+     * @return {@link #reservations} identifiers
+     */
+    @Transient
+    public Set<Long> getReservationIds()
+    {
+        Set<Long> reservationIds = new TreeSet<Long>();
+        for (Reservation reservation : reservations)
+        {
+            reservationIds.add(reservation.getId());
+        }
+        return reservationIds;
     }
 
     /**

@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -19,6 +21,8 @@ import java.util.*;
  */
 public abstract class ReservationTask
 {
+    protected static Logger logger = LoggerFactory.getLogger(ReservationTask.class);
+
     /**
      * @see SchedulerContext
      */
