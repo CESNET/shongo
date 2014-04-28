@@ -11,9 +11,8 @@
 <c:set var="backUrl"><%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <tag:url var="backUrl" value="${requestScope.backUrl.getUrl(backUrl)}"/>
 
-
 <c:set var="specificationType">
-    <strong><spring:message code="views.reservationRequestDelete.specificationType.${specificationType}" arguments=" ${reservationRequest.roomName}"/></strong>
+    <strong><spring:message code="views.specificationType.forWithName.${specificationType}" arguments=" ${reservationRequest.roomName}"/></strong>
 </c:set>
 
 <c:choose>

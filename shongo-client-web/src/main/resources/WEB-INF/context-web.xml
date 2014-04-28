@@ -19,6 +19,8 @@
             <bean class="cz.cesnet.shongo.client.web.support.resolvers.TimeZoneHandlerMethodArgumentResolver"/>
             <!-- Enables UserSession as method arguments -->
             <bean class="cz.cesnet.shongo.client.web.support.resolvers.UserSessionHandlerMethodArgumentResolver"/>
+            <!-- Enables MessageProvider as method arguments -->
+            <bean class="cz.cesnet.shongo.client.web.support.resolvers.MessageProviderHandlerMethodArgumentResolver"/>
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 

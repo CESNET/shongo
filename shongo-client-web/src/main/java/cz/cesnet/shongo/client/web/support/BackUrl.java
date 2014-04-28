@@ -123,6 +123,21 @@ public class BackUrl
     }
 
     /**
+     * Apply back-url for current page to another page ({@code applyToUrl}).
+     *
+     * @param request
+     * @param applyToUrl
+     */
+    public static void applyTo(HttpServletRequest request, String applyToUrl)
+    {
+        SessionData sessionData = SessionData.getInstance(request);
+        String backUrl = sessionData.getBackUrl(request.getRequestURI());
+        if (backUrl != null) {
+            sessionData.pushBackUrl(applyToUrl, backUrl);
+        }
+    }
+
+    /**
      * @param request
      * @param breadcrumb
      * @return {@link BackUrl} for given {@code request} and {@code breadcrumb}

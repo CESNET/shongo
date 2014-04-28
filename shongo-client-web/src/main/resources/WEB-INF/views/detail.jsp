@@ -9,19 +9,6 @@
     <security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
 </c:if>
 
-<tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
-    <tag:param name="reservationRequestId" value="${objectId}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
-<tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
-    <tag:param name="reservationRequestId" value="${objectId}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
-<tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
-    <tag:param name="reservationRequestId" value="${objectId}"/>
-    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-</tag:url>
-
 <script type="text/javascript">
     var module = angular.module('jsp:detail', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize', 'jsp:roomParticipantDialog']);
     module.controller("DetailController", function($scope, $timeout){
@@ -234,20 +221,40 @@
     <c:if test="${isWritable}">
         <div class="table-actions pull-right">
             <c:if test="${specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+                <tag:url var="reservationRequestModifyExtendUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_EXTEND %>">
+                    <tag:param name="reservationRequestId" value="${objectId}"/>
+                    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+                </tag:url>
+                <tag:url var="reservationRequestModifyEnlargeUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_ENLARGE %>">
+                    <tag:param name="reservationRequestId" value="${objectId}"/>
+                    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+                </tag:url>
+                <tag:url var="reservationRequestModifyRecordedUrl" value="<%= ClientWebUrl.WIZARD_MODIFY_RECORDED %>">
+                    <tag:param name="reservationRequestId" value="${objectId}"/>
+                    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+                </tag:url>
                 <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyUrl}" title="${modifyExtendHelp}" tabindex="1">
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">
                     <spring:message code="views.detail.action.modifyExtend"/>
                 </a>
                 <spring:message code="views.detail.action.modifyEnlarge.help" var="modifyEnlargeHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyUrl}" title="${modifyEnlargeHelp}" tabindex="1">
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyEnlargeUrl}" title="${modifyEnlargeHelp}" tabindex="1">
                     <spring:message code="views.detail.action.modifyEnlarge"/>
                 </a>
-                <spring:message code="views.detail.action.modifyRecordable.help" var="modifyRecordableHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable" class="btn" href="${reservationRequestModifyUrl}" title="${modifyRecordableHelp}" tabindex="1">
-                    <spring:message code="views.detail.action.modifyRecordable"/>
+                <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable" class="btn" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
+                    <spring:message code="views.detail.action.modifyRecorded"/>
                 </a>
             </c:if>
 
+            <tag:url var="reservationRequestModifyUrl" value="<%= ClientWebUrl.WIZARD_MODIFY %>">
+                <tag:param name="reservationRequestId" value="${objectId}"/>
+                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+            </tag:url>
+            <tag:url var="reservationRequestDuplicateUrl" value="<%= ClientWebUrl.WIZARD_DUPLICATE %>">
+                <tag:param name="reservationRequestId" value="${objectId}"/>
+                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+            </tag:url>
             <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
                 <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
                     <spring:message code="views.button.duplicate"/>
@@ -256,6 +263,11 @@
                     <spring:message code="views.button.modify"/>
                 </a>
             </span>
+
+            <tag:url var="reservationRequestDeleteUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_DELETE %>">
+                <tag:param name="reservationRequestId" value="${objectId}"/>
+                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+            </tag:url>
             <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
                 <spring:message code="views.button.delete"/>
             </a>

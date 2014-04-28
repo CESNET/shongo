@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
-import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.MessageProviderImpl;
 import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -164,7 +164,7 @@ public class RoomController
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("pin", roomExecutable.getPin());
         data.put("aliases", RoomModel.formatAliasesDescription(roomExecutable.getAliases(),
-                roomExecutable.getState().isAvailable(), new MessageProvider(messageSource, userSession.getLocale())));
+                roomExecutable.getState().isAvailable(), new MessageProviderImpl(messageSource, userSession.getLocale())));
         return data;
     }
 }

@@ -49,6 +49,18 @@ public class NavigationPage extends Page
     }
 
     /**
+     * Constructor.
+     *
+     * @param url       sets the {@link #url}
+     * @param titleCode sets the {@link #titleCode}
+     * @param titleArguments sets the {@link #titleArguments}
+     */
+    public NavigationPage(String url, String titleCode, Object[] titleArguments)
+    {
+        super(url, titleCode, titleArguments);
+    }
+
+    /**
      * @param childNode to be added to the {@link #childNavigationPages}
      * @return {@code childNode}
      */

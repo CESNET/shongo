@@ -39,6 +39,20 @@ public class WizardPage extends NavigationPage
     }
 
     /**
+     * Constructor.
+     *
+     * @param id        sets the {@link #id}
+     * @param url       sets the {@link #url}
+     * @param titleCode sets the {@link #titleCode}
+     * @param titleArgument sets the {@link #titleArguments}
+     */
+    public WizardPage(Object id, String url, String titleCode, String titleArgument)
+    {
+        super(url, titleCode, new Object[]{titleArgument});
+        this.id = id;
+    }
+
+    /**
      * @return {@link #id}
      */
     public Object getId()

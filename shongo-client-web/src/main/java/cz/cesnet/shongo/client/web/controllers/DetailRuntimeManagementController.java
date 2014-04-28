@@ -8,6 +8,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.RoomCache;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.MessageProviderImpl;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
@@ -65,7 +66,7 @@ public class DetailRuntimeManagementController extends AbstractDetailController
 
         // Room model
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        MessageProvider messageProvider = new MessageProvider(
+        MessageProvider messageProvider = new MessageProviderImpl(
                 messageSource, userSession.getLocale(), userSession.getTimeZone());
         RoomModel roomModel = new RoomModel(
                 roomExecutable, cacheProvider, messageProvider, executableService, userSession, true);

@@ -6,67 +6,21 @@ import org.springframework.context.MessageSource;
 import java.util.Locale;
 
 /**
- * {@link MessageSource} provided for specified {@link #locale}.
+ * {@link MessageSource} provided for single {@link Locale} and {@link DateTimeZone}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class MessageProvider
+public abstract class MessageProvider
 {
     /**
-     * {@link MessageSource} to be used for retrieving messages.
+     * @return {@link MessageSource}
      */
-    private final MessageSource messageSource;
+    public abstract MessageSource getMessageSource();
 
     /**
-     * {@link Locale} to be used for the {@link #messageSource}
+     * @return {@link Locale}
      */
-    private final Locale locale;
-
-    /**
-     * {@link DateTimeZone} to be used for message formatting.
-     */
-    private final DateTimeZone timeZone;
-
-    /**
-     * Constructor.
-     *
-     * @param messageSource sets the {@link #messageSource}
-     * @param locale        sets the {@link #locale}
-     * @param timeZone      sets the {@link #timeZone}
-     */
-    public MessageProvider(MessageSource messageSource, Locale locale, DateTimeZone timeZone)
-    {
-        this.messageSource = messageSource;
-        this.locale = locale;
-        this.timeZone = timeZone;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param messageSource sets the {@link #messageSource}
-     * @param locale        sets the {@link #locale}
-     */
-    public MessageProvider(MessageSource messageSource, Locale locale)
-    {
-        this(messageSource, locale, DateTimeZone.getDefault());
-    }
-
-    /**
-     * @return {@link #messageSource}
-     */
-    public MessageSource getMessageSource()
-    {
-        return messageSource;
-    }
-
-    /**
-     * @return {@link #locale}
-     */
-    public Locale getLocale()
-    {
-        return locale;
-    }
+    public abstract Locale getLocale();
 
     /**
      * @param code
@@ -74,14 +28,20 @@ public class MessageProvider
      */
     public String getMessage(String code)
     {
-        return messageSource.getMessage(code, null, locale);
+        return getMessageSource().getMessage(code, null, getLocale());
     }
 
     /**
-     * @return {@link #timeZone}
+     * @param code
+     * @return message for given {@code code}
      */
-    public DateTimeZone getTimeZone()
+    public String getMessage(String code, Object... arguments)
     {
-        return timeZone;
+        return getMessageSource().getMessage(code, arguments, getLocale());
     }
+
+    /**
+     * @return {@link DateTimeZone}
+     */
+    public abstract DateTimeZone getTimeZone();
 }

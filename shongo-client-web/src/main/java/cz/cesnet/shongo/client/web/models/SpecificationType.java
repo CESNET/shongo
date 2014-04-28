@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 
 /**
@@ -46,6 +47,15 @@ public enum SpecificationType
     public boolean isRoom()
     {
         return isRoom;
+    }
+
+    /**
+     * @param messageProvider
+     * @return message for
+     */
+    public String getForMessage(MessageProvider messageProvider)
+    {
+        return messageProvider.getMessage("views.specificationType.for." + this);
     }
 
     /**

@@ -6,10 +6,10 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.MessageProviderImpl;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -209,7 +209,7 @@ public class DetailReservationRequestController extends AbstractDetailController
                     List<Alias> aliases = room.getAliases();
                     child.put("roomAliases", RoomModel.formatAliases(aliases, roomState.isAvailable()));
                     child.put("roomAliasesDescription", RoomModel.formatAliasesDescription(
-                            aliases, roomState.isAvailable(), new MessageProvider(messageSource, locale)));
+                            aliases, roomState.isAvailable(), new MessageProviderImpl(messageSource, locale)));
                 }
             }
 
@@ -314,7 +314,7 @@ public class DetailReservationRequestController extends AbstractDetailController
         final Locale locale = userSession.getLocale();
         final DateTimeZone timeZone = userSession.getTimeZone();
         final CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        final MessageProvider messageProvider = new MessageProvider(messageSource, locale, timeZone);
+        final MessageProvider messageProvider = new MessageProviderImpl(messageSource, locale, timeZone);
 
         // Get reservation
         Reservation reservation = null;

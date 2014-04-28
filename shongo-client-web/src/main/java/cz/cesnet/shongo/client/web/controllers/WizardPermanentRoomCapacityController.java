@@ -5,6 +5,7 @@ import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
@@ -62,7 +63,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     }
 
     @Override
-    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId, MessageProvider messageProvider)
     {
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
@@ -71,22 +72,22 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
             wizardView.addPage(new WizardPage(
                     Page.ATTRIBUTES,
                     ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY,
-                    "views.wizard.page.room.capacity.modify"));
+                    "views.wizard.page.permanentRoomCapacity.modify"));
         }
         else {
             wizardView.addPage(new WizardPage(
                     Page.ATTRIBUTES,
                     ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY,
-                    "views.wizard.page.room.capacity.create"));
+                    "views.wizard.page.permanentRoomCapacity.create"));
         }
         wizardView.addPage(new WizardPage(
                     Page.PARTICIPANTS,
                     ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS,
-                    "views.wizard.page.room.participants"));
+                    "views.wizard.page.participants"));
         wizardView.addPage(new WizardPage(
                 Page.CONFIRM,
                 ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_CONFIRM,
-                "views.wizard.page.room.confirm"));
+                "views.wizard.page.confirm"));
     }
 
     /**

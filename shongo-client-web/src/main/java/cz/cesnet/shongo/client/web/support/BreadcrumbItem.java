@@ -18,6 +18,11 @@ public class BreadcrumbItem
     private final String titleCode;
 
     /**
+     * Title message arguments.
+     */
+    private Object[] titleArguments;
+
+    /**
      * Constructor.
      *
      * @param url sets the {@link #url}
@@ -27,6 +32,20 @@ public class BreadcrumbItem
     {
         this.url = url;
         this.titleCode = titleCode;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param url sets the {@link #url}
+     * @param titleCode sets the {@link #titleCode}
+     * @param titleArguments sets the {@link #titleArguments}
+     */
+    public BreadcrumbItem(String url, String titleCode, Object[] titleArguments)
+    {
+        this.url = url;
+        this.titleCode = titleCode;
+        this.titleArguments = titleArguments;
     }
 
     /**
@@ -43,5 +62,13 @@ public class BreadcrumbItem
     public String getTitleCode()
     {
         return titleCode;
+    }
+
+    /**
+     * @return {@link #titleArguments}
+     */
+    public Object[] getTitleArguments()
+    {
+        return titleArguments;
     }
 }

@@ -82,7 +82,8 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
             String titleCode = navigationPage.getTitleCode();
             if (titleCode != null) {
                 String url = navigationPage.getUrl(attributes);
-                items.add(0, new BreadcrumbItem(url, titleCode));
+                Object[] titleArguments = navigationPage.getTitleArguments();
+                items.add(0, new BreadcrumbItem(url, titleCode, titleArguments));
             }
             navigationPage = navigationPage.getParentNavigationPage();
         }

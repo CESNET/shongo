@@ -8,6 +8,7 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.WizardPage;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.support.editors.DateTimeZoneEditor;
 import cz.cesnet.shongo.client.web.support.editors.LocalDateEditor;
@@ -75,7 +76,7 @@ public class WizardRoomController extends WizardParticipantsController
     }
 
     @Override
-    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId, MessageProvider messageProvider)
     {
         ReservationRequestModel reservationRequest =
                 (ReservationRequestModel) WebUtils.getSessionAttribute(request, RESERVATION_REQUEST_ATTRIBUTE);
@@ -89,16 +90,16 @@ public class WizardRoomController extends WizardParticipantsController
         }
 
         wizardView.addPage(new WizardPage(Page.ATTRIBUTES, ClientWebUrl.WIZARD_ROOM_ATTRIBUTES,
-                "views.wizard.page.room.attributes"));
+                "views.wizard.page.attributes"));
         if (reservationRequest == null || reservationRequest.getSpecificationType() == null
                 || reservationRequest.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM)) {
             wizardView.addPage(new WizardPage(Page.ROLES, ClientWebUrl.WIZARD_ROOM_ROLES,
-                    "views.wizard.page.room.roles"));
+                    "views.wizard.page.userRoles"));
         }
         wizardView.addPage(new WizardPage(Page.PARTICIPANTS, ClientWebUrl.WIZARD_ROOM_PARTICIPANTS,
-                "views.wizard.page.room.participants"));
+                "views.wizard.page.participants"));
         wizardView.addPage(new WizardPage(Page.CONFIRM, ClientWebUrl.WIZARD_ROOM_CONFIRM,
-                "views.wizard.page.room.confirm"));
+                "views.wizard.page.confirm"));
     }
 
     /**

@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.MessageProvider;
+import cz.cesnet.shongo.client.web.support.MessageProviderImpl;
 import cz.cesnet.shongo.client.web.support.Page;
 import cz.cesnet.shongo.client.web.WizardPage;
+import org.springframework.context.MessageSource;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -19,13 +21,17 @@ public abstract class AbstractWizardController
     @Resource
     protected HttpServletRequest request;
 
+    @Resource
+    protected MessageSource messageSource;
+
     /**
      * Initialize given {@code wizardView} for given {@code currentWizardPageId}.
      *
      * @param wizardView
      * @param currentWizardPageId
+     * @param messageProvider
      */
-    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId, MessageProvider messageProvider)
     {
     }
 
@@ -36,8 +42,9 @@ public abstract class AbstractWizardController
      */
     protected WizardView getWizardView(Object wizardPageId, String wizardContent)
     {
+        MessageProvider messageProvider = MessageProviderImpl.fromRequest(messageSource, request);
         WizardView wizardView = new WizardView();
-        initWizardPages(wizardView, wizardPageId);
+        initWizardPages(wizardView, wizardPageId, messageProvider);
         wizardView.init(wizardPageId, wizardContent, request.getRequestURI());
         return wizardView;
     }

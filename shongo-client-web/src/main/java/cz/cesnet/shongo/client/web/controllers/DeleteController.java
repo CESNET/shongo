@@ -5,10 +5,7 @@ import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
-import cz.cesnet.shongo.client.web.support.BackUrl;
-import cz.cesnet.shongo.client.web.support.Breadcrumb;
-import cz.cesnet.shongo.client.web.support.BreadcrumbProvider;
-import cz.cesnet.shongo.client.web.support.NavigationPage;
+import cz.cesnet.shongo.client.web.support.*;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -38,9 +35,6 @@ public class DeleteController implements BreadcrumbProvider
 
     @Resource
     private Cache cache;
-
-    @Resource
-    protected MessageSource messageSource;
 
     /**
      * {@link cz.cesnet.shongo.client.web.support.Breadcrumb} for the {@link #handleDeleteView}
@@ -79,7 +73,7 @@ public class DeleteController implements BreadcrumbProvider
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE, method = RequestMethod.GET)
     public String handleDeleteView(
             SecurityToken securityToken,
-            Locale locale,
+            MessageProvider messageProvider,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             Model model)
     {
@@ -87,10 +81,9 @@ public class DeleteController implements BreadcrumbProvider
                 cache.getReservationRequestSummary(securityToken, reservationRequestId);
         SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
         String roomName = reservationRequest.getRoomName();
-        String title = messageSource.getMessage("views.reservationRequestDelete.title", new Object[]{
-                messageSource.getMessage("views.reservationRequestDelete.specificationType." + specificationType,
-                        new Object[]{roomName != null ? roomName : ""}, locale)
-        }, locale);
+        String title = messageProvider.getMessage("views.reservationRequestDelete.title",
+                messageProvider.getMessage("views.specificationType.forWithName." + specificationType,
+                        roomName != null ? roomName : ""));
         List<ReservationRequestSummary> dependencies =
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
 

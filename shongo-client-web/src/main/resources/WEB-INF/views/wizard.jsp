@@ -25,13 +25,13 @@
                 <c:when test="${wizardPage.url != null && wizardPage.available}">
                     <a href="${wizardPage.url}" class="${classLink}">
                         <span class="${classBadge}">${wizardPageStatus.index + 1}</span>
-                        <spring:message code="${wizardPage.titleCode}"/>
+                        <spring:message code="${wizardPage.titleCode}" arguments="${wizardPage.titleArguments}"/>
                     </a>
                 </c:when>
                 <c:otherwise>
                     <span class="${classLink}">
                         <span class="${classBadge}">${wizardPageStatus.index + 1}</span>
-                        <spring:message code="${wizardPage.titleCode}"/>
+                        <spring:message code="${wizardPage.titleCode}" arguments="${wizardPage.titleArguments}"/>
                     </span>
                 </c:otherwise>
             </c:choose>

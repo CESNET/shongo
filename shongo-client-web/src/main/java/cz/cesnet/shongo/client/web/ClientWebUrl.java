@@ -91,6 +91,14 @@ public class ClientWebUrl
             "/wizard/{reservationRequestId:.+}/duplicate";
     public static final String WIZARD_MODIFY =
             "/wizard/{reservationRequestId:.+}/modify";
+    public static final String WIZARD_MODIFY_EXTEND =
+            "/wizard/{reservationRequestId:.+}/modify/extend";
+    public static final String WIZARD_MODIFY_ENLARGE =
+            "/wizard/{reservationRequestId:.+}/modify/enlarge";
+    public static final String WIZARD_MODIFY_RECORDED =
+            "/wizard/{reservationRequestId:.+}/modify/recorded";
+    public static final String WIZARD_MODIFY_CANCEL =
+            "/wizard/{reservationRequestId:.+}/modify/cancel";
     public static final String WIZARD_UPDATE =
             "/wizard/update";
     public static final String WIZARD_PERIODIC_EVENTS =
