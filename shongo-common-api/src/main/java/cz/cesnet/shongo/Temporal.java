@@ -70,9 +70,30 @@ public class Temporal
     /**
      * @return rounded {@link org.joda.time.DateTime#now()} to seconds
      */
-    public static DateTime nowRounded()
+    public static DateTime nowRoundedToSeconds()
     {
         return DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+    }
+
+    /**
+     * @return rounded {@link org.joda.time.DateTime#now()} to minutes
+     */
+    public static DateTime nowRoundedToMinutes()
+    {
+        return DateTime.now()
+                .withField(DateTimeFieldType.secondOfMinute(), 0)
+                .withField(DateTimeFieldType.millisOfSecond(), 0);
+    }
+
+    /**
+     * @return rounded {@link org.joda.time.DateTime#now()} to hours
+     */
+    public static DateTime nowRoundedToHours()
+    {
+        return DateTime.now()
+                .withField(DateTimeFieldType.minuteOfHour(), 0)
+                .withField(DateTimeFieldType.secondOfMinute(), 0)
+                .withField(DateTimeFieldType.millisOfSecond(), 0);
     }
 
     /**

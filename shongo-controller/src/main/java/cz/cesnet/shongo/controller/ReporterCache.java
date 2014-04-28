@@ -6,6 +6,7 @@ import org.joda.time.Duration;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -15,18 +16,22 @@ import java.util.Map;
  */
 public class ReporterCache
 {
+    private static final int MAX_NEXT_STEP = 1000;
+
+    private Duration expiration;
+
     /**
      * Email cache.
      */
-    private ExpirationMap<Collection<String>, Map<String, Map<String, Entry>>> recordsByTitleByRecipients =
-            new ExpirationMap<Collection<String>, Map<String, Map<String, Entry>>>();
+    private Map<Collection<String>, ExpirationMap<String, Map<String, Entry>>> recordsByTitleByRecipients =
+            new HashMap<Collection<String>, ExpirationMap<String, Map<String, Entry>>>();
 
     /**
      * Constructor.
      */
     public ReporterCache()
     {
-        this.recordsByTitleByRecipients.setExpiration(Duration.standardHours(1));
+        setExpiration(Duration.standardHours(1));
     }
 
     /**
@@ -34,7 +39,10 @@ public class ReporterCache
      */
     public void setExpiration(Duration expiration)
     {
-        this.recordsByTitleByRecipients.setExpiration(expiration);
+        this.expiration = expiration;
+        for (ExpirationMap<String, Map<String, Entry>> value : recordsByTitleByRecipients.values()) {
+            value.setExpiration(expiration);
+        }
     }
 
     /**
@@ -46,9 +54,10 @@ public class ReporterCache
     public int apply(Collection<String> recipients, String title, String content)
     {
         // Get by recipient
-        Map<String, Map<String, Entry>> entriesByRecipient = recordsByTitleByRecipients.get(recipients);
+        ExpirationMap<String, Map<String, Entry>> entriesByRecipient = recordsByTitleByRecipients.get(recipients);
         if (entriesByRecipient == null) {
-            entriesByRecipient = new HashMap<String, Map<String, Entry>>();
+            entriesByRecipient = new ExpirationMap<String, Map<String, Entry>>();
+            entriesByRecipient.setExpiration(expiration);
         }
 
         // Update entry to not expire early
@@ -76,6 +85,9 @@ public class ReporterCache
             int result = entryByContent.count;
             entryByContent.count = 0;
             entryByContent.nextStep *= 2;
+            if (entryByContent.nextStep > MAX_NEXT_STEP) {
+                entryByContent.nextStep = MAX_NEXT_STEP;
+            }
             return result;
         }
         // Otherwise skip sending
@@ -90,16 +102,21 @@ public class ReporterCache
      */
     public void clear(DateTime dateTime, EntryCallback callback)
     {
-        for (Map.Entry<Collection<String>, Map<String, Map<String, Entry>>> entryByRecipient :
-                recordsByTitleByRecipients.clearExpired(dateTime))
-        {
+        Iterator<Map.Entry<Collection<String>, ExpirationMap<String, Map<String, Entry>>>> iterator =
+                recordsByTitleByRecipients.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Collection<String>, ExpirationMap<String, Map<String, Entry>>> entryByRecipient = iterator.next();
             Collection<String> recipients = entryByRecipient.getKey();
-            for (Map.Entry<String, Map<String, Entry>> entryByTitle : entryByRecipient.getValue().entrySet()) {
+            ExpirationMap<String, Map<String, Entry>> value = entryByRecipient.getValue();
+            for (Map.Entry<String, Map<String, Entry>> entryByTitle : value.clearExpired(dateTime)) {
                 String title = entryByTitle.getKey();
                 for (Map.Entry<String, Entry> entryByContent : entryByTitle.getValue().entrySet()) {
                     String content = entryByContent.getKey();
                     callback.sendEmail(recipients, title, content, entryByContent.getValue().count);
                 }
+            }
+            if (value.isEmpty()) {
+                iterator.remove();
             }
         }
     }

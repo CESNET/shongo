@@ -151,6 +151,14 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
+     * @return true whether {@link #entries} are empty, false otherwise
+     */
+    public synchronized boolean isEmpty()
+    {
+        return entries.isEmpty();
+    }
+
+    /**
      * Clear all {@link #entries}.
      */
     public synchronized void clear()
@@ -163,7 +171,7 @@ public class ExpirationMap<K, V> implements Iterable<V>
      *
      * @param dateTime which represents "now"
      */
-    public List<Map.Entry<K, V>> clearExpired(DateTime dateTime)
+    public synchronized List<Map.Entry<K, V>> clearExpired(DateTime dateTime)
     {
         List<Map.Entry<K, V>> cleared = new LinkedList<Map.Entry<K, V>>();
         Iterator<Map.Entry<K, Entry<V>>> iterator = entries.entrySet().iterator();
@@ -172,7 +180,7 @@ public class ExpirationMap<K, V> implements Iterable<V>
             Entry<V> entry = itemEntry.getValue();
             final K key = itemEntry.getKey();
             final V value = entry.value;
-            if (entry.expirationDateTime != null && !entry.expirationDateTime.isAfter(dateTime)) {
+            if (dateTime == null || (entry.expirationDateTime != null && !entry.expirationDateTime.isAfter(dateTime))) {
                 cleared.add(new Map.Entry<K, V>()
                 {
                     @Override

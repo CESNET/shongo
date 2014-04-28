@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import junit.framework.Assert;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.joda.time.DateTime;
@@ -22,7 +24,7 @@ public class ReporterTest
     private static Logger logger = LoggerFactory.getLogger(ReporterTest.class);
 
     @Test
-    public void test() throws Exception
+    public void testGrouping() throws Exception
     {
         org.apache.log4j.Logger reporterLogger = LogManager.getLogger(Reporter.class);
         org.apache.log4j.Level reporterLoggerLevel = reporterLogger.getLevel();
@@ -30,6 +32,7 @@ public class ReporterTest
         Domain.setLocalDomain(new Domain("test"));
 
         // Create email sender
+        final MutableInt emailCount = new MutableInt(0);
         EmailSender emailSender = new EmailSender("test", null) {
             @Override
             public boolean isInitialized() {
@@ -39,6 +42,7 @@ public class ReporterTest
             @Override
             public void sendEmail(Email email) throws MessagingException {
                 logger.info(email.getSubject());
+                emailCount.increment();
             }
         };
 
@@ -54,11 +58,13 @@ public class ReporterTest
         reporter.setCacheExpiration(Duration.standardSeconds(1));
 
         // Report
-        for (int index = 0; index < 100; index++) {
+        for (int index = 0; index < 3024; index++) {
             reporter.reportInternalError(Reporter.SCHEDULER, "Test", new Exception());
         }
-        Thread.sleep(1000);
-        reporter.clearCache(DateTime.now());
+        reporter.clearCache(null);
+        reporter.destroy();
+        // 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1000, 1000, 1
+        Assert.assertEquals(13, emailCount.intValue());
 
         Domain.setLocalDomain(null);
         reporterLogger.setLevel(reporterLoggerLevel);

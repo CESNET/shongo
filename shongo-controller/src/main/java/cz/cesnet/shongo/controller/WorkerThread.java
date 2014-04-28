@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.scheduler.Preprocessor;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -51,6 +52,11 @@ public class WorkerThread extends Thread
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
     private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * {@link DateTime} when the last cache clearing was performed.
+     */
+    private DateTime clearCacheDateTime;
 
     /**
      * Constructor.
@@ -146,17 +152,25 @@ public class WorkerThread extends Thread
             //logger.debug("Worker lock acquired...   [[[[[")
 
             // We want to pre-process and schedule only reservation requests in specific interval
-            Interval interval = new Interval(Temporal.nowRounded(), lookahead);
+            Interval interval = new Interval(Temporal.nowRoundedToSeconds(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
+            Reporter reporter = Reporter.getInstance();
             try {
-                // Run preprocessor and scheduler
+                // Run preprocessor, scheduler and notifications
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
                 notificationManager.executeNotifications(entityManager);
+
+                // Clear reporter cache once per hour
+                DateTime clearCacheDateTime = Temporal.nowRoundedToHours();
+                if (!clearCacheDateTime.equals(this.clearCacheDateTime)) {
+                    reporter.clearCache(interval.getStart());
+                    this.clearCacheDateTime = clearCacheDateTime;
+                }
             }
             catch (Exception exception) {
-                Reporter.getInstance().reportInternalError(Reporter.WORKER, exception);
+                reporter.reportInternalError(Reporter.WORKER, exception);
             }
             finally {
                 entityManager.close();

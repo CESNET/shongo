@@ -452,7 +452,7 @@ public class Reporter implements ReporterCache.EntryCallback
     public static Reporter create(Reporter reporter)
     {
         if (instance != null) {
-            throw new IllegalStateException("Another instance of controller already exists.");
+            throw new IllegalStateException("Another instance of reporter already exists.");
         }
         instance = reporter;
         return instance;
