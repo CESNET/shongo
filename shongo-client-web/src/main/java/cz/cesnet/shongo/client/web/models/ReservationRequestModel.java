@@ -43,9 +43,9 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     private CacheProvider cacheProvider;
 
-    private String id;
+    protected String id;
 
-    private String parentReservationRequestId;
+    protected String parentReservationRequestId;
 
     protected ReservationRequestType type;
 
@@ -367,7 +367,6 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
                 if (permanentRoomSummary.getId().equals(permanentRoomReservationRequestId)) {
                     Reservation reservation = cacheProvider.getReservation(permanentRoomSummary.getLastReservationId());
                     Interval permanentRoomSlot = reservation.getSlot();
-                    Period slotBefore = getSlotBefore();
                     DateTime permanentRoomStart = permanentRoomSlot.getStart().plus(getSlotBefore());
                     permanentRoomStart = Temporal.roundDateTimeToMinutes(permanentRoomStart, 1);
                     if (permanentRoomStart.isAfter(start)) {
@@ -809,7 +808,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {
-                    throw new IllegalStateException("Slot duration should be not empty.");
+                    if (end != null) {
+                        return new Period(start, end);
+                    }
+                    else {
+                        throw new IllegalStateException("Slot duration should be not empty.");
+                    }
                 }
                 switch (durationType) {
                     case MINUTE:
@@ -1053,12 +1057,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * Add new participant.
      *
      * @param participant
-     * @param participantBindingResult
+     * @param bindingResult
      */
-    public boolean createParticipant(ParticipantModel participant, BindingResult participantBindingResult)
+    public boolean createParticipant(ParticipantModel participant, BindingResult bindingResult)
     {
-        participant.validate(participantBindingResult);
-        if (participantBindingResult.hasErrors()) {
+        participant.validate(bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return false;
         }
         participant.setNewId();
@@ -1071,13 +1076,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      *
      * @param participantId
      * @param participant
-     * @param participantBindingResult
+     * @param bindingResult
      */
-    public boolean modifyParticipant(String participantId, ParticipantModel participant,
-            BindingResult participantBindingResult)
+    public boolean modifyParticipant(String participantId, ParticipantModel participant, BindingResult bindingResult)
     {
-        participant.validate(participantBindingResult);
-        if (participantBindingResult.hasErrors()) {
+        participant.validate(bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return false;
         }
         ParticipantModel oldParticipant = getParticipant(participantId);

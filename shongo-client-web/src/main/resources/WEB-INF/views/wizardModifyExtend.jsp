@@ -3,10 +3,107 @@
   --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<h1>Prodlouzit</h1>
+<script type="text/javascript">
+    var module = angular.module('jsp:wizardModifyExtend', ['ngApplication', 'ngDateTime']);
+
+    window.extendReservationRequest = function(minutes) {
+        var originalEnd = moment($("#original\\.end").val());
+        var endPicker = $("#end");
+        var end = originalEnd.add('minutes', minutes);
+        endPicker.val(end.format("YYYY-MM-DD HH:mm"));
+        window.update();
+    };
+
+    window.update = function() {
+        var originalEnd = moment($("#original\\.end").val());
+        var end = moment($("#end").val());
+        var minutes = end.diff(originalEnd) / (1000 * 60);
+        $(".minutes").removeClass("btn-success");
+        $(".minutes").addClass("btn-info");
+        if (minutes > 0) {
+            $(".minutes" + minutes).removeClass("btn-info");
+            $(".minutes" + minutes).addClass("btn-success btn-active");
+        }
+    };
+
+    $(function(){
+        $("#end").change(function(){
+            window.update();
+        });
+        window.update();
+    });
+</script>
+
+<spring:message code="views.specificationType.for.${reservationRequest.specificationType}" var="specificationType"/>
+<h1><spring:message code="views.wizard.modifyExtend" arguments="${specificationType}"/></h1>
 
 <hr/>
+
+<div ng-app="jsp:wizardModifyExtend">
+
+<form:form class="form-horizontal"
+           commandName="reservationRequest"
+           method="post">
+
+    <fieldset>
+
+        <spring:hasBindErrors name="reservationRequest">
+            <div class="alert alert-error"><spring:message code="views.wizard.error.failed"/></div>
+        </spring:hasBindErrors>
+
+        <div class="control-group">
+            <form:label class="control-label" path="id">
+                <spring:message code="views.reservationRequest.identifier"/>:
+            </form:label>
+            <div class="controls double-width">
+                <form:input path="id" readonly="true" tabindex="${tabIndex}"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="start">
+                <spring:message code="views.reservationRequest.start"/>:
+            </form:label>
+            <div class="controls">
+                <form:input path="start" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}" readonly="true"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="original.end">
+                <spring:message code="views.reservationRequest.end.old"/>:
+            </form:label>
+            <div class="controls">
+                <form:input path="original.end" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}" readonly="true"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="controls">
+                <c:forEach var="minutes" items="15,30,45,60,120,180">
+                    <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
+                    <a class="btn btn-info minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});">+<tag:format value="${duration}"/></a>
+                </c:forEach>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="end">
+                <spring:message code="views.reservationRequest.end.new"/>:
+            </form:label>
+            <div class="controls">
+                <form:input path="end" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}"/>
+                <form:errors path="end" cssClass="error"/>
+            </div>
+        </div>
+
+    </fieldset>
+
+</form:form>
+
+</div>
 
 <hr/>

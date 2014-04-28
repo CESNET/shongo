@@ -1,19 +1,28 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.WizardPage;
-import cz.cesnet.shongo.client.web.models.SpecificationType;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.client.web.support.editors.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +38,17 @@ import javax.servlet.http.HttpServletRequest;
 })
 public class WizardModifyController extends AbstractWizardController
 {
+    private static Logger logger = LoggerFactory.getLogger(WizardModifyController.class);
+
+    @Resource
+    private Cache cache;
+
+    @Resource
+    private ReservationService reservationService;
+
+    @Resource
+    private AuthorizationService authorizationService;
+
     private static enum Page
     {
         EXTEND,
@@ -72,15 +92,57 @@ public class WizardModifyController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY_EXTEND, method = RequestMethod.GET)
     public ModelAndView handleExtend(
-            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        // Create reservation request model
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
+                reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
+        reservationRequestModel.setEnd(reservationRequestModel.getEnd().plusMinutes(60));
+
+        // Copy back-url to WIZARD_MODIFY (to be used in WIZARD_MODIFY_CANCEL)
         BackUrl.applyTo(request, ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY, reservationRequestId));
-        WizardView wizardView = getWizardView(Page.EXTEND, "wizardModifyExtend.jsp");
-        wizardView.addAction(ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY_CANCEL, reservationRequestId),
-                "views.button.cancel", WizardView.ActionPosition.LEFT);
-        return wizardView;
+
+        // Return view
+        return getView(Page.EXTEND, "wizardModifyExtend.jsp", reservationRequestModel);
+    }
+
+    /**
+     * Process result from {@link #handleExtend}
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY_EXTEND, method = RequestMethod.POST)
+    public Object handleExtendProcess(
+            UserSession userSession,
+            SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
+            BindingResult bindingResult)
+    {
+        // Duration should be computed from end field
+        reservationRequest.setDurationCount(null);
+        reservationRequest.setDurationType(null);
+
+        // Validate reservation request
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
+        validator.validate(reservationRequest, bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
+            return getView(Page.EXTEND, "wizardModifyExtend.jsp", reservationRequest);
+        }
+
+        // Modify reservation request
+        String reservationRequestId = reservationService.modifyReservationRequest(
+                securityToken, reservationRequest.toApi(request));
+
+        // Clear session attributes
+        sessionStatus.setComplete();
+
+        // Redirect to detail
+        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_MODIFY).applyToUrl(
+                ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId));
     }
 
     /**
@@ -88,15 +150,53 @@ public class WizardModifyController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY_ENLARGE, method = RequestMethod.GET)
     public ModelAndView handleEnlarge(
-            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        // Create reservation request model
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
+                reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
+        reservationRequestModel.setRoomParticipantCount(reservationRequestModel.getRoomParticipantCount() + 1);
+
+        // Copy back-url to WIZARD_MODIFY (to be used in WIZARD_MODIFY_CANCEL)
         BackUrl.applyTo(request, ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY, reservationRequestId));
-        WizardView wizardView = getWizardView(Page.ENLARGE, "wizardModifyEnlarge.jsp");
-        wizardView.addAction(ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY_CANCEL, reservationRequestId),
-                "views.button.cancel", WizardView.ActionPosition.LEFT);
-        return wizardView;
+
+        // Return view
+        return getView(Page.ENLARGE, "wizardModifyEnlarge.jsp", reservationRequestModel);
+    }
+
+    /**
+     * Process result from {@link #handleEnlarge}
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY_ENLARGE, method = RequestMethod.POST)
+    public Object handleEnlargeProcess(
+            UserSession userSession,
+            SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @ModelAttribute(RESERVATION_REQUEST_ATTRIBUTE) ReservationRequestModel reservationRequest,
+            BindingResult bindingResult)
+    {
+        // Validate reservation request
+        ReservationRequestValidator validator = new ReservationRequestValidator(
+                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
+        validator.validate(reservationRequest, bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
+            return getView(Page.ENLARGE, "wizardModifyEnlarge.jsp", reservationRequest);
+        }
+
+        // Modify reservation request
+        String reservationRequestId = reservationService.modifyReservationRequest(
+                securityToken, reservationRequest.toApi(request));
+
+        // Clear session attributes
+        sessionStatus.setComplete();
+
+        // Redirect to detail
+        return "redirect:" + BackUrl.getInstance(request, ClientWebUrl.WIZARD_MODIFY).applyToUrl(
+                ClientWebUrl.format(ClientWebUrl.DETAIL_VIEW, reservationRequestId));
     }
 
     /**
@@ -104,15 +204,25 @@ public class WizardModifyController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_MODIFY_RECORDED, method = RequestMethod.GET)
     public ModelAndView handleRecorded(
-            HttpServletRequest request,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        // Create reservation request model
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModificationModel(
+                reservationRequest, new CacheProvider(cache, securityToken), authorizationService);
+
+        // Copy back-url to WIZARD_MODIFY (to be used in WIZARD_MODIFY_CANCEL)
         BackUrl.applyTo(request, ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY, reservationRequestId));
-        WizardView wizardView = getWizardView(Page.RECORDED, "wizardModifyRecorded.jsp");
-        wizardView.addAction(ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY_CANCEL, reservationRequestId),
-                "views.button.cancel", WizardView.ActionPosition.LEFT);
-        return wizardView;
+
+        // Check whether room already isn't requested to be recorded
+        if (reservationRequestModel.isRoomRecorded()) {
+            throw new RuntimeException("Room is already recordable.");
+        }
+
+        // Return view
+        return  getView(Page.RECORDED, "wizardModifyRecorded.jsp", reservationRequestModel);
     }
 
     /**
@@ -123,9 +233,41 @@ public class WizardModifyController extends AbstractWizardController
             SessionStatus sessionStatus,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        // Clear session attributes
         sessionStatus.setComplete();
+
+        // Get back-url which is stored for WIZARD_MODIFY
         BackUrl backUrl = BackUrl.getInstance(request,
                 ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY, reservationRequestId));
+
+        // Redirect to back-url
         return "redirect:" + backUrl.getUrl(ClientWebUrl.HOME);
+    }
+
+    /**
+     * @param page
+     * @param view
+     * @param reservationRequest
+     * @return view for given attributes
+     */
+    public ModelAndView getView(Page page, String view, ReservationRequestModel reservationRequest)
+    {
+        WizardView wizardView = getWizardView(page, view);
+        wizardView.addObject(RESERVATION_REQUEST_ATTRIBUTE, reservationRequest);
+        wizardView.addAction(ClientWebUrl.format(ClientWebUrl.WIZARD_MODIFY_CANCEL, reservationRequest.getId()),
+                "views.button.cancel", WizardView.ActionPosition.LEFT);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
+        return wizardView;
+    }
+
+    /**
+     * Handle missing session attributes.
+     */
+    @ExceptionHandler({HttpSessionRequiredException.class, IllegalStateException.class})
+    public Object handleExceptions(Exception exception)
+    {
+        logger.warn("Redirecting to " + ClientWebUrl.HOME + ".", exception);
+        return "redirect:" + ClientWebUrl.HOME;
     }
 }

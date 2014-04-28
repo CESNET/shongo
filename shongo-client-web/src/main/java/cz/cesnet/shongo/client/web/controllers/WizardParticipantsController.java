@@ -16,7 +16,6 @@ import javax.servlet.http.HttpSession;
  */
 public abstract class WizardParticipantsController extends AbstractWizardController
 {
-    public static final String RESERVATION_REQUEST_ATTRIBUTE = "reservationRequest";
     protected static final String PARTICIPANT_ATTRIBUTE = "participant";
 
     @Resource

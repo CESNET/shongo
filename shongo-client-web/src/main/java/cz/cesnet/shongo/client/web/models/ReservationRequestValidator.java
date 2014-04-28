@@ -106,9 +106,13 @@ public class ReservationRequestValidator implements Validator
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotBeforeMinutes", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "slotAfterMinutes", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "roomParticipantCount", "validation.field.required");
+                    if (reservationRequestModel.getDurationType() != null) {
+                        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+                    }
+                    else {
+                        validateInterval(reservationRequestModel, errors);
+                    }
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomParticipantCount", "validation.field.required");
                     Integer roomParticipantCount = reservationRequestModel.getRoomParticipantCount();
                     if (roomParticipantCount != null && roomParticipantCount <= 0) {
                         errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
@@ -118,15 +122,7 @@ public class ReservationRequestValidator implements Validator
             }
             switch (specificationType) {
                 case PERMANENT_ROOM:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
-                    DateTime start = reservationRequestModel.getStart();
-                    DateTime end = reservationRequestModel.getEnd();
-                    if (end != null && end.getMillisOfDay() == 0) {
-                        end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
-                    }
-                    if (start != null && end != null && !start.isBefore(end)) {
-                        errors.rejectValue("end", "validation.field.invalidIntervalEnd");
-                    }
+                    validateInterval(reservationRequestModel, errors);
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     validateIdentifier("roomName", errors);
                     break;
@@ -204,24 +200,6 @@ public class ReservationRequestValidator implements Validator
     }
 
     /**
-     * @param reservationRequestModel to be validated
-     * @param errors                  to be filled with errors
-     * @param securityToken           to be used for validation
-     * @param reservationService      to be used for validation
-     * @param request
-     * @return true whether validation succeeds, otherwise false
-     */
-    public static boolean validate(ReservationRequestModel reservationRequestModel, Errors errors,
-            SecurityToken securityToken, ReservationService reservationService, Cache cache, HttpServletRequest request)
-    {
-        UserSession userSession = UserSession.getInstance(request);
-        ReservationRequestValidator validator = new ReservationRequestValidator(
-                securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
-        validator.validate(reservationRequestModel, errors);
-        return !errors.hasErrors();
-    }
-
-    /**
      * @param reservationRequestModel to get validated participants
      * @param errors
      * @param autoFixError specifies whether error should be automatically fixed instead of appending them to
@@ -243,6 +221,24 @@ public class ReservationRequestValidator implements Validator
             }
         }
         return !errors.hasErrors();
+    }
+
+    /**
+     * @param reservationRequestModel to get validated interval
+     * @param errors
+     * @return true whether validation succeeds, otherwise false
+     */
+    public static void validateInterval(ReservationRequestModel reservationRequestModel, Errors errors)
+    {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
+        DateTime start = reservationRequestModel.getStart();
+        DateTime end = reservationRequestModel.getEnd();
+        if (end != null && end.getMillisOfDay() == 0) {
+            end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
+        }
+        if (start != null && end != null && !start.isBefore(end)) {
+            errors.rejectValue("end", "validation.field.invalidIntervalEnd");
+        }
     }
 
     /**

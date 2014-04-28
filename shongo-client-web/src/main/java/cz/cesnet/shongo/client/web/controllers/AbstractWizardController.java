@@ -18,6 +18,8 @@ import java.util.*;
  */
 public abstract class AbstractWizardController
 {
+    public static final String RESERVATION_REQUEST_ATTRIBUTE = "reservationRequest";
+
     @Resource
     protected HttpServletRequest request;
 

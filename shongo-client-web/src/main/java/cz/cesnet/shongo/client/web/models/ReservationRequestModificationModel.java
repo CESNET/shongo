@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import org.joda.time.DateTime;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 public class ReservationRequestModificationModel extends ReservationRequestModel
 {
     private boolean adhocRoomRetainRoomName = false;
+
+    private ReservationRequestModel original;
 
     public ReservationRequestModificationModel(AbstractReservationRequest reservationRequest,
             CacheProvider cacheProvider, AuthorizationService authorizationService)
@@ -50,6 +53,34 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         for (UserRoleModel userRole : getUserRoles()) {
             userRole.setDeletable(false);
         }
+
+        // Store old values
+        this.original = new ReservationRequestModel(cacheProvider);
+        this.original.id = this.id;
+        this.original.parentReservationRequestId = this.parentReservationRequestId;
+        this.original.type = this.type;
+        this.original.description = this.description;
+        this.original.dateTime = this.dateTime;
+        this.original.technology = this.technology;
+        this.original.timeZone = this.timeZone;
+        this.original.start = this.start;
+        this.original.end = this.end;
+        this.original.durationCount = this.durationCount;
+        this.original.durationType = this.durationType;
+        this.original.slotBeforeMinutes = this.slotBeforeMinutes;
+        this.original.slotAfterMinutes = this.slotAfterMinutes;
+        this.original.periodicityType = this.periodicityType;
+        this.original.periodicityEnd = this.periodicityEnd;
+        this.original.specificationType = this.specificationType;
+        this.original.roomName = this.roomName;
+        this.original.permanentRoomReservationRequestId = this.permanentRoomReservationRequestId;
+        this.original.permanentRoomReservationRequest = this.permanentRoomReservationRequest;
+        this.original.roomParticipantCount = this.roomParticipantCount;
+        this.original.roomPin = this.roomPin;
+        this.original.roomRecorded = this.roomRecorded;
+        this.original.roomAccessMode = this.roomAccessMode;
+        this.original.roomMeetingName = this.roomMeetingName;
+        this.original.roomMeetingDescription = this.roomMeetingDescription;
     }
 
     public Boolean getAdhocRoomRetainRoomName()
@@ -60,6 +91,11 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
     public void setAdhocRoomRetainRoomName(Boolean adhocRoomRetainRoomName)
     {
         this.adhocRoomRetainRoomName = adhocRoomRetainRoomName;
+    }
+
+    public ReservationRequestModel getOriginal()
+    {
+        return original;
     }
 
     @Override

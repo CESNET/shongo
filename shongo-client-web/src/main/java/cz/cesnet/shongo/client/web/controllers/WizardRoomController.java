@@ -48,11 +48,13 @@ import javax.servlet.http.HttpSession;
 @SessionAttributes({
         WizardParticipantsController.RESERVATION_REQUEST_ATTRIBUTE,
         WizardParticipantsController.PARTICIPANT_ATTRIBUTE,
-        "userRole"
+        WizardRoomController.USER_ROLE_ATTRIBUTE
 })
 public class WizardRoomController extends WizardParticipantsController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardRoomController.class);
+
+    protected static final String USER_ROLE_ATTRIBUTE = "userRole";
 
     public static final String SUBMIT_RESERVATION_REQUEST_FINISH_WITH_CAPACITY =
             WizardController.SUBMIT_RESERVATION_REQUEST_FINISH.replace("finish", "finish-with-capacity");
@@ -251,6 +253,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreateRoomAttributesView(reservationRequest);
         }
         addDefaultParticipant(securityToken, reservationRequest);
@@ -297,7 +300,7 @@ public class WizardRoomController extends WizardParticipantsController
     {
         WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRole.jsp");
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
-        wizardView.addObject("userRole", new UserRoleModel(cacheProvider));
+        wizardView.addObject(WizardRoomController.USER_ROLE_ATTRIBUTE, new UserRoleModel(cacheProvider));
         wizardView.setNextPageUrl(null);
         wizardView.setPreviousPageUrl(null);
         return wizardView;
@@ -312,12 +315,14 @@ public class WizardRoomController extends WizardParticipantsController
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_CREATE, method = RequestMethod.POST)
     public Object handleRoleCreateProcess(
             HttpSession httpSession,
-            @ModelAttribute("userRole") UserRoleModel userRole,
+            @ModelAttribute(WizardRoomController.USER_ROLE_ATTRIBUTE) UserRoleModel userRole,
             BindingResult bindingResult)
     {
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
+
             // Show form for adding new user role with validation errors
             WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRole.jsp");
             wizardView.setNextPageUrl(null);
@@ -515,6 +520,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreateRoomAttributesView(reservationRequest);
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
@@ -602,6 +608,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreateRoomAttributesView(reservationRequest);
         }
         Object result = handleConfirmed(securityToken, sessionStatus, reservationRequest);

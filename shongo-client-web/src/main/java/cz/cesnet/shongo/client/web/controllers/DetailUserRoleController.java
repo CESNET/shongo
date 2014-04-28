@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
@@ -14,6 +15,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AclEntryListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,6 +35,8 @@ import java.util.*;
 @SessionAttributes({DetailUserRoleController.USER_ROLE_ATTRIBUTE})
 public class DetailUserRoleController extends AbstractDetailController
 {
+    private static Logger logger = LoggerFactory.getLogger(DetailUserRoleController.class);
+
     protected static final String USER_ROLE_ATTRIBUTE = "userRole";
 
     @Resource
@@ -129,15 +134,16 @@ public class DetailUserRoleController extends AbstractDetailController
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
             @ModelAttribute(USER_ROLE_ATTRIBUTE) UserRoleModel userRole,
-            BindingResult result)
+            BindingResult bindingResult)
     {
         String reservationRequestId = getReservationRequestId(securityToken, objectId);
         if (!userRole.getObjectId().equals(reservationRequestId)) {
             throw new IllegalStateException("Acl entry object id doesn't match the reservation request id.");
         }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
-        userRoleValidator.validate(userRole, result);
-        if (result.hasErrors()) {
+        userRoleValidator.validate(userRole, bindingResult);
+        if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return handleUserRoleCreateView(userRole);
         }
         authorizationService.createAclEntry(securityToken, userRole.toApi());

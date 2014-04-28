@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
+import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
@@ -79,6 +80,7 @@ public class ErrorController
     {
         reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return new ModelAndView("report");
         }
         else {
@@ -149,6 +151,7 @@ public class ErrorController
     {
         reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             ModelAndView modelAndView = new ModelAndView("error");
             modelAndView.addObject("error", errorModel);
             modelAndView.addObject("report", reportModel);

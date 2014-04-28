@@ -5,8 +5,10 @@ import org.joda.time.Interval;
 import org.joda.time.ReadablePartial;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 
 import java.util.Locale;
@@ -85,5 +87,16 @@ public class CommonModel
         string = string.replaceAll("\n", "\\\\n");
         string = string.replaceAll("\"", "\\\\\"");
         return string;
+    }
+
+    /**
+     * Log validation errors.
+     *
+     * @param logger
+     * @param errors
+     */
+    public static void logValidationErrors(Logger logger, Errors errors)
+    {
+        logger.debug("Validation errors {}", errors);
     }
 }

@@ -193,6 +193,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreatePermanentRoomCapacityView();
         }
         reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
@@ -335,6 +336,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreatePermanentRoomCapacityView();
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
@@ -414,6 +416,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             return getCreatePermanentRoomCapacityView();
         }
         return handleConfirmed(securityToken, sessionStatus, reservationRequest);

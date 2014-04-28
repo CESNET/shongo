@@ -7,6 +7,8 @@ import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,6 +26,8 @@ import java.util.*;
 @SessionAttributes({DetailParticipantController.PARTICIPANT_ATTRIBUTE})
 public class DetailParticipantController extends AbstractDetailController
 {
+    private static Logger logger = LoggerFactory.getLogger(DetailParticipantController.class);
+
     protected static final String PARTICIPANT_ATTRIBUTE = "participant";
 
     @RequestMapping(value = ClientWebUrl.DETAIL_PARTICIPANTS_TAB, method = RequestMethod.GET)
@@ -147,6 +151,7 @@ public class DetailParticipantController extends AbstractDetailController
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             ModelAndView modelAndView = new ModelAndView("participant");
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
@@ -205,6 +210,7 @@ public class DetailParticipantController extends AbstractDetailController
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
+            CommonModel.logValidationErrors(logger, bindingResult);
             ModelAndView modelAndView = new ModelAndView("participant");
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
             return modelAndView;
