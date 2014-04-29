@@ -98,6 +98,16 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
         return original;
     }
 
+    public boolean isEndChanged()
+    {
+        return !this.end.equals(this.original.end);
+    }
+
+    public boolean isRoomParticipantCountChanged()
+    {
+        return !this.roomParticipantCount.equals(this.original.roomParticipantCount);
+    }
+
     @Override
     public AbstractReservationRequest toApi(HttpServletRequest request)
     {

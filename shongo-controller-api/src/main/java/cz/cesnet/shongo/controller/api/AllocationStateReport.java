@@ -135,6 +135,15 @@ public class AllocationStateReport extends AbstractObjectReport
                     }
                 }
             }
+            else if (identifier.equals(AllocationStateReportMessages.RESOURCE_NOT_ALLOCATABLE)) {
+                String parentId = (String) parentReports.lastElement().get(ID);
+                if (parentId.equals(AllocationStateReportMessages.ALLOCATING_RECORDING_SERVICE)) {
+                    userError = new ResourceNotFound(ResourceNotFound.Type.RECORDING);
+                }
+                else {
+                    userError = new ResourceNotFound();
+                }
+            }
             else if (identifier.equals(AllocationStateReportMessages.MAXIMUM_DURATION_EXCEEDED)) {
                 return new MaximumDurationExceeded(Converter.convertToPeriod(report.get("maxDuration")));
             }

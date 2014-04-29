@@ -228,6 +228,20 @@ public abstract class AbstractWizardController
         }
 
         /**
+         * @param url of action to be removed
+         */
+        public void removeAction(String url)
+        {
+            Iterator<Action> iterator = actions.iterator();
+            while (iterator.hasNext()) {
+                Action action = iterator.next();
+                if (url.equals(action.getUrl())) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        /**
          * @return {@link #actionPrevious}
          */
         public Action getActionPrevious()

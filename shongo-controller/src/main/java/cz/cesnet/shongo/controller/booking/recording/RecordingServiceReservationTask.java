@@ -77,7 +77,6 @@ public class RecordingServiceReservationTask extends ReservationTask
 
         // Check executable
         Set<Technology> technologies = new HashSet<Technology>();
-
         if (executable instanceof RecordableEndpoint) {
             RecordableEndpoint recordableEndpoint = (RecordableEndpoint) executable;
             DeviceResource deviceResource = recordableEndpoint.getResource();

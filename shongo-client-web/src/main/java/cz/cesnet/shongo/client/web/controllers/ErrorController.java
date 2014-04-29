@@ -247,8 +247,6 @@ public class ErrorController
     /**
      * Handle error.
      *
-     *
-     *
      * @param errorModel
      * @param configuration
      * @param reCaptcha

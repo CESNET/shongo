@@ -6,6 +6,8 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<c:set var="tabIndex" value="1"/>
+
 <script type="text/javascript">
     var module = angular.module('jsp:wizardModifyExtend', ['ngApplication', 'ngDateTime']);
 
@@ -59,7 +61,7 @@
                 <spring:message code="views.reservationRequest.identifier"/>:
             </form:label>
             <div class="controls double-width">
-                <form:input path="id" readonly="true" tabindex="${tabIndex}"/>
+                <form:input path="id" readonly="true"/>
             </div>
         </div>
 
@@ -68,7 +70,7 @@
                 <spring:message code="views.reservationRequest.start"/>:
             </form:label>
             <div class="controls">
-                <form:input path="start" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}" readonly="true"/>
+                <form:input path="start" cssErrorClass="error" date-time-picker="true" readonly="true"/>
             </div>
         </div>
 
@@ -77,7 +79,7 @@
                 <spring:message code="views.reservationRequest.end.old"/>:
             </form:label>
             <div class="controls">
-                <form:input path="original.end" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}" readonly="true"/>
+                <form:input path="original.end" cssErrorClass="error" date-time-picker="true"readonly="true"/>
             </div>
         </div>
 
@@ -85,7 +87,7 @@
             <div class="controls">
                 <c:forEach var="minutes" items="15,30,45,60,120,180">
                     <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
-                    <a class="btn btn-info minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});">+<tag:format value="${duration}"/></a>
+                    <a class="btn btn-info minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});" tabindex="${tabIndex}">+<tag:format value="${duration}"/></a>
                 </c:forEach>
             </div>
         </div>

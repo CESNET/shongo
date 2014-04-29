@@ -8,8 +8,8 @@
 <tag:url var="backUrl" value="${requestScope.backUrl}"/>
 
 <div>
-    <h1><spring:message code="${title}"/></h1>
-    <p><spring:message code="${message}"/></p>
+    <h1><spring:message code="${titleCode}"/></h1>
+    <p><spring:message code="${messageCode}"/></p>
     <div>
         <a class="btn btn-primary" href="${backUrl}"><spring:message code="views.button.back"/></a>
     </div>

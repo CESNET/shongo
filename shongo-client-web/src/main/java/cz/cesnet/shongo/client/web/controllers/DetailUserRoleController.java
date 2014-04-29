@@ -156,11 +156,10 @@ public class DetailUserRoleController extends AbstractDetailController
      */
     @RequestMapping(value = ClientWebUrl.DETAIL_USER_ROLE_DELETE,
             method = RequestMethod.GET)
-    public String handleUserRoleDelete(
+    public Object handleUserRoleDelete(
             SecurityToken securityToken,
             @PathVariable(value = "objectId") String objectId,
-            @PathVariable(value = "roleId") String userRoleId,
-            Model model)
+            @PathVariable(value = "roleId") String userRoleId)
     {
         String reservationRequestId = getReservationRequestId(securityToken, objectId);
         AclEntryListRequest request = new AclEntryListRequest();
@@ -169,9 +168,10 @@ public class DetailUserRoleController extends AbstractDetailController
         request.addRole(ObjectRole.OWNER);
         ListResponse<AclEntry> aclEntries = authorizationService.listAclEntries(request);
         if (aclEntries.getItemCount() == 1 && aclEntries.getItem(0).getId().equals(userRoleId)) {
-            model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
-            model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
-            return "message";
+            ModelAndView modelAndView = new ModelAndView("userMessage");
+            modelAndView.addObject("titleCode", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
+            modelAndView.addObject("messageCode", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
+            return modelAndView;
         }
         authorizationService.deleteAclEntry(securityToken, userRoleId);
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.DETAIL_USER_ROLES_VIEW, objectId);

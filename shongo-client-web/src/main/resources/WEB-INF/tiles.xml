@@ -118,10 +118,10 @@
         <put-attribute name="body" value="/WEB-INF/views/changelog.jsp" type="template"/>
     </definition>
 
-    <definition name="message" extends="layout">
-        <put-attribute name="title" value="views.message.title"/>
+    <definition name="userMessage" extends="layout">
+        <put-attribute name="title" expression="${titleCode}"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/message.jsp" type="template"/>
+        <put-attribute name="body" value="/WEB-INF/views/userMessage.jsp" type="template"/>
     </definition>
 
     <definition name="wizard" extends="layoutAngularForm">
@@ -129,7 +129,7 @@
         <put-attribute name="heading" value=""/>
         <put-list-attribute name="title">
             <add-attribute value="views.wizard.title"/>
-            <add-attribute expression="${wizardPageCurrent.titleCode}"/>
+            <add-attribute expression="M(${wizardPageCurrent.titleCode}${wizardPageCurrent.titleArguments != null ? ',' : ''}${wizardPageCurrent.getTitleArgumentsAsString()})"/>
             <add-attribute expression="T(${wizardPageCurrent.titleDescription})"/>
         </put-list-attribute>
         <put-list-attribute name="css" inherit="true">

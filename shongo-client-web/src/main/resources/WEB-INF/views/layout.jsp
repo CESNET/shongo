@@ -48,14 +48,31 @@
                             <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
                             <c:choose>
                                 <c:when test="${empty titleItem}"/>
-                                <c:when test="${!titleItem.startsWith('T(')}">
+                                <c:when test="${titleItem.startsWith('T(')}">
+                                    <c:if test="${titleItem.length() > 3}">
+                                        <c:if test="${!titleStatus.first}"> - </c:if>
+                                        ${titleItem.substring(2, titleItem.length() - 1)}
+                                    </c:if>
+                                </c:when>
+                                <c:when test="${titleItem.startsWith('M(')}">
+                                    <c:if test="${!titleStatus.first}"> - </c:if>
+                                    <c:forEach items="${titleItem.substring(2, titleItem.length() - 1).split(',')}" var="titleItemItem" varStatus="titleItemStatus">
+                                        <c:set var="titleItemMessageArguments" value=""/>
+                                        <c:choose>
+                                            <c:when test="${titleItemStatus.first}">
+                                                <c:set var="titleItemMessage" value="${titleItemItem}"/>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:set var="titleItemMessageArguments" value="${titleItemMessageArguments}${titleItemItem},"/>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                    <spring:message code="${titleItemMessage}" arguments="${titleItemMessageArguments}"/>
+                                </c:when>
+                                <c:otherwise>
                                     <c:if test="${!titleStatus.first}"> - </c:if>
                                     <spring:message code="${titleItem}"/>
-                                </c:when>
-                                <c:when test="${titleItem.length() > 3}">
-                                    <c:if test="${!titleStatus.first}"> - </c:if>
-                                    ${titleItem.substring(2, titleItem.length() - 1)}
-                                </c:when>
+                                </c:otherwise>
                             </c:choose>
                         </c:if>
                     </c:forEach>

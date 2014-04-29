@@ -6,6 +6,8 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
+<c:set var="tabIndex" value="1"/>
+
 <script type="text/javascript">
     var module = angular.module('jsp:wizardModifyExtend', ['ngApplication', 'ngDateTime']);
 
@@ -58,7 +60,7 @@
             <spring:message code="views.reservationRequest.identifier"/>:
         </form:label>
         <div class="controls double-width">
-            <form:input path="id" readonly="true" tabindex="${tabIndex}"/>
+            <form:input path="id" readonly="true"/>
         </div>
     </div>
 
@@ -67,14 +69,14 @@
             <spring:message code="views.reservationRequest.specification.roomParticipantCount.old"/>:
         </form:label>
         <div class="controls">
-            <form:input path="original.roomParticipantCount" cssErrorClass="error" tabindex="${tabIndex}" readonly="true"/>
+            <form:input path="original.roomParticipantCount" cssErrorClass="error" readonly="true"/>
         </div>
     </div>
 
     <div class="control-group">
         <div class="controls">
             <c:forEach var="participantCount" items="1,2,3,4,5,6,7,8,9,10">
-                <a class="btn btn-info participantCount participantCount${participantCount}" href="javascript: enlargeReservationRequest(${participantCount});">+${participantCount}</a>
+                <a class="btn btn-info participantCount participantCount${participantCount}" href="javascript: enlargeReservationRequest(${participantCount});" tabindex="${tabIndex}">+${participantCount}</a>
             </c:forEach>
         </div>
     </div>

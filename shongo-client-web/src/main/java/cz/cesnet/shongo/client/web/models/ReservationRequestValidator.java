@@ -133,7 +133,7 @@ public class ReservationRequestValidator implements Validator
             }
         }
 
-        String slotField = (SpecificationType.PERMANENT_ROOM.equals(specificationType) ? "end" : "start");
+        String slotField = (reservationRequestModel.getEnd() != null ? "end" : "start");
         try {
             Interval interval = reservationRequestModel.getSlot();
             if (interval.getEnd().isBefore(DateTime.now())) {
@@ -182,14 +182,18 @@ public class ReservationRequestValidator implements Validator
                     errors.rejectValue(
                             "start", "validation.field.permanentRoomNotAvailable");
                 }
-                else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded ||
-                        userError instanceof AllocationStateReport.RecordingRoomCapacityExceed) {
+                else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded
+                        || userError instanceof AllocationStateReport.RecordingRoomCapacityExceed
+                        || (userError instanceof AllocationStateReport.ResourceNotFound &&
+                                    AllocationStateReport.ResourceNotFound.Type.RECORDING.equals(
+                                            ((AllocationStateReport.ResourceNotFound) userError).getType()))) {
                     errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
                 }
                 else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
                     errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
                 }
-                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
+                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded ||
+                        userError instanceof AllocationStateReport.MaximumDurationExceeded) {
                     errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
                 }
                 else {

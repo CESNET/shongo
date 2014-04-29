@@ -838,7 +838,13 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
         switch (specificationType) {
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
-                int minutes = duration.toStandardMinutes().getMinutes();
+                int minutes;
+                try {
+                    minutes = duration.toStandardMinutes().getMinutes();
+                }
+                catch (UnsupportedOperationException exception) {
+                    throw new UnsupportedApiException(duration.toString(), exception);
+                }
                 if ((minutes % (60 * 24)) == 0) {
                     durationCount = minutes / (60 * 24);
                     durationType = DurationType.DAY;

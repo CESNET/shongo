@@ -47,7 +47,14 @@ public class ClientWebHandlerExceptionResolver implements HandlerExceptionResolv
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         Throwable cause = exception;
         while (cause != null) {
-            if (exception instanceof ControllerConnectException) {
+            if (exception instanceof UserMessageException) {
+                UserMessageException userMessageException = (UserMessageException) exception;
+                ModelAndView modelAndView = new ModelAndView("userMessage");
+                modelAndView.addObject("titleCode", userMessageException.getTitleCode());
+                modelAndView.addObject("messageCode", userMessageException.getMessageCode());
+                return modelAndView;
+            }
+            else if (exception instanceof ControllerConnectException) {
                 return new ModelAndView("errorControllerNotAvailable");
             }
             else if (exception instanceof ControllerReportSet.SecurityNotAuthorizedException) {

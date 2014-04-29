@@ -77,6 +77,24 @@ public class WizardPage extends NavigationPage
     }
 
     /**
+     * @return {@link #titleArguments} as string
+     */
+    public String getTitleArgumentsAsString()
+    {
+        if (this.titleArguments == null) {
+            return "";
+        }
+        StringBuilder titleArguments = new StringBuilder();
+        for (Object titleArgument : this.titleArguments) {
+            if (titleArguments.length() > 0) {
+                titleArguments.append(",");
+            }
+            titleArguments.append(titleArgument);
+        }
+        return titleArguments.toString();
+    }
+
+    /**
      * @return {@link #titleDescription}
      */
     public String getTitleDescription()
