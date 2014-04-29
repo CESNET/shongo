@@ -5,10 +5,10 @@
 
 <tiles-definitions>
 
-    <definition name="layout" template="/WEB-INF/views/layout.jsp">
+    <definition name="layout" template="/WEB-INF/views/layout.jsp" preparer="cz.cesnet.shongo.client.web.LayoutViewPreparer">
         <put-attribute name="title" value=""/>
         <put-attribute name="heading" value="title"/>
-        <put-attribute name="body" value=""/>
+        <put-attribute name="content" value=""/>
         <put-list-attribute name="css">
             <add-attribute value="jquery-qtip.min.css"/>
             <add-attribute value="bootstrap.min.css"/>
@@ -58,74 +58,74 @@
 
     <definition name="development" extends="layout">
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/development.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/development.jsp" type="template"/>
     </definition>
 
     <definition name="help" extends="layout">
         <put-attribute name="title" value="views.help.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/help.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/help.jsp" type="template"/>
     </definition>
 
     <definition name="error" extends="layoutAngular">
         <put-attribute name="title" value="views.error.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/error.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/error.jsp" type="template"/>
     </definition>
 
     <definition name="errorNotFound" extends="layout">
         <put-attribute name="title" value="views.errorNotFound.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/errorNotFound.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorNotFound.jsp" type="template"/>
     </definition>
 
     <definition name="errorControllerNotAvailable" extends="layout">
         <put-attribute name="title" value="views.errorControllerNotAvailable.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/errorControllerNotAvailable.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorControllerNotAvailable.jsp" type="template"/>
     </definition>
 
     <definition name="errorRoomNotAvailable" extends="layout">
         <put-attribute name="title" value="views.errorRoomNotAvailable.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/errorRoomNotAvailable.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorRoomNotAvailable.jsp" type="template"/>
     </definition>
 
     <definition name="errorObjectInaccessible" extends="layout">
         <put-attribute name="title" value="views.errorObjectInaccessible.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/errorObjectInaccessible.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorObjectInaccessible.jsp" type="template"/>
     </definition>
 
     <definition name="report" extends="layoutAngular">
         <put-attribute name="title" value="views.report.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/report.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/report.jsp" type="template"/>
     </definition>
 
     <definition name="userSettings" extends="layoutAngularForm">
         <put-attribute name="title" value="views.userSettings.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/userSettings.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/userSettings.jsp" type="template"/>
     </definition>
 
     <definition name="indexAnonymous" extends="layout">
         <put-attribute name="title" value="views.index.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
     <definition name="indexAuthenticated" extends="layoutAngular">
         <put-attribute name="title" value="views.index.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
 
     <definition name="changelog" extends="layout">
         <put-attribute name="title" value="views.changelog.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/changelog.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/changelog.jsp" type="template"/>
     </definition>
 
     <definition name="userMessage" extends="layout">
         <put-attribute name="title" expression="${titleCode}"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/userMessage.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/userMessage.jsp" type="template"/>
     </definition>
 
     <definition name="wizard" extends="layoutAngularForm">
-        <put-attribute name="body" value="wizardBody" type="definition"/>
+        <put-attribute name="content" value="wizardBody" type="definition"/>
         <put-attribute name="heading" value=""/>
         <put-list-attribute name="title">
             <add-attribute value="views.wizard.title"/>
@@ -144,11 +144,11 @@
 
     <definition name="reservationRequestList" extends="layoutAngular">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
     </definition>
 
     <definition name="reservationRequestDelete" extends="layout">
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
         <put-list-attribute name="title">
             <add-attribute expression="T(${titleDescription})"/>
         </put-list-attribute>
@@ -156,7 +156,7 @@
 
     <definition name="detail" extends="layoutAngularForm">
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/detail.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/detail.jsp" type="template"/>
         <put-list-attribute name="title">
             <add-attribute value="views.detail.title"/>
             <add-attribute expression="T(${titleDescription})"/>
@@ -165,24 +165,24 @@
 
     <definition name="userRole" extends="layoutAngularForm">
         <put-attribute name="title" value="views.userRole.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/userRole.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/userRole.jsp" type="template"/>
     </definition>
 
     <definition name="roomList" extends="layoutAngular">
         <put-attribute name="title" value="views.roomList.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/roomList.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/roomList.jsp" type="template"/>
     </definition>
 
     <definition name="participant" extends="layoutAngularForm">
         <put-attribute name="title" value="views.participant.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/participant.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/participant.jsp" type="template"/>
     </definition>
 
     <definition name="resourceReservations" extends="layoutAngularForm">
         <put-attribute name="title" value="views.resourceReservations.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/resourceReservations.jsp" type="template"/>
+        <put-attribute name="content" value="/WEB-INF/views/resourceReservations.jsp" type="template"/>
     </definition>
 
 </tiles-definitions>

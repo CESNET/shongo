@@ -175,8 +175,8 @@ public class ErrorController
      * Handle error not found.
      */
     @RequestMapping("/error-not-found")
-    public String handleErrorNotFound()
-    {
+    public String handleErrorNotFound(HttpServletRequest request)
+    {      logger.error(request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI).toString());
         return "errorNotFound";
     }
 

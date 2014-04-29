@@ -25,14 +25,14 @@
     </mvc:annotation-driven>
 
     <!-- Web site resources -->
+    <mvc:resources mapping="/design/**" location="#{design.resourcesFolder}/"/>
     <mvc:resources mapping="/css/**" location="/css/"/>
     <mvc:resources mapping="/font/**" location="/font/"/>
     <mvc:resources mapping="/img/**" location="/img/"/>
-    <mvc:resources mapping="/img/ui/**" location="/img/ui/"/>
     <mvc:resources mapping="/js/**" location="/js/"/>
 
     <!-- Configure view resolver for Apache Tiles -->
-    <bean id="tilesViewResolver" class="cz.cesnet.shongo.client.web.support.tiles.TilesViewResolver">
+    <bean class="cz.cesnet.shongo.client.web.support.tiles.TilesViewResolver">
         <property name="order" value="1" />
         <property name="viewClass" value="cz.cesnet.shongo.client.web.support.tiles.TilesView"/>
         <property name="requestContextAttribute" value="requestContext"/>
@@ -44,7 +44,7 @@
     </bean>
 
     <!-- Configure view resolver for JSP -->
-    <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="order" value="2" />
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
         <property name="prefix" value="/WEB-INF/views/"/>
@@ -55,6 +55,16 @@
                 <value>configuration</value>
             </list>
         </property>
+    </bean>
+
+    <!-- Configure view resolver for design layout.jsp -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="order" value="3" />
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="prefix" value="#{design.resourcesFolder}/"/>
+        <property name="viewNames" value="layout"/>
+        <property name="suffix" value=".jsp"/>
+        <property name="requestContextAttribute" value="requestContext"/>
     </bean>
 
     <!-- Configure Apache Tiles -->

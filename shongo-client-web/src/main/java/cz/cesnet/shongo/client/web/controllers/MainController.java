@@ -2,11 +2,14 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Changelog;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.Design;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.annotation.Resource;
 
 /**
  * Controller for other views and resources.
@@ -23,7 +26,8 @@ public class MainController
     @IgnoreDateTimeZone
     public String handleShongoIcon()
     {
-        return "forward:/img/shongo.ico";
+
+        return "forward:/design/img/favicon.ico";
     }
 
     /**
@@ -33,7 +37,7 @@ public class MainController
     @IgnoreDateTimeZone
     public String handleShongoPng()
     {
-        return "forward:/img/shongo.png";
+        return "forward:/design/img/apple-touch-icon.png";
     }
 
     /**

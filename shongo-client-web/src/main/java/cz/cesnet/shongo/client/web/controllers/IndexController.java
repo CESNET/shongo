@@ -74,9 +74,19 @@ public class IndexController
     }
 
     /**
+     * Handle only layout view.
+     */
+    @RequestMapping(value = "/layout", method = RequestMethod.GET)
+    @IgnoreDateTimeZone
+    public String handleLayoutView()
+    {
+        return "development";
+    }
+
+    /**
      * Handle development view.
      */
-    @RequestMapping(value = "development", method = RequestMethod.GET)
+    @RequestMapping(value = "/development", method = RequestMethod.GET)
     public String handleDevelopmentView()
     {
         return "development";

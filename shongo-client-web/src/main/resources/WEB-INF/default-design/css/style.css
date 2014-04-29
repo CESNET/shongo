@@ -1,0 +1,24 @@
+/**
+ * Default design for shongo-client-web.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+
+/* page layout (based on http://ryanfait.com/resources/footer-stick-to-bottom-of-page/)*/
+html, body   {
+    height: 100%;
+}
+#wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -110px;
+}
+#footer, .push {
+    height: 110px;
+}
+
+/* page footer */
+#footer {
+    text-align: center;
+}

@@ -16,6 +16,11 @@
     <bean id="configuration" class="cz.cesnet.shongo.client.web.ClientWebConfiguration" factory-method="getInstance">
     </bean>
 
+    <!-- Application design -->
+    <bean id="design" class="cz.cesnet.shongo.client.web.Design">
+        <constructor-arg ref="configuration"/>
+    </bean>
+
     <bean id="controllerClient" class="cz.cesnet.shongo.controller.ControllerClient">
         <constructor-arg>
             <bean factory-bean="configuration" factory-method="getControllerUrl"/>

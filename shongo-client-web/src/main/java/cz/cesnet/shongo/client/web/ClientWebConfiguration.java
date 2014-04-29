@@ -293,4 +293,22 @@ public class ClientWebConfiguration extends CombinedConfiguration
     {
         return getString("smtp.password");
     }
+
+    /**
+     * @return url to folder with design files (not ending with "/")
+     */
+    public String getDesignUrl()
+    {
+        String design = getString("design");
+        if (design == null || design.equals("(default)")) {
+            design = "/WEB-INF/default-design";
+        }
+        else {
+            design = "file:" + design;
+        }
+        while (design.endsWith("/")) {
+            design = design.substring(0, design.length() - 1);
+        }
+        return design;
+    }
 }

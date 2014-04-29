@@ -574,7 +574,7 @@
 
     </fieldset>
 
-    <jsp:doBody var="body"/>
+    <jsp:doBody var="content"/>
 
     <c:if test="${not empty confirmTitle || cancelUrl != null}">
         <c:set var="buttons">
@@ -592,8 +592,8 @@
     </c:if>
 
     <c:choose>
-        <c:when test="${not empty body}">
-            <div class="table-actions-left">${body}</div>
+        <c:when test="${not empty content}">
+            <div class="table-actions-left">${content}</div>
             <div class="table-actions pull-right">${buttons}</div>
         </c:when>
         <c:otherwise>

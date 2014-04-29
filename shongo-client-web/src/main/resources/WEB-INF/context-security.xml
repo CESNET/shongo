@@ -12,6 +12,7 @@
     <security:http pattern="/font/**" security="none"/>
     <security:http pattern="/img/**" security="none"/>
     <security:http pattern="/js/**" security="none"/>
+    <security:http pattern="/design/**" security="none"/>
 
     <!-- Configure security for OpenID Connect -->
     <!-- Based on https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server/tree/master/openid-connect-client -->
@@ -22,6 +23,7 @@
 
         <!--Following pages don't need login -->
         <security:intercept-url pattern="/" access="permitAll()"/>
+        <security:intercept-url pattern="/layout" access="permitAll()"/>
         <security:intercept-url pattern="/development" access="permitAll()"/>
         <security:intercept-url pattern="/help" access="permitAll()"/>
         <security:intercept-url pattern="/changelog" access="permitAll()"/>

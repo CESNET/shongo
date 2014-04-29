@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
@@ -16,8 +18,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,6 +195,13 @@ public class ClientWeb
             server.setHandler(webAppContext);
             server.start();
             logger.info("ClientWeb successfully started.");
+
+            // Request layout page to initialize
+            Connector serverConnector = server.getConnectors()[0];
+            String serverHost = serverConnector.getHost();
+            String serverUrl = String.format("http://%s:%d", (serverHost != null ? serverHost : "localhost"), serverConnector.getLocalPort());
+            URLConnection serverConnection = new URL(serverUrl + "/layout").openConnection();
+            serverConnection.getInputStream();
 
             // Configure shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(shutdown));
