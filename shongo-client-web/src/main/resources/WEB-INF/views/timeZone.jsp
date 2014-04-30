@@ -10,7 +10,7 @@
 <tag:url var="homeUrl" value="<%= ClientWebUrl.HOME %>"/>
 <html>
 <head>
-    <title>${name}</title>
+    <title>Shongo</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/application.css">
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.min.js"></script>

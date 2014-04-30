@@ -2,15 +2,6 @@
  ** STYLES FOR COMMON TAGS ********************************************************************************************
  **********************************************************************************************************************/
 
-/* Headings */
-h1 { font-size: 30px; line-height: 34px; }
-h2 { font-size: 24px; line-height: 34px; }
-h3 { font-size: 20px; line-height: 30px; }
-h4 { font-size: 16px; line-height: 20px; }
-h5 { font-size: 14px; line-height: 20px; }
-h6 { font-size: 12px; line-height: 20px; }
-p { font-size: 16px;}
-
 /* Pre-formatted code */
 pre {
     word-break: normal;
@@ -28,6 +19,12 @@ a.bordered {
 }
 a.bordered:hover {
     border: 1px solid;
+}
+
+/* Alerts */
+.alert {
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 /* Tables */
@@ -295,69 +292,6 @@ form div.actions>a {
 /**********************************************************************************************************************
  ** STYLES FOR CUSTOM TAGS ********************************************************************************************
  **********************************************************************************************************************/
-
-/* Layout - Navigation */
-.navbar .navbar-inner {
-    padding-left: 5px;
-    padding-right: 10px;
-}
-.navbar .nav>li>a {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-.navbar .main {
-    display: inline-block;
-    margin-bottom: -10px;
-}
-.navbar .brand {
-    margin-left: 10px;
-    margin-right: 10px;
-    padding-left: 0px;
-    padding-right: 0px;
-}
-.navbar .navbar-text {
-    margin-left: 5px;
-    margin-right: 5px;
-}
-.navbar .breadcrumb {
-    margin-bottom: 0px;
-    background: transparent;
-}
-/* Layout - Navigation - Collapse button */
-.navbar button.btn-navbar {
-    padding: 5px 10px;
-}
-.navbar button.btn-navbar div {
-    display: inline-block;
-}
-.navbar button.btn-navbar span {
-    color: #999999;
-    text-shadow: 2px -2px 0 #f5f5f5;
-}
-/* Layout - Navigation - Drop-down menu */
-.navbar .dropdown-menu>li>a {
-    padding-left: 25px;
-}
-.navbar .dropdown-menu>li>a>span {
-    margin-left: -18px;
-    padding-right: 4px;
-}
-/* Layout - Navigation - Timezone */
-.navbar .timezone {
-    font-weight: bold;
-}
-/* Layout - Navigation - Language */
-.navbar img.language {
-    border: solid 1px;
-    margin-top: -2px;
-    padding: 1px;
-    width: 16px;
-    height: 11px;
-}
-/** Layout - Navigation - Breadcrumb */
-.navbar .breadcrumb {
-    padding-right: 5px;
-}
 
 /* Date/Time */
 .date-time {
@@ -808,7 +742,7 @@ div.information-box .spinner {
 
 /* tags/reportForm.tag */
 .tagReportForm {
-    margin: 20px;
+    margin: 10px;
 }
 .tagReportForm textarea {
     height: 200px;

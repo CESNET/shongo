@@ -12,7 +12,7 @@ Each folder must contain:
 
 Each folder can contain:
 
-* <code>/img/favicon.ico</code> - icon for web browsers (@see favicon)
+* <code>/img/icon.ico</code> - icon for web browsers (@see favicon)
 * <code>/img/apple-touch-icon.png</code> - icon for apple touch (@see apple-touch-icon)
 
 In HTML layout file you may use the following syntax:
@@ -22,8 +22,11 @@ Variables:
 
 <pre>
 
-name
-version
+head
+title
+content
+
+app.version
 
 url.resources
 url.home
@@ -36,8 +39,8 @@ url.language.en
 url.user.login
 url.user.logout
 url.user.settings
-url.user.settings.advancedMode
-url.user.settings.administratorMode
+url.user.settingsAdvancedMode
+url.user.settingsAdministratorMode
 
 links[reservationRequest|roomList|user.settings|help]
 links[n].title
@@ -53,9 +56,9 @@ session.timezone.help
 
 user.id
 user.name
-user.settings.advancedMode
-user.settings.administratorMode
-user.settings.administratorModeAvailable
+user.advancedMode
+user.administratorMode
+user.administratorModeAvailable
 
 breadcrumbs[n]
 breadcrumbs[n].title
@@ -66,14 +69,15 @@ breadcrumbs[n].url
 Messages:
 
 <pre>
-design.menu
-design.report
-design.user.login
-design.user.logout
-design.user.administrator
-design.user.settings
-design.user.settings.advancedMode
-design.user.settings.administratorMode
+app.name
+menu
+report
+user.login
+user.logout
+user.administrator
+user.settings
+user.settingsAdvancedMode
+user.settingsAdministratorMode
 </pre>
 
 

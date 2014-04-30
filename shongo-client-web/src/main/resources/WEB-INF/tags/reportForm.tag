@@ -66,7 +66,7 @@
                 <div class="controls">
                     <spring:message code="views.button.send" var="submitTitle"/>
                     <input class="btn btn-primary" type="submit" value="${submitTitle}" tabindex="${tabIndex}"/>
-                    <a  class="btn" href="${backUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
+                    <a  class="btn btn-default" href="${backUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
                 </div>
             </div>
 

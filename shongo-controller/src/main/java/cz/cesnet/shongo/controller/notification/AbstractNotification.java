@@ -309,7 +309,7 @@ public abstract class AbstractNotification
         }
 
         /**
-         * @return {@link Locale#language}
+         * @return {@link #getLocale()#getLanguage()}
          */
         public final String getLanguage()
         {

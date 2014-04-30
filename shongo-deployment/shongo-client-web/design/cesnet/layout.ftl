@@ -3,24 +3,28 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    ${param.head}
+    ${head}
 </head>
 <body>
 
-<!-- CESNET's linker: start -->
-<div id="cesnet_linker_placeholder"
-     data-login-href="/login"
-     data-lang="en"
-     data-lang-cs-href="?lang=cs"
-     data-lang-en-href="?lang=en">
-</div>
-<!-- CESNET's linker: end -->
-
 <!-- Content wrapper: begin -->
 <div id="wrapper">
-    <div id="content_placeholder">
-        ${param.content}
+
+    <!-- CESNET's linker: start -->
+    <div id="cesnet_linker_placeholder"
+         <#if !user??>data-login-href="/login"</#if>
+         data-lang="en"
+         data-lang-cs-href="?lang=cs"
+         data-lang-en-href="?lang=en">
     </div>
+    <!-- CESNET's linker: end -->
+
+    <!-- Content placeholder: begin -->
+    <div id="content_placeholder" class="container">
+        ${content}
+    </div>
+    <!-- Content placeholder: end -->
+
     <div class="push"></div>
 </div>
 <!-- Content wrapper: end -->
@@ -32,7 +36,7 @@
             <div class="row">
                 <div class="col col-md-3">
                     <div class="logo-wrapper">
-                        <img src="/img/logo-cesnet.png" class="img-responsive" alt="cesnet logo">
+                        <img src="${url.resources}/img/logo-cesnet.png" class="img-responsive" alt="cesnet logo">
                     </div>
                 </div>
                 <div class="col-lg-7 col-lg-push-2 col-md-push-1 col-md-8">
@@ -76,7 +80,8 @@
 <!-- CESNET's footer: end -->
 
 <!-- CESNET's linker (JS): start -->
-<script type="text/javascript" async src="https://linker.cesnet.cz/linker.js"></script>
+<!-- <script type="text/javascript" async src="https://linker.cesnet.cz/linker.js"></script>-->
+<script type="text/javascript" async src="https://shongo.cesnet.cz/linker-fix/linker-fixed.js"></script>
 <!-- CESNET's linker (JS): end -->
 
 </body>

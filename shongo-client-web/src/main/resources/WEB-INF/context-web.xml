@@ -57,16 +57,6 @@
         </property>
     </bean>
 
-    <!-- Configure view resolver for design layout.jsp -->
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="order" value="3" />
-        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
-        <property name="prefix" value="#{design.resourcesFolder}/"/>
-        <property name="viewNames" value="layout"/>
-        <property name="suffix" value=".jsp"/>
-        <property name="requestContextAttribute" value="requestContext"/>
-    </bean>
-
     <!-- Configure Apache Tiles -->
     <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
         <property name="definitions" value="/WEB-INF/tiles.xml"/>
@@ -101,6 +91,12 @@
 
         <!-- Reload messages for debugging
         <property name="cacheSeconds" value="5"/> -->
+    </bean>
+
+    <!-- Design -->
+    <bean id="design" class="cz.cesnet.shongo.client.web.Design">
+        <constructor-arg ref="configuration"/>
+        <property name="cacheTemplates" value="false"/>
     </bean>
 
 </beans>

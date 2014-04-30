@@ -24,14 +24,19 @@ public class ClientWebConfiguration extends CombinedConfiguration
     private static ClientWebConfiguration clientWebConfiguration;
 
     /**
+     * Base path for default design folder.
+     */
+    private String defaultDesignFolderBasePath = "";
+
+    /**
      * Controller url.
      */
     private URL controllerUrl;
 
     /**
-     * Application name by language code.
+     * Application parameters.
      */
-    private Map<String, String> nameByLanguage;
+    private Map<String, String> parameters;
 
     /**
      * @return {@link #clientWebConfiguration}
@@ -76,34 +81,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
-     * @param language
-     * @return application name for given {@code language}
+     * @param defaultDesignFolderBasePath sets the {@link #defaultDesignFolderBasePath}
      */
-    public String getName(String language)
+    public void setDefaultDesignFolderBasePath(String defaultDesignFolderBasePath)
     {
-        if (nameByLanguage == null) {
-            // Load names by languages
-            nameByLanguage = new HashMap<String, String>();
-            for (HierarchicalConfiguration nameConfiguration : configurationsAt("name")) {
-                nameConfiguration.getRoot();
-                Node nameNode = nameConfiguration.getRoot();
-                String nameLanguage = null;
-                String nameValue = (String) nameNode.getValue();
-                List<ConfigurationNode> attributeNodes = nameNode.getAttributes("language");
-                if (attributeNodes.size() > 0) {
-                    ConfigurationNode attributeNode = attributeNodes.get(0);
-                    nameLanguage = (String) attributeNode.getValue();
-                }
-                if (!nameByLanguage.containsKey(nameLanguage)) {
-                    nameByLanguage.put(nameLanguage, nameValue);
-                }
-            }
-        }
-        String name = nameByLanguage.get(language);
-        if (name == null) {
-            name = nameByLanguage.get(null);
-        }
-        return name;
+        this.defaultDesignFolderBasePath = defaultDesignFolderBasePath;
     }
 
     /**
@@ -297,11 +279,11 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return url to folder with design files (not ending with "/")
      */
-    public String getDesignUrl()
+    public String getDesignFolder()
     {
         String design = getString("design");
         if (design == null || design.equals("(default)")) {
-            design = "/WEB-INF/default-design";
+            design = defaultDesignFolderBasePath + "/WEB-INF/default-design";
         }
         else {
             design = "file:" + design;

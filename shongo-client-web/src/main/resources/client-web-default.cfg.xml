@@ -44,16 +44,11 @@
     <!-- Design source -->
     <design>(default)</design>
 
+    <!-- Contact email -->
+    <suggestion-email>vidcon@cesnet.cz</suggestion-email>
+
     <!-- Parameters -->
     <parameters>
-
-        <!-- Application name -->
-        <name>Reservation system (BETA)</name>
-        <name language="cs">Rezervační systém (BETA)</name>
-
-        <!-- Contact email -->
-        <suggestion-email>vidcon@cesnet.cz</suggestion-email>
-
     </parameters>
 
 </configuration>

@@ -22,20 +22,20 @@ public class MainController
     /**
      * Handle shongo ICO image.
      */
-    @RequestMapping("**/favicon.ico")
+    @RequestMapping("/favicon.ico")
     @IgnoreDateTimeZone
-    public String handleShongoIcon()
+    public String handleIcon()
     {
 
-        return "forward:/design/img/favicon.ico";
+        return "forward:/design/img/icon.ico";
     }
 
     /**
      * Handle shongo PNG image.
      */
-    @RequestMapping("**/apple-touch-icon*.png")
+    @RequestMapping("/apple-touch-icon*.png")
     @IgnoreDateTimeZone
-    public String handleShongoPng()
+    public String handleAppleTouchIcon()
     {
         return "forward:/design/img/apple-touch-icon.png";
     }

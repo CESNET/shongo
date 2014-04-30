@@ -104,7 +104,6 @@ public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 
             // Render view for resolving timezone
             InternalResourceView view = new InternalResourceView("/WEB-INF/views/timeZone.jsp");
-            view.addStaticAttribute("name", ClientWebConfiguration.getInstance().getName(response.getLocale().getLanguage()));
             view.render(null, request, response);
             return false;
         }

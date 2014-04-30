@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web;
 
-import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
@@ -17,15 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.jar.Manifest;
 
 /**
@@ -37,8 +33,35 @@ public class ClientWeb
 {
     private static Logger logger = LoggerFactory.getLogger(ClientWeb.class);
 
+    /**
+     * @return version of the {@link Connector}
+     */
+    public static String getVersion()
+    {
+        String filename = "version.properties";
+        Properties properties = new Properties();
+        InputStream inputStream = ClientWeb.class.getClassLoader().getResourceAsStream(filename);
+        if (inputStream == null) {
+            throw new RuntimeException("Properties file '" + filename + "' was not found in the classpath.");
+        }
+        try {
+            properties.load(inputStream);
+        }
+        catch (IOException exception) {
+            throw new RuntimeException(exception);
+        }
+        return properties.getProperty("version");
+    }
+
+    /**
+     * Main method of web interface.
+     *
+     * @param arguments
+     */
     public static void main(final String[] arguments) throws Exception
     {
+        logger.info("ClientWeb {}", getVersion());
+
         Locale.setDefault(UserSettings.LOCALE_ENGLISH);
 
         // Create options
@@ -111,14 +134,19 @@ public class ClientWeb
             }
         }
 
+        final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
+        final Server server = new Server();
+
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath("/");
         webAppContext.setParentLoaderPriority(true);
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
-            logger.info("Using '{}' as resource base.", arguments[0]);
+            String resourceBase = arguments[0];
+            logger.info("Using '{}' as resource base.", resourceBase);
             webAppContext.setResourceBase(arguments[0]);
+            clientWebConfiguration.setDefaultDesignFolderBasePath("file:" + resourceBase);
         }
         else {
             URL resourceBaseUrl = ClientWeb.class.getClassLoader().getResource("WEB-INF");
@@ -128,9 +156,6 @@ public class ClientWeb
             String resourceBase = resourceBaseUrl.toExternalForm().replace("/WEB-INF", "/");
             webAppContext.setResourceBase(resourceBase);
         }
-
-        final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
-        final Server server = new Server();
 
         URL controllerUrl = clientWebConfiguration.getControllerUrl();
         if (controllerUrl.getProtocol().equals("https")) {
@@ -197,11 +222,14 @@ public class ClientWeb
             logger.info("ClientWeb successfully started.");
 
             // Request layout page to initialize
+            logger.info("Initializing layout...");
             Connector serverConnector = server.getConnectors()[0];
             String serverHost = serverConnector.getHost();
-            String serverUrl = String.format("http://%s:%d", (serverHost != null ? serverHost : "localhost"), serverConnector.getLocalPort());
+            String serverUrl = String.format("http://%s:%d%s", (serverHost != null ? serverHost : "localhost"),
+                    serverConnector.getLocalPort(), webAppContext.getContextPath());
             URLConnection serverConnection = new URL(serverUrl + "/layout").openConnection();
             serverConnection.getInputStream();
+            logger.info("Layout successfully initialized.");
 
             // Configure shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(shutdown));
