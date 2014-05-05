@@ -183,6 +183,9 @@ public class Cache
      */
     public synchronized UserInformation getUserInformation(SecurityToken securityToken, String userId)
     {
+        if (userId == null) {
+            return null;
+        }
         UserInformation userInformation = userInformationByUserId.get(userId);
         if (userInformation == null) {
             try {

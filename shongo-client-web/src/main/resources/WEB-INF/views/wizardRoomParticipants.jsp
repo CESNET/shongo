@@ -36,31 +36,32 @@
     <c:choose>
         <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
             <form:form class="form-horizontal" commandName="reservationRequest" method="post">
-                <fieldset>
-                    <legend>
-                        <spring:message code="views.wizard.room.participants.notification"/>
-                        <form:checkbox id="roomParticipantNotificationEnabled" path="roomParticipantNotificationEnabled" tabindex="${tabIndex}" ng-model="roomParticipantNotificationEnabled"/>
-                        <tag:help><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/></tag:help>
-                    </legend>
-                    <div class="control-group">
-                        <form:label class="control-label" path="roomMeetingName">
-                            <spring:message code="views.reservationRequest.specification.roomMeetingName"/>:
-                        </form:label>
-                        <div class="controls">
-                            <form:input path="roomMeetingName" cssErrorClass="error" tabindex="${tabIndex}" ng-disabled="!roomParticipantNotificationEnabled"/>
-                            <form:errors path="roomMeetingName" cssClass="error"/>
-                        </div>
+                <legend>
+                    <spring:message code="views.wizard.room.participants.notification"/>&nbsp;<form:checkbox id="roomParticipantNotificationEnabled" path="roomParticipantNotificationEnabled" tabindex="${tabIndex}" ng-model="roomParticipantNotificationEnabled"/>
+                    <tag:help><spring:message code="views.reservationRequest.specification.roomParticipantNotificationEnabled.help"/></tag:help>
+                </legend>
+                <div class="form-group">
+                    <form:label class="col-xs-2 control-label" path="roomMeetingName">
+                        <spring:message code="views.reservationRequest.specification.roomMeetingName"/>:
+                    </form:label>
+                    <div class="col-xs-4">
+                        <form:input cssClass="form-control" cssErrorClass="form-control error"
+                                    path="roomMeetingName" tabindex="${tabIndex}"
+                                    ng-disabled="!roomParticipantNotificationEnabled"/>
+                        <form:errors path="roomMeetingName" cssClass="error"/>
                     </div>
-                    <div class="control-group">
-                        <form:label class="control-label" path="roomMeetingDescription">
-                            <spring:message code="views.reservationRequest.specification.roomMeetingDescription"/>:
-                        </form:label>
-                        <div class="controls double-width">
-                            <form:textarea path="roomMeetingDescription" rows="3" cssErrorClass="error" tabindex="${tabIndex}" ng-disabled="!roomParticipantNotificationEnabled"/>
-                            <form:errors path="roomMeetingDescription" cssClass="error"/>
-                        </div>
+                </div>
+                <div class="form-group">
+                    <form:label class="col-xs-2 control-label" path="roomMeetingDescription">
+                        <spring:message code="views.reservationRequest.specification.roomMeetingDescription"/>:
+                    </form:label>
+                    <div class="col-xs-6">
+                        <form:textarea cssClass="form-control" cssErrorClass="form-control error"
+                                       path="roomMeetingDescription" rows="3"
+                                       tabindex="${tabIndex}" ng-disabled="!roomParticipantNotificationEnabled"/>
+                        <form:errors path="roomMeetingDescription" cssClass="error"/>
                     </div>
-                </fieldset>
+                </div>
             </form:form>
         </c:when>
         <c:otherwise>

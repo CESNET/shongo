@@ -178,7 +178,7 @@ dl.dl-horizontal .alert {
 }
 
 /* Form */
-legend {
+/*legend {
     margin-bottom: 10px;
 }
 legend input[type="radio"], legend input[type="checkbox"] {
@@ -232,8 +232,20 @@ form .control-label input[type="radio"], form .control-label input[type="checkbo
 form .controls div label.radio.inline, form .controls div label.checkbox.inline {
     line-height: 20px;
 }
+form div.actions {
+    border: none;
+    background: none;
+    text-align: left;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    padding: 0px;
+}
+form div.actions>a {
+    float: none;
+}
+*/
 /* Form - double width input */
-form .double-width>input {
+/*form .double-width>input {
     width: 346px;
 }
 form .double-width>textarea {
@@ -242,8 +254,12 @@ form .double-width>textarea {
 form .double-width>select,
 form .double-width div.select2-container {
     width: 360px;
+}*/
+/* Form - common settings */
+textarea {
+    resize:none;
 }
-/* Form - reCaptcha*/
+/* Form - reCaptcha */
 iframe[src="about:blank"] {
     display: block;
 }
@@ -260,41 +276,26 @@ form .recaptcha input {
 form .recaptcha.error table {
     border-color: #b94a48 !important;
 }
-/* Form - Errors */
-form input.error {
+/* Errors */
+input.error, select.error, textarea.error, .select2-container.form-control.error a {
     border: solid 1px #b94a48;
     background-color: #FFF0F0;
 }
-form select.error {
-    border: solid 1px #b94a48;
-    background-color: #FFF0F0;
-}
-form textarea.error {
-    border: solid 1px #b94a48;
-    background-color: #FFF0F0;
-}
-form span.error {
+span.error, div.error {
     color: #b94a48;
     font-weight: bold;
-    margin: 0px 0px 0px 8px;
+    /*margin: 0px 0px 0px 8px;
     padding: 5px 0px;
     vertical-align: top;
-    display: inline-block;
+    display: inline-block;*/
 }
-div span.error {
-    color: #b94a48;
-    font-weight: bold;
+
+.form-group .input-group-addon input[type=checkbox] {
+    margin-left: 0px;
 }
-form div.actions {
-    border: none;
-    background: none;
-    text-align: left;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding: 0px;
-}
-form div.actions>a {
-    float: none;
+.form-group .checkbox-inline {
+    padding-top: 0px;
+
 }
 
 

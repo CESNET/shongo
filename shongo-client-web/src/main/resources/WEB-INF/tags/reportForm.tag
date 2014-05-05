@@ -18,31 +18,30 @@
 <p><spring:message code="views.report.help"/></p>
 <div class="tagReportForm" ng-app="tag:reportForm">
     <form:form class="form-horizontal" commandName="report" action="${submitUrl}" method="post">
-        <fieldset>
 
-            <div class="control-group">
-                <form:label class="control-label" path="email">
+            <div class="form-group">
+                <form:label class="col-xs-2 control-label" path="email">
                     <spring:message code="views.report.email"/>:
                 </form:label>
-                <div class="controls double-width">
-                    <form:input path="email" value="${email}" readonly="${report.emailReadOnly}" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <div class="col-xs-4">
+                    <form:input cssClass="form-control" cssErrorClass="form-control error" path="email" value="${email}" readonly="${report.emailReadOnly}" tabindex="${tabIndex}"/>
                     <form:errors path="email" cssClass="error"/>
                 </div>
             </div>
 
-            <div class="control-group">
-                <form:label class="control-label" path="message">
+            <div class="form-group">
+                <form:label class="col-xs-2 control-label" path="message">
                     <spring:message code="views.report.message"/>:
                 </form:label>
-                <div class="controls double-width">
-                    <form:textarea path="message" cssErrorClass="error" tabindex="${tabIndex}"/>
+                <div class="col-xs-6">
+                    <form:textarea cssClass="form-control" cssErrorClass="form-control error" path="message" tabindex="${tabIndex}"/>
                     <form:errors path="message" cssClass="error"/>
                 </div>
             </div>
 
             <c:if test="${report.reCaptcha != null}">
-                <div class="control-group">
-                    <div class="controls">
+                <div class="form-group">
+                    <div class="col-xs-offset-2 col-xs-4">
                         <spring:hasBindErrors htmlEscape="true" name="report">
                             <c:if test="${errors.hasFieldErrors('reCaptcha')}">
                                 <c:set var="reCaptchaClass" value="error"/>
@@ -62,16 +61,16 @@
                 </div>
             </c:if>
 
-            <div class="control-group">
-                <div class="controls">
+            <div class="form-group">
+                <div class="col-xs-offset-2 col-xs-4">
                     <spring:message code="views.button.send" var="submitTitle"/>
                     <input class="btn btn-primary" type="submit" value="${submitTitle}" tabindex="${tabIndex}"/>
                     <a  class="btn btn-default" href="${backUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
                 </div>
             </div>
 
-            <div class="control-group">
-                <div class="controls">
+            <div class="form-group">
+                <div class="col-xs-offset-2 col-xs-10">
                     <tag:expandableBlock name="report" cssClass="context" expandCode="views.report.showContext" collapseCode="views.report.hideContext">
                         <pre>${report.context.toString(pageContext.request)}</pre>
                     </tag:expandableBlock>

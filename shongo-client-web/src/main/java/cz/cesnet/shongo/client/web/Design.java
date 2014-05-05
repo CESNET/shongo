@@ -325,15 +325,15 @@ public class Design
 
             public String userSettingsAdvancedMode(boolean advanceMode)
             {
-                return baseUrl + ClientWebUrl.format(ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "userInterface",
+                return baseUrl + applyBackUrl(ClientWebUrl.format(ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "userInterface",
                         (advanceMode ? UserSettingsModel.UserInterface.ADVANCED
-                                 : UserSettingsModel.UserInterface.BEGINNER));
+                                 : UserSettingsModel.UserInterface.BEGINNER)));
             }
 
             public String userSettingsAdministratorMode(boolean administratorMode)
             {
-                return baseUrl + ClientWebUrl.format(
-                        ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administratorMode", administratorMode);
+                return baseUrl + applyBackUrl(ClientWebUrl.format(
+                        ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administratorMode", administratorMode));
             }
 
             private String applyBackUrl(String url)

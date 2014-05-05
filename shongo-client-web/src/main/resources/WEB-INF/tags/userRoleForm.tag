@@ -155,76 +155,73 @@
            method="post"
            ng-controller="UserRoleFormController">
 
-    <fieldset>
 
-        <form:hidden path="id"/>
+    <form:hidden path="id"/>
 
-        <c:if test="${not empty userRole.objectId}">
-            <div class="control-group">
-                <form:label class="control-label" path="objectId">
-                    <spring:message code="views.userRole.objectType.${objectType}"/>:
-                </form:label>
-                <div class="controls double-width">
-                    <form:input path="objectId" readonly="true" tabindex="${tabIndex}"/>
-                </div>
-            </div>
-        </c:if>
-
-        <div class="control-group">
-            <form:label class="control-label" path="identityType">
-                <spring:message code="views.userRole.identityType"/>:
+    <c:if test="${not empty userRole.objectId}">
+        <div class="form-group">
+            <form:label class="col-xs-3 control-label" path="objectId">
+                <spring:message code="views.userRole.objectType.${objectType}"/>:
             </form:label>
-            <div class="controls">
-                <label class="radio inline" for="identityTypeUser">
-                    <form:radiobutton id="identityTypeUser" path="identityType" value="USER" ng-model="identityType"/>
-                    <span><spring:message code="views.userRole.identityType.USER"/></span>
-                </label>
-                <label class="radio inline" for="identityTypeGroup">
-                    <form:radiobutton id="identityTypeGroup" path="identityType" value="GROUP" ng-model="identityType"/>
-                    <span><spring:message code="views.userRole.identityType.GROUP"/></span>
-                </label>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" path="objectId" readonly="true" tabindex="${tabIndex}"/>
             </div>
         </div>
+    </c:if>
 
-        <div class="control-group">
-            <form:label class="control-label" path="identityPrincipalId">
-                <span ng-show="identityType == 'USER'"><spring:message code="views.userRole.user"/>:</span>
-                <span ng-show="identityType == 'GROUP'"><spring:message code="views.userRole.group"/>:</span>
-            </form:label>
-            <div class="controls double-width">
-                <form:input path="identityPrincipalId" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="identityPrincipalId" cssClass="error"/>
-                <div ng-show="groupDescription" style="margin-top: 5px;">
-                    <i><b><spring:message code="views.userRole.groupMembers"/>:</b> {{groupDescription}}</i>
-                </div>
+    <div class="form-group">
+        <form:label class="col-xs-3 control-label" path="identityType">
+            <spring:message code="views.userRole.identityType"/>:
+        </form:label>
+        <div class="col-xs-4">
+            <label class="radio inline" for="identityTypeUser">
+                <form:radiobutton id="identityTypeUser" path="identityType" value="USER" ng-model="identityType"/>
+                <span><spring:message code="views.userRole.identityType.USER"/></span>
+            </label>
+            <label class="radio inline" for="identityTypeGroup">
+                <form:radiobutton id="identityTypeGroup" path="identityType" value="GROUP" ng-model="identityType"/>
+                <span><spring:message code="views.userRole.identityType.GROUP"/></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <form:label class="col-xs-3 control-label" path="identityPrincipalId">
+            <span ng-show="identityType == 'USER'"><spring:message code="views.userRole.user"/>:</span>
+            <span ng-show="identityType == 'GROUP'"><spring:message code="views.userRole.group"/>:</span>
+        </form:label>
+        <div class="col-xs-4">
+            <form:input cssClass="form-control" cssErrorClass="form-control error" path="identityPrincipalId" tabindex="${tabIndex}"/>
+            <form:errors path="identityPrincipalId" cssClass="error"/>
+            <div ng-show="groupDescription" style="margin-top: 5px;">
+                <i><b><spring:message code="views.userRole.groupMembers"/>:</b> {{groupDescription}}</i>
             </div>
         </div>
+    </div>
 
-        <div class="control-group">
-            <spring:eval var="roles" expression="objectType.getOrderedRoles()"/>
-            <form:label class="control-label" path="role">
-                <spring:message code="views.userRole.objectRole" var="roleLabel"/>
-                <tag:help label="${roleLabel}:">
-                    <c:forEach items="${roles}" var="role">
-                        <strong><spring:message code="views.userRole.objectRole.${role}"/></strong>
-                        <p><spring:message code="views.userRole.objectRoleHelp.${role}"/></p>
-                    </c:forEach>
-                </tag:help>
-            </form:label>
-            <div class="controls">
-                <form:select path="role" tabindex="${tabIndex}">
-                    <c:forEach items="${roles}" var="role">
-                        <form:option value="${role}"><spring:message code="views.userRole.objectRole.${role}"/></form:option>
-                    </c:forEach>
-                </form:select>
-                <form:errors path="role" cssClass="error"/>
-            </div>
+    <div class="form-group">
+        <spring:eval var="roles" expression="objectType.getOrderedRoles()"/>
+        <form:label class="col-xs-3 control-label" path="role">
+            <spring:message code="views.userRole.objectRole" var="roleLabel"/>
+            <tag:help label="${roleLabel}:">
+                <c:forEach items="${roles}" var="role">
+                    <strong><spring:message code="views.userRole.objectRole.${role}"/></strong>
+                    <p><spring:message code="views.userRole.objectRoleHelp.${role}"/></p>
+                </c:forEach>
+            </tag:help>
+        </form:label>
+        <div class="col-xs-4">
+            <form:select cssClass="form-control" cssErrorClass="form-control error" path="role" tabindex="${tabIndex}">
+                <c:forEach items="${roles}" var="role">
+                    <form:option value="${role}"><spring:message code="views.userRole.objectRole.${role}"/></form:option>
+                </c:forEach>
+            </form:select>
+            <form:errors path="role" cssClass="error"/>
         </div>
+    </div>
 
-    </fieldset>
-
-    <div class="control-group">
-        <div class="controls">
+    <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-4">
             <c:if test="${not empty confirmTitle}">
                 <spring:message code="${confirmTitle}" var="confirmTitle"/>
                 <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>

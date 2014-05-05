@@ -369,9 +369,9 @@ paginationModule.directive('paginationPageSize', function () {
                 refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn btn-default" title="' + attrs.refresh +'"><span class="fa fa-refresh"></span></a>';
             }
             var html =
-                '<div class="pagination-page-size' + attributeClass + '">' +
+                '<div class="form-inline pagination-page-size' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;' +
-                '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
+                '<select class="form-control" ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
                 '<option value="5" selected="true">5</option>' +
                 '<option value="10">10</option>' +
                 '<option value="15">15</option>' + optionUnlimited +

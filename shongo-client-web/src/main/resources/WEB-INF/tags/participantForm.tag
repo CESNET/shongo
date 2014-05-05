@@ -100,89 +100,86 @@
            ng-controller="ParticipantFormController"
            ng-init="init()">
 
-    <fieldset>
+    <form:hidden path="id"/>
 
-        <form:hidden path="id"/>
-
-        <div class="control-group">
-            <form:label class="control-label" path="type">
-                <spring:message code="views.participant.type"/>:
-            </form:label>
-            <div class="controls">
-                <label class="radio inline" for="typeUser">
-                    <form:radiobutton id="typeUser" path="type" value="USER" ng-model="type"/>
-                    <span><spring:message code="views.participant.type.USER"/></span>
-                </label>
-                <label class="radio inline" for="typeAnonymous">
-                    <form:radiobutton id="typeAnonymous" path="type" value="ANONYMOUS" ng-model="type"/>
-                    <span><spring:message code="views.participant.type.ANONYMOUS"/></span>
-                </label>
-                <form:errors path="type" cssClass="error"/>
-            </div>
+    <div class="form-group">
+        <form:label class="col-xs-2 control-label" path="type">
+            <spring:message code="views.participant.type"/>:
+        </form:label>
+        <div class="col-xs-4">
+            <label class="radio inline" for="typeUser">
+                <form:radiobutton id="typeUser" path="type" value="USER" ng-model="type"/>
+                <span><spring:message code="views.participant.type.USER"/></span>
+            </label>
+            <label class="radio inline" for="typeAnonymous">
+                <form:radiobutton id="typeAnonymous" path="type" value="ANONYMOUS" ng-model="type"/>
+                <span><spring:message code="views.participant.type.ANONYMOUS"/></span>
+            </label>
+            <form:errors path="type" cssClass="error"/>
         </div>
+    </div>
 
-        <div class="control-group" ng-show="type == 'USER'">
-            <form:label class="control-label" path="userId">
-                <spring:message code="views.participant.userId"/>:
-            </form:label>
-            <div class="controls double-width">
-                <form:input path="userId" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="userId" cssClass="error"/>
-            </div>
+    <div class="form-group" ng-show="type == 'USER'">
+        <form:label class="col-xs-2 control-label" path="userId">
+            <spring:message code="views.participant.userId"/>:
+        </form:label>
+        <div class="col-xs-4">
+            <form:input cssClass="form-control" cssErrorClass="form-control error" path="userId" tabindex="${tabIndex}"/>
+            <form:errors path="userId" cssClass="error"/>
         </div>
+    </div>
 
-        <div class="control-group" ng-show="type == 'ANONYMOUS'">
-            <form:label class="control-label" path="name">
-                <spring:message code="views.participant.name"/>:
-            </form:label>
-            <div class="controls">
-                <form:input path="name" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="name" cssClass="error"/>
-            </div>
+    <div class="form-group" ng-show="type == 'ANONYMOUS'">
+        <form:label class="col-xs-2 control-label" path="name">
+            <spring:message code="views.participant.name"/>:
+        </form:label>
+        <div class="col-xs-4">
+            <form:input cssClass="form-control" cssErrorClass="form-control error" path="name" tabindex="${tabIndex}"/>
+            <form:errors path="name" cssClass="error"/>
         </div>
+    </div>
 
-        <div class="control-group" ng-show="type == 'ANONYMOUS'">
-            <form:label class="control-label" path="email">
-                <spring:message code="views.participant.email"/>:
-            </form:label>
-            <div class="controls double-width">
-                <form:input path="email" cssErrorClass="error" tabindex="${tabIndex}"/>
-                <form:errors path="email" cssClass="error"/>
-            </div>
+    <div class="form-group" ng-show="type == 'ANONYMOUS'">
+        <form:label class="col-xs-2 control-label" path="email">
+            <spring:message code="views.participant.email"/>:
+        </form:label>
+        <div class="col-xs-4">
+            <form:input cssClass="form-control" cssErrorClass="form-control error" path="email" tabindex="${tabIndex}"/>
+            <form:errors path="email" cssClass="error"/>
         </div>
+    </div>
 
-        <c:choose>
-            <c:when test="${hideRole}">
-                <form:hidden path="role" value="PARTICIPANT"/>
-            </c:when>
-            <c:otherwise>
-                <div class="control-group">
-                    <form:label class="control-label" path="role">
-                        <spring:message code="views.participant.role"/>:
-                    </form:label>
-                    <div class="controls">
+    <c:choose>
+        <c:when test="${hideRole}">
+            <form:hidden path="role" value="PARTICIPANT"/>
+        </c:when>
+        <c:otherwise>
+            <div class="form-group">
+                <form:label class="col-xs-2 control-label" path="role">
+                    <spring:message code="views.participant.role" var="roleLabel"/>
+                    <tag:help label="${roleLabel}:">
                         <spring:eval var="roles" expression="T(cz.cesnet.shongo.ParticipantRole).values()"/>
-                        <form:select path="role" tabindex="${tabIndex}">
-                            <c:forEach items="${roles}" var="role">
-                                <form:option value="${role}"><spring:message code="views.participant.role.${role}"/></form:option>
-                            </c:forEach>
-                        </form:select>
-                        <form:errors path="role" cssClass="error"/>
-                        <tag:help>
-                            <c:forEach items="${roles}" var="role">
-                                <strong><spring:message code="views.participant.role.${role}"/></strong>
-                                <p><spring:message code="views.participant.roleHelp.${role}"/></p>
-                            </c:forEach>
-                        </tag:help>
-                    </div>
+                        <c:forEach items="${roles}" var="role">
+                            <strong><spring:message code="views.participant.role.${role}"/></strong>
+                            <p><spring:message code="views.participant.roleHelp.${role}"/></p>
+                        </c:forEach>
+                    </tag:help>
+                </form:label>
+                <div class="col-xs-4">
+                    <form:select cssClass="form-control" path="role" tabindex="${tabIndex}">
+                        <c:forEach items="${roles}" var="role">
+                            <form:option value="${role}"><spring:message
+                                    code="views.participant.role.${role}"/></form:option>
+                        </c:forEach>
+                    </form:select>
+                    <form:errors path="role" cssClass="error"/>
                 </div>
-            </c:otherwise>
-        </c:choose>
+            </div>
+        </c:otherwise>
+    </c:choose>
 
-    </fieldset>
-
-    <div class="control-group">
-        <div class="controls">
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-4">
             <c:if test="${not empty confirmTitle}">
                 <spring:message code="${confirmTitle}" var="confirmTitle"/>
                 <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
