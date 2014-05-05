@@ -103,6 +103,6 @@
     </div>
     <div class="modal-footer">
         <button ng-click="save()" class="btn btn-primary" ><spring:message code="views.button.save"/></button>
-        <button ng-click="cancel()" class="btn" ><spring:message code="views.button.cancel"/></button>
+        <button ng-click="cancel()" class="btn btn-default" ><spring:message code="views.button.cancel"/></button>
     </div>
 </script>

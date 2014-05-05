@@ -190,7 +190,7 @@
             <c:if test="${empty cancelTitle}">
                 <c:set var="cancelTitle" value="views.button.cancel"/>
             </c:if>
-            <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
+            <a class="btn btn-default" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
         </div>
     </div>
 

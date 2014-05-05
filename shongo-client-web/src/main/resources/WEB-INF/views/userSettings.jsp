@@ -58,7 +58,7 @@
             </form:label>
             <div class="controls">
                 <form:checkbox path="useWebService" tabindex="${tabIndex}" ng-model="useWebService"/>&nbsp;
-                <a class="btn" href="${webServiceUrl}" target="_blank"><spring:message code="views.userSettings.useWebService.edit"/></a>
+                <a class="btn btn-default" href="${webServiceUrl}" target="_blank"><spring:message code="views.userSettings.useWebService.edit"/></a>
             </div>
         </div>
 
@@ -154,7 +154,7 @@
         <div class="controls">
             <spring:message code="views.button.save" var="saveTitle"/>
             <input class="btn btn-primary" type="submit" value="${saveTitle}" tabindex="${tabIndex}"/>
-            <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
+            <a class="btn btn-default" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>
 

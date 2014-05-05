@@ -81,11 +81,11 @@
     <div class="pull-right" ng-controller="RoomRecordingController">
         <div style="text-align: right;">
             <spring:message code="views.room.recording.started" var="recordingStarted"/>
-            <a class="btn" href="" ng-click="startRecording()" ng-hide="isRecordingActive" ng-disabled="recordingRequestActive">
+            <a class="btn btn-default" href="" ng-click="startRecording()" ng-hide="isRecordingActive" ng-disabled="recordingRequestActive">
                 <i class="icon-recording-start"></i>
                 <spring:message code="views.room.recording.start"/>
             </a>
-            <a class="btn" href="" ng-click="stopRecording()" title="${recordingStarted}" ng-show="isRecordingActive"  ng-disabled="recordingRequestActive">
+            <a class="btn btn-default" href="" ng-click="stopRecording()" title="${recordingStarted}" ng-show="isRecordingActive"  ng-disabled="recordingRequestActive">
                 <i class="icon-recording-stop"></i>
                 <spring:message code="views.room.recording.stop"/>
             </a>
@@ -297,12 +297,12 @@
                     <tag:param name="participantId" value="*" escape="false"/>
                 </tag:url>
                 <spring:message code="views.room.currentParticipants.microphoneEnable.help" var="microphoneEnableHelp"/>
-                <a class="btn" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=true')" title="${microphoneEnableHelp}" ng-disabled="!items.length">
+                <a class="btn btn-default" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=true')" title="${microphoneEnableHelp}" ng-disabled="!items.length">
                     <i class="fa fa-microphone fa-green"></i>
                     <spring:message code="views.room.currentParticipants.microphoneEnable"/>
                 </a>
                 <spring:message code="views.room.currentParticipants.microphoneDisable.help" var="microphoneDisableHelp"/>
-                <a class="btn" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=false')" title="${microphoneDisableHelp}" ng-disabled="!items.length">
+                <a class="btn btn-default" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=false')" title="${microphoneDisableHelp}" ng-disabled="!items.length">
                     <i class="fa fa-microphone-slash fa-red"></i>
                     <spring:message code="views.room.currentParticipants.microphoneDisable"/>
                 </a>
@@ -408,7 +408,7 @@
 
 <%-- Actions --%>
 <div class="table-actions pull-right">
-    <a class="btn" href="#" ng-click="refreshTab('runtimeManagement')">
+    <a class="btn btn-default" href="#" ng-click="refreshTab('runtimeManagement')">
         <spring:message code="views.button.refresh"/>
     </a>
 </div>

@@ -40,13 +40,13 @@ a.bordered:hover {
 .table {
     margin-top: 8px;
     margin-bottom: 0px;
-    border-collapse: separate;
 }
-.table thead th a {
+.table>thead>tr>th a {
     color: black;
 }
-.table thead th {
+.table>thead>tr>th {
     padding-top: 0px;
+    border-bottom-width: 1px;
 }
 .table>tbody {
     border-top: none !important;
@@ -829,6 +829,9 @@ div.information-box .spinner {
 }
 
 /* vies/wizardRoomType.jsp */
+.jspWizardRoomType li p {
+    font-size: 16px;
+}
 .jspWizardRoomType li table {
     margin-left: 30px;
     font-size: 16px;

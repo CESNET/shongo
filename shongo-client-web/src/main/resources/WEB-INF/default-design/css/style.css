@@ -19,8 +19,13 @@ html, body   {
 }
 
 /* page navigation */
+.navbar.navbar-default {
+    margin-bottom: 0px;
+
+}
 .navbar .navbar-nav {
     margin: 0px;
+
 }
 .navbar .nav {
     padding-left: 10px;
@@ -83,6 +88,7 @@ html, body   {
     background-color: #f5f5f5;
     color: #999;
     text-align: center;
+    margin-top: 10px;
 }
 
 

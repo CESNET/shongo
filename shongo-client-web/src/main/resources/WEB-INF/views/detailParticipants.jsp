@@ -6,38 +6,35 @@
 
 <security:accesscontrollist hasPermission="WRITE" domainObject="${objectId}" var="isWritable"/>
 
-<div class="table-actions-left">
+<h2><spring:message code="views.roomParticipantList.title"/></h2>
 
-    <h2><spring:message code="views.roomParticipantList.title"/></h2>
+<tag:url var="participantDataUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_DATA %>">
+    <tag:param name="objectId" value=":id"/>
+</tag:url>
+<tag:url var="participantCreateUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_CREATE %>">
+    <tag:param name="objectId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
+<tag:url var="participantModifyUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_MODIFY %>">
+    <tag:param name="objectId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
+<tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_DELETE %>">
+    <tag:param name="objectId" value="${objectId}"/>
+    <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
+</tag:url>
+<tag:participantList dataUrl="${participantDataUrl}" dataUrlParameters="id: '${objectId}'"
+                     createUrl="${participantCreateUrl}" modifyUrl="${participantModifyUrl}"
+                     deleteUrl="${participantDeleteUrl}"
+                     hideRole="${technology == 'H323_SIP'}" isWritable="${isWritable}">
 
-    <tag:url var="participantDataUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANTS_DATA %>">
-        <tag:param name="objectId" value=":id"/>
-    </tag:url>
-    <tag:url var="participantCreateUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_CREATE %>">
-        <tag:param name="objectId" value="${objectId}"/>
-        <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-    </tag:url>
-    <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_MODIFY %>">
-        <tag:param name="objectId" value="${objectId}"/>
-        <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-    </tag:url>
-    <tag:url var="participantDeleteUrl" value="<%= ClientWebUrl.DETAIL_PARTICIPANT_DELETE %>">
-        <tag:param name="objectId" value="${objectId}"/>
-        <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-    </tag:url>
-    <tag:participantList dataUrl="${participantDataUrl}" dataUrlParameters="id: '${objectId}'"
-                         createUrl="${participantCreateUrl}" modifyUrl="${participantModifyUrl}" deleteUrl="${participantDeleteUrl}"
-                         hideRole="${technology == 'H323_SIP'}" isWritable="${isWritable}">
+    <c:choose>
+        <c:when test="${type == 'PERMANENT_ROOM'}">
+            <p><spring:message code="views.room.participants.help.${technology}.permanentRoom"/></p>
+        </c:when>
+        <c:otherwise>
+            <p><spring:message code="views.room.participants.help.${technology}"/></p>
+        </c:otherwise>
+    </c:choose>
 
-        <c:choose>
-            <c:when test="${type == 'PERMANENT_ROOM'}">
-                <p><spring:message code="views.room.participants.help.${technology}.permanentRoom"/></p>
-            </c:when>
-            <c:otherwise>
-                <p><spring:message code="views.room.participants.help.${technology}"/></p>
-            </c:otherwise>
-        </c:choose>
-
-    </tag:participantList>
-
-</div>
+</tag:participantList>

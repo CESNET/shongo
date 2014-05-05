@@ -286,7 +286,7 @@
                             <td ng-controller="PermanentRoomCapacitiesController" colspan="6" ng-show="items != null">
                                 <div style="position: relative;">
                                     <div style="position: absolute;  right: 0px; bottom: 0px;" ng-show="reservationRequest.isProvidable && reservationRequest.state != 'ALLOCATED_FINISHED'">
-                                        <a class="btn" href="${createPermanentRoomCapacityUrl}" tabindex="1">
+                                        <a class="btn btn-default" href="${createPermanentRoomCapacityUrl}" tabindex="1">
                                             <spring:message code="views.index.rooms.permanentRoomCapacity.create" arguments="{{reservationRequest.roomName}}"/>
                                         </a>
                                     </div>

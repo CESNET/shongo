@@ -49,7 +49,7 @@
 
     <c:forEach items="${wizardActions}" var="wizardAction">
         <c:if test="${wizardAction.url != null && wizardAction.position == 'LEFT'}">
-            <c:set var="wizardActionClass" value="btn"/>
+            <c:set var="wizardActionClass" value="btn btn-default"/>
             <c:if test="${wizardAction.primary}">
                 <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
             </c:if>
@@ -61,7 +61,7 @@
     <div class="pull-right">
         <c:forEach items="${wizardActions}" var="wizardAction">
             <c:if test="${wizardAction.url != null && wizardAction.position == 'RIGHT'}">
-                <c:set var="wizardActionClass" value="btn"/>
+                <c:set var="wizardActionClass" value="btn btn-default"/>
                 <c:if test="${wizardAction.primary}">
                     <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
                 </c:if>

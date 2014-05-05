@@ -16,7 +16,7 @@
     function ExpandableControllerController($scope, $cookieStore) {
         $scope.expanded = true;
         if ( ${expandable} ) {
-            $scope.expanded = $cookieStore.get("${name}.expanded") == 'true';
+            $scope.expanded = $cookieStore.get("${name}.expanded") == true;
             $scope.$watch("expanded", function () {
                 $cookieStore.put("${name}.expanded", $scope.expanded, Infinity, '/');
             });

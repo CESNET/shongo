@@ -234,15 +234,15 @@
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
                 </tag:url>
                 <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn btn-default" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">
                     <spring:message code="views.detail.action.modifyExtend"/>
                 </a>
                 <spring:message code="views.detail.action.modifyEnlarge.help" var="modifyEnlargeHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn" href="${reservationRequestModifyEnlargeUrl}" title="${modifyEnlargeHelp}" tabindex="1">
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted" class="btn btn-default" href="${reservationRequestModifyEnlargeUrl}" title="${modifyEnlargeHelp}" tabindex="1">
                     <spring:message code="views.detail.action.modifyEnlarge"/>
                 </a>
                 <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
-                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable" class="btn" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
+                <a ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable" class="btn btn-default" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
                     <spring:message code="views.detail.action.modifyRecorded"/>
                 </a>
             </c:if>
@@ -256,10 +256,10 @@
                 <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
             </tag:url>
             <span ng-switch on="reservationRequest.state == 'ALLOCATED_FINISHED'">
-                <a ng-switch-when="true" class="btn" href="${reservationRequestDuplicateUrl}" tabindex="1">
+                <a ng-switch-when="true" class="btn btn-default" href="${reservationRequestDuplicateUrl}" tabindex="1">
                     <spring:message code="views.button.duplicate"/>
                 </a>
-                <a ng-switch-when="false" class="btn" href="${reservationRequestModifyUrl}" tabindex="1">
+                <a ng-switch-when="false" class="btn btn-default" href="${reservationRequestModifyUrl}" tabindex="1">
                     <spring:message code="views.button.modify"/>
                 </a>
             </span>
@@ -268,7 +268,7 @@
                 <tag:param name="reservationRequestId" value="${objectId}"/>
                 <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
             </tag:url>
-            <a class="btn" href="${reservationRequestDeleteUrl}" tabindex="1">
+            <a class="btn btn-default" href="${reservationRequestDeleteUrl}" tabindex="1">
                 <spring:message code="views.button.delete"/>
             </a>
         </div>

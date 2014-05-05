@@ -45,7 +45,7 @@
             <form method="post" action="?dependencies=true" class="inline">
                 <spring:message code="views.button.yes" var="buttonYes"/>
                 <spring:message code="views.button.deleteAll" var="buttonDeleteAll"/>
-                <input type="submit" class="btn" tabindex="1" value="${buttonDeleteAll}"/>
+                <input type="submit" class="btn btn-default" tabindex="1" value="${buttonDeleteAll}"/>
             </form>
         </div>
     </c:when>
@@ -55,7 +55,7 @@
                 <spring:message code="views.button.yes" var="buttonYes"/>
                 <input type="submit" class="btn btn-primary" tabindex="1" value="${buttonYes}"/>
             </form>
-            <a class="btn" href="${backUrl}" tabindex="1"><spring:message code="views.button.no"/></a>
+            <a class="btn btn-default" href="${backUrl}" tabindex="1"><spring:message code="views.button.no"/></a>
         </div>
     </c:otherwise>
 </c:choose>
