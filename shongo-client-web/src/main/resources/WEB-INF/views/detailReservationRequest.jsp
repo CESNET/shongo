@@ -65,6 +65,7 @@
          * Check if auto refresh is needed.
          */
         $scope.isAutoRefreshNeeded = function(){
+            return true;
             if ($scope.reservationRequest.isPeriodic) {
                 // Periodic events don't need to refresh (their state isn't changed)
                 return false;

@@ -3,14 +3,15 @@ RESOURCES=../main/resources
 build: bootstrap
 
 bootstrap: .FORCE
-	cd bootstrap ; make bootstrap
-	cd bootstrap ; git diff > ../bootstrap.diff
-	cp bootstrap/bootstrap/css/*.min.css $(RESOURCES)/css
-	cp bootstrap/bootstrap/js/*.min.js $(RESOURCES)/js
-	mkdir -p $(RESOURCES)/font
-	cp -R font-awesome/font/* $(RESOURCES)/font/
+	cd bootstrap ; grunt dist
+	cd bootstrap ; git --no-pager diff package.json less/bootstrap.less > ../bootstrap.diff
+	cp bootstrap/dist/css/bootstrap.min.css $(RESOURCES)/css
+	cp bootstrap/dist/js/bootstrap.min.js $(RESOURCES)/js
+	mkdir -p $(RESOURCES)/fonts
+	cp -R font-awesome/css/font-awesome.min.css $(RESOURCES)/css
+	cp -R font-awesome/fonts/* $(RESOURCES)/fonts
 
 clean:
-	cd bootstrap ; make clean
+	cd bootstrap ; grunt clean
 
 .FORCE:

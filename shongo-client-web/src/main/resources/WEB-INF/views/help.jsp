@@ -17,10 +17,10 @@
 
     <div class="menu">
         <ul class="nav nav-list">
-            <li class="active"><a href="#top"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.introduction"/></a></li>
-            <li><a href="#loa"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.loa"/></a></li>
-            <li><a href="#rooms"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.rooms"/></a></li>
-            <li><a href="#resources"><i class="icon-chevron-right pull-right"></i><spring:message code="views.help.resources"/></a></li>
+            <li class="active"><a href="#top"><i class="fa fa-chevron-right pull-right"></i><spring:message code="views.help.introduction"/></a></li>
+            <li><a href="#loa"><i class="fa fa-chevron-right pull-right"></i><spring:message code="views.help.loa"/></a></li>
+            <li><a href="#rooms"><i class="fa fa-chevron-right pull-right"></i><spring:message code="views.help.rooms"/></a></li>
+            <li><a href="#resources"><i class="fa fa-chevron-right pull-right"></i><spring:message code="views.help.resources"/></a></li>
         </ul>
     </div>
 

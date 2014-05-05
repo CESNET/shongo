@@ -27,7 +27,7 @@
     <!-- Web site resources -->
     <mvc:resources mapping="/design/**" location="#{design.resourcesFolder}/"/>
     <mvc:resources mapping="/css/**" location="/css/"/>
-    <mvc:resources mapping="/font/**" location="/font/"/>
+    <mvc:resources mapping="/fonts/**" location="/fonts/"/>
     <mvc:resources mapping="/img/**" location="/img/"/>
     <mvc:resources mapping="/js/**" location="/js/"/>
 

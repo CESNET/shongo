@@ -97,14 +97,15 @@ applicationModule.controller("TabController", function($scope, $element, $timeou
     /**
      * Initialize this tab in parent scope.
      */
+    $scope.$tab = $scope.$$childHead;
     if ($scope.$parent != null && $scope.$parent.onCreateTab != null) {
-        $scope.$parent.onCreateTab($scope.id, $scope);
+        $scope.$parent.onCreateTab($scope.id, $scope.$tab);
     }
 
     /**
      * Watch for activation/deactivation of tab.
      */
-    $scope.$watch("active", function(active) {
+    $scope.$tab.$watch("active", function(active) {
         if (active) {
             if ($scope.disabled) {
                 $scope.active = false;
@@ -142,7 +143,7 @@ applicationModule.directive('contentUrl', function ($http, $compile, $applicatio
         scope: false,
         link: function(scope, element, attrs) {
             // Check if "content-url" attribute is on <tab>
-            var isTab = scope.$transcludeFn != null;
+            var isTab = scope.$tab != null;
 
             // Determine content element id
             scope.contentElementId = (isTab ? null : element.attr("id"));
@@ -156,9 +157,9 @@ applicationModule.directive('contentUrl', function ($http, $compile, $applicatio
 
             // Create content element
             var contentElement = $compile("<div id ='" + scope.contentElementId + "'><div class='spinner'></div></div>")(scope.$parent);
-            if (scope.$transcludeFn != null) {
+            if (scope.$tab != null && scope.$tab.$transcludeFn != null) {
                 // Init tab content (replace the content element in the transclude)
-                scope.$transcludeFn = function(scope, callback) {
+                scope.$tab.$transcludeFn = function(scope, callback) {
                     callback(contentElement);
                 };
             }

@@ -72,7 +72,8 @@
     <script type="text/javascript">
         var module = angular.module('jsp:indexDashboard', ['ngApplication', 'ngPagination', 'ngTooltip', 'ngCookies', 'ngSanitize']);
         module.controller("TabController", function($scope, $element) {
-            $scope.$watch("active", function(active) {
+            $scope.$tab = $scope.$$childHead;
+            $scope.$tab.$watch("active", function(active, test) {
                 if (active) {
                     var refreshEvent = 'refresh-' + $element.attr('id');
                     $scope.$parent.$broadcast(refreshEvent);
@@ -354,7 +355,7 @@
                             <th>
                                 <spring:message code="views.room.description"/>
                             </th>
-                            <th style="min-width: 85px; width: 85px;">
+                            <th style="min-width: 90px; width: 85px;">
                                 <spring:message code="views.list.action"/>
                                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                             </th>

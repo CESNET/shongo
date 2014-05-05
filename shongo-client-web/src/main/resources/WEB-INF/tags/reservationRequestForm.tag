@@ -511,7 +511,7 @@
                         <form:input path="periodicityEnd" cssErrorClass="error" date-picker="true" tabindex="${tabIndex}" ng-disabled="periodicityType == 'NONE'"/>
                     </div>
                     <span ng-show="periodicityType != 'NONE'">
-                        <c:set var="periodicEvents"><b class='icon-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>
+                        <c:set var="periodicEvents"><b class='fa fa-search'></b>&nbsp;<spring:message code="views.reservationRequest.periodicity.showEvents"/></c:set>
                         <tag:help label="${periodicEvents}" content="formatPeriodicEvents(event)" selectable="true"/>
                     </span>
                     <form:errors path="periodicityEnd" cssClass="error"/>

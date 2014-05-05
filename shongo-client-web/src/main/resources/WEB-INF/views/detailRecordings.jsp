@@ -85,16 +85,16 @@
             <td ng-controller="RoomRecordingActionController">
                 <span ng-show="roomRecording.downloadUrl">
                     <spring:message var="recordingDownloadTitle" code="views.list.action.download.title"/>
-                    <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="icon-download"></i></a>
+                    <a href="{{roomRecording.downloadUrl}}" title="${recordingDownloadTitle}" target="_blank"><i class="fa fa-download"></i></a>
                 </span>
                 <span ng-show="roomRecording.viewUrl">
                     <spring:message var="recordingViewTitle" code="views.list.action.view.title"/>
-                    <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="icon-eye-open"></i></a>
+                    <a href="{{roomRecording.viewUrl}}" title="${recordingViewTitle}" target="_blank"><i class="fa fa-eye"></i></a>
                 </span>
                 <c:if test="${hasWritePermission}">
                     <span ng-show="roomRecording.editUrl">
                         <spring:message var="recordingEditTitle" code="views.list.action.edit.title"/>
-                        <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="icon-edit"></i></a>
+                        <a href="{{roomRecording.editUrl}}" title="${recordingEditTitle} ${roomRecording.viewUrl}" target="_blank"><i class="fa fa-pencil"></i></a>
                     </span>
                     <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
                         <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
@@ -103,7 +103,7 @@
                             <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
                         </tag:url>
                         <spring:message var="recordingDeleteTitle" code="views.list.action.delete.title"/>
-                        <a href="" ng-click="deleteRecording(roomRecording.filename, '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="icon-trash"></i></a>
+                        <a href="" ng-click="deleteRecording(roomRecording.filename, '${roomRecordingDeleteUrl}')" title="${recordingDeleteTitle}"><i class="fa fa-trash-o"></i></a>
                     </span>
                 </c:if>
             </td>

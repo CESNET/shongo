@@ -72,9 +72,9 @@
                 ng-class="{'deprecated': room.isDeprecated}">
                 <td>
                     <span ng-switch="room.usageCount > 0">
-                        <a ng-switch-when="true" href="" ng-click="toggleRoom(room)"
-                           ng-class="{'icon-plus': !room.showUsages, 'icon-minus': room.showUsages}"></a>
-                        <span ng-switch-default class="icon-none"></span>
+                        <a class="fa" ng-switch-when="true" href="" ng-click="toggleRoom(room)"
+                           ng-class="{'fa-plus': !room.showUsages, 'fa-minus': room.showUsages}"></a>
+                        <span ng-switch-default class="fa fa-none"></span>
                     </span>
                     <a href="${detailRuntimeManagementUrl}" tabindex="2">{{room.name}}</a>
                     <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>

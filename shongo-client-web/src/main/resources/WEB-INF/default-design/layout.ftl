@@ -28,7 +28,7 @@
                 <!-- Logged in user -->
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <b class="icon-cog"></b>
+                        <i class="fa fa-cog"></i>
                         <b>${user.name}</b>
                         <#if user.administratorMode>
                             (${message("user.administrator")})
@@ -42,15 +42,13 @@
                         <li class="divider"></li>
                         <li>
                             <a class="menuitem" href="${url.userSettingsAdvancedMode(!user.advancedMode)}">
-                                <#if user.advancedMode><span class="icon-ok"></span></#if>
-                                ${message("user.settingsAdvancedMode")}
+                                <#if user.advancedMode><i class="fa fa-check"></i></#if>${message("user.settingsAdvancedMode")}
                             </a>
                         </li>
                         <#if user.administratorModeAvailable>
                             <li>
                                 <a class="menuitem" href="${url.userSettingsAdministratorMode(!user.administratorMode)}">
-                                    <#if user.administratorMode><span class="icon-ok"></span></#if>
-                                    ${message("user.settingsAdministratorMode")}
+                                    <#if user.administratorMode><i class="fa fa-check"></i></#if>${message("user.settingsAdministratorMode")}
                                 </a>
                             </li>
                         </#if>
@@ -72,7 +70,7 @@
                         });
                     </script>
                     <li class="navbar-text" style="margin-left: 0px;">
-                        <b id="warning" class="icon-warning-sign" style="color: #f71;"></b>
+                        <b id="warning" class="fa fa-warning" style="color: #f71;"></b>
                     </li>
                 </#if>
             <#else>

@@ -366,7 +366,7 @@ paginationModule.directive('paginationPageSize', function () {
             }
             var refresh = '';
             if ( attrs.refresh != null ) {
-                refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn" title="' + attrs.refresh +'"><span class="icon-refresh"></span></a>';
+                refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn btn-default" title="' + attrs.refresh +'"><span class="fa fa-refresh"></span></a>';
             }
             var html =
                 '<div class="pagination-page-size' + attributeClass + '">' +
@@ -420,8 +420,8 @@ paginationModule.directive('paginationSort', function () {
                 '<div style="display: inline-block;">' +
                 '<a href="" ng-click="setSort(\'' + column + '\', $event)">' + body + '</a>' +
                 '&nbsp;' +
-                '<span class="icon-chevron-up" ng-show="sort == \'' + column + '\' && !sortDesc"></span>' +
-                '<span class="icon-chevron-down" ng-show="sort == \'' + column + '\' && sortDesc"></span>' +
+                '<span class="fa fa-chevron-up" ng-show="sort == \'' + column + '\' && !sortDesc"></span>' +
+                '<span class="fa fa-chevron-down" ng-show="sort == \'' + column + '\' && sortDesc"></span>' +
                 '</div>';
             element.replaceWith(html);
         }
@@ -440,7 +440,7 @@ paginationModule.directive('paginationSortDefault', function () {
             var html =
                 '<div class="' + attributeClass + '">' +
                 '<a class="pull-right bordered" href="" ng-click="setSort()" title="' + text + '">' +
-                '<i class="icon-disable-sorting"></i>' +
+                '<i class="fa fa-disable-sorting"></i>' +
                 '</a>' +
                 '</div>';
             element.replaceWith(html);

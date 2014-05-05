@@ -1,221 +1,26 @@
-diff --git a/js/bootstrap-tooltip.js b/js/bootstrap-tooltip.js
-index a3bbd58..a4c582f 100644
---- a/js/bootstrap-tooltip.js
-+++ b/js/bootstrap-tooltip.js
-@@ -158,6 +158,18 @@
-           case 'right':
-             tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width}
-             break
-+          case 'bottom-left':
-+            tp = {top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth + actualWidth / 10}
-+            break
-+          case 'bottom-right':
-+            tp = {top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 10}
-+            break
-+          case 'top-left':
-+            tp = {top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth + actualWidth / 10}
-+            break
-+          case 'top-right':
-+            tp = {top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 10}
-+            break
-         }
- 
-         this.applyPlacement(tp, placement)
-@@ -187,7 +199,9 @@
-         replace = true
-       }
- 
--      if (placement == 'bottom' || placement == 'top') {
-+      if (placement == 'bottom' || placement == 'top' ||
-+          placement == 'bottom-left' || placement == 'bottom-right' ||
-+          placement == 'top-left' || placement == 'top-right') {
-         delta = 0
- 
-         if (offset.left < 0){
-@@ -198,18 +212,25 @@
-           actualHeight = $tip[0].offsetHeight
-         }
- 
--        this.replaceArrow(delta - width + actualWidth, actualWidth, 'left')
-+        var value = 50;
-+        if (placement == 'bottom-left' || placement == 'top-left') {
-+            value = 100;
-+        }
-+        else if (placement == 'bottom-right' || placement == 'top-right') {
-+            value = 10;
-+        }
-+        this.replaceArrow(delta - width + actualWidth, actualWidth, 'left', value)
-       } else {
--        this.replaceArrow(actualHeight - height, actualHeight, 'top')
-+        this.replaceArrow(actualHeight - height, actualHeight, 'top', 50)
-       }
- 
-       if (replace) $tip.offset(offset)
-     }
- 
--  , replaceArrow: function(delta, dimension, position){
-+  , replaceArrow: function(delta, dimension, position, value){
-       this
-         .arrow()
--        .css(position, delta ? (50 * (1 - delta / dimension) + "%") : '')
-+        .css(position, delta ? (value * (1 - delta / dimension) + "%") : '')
-     }
- 
-   , setContent: function () {
 diff --git a/less/bootstrap.less b/less/bootstrap.less
-index d4ebf37..0365472 100644
+index b368b87..c5a722f 100644
 --- a/less/bootstrap.less
 +++ b/less/bootstrap.less
-@@ -27,7 +27,8 @@
- @import "tables.less";
+@@ -17,7 +17,7 @@
  
- // Components: common
--@import "sprites.less";
-+//@import "sprites.less";
-+@import "../../font-awesome/less/font-awesome.less";
- @import "dropdowns.less";
- @import "wells.less";
+ // Components
  @import "component-animations.less";
-diff --git a/less/responsive-768px-979px.less b/less/responsive-768px-979px.less
-index 8e8c486..78b5299 100644
---- a/less/responsive-768px-979px.less
-+++ b/less/responsive-768px-979px.less
-@@ -3,7 +3,7 @@
- // --------------------------------------------------
- 
- 
--@media (min-width: 768px) and (max-width: 979px) {
-+@media (min-width: 0px) and (max-width: 1019px) {
- 
-   // Fixed grid
-   #grid > .core(@gridColumnWidth768, @gridGutterWidth768);
-diff --git a/less/responsive.less b/less/responsive.less
-index 9e5f9b1..ce0ee79 100644
---- a/less/responsive.less
-+++ b/less/responsive.less
-@@ -38,7 +38,7 @@
- @import "responsive-768px-979px.less";
- 
- // Phones to portrait tablets and narrow desktops
--@import "responsive-767px-max.less";
-+//@import "responsive-767px-max.less";
- 
- 
- // RESPONSIVE NAVBAR
-diff --git a/less/tooltip.less b/less/tooltip.less
-index 83d5f2b..9a00f79 100644
---- a/less/tooltip.less
-+++ b/less/tooltip.less
-@@ -12,16 +12,20 @@
-   font-size: 11px;
-   line-height: 1.4;
-   .opacity(0);
--  &.in     { .opacity(80); }
--  &.top    { margin-top:  -3px; padding: 5px 0; }
--  &.right  { margin-left:  3px; padding: 0 5px; }
--  &.bottom { margin-top:   3px; padding: 5px 0; }
--  &.left   { margin-left: -3px; padding: 0 5px; }
-+  &.in           { .opacity(80); }
-+  &.top          { margin-top:  -3px; padding: 5px 0; }
-+  &.right        { margin-left:  3px; padding: 0 5px; }
-+  &.bottom       { margin-top:   3px; padding: 5px 0; }
-+  &.left         { margin-left: -3px; padding: 0 5px; }
-+  &.top-left     { margin-top:  -3px; padding: 5px 0; }
-+  &.top-right    { margin-top:  -3px; padding: 5px 0; }
-+  &.bottom-left  { margin-top:   3px; padding: 5px 0; }
-+  &.bottom-right { margin-top:   3px; padding: 5px 0; }
- }
- 
- // Wrapper for the tooltip content
- .tooltip-inner {
--  max-width: 200px;
-+  max-width: none;
-   padding: 8px;
-   color: @tooltipColor;
-   text-align: center;
-@@ -67,4 +71,32 @@
-     border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
-     border-bottom-color: @tooltipArrowColor;
-   }
-+  &.top-left .tooltip-arrow {
-+    bottom: 0;
-+    left: 90%;
-+    margin-left: -@tooltipArrowWidth;
-+    border-width: @tooltipArrowWidth @tooltipArrowWidth 0;
-+    border-top-color: @tooltipArrowColor;
-+  }
-+  &.top-right .tooltip-arrow {
-+    bottom: 0;
-+    left: 10%;
-+    margin-left: -@tooltipArrowWidth;
-+    border-width: @tooltipArrowWidth @tooltipArrowWidth 0;
-+    border-top-color: @tooltipArrowColor;
-+  }
-+  &.bottom-left .tooltip-arrow {
-+    top: 0px;
-+    left: 90%;
-+    margin-left: -@tooltipArrowWidth;
-+    border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
-+    border-bottom-color: @tooltipArrowColor;
-+  }
-+  &.bottom-right .tooltip-arrow {
-+    top: 0px;
-+    left: 10%;
-+    margin-left: -@tooltipArrowWidth;
-+    border-width: 0 @tooltipArrowWidth @tooltipArrowWidth;
-+    border-bottom-color: @tooltipArrowColor;
-+  }
- }
-diff --git a/less/variables.less b/less/variables.less
-index 31c131b..21a2f39 100644
---- a/less/variables.less
-+++ b/less/variables.less
-@@ -167,7 +167,7 @@
- 
- // Horizontal forms & lists
- // -------------------------
--@horizontalComponentOffset:       180px;
-+@horizontalComponentOffset:       200px;
- 
- 
- // Wells
-@@ -177,7 +177,7 @@
- 
- // Navbar
- // -------------------------
--@navbarCollapseWidth:             979px;
-+@navbarCollapseWidth:             1000px;
- @navbarCollapseDesktopWidth:      @navbarCollapseWidth + 1;
- 
- @navbarHeight:                    40px;
-@@ -272,7 +272,7 @@
- // Default 940px grid
- // -------------------------
- @gridColumns:             12;
--@gridColumnWidth:         60px;
-+@gridColumnWidth:         63px;
- @gridGutterWidth:         20px;
- @gridRowWidth:            (@gridColumns * @gridColumnWidth) + (@gridGutterWidth * (@gridColumns - 1));
- 
-@@ -282,7 +282,7 @@
- @gridRowWidth1200:        (@gridColumns * @gridColumnWidth1200) + (@gridGutterWidth1200 * (@gridColumns - 1));
- 
- // 768px-979px
--@gridColumnWidth768:      42px;
-+@gridColumnWidth768:      53px;
- @gridGutterWidth768:      20px;
- @gridRowWidth768:         (@gridColumns * @gridColumnWidth768) + (@gridGutterWidth768 * (@gridColumns - 1));
- 
+-@import "glyphicons.less";
++//@import "glyphicons.less";
+ @import "dropdowns.less";
+ @import "button-groups.less";
+ @import "input-groups.less";
 diff --git a/package.json b/package.json
-index 32114ab..4fc52ca 100644
+index ed98e90..767f8aa 100644
 --- a/package.json
 +++ b/package.json
-@@ -19,7 +19,7 @@
-   , "devDependencies": {
-       "uglify-js": "1.3.4"
-     , "jshint": "0.9.1"
--    , "recess": "1.1.6"
-+    , "recess": "1.1.8"
-     , "connect": "2.1.3"
-     , "hogan.js": "2.0.0"
-   }
+@@ -27,7 +27,7 @@
+   "devDependencies": {
+     "btoa": "~1.1.1",
+     "canonical-json": "~0.0.3",
+-    "grunt": "~0.4.2",
++    "grunt": "0.4.2",
+     "grunt-banner": "~0.2.0",
+     "grunt-contrib-clean": "~0.5.0",
+     "grunt-contrib-concat": "~0.3.0",

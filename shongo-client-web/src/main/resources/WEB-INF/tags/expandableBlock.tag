@@ -27,7 +27,7 @@
 <div class="${cssClass}" ng-controller="ExpandableControllerController" ng-class="{'collapsed': !expanded}">
     <c:if test="${expandable}">
             <spring:message code="views.button.toggleExpandable" var="toggleTitle"/>
-            <a ng-click="expanded = !expanded" ng-class="{'icon-plus': !expanded, 'icon-minus': expanded}"
+            <a class="fa" ng-click="expanded = !expanded" ng-class="{'fa-plus': !expanded, 'fa-minus': expanded}"
                href="" title="${toggleTitle}"></a>
     </c:if>
     <span ng-show="expanded">

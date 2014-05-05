@@ -298,12 +298,12 @@
                 </tag:url>
                 <spring:message code="views.room.currentParticipants.microphoneEnable.help" var="microphoneEnableHelp"/>
                 <a class="btn" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=true')" title="${microphoneEnableHelp}" ng-disabled="!items.length">
-                    <i class="icon-microphone icon-green"></i>
+                    <i class="fa fa-microphone fa-green"></i>
                     <spring:message code="views.room.currentParticipants.microphoneEnable"/>
                 </a>
                 <spring:message code="views.room.currentParticipants.microphoneDisable.help" var="microphoneDisableHelp"/>
                 <a class="btn" href="" ng-click="modifyByUrl('${participantsModifyUrl}?microphoneEnabled=false')" title="${microphoneDisableHelp}" ng-disabled="!items.length">
-                    <i class="icon-microphone-off icon-red"></i>
+                    <i class="fa fa-microphone-slash fa-red"></i>
                     <spring:message code="views.room.currentParticipants.microphoneDisable"/>
                 </a>
             </div>
@@ -372,18 +372,18 @@
                         <span ng-show="roomParticipant.microphoneEnabled != null">
                             <spring:message var="participantMicrophoneEnableTitle" code="views.room.currentParticipant.microphoneEnabled.enable"/>
                             <spring:message var="participantMicrophoneDisableTitle" code="views.room.currentParticipant.microphoneEnabled.disable"/>
-                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?microphoneEnabled=' + !roomParticipant.microphoneEnabled)" title="{{roomParticipant.microphoneEnabled ? '${participantMicrophoneDisableTitle}' : '${participantMicrophoneEnableTitle}'}}"><i class="icon-microphone{{roomParticipant.microphoneEnabled ? '' : '-off'}} icon-{{roomParticipant.microphoneEnabled ? 'green' : 'red'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?microphoneEnabled=' + !roomParticipant.microphoneEnabled)" title="{{roomParticipant.microphoneEnabled ? '${participantMicrophoneDisableTitle}' : '${participantMicrophoneEnableTitle}'}}"><i class="fa fa-microphone{{roomParticipant.microphoneEnabled ? '' : '-slash'}} fa-{{roomParticipant.microphoneEnabled ? 'green' : 'red'}}"></i></a>&nbsp;
                         </span>
                         <%-- Mute video --%>
                         <span ng-show="roomParticipant.videoEnabled != null">
                             <spring:message var="participantVideoDisableTitle" code="views.room.currentParticipant.videoEnabled.disable"/>
                             <spring:message var="participantVideoEnableTitle" code="views.room.currentParticipant.videoEnabled.enable"/>
-                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?videoEnabled=' + !roomParticipant.videoEnabled)" title="{{roomParticipant.videoEnabled ? '${participantVideoDisableTitle}' : '${participantVideoEnableTitle}'}}"><i class="icon-{{roomParticipant.videoEnabled ? 'facetime-video' : 'minus-sign-alt'}} icon-{{roomParticipant.videoEnabled ? 'green' : 'red'}}"></i></a>&nbsp;
+                            <a href="" ng-click="modifyByUrl('${participantModifyUrl}?videoEnabled=' + !roomParticipant.videoEnabled)" title="{{roomParticipant.videoEnabled ? '${participantVideoDisableTitle}' : '${participantVideoEnableTitle}'}}"><i class="fa fa-{{roomParticipant.videoEnabled ? 'video-camera' : 'minus-square'}} fa-{{roomParticipant.videoEnabled ? 'green' : 'red'}}"></i></a>&nbsp;
                         </span>
                         <%-- Modify dialog --%>
                         <span ng-show="isEditable(roomParticipant)">
                             <spring:message var="participantModifyTitle" code="views.button.modify"/>
-                            <a href="" ng-click="modify(roomParticipant, '${participantModifyUrl}')" title="${participantModifyTitle}"><i class="icon-pencil"></i></a>&nbsp;
+                            <a href="" ng-click="modify(roomParticipant, '${participantModifyUrl}')" title="${participantModifyTitle}"><i class="fa fa-pencil"></i></a>&nbsp;
                         </span>
                         <%-- Disconnect --%>
                         <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
@@ -391,7 +391,7 @@
                             <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
                         </tag:url>
                         <spring:message var="participantDisconnectTitle" code="views.room.currentParticipant.disconnect"/>
-                        <a href="" ng-click="modifyByUrl('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="icon-remove"></i></a>
+                        <a href="" ng-click="modifyByUrl('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="fa fa-times"></i></a>
                     </td>
                 </c:if>
             </tr>

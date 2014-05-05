@@ -181,11 +181,11 @@
             <c:forEach items="${reservationRequest.userRoles}" var="userRole" varStatus="status">
                 <c:choose>
                     <c:when test="${userRole.identityType == 'GROUP'}">
-                        <b class="icon-group" title="${groupTitle}"></b>
+                        <b class="fa fa-group" title="${groupTitle}"></b>
                         <tag:help label="${userRole.identityName}" content="formatGroup('${userRole.identityPrincipalId}', event)"/>
                     </c:when>
                     <c:otherwise>
-                        <b class="icon-user" title="${userTitle}"></b>
+                        <b class="fa fa-user" title="${userTitle}"></b>
                         ${userRole.identityName}
                     </c:otherwise>
                 </c:choose>

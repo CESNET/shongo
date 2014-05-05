@@ -12,6 +12,7 @@
         <put-list-attribute name="css">
             <add-attribute value="jquery-qtip.min.css"/>
             <add-attribute value="bootstrap.min.css"/>
+            <add-attribute value="font-awesome.min.css"/>
             <add-attribute value="application.css"/>
         </put-list-attribute>
         <put-list-attribute name="js">
