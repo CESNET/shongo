@@ -31,7 +31,7 @@ public enum ClientWebNavigation
             "navigation.reservationRequest"),
     RESERVATION_REQUEST_DELETE(HOME, ClientWebUrl.RESERVATION_REQUEST_DELETE,
             "navigation.reservationRequest.delete"),
-    RESERVATION_REQUEST_LIST(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_LIST,
+    RESERVATION_REQUEST_LIST(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW,
             null),
 
     DETAIL(HOME, ClientWebUrl.DETAIL_VIEW,

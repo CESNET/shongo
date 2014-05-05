@@ -251,7 +251,7 @@ form .recaptcha input {
 form .recaptcha.error table {
     border-color: #b94a48 !important;
 }
-/** Form - Errors */
+/* Form - Errors */
 form input.error {
     border: solid 1px #b94a48;
     background-color: #FFF0F0;
@@ -401,7 +401,7 @@ div.actions.collapsed>a {
     padding: 2px;
 }
 
-/** Bordered block */
+/* Bordered block */
 div.bordered {
     margin-top: 10px;
     border: 1px solid #AAAAAA;
@@ -415,7 +415,7 @@ div.bordered table {
     margin-bottom: 0px;
 }
 
-/** Tooltips */
+/* Tooltips */
 span.dotted {
     border-bottom: 1px dotted;
 }
@@ -449,12 +449,12 @@ span.dotted {
     margin-bottom: 5px;
 }
 
-/** Modals */
+/* Modals */
 .modal.center {
     top: 30%;
 }
 
-/** Other */
+/* Other */
 .push-top {
     vertical-align: top;
 }
@@ -614,7 +614,7 @@ img.help-icon {
     background-image: url("../img/button-available.png");
 }
 
-/** Room aliases */
+/* Room aliases */
 span.aliases.not-available {
     color: #808080;
 }
@@ -649,7 +649,19 @@ table.aliases td.label {
  ** APPLICATION VIES AND TAGS *****************************************************************************************
  **********************************************************************************************************************/
 
-/** Not available block for views/errorRoomNotAvailable.jsp and views/errorControllerNotAvailable.jsp */
+/* session expired overlay */
+#session-expired-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    text-align: center;
+}
+
+/* Not available block for views/errorRoomNotAvailable.jsp and views/errorControllerNotAvailable.jsp */
 div.not-available {
     margin: 20px 20px;
     padding: 10px 30px;
@@ -695,19 +707,6 @@ div.information-box .btn {
 div.information-box .spinner {
     margin: 0px;
     padding-right: 0px;
-}
-
-/* logged out overlay */
-#logged-out-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 9999;
-    text-align: center;
 }
 
 /* vies/error.jsp */

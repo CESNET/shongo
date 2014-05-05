@@ -243,6 +243,12 @@ public class Design
             return layoutMessageSource.getMessage(code, args, userSessionLocale);
         }
 
+        public String escapeJavaScript(String text)
+        {
+            text = text.replace("\"", "\\\"");
+            return text;
+        }
+
         public ApplicationContext getApp()
         {
             return applicationContext;
@@ -250,6 +256,8 @@ public class Design
 
         public class UrlContext
         {
+            private String languageUrl;
+
             public String getHome()
             {
                 return baseUrl + ClientWebUrl.HOME;
@@ -260,9 +268,14 @@ public class Design
                 return baseUrl + ClientWebUrl.CHANGELOG;
             }
 
+            public String getHelp()
+            {
+                return baseUrl + ClientWebUrl.HELP;
+            }
+
             public String getReport()
             {
-                return baseUrl + ClientWebUrl.REPORT + "?back-url=" + requestUrl;
+                return baseUrl + applyBackUrl(ClientWebUrl.REPORT);
             }
 
             public String getResources()
@@ -270,12 +283,9 @@ public class Design
                 return baseUrl + "/design";
             }
 
-            public class LanguageContext
+            public String getLanguage()
             {
-                private String languageUrl;
-
-                public LanguageContext()
-                {
+                if (languageUrl == null) {
                     if (requestUrl.contains("?")) {
                         UriComponentsBuilder languageUrlBuilder = UriComponentsBuilder.fromUriString(requestUrl);
                         languageUrlBuilder.replaceQueryParam("lang", ":lang");
@@ -285,67 +295,50 @@ public class Design
                         languageUrl = requestUrl + "?lang=:lang";
                     }
                 }
-
-                public String getEn()
-                {
-                    return languageUrl.replace(":lang", "en");
-                }
-
-                public String getCs()
-                {
-                    return languageUrl.replace(":lang", "cs");
-                }
+                return languageUrl;
             }
 
-            private LanguageContext languageContext;
-
-            public LanguageContext getLanguage()
+            public String getLanguageEn()
             {
-                if (languageContext == null) {
-                    languageContext = new LanguageContext();
-                }
-                return languageContext;
+                return getLanguage().replace(":lang", "en");
             }
 
-            public class UserContext
+            public String getLanguageCs()
             {
-                public String getLogin()
-                {
-                    return baseUrl + ClientWebUrl.LOGIN;
-                }
-
-                public String getLogout()
-                {
-                    return baseUrl + ClientWebUrl.LOGOUT;
-                }
-
-                public String getSettings()
-                {
-                    return baseUrl + ClientWebUrl.USER_SETTINGS;
-                }
-
-                public String getSettingsAdvancedMode(boolean advanceMode)
-                {
-                    return baseUrl + ClientWebUrl.format(ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "userInterface",
-                            (advanceMode ? UserSettingsModel.UserInterface.ADVANCED
-                                     : UserSettingsModel.UserInterface.BEGINNER));
-                }
-
-                public String getSettingsAdministratorMode(boolean administratorMode)
-                {
-                    return baseUrl + ClientWebUrl.format(
-                            ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administratorMode", administratorMode);
-                }
+                return getLanguage().replace(":lang", "cs");
             }
 
-            private UserContext userContext;
-
-            public UserContext getUser()
+            public String getLogin()
             {
-                if (userContext == null) {
-                    userContext = new UserContext();
-                }
-                return userContext;
+                return baseUrl + ClientWebUrl.LOGIN;
+            }
+
+            public String getLogout()
+            {
+                return baseUrl + ClientWebUrl.LOGOUT;
+            }
+
+            public String getUserSettings()
+            {
+                return baseUrl + applyBackUrl(ClientWebUrl.USER_SETTINGS);
+            }
+
+            public String userSettingsAdvancedMode(boolean advanceMode)
+            {
+                return baseUrl + ClientWebUrl.format(ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "userInterface",
+                        (advanceMode ? UserSettingsModel.UserInterface.ADVANCED
+                                 : UserSettingsModel.UserInterface.BEGINNER));
+            }
+
+            public String userSettingsAdministratorMode(boolean administratorMode)
+            {
+                return baseUrl + ClientWebUrl.format(
+                        ClientWebUrl.USER_SETTINGS_ATTRIBUTE, "administratorMode", administratorMode);
+            }
+
+            private String applyBackUrl(String url)
+            {
+                return url + "?back-url=" + requestUrl;
             }
         }
 
@@ -485,9 +478,21 @@ public class Design
             return content;
         }
 
-        public Object[] getLinks()
+        public Collection<LinkContext> getLinks()
         {
-            return new Object[]{};
+            List<LinkContext> links = new LinkedList<LinkContext>();
+            if (isUserAuthenticated()) {
+                UserContext user = getUser();
+                if (user.isAdvancedMode()) {
+                    links.add(new LinkContext("navigation.reservationRequest", ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW));
+                }
+                if (user.isAdministratorMode()) {
+                    links.add(new LinkContext("navigation.roomList", ClientWebUrl.ROOM_LIST_VIEW));
+                }
+                links.add(new LinkContext("navigation.userSettings", getUrl().getUserSettings()));
+            }
+            links.add(new LinkContext("navigation.help", getUrl().getHelp()));
+            return links;
         }
 
         public Iterator<BreadcrumbContext> getBreadcrumbs()
@@ -551,6 +556,11 @@ public class Design
                 return cache.hasSystemPermission(securityToken, SystemPermission.ADMINISTRATION);
             }
 
+            public boolean isReservationAvailable()
+            {
+                return cache.hasSystemPermission(securityToken, SystemPermission.RESERVATION);
+            }
+
             public String getName()
             {
                 return userInformation.getFullName();
@@ -569,6 +579,34 @@ public class Design
                 }
             }
             return userContext;
+        }
+
+        public boolean isUserAuthenticated()
+        {
+            return getUser() != null;
+        }
+
+        public class LinkContext
+        {
+            private String titleCode;
+
+            private String url;
+
+            public LinkContext(String titleCode, String url)
+            {
+                this.titleCode = titleCode;
+                this.url = url;
+            }
+
+            public String getTitle()
+            {
+                return applicationMessageSource.getMessage(titleCode, null, userSessionLocale);
+            }
+
+            public String getUrl()
+            {
+                return baseUrl + url;
+            }
         }
 
         public class BreadcrumbContext

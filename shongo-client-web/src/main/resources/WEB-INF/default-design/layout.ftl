@@ -1,22 +1,17 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="cs" xml:lang="cs">
 <head>
     <meta charset="utf-8" />
     <title>${message("app.name")} - ${title}</title>
     ${head}
+
+    <!-- Layout tooltips: start -->
     <script type="text/javascript">
         $(function () {
-            $('#timezone').qtip({
-                position: {
-                    my: 'top right',
-                    at: 'bottom center'
-                },
-                style: {
-                    classes: 'qtip-app'
-                }
-            });
+            $('#timezone').qtip({position: {my: 'top right', at: 'bottom center'}, style: {classes: 'qtip-app'}});
         });
     </script>
+    <!-- Layout tooltips: end -->
 </head>
 <body>
 
@@ -42,18 +37,18 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="menuitem" href="${url.user.settings}">${message("user.settings")}...</a>
+                            <a class="menuitem" href="${url.userSettings}">${message("user.settings")}...</a>
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <a class="menuitem" href="${url.user.getSettingsAdvancedMode(!user.advancedMode)}">
+                            <a class="menuitem" href="${url.userSettingsAdvancedMode(!user.advancedMode)}">
                                 <#if user.advancedMode><span class="icon-ok"></span></#if>
                                 ${message("user.settingsAdvancedMode")}
                             </a>
                         </li>
                         <#if user.administratorModeAvailable>
                             <li>
-                                <a class="menuitem" href="${url.user.getSettingsAdministratorMode(!user.administratorMode)}">
+                                <a class="menuitem" href="${url.userSettingsAdministratorMode(!user.administratorMode)}">
                                     <#if user.administratorMode><span class="icon-ok"></span></#if>
                                     ${message("user.settingsAdministratorMode")}
                                 </a>
@@ -61,14 +56,29 @@
                         </#if>
                         <li class="divider"></li>
                         <li>
-                            <a class="menuitem" href="${url.user.logout}">${message("user.logout")}</a>
+                            <a class="menuitem" href="${url.logout}">${message("user.logout")}</a>
                         </li>
                     </ul>
                 </li>
+                <#if !user.reservationAvailable>
+                    <script type="text/javascript">
+                        $(function () {
+                            $('#warning').qtip({
+                                content: { text: "${escapeJavaScript(message("user.reservationDisabled", url.help + "#loa"))}" },
+                                position: { my: 'top right', at: 'bottom center' },
+                                style: { classes: 'qtip-app' },
+                                hide: { fixed: true, delay: 300 }
+                            });
+                        });
+                    </script>
+                    <li class="navbar-text" style="margin-left: 0px;">
+                        <b id="warning" class="icon-warning-sign" style="color: #f71;"></b>
+                    </li>
+                </#if>
             <#else>
                 <!-- Login button -->
                 <li>
-                    <a href="${url.user.login}">${message("user.login")}</a>
+                    <a href="${url.login}">${message("user.login")}</a>
                 </li>
             </#if>
 
@@ -82,8 +92,8 @@
             <!-- Language selection -->
             <li>
                 <span class="navbar-text">
-                    <a class="language" href="${url.language.en}"><img src="${url.resources}/img/i18n/en.png" alt="English" title="English"/></a>
-                    <a class="language" href="${url.language.cs}"><img src="${url.resources}/img/i18n/cs.png" alt="Česky" title="Česky"/></a>
+                    <a class="language" href="${url.languageEn}"><img src="${url.resources}/img/i18n/en.png" alt="English" title="English"/></a>
+                    <a class="language" href="${url.languageCs}"><img src="${url.resources}/img/i18n/cs.png" alt="Česky" title="Česky"/></a>
                 </span>
             </li>
         </ul>
@@ -111,7 +121,6 @@
                 <#list links as link>
                     <li><a href="${link.url}">${link.title}</a></li>
                 </#list>
-                <li><a href="#">Test</a></li>
             </ul>
         </div>
         <!-- Main links: end -->

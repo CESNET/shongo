@@ -21,7 +21,7 @@
     <tag:url var="createRoomUrl" value="<%= ClientWebUrl.WIZARD_ROOM %>">
         <tag:param name="back-url" value="${requestScope.requestUrl}"/>
     </tag:url>
-    <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST %>"/>
+    <tag:url var="reservationRequestListUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW %>"/>
     <tag:url var="reservationRequestListDataUrl" value="<%= ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>">
         <tag:param name="specification-type" value="PERMANENT_ROOM,ADHOC_ROOM"/>
     </tag:url>

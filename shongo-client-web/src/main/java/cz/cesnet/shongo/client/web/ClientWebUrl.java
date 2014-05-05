@@ -166,7 +166,7 @@ public class ClientWebUrl
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
-    public static final String RESERVATION_REQUEST_LIST =
+    public static final String RESERVATION_REQUEST_LIST_VIEW =
             "/reservation-request/list";
     public static final String RESERVATION_REQUEST_LIST_DATA =
             "/reservation-request/list/data";

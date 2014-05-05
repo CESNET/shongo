@@ -1,9 +1,12 @@
 <%--
   -- Page layout template to which are inserted all other pages into "body" attribute.
   --%>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tiles:importAttribute name="css"/>
 <tiles:importAttribute name="js"/>
@@ -14,8 +17,27 @@
 <%-- Context path --%>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
-<%-- JS, CSS and i18n files --%>
+<%-- Logged out overlay --%>
+<tag:url var="homeUrl" value="<%= ClientWebUrl.HOME %>"/>
+<tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
+<tag:url var="loggedUrl" value="<%= ClientWebUrl.LOGGED %>"/>
+<c:set var="sessionExpiredOverlay">
+    <spring:escapeBody htmlEscape="false" javaScriptEscape="true">
+        <div id="session-expired-overlay">
+            <div class="information-box">
+                <span><spring:message code="views.layout.autoLogout"/></span>
+                <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
+                <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>
+                <a class="btn btn-default" href="${homeUrl}"><spring:message code="navigation.home"/></a>
+            </div>
+        </div>
+    </spring:escapeBody>
+</c:set>
+
+
 <c:set var="head">
+
+    <%-- JS, CSS and i18n files --%>
 <c:forEach items="${css}" var="file">
     <link rel="stylesheet" type="text/css" href="${contextPath}/css/${file}"/><%--
 --%></c:forEach>
@@ -27,7 +49,22 @@
 <c:forEach items="${i18n}" var="file">
     <script src="${contextPath}/js/${file}.${requestContext.locale.language}.js"></script><%--
 --%></c:forEach>
+
+    <!-- Check for expired session: start -->
+    <script type="text/javascript">
+        var __sessionExpiredTimer = setInterval(function(){
+            console.debug("Checking for expired session...");
+            $.ajax("${loggedUrl}").fail(function(response){
+                if (response.status == 401) {
+                    clearInterval(__sessionExpiredTimer);
+                    $("body").prepend("${sessionExpiredOverlay}");
+                }
+            });
+        }, 5 * 60 * 1000);
+    </script>
+    <!-- Check for expired session: end -->
 </c:if>
+
 </c:set>
 
 <%-- Title --%>
@@ -75,9 +112,6 @@
         </c:set>
     </c:otherwise>
 </c:choose>
-
-
-
 
 <%-- Content --%>
 <c:set var="content">

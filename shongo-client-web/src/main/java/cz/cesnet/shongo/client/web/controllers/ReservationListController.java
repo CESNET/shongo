@@ -51,13 +51,13 @@ public class ReservationListController
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST, method = RequestMethod.GET)
     public String handleDefaultView()
     {
-        return "forward:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
+        return "forward:" + ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW;
     }
 
     /**
      * Handle list of reservation requests view.
      */
-    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST, method = RequestMethod.GET)
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST_VIEW, method = RequestMethod.GET)
     public String handleListView()
     {
         return "reservationRequestList";
