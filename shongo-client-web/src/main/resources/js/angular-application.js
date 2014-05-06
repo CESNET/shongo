@@ -44,7 +44,12 @@ applicationModule.factory("$application", function() {
                 return null;
             }
             var currentUrl = location.pathname + location.search;
-            var errorContent = $('#page-content', data).html().trim();
+            var errorContent = $('#page-content', data);
+            if (errorContent.length == 0) {
+                console.error("Response doesn't contain page content.", data);
+                return null;
+            }
+            errorContent = errorContent.html().trim();
             errorContent = errorContent.replace(/\"(.+(\?|&)back-url=).+\"/g, '"$1' + currentUrl + '"');
             return errorContent;
         }

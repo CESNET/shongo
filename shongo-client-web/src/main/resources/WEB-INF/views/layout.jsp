@@ -115,15 +115,17 @@
 
 <%-- Content --%>
 <c:set var="content">
-    <c:choose>
-        <c:when test="${heading == 'title'}">
-            <h1>${title}</h1>
-        </c:when>
-        <c:when test="${heading != ''}">
-            <h1>${heading}</h1>
-        </c:when>
-    </c:choose>
-    <tiles:insertAttribute name="content"/>
+    <div id="page-content">
+        <c:choose>
+            <c:when test="${heading == 'title'}">
+                <h1>${title}</h1>
+            </c:when>
+            <c:when test="${heading != ''}">
+                <h1>${heading}</h1>
+            </c:when>
+        </c:choose>
+        <tiles:insertAttribute name="content"/>
+    </div>
 </c:set>
 
 <%-- Render layout --%>

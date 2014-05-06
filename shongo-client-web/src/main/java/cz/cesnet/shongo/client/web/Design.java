@@ -368,7 +368,13 @@ public class Design
             {
                 public String getTitle()
                 {
-                    return "+01:00";
+                    DateTimeZone timeZone = userSession.getTimeZone();
+                    if (timeZone == null) {
+                        return "";
+                    }
+                    else {
+                        return TimeZoneModel.formatTimeZone(timeZone);
+                    }
                 }
 
                 public String getHelp()
@@ -385,8 +391,7 @@ public class Design
                     // Current timezone
                     help.append("<tr>");
                     help.append("<td style='text-align: right; vertical-align: top;'>");
-                    help.append(applicationMessageSource
-                            .getMessage("views.layout.timezone.current", null, userSessionLocale));
+                    help.append(applicationMessageSource.getMessage("views.layout.timezone.current", null, userSessionLocale));
                     help.append(":</td>");
                     help.append("<td style='text-align: left;'><b>");
                     help.append(TimeZoneModel.formatTimeZone(timeZone));
