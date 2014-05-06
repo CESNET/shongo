@@ -64,22 +64,30 @@ h6,
   background-color: #aec8ac;
 }
 /* buttons */
-.btn-info {
+a.btn-info {
   background-color: #006600;
   border-color: #000000;
 }
-.btn-info:hover,
-.btn-info:focus {
+a.btn-info,
+a.btn-info:visited {
+  color: #fff;
+}
+a.btn-info:hover,
+a.btn-info:focus {
   background-color: #aec8ac;
   border-color: #000000;
   color: #000000;
 }
-.btn-primary {
+a.btn-primary {
   background-color: #006600;
   border-color: #000000;
 }
-.btn-primary:hover,
-.btn-primary:focus {
+a.btn-primary,
+a.btn-primary:visited {
+  color: #fff;
+}
+a.btn-primary:hover,
+a.btn-primary:focus {
   background-color: #aec8ac;
   border-color: #000000;
   color: #000000;
