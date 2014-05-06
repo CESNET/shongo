@@ -554,7 +554,12 @@ public class Design
                 };
             }
             else {
-                return Collections.emptyIterator();
+                // Empty iterator
+                return new Iterator<BreadcrumbContext>() {
+                    public boolean hasNext() { return false; }
+                    public BreadcrumbContext next() { throw new NoSuchElementException(); }
+                    public void remove() { throw new IllegalStateException(); }
+                };
             }
         }
 
