@@ -73,18 +73,18 @@
 }
 
 /* current link */
-.wizard .link.current {
+.wizard .link.active {
     background: #007ACC;
     color: #fff;
 }
-.wizard .link.current:after {
+.wizard .link.active:after {
     border-left-color: #007ACC;
 }
 
 /* current hovered link */
-.wizard a.current:hover {
+.wizard a.active:hover {
     background: #008AEC;
 }
-.wizard a.current:hover:after {
+.wizard a.active:hover:after {
     border-left-color: #008AEC;
 }

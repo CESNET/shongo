@@ -23,27 +23,9 @@ html, body   {
 
 
 /* page navigation */
-.navbar.navbar-default {
-    margin-bottom: 0px;
-}
-.navbar .navbar-nav {
-    margin: 0px;
-}
-.navbar .nav {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-.navbar .nav>li>a {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-.navbar ul.pull-right>li {
-    float: left;
-}
-.navbar ul.pull-right>li span {
-    display: block;
+.navbar .navbar-collapse.collapse.in {
+    border-bottom: 1px solid #e7e7e7;
+    margin-bottom: 10px;
 }
 .navbar .navbar-brand {
     font-size: 20px;
@@ -51,6 +33,13 @@ html, body   {
     padding-top: 10px;
     padding-bottom: 10px;
     height: 40px;
+}
+.navbar .nav>li>a {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    color: #777;
 }
 .navbar .navbar-text {
     margin-left: 5px;
@@ -66,9 +55,6 @@ html, body   {
     margin-top: 5px;
     margin-bottom: 0px;
 }
-.navbar .navbar-toggle div {
-    display: inline-block;
-}
 .navbar #timezone {
     font-weight: bold;
 }
@@ -78,11 +64,14 @@ html, body   {
     padding: 0px 1px 1px 1px;
     line-height: 11px;
 }
-.navbar .breadcrumb {
-    margin-bottom: 0px;
-    background: transparent;
+.navbar .breadcrumbs {
+    clear: both;
 }
-
+.navbar .breadcrumbs .breadcrumb {
+    background-color: transparent;
+    padding-top: 0px;
+    margin-bottom: 0px;
+}
 
 
 /* page footer */
@@ -98,9 +87,7 @@ html, body   {
     color: #fff;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
     background-color: #08c;
-}
-.nav-list a .fa {
-    line-height: 20px;
+    border-color: #08c;
 }
 
 

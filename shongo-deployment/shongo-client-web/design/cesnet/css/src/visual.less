@@ -1,0 +1,116 @@
+/* page wrapper */
+#page_wrapper {
+  border-top: 12px solid @base;
+}
+
+/* fixed cesnet linker popups to not expand page height */
+#cesnet_linker .item.parent .children {
+  display: none !important;
+}
+#cesnet_linker .item.parent.open .children {
+  display: block !important;
+}
+
+/* body */
+body, html {
+  font-family: Helvetica, Arial, sans-serif;
+  color: @text;
+  min-width: 900px;
+}
+
+/* links */
+a, a:visited, a:hover {
+  color: @text_link;
+}
+
+/* headings */
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  font-family: 'Pathway Gothic One', Helvetica, Arial, sans-serif;
+  color: @text_header;
+}
+
+/* tables */
+.table>tbody>tr.active>td {
+  background-color: @area_hovered;
+}
+
+/* buttons */
+.btn-info {
+  background-color: @area;
+  border-color: @area_border;
+}
+.btn-info:hover, .btn-info:focus {
+  background-color: @area_hovered;
+  border-color: @area_border;
+  color: @area_border;
+}
+.btn-primary {
+  background-color: @area;
+  border-color: @area_border;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: @area_hovered;
+  border-color: @area_border;
+  color: @area_border;
+}
+
+/* wizard */
+.wizard .link.active {
+  background: @area;
+}
+.wizard .link.active:hover {
+  background: @area_hovered;
+  color: @area_border;
+}
+.wizard .link.active:after {
+  border-left-color: @area;
+}
+.wizard .link.active:hover:after {
+  border-left-color: @area_hovered;
+}
+.wizard .badge {
+  background-color: @area_hole;
+}
+
+/* navbar */
+.navbar-default .navbar-brand {
+  color: @text_header;
+}
+.navbar-default .navbar-brand:hover {
+  color: @text_header;
+}
+.navbar #timezone {
+  font-weight: bold;
+}
+.navbar .navbar-collapse.collapse.in {
+  border-bottom: 1px solid #e7e7e7;
+  margin-bottom: 10px;
+}
+.navbar .breadcrumbs {
+  clear: both;
+}
+.navbar .breadcrumbs .breadcrumb {
+  background-color: transparent;
+  padding-top: 0px;
+  margin-bottom: 0px;
+}
+
+/* nav-lists */
+.nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+  background-color: @area;
+  border-color: @area_border;
+}
+
+/* help page menu */
+@media (min-width: 1000px) {
+  .jspHelp > .menu {
+    top: (@header_height + 50px);
+  }
+}

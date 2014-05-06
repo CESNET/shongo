@@ -121,7 +121,7 @@
             </thead>
             <tbody>
             <c:forEach items="${history}" var="historyItem" varStatus="status">
-                <tr ng-class="{selected: ${historyItem.type != 'DELETED'} && reservationRequest.historyItemId == '${historyItem.id}'}">
+                <tr ng-class="{active: ${historyItem.type != 'DELETED'} && reservationRequest.historyItemId == '${historyItem.id}'}">
                 <td><tag:format value="${historyItem.dateTime}" styleShort="true"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>

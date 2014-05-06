@@ -128,8 +128,8 @@
         <put-attribute name="heading" value=""/>
         <put-list-attribute name="title">
             <add-attribute value="views.wizard.title"/>
-            <add-attribute expression="M(${wizardPageCurrent.titleCode}${wizardPageCurrent.titleArguments != null ? ',' : ''}${wizardPageCurrent.getTitleArgumentsAsString()})"/>
-            <add-attribute expression="T(${wizardPageCurrent.titleDescription})"/>
+            <add-attribute expression="M(${wizardPageActive.titleCode}${wizardPageActive.titleArguments != null ? ',' : ''}${wizardPageActive.getTitleArgumentsAsString()})"/>
+            <add-attribute expression="T(${wizardPageActive.titleDescription})"/>
         </put-list-attribute>
         <put-list-attribute name="css" inherit="true">
             <add-attribute value="application-wizard.css"/>

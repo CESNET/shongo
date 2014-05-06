@@ -96,20 +96,20 @@ public abstract class AbstractWizardController
         protected void init(Object wizardPageId, String wizardContent, String requestUri)
         {
             // Find current, previous and next page
-            WizardPage wizardPageCurrent = null;
+            WizardPage wizardPageActive = null;
             WizardPage wizardPagePrevious = null;
             WizardPage wizardPageNext = null;
             for (WizardPage wizardPage : pages.values()) {
                 if (wizardPageId == null) {
                     // Last page should be current page
-                    wizardPagePrevious = wizardPageCurrent;
-                    wizardPageCurrent = wizardPage;
+                    wizardPagePrevious = wizardPageActive;
+                    wizardPageActive = wizardPage;
                 }
                 else if (wizardPageId == wizardPage.getId()) {
-                    wizardPageCurrent = wizardPage;
+                    wizardPageActive = wizardPage;
                 }
                 else {
-                    if (wizardPageCurrent == null) {
+                    if (wizardPageActive == null) {
                         wizardPagePrevious = wizardPage;
                     }
                     else {
@@ -119,7 +119,7 @@ public abstract class AbstractWizardController
                 }
             }
             addObject("wizardContent", wizardContent);
-            addObject("wizardPageCurrent", wizardPageCurrent);
+            addObject("wizardPageActive", wizardPageActive);
 
             // Add previous action
             if (wizardPagePrevious != null) {
@@ -143,17 +143,17 @@ public abstract class AbstractWizardController
             updatePrimary();
 
             // Set all pages until current page as available
-            boolean available = wizardPageCurrent != null;
+            boolean available = wizardPageActive != null;
             for (WizardPage wizardPage : pages.values()) {
                 wizardPage.setAvailable(available);
-                if (wizardPageCurrent == wizardPage) {
+                if (wizardPageActive == wizardPage) {
                     available = false;
                 }
             }
 
             // Update page urls
-            if (wizardPageCurrent != null) {
-                Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(requestUri, false);
+            if (wizardPageActive != null) {
+                Map<String, String> attributes = wizardPageActive.parseUrlAttributes(requestUri, false);
                 for (WizardPage wizardPage : pages.values()) {
                     if (wizardPage.isAvailable()) {
                         String wizardPageUrl = wizardPage.getUrl(attributes);
@@ -176,7 +176,7 @@ public abstract class AbstractWizardController
          */
         public WizardPage getCurrentPage()
         {
-            return (WizardPage) getModel().get("wizardPageCurrent");
+            return (WizardPage) getModel().get("wizardPageActive");
         }
 
         /**

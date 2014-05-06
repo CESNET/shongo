@@ -20,21 +20,52 @@
 <div id="wrapper">
 
     <!-- Header: begin -->
-    <div class="navbar navbar-default">
+    <nav class="navbar navbar-default" role="navigation">
 
-        <!-- Right panel: begin -->
-        <ul class="nav navbar-nav pull-right">
-            <!-- User -->
+        <!-- Non-collapsing right-side menu: start -->
+        <div class="navbar-header pull-right">
+            <!-- Menu items -->
+            <ul class="nav pull-left">
+                <!-- Language selection -->
+                <li class="navbar-text pull-right" style="margin-left: 0px; margin-right: 15px;">
+                    <span>
+                        <a class="language" href="${url.languageEn}"><img src="${url.resources}/img/i18n/en.png" alt="English" title="English"/></a>
+                        <a class="language" href="${url.languageCs}"><img src="${url.resources}/img/i18n/cs.png" alt="Česky" title="Česky"/></a>
+                    </span>
+                </li>
+
+                <!-- Timezone -->
+                <li class="navbar-text pull-right" style="margin-left: 0px; margin-right: 15px;">
+                    <span id="timezone" title="${session.timezone.help}">
+                        ${session.timezone.title}
+                    </span>
+                </li>
+
             <#if user??>
-                <!-- Logged in user -->
-                <li class="dropdown">
+                <!-- User information -->
+                <li class="dropdown pull-right">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         <i class="fa fa-cog"></i>
                         <b>${user.name}</b>
                         <#if user.administratorMode>
+                            <!-- Administrator -->
                             (${message("user.administrator")})
                         </#if>
                         <b class="caret"></b>
+                        <#if !user.reservationAvailable>
+                            <!-- Reservation warning -->
+                            <script type="text/javascript">
+                                $(function () {
+                                    $('#warning').qtip({
+                                        content: { text: "${escapeJavaScript(message("user.reservationDisabled", url.help + "#loa"))}" },
+                                        position: { my: 'top right', at: 'bottom center' },
+                                        style: { classes: 'qtip-app' },
+                                        hide: { fixed: true, delay: 300 }
+                                    });
+                                });
+                            </script>
+                            <b id="warning" class="fa fa-warning" style="color: #f71;"></b>
+                        </#if>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
@@ -59,73 +90,45 @@
                         </li>
                     </ul>
                 </li>
-                <#if !user.reservationAvailable>
-                    <script type="text/javascript">
-                        $(function () {
-                            $('#warning').qtip({
-                                content: { text: "${escapeJavaScript(message("user.reservationDisabled", url.help + "#loa"))}" },
-                                position: { my: 'top right', at: 'bottom center' },
-                                style: { classes: 'qtip-app' },
-                                hide: { fixed: true, delay: 300 }
-                            });
-                        });
-                    </script>
-                    <li class="navbar-text" style="margin-left: 0px;">
-                        <b id="warning" class="fa fa-warning" style="color: #f71;"></b>
-                    </li>
-                </#if>
             <#else>
                 <!-- Login button -->
-                <li>
+                <li class="pull-right">
                     <a href="${url.login}">${message("user.login")}</a>
                 </li>
             </#if>
-
-            <!-- Timezone -->
-            <li>
-                <span id="timezone" class="navbar-text" title="${session.timezone.help}">
-                    ${session.timezone.title}
-                </span>
-            </li>
-
-            <!-- Language selection -->
-            <li>
-                <span class="navbar-text">
-                    <a class="language" href="${url.languageEn}"><img src="${url.resources}/img/i18n/en.png" alt="English" title="English"/></a>
-                    <a class="language" href="${url.languageCs}"><img src="${url.resources}/img/i18n/cs.png" alt="Česky" title="Česky"/></a>
-                </span>
-            </li>
-        </ul>
-        <!-- Right panel: end -->
-
-        <!-- Left panel: begin -->
-        <div class="navbar-header">
-            <!-- Application name -->
-            <a class="navbar-brand" href="${url.home}">${message("app.name")}</a>
-
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <div>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </div>
-                <span>&nbsp;${message("menu")}</span>
-            </button>
-        </div>
-        <!-- Left panel: end -->
-
-        <!-- Main links: begin -->
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <#list links as link>
-                    <li><a href="${link.url}">${link.title}</a></li>
-                </#list>
             </ul>
         </div>
-        <!-- Main links: end -->
+        <!-- Non-collapsing right-side menu: end -->
+
+        <!-- Application name -->
+        <div class="navbar-header">
+            <a class="navbar-brand" href="${url.home}">${message("app.name")}</a>
+
+            <!-- Collapsed menu -->
+            <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle pull-left" style="padding-top: 4px; padding-bottom: 4px;">
+                    <span style="display: inline-block; margin-top: 5px;">
+                        <span class="icon-bar" ></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </span>
+                    <span style="display: inline-block; padding-top: 2px; vertical-align: top;">
+                        &nbsp;${message("menu")}
+                    </span>
+            </button>
+        </div>
+
+        <!-- Collapsing left-side menu: start -->
+        <div class="collapse navbar-collapse navbar-left">
+            <ul class="nav navbar-nav">
+            <#list links as link>
+                <li><a href="${link.url}">${link.title}</a></li>
+            </#list>
+            </ul>
+        </div>
+        <!-- Collapsing left-side menu: end -->
 
         <!-- Header breadcrumbs: begin -->
-        <div>
+        <div class="breadcrumbs">
             <!-- Report problem -->
             <ol class="breadcrumb pull-right">
                 <li><a href="${url.report}">${message("report")}</a></li>
@@ -146,7 +149,7 @@
         </div>
         <!-- Header breadcrumbs: end -->
 
-    </div>
+    </nav>
     <!-- Header: end -->
 
     <!-- Content placeholder: begin -->
@@ -163,7 +166,7 @@
 <div id="footer">
     ${message("app.powered")} <a href="https://shongo.cesnet.cz/" target="_blank">Shongo</a>
     ${message("app.version")} <a href="${url.changelog}">${app.version}</a>
-    &copy; 2012 - 2014&nbsp;&nbsp;&nbsp;
+    &copy; 2012 - ${.now?string("yyyy")}&nbsp;&nbsp;&nbsp;
     <a title="CESNET" href="http://www.cesnet.cz/">
         <img src="${url.resources}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
     </a>

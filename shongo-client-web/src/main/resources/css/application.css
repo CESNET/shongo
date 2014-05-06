@@ -70,8 +70,8 @@ a.bordered:hover {
 .table>tbody>tr:last-child>td {
     border-bottom: 1px solid #dddddd;
 }
-.table tr.selected td {
-    background-color: #DDF0FF !important;
+.table>tbody>tr.active>td {
+    background-color: #DDF0FF;
 }
 .table tr.deprecated:nth-child(odd) td {
     background-color: #e3e3e3 !important;
@@ -703,9 +703,7 @@ div.information-box .spinner {
 }
 .jspHelp > .menu > ul > li > a > i {
     margin-left: 10px;
-}
-.jspHelp > .menu > ul > li.active > a {
-    border-color: #08c;
+    line-height: 20px;
 }
 .jspHelp > .menu > ul > li:first-child > a {
     -webkit-border-top-left-radius: 6px;
@@ -734,7 +732,7 @@ div.information-box .spinner {
         margin-top: 0px;
         padding: 9px 0;
         position: fixed;
-        top: 78px;
+        top: 100px;
     }
 
     .jspHelp > .content {

@@ -12,8 +12,8 @@
     <div class="wizard">
         <c:forEach items="${wizardPages}" var="wizardPage" varStatus="wizardPageStatus">
             <c:choose>
-                <c:when test="${wizardPage == wizardPageCurrent}">
-                    <c:set var="classLink" value="link current"/>
+                <c:when test="${wizardPage == wizardPageActive}">
+                    <c:set var="classLink" value="link active"/>
                     <c:set var="classBadge" value="badge badge-inverse"/>
                 </c:when>
                 <c:otherwise>

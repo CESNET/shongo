@@ -343,20 +343,23 @@
     <c:if test="${reservationRequestModification != null && reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName}">
         <div class="form-group">
             <form:label class="col-xs-3 control-label" path="roomName">
-                <spring:message code="views.reservationRequest.specification.roomName"/>:
+                <spring:message code="views.reservationRequest.specification.roomName" var="roomNameLabel"/>
+                <tag:help label="${roomNameLabel}:">
+                    <spring:message code="views.reservationRequest.specification.roomName.retainHelp"/>
+                </tag:help>
             </form:label>
-            <div class="col-xs-4">
-                <label class="radio inline" for="room-name-new">
+            <div class="col-xs-3">
+                <label class="radio-inline" for="room-name-new">
                     <form:radiobutton id="room-name-new" path="adhocRoomRetainRoomName" value="false" tabindex="${tabIndex}"/>
                     <span><spring:message code="views.reservationRequest.specification.roomName.new"/></span>
                 </label>
-                <label class="radio inline" for="room-name-retain">
+                <label class="radio-inline" for="room-name-retain">
                     <form:radiobutton id="room-name-retain" path="adhocRoomRetainRoomName" value="true" tabindex="${tabIndex}"/>
                     <span><spring:message code="views.reservationRequest.specification.roomName.retain"/></span>
                 </label>
-                &nbsp;
-                <form:input path="roomName" tabindex="${tabIndex}" readonly="true"/>
-                <tag:help><spring:message code="views.reservationRequest.specification.roomName.retainHelp"/></tag:help>
+            </div>
+            <div class="col-xs-3">
+                <form:input cssClass="form-control" path="roomName" tabindex="${tabIndex}" readonly="true"/>
             </div>
         </div>
     </c:if>
@@ -366,8 +369,10 @@
             <form:label class="col-xs-3 control-label" path="roomParticipantCount">
                 <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
             </form:label>
-            <div class="col-xs-4">
+            <div class="col-xs-2">
                 <form:input path="roomParticipantCount" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="roomParticipantCount" cssClass="error"/>
             </div>
         </div>
