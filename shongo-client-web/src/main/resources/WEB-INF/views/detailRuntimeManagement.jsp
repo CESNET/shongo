@@ -90,7 +90,7 @@
                 <spring:message code="views.room.recording.stop"/>
             </a>
         </div>
-        <div style="max-width: 300px; margin-top: 10px;" class="alert alert-error" ng-show="recordingError != null">
+        <div style="max-width: 300px; margin-top: 10px;" class="alert alert-danger" ng-show="recordingError != null">
             {{recordingError}}
         </div>
     </div>
@@ -183,7 +183,7 @@
         <c:if test="${room.technology == 'H323_SIP'}">
             <dt class="control-label"><spring:message code="views.room.layout"/>:</dt>
             <dd>
-                <tag:roomLayout id="roomLayout" model="layout" width="200px"/>
+                <tag:roomLayout id="roomLayout" model="layout" width="220px"/>
             </dd>
         </c:if>
     </c:if>
@@ -254,7 +254,8 @@
              */
             $scope.isEditable = function(roomParticipant) {
                 for (var index in roomParticipantAttributes) {
-                    if (roomParticipant[roomParticipantAttributes[index]] != null) {
+                    var roomParticipantAttribute = roomParticipantAttributes[index];
+                    if (roomParticipantAttribute != 'name' && roomParticipant[roomParticipantAttribute] != null) {
                         return true;
                     }
                 }
@@ -330,7 +331,7 @@
                     <th><spring:message code="views.room.currentParticipant.email"/></th>
                 </c:if>
                 <c:if test="${isWritable}">
-                    <th style="min-width: 85px; width: 85px;"><spring:message code="views.list.action"/></th>
+                    <th style="min-width: 95px; width: 95px;"><spring:message code="views.list.action"/></th>
                 </c:if>
             </tr>
             </thead>
@@ -366,7 +367,7 @@
                     <td ng-controller="RoomParticipantController">
                         <tag:url var="participantModifyUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_MODIFY %>">
                             <tag:param name="objectId" value="${room.id}"/>
-                            <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
+                            <tag:param name="participantId" value="' + roomParticipant.id + '" escape="false"/>
                         </tag:url>
                         <%-- Mute audio --%>
                         <span ng-show="roomParticipant.microphoneEnabled != null">
@@ -388,7 +389,7 @@
                         <%-- Disconnect --%>
                         <tag:url var="disconnectParticipantUrl" value="<%= ClientWebUrl.DETAIL_RUNTIME_MANAGEMENT_PARTICIPANT_DISCONNECT %>">
                             <tag:param name="objectId" value="${room.id}"/>
-                            <tag:param name="participantId" value="{{roomParticipant.id}}" escape="false"/>
+                            <tag:param name="participantId" value="' + roomParticipant.id + '" escape="false"/>
                         </tag:url>
                         <spring:message var="participantDisconnectTitle" code="views.room.currentParticipant.disconnect"/>
                         <a href="" ng-click="modifyByUrl('${disconnectParticipantUrl}')" title="${participantDisconnectTitle}"><i class="fa fa-times"></i></a>
@@ -412,7 +413,7 @@
         <spring:message code="views.button.refresh"/>
     </a>
 </div>
-<div class="table-actions">
+<div class="table-actions clearfix">
     <security:authorize access="hasPermission(RESERVATION)">
         <c:if test="${room.started && !room.available && room.type == 'PERMANENT_ROOM' && isProvidable}">
             <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">

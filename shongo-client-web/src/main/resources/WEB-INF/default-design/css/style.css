@@ -23,6 +23,9 @@ html, body   {
 
 
 /* page navigation */
+.navbar-default {
+    margin-bottom: 0px;
+}
 .navbar .navbar-collapse.collapse.in {
     border-bottom: 1px solid #e7e7e7;
     margin-bottom: 10px;

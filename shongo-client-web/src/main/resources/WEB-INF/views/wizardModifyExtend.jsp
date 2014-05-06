@@ -53,38 +53,38 @@
     <fieldset>
 
         <spring:hasBindErrors name="reservationRequest">
-            <div class="alert alert-error"><spring:message code="views.wizard.error.failed"/></div>
+            <div class="alert alert-danger"><spring:message code="views.wizard.error.failed"/></div>
         </spring:hasBindErrors>
 
-        <div class="control-group">
-            <form:label class="control-label" path="id">
+        <div class="form-group">
+            <form:label class="col-xs-2 control-label" path="id">
                 <spring:message code="views.reservationRequest.identifier"/>:
             </form:label>
-            <div class="controls double-width">
-                <form:input path="id" readonly="true"/>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" path="id" readonly="true"/>
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="start">
+        <div class="form-group">
+            <form:label class="col-xs-2 control-label" path="start">
                 <spring:message code="views.reservationRequest.start"/>:
             </form:label>
-            <div class="controls">
-                <form:input path="start" cssErrorClass="error" date-time-picker="true" readonly="true"/>
+            <div class="col-xs-4">
+                <form:input path="start" cssClass="form-control" readonly="true"/>
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="original.end">
+        <div class="form-group">
+            <form:label class="col-xs-2 control-label" path="original.end">
                 <spring:message code="views.reservationRequest.end.old"/>:
             </form:label>
-            <div class="controls">
-                <form:input path="original.end" cssErrorClass="error" date-time-picker="true"readonly="true"/>
+            <div class="col-xs-4">
+                <form:input path="original.end" cssClass="form-control" readonly="true"/>
             </div>
         </div>
 
-        <div class="control-group">
-            <div class="controls">
+        <div class="form-group">
+            <div class="col-xs-offset-2 col-xs-10">
                 <c:forEach var="minutes" items="15,30,45,60,120,180">
                     <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
                     <a class="btn btn-info minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});" tabindex="${tabIndex}">+<tag:format value="${duration}"/></a>
@@ -92,12 +92,14 @@
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="end">
+        <div class="form-group">
+            <form:label class="col-xs-2 control-label" path="end">
                 <spring:message code="views.reservationRequest.end.new"/>:
             </form:label>
-            <div class="controls">
-                <form:input path="end" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}"/>
+            <div class="col-xs-4">
+                <form:input path="end" cssClass="form-control" cssErrorClass="form-control error" date-time-picker="true" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-2 col-xs-10">
                 <form:errors path="end" cssClass="error"/>
             </div>
         </div>

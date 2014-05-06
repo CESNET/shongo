@@ -38,9 +38,7 @@ html {
   min-width: 900px;
 }
 /* links */
-a,
-a:visited,
-a:hover {
+a {
   color: #006600;
 }
 /* headings */
@@ -59,17 +57,14 @@ h6,
   font-family: 'Pathway Gothic One', Helvetica, Arial, sans-serif;
   color: #006600;
 }
-/* tables */
-.table > tbody > tr.active > td {
-  background-color: #aec8ac;
-}
 /* buttons */
 a.btn-info {
   background-color: #006600;
   border-color: #000000;
 }
 a.btn-info,
-a.btn-info:visited {
+a.btn-info:visited,
+a.btn-info:focus {
   color: #fff;
 }
 a.btn-info:hover,
@@ -83,7 +78,8 @@ a.btn-primary {
   border-color: #000000;
 }
 a.btn-primary,
-a.btn-primary:visited {
+a.btn-primary:visited,
+a.btn-primary:focus {
   color: #fff;
 }
 a.btn-primary:hover,
@@ -110,6 +106,9 @@ a.btn-primary:focus {
   background-color: #729a80;
 }
 /* navbar */
+.navbar-default {
+  margin-bottom: 0px;
+}
 .navbar-default .navbar-brand {
   color: #006600;
 }

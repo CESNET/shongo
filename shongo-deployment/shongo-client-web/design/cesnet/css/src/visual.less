@@ -19,7 +19,7 @@ body, html {
 }
 
 /* links */
-a, a:visited, a:hover {
+a {
   color: @text_link;
 }
 
@@ -34,17 +34,12 @@ h6, .h6 {
   color: @text_header;
 }
 
-/* tables */
-.table>tbody>tr.active>td {
-  background-color: @area_hovered;
-}
-
 /* buttons */
 a.btn-info {
   background-color: @area;
   border-color: @area_border;
 }
-a.btn-info, a.btn-info:visited {
+a.btn-info, a.btn-info:visited, a.btn-info:focus {
   color: #fff;
 }
 a.btn-info:hover, a.btn-info:focus {
@@ -56,7 +51,7 @@ a.btn-primary {
   background-color: @area;
   border-color: @area_border;
 }
-a.btn-primary, a.btn-primary:visited {
+a.btn-primary, a.btn-primary:visited, a.btn-primary:focus {
   color: #fff;
 }
 a.btn-primary:hover, a.btn-primary:focus {
@@ -84,6 +79,9 @@ a.btn-primary:hover, a.btn-primary:focus {
 }
 
 /* navbar */
+.navbar-default {
+  margin-bottom: 0px;
+}
 .navbar-default .navbar-brand {
   color: @text_header;
 }

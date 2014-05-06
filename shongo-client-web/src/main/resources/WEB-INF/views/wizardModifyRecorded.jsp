@@ -26,32 +26,36 @@
     <fieldset>
 
         <c:if test="${errors != null}">
-            <div class="alert alert-error"><spring:message code="views.wizard.error.failed"/></div>
+            <div class="alert alert-danger"><spring:message code="views.wizard.error.failed"/></div>
         </c:if>
         <c:set var="roomRecordedError" value="${errors.hasFieldErrors('roomRecorded') ? errors.getFieldErrors('roomRecorded')[0].defaultMessage : null}"/>
 
-        <div class="control-group">
-            <form:label class="control-label" path="id">
+        <div class="form-group">
+            <form:label class="col-xs-2 control-label" path="id">
                 <spring:message code="views.reservationRequest.identifier"/>:
             </form:label>
-            <div class="controls double-width">
-                <form:input path="id" readonly="true" tabindex="${tabIndex}"/>
+            <div class="col-xs-4">
+                <form:input cssClass="form-control" path="id" readonly="true" tabindex="${tabIndex}"/>
             </div>
         </div>
 
-        <div class="control-group" ng-hide="technology == 'ADOBE_CONNECT'">
-            <form:label class="control-label" path="roomRecorded">
+        <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT'">
+            <form:label class="col-xs-2 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>
                 <tag:help label="${roomRecordedLabel}:"><spring:message code="views.reservationRequest.specification.roomRecordedHelp"/></tag:help>
             </form:label>
-            <div class="controls">
-                <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" disabled="true"/>
-                <c:if test="${not empty roomRecordedError}">
-                    <span class="error">
-                        ${roomRecordedError}
-                    </span>
-                </c:if>
+            <div class="col-xs-4">
+                <div class="checkbox">
+                    <form:checkbox path="roomRecorded" cssErrorClass="error" tabindex="${tabIndex}" disabled="true"/>
+                </div>
             </div>
+            <c:if test="${true || not empty roomRecordedError}">
+                <div class="col-xs-offset-2 col-xs-10">
+                     <span class="error">
+                             ${roomRecordedError}
+                     </span>
+                </div>
+            </c:if>
         </div>
 
     </fieldset>

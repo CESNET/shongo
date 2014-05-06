@@ -52,37 +52,37 @@
     </div>
     <div class="modal-body">
         <form class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="name">
+            <div class="form-group">
+                <label class="col-xs-4 control-label" for="name">
                     <spring:message code="views.room.currentParticipant.name"/>:
                 </label>
-                <div class="controls">
-                    <input id="name" type="text" tabindex="1" ng-model="data.name"/>
+                <div class="col-xs-6">
+                    <input class="form-control" id="name" type="text" tabindex="1" ng-model="data.name"/>
                 </div>
             </div>
             <c:if test="${technology == 'H323_SIP'}">
-                <div class="control-group">
-                    <label class="control-label" for="alias">
+                <div class="form-group">
+                    <label class="col-xs-4 control-label" for="alias">
                         <spring:message code="views.room.currentParticipant.alias"/>:
                     </label>
-                    <div class="controls">
-                        <input id="alias" type="text" readonly="true" tabindex="1" ng-model="data.alias"/>
+                    <div class="col-xs-6">
+                        <input class="form-control" id="alias" type="text" readonly="true" tabindex="1" ng-model="data.alias"/>
                     </div>
                 </div>
             </c:if>
             <c:if test="${technology == 'H323_SIP'}">
-                <div class="control-group" >
-                    <label class="control-label">
+                <div class="form-group" >
+                    <label class="col-xs-4 control-label">
                         <input type="checkbox" tabindex="1" ng-model="data.enableMicrophoneLevel"/>
                         <spring:message code="views.room.currentParticipant.microphoneLevel"/>:
                     </label>
-                    <div class="controls">
-                        <input type="number" min="1" max="10" tabindex="1" ng-model="data.microphoneLevel" ng-disabled="!data.enableMicrophoneLevel"/>
+                    <div class="col-xs-4">
+                        <input class="form-control" type="number" min="1" max="10" tabindex="1" ng-model="data.microphoneLevel" ng-disabled="!data.enableMicrophoneLevel"/>
                     </div>
                 </div>
             </c:if>
-            <div class="control-group" ng-show="data.microphoneEnabled != null">
-                <div class="controls">
+            <div class="form-group" ng-show="data.microphoneEnabled != null">
+                <div class="col-xs-offset-4 col-xs-4">
                     <div>
                         <label class="checkbox inline">
                             <input type="checkbox" tabindex="1" ng-model="data.microphoneEnabled"/><spring:message code="views.room.currentParticipant.microphoneEnabled"/>
@@ -91,7 +91,7 @@
                 </div>
             </div>
             <div class="control-group" ng-show="data.videoEnabled != null">
-                <div class="controls">
+                <div class="col-xs-offset-4 col-xs-4">
                     <div>
                         <label class="checkbox inline">
                             <input type="checkbox" tabindex="1" ng-model="data.videoEnabled"/><spring:message code="views.room.currentParticipant.videoEnabled"/>
