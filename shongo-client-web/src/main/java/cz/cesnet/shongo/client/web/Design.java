@@ -391,7 +391,8 @@ public class Design
                     // Current timezone
                     help.append("<tr>");
                     help.append("<td style='text-align: right; vertical-align: top;'>");
-                    help.append(applicationMessageSource.getMessage("views.layout.timezone.current", null, userSessionLocale));
+                    help.append(applicationMessageSource.getMessage("views.layout.timezone.current", null,
+                            userSessionLocale));
                     help.append(":</td>");
                     help.append("<td style='text-align: left;'><b>");
                     help.append(TimeZoneModel.formatTimeZone(timeZone));
@@ -432,6 +433,29 @@ public class Design
                     }
                     help.append("</table>");
                     return help.toString();
+                }
+            }
+
+            private LocaleContext localeContext;
+
+            public LocaleContext getLocale()
+            {
+                if (localeContext == null) {
+                    localeContext = new LocaleContext();
+                }
+                return localeContext;
+            }
+
+            public class LocaleContext
+            {
+                public String getTitle()
+                {
+                    return userSession.getLocale().getDisplayLanguage();
+                }
+
+                public String getLanguage()
+                {
+                    return userSession.getLocale().getLanguage();
                 }
             }
         }
@@ -564,6 +588,11 @@ public class Design
             public boolean isReservationAvailable()
             {
                 return cache.hasSystemPermission(securityToken, SystemPermission.RESERVATION);
+            }
+
+            public String getId()
+            {
+                return userInformation.getUserId();
             }
 
             public String getName()
