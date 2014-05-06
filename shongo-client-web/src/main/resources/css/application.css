@@ -2,6 +2,22 @@
  ** STYLES FOR COMMON TAGS ********************************************************************************************
  **********************************************************************************************************************/
 
+/* Bootstrap grid without padding */
+
+.no-padding > div[class*="col-"] {
+    padding: 0;
+}
+.space-padding > div[class*="col-"] {
+    padding-left: 8px;
+    padding-right: 0px;
+}
+.space-padding > div[class*="col-"]:first-child {
+    padding-left: 0px;
+}
+.space-padding > div[class*="-12"] {
+    padding-left: 0px;
+}
+
 /* Pre-formatted code */
 pre {
     word-break: normal;
@@ -177,84 +193,6 @@ dl.dl-horizontal .alert {
     margin-bottom: 0px;
 }
 
-/* Form */
-/*legend {
-    margin-bottom: 10px;
-}
-legend input[type="radio"], legend input[type="checkbox"] {
-    margin-left: 10px;
-    margin-bottom: 8px;
-}
-form.inline {
-    display: inline-block;
-}
-form fieldset textarea {
-    resize:none;
-}
-form fieldset legend {
-    margin-bottom: 0px;
-}
-form fieldset legend.select {
-    padding-bottom: 5px;
-    margin-bottom: 0px;
-}
-form fieldset legend.select span {
-    display: inline-block;
-    line-height: 20px;
-}
-form fieldset legend.select ul {
-    display: inline-block;
-    margin: 0px;
-    padding-bottom: 3px;
-    vertical-align: bottom;
-}
-form .controls .description {
-    margin-left: 5px;
-    margin-top: 5px;
-    margin-bottom: -8px;
-}
-form .controls div.select2-container {
-    width: 218px;
-}
-form input[type="radio"], form input[type="checkbox"] {
-    height: 20px;
-    line-height: normal;
-    margin-top: 6px;
-}
-form .controls label.radio.inline, form .controls label.checkbox.inline {
-    line-height: 30px;
-    padding-top: 0px;
-}
-form .controls div input[type="radio"], form .controls div input[type="checkbox"],
-form .control-label input[type="radio"], form .control-label input[type="checkbox"] {
-    margin-top: 0px;
-}
-form .controls div label.radio.inline, form .controls div label.checkbox.inline {
-    line-height: 20px;
-}
-form div.actions {
-    border: none;
-    background: none;
-    text-align: left;
-    margin-top: 10px;
-    margin-bottom: 0px;
-    padding: 0px;
-}
-form div.actions>a {
-    float: none;
-}
-*/
-/* Form - double width input */
-/*form .double-width>input {
-    width: 346px;
-}
-form .double-width>textarea {
-    width: 346px;
-}
-form .double-width>select,
-form .double-width div.select2-container {
-    width: 360px;
-}*/
 /* Form - common settings */
 textarea {
     resize:none;
@@ -284,10 +222,6 @@ input.error, select.error, textarea.error, .select2-container.form-control.error
 span.error, div.error {
     color: #b94a48;
     font-weight: bold;
-    /*margin: 0px 0px 0px 8px;
-    padding: 5px 0px;
-    vertical-align: top;
-    display: inline-block;*/
 }
 
 .form-group .input-group-addon input[type=checkbox] {
