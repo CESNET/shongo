@@ -1,5 +1,5 @@
 /**
- * Replace "room_configuration_id" by "license_count" column in "room_reservation" table.
+ * 2013-11-05: Replace "room_configuration_id" by "license_count" column in "room_reservation" table.
  * 1) add "license_count" column to "room_reservation"
  * 2) set "license_count" to value from corresponding "room_configuration"
  * 3) set "license_count" column as "NOT NULL"

@@ -51,6 +51,20 @@ SELECT
        ELSE 'Other'
     END AS specification,
 
+    CASE
+       WHEN room_specification.id IS NOT NULL AND room_specification.participant_count IS NOT NULL AND abstract_reservation_request.reused_allocation_id IS NULL THEN
+           'ONE_TIME'
+       WHEN room_specification.id IS NOT NULL AND room_specification.participant_count IS NOT NULL AND abstract_reservation_request.reused_allocation_id IS NOT NULL THEN
+           'PERMANENT_ROOM_CAPACITY'
+       WHEN room_name_specification.id IS NOT NULL AND room_specification.participant_count IS NULL THEN
+           'PERMANENT_ROOM'
+       ELSE 'Other'
+    END AS specificationType,
+
+    room_specification.participant_count AS room_participant_count,
+
+    room_name_specification.value AS room_name,
+
     /* User description */
     abstract_reservation_request.description AS description,    
 

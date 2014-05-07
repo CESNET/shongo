@@ -1,5 +1,5 @@
 /**
- * 2014-03-28: Refactorize scheduler reports
+ * 2014-04-07: Refactorize scheduler reports
  */
 BEGIN TRANSACTION;
 

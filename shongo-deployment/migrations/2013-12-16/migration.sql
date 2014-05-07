@@ -108,7 +108,7 @@ COMMIT TRANSACTION;
 
 
 /**
- * 2012-12-10: Rename abstract_person to person.
+ * 2013-12-10: Rename abstract_person to person.
  */
 BEGIN TRANSACTION;
 ALTER TABLE abstract_person RENAME TO person;
@@ -143,7 +143,7 @@ COMMIT TRANSACTION;
 
 
 /**
- * 2012-12-12: Little refactorizations.
+ * 2013-12-12: Little refactorizations.
  */
 BEGIN TRANSACTION;
 ALTER TABLE acl_record RENAME COLUMN role TO entity_role;
@@ -152,7 +152,7 @@ COMMIT TRANSACTION;
 
 
 /**
- * 2012-12-16: Refactorizations of acl_record to acl_entry.
+ * 2013-12-16: Refactorizations of acl_record to acl_entry.
  */
 BEGIN TRANSACTION;
 CREATE TABLE acl_entry (id int8 not null, role varchar(255) not null, acl_identity_id int8 not null, acl_object_identity_id int8 not null, primary key (id), unique (acl_identity_id, acl_object_identity_id, role));

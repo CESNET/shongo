@@ -16,8 +16,8 @@ and you have to restart application every time you make a change.
 
 CONVERT KEY/CERT PAIR TO JAVE KEY STORE
 
-openssl pkcs12 -export -in server.crt -inkey server.key -out server.p12
-keytool -importkeystore -srckeystore server.p12 -srcstoretype PKCS12 -destkeystore server.keystore
+      openssl pkcs12 -export -in server.crt -inkey server.key -out server.p12
+      keytool -importkeystore -srckeystore server.p12 -srcstoretype PKCS12 -destkeystore server.keystore
 
 RECAPTCHA
 
@@ -26,4 +26,20 @@ Domain Name: shongo.cz                                 (This is a global key. It
 Public Key:  6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej  (Use this in the JavaScript code that is served to your users.)
 Private Key: 6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr  (Use this when communicating between your server and our server. Be sure to keep it a secret.)
 
+CSS
 
+For building css it is necessary to have less compiler.
+
+Install instructions:
+
+    sudo apt-get update && apt-get install git-core curl build-essential openssl libssl-dev
+
+    git clone https://github.com/joyent/node.git
+    cd node
+    git checkout v0.10.28
+    ./configure --openssl-libpath=/usr/lib/ssl
+    make
+    make test
+    sudo make install
+
+    npm install -g less

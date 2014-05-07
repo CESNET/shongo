@@ -1,4 +1,5 @@
 /**
+ * 2013-11-11:
  * 1) Create table ExecutionTarget.
  * 2) Create records in ExecutionTarget for each executable.
  * 3) Move columns from Executable to ExecutionTarget.
@@ -9,8 +10,8 @@
  */
 BEGIN TRANSACTION;
 
-DROP VIEW executable_summary;
-DROP VIEW room_endpoint_earliest_usage;
+DROP VIEW IF EXISTS executable_summary;
+DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
 CREATE TABLE execution_target (
     id int8 NOT NULL,
