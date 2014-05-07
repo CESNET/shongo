@@ -8,7 +8,6 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tiles:importAttribute name="css"/>
 <tiles:importAttribute name="js"/>
 <tiles:importAttribute name="i18n"/>
 <tiles:importAttribute name="title"/>
@@ -38,9 +37,8 @@
 <c:set var="head">
 
     <%-- JS, CSS and i18n files --%>
-<c:forEach items="${css}" var="file">
-    <link rel="stylesheet" type="text/css" href="${contextPath}/css/${file}"/><%--
---%></c:forEach>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/css/lib.css"/>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/css/style.css"/>
     <link rel="stylesheet" type="text/css" href="${contextPath}/design/css/style.css"/><%--
 --%><c:forEach items="${js}" var="file">
     <script type="text/javascript" src="${contextPath}/js/${file}"></script><%--

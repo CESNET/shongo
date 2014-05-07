@@ -1,0 +1,15 @@
+/* page layout (based on http://ryanfait.com/resources/footer-stick-to-bottom-of-page/)*/
+html, body   {
+  height: 100%;
+  min-width: @page_min_width;
+}
+#wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -@footer_height;
+    padding-bottom: 10px;
+}
+#footer, .push {
+    height: @footer_height;
+}

@@ -11,8 +11,7 @@
 <html>
 <head>
     <title>Shongo</title>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/bootstrap.min.css"/>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/application.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css"/>
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.min.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jstz.min.js"></script>
     <script type="text/javascript">

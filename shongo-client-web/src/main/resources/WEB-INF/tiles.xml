@@ -9,12 +9,6 @@
         <put-attribute name="title" value=""/>
         <put-attribute name="heading" value="title"/>
         <put-attribute name="content" value=""/>
-        <put-list-attribute name="css">
-            <add-attribute value="jquery-qtip.min.css"/>
-            <add-attribute value="bootstrap.min.css"/>
-            <add-attribute value="font-awesome.min.css"/>
-            <add-attribute value="application.css"/>
-        </put-list-attribute>
         <put-list-attribute name="js">
             <add-attribute value="jquery.min.js"/>
             <add-attribute value="jquery-qtip.min.js"/>
@@ -40,10 +34,6 @@
     </definition>
 
     <definition name="layoutAngularForm" extends="layoutAngular">
-        <put-list-attribute name="css" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.css"/>
-            <add-attribute value="jquery-select2.css"/>
-        </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
             <add-attribute value="moment.min.js"/>
@@ -130,9 +120,6 @@
             <add-attribute value="views.wizard.title"/>
             <add-attribute expression="M(${wizardPageActive.titleCode}${wizardPageActive.titleArguments != null ? ',' : ''}${wizardPageActive.getTitleArgumentsAsString()})"/>
             <add-attribute expression="T(${wizardPageActive.titleDescription})"/>
-        </put-list-attribute>
-        <put-list-attribute name="css" inherit="true">
-            <add-attribute value="application-wizard.css"/>
         </put-list-attribute>
     </definition>
     <definition name="wizardBody" template="/WEB-INF/views/wizard.jsp">

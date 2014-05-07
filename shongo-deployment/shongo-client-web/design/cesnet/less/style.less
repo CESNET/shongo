@@ -9,7 +9,8 @@
 
 // area colors
 @area: @base;
-@area_hovered: #aec8ac;
+@area_active: #f1fff1;
+@area_hovered: #8fc87f;
 @area_border: darken(@base, 20%);
 @area_hole: #729a80;
 
@@ -18,14 +19,16 @@
 @text_header: @base;
 @text_link: @base;
 
+@shadow: @base;
+
 // dimensions
 @header_height: 100px;
 @footer_height: 280px;
 
 // styles
 @import "layout.less";
-@import "visual.less";
 @import "footer.less";
+@import "visual.less";
 
-
-
+/* bootstrap theme */
+@import "bootstrap-theme.less";

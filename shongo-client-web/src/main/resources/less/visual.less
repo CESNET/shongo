@@ -1,0 +1,231 @@
+/* Bootstrap grid without padding */
+.no-padding > div[class*="col-"] {
+    padding: 0;
+}
+.space-padding > div[class*="col-"] {
+    padding-left: 8px;
+    padding-right: 0px;
+}
+.space-padding > div[class*="col-"]:first-child {
+    padding-left: 0px;
+}
+.space-padding > div[class*="-12"] {
+    padding-left: 0px;
+}
+
+/* Pre-formatted code */
+pre {
+    word-break: normal;
+}
+
+/* Horizontal rule */
+hr {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.dropdown-menu .menuitem {
+    padding-left: 25px;
+
+}
+.dropdown-menu .menuitem .fa.fa-check {
+    margin-left: -19px;
+    margin-right: 5px;
+}
+
+/* Links with border when they are hovered */
+a.bordered {
+    border: 1px solid transparent;
+}
+a.bordered:hover {
+    border: 1px solid;
+}
+
+/* Alerts */
+.alert {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Tables */
+.table {
+    margin-top: 8px;
+    margin-bottom: 0px;
+}
+.table>thead>tr>th a {
+    color: black;
+}
+.table>thead>tr>th {
+    padding-top: 0px;
+    border-bottom-width: 1px;
+}
+.table>tbody {
+    border-top: none !important;
+}
+.table>tbody>tr:last-child>td {
+    border-bottom: 1px solid #dddddd;
+}
+.table>tbody>tr.active>td {
+    background-color: #DDF0FF;
+}
+.table tr.deprecated:nth-child(odd) td {
+    background-color: #e3e3e3 !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.deprecated:nth-child(even) td {
+    background-color: #dadada !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.odd td {
+    background-color: #f9f9f9 !important;
+}
+.table tr.odd.deprecated td {
+    background-color: #e3e3e3 !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.even td {
+    background: none !important;
+}
+.table tr.even.deprecated td {
+    background-color: #dadada !important;
+    border-top-color: #f8f8f8;
+}
+.table tr.description td {
+    border-top: none;
+    padding-top: 0px;
+    padding-left: 8px;
+    margin-top: -8px;
+}
+.table tr td ul {
+    margin-bottom: 0px;
+}
+.table tr td.empty, span.empty {
+    background-color: transparent !important;
+    text-align: center;
+    color: #AAAAAA;
+}
+
+/* Action under table */
+.table-actions {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.tab-pane .table-actions {
+    margin-bottom: 0px;
+}
+.table-actions-left .table-actions {
+    float: left;
+}
+.table-actions-right .table-actions {
+    float: right;
+}
+div.table-actions.pull-right {
+    float: right;
+}
+
+/* Description list */
+dl.dl-horizontal {
+    display: block;
+}
+dl.dl-horizontal {
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+dl.dl-horizontal dt, dd {
+    font-size: 1.1em;
+    min-height: 20px;
+    margin-top: 0px;
+    padding-bottom: 10px;
+}
+dl.dl-horizontal dt {
+    width: 230px;
+    float: left;
+    clear: left;
+    text-align: right;
+}
+dl.dl-horizontal dd {
+    margin-left: 240px;
+}
+dl.dl-horizontal hr {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+dl.dl-horizontal .btn {
+    padding: 0px 3px;
+}
+dl.dl-horizontal dt.control-label {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+dl.dl-horizontal dd select {
+    margin-bottom: 0px;
+}
+dl.dl-horizontal .alert {
+    display: table;
+    margin-top: 5px;
+}
+
+/* Tabs */
+.tabbable {
+    margin-top: 15px;
+    margin-bottom: 0px;
+}
+.tabbable a {
+    cursor: pointer;
+}
+.nav-tabs {
+    margin-bottom: 0px;
+}
+.nav-tabs a {
+    font-weight: bold;
+    font-size: 16px;
+}
+.tab-content {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-top: 0;
+}
+.tab-content .alert {
+    display: inline-block;
+    padding-right: 15px;
+    margin-bottom: 0px;
+}
+
+/* Form - common settings */
+textarea {
+    resize:none;
+}
+/* Form - reCaptcha */
+iframe[src="about:blank"] {
+    display: block;
+}
+form .recaptcha {
+    display: inline-block;
+    margin-bottom: -5px;
+}
+form .recaptcha input {
+    border-radius: 0px; -webkit-border-radius: 0px; -moz-border-radius: 0px;
+    padding: 1px 0px 1px 4px;
+    box-shadow: none;
+    border-color: rgb(223, 223, 223) !important;
+}
+form .recaptcha.error table {
+    border-color: #b94a48 !important;
+}
+/* Errors */
+input.error, select.error, textarea.error, .select2-container.form-control.error a {
+    border: solid 1px #b94a48;
+    background-color: #FFF0F0;
+}
+span.error, div.error {
+    color: #b94a48;
+    font-weight: bold;
+}
+
+.form-group .input-group-addon input[type=checkbox] {
+    margin-left: 0px;
+}
+.form-group .checkbox-inline {
+    padding-top: 0px;
+
+}
