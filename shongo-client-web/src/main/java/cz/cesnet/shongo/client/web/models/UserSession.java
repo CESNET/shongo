@@ -243,7 +243,7 @@ public class UserSession implements Serializable
             localeDefaultWarning = false;
         }
         else {
-            localeDefaultWarning = userSettings.isLocaleDefaultWarning();
+            localeDefaultWarning = !userSettings.isUseWebService() && userSettings.isLocaleDefaultWarning();
         }
 
         // Set timezone from user settings
@@ -258,7 +258,7 @@ public class UserSession implements Serializable
         }
         else {
             setTimeZone(null);
-            timeZoneDefaultWarning = userSettings.isTimeZoneDefaultWarning();
+            timeZoneDefaultWarning = !userSettings.isUseWebService() && userSettings.isTimeZoneDefaultWarning();
         }
 
         // When timezone should be detected and the detection is already done, use the already detected timezone

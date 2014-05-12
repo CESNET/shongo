@@ -55,7 +55,7 @@
                 <c:forEach items="${data}" var="participant">
                     <tr>
                         <td>${participant.name}
-                            <c:if test="${participant.type == 'USER'}">
+                            <c:if test="${participant.type == 'USER' && not empty participant.user.organization}">
                                 (${participant.user.organization})
                             </c:if>
                         </td>

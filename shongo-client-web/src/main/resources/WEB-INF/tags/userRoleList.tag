@@ -92,10 +92,10 @@
                             </c:otherwise>
                         </c:choose>
                         <c:choose>
-                            <c:when test="${userRole.identityType == 'USER'}">
+                            <c:when test="${userRole.identityType == 'USER' && not empty userRole.user.organization}">
                                 (${userRole.user.organization})
                             </c:when>
-                            <c:when test="${userRole.identityType == 'GROUP'}">
+                            <c:when test="${userRole.identityType == 'GROUP' && not empty userRole.group.description}">
                                 (${userRole.group.description})
                             </c:when>
                         </c:choose>
@@ -153,7 +153,9 @@
                             <b class="fa fa-user" title="${userTitle}"></b>
                             {{userRole.identityName}}
                         </span>
-                        ({{userRole.identityDescription}})
+                        <span ng-show="userRole.identityDescription">
+                            ({{userRole.identityDescription}})
+                        </span>
                     </td>
                     <td>{{userRole.role}}</td>
                     <td>{{userRole.email}}</td>

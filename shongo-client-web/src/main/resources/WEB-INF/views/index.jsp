@@ -113,7 +113,7 @@
         });
     </script>
 
-    <div ng-app="jsp:indexDashboard">
+    <div ng-app="jsp:indexDashboard" class="jspIndex">
 
         <c:if test="${sessionScope.SHONGO_USER.localeDefaultWarning}">
             <tag:url var="userSettingsUrl" value="<%= ClientWebUrl.USER_SETTINGS %>">

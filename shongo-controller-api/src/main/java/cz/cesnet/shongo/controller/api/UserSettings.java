@@ -22,7 +22,7 @@ public class UserSettings extends AbstractComplexType
     public static final Locale LOCALE_CZECH = new Locale("cs");
 
     /**
-     * Specifies whether main attributes ({@link #locale}) should be loaded from user web service.
+     * Specifies whether main attributes ({@link #locale} and {@link #homeTimeZone}) should be loaded from user web service.
      */
     private boolean useWebService;
 

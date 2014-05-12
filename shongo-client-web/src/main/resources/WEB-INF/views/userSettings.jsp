@@ -39,7 +39,10 @@
         </label>
         <div class="col-xs-4">
             <security:authentication property="principal" var="principal"/>
-            <input class="form-control" id="user" type="text" readonly="true" value="${principal.fullName} (${principal.organization})"/>
+            <c:set var="user">
+                ${principal.fullName}&nbsp;<c:if test="${not empty principal.organization}">(${principal.organization})</c:if>
+            </c:set>
+            <input class="form-control" id="user" type="text" readonly="true" value="${user}"/>
         </div>
     </div>
 

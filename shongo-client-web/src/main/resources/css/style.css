@@ -260,6 +260,21 @@ div.information-box .spinner {
 .jspError pre {
   margin: 10px;
 }
+/* vies/index.jsp */
+.jspIndex .warning {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 30px;
+  display: block;
+  padding: 10px 10px 10px 20px;
+  border: solid 1px #888888;
+  font-size: 18px;
+  background-color: #FAE6E6;
+}
+.jspIndex .warning p {
+  margin-bottom: 0px;
+  line-height: 22px;
+}
 /* vies/help.jsp */
 .jspHelp {
   position: relative;
@@ -419,22 +434,6 @@ div.information-box .spinner {
 }
 .date-time table {
   margin-bottom: -10px;
-}
-/* Warning block */
-span.warning,
-div.warning {
-  margin-top: 15px;
-  margin-bottom: 15px;
-  line-height: 30px;
-  display: block;
-  padding: 10px 10px 10px 20px;
-  border: solid 1px #888888;
-  font-size: 20px;
-  background-color: #FAE6E6;
-}
-div.warning p {
-  margin-bottom: 0px;
-  line-height: 20px;
 }
 /* Block of actions (What do you want to do?) */
 div.actions {
