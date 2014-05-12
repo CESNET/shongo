@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -1964,23 +1965,38 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             URL url = breezeUrl(action, attributes);
             logger.debug(String.format("Calling action %s on %s", url, info.getDeviceAddress()));
 
-            while (true) {
-                // Send request
-                URLConnection conn = url.openConnection();
-                conn.setConnectTimeout(requestTimeout);
-                conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
-                conn.connect();
+            int retryCount = 5;
+            while (retryCount > 0) {
+                // Read result from url
+                Document result;
+                try {
+                    // Send request
+                    URLConnection conn = url.openConnection();
+                    conn.setConnectTimeout(requestTimeout);
+                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
+                    conn.connect();
 
-                // Read result
-                InputStream resultStream = conn.getInputStream();
-                Document result = new SAXBuilder().build(resultStream);
+                    // Read result
+                    InputStream resultStream = conn.getInputStream();
+                    result = new SAXBuilder().build(resultStream);
+                }
+                catch (IOException exception) {
+                    if (isRequestApiRetryPossible(exception)) {
+                        retryCount--;
+                        logger.warn("{}: Trying again...", exception.getMessage());
+                        continue;
+                    }
+                    else {
+                        throw exception;
+                    }
+                }
 
                 // Check for error and reconnect if login is needed
                 if (isError(result)) {
                     if (isLoginNeeded(result)) {
+                        retryCount--;
                         logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
                         this.info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
-
                         breezesession = null;
                         login();
                         continue;
@@ -1992,6 +2008,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     return result.getRootElement();
                 }
             }
+            throw new CommandException(String.format("Command %s failed.", action));
         }
         catch (IOException e) {
             throw new RuntimeException("Command issuing error", e);
@@ -2006,6 +2023,16 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logger.warn(String.format("Command %s has failed on %s: %s", action, info.getDeviceAddress(), exception));
             throw exception;
         }
+    }
+
+    /**
+     * @param exception
+     * @return true whether given {@code exception} allows to retry the API request, false otherwise
+     */
+    protected boolean isRequestApiRetryPossible(Exception exception)
+    {
+        Throwable cause = exception.getCause();
+        return (cause instanceof SocketException && cause.getMessage().equals("Connection reset"));
     }
 
     /**

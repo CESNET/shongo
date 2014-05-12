@@ -899,32 +899,24 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         command.setParameter("authenticationUser", authUsername);
         command.setParameter("authenticationPassword", authPassword);
         Object[] params = new Object[]{command.getParameters()};
-        try {
-            return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
-        }
-        catch (XmlRpcException exception) {
-            if (isExecApiRetryPossible(exception)) {
-                logger.warn("{}: Trying again...", exception.getMessage());
-                int retryCount = 5;
-                while (retryCount > 0) {
+
+        int retryCount = 5;
+        while (retryCount > 0) {
+            try {
+                return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
+            }
+            catch (XmlRpcException exception) {
+                if (isExecApiRetryPossible(exception)) {
                     retryCount--;
-                    try {
-                        return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
-                    }
-                    catch (XmlRpcException exception2) {
-                        if (isExecApiRetryPossible(exception2)) {
-                            logger.warn("{}: Trying again...",
-                                    exception2.getMessage());
-                        }
-                        else {
-                            exception = exception2;
-                            break;
-                        }
-                    }
+                    logger.warn("{}: Trying again...", exception.getMessage());
+                    continue;
+                }
+                else {
+                    throw new CommandException(exception.getMessage(), exception.getCause());
                 }
             }
-            throw new CommandException(exception.getMessage(), exception.getCause());
         }
+        throw new CommandException(String.format("Command %s failed.", command));
     }
 
     /**
