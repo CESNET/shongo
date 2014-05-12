@@ -125,6 +125,42 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
+     * @return server context path
+     */
+    public String getServerPath()
+    {
+        return getString("server.path");
+    }
+
+    /**
+     * @return true whether requests should be redirected to HTTPS
+     */
+    public boolean isServerForceHttps()
+    {
+        return getBoolean("server.force-https");
+    }
+
+    /**
+     * @return true whether requests are forwarded
+     */
+    public boolean isServerForwarded()
+    {
+        return getBoolean("server.forwarded");
+    }
+
+    /**
+     * @return forwarded host
+     */
+    public String getServerForwardedHost()
+    {
+        String forwardedHost = getString("server.forwarded-host");
+        if (forwardedHost == null || forwardedHost.trim().isEmpty()) {
+            return null;
+        }
+        return forwardedHost;
+    }
+
+    /**
      * @return {@link #controllerUrl}
      */
     public URL getControllerUrl()

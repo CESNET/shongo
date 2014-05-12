@@ -51,7 +51,7 @@ public class TimeZoneModel
     /**
      * @return {@link #timeZones}
      */
-    private static List<DateTimeZone> getTimeZones()
+    private synchronized static List<DateTimeZone> getTimeZones()
     {
         if (timeZones == null) {
             org.joda.time.format.DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("ZZZ");
@@ -81,7 +81,7 @@ public class TimeZoneModel
      * @param locale
      * @return map time zone name by {@link DateTimeZone} for given {@code locale}
      */
-    private static Map<DateTimeZone, String> getTimeZonesForLocale(Locale locale)
+    private synchronized static Map<DateTimeZone, String> getTimeZonesForLocale(Locale locale)
     {
         Map<DateTimeZone, String> timeZones = timeZonesByLocale.get(locale);
         if (timeZones == null) {

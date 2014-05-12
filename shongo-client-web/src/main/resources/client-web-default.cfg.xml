@@ -5,10 +5,21 @@
 
     <!-- Web server configuration -->
     <server>
+        <!-- HTTP port -->
         <port>80</port>
+        <!-- HTTPS port -->
         <ssl-port>443</ssl-port>
+        <!-- Java key store for SSL -->
         <ssl-key-store></ssl-key-store>
         <ssl-key-store-password></ssl-key-store-password>
+        <!-- Base context path to bind -->
+        <path>/</path>
+        <!-- Specifies whether HTTP requests should be redirect to HTTPS -->
+        <force-https>true</force-https>
+        <!-- Specifies whether the forwarded host should be read from X-Forwarded-* headers -->
+        <forwarded>false</forwarded>
+        <!-- Specifies the forwarded host when X-Forwarded-* headers are missing -->
+        <forwarded-host></forwarded-host>
     </server>
 
     <!-- Controller url -->

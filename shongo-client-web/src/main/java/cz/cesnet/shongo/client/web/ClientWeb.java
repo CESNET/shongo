@@ -3,9 +3,11 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.cli.*;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
@@ -140,7 +142,7 @@ public class ClientWeb
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setDefaultsDescriptor("WEB-INF/webdefault.xml");
         webAppContext.setDescriptor("WEB-INF/web.xml");
-        webAppContext.setContextPath("/");
+        webAppContext.setContextPath(clientWebConfiguration.getServerPath());
         webAppContext.setParentLoaderPriority(true);
         if (arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
             String resourceBase = arguments[0];
@@ -163,30 +165,55 @@ public class ClientWeb
         }
         ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
 
+        // SSL key store
+        final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
+        boolean forceHttps = sslKeyStore != null && clientWebConfiguration.isServerForceHttps();
+        boolean forwarded = clientWebConfiguration.isServerForceHttps();
+        String forwardedHost = clientWebConfiguration.getServerForwardedHost();
+
         // Configure HTTP connector
-        final SelectChannelConnector httpConnector = new SelectChannelConnector();
+        final SelectChannelConnector httpConnector;
+        if (forceHttps) {
+            httpConnector = new HttpsRedirectingSelectChannelConnector();
+        }
+        else {
+            httpConnector = new SelectChannelConnector();
+        }
         httpConnector.setPort(clientWebConfiguration.getServerPort());
+        if (forwarded) {
+            httpConnector.setForwarded(true);
+            if (forwardedHost != null) {
+                httpConnector.setHostHeader(forwardedHost);
+            }
+        }
         server.addConnector(httpConnector);
 
-        final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
+        // Configure HTTPS connector
         if (sslKeyStore != null) {
-            // Redirect HTTP to HTTPS
-            httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
-            // Require confidential (forces the HTTP to HTTPS redirection)
-            Constraint constraint = new Constraint();
-            constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
-            ConstraintMapping constraintMapping = new ConstraintMapping();
-            constraintMapping.setConstraint(constraint);
-            constraintMapping.setPathSpec("/*");
-            ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
-            constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
-            webAppContext.setSecurityHandler(constraintSecurityHandler);
+            if (forceHttps) {
+                // Redirect HTTP to HTTPS
+                httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
+                // Require confidential (forces the HTTP to HTTPS redirection)
+                Constraint constraint = new Constraint();
+                constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
+                ConstraintMapping constraintMapping = new ConstraintMapping();
+                constraintMapping.setConstraint(constraint);
+                constraintMapping.setPathSpec("/*");
+                ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
+                constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
+                webAppContext.setSecurityHandler(constraintSecurityHandler);
+            }
 
-            // Configure HTTPS connector
             final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
             sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
             final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
             httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
+            if (forwarded) {
+                httpsConnector.setForwarded(true);
+                if (forwardedHost != null) {
+                    httpsConnector.setHostHeader(forwardedHost);
+                }
+            }
             server.addConnector(httpsConnector);
         }
 
@@ -246,6 +273,19 @@ public class ClientWeb
             // Shutdown
             shutdown.run();
             throw exception;
+        }
+    }
+
+    /**
+     * Redirecting {@link SelectChannelConnector}.
+     */
+    public static class HttpsRedirectingSelectChannelConnector extends SelectChannelConnector
+    {
+        @Override
+        public void customize(EndPoint endpoint, Request request) throws IOException
+        {
+            request.setScheme("https");
+            super.customize(endpoint, request);
         }
     }
 }
