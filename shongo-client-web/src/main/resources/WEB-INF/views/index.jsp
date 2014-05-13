@@ -355,7 +355,7 @@
                             <th>
                                 <spring:message code="views.room.description"/>
                             </th>
-                            <th style="min-width: 90px; width: 85px;">
+                            <th style="min-width: 95px; width: 95px;">
                                 <spring:message code="views.list.action"/>
                                 <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                             </th>

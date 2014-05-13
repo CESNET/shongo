@@ -109,4 +109,5 @@
     <pagination-pages class="${(not empty createUrl) ? 'pull-right' : ''}" ng-show="ready">
         <spring:message code="views.pagination.pages"/>
     </pagination-pages>
+    <div class="clearfix"></div>
 </div>

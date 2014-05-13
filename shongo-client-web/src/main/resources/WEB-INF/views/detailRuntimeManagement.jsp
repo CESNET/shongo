@@ -413,16 +413,3 @@
         <spring:message code="views.button.refresh"/>
     </a>
 </div>
-<div class="table-actions clearfix">
-    <security:authorize access="hasPermission(RESERVATION)">
-        <c:if test="${room.started && !room.available && room.type == 'PERMANENT_ROOM' && isProvidable}">
-            <tag:url var="createPermanentRoomCapacityUrl" value="<%= ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY %>">
-                <tag:param name="permanentRoom" value="${room.id}"/>
-                <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
-            </tag:url>
-            <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
-                <spring:message code="views.reservationRequestDetail.action.createPermanentRoomCapacity"/>
-            </a>
-        </c:if>
-    </security:authorize>
-</div>
