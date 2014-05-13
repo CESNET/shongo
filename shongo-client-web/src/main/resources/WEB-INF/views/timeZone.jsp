@@ -1,6 +1,11 @@
 <%--
   -- Page for time zone detection in javascript.
   -- It redirects to home url with "time-zone" parameter set.
+  --
+  -- Timezone is detected by:
+  -- 1) HTML 5 Geolocation and The Google Time Zone API (http://www.w3schools.com/html/html5_geolocation.asp, https://developers.google.com/maps/documentation/timezone/)
+  -- 2) or Javascript JSTZ library (http://pellepim.bitbucket.org/jstz/)
+  -- 3) or Javascript Date Time Zone Offset
   --%>
 <%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -16,7 +21,7 @@
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jstz.min.js"></script>
     <script type="text/javascript">
         /**
-         * Determine current timezone offset.
+         * Determine current timezone offset
          *
          * @return current timezone offset
          */
@@ -48,7 +53,7 @@
         /**
          * Determine GEO location.
          *
-         * @param successCallback
+         * @param successCallback to be called with {latitude: <latitude>, longitude: <longitude>}
          * @param errorCallback
          */
         function getGeoLocation(successCallback, errorCallback)
@@ -69,9 +74,9 @@
         }
 
         /**
-         * Determine current timezone.
+         * Determine current timezone based on GEO location.
          *
-         * @param successCallback
+         * @param successCallback to be called with <timeZoneId>
          * @param errorCallback
          */
         function getTimeZone(successCallback, errorCallback)

@@ -63,7 +63,7 @@
     </bean>
 
     <!-- Exception handler -->
-    <bean class="cz.cesnet.shongo.client.web.ClientWebHandlerExceptionResolver"/>
+    <bean class="cz.cesnet.shongo.client.web.support.HandlerExceptionResolver"/>
 
     <!-- Resolves the locale from user’s session -->
     <bean id="localeResolver" class="cz.cesnet.shongo.client.web.support.resolvers.LocaleResolver">

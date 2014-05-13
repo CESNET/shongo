@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.ErrorHandler;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
@@ -48,10 +49,10 @@ public class ErrorController
     private static Logger logger = LoggerFactory.getLogger(ErrorController.class);
 
     @Resource
-    private ClientWebConfiguration configuration;
+    private CommonService commonService;
 
     @Resource
-    private CommonService commonService;
+    private ErrorHandler errorHandler;
 
     @Resource
     private ReCaptcha reCaptcha;
@@ -103,39 +104,11 @@ public class ErrorController
     @RequestMapping(value = "/error")
     public ModelAndView handleError(HttpServletRequest request, HttpServletResponse response)
     {
-        response.setHeader("Content-Type", "text/html; charset=UTF-8");
-
         String requestUri = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
         String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
-
-        ErrorModel errorModel = null;
-        if (requestUri == null) {
-             Object error = WebUtils.getSessionAttribute(request, "error");
-            if (error instanceof ErrorModel) {
-                errorModel = (ErrorModel) error;
-            }
-            else {
-                requestUri = "unknown";
-                if (message == null) {
-                    message = "unknown";
-                }
-            }
-        }
-        if (errorModel == null) {
-            Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-            Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-            errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
-        }
-
-        // Do not report AJAX 401 errors
-        if (AjaxRequestMatcher.isAjaxRequest(request) &&
-                errorModel.getStatusCode().equals(HttpServletResponse.SC_UNAUTHORIZED)) {
-            logger.warn("AJAX ", errorModel.getEmailSubject(), errorModel.getThrowable());
-            return null;
-        }
-        else {
-            return handleError(errorModel, configuration, reCaptcha, commonService);
-        }
+        Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+        return errorHandler.handleError(request, response, requestUri, statusCode, message, throwable);
     }
 
     /**
@@ -199,7 +172,7 @@ public class ErrorController
             }
         }
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
-        return handleError(errorModel, configuration, reCaptcha, commonService);
+        return errorHandler.handleErrorView(errorModel, reCaptcha, commonService);
     }
 
     /**
@@ -241,98 +214,6 @@ public class ErrorController
         String emailReplyTo = reportModel.getEmail();
         String emailSubject = reportModel.getEmailSubject();
         String emailContent = reportModel.getEmailContent(request);
-        return sendEmailToAdministrator(emailReplyTo, emailSubject, emailContent, configuration);
-    }
-
-    /**
-     * Handle error.
-     *
-     * @param errorModel
-     * @param configuration
-     * @param reCaptcha
-     * @return error {@link ModelAndView}
-     */
-    public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration,
-            ReCaptcha reCaptcha, CommonService commonService)
-    {
-        ReportModel reportModel = new ReportModel(errorModel, reCaptcha, commonService);
-        String emailReplyTo = reportModel.getEmail();
-        String emailSubject = errorModel.getEmailSubject();
-        logger.error(emailSubject, errorModel.getThrowable());
-        sendEmailToAdministrator(emailReplyTo, emailSubject, errorModel.getEmailContent(), configuration);
-
-        ModelAndView modelAndView = new ModelAndView("error");
-        modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", reportModel);
-        return modelAndView;
-    }
-
-    private static boolean sendEmailToAdministrator(String replyTo, String subject, String content, ClientWebConfiguration configuration)
-    {
-        Collection<String> administratorEmails = configuration.getAdministratorEmails();
-        if (administratorEmails.size() == 0) {
-            logger.warn("Administrator email for sending error reports is not configured.");
-            return false;
-        }
-        if (Strings.isNullOrEmpty(configuration.getSmtpHost())) {
-            logger.warn("SMTP host for sending error reports is not configured.");
-            return false;
-        }
-
-        Properties properties = new Properties();
-        properties.setProperty("mail.smtp.host", configuration.getSmtpHost());
-        properties.setProperty("mail.smtp.port", configuration.getSmtpPort());
-        if (!configuration.getSmtpPort().equals("25")) {
-            properties.setProperty("mail.smtp.starttls.enable", "true");
-            properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-            properties.setProperty("mail.smtp.socketFactory.fallback", "false");
-        }
-
-        Authenticator authenticator = null;
-        String smtpUserName = configuration.getSmtpUserName();
-        if (!Strings.isNullOrEmpty(smtpUserName)) {
-            properties.setProperty("mail.smtp.auth", "true");
-            authenticator = new PasswordAuthenticator(smtpUserName, configuration.getSmtpPassword());
-        }
-
-        Session session = Session.getDefaultInstance(properties, authenticator);
-
-        String sender = configuration.getSmtpSender();
-        String subjectPrefix = configuration.getSmtpSubjectPrefix();
-        try {
-            MimeBodyPart textPart = new MimeBodyPart();
-            textPart.setContent(content, "text/plain; charset=utf-8");
-
-            StringBuilder html = new StringBuilder();
-            html.append("<html><body><pre>");
-            html.append(content);
-            html.append("</pre></body></html>");
-
-            MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(html.toString(), "text/html; charset=utf-8");
-
-            Multipart multipart = new MimeMultipart("alternative");
-            multipart.addBodyPart(textPart);
-            multipart.addBodyPart(htmlPart);
-
-            MimeMessage mimeMessage = new MimeMessage(session);
-            mimeMessage.setFrom(new InternetAddress(sender));
-            if (replyTo != null) {
-                mimeMessage.setReplyTo(new Address[]{new InternetAddress(replyTo)});
-            }
-            for (String administratorEmail : administratorEmails) {
-                mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
-            }
-            mimeMessage.setSubject(subjectPrefix + subject);
-            mimeMessage.setContent(multipart);
-
-            logger.debug("Sending email from '{}' to '{}'...", new Object[]{sender, administratorEmails});
-            Transport.send(mimeMessage);
-            return true;
-        }
-        catch (MessagingException exception) {
-            logger.error("Failed to send email '" + subject + "':\n" + content, exception);
-            return false;
-        }
+        return errorHandler.sendEmailToAdministrator(emailReplyTo, emailSubject, emailContent);
     }
 }

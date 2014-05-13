@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.booking.person;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * {@link AbstractPerson} that represents a shongo-user who is defined by the shongo-user-id.
@@ -57,6 +55,7 @@ public class UserPerson extends AbstractPerson
      * @return {@link #userId}
      */
     @Column
+    @Access(AccessType.FIELD)
     public String getUserId()
     {
         return userId;

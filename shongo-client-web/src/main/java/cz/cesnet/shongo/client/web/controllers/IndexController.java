@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationToken;
 import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
+import cz.cesnet.shongo.controller.ControllerConnectException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

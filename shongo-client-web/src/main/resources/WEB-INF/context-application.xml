@@ -58,8 +58,12 @@
     <bean id="roomManagementCache" class="cz.cesnet.shongo.client.web.RoomCache">
     </bean>
 
-    <!-- Create permission evaluator -->
+    <!-- Permission evaluator -->
     <bean id="permissionEvaluator" class="cz.cesnet.shongo.client.web.auth.PermissionEvaluator">
+    </bean>
+
+    <!-- Error handler -->
+    <bean id="errorHandler" class="cz.cesnet.shongo.client.web.ErrorHandler">
     </bean>
 
     <!-- reCaptcha -->

@@ -44,7 +44,7 @@
                                 <td>
                                     <c:forEach var="minutes" items="30,60,120,180">
                                         <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
-                                        <a class="btn btn-info" href="${createAdhocRoomUrl}&technology=${technology}&participantCount=${participantCount}&duration=${duration}&confirm=true"><tag:format value="${duration}"/></a>
+                                        <a class="btn btn-default" href="${createAdhocRoomUrl}&technology=${technology}&participantCount=${participantCount}&duration=${duration}&confirm=true"><tag:format value="${duration}"/></a>
                                     </c:forEach>
                                 </td>
                             </c:forEach>

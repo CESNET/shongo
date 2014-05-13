@@ -9,6 +9,7 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
+import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.util.DateTimeFormatter;
@@ -17,6 +18,8 @@ import freemarker.cache.NullCacheStorage;
 import freemarker.cache.SoftCacheStorage;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateModelException;
 import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
@@ -26,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -179,7 +183,16 @@ public class Design
             template.process(dataModel, stringWriter);
             return stringWriter.toString();
         }
-        catch (Exception exception) {
+        catch (TemplateException exception) {
+            Throwable cause = exception.getCause();
+            if (cause != null) {
+                throw new RuntimeException(cause);
+            }
+            else {
+                throw new RuntimeException(exception);
+            }
+        }
+        catch (IOException exception) {
             throw new RuntimeException(exception);
         }
     }
