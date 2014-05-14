@@ -41,8 +41,8 @@
 <c:choose>
     <c:when test="${dependencies.size() > 0}">
         <div>
-            <a class="btn btn-primary" href="${backUrl}" tabindex="1"><spring:message code="views.button.back"/></a>
             <form method="post" action="?dependencies=true" class="form-inline">
+                <a class="btn btn-primary" href="${backUrl}" tabindex="1"><spring:message code="views.button.back"/></a>
                 <spring:message code="views.button.yes" var="buttonYes"/>
                 <spring:message code="views.button.deleteAll" var="buttonDeleteAll"/>
                 <input type="submit" class="btn btn-default" tabindex="1" value="${buttonDeleteAll}"/>
