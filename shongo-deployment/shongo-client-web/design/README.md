@@ -14,7 +14,7 @@ Each folder must contain:
 
 * <code>&lt;desing-name&gt;/css/style.css</code> - design CSS file
 
-Each folder can contain:
+Each folder should contain:
 
 * <code>/img/icon.ico</code> - icon for web browsers (@see favicon)
 * <code>/img/apple-touch-icon.png</code> - icon for apple touch (@see apple-touch-icon)

@@ -409,7 +409,9 @@
 
 <%-- Actions --%>
 <div class="table-actions pull-right">
-    <a class="btn btn-default" href="#" ng-click="refreshTab('runtimeManagement')">
+    <spring:message code="views.detail.tab.refreshHelp" var="refreshTabHelp"/>
+    <a class="btn btn-default" href="#" title="${refreshTabHelp}" ng-click="refreshTab('runtimeManagement')">
         <spring:message code="views.button.refresh"/>
     </a>
 </div>
+<div class="clearfix"></div>

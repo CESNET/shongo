@@ -24,9 +24,9 @@
         var end = moment($("#end").val());
         var minutes = end.diff(originalEnd) / (1000 * 60);
         $(".minutes").removeClass("btn-success");
-        $(".minutes").addClass("btn-info");
+        $(".minutes").addClass("btn-default");
         if (minutes > 0) {
-            $(".minutes" + minutes).removeClass("btn-info");
+            $(".minutes" + minutes).removeClass("btn-default");
             $(".minutes" + minutes).addClass("btn-success btn-active");
         }
     };
@@ -87,7 +87,7 @@
             <div class="col-xs-offset-2 col-xs-10">
                 <c:forEach var="minutes" items="15,30,45,60,120,180">
                     <spring:eval expression="T(org.joda.time.Period).parse('PT' + minutes + 'M').normalizedStandard()" var="duration"/>
-                    <a class="btn btn-info minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});" tabindex="${tabIndex}">+<tag:format value="${duration}"/></a>
+                    <a class="btn btn-default minutes minutes${minutes}" href="javascript: extendReservationRequest(${minutes});" tabindex="${tabIndex}">+<tag:format value="${duration}"/></a>
                 </c:forEach>
             </div>
         </div>

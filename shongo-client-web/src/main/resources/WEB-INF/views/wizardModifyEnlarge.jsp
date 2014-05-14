@@ -24,9 +24,9 @@
         var diff = participantCount - originalParticipantCount;
         console.debug(diff);
         $(".participantCount").removeClass("btn-success");
-        $(".participantCount").addClass("btn-info");
+        $(".participantCount").addClass("btn-default");
         if (diff > 0) {
-            $(".participantCount" + diff).removeClass("btn-info");
+            $(".participantCount" + diff).removeClass("btn-default");
             $(".participantCount" + diff).addClass("btn-success btn-active");
         }
     };
@@ -76,7 +76,7 @@
     <div class="form-group">
         <div class="col-xs-offset-3 col-xs-9">
             <c:forEach var="participantCount" items="1,2,3,4,5,6,7,8,9,10">
-                <a class="btn btn-info participantCount participantCount${participantCount}" href="javascript: enlargeReservationRequest(${participantCount});" tabindex="${tabIndex}">+${participantCount}</a>
+                <a class="btn btn-default participantCount participantCount${participantCount}" href="javascript: enlargeReservationRequest(${participantCount});" tabindex="${tabIndex}">+${participantCount}</a>
             </c:forEach>
         </div>
     </div>
