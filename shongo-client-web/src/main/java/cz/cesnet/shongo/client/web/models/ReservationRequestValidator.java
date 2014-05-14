@@ -69,24 +69,6 @@ public class ReservationRequestValidator implements Validator
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
         SpecificationType specificationType = reservationRequestModel.getSpecificationType();
 
-        if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
-            ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
-            if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
-                if (reservationRequestModel.getPermanentRoomReservationRequestId() != null) {
-                    ReservationRequestSummary permanentRoom =
-                            reservationRequestModel.loadPermanentRoom(new CacheProvider(cache, securityToken));
-                    LocalDate permanentRoomEnd = permanentRoom.getEarliestSlot().getEnd().toLocalDate();
-                    LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
-                    if (periodicityEnd == null) {
-                        reservationRequestModel.setPeriodicityEnd(permanentRoomEnd);
-                    }
-                    else if (periodicityEnd.isAfter(permanentRoomEnd)) {
-                        errors.rejectValue("periodicityEnd", "validation.field.permanentRoomNotAvailable");
-                    }
-                }
-            }
-        }
-
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
@@ -147,6 +129,25 @@ public class ReservationRequestValidator implements Validator
             }
         }
 
+        // Check permanent room capacity periodicity
+        if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
+            ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
+            if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
+                if (reservationRequestModel.getPermanentRoomReservationRequestId() != null) {
+                    ReservationRequestSummary permanentRoom =
+                            reservationRequestModel.loadPermanentRoom(new CacheProvider(cache, securityToken));
+                    LocalDate permanentRoomEnd = permanentRoom.getEarliestSlot().getEnd().toLocalDate();
+                    LocalDate periodicityEnd = reservationRequestModel.getPeriodicityEnd();
+                    if (periodicityEnd == null) {
+                        reservationRequestModel.setPeriodicityEnd(permanentRoomEnd);
+                    }
+                    else if (periodicityEnd.isAfter(permanentRoomEnd)) {
+                        errors.rejectValue("periodicityEnd", "validation.field.permanentRoomNotAvailable");
+                    }
+                }
+            }
+        }
+
         if (errors.hasErrors()) {
             return;
         }
@@ -176,11 +177,11 @@ public class ReservationRequestValidator implements Validator
                 }
                 else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
                     errors.rejectValue(
-                            "start", "validation.field.permanentRoomAlreadyUsed");
+                            slotField, "validation.field.permanentRoomAlreadyUsed");
                 }
                 else if (userError instanceof AllocationStateReport.ReusementInvalidSlot) {
                     errors.rejectValue(
-                            "start", "validation.field.permanentRoomNotAvailable");
+                            slotField, "validation.field.permanentRoomNotAvailable");
                 }
                 else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded
                         || userError instanceof AllocationStateReport.RecordingRoomCapacityExceed

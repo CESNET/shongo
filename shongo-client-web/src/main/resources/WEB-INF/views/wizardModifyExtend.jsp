@@ -100,6 +100,7 @@
                 <form:input path="end" cssClass="form-control" cssErrorClass="form-control error" date-time-picker="true" tabindex="${tabIndex}"/>
             </div>
             <div class="col-xs-offset-2 col-xs-10">
+                <form:errors path="start" cssClass="error"/>
                 <form:errors path="end" cssClass="error"/>
             </div>
         </div>

@@ -129,6 +129,11 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
     {
         this.cacheProvider = cacheProvider;
         fromApi(reservationRequest, cacheProvider);
+
+        // Load permanent room
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY) && cacheProvider != null) {
+            loadPermanentRoom(cacheProvider);
+        }
     }
 
     /**
@@ -353,6 +358,10 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
 
     public void setPermanentRoomReservationRequestId(String permanentRoomReservationRequestId)
     {
+        if (permanentRoomReservationRequestId == null
+                || !permanentRoomReservationRequestId.equals(this.permanentRoomReservationRequestId)) {
+            this.permanentRoomReservationRequest = null;
+        }
         this.permanentRoomReservationRequestId = permanentRoomReservationRequestId;
     }
 

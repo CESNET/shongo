@@ -32,10 +32,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     {
         super(abstractReservationRequest, cacheProvider);
 
-        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY) && cacheProvider != null) {
-            loadPermanentRoom(cacheProvider);
-        }
-
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
 
