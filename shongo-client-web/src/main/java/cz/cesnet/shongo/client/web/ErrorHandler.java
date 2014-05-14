@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
+import cz.cesnet.shongo.report.ApiFaultException;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
@@ -101,6 +102,13 @@ public class ErrorHandler
                 // Just log that exceptions and do not report it
                 logger.warn("Not reported exception.", cause);
                 return null;
+            }
+            else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
+                logger.warn("Invalid security token, redirecting to login page...", cause);
+                return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
+            }
+            else if (cause instanceof ApiFaultException) {
+                throwable = cause;
             }
             cause = cause.getCause();
         }
