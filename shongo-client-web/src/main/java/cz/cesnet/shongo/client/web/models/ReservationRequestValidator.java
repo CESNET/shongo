@@ -69,7 +69,7 @@ public class ReservationRequestValidator implements Validator
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
         SpecificationType specificationType = reservationRequestModel.getSpecificationType();
 
-        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+        if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
             ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
             if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
                 if (reservationRequestModel.getPermanentRoomReservationRequestId() != null) {
