@@ -581,6 +581,18 @@ span.dotted {
 .space-padding > div[class*="-12"] {
   padding-left: 0px;
 }
+/* Divided button group */
+.btn-group-divided {
+  display: inline-block;
+  margin-right: 6px;
+  padding-right: 10px;
+  border-right: 2px solid #ddd;
+}
+.btn-group-divided:last-child {
+  border-right: none;
+  margin-right: 0px;
+  padding-right: 0px;
+}
 /* Pre-formatted code */
 pre {
   word-break: normal;

@@ -16,11 +16,7 @@
             $scope.reservationRequest.roomState = "${reservationRequest.detail.room.state}";
             $scope.reservationRequest.roomStateStarted = ${reservationRequest.detail.room.state.started == true};
             $scope.reservationRequest.roomStateAvailable = ${reservationRequest.detail.room.state.available == true};
-            <c:if test="${reservationRequest.detail.room.recordable}">
-            if ($scope.reservationRequest.roomRecordable == false) {
-                $scope.reservationRequest.roomRecordable = true;
-            }
-            </c:if>
+            $scope.reservationRequest.roomRecordable = ${reservationRequest.detail.room.recordable};
             </c:if>
             $scope.reservationRequest.state = "${reservationRequest.detail.state}"
             $scope.reservationRequest.stateLabel = "<spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${reservationRequest.state}"/>"
