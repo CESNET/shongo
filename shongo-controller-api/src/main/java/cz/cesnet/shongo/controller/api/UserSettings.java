@@ -241,11 +241,19 @@ public class UserSettings extends AbstractComplexType
     public void setAttribute(String name, String value)
     {
         if (value == null) {
-            attributes.remove(name);
+            removeAttribute(name);
         }
         else {
             attributes.put(name, value);
         }
+    }
+
+    /**
+     * @param name to be removed
+     */
+    public void removeAttribute(String name)
+    {
+        attributes.remove(name);
     }
 
     @Override

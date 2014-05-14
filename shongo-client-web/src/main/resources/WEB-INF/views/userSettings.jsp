@@ -10,7 +10,7 @@
 <c:set var="tabIndex" value="1"/>
 <tag:url var="cancelUrl" value="${requestScope.backUrl}"/>
 
-<c:url var="webServiceUrl" value="https://einfra.cesnet.cz/"/>
+<c:url var="webServiceUrl" value="https://einfra.cesnet.cz/perun-gui/#usr/info?active=1"/>
 
 <script type="text/javascript">
     var module = angular.module('jsp:userSettings', ['ngApplication', 'ngTooltip']);
@@ -74,9 +74,9 @@
                 <form:option value="en">English</form:option>
                 <form:option value="cs">Čeština</form:option>
             </form:select>
-            <div ng-show="!useWebService && locale == ''">
-                <form:checkbox path="localeDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.localeDefaultWarning"/>
-            </div>
+        </div>
+        <div class="col-xs-offset-3 col-xs-12" ng-show="locale == ''">
+            <form:checkbox path="localeDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.localeDefaultWarning"/>
         </div>
     </div>
 
@@ -95,9 +95,9 @@
                     <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                 </c:forEach>
             </form:select>
-            <div ng-show="!useWebService && homeTimeZone == '' && (!currentTimeZoneEnabled || currentTimeZone == '')">
-                <form:checkbox path="timeZoneDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.timeZoneDefaultWarning"/>
-            </div>
+        </div>
+        <div class="col-xs-offset-3 col-xs-12" ng-show="homeTimeZone == '' && (!currentTimeZoneEnabled || currentTimeZone == '')">
+            <form:checkbox path="timeZoneDefaultWarning" tabindex="${tabIndex}"/>&nbsp;<spring:message code="views.userSettings.timeZoneDefaultWarning"/>
         </div>
     </div>
 

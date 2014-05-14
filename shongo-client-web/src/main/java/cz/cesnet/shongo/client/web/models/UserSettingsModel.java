@@ -356,13 +356,25 @@ public class UserSettingsModel implements ReportModel.ContextSerializable
         if (userInterface != null) {
             userSettings.setAttribute(USER_INTERFACE_ATTRIBUTE, userInterface.toString());
         }
+        else {
+            userSettings.removeAttribute(USER_INTERFACE_ATTRIBUTE);
+        }
         if (userInterfaceSelected) {
             userSettings.setAttribute(USER_INTERFACE_SELECTED_ATTRIBUTE, Boolean.TRUE.toString());
         }
-        if (!isLocaleDefaultWarning()) {
+        else {
+            userSettings.removeAttribute(USER_INTERFACE_SELECTED_ATTRIBUTE);
+        }
+        if (isLocaleDefaultWarning()) {
+            userSettings.removeAttribute(IGNORE_DEFAULT_LOCALE_ATTRIBUTE);
+        }
+        else {
             userSettings.setAttribute(IGNORE_DEFAULT_LOCALE_ATTRIBUTE, Boolean.TRUE.toString());
         }
-        if (!isTimeZoneDefaultWarning()) {
+        if (isTimeZoneDefaultWarning()) {
+            userSettings.removeAttribute(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE);
+        }
+        else {
             userSettings.setAttribute(IGNORE_DEFAULT_HOME_TIME_ZONE_ATTRIBUTE, Boolean.TRUE.toString());
         }
         if (slotBefore != null) {

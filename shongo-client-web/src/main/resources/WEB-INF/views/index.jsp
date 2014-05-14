@@ -127,6 +127,7 @@
             <span class="warning">
                 <spring:message code="views.index.localeDefaultWarning" arguments="${userSettingsUrl}"/>
                 <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+                <div class="clearfix"></div>
             </span>
         </c:if>
         <c:if test="${sessionScope.SHONGO_USER.timeZoneDefaultWarning}">
@@ -141,6 +142,7 @@
             <span class="warning">
                 <spring:message code="views.index.timeZoneDefaultWarning" arguments="${userSettingsUrl}"/>
                 <a class="btn btn-info pull-right" href="${ignoreUrl}"><spring:message code="views.index.ignore"/></a>
+                <div class="clearfix"></div>
             </span>
         </c:if>
         <c:if test="${!sessionScope.SHONGO_USER.userInterfaceSelected}">
@@ -164,6 +166,7 @@
                     <p><spring:message code="views.userSettings.advancedUserInterface.help"/></p>
                     <p><spring:message code="views.index.advancedUserInterface.later"/></p>
                 </div>
+                <div class="clearfix"></div>
             </div>
         </c:if>
 
