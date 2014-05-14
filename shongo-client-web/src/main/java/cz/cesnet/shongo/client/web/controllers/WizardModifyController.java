@@ -127,7 +127,7 @@ public class WizardModifyController extends AbstractWizardController
                     securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
             validator.validate(reservationRequest, bindingResult);
             if (bindingResult.hasErrors()) {
-                CommonModel.logValidationErrors(logger, bindingResult);
+                CommonModel.logValidationErrors(logger, bindingResult, securityToken);
                 return getView(Page.EXTEND, "wizardModifyExtend.jsp", reservationRequest);
             }
 
@@ -184,7 +184,7 @@ public class WizardModifyController extends AbstractWizardController
                     securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
             validator.validate(reservationRequest, bindingResult);
             if (bindingResult.hasErrors()) {
-                CommonModel.logValidationErrors(logger, bindingResult);
+                CommonModel.logValidationErrors(logger, bindingResult, securityToken);
                 return getView(Page.ENLARGE, "wizardModifyEnlarge.jsp", reservationRequest);
             }
 

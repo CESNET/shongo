@@ -10,7 +10,6 @@ import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.support.MessageProvider;
 import cz.cesnet.shongo.controller.ObjectPermission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
@@ -1065,11 +1064,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param participant
      * @param bindingResult
      */
-    public boolean createParticipant(ParticipantModel participant, BindingResult bindingResult)
+    public boolean createParticipant(ParticipantModel participant, BindingResult bindingResult,
+            SecurityToken securityToken)
     {
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return false;
         }
         participant.setNewId();
@@ -1084,11 +1084,12 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      * @param participant
      * @param bindingResult
      */
-    public boolean modifyParticipant(String participantId, ParticipantModel participant, BindingResult bindingResult)
+    public boolean modifyParticipant(String participantId, ParticipantModel participant, BindingResult bindingResult,
+            SecurityToken securityToken)
     {
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return false;
         }
         ParticipantModel oldParticipant = getParticipant(participantId);

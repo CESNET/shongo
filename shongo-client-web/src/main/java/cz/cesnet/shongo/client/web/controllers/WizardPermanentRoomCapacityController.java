@@ -193,7 +193,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreatePermanentRoomCapacityView();
         }
         reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
@@ -266,11 +266,12 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public Object handleParticipantCreateProcess(
             HttpSession httpSession,
+            SecurityToken securityToken,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (reservationRequest.createParticipant(participant, bindingResult)) {
+        if (reservationRequest.createParticipant(participant, bindingResult, securityToken)) {
             return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
         else {
@@ -295,12 +296,13 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
     @RequestMapping(value = ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANT_MODIFY, method = RequestMethod.POST)
     public Object handleParticipantModifyProcess(
             HttpSession httpSession,
+            SecurityToken securityToken,
             @PathVariable("participantId") String participantId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult, securityToken)) {
             return "redirect:" + ClientWebUrl.WIZARD_PERMANENT_ROOM_CAPACITY_PARTICIPANTS;
         }
         else {
@@ -336,7 +338,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreatePermanentRoomCapacityView();
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
@@ -416,7 +418,7 @@ public class WizardPermanentRoomCapacityController extends WizardParticipantsCon
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreatePermanentRoomCapacityView();
         }
         return handleConfirmed(securityToken, sessionStatus, reservationRequest);

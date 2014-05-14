@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.ReadablePartial;
@@ -95,8 +96,8 @@ public class CommonModel
      * @param logger
      * @param errors
      */
-    public static void logValidationErrors(Logger logger, Errors errors)
+    public static void logValidationErrors(Logger logger, Errors errors, SecurityToken securityToken)
     {
-        logger.debug("Validation errors {}", errors);
+        logger.info("Validation errors by {}: {}", securityToken.getUserInformation(), errors);
     }
 }

@@ -253,7 +253,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreateRoomAttributesView(reservationRequest);
         }
         addDefaultParticipant(securityToken, reservationRequest);
@@ -315,13 +315,14 @@ public class WizardRoomController extends WizardParticipantsController
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_ROLE_CREATE, method = RequestMethod.POST)
     public Object handleRoleCreateProcess(
             HttpSession httpSession,
+            SecurityToken securityToken,
             @ModelAttribute(WizardRoomController.USER_ROLE_ATTRIBUTE) UserRoleModel userRole,
             BindingResult bindingResult)
     {
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
 
             // Show form for adding new user role with validation errors
             WizardView wizardView = getWizardView(Page.ROLES, "wizardRoomRole.jsp");
@@ -450,11 +451,12 @@ public class WizardRoomController extends WizardParticipantsController
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_CREATE, method = RequestMethod.POST)
     public Object handleParticipantCreateProcess(
             HttpSession httpSession,
+            SecurityToken securityToken,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (reservationRequest.createParticipant(participant, bindingResult)) {
+        if (reservationRequest.createParticipant(participant, bindingResult, securityToken)) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
@@ -479,12 +481,13 @@ public class WizardRoomController extends WizardParticipantsController
     @RequestMapping(value = ClientWebUrl.WIZARD_ROOM_PARTICIPANT_MODIFY, method = RequestMethod.POST)
     public Object handleParticipantModifyProcess(
             HttpSession httpSession,
+            SecurityToken securityToken,
             @PathVariable("participantId") String participantId,
             @ModelAttribute(PARTICIPANT_ATTRIBUTE) ParticipantModel participant,
             BindingResult bindingResult)
     {
         ReservationRequestModel reservationRequest = getReservationRequest(httpSession);
-        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult)) {
+        if (reservationRequest.modifyParticipant(participantId, participant, bindingResult, securityToken)) {
             return "redirect:" + ClientWebUrl.WIZARD_ROOM_PARTICIPANTS;
         }
         else {
@@ -520,7 +523,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreateRoomAttributesView(reservationRequest);
         }
         WizardView wizardView = getWizardView(Page.CONFIRM, "wizardRoomConfirm.jsp");
@@ -608,7 +611,7 @@ public class WizardRoomController extends WizardParticipantsController
                 securityToken, reservationService, cache, userSession.getLocale(), userSession.getTimeZone());
         validator.validate(reservationRequest, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return getCreateRoomAttributesView(reservationRequest);
         }
         Object result = handleConfirmed(securityToken, sessionStatus, reservationRequest);

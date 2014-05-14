@@ -143,7 +143,7 @@ public class DetailUserRoleController extends AbstractDetailController
         UserRoleValidator userRoleValidator = new UserRoleValidator();
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return handleUserRoleCreateView(userRole);
         }
         authorizationService.createAclEntry(securityToken, userRole.toApi());

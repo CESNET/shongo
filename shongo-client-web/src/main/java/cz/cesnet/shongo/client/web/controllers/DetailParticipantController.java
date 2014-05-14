@@ -151,7 +151,7 @@ public class DetailParticipantController extends AbstractDetailController
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             ModelAndView modelAndView = new ModelAndView("participant");
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
@@ -210,7 +210,7 @@ public class DetailParticipantController extends AbstractDetailController
         AbstractRoomExecutable roomExecutable = getRoomExecutable(securityToken, executableId);
         participant.validate(bindingResult);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             ModelAndView modelAndView = new ModelAndView("participant");
             modelAndView.addObject("technology", TechnologyModel.find(roomExecutable.getTechnologies()));
             return modelAndView;

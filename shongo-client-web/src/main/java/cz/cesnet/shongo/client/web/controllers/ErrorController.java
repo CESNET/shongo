@@ -11,6 +11,7 @@ import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.controller.ControllerConnectException;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
@@ -76,12 +77,13 @@ public class ErrorController
     public ModelAndView handleReportSubmit(
             HttpServletRequest request,
             SessionStatus sessionStatus,
+            SecurityToken securityToken,
             @ModelAttribute("report") ReportModel reportModel,
             BindingResult bindingResult)
     {
         reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             return new ModelAndView("report");
         }
         else {
@@ -118,13 +120,14 @@ public class ErrorController
     public ModelAndView handleErrorReportSubmit(
             HttpServletRequest request,
             SessionStatus sessionStatus,
+            SecurityToken securityToken,
             @ModelAttribute("error") ErrorModel errorModel,
             @ModelAttribute("report") ReportModel reportModel,
             BindingResult bindingResult)
     {
         reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
-            CommonModel.logValidationErrors(logger, bindingResult);
+            CommonModel.logValidationErrors(logger, bindingResult, securityToken);
             ModelAndView modelAndView = new ModelAndView("error");
             modelAndView.addObject("error", errorModel);
             modelAndView.addObject("report", reportModel);
