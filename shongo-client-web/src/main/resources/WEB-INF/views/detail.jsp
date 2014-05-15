@@ -233,12 +233,12 @@
                     <tag:param name="reservationRequestId" value="${objectId}"/>
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
                 </tag:url>
-                <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable">
+                <%--<div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable">
                     <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
                     <a class="btn btn-default" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyRecorded"/>
                     </a>
-                </div>
+                </div>--%>
                 <div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted">
                     <spring:message code="views.detail.action.modifyExtend.help" var="modifyExtendHelp"/>
                     <a class="btn btn-default" href="${reservationRequestModifyExtendUrl}" title="${modifyExtendHelp}" tabindex="1">

@@ -582,7 +582,7 @@
         </div>
     </div>
 
-    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+    <%--<c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <div class="form-group" ng-hide="technology == 'ADOBE_CONNECT'">
             <form:label class="col-xs-3 control-label" path="roomRecorded">
                 <spring:message code="views.reservationRequest.specification.roomRecorded" var="roomRecordedLabel"/>
@@ -595,7 +595,7 @@
                 <form:errors path="roomRecorded" cssClass="error"/>
             </div>
         </div>
-    </c:if>
+    </c:if>--%>
 
     <jsp:doBody var="content"/>
 

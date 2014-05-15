@@ -333,7 +333,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
             this.minValue = Integer.valueOf(minValue);
             this.maxValue = Integer.valueOf(maxValue);
             if (this.minValue > this.maxValue) {
-                throw new IllegalArgumentException("Min value must be greater than max value.");
+                throw new IllegalArgumentException("Min value cannot be greater than max value.");
             }
             this.format = "%0" + Integer.valueOf(minValue.length()).toString() + "d";
 
