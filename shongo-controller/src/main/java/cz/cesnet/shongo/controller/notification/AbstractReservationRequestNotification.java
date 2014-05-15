@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -80,7 +81,7 @@ public abstract class AbstractReservationRequestNotification extends Configurabl
         // Group notifications for reservation request
         if (!(this instanceof ReservationRequestNotification)) {
             Long reservationRequestId = ObjectIdentifier.parseId(
-                    AbstractReservationRequest.class, this.reservationRequestId);
+                    this.reservationRequestId, ObjectType.RESERVATION_REQUEST);
             if (reservationRequestId != null) {
                 // Get top reservation request
                 ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

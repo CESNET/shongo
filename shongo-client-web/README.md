@@ -54,7 +54,7 @@ Client-web configuration:
 
 For building css it is necessary to have less compiler.
 
-Install instructions:
+Install instructions for node.js and less compiler:
 
     sudo apt-get update && apt-get install git-core curl build-essential openssl libssl-dev
 

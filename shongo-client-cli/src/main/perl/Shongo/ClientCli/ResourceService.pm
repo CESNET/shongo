@@ -62,8 +62,8 @@ sub populate()
         },
         'list-resources' => {
             desc => 'List all existing resources',
-            options => 'user=s',
-            args => '[-user=*|<user-id>]',
+            options => 'user=s name=s',
+            args => '[-user=*|<user-id>] [-name=<name>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_resources($params->{'options'});
@@ -186,6 +186,9 @@ sub list_resources()
     my $filter = {};
     if ( defined($options->{'user'}) ) {
         $filter->{'userIds'} = [$options->{'user'}];
+    }
+    if ( defined($options->{'name'}) ) {
+        $filter->{'name'} = $options->{'name'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Resource.listResources', $filter);

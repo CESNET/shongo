@@ -193,7 +193,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             if (request.getRoomId() != null) {
                 queryFilter.addFilter("executable_summary.room_id = :roomId");
                 queryFilter.addFilterParameter("roomId", ObjectIdentifier.parseId(
-                        cz.cesnet.shongo.controller.booking.executable.Executable.class, request.getRoomId()));
+                        request.getRoomId(), ObjectType.EXECUTABLE));
             }
 
             // Filter room license count

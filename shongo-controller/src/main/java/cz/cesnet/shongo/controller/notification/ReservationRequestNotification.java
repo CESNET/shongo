@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -202,8 +203,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         super.onAfterAdded(notificationManager, entityManager);
 
-        Long reservationRequestId = ObjectIdentifier.parseId(
-                AbstractReservationRequest.class, getReservationRequestId());
+        Long reservationRequestId = ObjectIdentifier.parseId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
         notificationManager.reservationRequestNotificationsById.put(reservationRequestId, this);
     }
 
@@ -212,8 +212,7 @@ public class ReservationRequestNotification extends AbstractReservationRequestNo
     {
         super.onAfterRemoved(notificationManager);
 
-        Long reservationRequestId = ObjectIdentifier.parseId(
-                AbstractReservationRequest.class, getReservationRequestId());
+        Long reservationRequestId = ObjectIdentifier.parseId(getReservationRequestId(), ObjectType.RESERVATION_REQUEST);
         notificationManager.reservationRequestNotificationsById.remove(reservationRequestId);
     }
 

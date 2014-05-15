@@ -999,8 +999,7 @@ public class ReservationNotificationTest extends AbstractExecutorTest
         }
         if (requiredRoomEndpointId != null) {
             RoomNotification roomNotification = (RoomNotification) notification;
-            Long executableId = ObjectIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.executable.Executable.class, requiredRoomEndpointId);
+            Long executableId = ObjectIdentifier.parseId(requiredRoomEndpointId, ObjectType.EXECUTABLE);
             Assert.assertEquals(message + " - RoomEndpointId", executableId, roomNotification.getRoomEndpointId());
         }
         if (requiredRecipient != null) {

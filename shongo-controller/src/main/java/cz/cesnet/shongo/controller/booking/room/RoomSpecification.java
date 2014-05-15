@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.room;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.RoomAvailability;
 import cz.cesnet.shongo.controller.api.RoomEstablishment;
 import cz.cesnet.shongo.controller.api.Synchronization;
@@ -581,8 +582,7 @@ public class RoomSpecification extends Specification
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = ObjectIdentifier.parseId(cz.cesnet.shongo.controller.booking.resource.Resource.class,
-                        establishmentApi.getResourceId());
+                Long resourceId = ObjectIdentifier.parseId(establishmentApi.getResourceId(), ObjectType.RESOURCE);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));
             }

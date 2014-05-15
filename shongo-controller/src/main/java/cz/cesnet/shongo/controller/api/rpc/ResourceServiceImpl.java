@@ -261,8 +261,22 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                     cz.cesnet.shongo.controller.booking.resource.Resource.class);
             Set<Long> resourceIds = authorization.getEntitiesWithPermission(securityToken,
                     aclObjectClass, ObjectPermission.READ);
-            List<cz.cesnet.shongo.controller.booking.resource.Resource> list =
-                    resourceManager.list(resourceIds, request.getUserIds());
+
+            QueryFilter filter = new QueryFilter("resource");
+            filter.addFilterIn("id", resourceIds);
+
+            // Filter user-ids
+            Set<String> userIds = request.getUserIds();
+            if (userIds != null && !userIds.isEmpty()) {
+                filter.addFilterIn("userId", userIds);
+            }
+
+            // Filter name
+            if (request.getName() != null) {
+                filter.addFilter("resource.name = :name", "name", request.getName());
+            }
+
+            List<cz.cesnet.shongo.controller.booking.resource.Resource> list = resourceManager.list(filter);
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.booking.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();

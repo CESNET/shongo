@@ -99,23 +99,18 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @param ids    requested identifiers
-     * @param userIds requested userIds
+     * @param filter to filter results
      * @return list of all resources in the database
      */
-    public List<Resource> list(Set<Long> ids, Set<String> userIds)
+    public List<Resource> list(QueryFilter filter)
     {
-        QueryFilter filter = new QueryFilter("resource");
-        filter.addFilterIn("id", ids);
-        if (userIds != null && !userIds.isEmpty()) {
-            filter.addFilterIn("userId", userIds);
-        }
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
-                + " WHERE " + filter.toQueryWhere(),
+                + " WHERE " + (filter != null ? filter.toQueryWhere() : "1=1"),
                 Resource.class);
-        filter.fillQueryParameters(query);
-        List<Resource> resourceList = query.getResultList();
-        return resourceList;
+        if (filter != null) {
+            filter.fillQueryParameters(query);
+        }
+        return query.getResultList();
     }
 
     /**

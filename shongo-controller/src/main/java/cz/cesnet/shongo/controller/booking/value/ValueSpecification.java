@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.booking.value;
 
-
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
@@ -171,8 +171,7 @@ public class ValueSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.ValueSpecification valueSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ValueSpecification) specificationApi;
-        Long resourceId = ObjectIdentifier.parseId(
-                Resource.class, valueSpecificationApi.getResourceId());
+        Long resourceId = ObjectIdentifier.parseId(valueSpecificationApi.getResourceId(), ObjectType.RESOURCE);
         ResourceManager resourceManager = new ResourceManager(entityManager);
         Resource resource = resourceManager.get(resourceId);
         ValueProviderCapability valueProviderCapability = resource.getCapabilityRequired(ValueProviderCapability.class);

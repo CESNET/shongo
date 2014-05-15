@@ -16,6 +16,7 @@ use Shongo::ClientCli::API::ReservationRequestSet;
 
 # Enumeration of reservation request purpose
 our $Purpose = ordered_hash(
+    'USER' => 'User',
     'SCIENCE' => 'Science',
     'EDUCATION' => 'Education',
     'OWNER' => 'Owner',

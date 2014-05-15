@@ -148,20 +148,22 @@ if ( defined($cmd) ) {
     }
 }
 # Run command from file
-elsif ( defined($file) ) {
-    open(FILE, $file) || die "Error openning file $file: $!\n";
-    my @lines = <FILE>;
-    foreach my $line (@lines) {
-        $line =~ s/\s+$//;
-        $shell->command($line);
+elsif ( defined($file) || $scripting ) {
+    # Load lines from file or standard input
+    my @lines;
+    if ( defined($file) ) {
+        open(FILE, $file) || die "Error openning file $file: $!\n";
+        @lines = <FILE>;
+        close(FILE);
     }
-    close(FILE);
-}
-# Run from standard input
-elsif ( $scripting ) {
+    else {
+        @lines = <STDIN>;
+    }
+
+    # Process lines
     my $command = '';
     my $object_parsing = 0;
-    while ( my $line = <STDIN> ) {
+    foreach my $line (@lines) {
 LINE:
         # check if $line is empty
         if ( $line =~ /^\s*(#.+)?\s*$/ ) {
@@ -216,6 +218,7 @@ LINE:
     if ( !($command =~ /^\s*$/) ) {
         $shell->command($command);
     }
+
 }
 # Run shell
 else {

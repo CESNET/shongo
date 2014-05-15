@@ -77,8 +77,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            options => 'technology=s',
-            args => '[-technology]',
+            options => 'technology=s description=s resource=s',
+            args => '[-technology <technologies>][-description <description>][-resource <resource-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -191,7 +191,7 @@ sub modify_reservation_request()
             $reservation_request->to_xml()
         );
         if ( defined($response) ) {
-            return $reservation_request->{'id'};
+            return $response;
         }
         return undef;
     };
@@ -199,7 +199,10 @@ sub modify_reservation_request()
     if ( defined($response) ) {
         my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($response);
         if ( defined($reservation_request) ) {
-            $reservation_request->modify($attributes, $options);
+            my $new_id = $reservation_request->modify($attributes, $options);
+            if ( defined($new_id) ) {
+                console_print_info("Reservation request '%s' successfully modified to '%s'.", $id, $new_id);
+            }
         }
     }
 }
@@ -237,12 +240,18 @@ sub list_reservation_requests()
 {
     my ($options) = @_;
     my $request = {};
+    if ( defined($options->{'description'}) ) {
+        $request->{'description'} = $options->{'description'};
+    }
     if ( defined($options->{'technology'}) ) {
-        $request->{'technologies'} = [];
+        $request->{'specificationTechnologies'} = [];
         foreach my $technology (split(/,/, $options->{'technology'})) {
             $technology =~ s/(^ +)|( +$)//g;
-            push(@{$request->{'technologies'}}, $technology);
+            push(@{$request->{'specificationTechnologies'}}, $technology);
         }
+    }
+    if ( defined($options->{'resource'}) ) {
+        $request->{'specificationResourceId'} = $options->{'resource'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Reservation.listReservationRequests', $request);

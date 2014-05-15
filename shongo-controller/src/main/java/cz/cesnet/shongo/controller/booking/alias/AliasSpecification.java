@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.booking.alias;
 
-
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -320,7 +320,7 @@ public class AliasSpecification extends Specification
         }
         else {
             Long resourceId = ObjectIdentifier.parseId(
-                    cz.cesnet.shongo.controller.booking.resource.Resource.class, aliasSpecificationApi.getResourceId());
+                    aliasSpecificationApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
             AliasProviderCapability aliasProviderCapability = resource

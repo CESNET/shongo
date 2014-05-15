@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.specification;
 
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -114,8 +115,7 @@ public abstract class ExecutableServiceSpecification extends Specification
             setExecutable(null);
         }
         else {
-            Long executableId = ObjectIdentifier.parseId(Executable.class,
-                    endpointId);
+            Long executableId = ObjectIdentifier.parseId(endpointId, ObjectType.EXECUTABLE);
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             setExecutable(executableManager.get(executableId));
         }

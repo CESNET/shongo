@@ -303,13 +303,24 @@ public class ObjectIdentifier
     }
 
     /**
+     * @param objectId   object local id for the identifier
+     * @param objectType object type for the identifier
+     * @return parsed local identifier from given global or local identifier
+     */
+    public static Long parseId(String objectId, ObjectType objectType)
+    {
+        return parseId(Domain.getLocalDomainName(), objectType, objectId);
+    }
+
+    /**
      * @param objectClass object type for the identifier
      * @param objectId    object local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    public static Long parseId(Class<? extends PersistentObject> objectClass, String objectId)
+    public static Long parseId(String objectId, Class<? extends PersistentObject> objectClass)
     {
-        return parseId(Domain.getLocalDomainName(), objectClass, objectId);
+        ObjectType objectType = ObjectTypeResolver.getObjectType(objectClass);
+        return parseId(Domain.getLocalDomainName(), objectType, objectId);
     }
 
     /**
@@ -382,11 +393,11 @@ public class ObjectIdentifier
 
     /**
      * @param domain      domain name for the identifier
-     * @param objectClass object type for the identifier
+     * @param objectType  object type for the identifier
      * @param objectId    object local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    private static Long parseId(String domain, Class<? extends PersistentObject> objectClass, String objectId)
+    private static Long parseId(String domain, ObjectType objectType, String objectId)
             throws ControllerReportSet.IdentifierInvalidException,
                    ControllerReportSet.IdentifierInvalidDomainException,
                    ControllerReportSet.IdentifierInvalidTypeException
@@ -398,9 +409,8 @@ public class ObjectIdentifier
             return parsePersistenceId(objectId);
         }
         ObjectIdentifier objectIdentifier = parse(domain, objectId);
-        ObjectType requiredType = ObjectTypeResolver.getObjectType(objectClass);
-        if (objectIdentifier.objectType != requiredType) {
-            throw new ControllerReportSet.IdentifierInvalidTypeException(objectId, requiredType.getCode());
+        if (objectIdentifier.objectType != objectType) {
+            throw new ControllerReportSet.IdentifierInvalidTypeException(objectId, objectType.getCode());
         }
         return objectIdentifier.persistenceId;
     }

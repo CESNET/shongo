@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.multipoint.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -67,9 +68,7 @@ public class MigrationTest extends AbstractExecutorTest
         EntityManager entityManager = createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         cz.cesnet.shongo.controller.booking.executable.Executable executable = executableManager.get(
-                ObjectIdentifier.parseId(
-                        cz.cesnet.shongo.controller.booking.executable.Executable.class,
-                        reservation.getExecutable().getId()));
+                ObjectIdentifier.parseId(reservation.getExecutable().getId(), ObjectType.EXECUTABLE));
         executable.setState(cz.cesnet.shongo.controller.booking.executable.Executable.State.STARTED);
         executableManager.update(executable);
         entityManager.close();

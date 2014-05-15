@@ -122,18 +122,22 @@ SELECT
     END AS type,
     alias_specification_summary.room_name AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
-    resource_specification.resource_id AS resource_id
+    COALESCE(value_provider_capability.resource_id, resource_specification.resource_id) AS resource_id
 FROM specification
 LEFT JOIN specification_technologies ON specification_technologies.specification_id = specification.id
 LEFT JOIN room_specification ON room_specification.id = specification.id
 LEFT JOIN resource_specification ON resource_specification.id = specification.id
 LEFT JOIN alias_specification_summary ON alias_specification_summary.id = specification.id
+LEFT JOIN value_specification ON value_specification.id = specification.id
+LEFT JOIN value_provider ON value_provider.id = value_specification.value_provider_id
+LEFT JOIN capability AS value_provider_capability ON value_provider_capability.id = value_provider.capability_id
 GROUP BY 
     specification.id,    
     alias_specification_summary.id,
     alias_specification_summary.room_name,
     room_specification.id,
-    resource_specification.id;
+    resource_specification.id,
+    value_provider_capability.id;
 
 /**
  * View of id and time slot for the earliest child reservation request for each set of reservation request.

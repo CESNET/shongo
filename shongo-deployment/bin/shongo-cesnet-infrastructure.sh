@@ -1,4 +1,4 @@
-cd `dirname $0`/../
+#!/bin/bash
 #
 # Create testing CESNET infrastructure in running Shongo controller.
 #
@@ -6,6 +6,7 @@ cd `dirname $0`/../
 #   "create_infrastructure.sh meetings"     Create infrastructure on meetings.cesnet.cz
 #   "create_infrastructure.sh shongo-dev"   Create infrastructure on shongo-dev.cesnet.cz
 #
+cd `dirname $0`/../
 
 MODE=local
 if [ "$1" ]
@@ -283,3 +284,4 @@ $RUN_CLIENT_CLI <<EOF
     }
 
 EOF
+*/

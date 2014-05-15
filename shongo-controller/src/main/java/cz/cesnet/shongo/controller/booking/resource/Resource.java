@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.api.Controller;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -496,8 +497,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setAllocatable(resourceApi.getAllocatable());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
-            newParentResourceId = ObjectIdentifier.parseId(
-                    Resource.class, resourceApi.getParentResourceId());
+            newParentResourceId = ObjectIdentifier.parseId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);
         }
         Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
         if ((newParentResourceId == null && oldParentResourceId != null)

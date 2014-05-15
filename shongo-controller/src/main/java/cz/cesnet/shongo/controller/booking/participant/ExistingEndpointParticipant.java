@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.participant;
 
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -130,8 +131,8 @@ public class ExistingEndpointParticipant extends EndpointParticipant implements 
             setResource(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseId(cz.cesnet.shongo.controller.booking.resource.Resource.class,
-                    existingEndpointParticipantApi.getResourceId());
+            Long resourceId = ObjectIdentifier.parseId(
+                    existingEndpointParticipantApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourceId));
         }

@@ -127,9 +127,8 @@ public class DatabasePerformanceTest
 
             cz.cesnet.shongo.controller.booking.request.ReservationRequest persistentReservationRequest =
                     entityManager.find(cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
-                            ObjectIdentifier.parseId(
-                                    cz.cesnet.shongo.controller.booking.request.ReservationRequest.class,
-                                    reservationRequestId));
+                            ObjectIdentifier.parseId(reservationRequestId,
+                                    cz.cesnet.shongo.controller.booking.request.ReservationRequest.class));
 
             enableSqlLogger(true);
             Timer timer = new Timer();

@@ -23,7 +23,7 @@ import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
-import org.apache.commons.cli.MissingArgumentException;
+import org.hibernate.type.AnyType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -584,8 +584,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 Set<Long> reservationRequestIds = new HashSet<Long>();
                 for (String reservationRequestId : request.getReservationRequestIds()) {
                     reservationRequestIds.add(ObjectIdentifier.parseId(
-                            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
-                            reservationRequestId));
+                            reservationRequestId, ObjectType.RESERVATION_REQUEST));
                 }
                 queryFilter.addFilterParameter("reservationRequestIds", reservationRequestIds);
             }
@@ -602,23 +601,29 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             + " FROM abstract_reservation_request "
                             + " WHERE abstract_reservation_request.id = :parentReservationRequestId)");
                     queryFilter.addFilterParameter("parentReservationRequestId", ObjectIdentifier.parseId(
-                            cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest.class,
-                            parentReservationRequestId));
+                            parentReservationRequestId, ObjectType.RESERVATION_REQUEST));
                 }
                 else {
                     // List only top reservation requests (no child requests created for a set of reservation requests)
                     queryFilter.addFilter("reservation_request.parent_allocation_id IS NULL");
                 }
 
+                // Filter description
+                String description = request.getDescription();
+                if (description != null) {
+                    queryFilter.addFilter("reservation_request_summary.description LIKE :description");
+                    queryFilter.addFilterParameter("description", "%" + description + "%");
+                }
+
                 // List only reservation requests which specifies given technologies
-                if (request.getTechnologies().size() > 0) {
+                if (request.getSpecificationTechnologies().size() > 0) {
                     queryFilter.addFilter("reservation_request_summary.id IN ("
                             + "  SELECT DISTINCT abstract_reservation_request.id"
                             + "  FROM abstract_reservation_request"
                             + "  LEFT JOIN specification_technologies ON specification_technologies.specification_id = "
                             + "            abstract_reservation_request.specification_id"
                             + "  WHERE specification_technologies.technologies IN(:technologies))");
-                    queryFilter.addFilterParameter("technologies", request.getTechnologies());
+                    queryFilter.addFilterParameter("technologies", request.getSpecificationTechnologies());
                 }
 
                 // List only reservation requests which has specification of given classes
@@ -635,6 +640,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     queryFilter.addFilter("specification_summary.type IN(" + specificationTypes.toString() + ")");
                 }
 
+                // Filter specification resource id
+                String specificationResourceId = request.getSpecificationResourceId();
+                if (specificationResourceId != null) {
+                    queryFilter.addFilter("specification_summary.resource_id = :resource_id");
+                    queryFilter.addFilterParameter("resource_id",
+                            ObjectIdentifier.parseId(specificationResourceId, ObjectType.RESOURCE));
+                }
+
                 String reusedReservationRequestId = request.getReusedReservationRequestId();
                 if (reusedReservationRequestId != null) {
                     if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
@@ -648,7 +661,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     else {
                         // List only reservation requests which reuse given reservation request
                         Long persistenceId = ObjectIdentifier.parseId(
-                                ReservationRequest.class, reusedReservationRequestId);
+                                reusedReservationRequestId, ObjectType.RESERVATION_REQUEST);
                         queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
                                 + ":reusedReservationRequestId");
                         queryFilter.addFilterParameter("reusedReservationRequestId", persistenceId);
@@ -910,8 +923,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (request.getResourceId() != null) {
                 queryFilter.addFilter("reservation_summary.resource_id = :resourceId");
                 queryFilter.addFilterParameter("resourceId", ObjectIdentifier.parseId(
-                        cz.cesnet.shongo.controller.booking.resource.Resource.class,
-                        request.getResourceId()));
+                        request.getResourceId(), ObjectType.RESOURCE));
             }
 
             // Sort query part

@@ -475,7 +475,8 @@ sub modify
         $self->from_hash($attributes);
     }
 
-    while ( $self->modify_loop(1, $options) ) {
+    my $auto_confirm = Shongo::ClientCli->is_scripting();
+    while ( $auto_confirm || $self->modify_loop(1, $options) ) {
         if ( defined($options->{'on_confirm'}) ) {
             my $result = $options->{'on_confirm'}($self);
             if ( defined($result) ) {

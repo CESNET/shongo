@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
@@ -113,8 +114,7 @@ public class ResourceSpecification extends Specification implements ReservationT
             setResource(null);
         }
         else {
-            Long resourceId = ObjectIdentifier.parseId(cz.cesnet.shongo.controller.booking.resource.Resource.class,
-                    resourceSpecificationApi.getResourceId());
+            Long resourceId = ObjectIdentifier.parseId(resourceSpecificationApi.getResourceId(), ObjectType.RESOURCE);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             setResource(resourceManager.get(resourceId));
         }

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.Controller;
@@ -580,7 +581,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
 
         if (api.getReusedReservationRequestId() != null) {
             Long reusedReservationRequestId =
-                    ObjectIdentifier.parseId(ReservationRequest.class, api.getReusedReservationRequestId());
+                    ObjectIdentifier.parseId(api.getReusedReservationRequestId(), ObjectType.RESERVATION_REQUEST);
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationRequest reusedReservationRequest =
                     reservationRequestManager.getReservationRequest(reusedReservationRequestId);
