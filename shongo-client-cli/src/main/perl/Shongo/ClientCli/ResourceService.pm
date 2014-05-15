@@ -162,7 +162,10 @@ sub modify_resource()
     if ( defined($response) ) {
         my $resource = Shongo::ClientCli::API::Resource->from_hash($response);
         if ( defined($resource) ) {
-            $resource->modify($attributes, $options);
+            my $new_id = $resource->modify($attributes, $options);
+            if ( defined($new_id) ) {
+                console_print_info("Resource '%s' successfully modified to '%s'.", $id, $new_id);
+            }
         }
     }
 }

@@ -486,6 +486,10 @@ sub modify
         else {
             return $self;
         }
+        # Something failed and auto confirm mean that we should exit
+        if ( $auto_confirm ) {
+            return undef;
+        }
     }
     return undef;
 }

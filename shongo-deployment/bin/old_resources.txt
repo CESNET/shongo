@@ -1,0 +1,119 @@
+shongo-deployment/bin/shongo-client-cli.sh --cmd "get-resource 1" --scripting
+
+
+{
+   "name" : "namingService",
+   "userId" : "0",
+   "description" : "Naming service for all technologies",
+   "administratorEmails" : [],
+   "allocatable" : "1",
+   "capabilities" : [
+      {
+         "id" : "1",
+         "class" : "ValueProviderCapability",
+         "valueProvider" : {
+            "patterns" : [
+               "shongo-local-{hash}"
+            ],
+            "id" : "2",
+            "class" : "ValueProvider.Pattern",
+            "allowAnyRequestedValue" : "1"
+         }
+      }
+   ],
+   "class" : "Resource",
+   "id" : "shongo:cz.cesnet.srom-dev:res:1"
+}
+
+{
+   "technologies" : [
+      "SIP",
+      "H323"
+   ],
+   "mode" : {
+      "connectorAgentName" : "mcu1",
+      "class" : "ManagedMode"
+   },
+   "name" : "mcu-cesnet",
+   "userId" : "0",
+   "maximumFuture" : "P1Y",
+   "description" : "H.323/SIP MCU at CESNET",
+   "administratorEmails" : [],
+   "capabilities" : [
+      {
+         "requiredAliasTypes" : [
+            "H323_E164",
+            "ROOM_NAME"
+         ],
+         "id" : "7",
+         "class" : "RoomProviderCapability",
+         "licenseCount" : "10"
+      },
+      {
+         "restrictedToResource" : "1",
+         "aliases" : [
+            {
+               "value" : "YY-{value}",
+               "id" : "10",
+               "type" : "ROOM_NAME",
+               "class" : "Alias"
+            }
+         ],
+         "id" : "8",
+         "class" : "AliasProviderCapability",
+         "maximumFuture" : "P4Y",
+         "valueProvider" : "shongo:cz.cesnet.srom-dev:res:1"
+      },
+      {
+         "restrictedToResource" : "1",
+         "aliases" : [
+            {
+               "value" : "950087{value}",
+               "id" : "14",
+               "type" : "H323_E164",
+               "class" : "Alias"
+            },
+            {
+               "value" : "950087{value}@{device.address}",
+               "id" : "15",
+               "type" : "H323_URI",
+               "class" : "Alias"
+            },
+            {
+               "value" : "195.113.222.60 {value}#",
+               "id" : "16",
+               "type" : "H323_IP",
+               "class" : "Alias"
+            },
+            {
+               "value" : "950087{value}@cesnet.cz",
+               "id" : "17",
+               "type" : "SIP_URI",
+               "class" : "Alias"
+            },
+            {
+               "value" : "195.113.222.60 {value}#",
+               "id" : "18",
+               "type" : "SIP_IP",
+               "class" : "Alias"
+            }
+         ],
+         "id" : "11",
+         "class" : "AliasProviderCapability",
+         "maximumFuture" : "P4Y",
+         "valueProvider" : {
+            "patterns" : [
+               "{number:090:099}"
+            ],
+            "id" : "13",
+            "class" : "ValueProvider.Pattern",
+            "allowAnyRequestedValue" : "0"
+         }
+      }
+   ],
+   "allocatable" : "1",
+   "address" : "195.113.222.60",
+   "class" : "DeviceResource",
+   "id" : "shongo:cz.cesnet.srom-dev:res:2"
+}
+

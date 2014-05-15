@@ -200,7 +200,8 @@ public abstract class ValueProvider extends SimplePersistentObject
             }
             // If the new value provider is of different type, delete the old and set the new
             else if (!valueProvider.getClass().equals(newValueProvider.getClass())
-                    || valueProviderApi.getId() == null) {
+                    || valueProviderApi.getId() == null
+                    || !valueProviderApi.getId().equals(valueProvider.getId().toString())) {
                 entityManager.remove(valueProvider);
                 return newValueProvider;
             }
