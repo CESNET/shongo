@@ -323,7 +323,7 @@ public class AllocationStateReport extends AbstractObjectReport
          */
         public static <T extends UserError> boolean hasHigherPriorityThan(T userErrorType)
         {
-            if (userErrorType == null) {
+            if (userErrorType == null || userErrorType instanceof ResourceNotFound) {
                 return true;
             }
             return false;
