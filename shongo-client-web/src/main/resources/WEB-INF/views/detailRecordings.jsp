@@ -31,7 +31,7 @@
 
 <%-- Runtime management - Recordings --%>
 <div ng-controller="PaginationController"
-     ng-init="init('recordings', '${roomRecordingsUrl}', {id: '${objectId}'})">
+     ng-init="init('recordings', '${roomRecordingsUrl}', {id: reservationRequest.recordingsObjectId})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -98,7 +98,7 @@
                     </span>
                     <span ng-show="roomRecording.downloadUrl || roomRecording.viewUrl">
                         <tag:url value="<%= ClientWebUrl.DETAIL_RECORDING_DELETE %>" var="roomRecordingDeleteUrl">
-                            <tag:param name="objectId" value="${objectId}"/>
+                            <tag:param name="objectId" value="' + reservationRequest.recordingsObjectId + '" escape="false"/>
                             <tag:param name="resourceId" value="' + roomRecording.resourceId + '" escape="false"/>
                             <tag:param name="recordingId" value="' + roomRecording.id + '" escape="false"/>
                         </tag:url>
