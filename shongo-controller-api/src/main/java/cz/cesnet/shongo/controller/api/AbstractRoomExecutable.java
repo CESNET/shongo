@@ -56,9 +56,14 @@ public abstract class AbstractRoomExecutable extends Executable
     private RoomExecutableParticipantConfiguration participantConfiguration;
 
     /**
-     * Specifies whether this room has {@link cz.cesnet.shongo.controller.api.RecordingService}.
+     * Specifies whether this room have recording service.
      */
-    private boolean recordable = false;
+    private boolean hasRecordingService = false;
+
+    /**
+     * Specifies whether this room have recordings.
+     */
+    private boolean hasRecordings = false;
 
     /**
      * @return {@link #originalSlot}
@@ -247,19 +252,35 @@ public abstract class AbstractRoomExecutable extends Executable
     }
 
     /**
-     * @return {@link #recordable}
+     * @return {@link #hasRecordingService}
      */
-    public boolean isRecordable()
+    public boolean hasRecordingService()
     {
-        return recordable;
+        return hasRecordingService;
     }
 
     /**
-     * @param recordable sets the {@link #recordable}
+     * @param hasRecordingService sets the {@link #hasRecordingService}
      */
-    public void setRecordable(boolean recordable)
+    public void setHasRecordingService(boolean hasRecordingService)
     {
-        this.recordable = recordable;
+        this.hasRecordingService = hasRecordingService;
+    }
+
+    /**
+     * @return {@link #hasRecordings}
+     */
+    public boolean hasRecordings()
+    {
+        return hasRecordings;
+    }
+
+    /**
+     * @param hashRecordings sets the {@link #hasRecordings}
+     */
+    public void setHasRecordings(boolean hashRecordings)
+    {
+        this.hasRecordings = hashRecordings;
     }
 
     private static final String ORIGINAL_SLOT = "originalSlot";
@@ -269,7 +290,8 @@ public abstract class AbstractRoomExecutable extends Executable
     private static final String ALIASES = "aliases";
     private static final String ROOM_SETTINGS = "roomSettings";
     private static final String PARTICIPANT_CONFIGURATION = "participantConfiguration";
-    private static final String RECORDABLE = "recordable";
+    private static final String HAS_RECORDING_SERVICE = "hasRecordingService";
+    private static final String HAS_RECORDINGS = "hasRecordings";
 
     @Override
     public DataMap toData()
@@ -282,7 +304,8 @@ public abstract class AbstractRoomExecutable extends Executable
         dataMap.set(ALIASES, aliases);
         dataMap.set(ROOM_SETTINGS, roomSettings);
         dataMap.set(PARTICIPANT_CONFIGURATION, participantConfiguration);
-        dataMap.set(RECORDABLE, recordable);
+        dataMap.set(HAS_RECORDING_SERVICE, hasRecordingService);
+        dataMap.set(HAS_RECORDINGS, hasRecordings);
         return dataMap;
     }
 
@@ -298,7 +321,8 @@ public abstract class AbstractRoomExecutable extends Executable
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
         participantConfiguration = dataMap.getComplexType(
                 PARTICIPANT_CONFIGURATION, RoomExecutableParticipantConfiguration.class);
-        recordable = dataMap.getBool(RECORDABLE);
+        hasRecordingService = dataMap.getBool(HAS_RECORDING_SERVICE);
+        hasRecordings = dataMap.getBool(HAS_RECORDINGS);
     }
 
     public String getPin()

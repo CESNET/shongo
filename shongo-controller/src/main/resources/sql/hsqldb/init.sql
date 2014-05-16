@@ -72,7 +72,6 @@ SELECT
     NULL AS slot_nearness_value,
     reservation_request_state.allocation_state AS allocation_state,
     reservation_request_state.executable_state AS executable_state,
-    NULL AS room_recordable,
     NULL AS last_reservation_id,
     NULL AS last_executable_id,
     NULL AS usage_executable_state
@@ -140,7 +139,8 @@ SELECT
     NULL AS room_usage_slot_end,
     NULL AS room_usage_state,
     NULL AS room_usage_license_count,
-    FALSE AS room_recordable
+    NULL AS room_has_recording_service,
+    NULL AS room_has_recordings
 FROM executable
 LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id

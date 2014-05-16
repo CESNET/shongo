@@ -110,7 +110,12 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     /**
      * Specifies whether room has recording service.
      */
-    private boolean roomRecordable;
+    private boolean roomHasRecordingService;
+
+    /**
+     * Specifies whether room has recordings.
+     */
+    private boolean roomHasRecordings;
 
     /**
      * @return {@link #parentReservationRequestId}
@@ -420,19 +425,35 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #roomRecordable}
+     * @return {@link #roomHasRecordingService}
      */
-    public boolean isRoomRecordable()
+    public boolean hasRoomRecordingService()
     {
-        return roomRecordable;
+        return roomHasRecordingService;
     }
 
     /**
-     * @param roomRecordable sets the {@link #roomRecordable}
+     * @param roomHasRecordingService sets the {@link #roomHasRecordingService}
      */
-    public void setRoomRecordable(boolean roomRecordable)
+    public void setRoomHasRecordingService(boolean roomHasRecordingService)
     {
-        this.roomRecordable = roomRecordable;
+        this.roomHasRecordingService = roomHasRecordingService;
+    }
+
+    /**
+     * @return {@link #roomHasRecordings}
+     */
+    public boolean hasRoomRecordings()
+    {
+        return roomHasRecordings;
+    }
+
+    /**
+     * @param roomHasRecordings sets the {@link #roomHasRecordings}
+     */
+    public void setRoomHasRecordings(boolean roomHasRecordings)
+    {
+        this.roomHasRecordings = roomHasRecordings;
     }
 
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
@@ -453,7 +474,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String RESOURCE_ID = "resourceId";
     private static final String ROOM_PARTICIPANT_COUNT = "roomParticipantCount";
     private static final String ROOM_NAME = "roomName";
-    private static final String ROOM_RECORDABLE = "roomRecordable";
+    private static final String ROOM_HAS_RECORDING_SERVICE = "roomHasRecordingService";
+    private static final String ROOM_HAS_RECORDINGS = "roomHasRecordings";
 
     @Override
     public DataMap toData()
@@ -477,7 +499,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(RESOURCE_ID, resourceId);
         dataMap.set(ROOM_PARTICIPANT_COUNT, roomParticipantCount);
         dataMap.set(ROOM_NAME, roomName);
-        dataMap.set(ROOM_RECORDABLE, roomRecordable);
+        dataMap.set(ROOM_HAS_RECORDING_SERVICE, roomHasRecordingService);
+        dataMap.set(ROOM_HAS_RECORDINGS, roomHasRecordings);
         return dataMap;
     }
 
@@ -503,7 +526,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         resourceId = dataMap.getString(RESOURCE_ID);
         roomParticipantCount = dataMap.getInteger(ROOM_PARTICIPANT_COUNT);
         roomName = dataMap.getString(ROOM_NAME);
-        roomRecordable = dataMap.getBool(ROOM_RECORDABLE);
+        roomHasRecordingService = dataMap.getBool(ROOM_HAS_RECORDING_SERVICE);
+        roomHasRecordings = dataMap.getBool(ROOM_HAS_RECORDINGS);
     }
 
     /**

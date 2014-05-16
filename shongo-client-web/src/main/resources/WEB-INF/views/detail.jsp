@@ -64,7 +64,8 @@
             roomState: "${roomState}",
             roomStateStarted: ${roomState.started == true},
             roomStateAvailable: ${roomState.available == true},
-            roomRecordable: ${isRoomRecordable == true}
+            roomHasRecordingService: ${roomHasRecordingService == true},
+            roomHasRecordings: ${roomHasRecordings == true}
         };
 
         /**
@@ -209,7 +210,7 @@
             <tag:url var="detailRecordingsUrl" value="<%= ClientWebUrl.DETAIL_RECORDINGS_TAB %>">
                 <tag:param name="objectId" value="${objectId}"/>
             </tag:url>
-            <tab id="recordings" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomRecordable"
+            <tab id="recordings" ng-controller="TabController" disabled="reservationRequest.allocationState != 'ALLOCATED' || !reservationRequest.roomHasRecordings"
                  heading="${detailRecordingsTitle}"
                  content-url="${detailRecordingsUrl}">
             </tab>
@@ -233,7 +234,7 @@
                     <tag:param name="reservationRequestId" value="${objectId}"/>
                     <tag:param name="back-url" value="{{requestUrl}}" escape="false"/>
                 </tag:url>
-                <%--<div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomRecordable">
+                <%--<div class="btn-group-divided" ng-show="reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.roomStateStarted && !reservationRequest.roomHasRecordingService">
                     <spring:message code="views.detail.action.modifyRecorded.help" var="modifyRecordedHelp"/>
                     <a class="btn btn-default" href="${reservationRequestModifyRecordedUrl}" title="${modifyRecordedHelp}" tabindex="1">
                         <spring:message code="views.detail.action.modifyRecorded"/>

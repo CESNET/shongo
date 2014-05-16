@@ -1091,25 +1091,28 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.ROOM);
             reservationRequestSummary.setRoomParticipantCount(
                     record[15] != null ? ((Number) record[15]).intValue() : null);
-            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
-            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
         }
         else if (type.equals("PERMANENT_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.PERMANENT_ROOM);
-            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
-            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
         }
         else if (type.equals("USED_ROOM")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.USED_ROOM);
             reservationRequestSummary.setRoomParticipantCount(
                     record[15] != null ? ((Number) record[15]).intValue() : null);
-            reservationRequestSummary.setRoomRecordable(record[16] != null && (Boolean) record[16]);
-            reservationRequestSummary.setRoomName(record[17] != null ? record[17].toString() : null);
+            reservationRequestSummary.setRoomHasRecordingService(record[16] != null && (Boolean) record[16]);
+            reservationRequestSummary.setRoomHasRecordings(record[17] != null && (Boolean) record[17]);
+            reservationRequestSummary.setRoomName(record[18] != null ? record[18].toString() : null);
         }
         else if (type.equals("RESOURCE")) {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.RESOURCE);
             reservationRequestSummary.setResourceId(ObjectIdentifier.formatId(
-                    ObjectType.RESOURCE, ((Number) record[18]).longValue()));
+                    ObjectType.RESOURCE, ((Number) record[19]).longValue()));
         }
         else {
             reservationRequestSummary.setSpecificationType(ReservationRequestSummary.SpecificationType.OTHER);
@@ -1122,13 +1125,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
         }
-        if (record[19] != null) {
+        if (record[20] != null) {
             reservationRequestSummary.setUsageExecutableState(
                     cz.cesnet.shongo.controller.booking.executable.Executable.State.valueOf(
-                            record[19].toString().trim()).toApi());
+                            record[20].toString().trim()).toApi());
         }
-        if (record[20] != null) {
-            reservationRequestSummary.setFutureSlotCount(((Number) record[20]).intValue());
+        if (record[21] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number) record[21]).intValue());
         }
         return reservationRequestSummary;
     }

@@ -277,7 +277,7 @@ sub list_reservation_requests()
         if ( $reservation_request->{'specificationType'} eq 'ROOM') {
             $specification .= ' (';
             $specification .= $reservation_request->{'roomParticipantCount'};
-            if ( $reservation_request->{'roomRecordable'}) {
+            if ( $reservation_request->{'roomHasRecordingService'}) {
                 $specification .= ', recorded';
             }
             $specification .= ')';
@@ -287,7 +287,7 @@ sub list_reservation_requests()
             $specification .= $reservation_request->{'roomName'};
             $specification .= ', ';
             $specification .= $reservation_request->{'roomParticipantCount'};
-            if ( $reservation_request->{'roomRecordable'}) {
+            if ( $reservation_request->{'roomHasRecordingService'}) {
                 $specification .= ', recorded';
             }
             $specification .= ')';

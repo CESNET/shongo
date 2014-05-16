@@ -106,9 +106,14 @@ public class RoomModel extends ParticipantConfigurationModel
     private ExecutableState usageState;
 
     /**
-     * Specifies whether this room can be recorded or whether it already has some recordings.
+     * Specifies whether this room can be recorded.
      */
-    private boolean recordable = false;
+    private boolean hasRecordingService = false;
+
+    /**
+     * Specifies whether this room can have recordings.
+     */
+    private boolean hasRecordings = false;
 
     /**
      * {@link RecordingService} which can be currently used for recording.
@@ -172,6 +177,8 @@ public class RoomModel extends ParticipantConfigurationModel
 
         // Room type and license count and active usage
         this.licenseCount = roomExecutable.getLicenseCount();
+        this.hasRecordingService = roomExecutable.hasRecordingService();
+        this.hasRecordings = roomExecutable.hasRecordings();
         if (this.licenseCount == 0) {
             this.type = RoomType.PERMANENT_ROOM;
 
@@ -197,17 +204,10 @@ public class RoomModel extends ParticipantConfigurationModel
                     loadRoomSettings(usage);
                     if (services) {
                         this.recordingService = getRecordingService(executableService, securityToken, this.usageId);
-                        this.recordable = this.recordingService != null;
+                        this.hasRecordingService = this.recordingService != null;
                     }
                     break;
                 }
-            }
-            if (services && !recordable) {
-                this.recordingService = null;
-                this.recordable = isPermanentRoomRecordable(executableService, securityToken, this.id);
-            }
-            else {
-                this.recordable = roomExecutable.isRecordable();
             }
         }
         else {
@@ -220,10 +220,7 @@ public class RoomModel extends ParticipantConfigurationModel
             }
             if (services) {
                 this.recordingService = getRecordingService(executableService, securityToken, this.id);
-                this.recordable = this.recordingService != null;
-            }
-            else {
-                this.recordable = roomExecutable.isRecordable();
+                this.hasRecordingService = this.recordingService != null;
             }
         }
 
@@ -277,24 +274,6 @@ public class RoomModel extends ParticipantConfigurationModel
         else {
             return null;
         }
-    }
-
-    /**
-     * @param executableService
-     * @param securityToken
-     * @param roomExecutableId
-     * @return {@link RecordingService} for {@link AbstractRoomExecutable} with given {@code roomExecutableId}
-     */
-    private boolean isPermanentRoomRecordable(ExecutableService executableService, SecurityToken securityToken,
-            String roomExecutableId)
-    {
-        ExecutableServiceListRequest request = new ExecutableServiceListRequest(securityToken);
-        request.setExecutableId(roomExecutableId);
-        request.addServiceClass(RecordingService.class);
-        request.setCount(0);
-        ListResponse<cz.cesnet.shongo.controller.api.ExecutableService> response =
-                executableService.listExecutableServices(request);
-        return response.getCount() > 0;
     }
 
     /**
@@ -472,11 +451,19 @@ public class RoomModel extends ParticipantConfigurationModel
     }
 
     /**
-     * @return {@link #recordingService} is not null
+     * @return {@link #hasRecordingService}
      */
-    public boolean isRecordable()
+    public boolean hasRecordingService()
     {
-        return recordable;
+        return hasRecordingService;
+    }
+
+    /**
+     * @return {@link #hasRecordings}
+     */
+    public boolean hasRecordings()
+    {
+        return hasRecordings;
     }
 
     /**

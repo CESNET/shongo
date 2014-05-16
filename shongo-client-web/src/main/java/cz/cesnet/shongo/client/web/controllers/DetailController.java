@@ -84,7 +84,8 @@ public class DetailController extends AbstractDetailController implements Breadc
         modelAndView.addObject("roomState", roomState);
         modelAndView.addObject("isPeriodic", reservationRequest.getFutureSlotCount() != null);
         modelAndView.addObject("isPeriodicEvent", parentReservationRequestId != null);
-        modelAndView.addObject("isRoomRecordable", reservationRequest.isRoomRecordable());
+        modelAndView.addObject("roomHasRecordingService", reservationRequest.hasRoomRecordingService());
+        modelAndView.addObject("roomHasRecordings", reservationRequest.hasRoomRecordings());
 
         // Initialize breadcrumb
         if (breadcrumb != null) {

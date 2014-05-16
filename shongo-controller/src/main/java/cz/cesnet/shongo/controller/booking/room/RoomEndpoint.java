@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.room;
 
+import com.sun.org.apache.regexp.internal.recompile;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
@@ -462,12 +463,14 @@ public abstract class RoomEndpoint extends Endpoint
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
         abstractRoomExecutableApi.setDescription(roomDescription);
 
-        // Determine whether room is recordable (use executable_summary from used_room_endpoints to be taken into account)
-        Boolean roomRecordable = (Boolean) entityManager.createNativeQuery(
-                "SELECT room_recordable FROM executable_summary WHERE id = :executableId")
-                .setParameter("executableId", getId())
+        // Determine whether room has recording service and recordings
+        // (use executable_summary for used_room_endpoints to be taken into account)
+        Object[] result = (Object[]) entityManager.createNativeQuery(
+                "SELECT room_has_recording_service, room_has_recordings FROM executable_summary WHERE id = :id")
+                .setParameter("id", getId())
                 .getSingleResult();
-        abstractRoomExecutableApi.setRecordable(Boolean.TRUE.equals(roomRecordable));
+        abstractRoomExecutableApi.setHasRecordingService(Boolean.TRUE.equals(result[0]));
+        abstractRoomExecutableApi.setHasRecordings(Boolean.TRUE.equals(result[1]));
 
         // We must compute the original time slot
         abstractRoomExecutableApi.setOriginalSlot(getOriginalSlot());

@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.*;
 import cz.cesnet.shongo.controller.booking.participant.AbstractParticipant;
+import cz.cesnet.shongo.controller.booking.recording.RecordableEndpoint;
 import cz.cesnet.shongo.controller.booking.recording.RecordingCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.ManagedMode;
@@ -873,29 +874,45 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", objectId);
             }
 
+            // Get reused executable
+            while (executable instanceof UsedRoomEndpoint) {
+                UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) executable;
+                executable = usedRoomEndpoint.getReusedRoomEndpoint();
+            }
+            // Get most recent version of executable
+            while (executable.getMigrateToExecutable() != null) {
+                executable = executable.getMigrateToExecutable();
+            }
+            executableId = executable.getId();
+
             List<ResourceRecording> resourceRecordings = recordingsCache.getExecutableRecordings(executableId);
             if (resourceRecordings == null) {
                 // Get all recording folders
-                Map<RecordingCapability, List<String>> recordingFolders =
-                        executableManager.listExecutableRecordingFolders(executable);
+                Map<RecordingCapability, String> recordingFolders;
+                if (executable instanceof RecordableEndpoint) {
+                    RecordableEndpoint recordableEndpoint = (RecordableEndpoint) executable;
+                    recordingFolders = recordableEndpoint.getRecordingFolderIds();
+                }
+                else {
+                    recordingFolders = Collections.emptyMap();
+                }
 
                 // Get all recordings from folders
                 resourceRecordings = new LinkedList<ResourceRecording>();
-                for (Map.Entry<RecordingCapability, List<String>> entry : recordingFolders.entrySet()) {
+                for (Map.Entry<RecordingCapability, String> entry : recordingFolders.entrySet()) {
                     RecordingCapability recordingCapability = entry.getKey();
                     DeviceResource recordingDeviceResource = recordingCapability.getDeviceResource();
                     String recordingDeviceResourceId = ObjectIdentifier.formatId(recordingDeviceResource);
-                    for (String recordingFolderId : entry.getValue()) {
-                        if (recordingFolderId == null) {
-                            continue;
-                        }
-                        @SuppressWarnings("unchecked")
-                        Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
-                                recordingDeviceResource, new ListRecordings(recordingFolderId));
-                        for (Recording recording : serviceRecordings) {
-                            resourceRecordings.add(
-                                    new ResourceRecording(recordingDeviceResourceId, recording));
-                        }
+                    String recordingFolderId = entry.getValue();
+                    if (recordingFolderId == null) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    Collection<Recording> serviceRecordings = (Collection<Recording>) performDeviceCommand(
+                            recordingDeviceResource, new ListRecordings(recordingFolderId));
+                    for (Recording recording : serviceRecordings) {
+                        resourceRecordings.add(
+                                new ResourceRecording(recordingDeviceResourceId, recording));
                     }
                 }
                 recordingsCache.putExecutableRecordings(executableId, resourceRecordings);

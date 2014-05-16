@@ -343,7 +343,8 @@ SELECT
     room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,
     room_endpoint_earliest_usage.state AS room_usage_state,
     room_endpoint_earliest_usage.license_count AS room_usage_license_count,
-    COUNT(recording_service.id) > 0 AS room_recordable
+    COUNT(recording_service.id) > 0 AS room_has_recording_service,
+    COUNT(recording_service.id) > 0 OR COUNT(resource_room_endpoint_recording_folder_ids.recording_folder_id) > 0 AS room_has_recordings
 FROM executable
 LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
@@ -356,6 +357,7 @@ LEFT JOIN room_endpoint_earliest_usage ON room_endpoint_earliest_usage.id = exec
 LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = executable.id
 LEFT JOIN executable_service ON executable_service.executable_id = executable.id OR executable_service.executable_id = room_endpoint_usage.id
 LEFT JOIN recording_service ON recording_service.id = executable_service.id
+LEFT JOIN resource_room_endpoint_recording_folder_ids ON resource_room_endpoint_recording_folder_ids.resource_room_endpoint_id = executable.id OR resource_room_endpoint_recording_folder_ids.resource_room_endpoint_id = used_room_endpoint.room_endpoint_id
 GROUP BY
     executable.id,
     execution_target.id,

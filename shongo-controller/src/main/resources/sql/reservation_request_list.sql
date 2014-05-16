@@ -24,7 +24,8 @@ SELECT
     specification_summary.type AS specification_type,
     specification_summary.technologies AS specification_technologies,
     specification_summary.room_participant_count AS room_participant_count,
-    executable_summary.room_recordable AS room_recordable,
+    executable_summary.room_has_recording_service AS room_has_recording_service,
+    executable_summary.room_has_recordings AS room_has_recordings,
     CASE
         WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
         ELSE reused_specification_summary.alias_room_name
