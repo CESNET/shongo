@@ -122,7 +122,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // Create scheduler context
-            SchedulerContext schedulerContext = new SchedulerContext(slot.getStart(), cache, entityManager,
+            SchedulerContext schedulerContext = new SchedulerContext(DateTime.now(), cache, entityManager,
                     new AuthorizationManager(entityManager, authorization));
             schedulerContext.setPurpose(request.getPurpose());
 

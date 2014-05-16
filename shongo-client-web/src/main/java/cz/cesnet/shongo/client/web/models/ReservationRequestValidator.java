@@ -116,6 +116,7 @@ public class ReservationRequestValidator implements Validator
         }
 
         String slotField = (reservationRequestModel.getEnd() != null ? "end" : "start");
+        String slotFieldDuration = (reservationRequestModel.getEnd() != null ? "end" : "durationCount");
         try {
             Interval interval = reservationRequestModel.getSlot();
             if (interval.getEnd().isBefore(DateTime.now())) {
@@ -193,9 +194,11 @@ public class ReservationRequestValidator implements Validator
                 else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
                     errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
                 }
-                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded ||
-                        userError instanceof AllocationStateReport.MaximumDurationExceeded) {
+                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
                     errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
+                }
+                else if (userError instanceof AllocationStateReport.MaximumDurationExceeded) {
+                    errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
                 }
                 else {
                     logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
