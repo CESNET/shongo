@@ -85,19 +85,25 @@
             if ($scope.firstTabActivation == null) {
                 // Watch first tab activation
                 $scope.firstTabActivation = tabScope.$watch("active", function(){
-                    // If specified tab exists and it isn't disabled
-                    if ($scope.firstTabActivation.tabScope != null && !$scope.firstTabActivation.tabScope.disabled) {
-                        // Deactivate first tab
-                        tabScope.active = false;
-                        // Active specified tab
-                        $scope.firstTabActivation.tabScope.active = true;
-                    }
                     // Remove the watch
                     $scope.firstTabActivation();
+                    // Deactivate first tab
+                    tabScope.active = false;
+                    // Activate tab after all tabs are initialized
+                    $timeout(function(){
+                        // If specified tab exists and it isn't disabled, activate it
+                        if ($scope.firstTabActivation.tabScope != null && !$scope.firstTabActivation.tabScope.disabled) {
+                            $scope.firstTabActivation.tabScope.active = true;
+                        }
+                        // Otherwise active first tab
+                        else {
+                            tabScope.active = true;
+                        }
+                    }, 0);
                 });
             }
             else if (tabId == "${tab}") {
-                // Store this tab for the first tab activation
+                // Store this tab to be activated on the start
                 $scope.firstTabActivation.tabScope = tabScope;
             }
         };
