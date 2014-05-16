@@ -120,15 +120,12 @@ SELECT
     reservation_request.id AS id,
     reservation_request.allocation_state AS allocation_state,
     executable.state AS executable_state,
-    COUNT(recording_service.id) > 0 AS room_recordable,
-    reservation.id AS last_reservation_id
+    reservation.id AS last_reservation_id,
+    executable.id AS last_executable_id
 FROM reservation_request
 LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
 LEFT JOIN reservation ON reservation.allocation_id = abstract_reservation_request.allocation_id AND abstract_reservation_request.state = 'ACTIVE'
 LEFT JOIN executable ON executable.id = reservation.executable_id
-LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = executable.id
-LEFT JOIN executable_service ON executable_service.executable_id = executable.id OR executable_service.executable_id = used_room_endpoint.id
-LEFT JOIN recording_service ON recording_service.id = executable_service.id
 GROUP BY reservation_request.id, executable.id, reservation.id
 ORDER BY reservation_request.id, reservation.slot_end DESC;
 
@@ -235,8 +232,8 @@ FROM (
             COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
             reservation_request_state.allocation_state AS allocation_state,
             reservation_request_state.executable_state AS executable_state,
-            reservation_request_state.room_recordable AS room_recordable,
             reservation_request_state.last_reservation_id AS last_reservation_id,
+            reservation_request_state.last_executable_id AS last_executable_id,
             reservation_request_active_usage.executable_state AS usage_executable_state,
             reservation_request_earliest_usage.slot_start AS usage_slot_start,
             reservation_request_earliest_usage.slot_end AS usage_slot_end
@@ -345,7 +342,8 @@ SELECT
     room_endpoint_earliest_usage.slot_start AS room_usage_slot_start,
     room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,
     room_endpoint_earliest_usage.state AS room_usage_state,
-    room_endpoint_earliest_usage.license_count AS room_usage_license_count
+    room_endpoint_earliest_usage.license_count AS room_usage_license_count,
+    COUNT(recording_service.id) > 0 AS room_recordable
 FROM executable
 LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
@@ -355,6 +353,9 @@ LEFT JOIN room_configuration_technologies ON room_configuration_technologies.roo
 LEFT JOIN endpoint_assigned_aliases ON endpoint_assigned_aliases.endpoint_id = executable.id OR endpoint_assigned_aliases.endpoint_id = used_room_endpoint.room_endpoint_id
 LEFT JOIN alias ON alias.id = endpoint_assigned_aliases.alias_id AND alias.type = 'ROOM_NAME'
 LEFT JOIN room_endpoint_earliest_usage ON room_endpoint_earliest_usage.id = executable.id
+LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = executable.id
+LEFT JOIN executable_service ON executable_service.executable_id = executable.id OR executable_service.executable_id = room_endpoint_usage.id
+LEFT JOIN recording_service ON recording_service.id = executable_service.id
 GROUP BY
     executable.id,
     execution_target.id,
@@ -366,4 +367,4 @@ GROUP BY
     room_endpoint_earliest_usage.slot_end,
     room_endpoint_earliest_usage.state,
     room_endpoint_earliest_usage.license_count
-ORDER BY executable.id, alias.id
+ORDER BY executable.id, alias.id;

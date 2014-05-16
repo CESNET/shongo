@@ -24,7 +24,7 @@ SELECT
     specification_summary.type AS specification_type,
     specification_summary.technologies AS specification_technologies,
     specification_summary.room_participant_count AS room_participant_count,
-    reservation_request_summary.room_recordable AS room_recordable,
+    executable_summary.room_recordable AS room_recordable,
     CASE
         WHEN specification_summary.alias_room_name IS NOT NULL THEN specification_summary.alias_room_name
         ELSE reused_specification_summary.alias_room_name
@@ -37,5 +37,6 @@ LEFT JOIN reservation_request ON reservation_request.id = reservation_request_su
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
 LEFT JOIN abstract_reservation_request AS reused_reservation_request ON reused_reservation_request.id = reservation_request_summary.reused_reservation_request_id
 LEFT JOIN specification_summary AS reused_specification_summary ON reused_specification_summary.id = reused_reservation_request.specification_id
+LEFT JOIN executable_summary ON executable_summary.id = reservation_request_summary.last_executable_id
 WHERE ${filter}
 ORDER BY ${order}

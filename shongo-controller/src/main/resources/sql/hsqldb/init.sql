@@ -74,6 +74,7 @@ SELECT
     reservation_request_state.executable_state AS executable_state,
     NULL AS room_recordable,
     NULL AS last_reservation_id,
+    NULL AS last_executable_id,
     NULL AS usage_executable_state
 FROM abstract_reservation_request
 LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
@@ -138,7 +139,8 @@ SELECT
     NULL AS room_usage_slot_start,
     NULL AS room_usage_slot_end,
     NULL AS room_usage_state,
-    NULL AS room_usage_license_count
+    NULL AS room_usage_license_count,
+    FALSE AS room_recordable
 FROM executable
 LEFT JOIN execution_target ON execution_target.id = executable.id
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id

@@ -124,9 +124,10 @@ public class UsedRoomEndpoint extends RoomEndpoint
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, EntityManager entityManager,
+            Report.UserType userType)
     {
-        super.toApi(executableApi, userType);
+        super.toApi(executableApi, entityManager, userType);
 
         UsedRoomExecutable usedRoomExecutableEndpointApi =
                 (UsedRoomExecutable) executableApi;

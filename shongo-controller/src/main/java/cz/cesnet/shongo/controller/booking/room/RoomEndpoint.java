@@ -7,10 +7,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ObjectRole;
-import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
-import cz.cesnet.shongo.controller.api.ExecutableConfiguration;
-import cz.cesnet.shongo.controller.api.RoomExecutableParticipantConfiguration;
-import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.executable.Endpoint;
 import cz.cesnet.shongo.controller.booking.executable.EndpointExecutableService;
@@ -34,7 +31,6 @@ import cz.cesnet.shongo.report.ReportException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
-import org.omg.CORBA.PERSIST_STORE;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -452,9 +448,9 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(Executable executableApi, EntityManager entityManager, Report.UserType userType)
     {
-        super.toApi(executableApi, userType);
+        super.toApi(executableApi, entityManager, userType);
 
         AbstractRoomExecutable abstractRoomExecutableApi =
                 (AbstractRoomExecutable) executableApi;
@@ -465,12 +461,13 @@ public abstract class RoomEndpoint extends Endpoint
         }
         abstractRoomExecutableApi.setParticipantConfiguration(participantConfiguration);
         abstractRoomExecutableApi.setDescription(roomDescription);
-        for (ExecutableService service : services) {
-            if (service instanceof RecordingService) {
-                abstractRoomExecutableApi.setRecordable(true);
-                break;
-            }
-        }
+
+        // Determine whether room is recordable (use executable_summary from used_room_endpoints to be taken into account)
+        Boolean roomRecordable = (Boolean) entityManager.createNativeQuery(
+                "SELECT room_recordable FROM executable_summary WHERE id = :executableId")
+                .setParameter("executableId", getId())
+                .getSingleResult();
+        abstractRoomExecutableApi.setRecordable(Boolean.TRUE.equals(roomRecordable));
 
         // We must compute the original time slot
         abstractRoomExecutableApi.setOriginalSlot(getOriginalSlot());

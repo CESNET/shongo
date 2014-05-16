@@ -115,30 +115,29 @@ public class Compartment extends Executable
     }
 
     @Override
-    public CompartmentExecutable toApi(Report.UserType userType)
+    public CompartmentExecutable toApi(EntityManager entityManager, Report.UserType userType)
     {
-        return (CompartmentExecutable) super.toApi(userType);
+        return (CompartmentExecutable) super.toApi(entityManager, userType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, EntityManager entityManager,
+            Report.UserType userType)
     {
-        super.toApi(executableApi, userType);
+        super.toApi(executableApi, entityManager, userType);
 
-        CompartmentExecutable compartmentApi =
-                (CompartmentExecutable) executableApi;
+        CompartmentExecutable compartmentApi = (CompartmentExecutable) executableApi;
         for (Endpoint endpoint : getEndpoints()) {
-            compartmentApi.addEndpoint((EndpointExecutable) endpoint.toApi(userType));
+            compartmentApi.addEndpoint((EndpointExecutable) endpoint.toApi(entityManager, userType));
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-                compartmentApi.addRoom(resourceRoomEndpoint.toApi(userType));
+                compartmentApi.addRoom(resourceRoomEndpoint.toApi(entityManager, userType));
             }
         }
         for (Connection connection : getConnections()) {
-            ConnectionExecutable connectionApi =
-                    new ConnectionExecutable();
+            ConnectionExecutable connectionApi = new ConnectionExecutable();
             connectionApi.setEndpointFromId(ObjectIdentifier.formatId(connection.getEndpointFrom()));
             connectionApi.setEndpointToId(ObjectIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());

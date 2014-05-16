@@ -12,8 +12,6 @@ import cz.cesnet.shongo.controller.booking.room.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.booking.room.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
-import cz.cesnet.shongo.controller.executor.Migration;
-import cz.cesnet.shongo.controller.notification.AbstractNotification;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportException;
@@ -316,22 +314,23 @@ public abstract class Executable extends ExecutionTarget
     }
 
     /**
+     * @param entityManager
      * @param administrator
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public final cz.cesnet.shongo.controller.api.Executable toApi(boolean administrator)
+    public final cz.cesnet.shongo.controller.api.Executable toApi(EntityManager entityManager, boolean administrator)
     {
-        return toApi(administrator ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
+        return toApi(entityManager, administrator ? Report.UserType.DOMAIN_ADMIN : Report.UserType.USER);
     }
 
     /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public cz.cesnet.shongo.controller.api.Executable toApi(Report.UserType userType)
+    public cz.cesnet.shongo.controller.api.Executable toApi(EntityManager entityManager, Report.UserType userType)
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
         executableApi.setId(ObjectIdentifier.formatId(this));
-        toApi(executableApi, userType);
+        toApi(executableApi, entityManager, userType);
         return executableApi;
     }
 
@@ -346,17 +345,19 @@ public abstract class Executable extends ExecutionTarget
     /**
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
      *
-     * @param executableApi which should be filled from this {@link Executable}
+     * @param executableApi which should be filled from this {@link cz.cesnet.shongo.controller.booking.executable.Executable}
+     * @param entityManager
      * @param userType
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, EntityManager entityManager,
+            Report.UserType userType)
     {
         executableApi.setId(ObjectIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
         executableApi.setStateReport(getExecutionReport(userType));
         if (migrateFromExecutable != null) {
-            executableApi.setMigratedExecutable(migrateFromExecutable.toApi(userType));
+            executableApi.setMigratedExecutable(migrateFromExecutable.toApi(entityManager, userType));
         }
     }
 
@@ -573,9 +574,6 @@ public abstract class Executable extends ExecutionTarget
 
     /**
      * Update this {@link Executable} from given {@code executableConfiguration}.
-     *
-     *
-     *
      *
      * @param configuration
      * @param entityManager

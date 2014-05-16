@@ -57,11 +57,11 @@ public class ExistingReservation extends Reservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, EntityManager entityManager, boolean admin)
     {
         cz.cesnet.shongo.controller.api.ExistingReservation existingReservationApi =
                 (cz.cesnet.shongo.controller.api.ExistingReservation) api;
-        existingReservationApi.setReservation(getReusedReservation().toApi(administrator));
-        super.toApi(api, administrator);
+        existingReservationApi.setReservation(getReusedReservation().toApi(entityManager, admin));
+        super.toApi(api, entityManager, admin);
     }
 }

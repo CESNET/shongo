@@ -13,6 +13,7 @@ import cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
@@ -147,15 +148,15 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     }
 
     @Override
-    public RoomExecutable toApi(Report.UserType userType)
+    public RoomExecutable toApi(EntityManager entityManager, Report.UserType userType)
     {
-        return (RoomExecutable) super.toApi(userType);
+        return (RoomExecutable) super.toApi(entityManager, userType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(Executable executableApi, EntityManager entityManager, Report.UserType userType)
     {
-        super.toApi(executableApi, userType);
+        super.toApi(executableApi, entityManager, userType);
 
         RoomExecutable roomExecutableEndpointApi =
                 (RoomExecutable) executableApi;

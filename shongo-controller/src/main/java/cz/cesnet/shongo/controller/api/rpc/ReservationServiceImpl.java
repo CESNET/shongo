@@ -812,7 +812,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             List<Reservation> reservations = new LinkedList<Reservation>();
             for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                     reservationManager.listByReservationRequest(objectId.getPersistenceId())) {
-                reservations.add(reservation.toApi(authorization.isAdministrator(securityToken)));
+                reservations.add(reservation.toApi(entityManager, authorization.isAdministrator(securityToken)));
             }
             return reservations;
         }
@@ -839,7 +839,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", objectId);
             }
 
-            return reservation.toApi(authorization.isAdministrator(securityToken));
+            return reservation.toApi(entityManager, authorization.isAdministrator(securityToken));
         }
         finally {
             entityManager.close();
@@ -868,7 +868,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             List<Reservation> reservations = new LinkedList<Reservation>();
             for (cz.cesnet.shongo.controller.booking.reservation.Reservation reservation :
                     reservationManager.listByIds(reservationPersistentIds)) {
-                reservations.add(reservation.toApi(authorization.isAdministrator(securityToken)));
+                reservations.add(reservation.toApi(entityManager, authorization.isAdministrator(securityToken)));
             }
             return reservations;
         }

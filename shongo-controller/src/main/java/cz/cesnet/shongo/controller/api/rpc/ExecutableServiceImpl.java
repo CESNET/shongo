@@ -320,7 +320,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 }
             }
 
-            Executable executableApi = executable.toApi(authorization.isAdministrator(securityToken));
+            Executable executableApi = executable.toApi(entityManager, authorization.isAdministrator(securityToken));
             cz.cesnet.shongo.controller.booking.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {

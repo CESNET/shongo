@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
@@ -135,9 +136,9 @@ public class AliasReservation extends TargetedReservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.AliasReservation toApi(boolean administrator)
+    public cz.cesnet.shongo.controller.api.AliasReservation toApi(EntityManager entityManager, boolean administrator)
     {
-        return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi(administrator);
+        return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi(entityManager, administrator);
     }
 
     @Override
@@ -147,17 +148,17 @@ public class AliasReservation extends TargetedReservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean administrator)
+    protected void toApi(Reservation api, EntityManager entityManager, boolean admin)
     {
         cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
         aliasReservationApi.setResourceId(ObjectIdentifier.formatId(aliasProviderCapability.getResource()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
-        aliasReservationApi.setValueReservation(valueReservation.toApi(administrator));
+        aliasReservationApi.setValueReservation(valueReservation.toApi(entityManager, admin));
         for (Alias alias : getAliases()) {
             aliasReservationApi.addAlias(alias.toApi());
         }
-        super.toApi(api, administrator);
+        super.toApi(api, entityManager, admin);
     }
 
     @Override

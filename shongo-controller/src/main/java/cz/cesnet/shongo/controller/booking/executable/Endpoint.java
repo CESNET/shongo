@@ -147,9 +147,10 @@ public abstract class Endpoint extends Executable
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.UserType userType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, EntityManager entityManager,
+            Report.UserType userType)
     {
-        super.toApi(executableApi, userType);
+        super.toApi(executableApi, entityManager, userType);
 
         if (executableApi instanceof EndpointExecutable) {
             EndpointExecutable endpointApi =
