@@ -22,7 +22,7 @@
     <!-- CESNET's linker: start -->
     <div id="cesnet_linker_placeholder"
          <#if !user??>data-login-href="/login"</#if>
-         data-lang="en"
+         data-lang="${session.locale.language}"
          data-lang-cs-href="?lang=cs"
          data-lang-en-href="?lang=en">
     </div>
@@ -217,7 +217,7 @@
 <!-- CESNET's footer: end -->
 
 <!-- CESNET's linker (JS): start -->
-<script type="text/javascript" async src="https://shongo.cesnet.cz/linker-fix/linker-fixed.js"></script>
+<script type="text/javascript" async src="${url.resources}/js/linker.js"></script>
 <!--<script type="text/javascript" async src="https://linker.cesnet.cz/linker.js"></script>-->
 <!-- CESNET's linker (JS): end -->
 

@@ -82,11 +82,14 @@ body {
   border-top: 12px solid #006600;
 }
 /* fixed cesnet linker popups to not expand page height */
-#cesnet_linker .item.parent .children {
+#cesnet_linker.linker-desktop .item.parent .children {
   display: none !important;
 }
-#cesnet_linker .item.parent.open .children {
+#cesnet_linker.linker-desktop .item.parent.open .children {
   display: block !important;
+}
+#cesnet_linker_content_wrapper {
+  min-width: 900px;
 }
 /* body */
 body,
