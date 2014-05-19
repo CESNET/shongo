@@ -136,7 +136,7 @@ public class AliasReservationTask extends ReservationTask
         }
         else {
             // Use all alias providers from the cache
-            aliasProviderCapabilities = cache.getAliasProviders();
+            aliasProviderCapabilities = resourceCache.getCapabilities(AliasProviderCapability.class);
         }
 
         // Find matching alias providers

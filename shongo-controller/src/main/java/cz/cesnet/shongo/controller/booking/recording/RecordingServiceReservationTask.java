@@ -116,7 +116,7 @@ public class RecordingServiceReservationTask extends ReservationTask
         // Find matching recorders
         List<AvailableRecorder> availableRecorders = new LinkedList<AvailableRecorder>();
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
-        for (RecordingCapability recordingCapability : cache.getRecorders()) {
+        for (RecordingCapability recordingCapability : resourceCache.getCapabilities(RecordingCapability.class)) {
             DeviceResource deviceResource = recordingCapability.getDeviceResource();
             if (technologies.size() > 0 && !deviceResource.hasTechnologies(technologies)) {
                 continue;
@@ -150,7 +150,7 @@ public class RecordingServiceReservationTask extends ReservationTask
                 usedLicenseCount = roomBucket.size();
             }
             AvailableRecorder availableRecorder = new AvailableRecorder(recordingCapability, usedLicenseCount);
-            if (availableRecorder.getAvailableLicenseCount() == 0) {
+            if (Integer.valueOf(0).equals(availableRecorder.getAvailableLicenseCount())) {
                 addReport(new SchedulerReportSet.ResourceRecordingCapacityExceededReport(deviceResource));
                 continue;
             }
@@ -227,7 +227,7 @@ public class RecordingServiceReservationTask extends ReservationTask
         /**
          * Number of available {@link RecordingCapability#licenseCount}.
          */
-        private final int availableLicenseCount;
+        private final Integer availableLicenseCount;
 
         /**
          * Constructor.
@@ -238,10 +238,15 @@ public class RecordingServiceReservationTask extends ReservationTask
         private AvailableRecorder(RecordingCapability recordingCapability, int usedLicenseCount)
         {
             this.recordingCapability = recordingCapability;
-            System.out.println("TEST:"+usedLicenseCount+"-"+recordingCapability.getLicenseCount());
-            this.availableLicenseCount = recordingCapability.getLicenseCount() - usedLicenseCount;
-            if (this.availableLicenseCount < 0) {
-                throw new IllegalStateException("Available license count can't be negative.");
+            Integer maximumLicenseCount = recordingCapability.getLicenseCount();
+            if (maximumLicenseCount != null) {
+                this.availableLicenseCount = maximumLicenseCount - usedLicenseCount;
+                if (this.availableLicenseCount < 0) {
+                    throw new IllegalStateException("Available license count can't be negative.");
+                }
+            }
+            else {
+                this.availableLicenseCount = null;
             }
         }
 
@@ -264,7 +269,7 @@ public class RecordingServiceReservationTask extends ReservationTask
         /**
          * @return {@link #availableLicenseCount}
          */
-        public int getAvailableLicenseCount()
+        public Integer getAvailableLicenseCount()
         {
             return availableLicenseCount;
         }
@@ -282,7 +287,13 @@ public class RecordingServiceReservationTask extends ReservationTask
          */
         public Double getFullnessRatio()
         {
-            return 1.0 - (double) getAvailableLicenseCount() / (double) getMaximumLicenseCount();
+            Integer maximumLicenseCount = getMaximumLicenseCount();
+            if (maximumLicenseCount == null) {
+                return 0.0;
+            }
+            else {
+                return 1.0 - (double) availableLicenseCount / (double) maximumLicenseCount;
+            }
         }
     }
 }

@@ -1,7 +1,13 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.booking.resource.*;
+import cz.cesnet.shongo.controller.booking.resource.Capability;
+import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
+import cz.cesnet.shongo.controller.booking.resource.Resource;
+import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
+import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -51,18 +57,29 @@ public class ResourceCache extends AbstractCache<Resource>
         // Load lazy collections
         resource.loadLazyProperties();
 
-        // If resource is a device
+        // If resource is a device, add it to device topology
         if (resource instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) resource;
-
-            // Add it to device topology
             deviceTopology.addDeviceResource(deviceResource);
-
-            // If device resource has terminal capability, add it to managed capabilities
-            TerminalCapability terminalCapability = deviceResource.getCapability(TerminalCapability.class);
-            if (terminalCapability != null) {
-                addResourceCapability(terminalCapability);
+        }
+        // Add capabilities
+        for (Capability capability : resource.getCapabilities()) {
+            // Load lazy collections
+            capability.loadLazyProperties();
+            // Add it to capability state
+            Class<? extends Capability> capabilityType = capability.getClass();
+            CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
+            if (capabilityState == null) {
+                if (capability instanceof DeviceCapability) {
+                    DeviceCapability deviceCapability = (DeviceCapability) capability;
+                    capabilityState = new DeviceCapabilityState(deviceCapability.getClass());
+                }
+                else {
+                    capabilityState = new CapabilityState(capabilityType);
+                }
+                capabilityStateByType.put(capabilityType, capabilityState);
             }
+            capabilityState.addCapability(capability);
         }
         super.addObject(resource);
     }
@@ -70,16 +87,13 @@ public class ResourceCache extends AbstractCache<Resource>
     @Override
     public void removeObject(Resource resource)
     {
-        // If resource is a device
-        if (resource instanceof DeviceResource) {
-            DeviceResource deviceResource = (DeviceResource) resource;
-
-            // Remove the device from the device topology
-            deviceTopology.removeDeviceResource(deviceResource);
-
-            // If also has terminal capability, remove managed capability
-            if (deviceResource.hasCapability(TerminalCapability.class)) {
-                removeResourceCapability(deviceResource, TerminalCapability.class);
+        // Remove capabilities
+        for (Capability capability : resource.getCapabilities()) {
+            // Remove it from capability state
+            Class<? extends Capability> capabilityType = capability.getClass();
+            CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
+            if (capabilityState != null) {
+                capabilityState.removeCapability(resource);
             }
         }
         super.removeObject(resource);
@@ -93,52 +107,35 @@ public class ResourceCache extends AbstractCache<Resource>
         super.clear();
     }
 
-    /**
-     * Add resource capability to be managed and resource can be looked up by it.
-     *
-     * @param capability
-     */
-    private void addResourceCapability(Capability capability)
+    public <T extends Capability> Collection<T> getCapabilities(Class<T> capabilityType)
     {
-        Class<? extends Capability> capabilityType = capability.getClass();
-
-        // Get capability state and add the capability to it
         CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
         if (capabilityState == null) {
-            capabilityState = new CapabilityState(capabilityType);
-            capabilityStateByType.put(capabilityType, capabilityState);
+            return Collections.emptyList();
         }
-        capabilityState.addCapability(capability);
+        @SuppressWarnings("unchecked")
+        Collection<T> capabilities = (Collection) capabilityState.getCapabilities();
+        return capabilities;
     }
 
     /**
-     * Remove resource capability from managed capabilities.
-     *
-     * @param resource
-     * @param capabilityType
+     * @param technologies to be lookup-ed
+     * @return list of {@link DeviceCapability}s which supports given {@code technologies}
      */
-    private void removeResourceCapability(Resource resource, Class<? extends Capability> capabilityType)
+    public <T extends DeviceCapability> Collection<T> getDeviceCapabilities(Class<T> capabilityType, Set<Technology> technologies)
     {
-        // Get capability state
-        CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
+        DeviceCapabilityState capabilityState = (DeviceCapabilityState) capabilityStateByType.get(capabilityType);
         if (capabilityState == null) {
-            return;
+            return Collections.emptyList();
         }
-        capabilityState.removeCapability(resource);
-    }
-
-    /**
-     * @param resourceId
-     * @param capabilityType
-     * @return capability of given {@code capabilityType} from resource with given {@code resourceId}
-     */
-    private <T extends Capability> T getResourceCapability(Long resourceId, Class<T> capabilityType)
-    {
-        CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
-        if (capabilityState == null) {
-            return null;
+        Collection<T> deviceCapabilities = new LinkedList<T>();
+        for (Capability capability : capabilityState.getCapabilities()) {
+            DeviceResource deviceResource = (DeviceResource) capability.getResource();
+            if (technologies == null || deviceResource.hasTechnologies(technologies)) {
+                deviceCapabilities.add(capabilityType.cast(capability));
+            }
         }
-        return capabilityType.cast(capabilityState.getCapability(resourceId));
+        return deviceCapabilities;
     }
 
     /**
@@ -157,13 +154,12 @@ public class ResourceCache extends AbstractCache<Resource>
     /**
      * @param capabilityType
      * @param technologies
-     * @return set of device resource ids which has capability of given {@code capabilityType}
-     * supporting given {@code technologies}
+     * @return set of device resource ids which has capability of given {@code capabilityType} supporting given {@code technologies}
      */
-    public Set<Long> getDeviceResourcesByCapabilityTechnologies(Class<? extends DeviceCapability> capabilityType,
-            Set<Technology> technologies)
+    public Set<Long> getDeviceResourceIdsByCapabilityTechnologies(
+            Class<? extends DeviceCapability> capabilityType, Set<Technology> technologies)
     {
-        CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
+        DeviceCapabilityState capabilityState = (DeviceCapabilityState) capabilityStateByType.get(capabilityType);
         if (capabilityState == null) {
             return new HashSet<Long>();
         }
@@ -172,7 +168,7 @@ public class ResourceCache extends AbstractCache<Resource>
         }
         Set<Long> devices = null;
         for (Technology technology : technologies) {
-            Set<Long> technologyDevices = capabilityState.getResourceIds(technology);
+            Set<Long> technologyDevices = capabilityState.getDeviceResourceIds(technology);
             if (devices == null) {
                 devices = new HashSet<Long>();
                 if (technologyDevices != null) {
@@ -233,7 +229,7 @@ public class ResourceCache extends AbstractCache<Resource>
 
     /**
      * Checks whether given {@code capability} is available for given {@code reservationRequest}.
-     * Device resources with {@link cz.cesnet.shongo.controller.booking.room.RoomProviderCapability} can be available even if theirs capacity is fully used.
+     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
      * @param capability       to be checked
      * @param slot             to be checked
@@ -260,7 +256,7 @@ public class ResourceCache extends AbstractCache<Resource>
 
     /**
      * Checks whether given {@code resource} is available for given {@code context}.
-     * Device resources with {@link cz.cesnet.shongo.controller.booking.room.RoomProviderCapability} can be available even if theirs capacity is fully used.
+     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
      *
      * @param resource         to be checked

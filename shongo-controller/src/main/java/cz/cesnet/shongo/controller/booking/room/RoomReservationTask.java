@@ -23,6 +23,7 @@ import cz.cesnet.shongo.controller.booking.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 import cz.cesnet.shongo.controller.booking.specification.ExecutableServiceSpecification;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.notification.NotificationState;
 import cz.cesnet.shongo.controller.notification.RoomNotification;
@@ -352,6 +353,9 @@ public class RoomReservationTask extends ReservationTask
     private List<RoomProviderVariant> getRoomProviderVariants()
             throws SchedulerException
     {
+        Cache cache = getCache();
+        ResourceCache resourceCache = cache.getResourceCache();
+
         // Get possible room providers
         Collection<RoomProviderCapability> roomProviderCapabilities;
         if (roomProviderCapability != null) {
@@ -361,7 +365,7 @@ public class RoomReservationTask extends ReservationTask
         }
         else {
             // Use all room providers from the cache
-            roomProviderCapabilities = getCache().getRoomProviders();
+            roomProviderCapabilities = resourceCache.getCapabilities(RoomProviderCapability.class);
         }
 
         // Available room endpoints
@@ -390,7 +394,6 @@ public class RoomReservationTask extends ReservationTask
 
             // Check whether room provider can be allocated
             try {
-                ResourceCache resourceCache = getCache().getResourceCache();
                 resourceCache.checkCapabilityAvailable(roomProviderCapability, slot, schedulerContext, this);
             }
             catch (SchedulerException exception) {

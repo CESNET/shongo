@@ -55,7 +55,7 @@ public class LookupEndpointParticipant extends EndpointParticipant implements Re
                 ResourceCache resourceCache = getCache().getResourceCache();
 
                 Set<Technology> technologies = getTechnologies();
-                Set<Long> terminals = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                Set<Long> terminals = resourceCache.getDeviceResourceIdsByCapabilityTechnologies(
                         TerminalCapability.class, technologies);
 
                 List<DeviceResource> deviceResources = new ArrayList<DeviceResource>();

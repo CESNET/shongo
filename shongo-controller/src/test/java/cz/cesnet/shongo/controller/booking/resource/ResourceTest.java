@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.AbstractSchedulerTest;
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.DeviceResource;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceReservation;
-import cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability;
+import cz.cesnet.shongo.controller.api.request.ExecutableServiceListRequest;
+
 import cz.cesnet.shongo.controller.booking.datetime.DateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -19,18 +22,21 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceTest extends AbstractControllerTest
+public class ResourceTest extends AbstractExecutorTest
 {
     @Test
     public void testIsAvailableAt() throws Exception
     {
-        DeviceResource resource = new DeviceResource();
+        cz.cesnet.shongo.controller.booking.resource.DeviceResource resource =
+                new cz.cesnet.shongo.controller.booking.resource.DeviceResource();
         resource.setMaximumFuture(DateTimeSpecification.fromString("P4M"));
 
-        AliasProviderCapability capability1 = new AliasProviderCapability("test", AliasType.ROOM_NAME);
+        cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability capability1 =
+                new cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability("test", AliasType.ROOM_NAME);
         resource.addCapability(capability1);
 
-        AliasProviderCapability capablity2 = new AliasProviderCapability("test", AliasType.ROOM_NAME);
+        cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability capablity2 =
+                new cz.cesnet.shongo.controller.booking.alias.AliasProviderCapability("test", AliasType.ROOM_NAME);
         capablity2.setMaximumFuture(DateTimeSpecification.fromString("P1Y"));
         resource.addCapability(capablity2);
 
@@ -59,7 +65,7 @@ public class ResourceTest extends AbstractControllerTest
     @Test
     public void testAllocationOnlyToFuture() throws Exception
     {
-        cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
+        Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
         String resourceId = createResource(resource);
@@ -78,10 +84,88 @@ public class ResourceTest extends AbstractControllerTest
 
         runScheduler(Interval.parse("2012-07-01/2012-08-01"));
 
-        cz.cesnet.shongo.controller.api.ResourceReservation resourceReservation = (ResourceReservation) checkAllocated(request1Id);
+        cz.cesnet.shongo.controller.api.ResourceReservation resourceReservation = (ResourceReservation) checkAllocated(
+                request1Id);
         Assert.assertEquals("Allocated time slot should be only in future.",
                 Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
 
         checkNotAllocated(request2Id);
+    }
+
+    @Test
+    public void testAllocationOrder() throws Exception
+    {
+        // AliasProvider
+        Resource firstAliasProvider = new Resource();
+        firstAliasProvider.setName("firstAliasProvider");
+        firstAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        firstAliasProvider.setAllocatable(true);
+        firstAliasProvider.setAllocationOrder(2);
+        String firstAliasProviderId = createResource(firstAliasProvider);
+
+        Resource secondAliasProvider = new Resource();
+        secondAliasProvider.setName("secondAliasProvider");
+        secondAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.ROOM_NAME));
+        secondAliasProvider.setAllocatable(true);
+        secondAliasProvider.setAllocationOrder(1);
+        String secondAliasProviderId = createResource(secondAliasProvider);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
+        Assert.assertEquals(secondAliasProviderId, aliasReservation.getResourceId());
+
+        // RoomProvider
+        DeviceResource firstMcu = new DeviceResource();
+        firstMcu.setName("firstMcu");
+        firstMcu.addTechnology(Technology.H323);
+        firstMcu.addCapability(new RoomProviderCapability(10));
+        firstMcu.setAllocatable(true);
+        firstMcu.setAllocationOrder(2);
+        String firstMcuId = createResource(firstMcu);
+
+        DeviceResource secondMcu = new DeviceResource();
+        secondMcu.setName("secondMcu");
+        secondMcu.addTechnology(Technology.H323);
+        secondMcu.addCapability(new RoomProviderCapability(10));
+        secondMcu.setAllocatable(true);
+        secondMcu.setAllocationOrder(1);
+        String secondMcuId = createResource(secondMcu);
+
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        roomReservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        RoomReservation roomReservation = (RoomReservation) allocateAndCheck(roomReservationRequest);
+        Assert.assertEquals(secondMcuId, roomReservation.getResourceId());
+        String roomExecutableId = roomReservation.getExecutable().getId();
+
+        // RoomProvider
+        DeviceResource firstTcs = new DeviceResource();
+        firstTcs.setName("firstTcs");
+        firstTcs.addTechnology(Technology.H323);
+        firstTcs.addCapability(new RecordingCapability());
+        firstTcs.setAllocatable(true);
+        firstTcs.setAllocationOrder(2);
+        String firstTcsId = createResource(firstTcs);
+
+        DeviceResource secondTcs = new DeviceResource();
+        secondTcs.setName("secondMcu");
+        secondTcs.addTechnology(Technology.H323);
+        secondTcs.addCapability(new RecordingCapability());
+        secondTcs.setAllocatable(true);
+        secondTcs.setAllocationOrder(1);
+        String secondTcsId = createResource(secondTcs);
+
+        // Recording
+        ReservationRequest recordingReservationRequest = new ReservationRequest();
+        recordingReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        recordingReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        recordingReservationRequest.setSpecification(ExecutableServiceSpecification.createRecording(roomExecutableId));
+        allocateAndCheck(recordingReservationRequest);
+        RecordingService recordingService = getExecutableService(roomExecutableId, RecordingService.class);
+        Assert.assertEquals(secondTcsId, recordingService.getResourceId());
     }
 }

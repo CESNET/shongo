@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.room.RoomProviderCapability;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -178,8 +179,10 @@ public class AvailableRoomTest extends AbstractSchedulerTest
     private List<AvailableRoom> findAvailableRooms(Interval slot, int licenseCount, Set<Technology> technologies)
     {
         Cache cache = getCache();
+        ResourceCache resourceCache = cache.getResourceCache();
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
-        for (RoomProviderCapability roomProviderCapability : cache.getRoomProviders(technologies)) {
+        for (RoomProviderCapability roomProviderCapability :
+                resourceCache.getDeviceCapabilities(RoomProviderCapability.class, technologies)) {
             SchedulerContext schedulerContext = createSchedulerContext(slot);
             AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability, slot, null);
             if (availableRoom.getAvailableLicenseCount() >= licenseCount) {

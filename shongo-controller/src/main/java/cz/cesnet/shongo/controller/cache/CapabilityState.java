@@ -1,35 +1,35 @@
 package cz.cesnet.shongo.controller.cache;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
-import cz.cesnet.shongo.controller.booking.resource.DeviceCapability;
-import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Current state of a single {@link cz.cesnet.shongo.controller.booking.resource.Capability} type for all resources which have it.
+ * Current state of a single {@link Capability} type for all resources which have it.
  */
 public class CapabilityState
 {
     /**
-     * Type of {@link cz.cesnet.shongo.controller.booking.resource.Capability} for which the state is managed.
+     * Type of {@link Capability} for which the state is managed.
      */
-    Class<? extends Capability> capabilityType;
+    protected Class<? extends Capability> capabilityType;
 
     /**
      * Map of instances of {@link #capabilityType} by the resource ids which have them.
      */
-    private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
+    protected Map<Long, Collection<Capability>> capabilityByResourceId =
+            new LinkedHashMap<Long, Collection<Capability>>();
 
     /**
-     * Map of {@link cz.cesnet.shongo.controller.booking.resource.DeviceResource} ids by theirs technology.
+     * Ordered list of capabilities.
      */
-    private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
+    private List<Capability> tmpCapabilities;
+
+    /**
+     * Ordered list of resource-ids.
+     */
+    private Set<Long> tmpResourceIds;
 
     /**
      * Constructor.
@@ -42,35 +42,68 @@ public class CapabilityState
     }
 
     /**
-     * @param resourceId
-     * @return capability of {@link #capabilityType} for resource with given {@code resourceId}
+     * @return collection of capabilities
      */
-    public Capability getCapability(Long resourceId)
+    public synchronized List<Capability> getCapabilities()
     {
-        return capabilityByResourceId.get(resourceId);
+        if (tmpCapabilities == null) {
+            tmpCapabilities = new LinkedList<Capability>();
+            for (Collection<Capability> capabilities : capabilityByResourceId.values()) {
+                for (Capability capability : capabilities) {
+                    tmpCapabilities.add(capability);
+                }
+            }
+            Collections.sort(tmpCapabilities, new Comparator<Capability>()
+            {
+                @Override
+                public int compare(Capability capability1, Capability capability2)
+                {
+                    Resource resource1 = capability1.getResource();
+                    Resource resource2 = capability2.getResource();
+                    // Allocation order
+                    Integer allocationOrder1 = resource1.getAllocationOrder();
+                    Integer allocationOrder2 = resource2.getAllocationOrder();
+                    if (allocationOrder1 != null && allocationOrder2 != null) {
+                        return allocationOrder1.compareTo(allocationOrder2);
+                    }
+                    else if (allocationOrder1 != null) {
+                        return -1;
+                    }
+                    else if (allocationOrder2 != null) {
+                        return 1;
+                    }
+                    // Identifiers
+                    Long id1 = resource1.getId();
+                    Long id2 = resource2.getId();
+                    if (id1 != null && id2 != null) {
+                        return id1.compareTo(id2);
+                    }
+                    return 0;
+                }
+            });
+        }
+        return tmpCapabilities;
     }
 
     /**
      * @return set of resource ids which have capability of {@link #capabilityType}
      */
-    public Set<Long> getResourceIds()
+    public synchronized Set<Long> getResourceIds()
     {
-        return capabilityByResourceId.keySet();
-    }
-
-    /**
-     * @param technology
-     * @return set of resource ids which have capability of {@link #capabilityType} and given {@code technology}
-     */
-    public Set<Long> getResourceIds(Technology technology)
-    {
-        return deviceResourcesByTechnology.get(technology);
+        if (tmpResourceIds == null) {
+            tmpResourceIds = new LinkedHashSet<Long>();
+            for (Capability capability : getCapabilities()) {
+                Resource resource = capability.getResource();
+                tmpResourceIds.add(resource.getId());
+            }
+        }
+        return tmpResourceIds;
     }
 
     /**
      * @param capability to be added to the {@link CapabilityState}
      */
-    public void addCapability(Capability capability)
+    public synchronized void addCapability(Capability capability)
     {
         if (!capabilityType.isInstance(capability)) {
             throw new IllegalArgumentException("Capability '" + capability.getClass().getSimpleName()
@@ -81,44 +114,30 @@ public class CapabilityState
         Long resourceId = resource.getId();
 
         // Add the capability by it's resource to the map
-        capabilityByResourceId.put(resourceId, capability);
-
-        if (capability instanceof DeviceCapability) {
-            DeviceResource deviceResource = (DeviceResource) resource;
-            DeviceCapability deviceCapability = (DeviceCapability) capability;
-
-            // Add the device resource to map of virtual room resources by technology
-            for (Technology technology : deviceResource.getTechnologies()) {
-                Set<Long> deviceResources = deviceResourcesByTechnology.get(technology);
-                if (deviceResources == null) {
-                    deviceResources = new HashSet<Long>();
-                    deviceResourcesByTechnology.put(technology, deviceResources);
-                }
-                deviceResources.add(resourceId);
-            }
+        Collection<Capability> capabilities = capabilityByResourceId.get(resourceId);
+        if (capabilities == null) {
+            capabilities = new LinkedList<Capability>();
+            capabilityByResourceId.put(resourceId, capabilities);
         }
+        capabilities.add(capability);
+
+        // Clear order
+        tmpCapabilities = null;
+        tmpResourceIds = null;
     }
 
     /**
      * @param resource for which the capability should be removed from the {@link CapabilityState}
      */
-    public void removeCapability(Resource resource)
+    public synchronized void removeCapability(Resource resource)
     {
         Long resourceId = resource.getId();
 
         // Remove the device resource from the set of virtual room resources
         capabilityByResourceId.remove(resourceId);
 
-        if (capabilityType.isAssignableFrom(DeviceCapability.class)) {
-            DeviceResource deviceResource = (DeviceResource) resource;
-
-            // Remove the device resource from map by technology
-            for (Technology technology : deviceResource.getTechnologies()) {
-                Set<Long> devices = deviceResourcesByTechnology.get(technology);
-                if (devices != null) {
-                    devices.remove(resourceId);
-                }
-            }
-        }
+        // Clear order
+        tmpCapabilities = null;
+        tmpResourceIds = null;
     }
 }
