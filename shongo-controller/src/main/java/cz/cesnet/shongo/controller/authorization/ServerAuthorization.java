@@ -286,7 +286,7 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserData> onListUserData(Set<String> filterUserIds, String search)
+    protected Collection<UserData> onListUserData(final Set<String> filterUserIds, final String search)
     {
         String listUsersUrlQuery = "";
         if (filterUserIds != null && filterUserIds.size() > 0) {
@@ -340,6 +340,9 @@ public class ServerAuthorization extends Authorization
                             }
                             throw new ControllerReportSet.UserNotExistsException(userId);
 
+                        }
+                        else if (detail.startsWith("Invalid search string")) {
+                            throw new CommonReportSet.TypeIllegalValueException("search string", search);
                         }
                     }
                 });

@@ -115,6 +115,7 @@
                 ajax: {
                     url: identityListUrl,
                     dataType: 'json',
+                    quietMillis: 1000,
                     data: function (term, page) {
                         return {
                             filter: term

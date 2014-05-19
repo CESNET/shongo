@@ -43,13 +43,15 @@
             }, 0);
         }
 
+    <security:authorize access="isAuthenticated()" var="isAuthenticated"/>
+
     <%-- User is not logged in and thus detect only time zone offset --%>
-    <security:authorize access="!isAuthenticated()">
+    <c:if test="${!isAuthenticated}">
         redirectSetTimeZone(getTimeZoneOffset());
-    </security:authorize>
+    </c:if>
 
     <%-- User is logged in and thus detect precisely the current time zone by GEO location, jstz library or offset --%>
-    <security:authorize access="isAuthenticated()">
+    <c:if test="${isAuthenticated}">
         /**
          * Determine GEO location.
          *
@@ -145,7 +147,7 @@
                 redirectSetTimeZone(getTimeZoneOffset());
             }, 0);
         });
-    </security:authorize>
+    </c:if>
 
     </script>
 </head>
