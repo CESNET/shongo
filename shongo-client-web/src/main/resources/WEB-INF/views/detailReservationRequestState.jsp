@@ -21,6 +21,9 @@
             </c:if>
             $scope.reservationRequest.state = "${reservationRequest.detail.state}"
             $scope.reservationRequest.stateLabel = "<spring:message code="views.reservationRequest.state.${reservationRequest.specificationType}.${reservationRequest.detail.state}"/>"
+            if ($scope.reservationRequest.allocationState == 'ALLOCATED') {
+                $scope.reservationRequest.recordingsObjectId = $scope.reservationRequest.id;
+            }
         }
     </c:if>
     }
