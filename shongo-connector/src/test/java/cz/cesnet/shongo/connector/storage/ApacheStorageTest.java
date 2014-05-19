@@ -3,19 +3,12 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import junit.framework.Assert;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -41,12 +34,12 @@ public class ApacheStorageTest
     {
         String rootFolderUrl = URL;
         if (URL.equals("TMP")) {
-            File tempFolder = File.createTempFile("storage", null);
+            java.io.File tempFolder = java.io.File.createTempFile("storage", null);
             tempFolder.delete();
             tempFolder.mkdir();
             rootFolderUrl = tempFolder.getAbsolutePath();
         }
-        ApacheStorage.deleteContentRecursive(new File(rootFolderUrl));
+        LocalStorageHandler.deleteContentRecursive(new java.io.File(rootFolderUrl));
 
         storage = new ApacheStorage(rootFolderUrl, DOWNLOADABLE_URL_BASE, new AbstractStorage.UserInformationProvider()
         {
@@ -72,17 +65,17 @@ public class ApacheStorageTest
     public void after() throws Exception
     {
         if (URL.equals("TMP")) {
-            ApacheStorage.deleteRecursive(new File(storage.getUrl()));
+            LocalStorageHandler.deleteRecursive(new java.io.File(storage.getUrl()));
         }
     }
 
     @Test
     public void test() throws Exception
     {
-        String folderId = storage.createFolder(new Storage.Folder(null, "folder"));
+        String folderId = storage.createFolder(new Folder(null, "folder"));
         Assert.assertTrue(dirExists("folder"));
 
-        storage.createFile(new Storage.File(folderId, "recording"), getInputStream("<data>"));
+        storage.createFile(new File(folderId, "recording"), getInputStream("<data>"));
         Assert.assertTrue(fileExists("folder/recording"));
         Assert.assertEquals("<data>", getFileContent("folder/recording"));
 
@@ -118,7 +111,7 @@ public class ApacheStorageTest
             public void run()
             {
                 logger.info("Copying started...");
-                storage.createFile(new Storage.File(null, "test"), fileContent, new Storage.ResumeSupport()
+                storage.createFile(new File(null, "test"), fileContent, new ResumeSupport()
                 {
                     @Override
                     public InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException
@@ -184,15 +177,15 @@ public class ApacheStorageTest
 
     private boolean fileExists(String fileName)
     {
-        fileName = ApacheStorage.getChildUrl(storage.getUrl(), fileName);
-        File file = new File(fileName);
+        fileName = LocalStorageHandler.getChildUrl(storage.getUrl(), fileName);
+        java.io.File file = new java.io.File(fileName);
         return file.exists() && file.isFile();
     }
 
     private boolean dirExists(String dirName)
     {
-        dirName = ApacheStorage.getChildUrl(storage.getUrl(), dirName);
-        File dir = new File(dirName);
+        dirName = LocalStorageHandler.getChildUrl(storage.getUrl(), dirName);
+        java.io.File dir = new java.io.File(dirName);
         return dir.exists() && dir.isDirectory();
     }
 
@@ -203,7 +196,7 @@ public class ApacheStorageTest
 
     private String getFileContent(String fileName) throws Exception
     {
-        fileName = ApacheStorage.getChildUrl(storage.getUrl(), fileName);
+        fileName = LocalStorageHandler.getChildUrl(storage.getUrl(), fileName);
         BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
         try {
             StringBuilder stringBuilder = new StringBuilder();

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector.storage;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.connector.storage;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.jade.CommandException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +65,14 @@ public interface Storage
     void deleteFile(String folderId, String fileName);
 
     /**
+     * Test if file already exists.
+     *
+     * @param file file to be tested
+     * @return {@value true} if file exists, {@value false} otherwise
+     */
+    public boolean fileExists(File file);
+
+    /**
      * List files in specified folder in the storage.
      *
      * @param folderId id of the folder which contains requested files
@@ -90,179 +97,4 @@ public interface Storage
      */
     String getFileDownloadableUrl(String folderId, String fileName);
 
-    /**
-     * Test if file already exists.
-     *
-     * @param file file to be tested
-     * @return {@value true} if file exists, {@value false} otherwise
-     */
-    public boolean fileExists(File file);
-
-    /**
-     * Represents information about a single folder in the storage.
-     */
-    class Folder
-    {
-        /**
-         * Id of the folder or {@code null} if the id doesn't exist yet.
-         */
-        private String folderId;
-
-        /**
-         * Id of the parent folder.
-         */
-        private String parentFolderId;
-
-        /**
-         * Name of the new folder.
-         */
-        private String folderName;
-
-        /**
-         * Constructor.
-         */
-        public Folder()
-        {
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param parentFolderId sets the {@link #parentFolderId}
-         * @param folderName     sets the {@link #folderName}
-         */
-        public Folder(String parentFolderId, String folderName)
-        {
-            this.parentFolderId = parentFolderId;
-            this.folderName = folderName;
-        }
-
-        /**
-         * @return {@link #folderId}
-         */
-        public String getFolderId()
-        {
-            return folderId;
-        }
-
-        /**
-         * @param folderId sets the {@link #folderId}
-         */
-        public void setFolderId(String folderId)
-        {
-            this.folderId = folderId;
-        }
-
-        /**
-         * @return {@link #parentFolderId}
-         */
-        public String getParentFolderId()
-        {
-            return parentFolderId;
-        }
-
-        /**
-         * @param parentFolderId sets the {@link #parentFolderId}
-         */
-        public void setParentFolderId(String parentFolderId)
-        {
-            this.parentFolderId = parentFolderId;
-        }
-
-        /**
-         * @return {@link #folderName}
-         */
-        public String getFolderName()
-        {
-            return folderName;
-        }
-
-        /**
-         * @param folderName sets the {@link #folderName}
-         */
-        public void setFolderName(String folderName)
-        {
-            this.folderName = folderName;
-        }
-    }
-
-    /**
-     * Represents information about a single file in the storage.
-     */
-    class File
-    {
-        /**
-         * Id of the folder in which the file is located.
-         */
-        private String folderId;
-
-        /**
-         * Name of the file, which is unique in folder.
-         */
-        private String fileName;
-
-        /**
-         * Constructor.
-         */
-        public File()
-        {
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param folderId sets the {@link #folderId}
-         * @param fileName sets the {@link #fileName}
-         */
-        public File(String folderId, String fileName)
-        {
-            this.folderId = folderId;
-            this.fileName = fileName;
-        }
-
-        /**
-         * @return {@link #fileName}
-         */
-        public String getFileName()
-        {
-            return fileName;
-        }
-
-        /**
-         * @param fileName sets the {@link #fileName}
-         */
-        public void setFileName(String fileName)
-        {
-            this.fileName = fileName;
-        }
-
-        /**
-         * @return {@link #folderId}
-         */
-        public String getFolderId()
-        {
-            return folderId;
-        }
-
-        /**
-         * @param folderId sets the {@link #folderId}
-         */
-        public void setFolderId(String folderId)
-        {
-            this.folderId = folderId;
-        }
-    }
-
-    /**
-     * Interface which can be implemented to allow resuming of downloading by {@link java.io.InputStream}.
-     */
-    interface ResumeSupport
-    {
-        /**
-         * @param oldInputStream which can be closed
-         * @param offset         at which the {@link java.io.InputStream} should be reopened
-         * @return newly opened {@link java.io.InputStream}
-         */
-        InputStream reopenInputStream(InputStream oldInputStream, int offset) throws IOException;
-    }
 }
