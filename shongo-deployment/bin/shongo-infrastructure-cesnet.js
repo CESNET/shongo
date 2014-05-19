@@ -91,6 +91,7 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "mcu",
         name: "mcu1",
         description: "CESNET Cisco MCU 1",
+        allocationOrder: 1,
         agent: "mcu1",
         address: "mcuc.cesnet.cz",
         aliases: {
@@ -115,6 +116,7 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "mcu",
         name: "mcu2",
         description: "CESNET Cisco MCU 2",
+        allocationOrder: 2,
         agent: "mcu2",
         address: "mcuc2.cesnet.cz",
         aliases: {
@@ -139,6 +141,7 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "mcu",
         name: "mcu3",
         description: "CESNET Cisco MCU 3",
+        allocationOrder: 3,
         agent: "mcu3",
         address: "mcuc3.cesnet.cz",
         aliases: {
@@ -162,6 +165,7 @@ function getResources(domain, defaultAdministratorEmail) {
     /*resources.push({
         type: "tcs",
         name: "tcs1",
+        allocationOrder: 1,
         agent: "tcs1",
         address: "rec1.cesnet.cz",
         licenseCount: common.select(domain, {
@@ -175,6 +179,7 @@ function getResources(domain, defaultAdministratorEmail) {
     resources.push({
         type: "tcs",
         name: "tcs2",
+        allocationOrder: 2,
         agent: "tcs2",
         address: "rec2.cesnet.cz",
         licenseCount: common.select(domain, {

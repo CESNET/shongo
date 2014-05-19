@@ -34,9 +34,12 @@ SELECT
 
     /* Requested technologies */
     (
-        SELECT STRING_AGG(technologies, ',') FROM (
-            SELECT DISTINCT technologies FROM specification_technologies
+        SELECT STRING_AGG(DISTINCT technologies, ',') FROM (
+            SELECT technologies FROM specification_technologies
             WHERE specification_id = room_specification.id OR specification_id = room_name_specification.id
+            UNION ALL
+            SELECT DISTINCT alias_technologies FROM alias_specification_alias_technologies
+            WHERE alias_specification_alias_technologies.alias_specification_id = room_name_specification.id
         ) AS data
     ) AS technologies,
 

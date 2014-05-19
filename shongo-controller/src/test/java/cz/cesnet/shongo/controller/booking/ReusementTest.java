@@ -484,6 +484,10 @@ public class ReusementTest extends AbstractControllerTest
         String capacityReservationRequestId = allocate(capacityReservationRequest);
         checkAllocated(capacityReservationRequestId);
 
+        capacityReservationRequest = getReservationRequest(capacityReservationRequestId, ReservationRequest.class);
+        capacityReservationRequestId = allocate(capacityReservationRequest);
+        checkAllocated(capacityReservationRequestId);
+
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, capacityReservationRequestId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, permanentRoomReservationRequestId);
         runScheduler();

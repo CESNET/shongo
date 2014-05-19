@@ -106,7 +106,7 @@ public class ResourceManager extends AbstractManager
     {
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
                 + " WHERE " + (filter != null ? filter.toQueryWhere() : "1=1")
-                + " ORDER BY resource.id",
+                + " ORDER BY resource.allocationOrder, resource.id",
                 Resource.class);
         if (filter != null) {
             filter.fillQueryParameters(query);

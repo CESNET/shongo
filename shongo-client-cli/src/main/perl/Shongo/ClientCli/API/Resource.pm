@@ -44,6 +44,19 @@ sub new()
         'title' => 'Parent',
         'string-pattern' => $Shongo::Common::IdPattern
     });
+    $self->add_attribute('allocationOrder', {
+        'title' => 'Allocation Order',
+        'type' => 'int',
+        'format' => sub {
+            my ($attribute_value) = @_;
+            if (defined($attribute_value)) {
+                return $attribute_value;
+            }
+            else {
+                return "last";
+            }
+        }
+    });
     $self->add_attribute('allocatable', {
         'type' => 'bool',
         'required' => 1

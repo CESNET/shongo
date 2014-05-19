@@ -85,6 +85,11 @@ public class Resource extends PersistentObject implements ReportableComplex
     private boolean allocatable;
 
     /**
+     * Order in which the resource should be tried to be allocated ({@code null} means the last).
+     */
+    private Integer allocationOrder;
+
+    /**
      * Constructor.
      */
     public Resource()
@@ -400,6 +405,23 @@ public class Resource extends PersistentObject implements ReportableComplex
         this.allocatable = allocatable;
     }
 
+    /**
+     * @return {@link #allocationOrder}
+     */
+    @Column(name = "allocation_order")
+    public Integer getAllocationOrder()
+    {
+        return allocationOrder;
+    }
+
+    /**
+     * @param allocationOrder sets the {@link #allocationOrder}
+     */
+    public void setAllocationOrder(Integer allocationOrder)
+    {
+        this.allocationOrder = allocationOrder;
+    }
+
     @Override
     public void loadLazyProperties()
     {
@@ -441,6 +463,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         resourceApi.setUserId(getUserId());
         resourceApi.setName(getName());
         resourceApi.setAllocatable(isAllocatable());
+        resourceApi.setAllocationOrder(getAllocationOrder());
         resourceApi.setDescription(getDescription());
 
         if (maximumFuture != null) {
@@ -495,6 +518,7 @@ public class Resource extends PersistentObject implements ReportableComplex
         setName(resourceApi.getName());
         setDescription(resourceApi.getDescription());
         setAllocatable(resourceApi.getAllocatable());
+        setAllocationOrder(resourceApi.getAllocationOrder());
         Long newParentResourceId = null;
         if (resourceApi.getParentResourceId() != null) {
             newParentResourceId = ObjectIdentifier.parseId(resourceApi.getParentResourceId(), ObjectType.RESOURCE);

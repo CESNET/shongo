@@ -79,7 +79,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private ReservationRequestPurpose purpose;
 
     /**
-     * Priority of the {@link AbstractReservationRequest}.
+     * Priority of the {@link AbstractReservationRequest} (higher number means that it should be allocated earlier).
      */
     private Integer priority;
 

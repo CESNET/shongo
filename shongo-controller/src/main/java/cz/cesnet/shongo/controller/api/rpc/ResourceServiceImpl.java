@@ -283,6 +283,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 summary.setId(ObjectIdentifier.formatId(resource));
                 summary.setUserId(resource.getUserId());
                 summary.setName(resource.getName());
+                summary.setAllocationOrder(resource.getAllocationOrder());
                 if (resource instanceof DeviceResource) {
                     StringBuilder stringBuilder = new StringBuilder();
                     for (Technology technology : ((DeviceResource) resource).getTechnologies()) {

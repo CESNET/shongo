@@ -35,7 +35,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private ReservationRequestPurpose purpose;
 
     /**
-     * Priority of the reservation request.
+     * Priority of the reservation request (higher number means that it should be allocated earlier).
      */
     private Integer priority;
 

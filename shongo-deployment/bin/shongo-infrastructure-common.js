@@ -163,6 +163,9 @@ module.exports = {
             if (resource.agent != null) {
                 appendAttribute("agent", this.Color.GREEN);
             }
+            if (resource.allocationOrder != null) {
+                appendAttribute("allocationOrder", this.Color.RED);
+            }
             if (resource.type == "value") {
                 appendAttribute("patternPrefix", this.Color.YELLOW);
             }
@@ -298,9 +301,50 @@ module.exports = {
             console.log("Updating resource '" + resourceName + "' with id '" + resourceId + "'...");
             command = "modify-resource " + resourceId + " " + JSON.stringify(resource);
         }
-        //this.dumpObject(resource);
+        //this.dumpObject(command);
         var result = this.execClientCliCommand(command);
         console.log(result);
+    },
+
+    /**
+     * @param resourceTarget to be initialized
+     * @param resourceSource to get attributes
+     */
+    prepareResourceCommon: function(resourceTarget, resourceSource) {
+        if (resourceTarget.class == null) {
+            resourceTarget.class = "Resource";
+        }
+        if (resourceSource.id != null) {
+            resourceTarget.id = resourceSource.id;
+        }
+        resourceTarget.name = resourceSource.name;
+        if (resourceSource.description != null) {
+            resourceTarget.description = resourceSource.description;
+        }
+        if (resourceTarget.allocatable == null) {
+            resourceTarget.allocatable = 1;
+        }
+        if (resourceSource.allocationOrder != null) {
+            resourceTarget.allocationOrder = resourceSource.allocationOrder;
+        }
+        if (resourceSource.address != null) {
+            resourceTarget.address = resourceSource.address;
+        }
+        if (resourceSource.agent != null) {
+            resourceTarget.mode = {connectorAgentName: resourceSource.agent};
+        }
+        if (resourceTarget.capabilities == null) {
+            resourceTarget.capabilities = [];
+        }
+        if (resourceSource.administrators != null && resourceSource.administrators.length > 0) {
+            resourceTarget.administratorEmails = [];
+            for (var index = 0; index < resourceSource.administrators.length; index++) {
+                var administrator = resourceSource.administrators[index];
+                if (administrator.email != null) {
+                    resourceTarget.administratorEmails.push(administrator.email);
+                }
+            }
+        }
     },
 
     /**
@@ -376,7 +420,7 @@ module.exports = {
             }
         }
         if (aliasesValueProvider == null) {
-            throw "Name ValueProvider for resource '" + resource.name + "'doesn't exists";
+            throw "Name ValueProvider for resource '" + resource.name + "' doesn't exists";
         }
 
         // Prepare resource
@@ -524,44 +568,6 @@ module.exports = {
      */
     prepareResourceTcs: function(resource) {
         throw "TODO: implement tcs";
-    },
-
-    /**
-     * @param resourceTarget to be initialized
-     * @param resourceSource to get attributes
-     */
-    prepareResourceCommon: function(resourceTarget, resourceSource) {
-        if (resourceTarget.class == null) {
-            resourceTarget.class = "Resource";
-        }
-        if (resourceSource.id != null) {
-            resourceTarget.id = resourceSource.id;
-        }
-        resourceTarget.name = resourceSource.name;
-        if (resourceSource.description != null) {
-            resourceTarget.description = resourceSource.description;
-        }
-        if (resourceTarget.allocatable == null) {
-            resourceTarget.allocatable = 1;
-        }
-        if (resourceSource.address != null) {
-            resourceTarget.address = resourceSource.address;
-        }
-        if (resourceSource.agent != null) {
-            resourceTarget.mode = {connectorAgentName: resourceSource.agent};
-        }
-        if (resourceTarget.capabilities == null) {
-            resourceTarget.capabilities = [];
-        }
-        if (resourceSource.administrators != null && resourceSource.administrators.length > 0) {
-            resourceTarget.administratorEmails = [];
-            for (var index = 0; index < resourceSource.administrators.length; index++) {
-                var administrator = resourceSource.administrators[index];
-                if (administrator.email != null) {
-                    resourceTarget.administratorEmails.push(administrator.email);
-                }
-            }
-        }
     },
 
     /**

@@ -204,6 +204,7 @@ sub list_resources()
             {'field' => 'id',   'title' => 'Identifier'},
             {'field' => 'user', 'title' => 'User'},
             {'field' => 'name', 'title' => 'Name'},
+            {'field' => 'order', 'title' => 'Order'},
             {'field' => 'technologies', 'title' => 'Technologies'},
             {'field' => 'parent', 'title' => 'Parent Resource'},
         ],
@@ -223,6 +224,7 @@ sub list_resources()
             'id' => $resource->{'id'},
             'user' => [$resource->{'userId'}, $application->format_user($resource->{'userId'})],
             'name' => $resource->{'name'},
+            'order' => $resource->{'allocationOrder'},
             'technologies' => [$resource->{'technologies'}, $technologies],
             'parent' => $resource->{'parentResourceId'},
         });

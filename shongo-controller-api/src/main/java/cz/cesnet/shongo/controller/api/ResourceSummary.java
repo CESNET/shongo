@@ -31,6 +31,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private String parentResourceId;
 
     /**
+     * Order in which the resource should be tried to be allocated ({@code null} means the last).
+     */
+    private Integer allocationOrder;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -94,10 +99,27 @@ public class ResourceSummary extends IdentifiedComplexType
         this.parentResourceId = parentResourceId;
     }
 
+    /**
+     * @return {@link #allocationOrder}
+     */
+    public Integer getAllocationOrder()
+    {
+        return allocationOrder;
+    }
+
+    /**
+     * @param allocationOrder sets the {@link #allocationOrder}
+     */
+    public void setAllocationOrder(Integer allocationOrder)
+    {
+        this.allocationOrder = allocationOrder;
+    }
+
     private static final String USER_ID = "userId";
     private static final String NAME = "name";
     private static final String TECHNOLOGIES = "technologies";
     private static final String PARENT_RESOURCE_ID = "parentResourceId";
+    private static final String ALLOCATION_ORDER = "allocationOrder";
 
     @Override
     public DataMap toData()
@@ -105,6 +127,7 @@ public class ResourceSummary extends IdentifiedComplexType
         DataMap dataMap = super.toData();
         dataMap.set(USER_ID, userId);
         dataMap.set(NAME, name);
+        dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
         return dataMap;
@@ -116,6 +139,7 @@ public class ResourceSummary extends IdentifiedComplexType
         super.fromData(dataMap);
         userId = dataMap.getString(USER_ID);
         name = dataMap.getString(NAME);
+        allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         technologies = dataMap.getString(TECHNOLOGIES);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
     }

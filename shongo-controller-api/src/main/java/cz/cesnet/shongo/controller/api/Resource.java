@@ -48,6 +48,11 @@ public class Resource extends IdentifiedComplexType
     private Boolean allocatable;
 
     /**
+     * Order in which the resource should be tried to be allocated ({@code null} means the last).
+     */
+    private Integer allocationOrder;
+
+    /**
      * Specifies the maximum future for which the resource can be scheduled.
      */
     private Object maximumFuture;
@@ -168,6 +173,22 @@ public class Resource extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #allocationOrder}
+     */
+    public Integer getAllocationOrder()
+    {
+        return allocationOrder;
+    }
+
+    /**
+     * @param allocationOrder sets the {@link #allocationOrder}
+     */
+    public void setAllocationOrder(Integer allocationOrder)
+    {
+        this.allocationOrder = allocationOrder;
+    }
+
+    /**
      * @return {@link #maximumFuture}
      */
     public Object getMaximumFuture()
@@ -232,6 +253,7 @@ public class Resource extends IdentifiedComplexType
     public static final String PARENT_RESOURCE_ID = "parentResourceId";
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
+    public static final String ALLOCATION_ORDER = "allocationOrder";
     public static final String CAPABILITIES = "capabilities";
     public static final String ALLOCATABLE = "allocatable";
     public static final String MAXIMUM_FUTURE = "maximumFuture";
@@ -246,6 +268,7 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION, description);
+        dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(CAPABILITIES, capabilities);
         dataMap.set(ALLOCATABLE, allocatable);
         dataMap.set(ADMINISTRATOR_EMAILS, administratorEmails);
@@ -272,6 +295,7 @@ public class Resource extends IdentifiedComplexType
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
         name = dataMap.getStringRequired(NAME, DEFAULT_COLUMN_LENGTH);
         description = dataMap.getString(DESCRIPTION);
+        allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         capabilities = dataMap.getList(CAPABILITIES, Capability.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
