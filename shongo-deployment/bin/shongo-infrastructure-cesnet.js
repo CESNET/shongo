@@ -121,7 +121,6 @@ function getResources(domain, defaultAdministrator) {
         type: "mcu",
         name: "mcu2",
         description: "CESNET Cisco MCU 2",
-        allocatable: 0,
         allocationOrder: 2,
         maximumFuture: maximumFuture,
         agent: "mcu2",
@@ -148,7 +147,6 @@ function getResources(domain, defaultAdministrator) {
         type: "mcu",
         name: "mcu3",
         description: "CESNET Cisco MCU 3",
-     allocatable: 0,
         allocationOrder: 3,
         maximumFuture: maximumFuture,
         agent: "mcu3",
@@ -174,14 +172,13 @@ function getResources(domain, defaultAdministrator) {
     resources.push({
         type: "tcs",
         name: "tcs1",
-        allocatable: 0,
         allocationOrder: 1,
         maximumFuture: maximumFuture,
         agent: "tcs1",
         address: "rec1.cesnet.cz",
         licenseCount: common.select(domain, {
             "meetings": 5,
-            "default": 3
+            "default": 2
         }),
         administrators: resourceAdministrators
     });
@@ -196,7 +193,7 @@ function getResources(domain, defaultAdministrator) {
         address: "rec2.cesnet.cz",
         licenseCount: common.select(domain, {
             "meetings": 5,
-            "default": 3
+            "default": 2
         }),
         administrators: resourceAdministrators
     });

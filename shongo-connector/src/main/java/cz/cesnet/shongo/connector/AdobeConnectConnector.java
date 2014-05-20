@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.RecordingUnavailableException;
+import cz.cesnet.shongo.controller.RoomNotExistsException;
 import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
@@ -1205,9 +1206,24 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("filter-icon", "archive");
         List<Element> recordings = request("sco-contents", attributes).getChild("scos").getChildren();
 
-        for(Element recording : recordings) {
-            String recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
-            moveRecording(recording.getAttributeValue("sco-id"),recordingFolderId);
+        if (recordings.size() > 0) {
+            String recordingFolderId = null;
+            try {
+                recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
+            }
+            catch (CommandException exception) {
+                if (RoomNotExistsException.CODE.equals(exception.getCode())) {
+                    logger.warn("Cannot get recording folder id while deleting room " + roomId + "...", exception);
+                }
+                else {
+                    throw exception;
+                }
+            }
+            if (recordingFolderId != null) {
+                for(Element recording : recordings) {
+                    moveRecording(recording.getAttributeValue("sco-id"),recordingFolderId);
+                }
+            }
         }
 
         deleteSCO(roomId);

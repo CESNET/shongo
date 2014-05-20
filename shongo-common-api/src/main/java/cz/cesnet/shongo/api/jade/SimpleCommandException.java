@@ -1,35 +1,31 @@
 package cz.cesnet.shongo.api.jade;
 
 /**
- * An exception thrown by invalid {@link Command}s, i.e. {@link Command}s that fail when executed.
+ * {@link CommandException} with code.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CommandException extends Exception
+public class SimpleCommandException extends CommandException
 {
-
-    /**
-     * Constructor.
-     */
-    protected CommandException()
-    {
-    }
+    private String code;
 
     /**
      * @param message description of the failure
      */
-    public CommandException(String message)
+    public SimpleCommandException(String code, String message)
     {
         super(message);
+        this.code = code;
     }
 
     /**
      * @param message description of the failure
      * @param cause   the cause of the failure
      */
-    public CommandException(String message, Throwable cause)
+    public SimpleCommandException(String code, String message, Throwable cause)
     {
         super(message, cause);
+        this.code = code;
     }
 
     /**
@@ -37,6 +33,6 @@ public class CommandException extends Exception
      */
     public String getCode()
     {
-        return null;
+        return code;
     }
 }

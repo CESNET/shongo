@@ -2,10 +2,12 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.SimpleCommandException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
@@ -18,6 +20,7 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import sun.tools.jar.resources.jar_es;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -171,9 +174,15 @@ abstract public class AbstractConnector implements CommonService
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
             return sendLocalCommand.getResult();
         }
-        JadeReport commandFailure = sendLocalCommand.getJadeReport();
-        throw new CommandException(String.format("Controller action failed: %s", commandFailure.getMessage())/*,
-                commandFailure.getCause()*/ /* TODO: pass cause */);
+        JadeReport jadeReport = sendLocalCommand.getJadeReport();
+        String jadeReportCode = null;
+        if (jadeReport instanceof JadeReportSet.CommandFailedReport) {
+            JadeReportSet.CommandFailedReport commandFailedReport = (JadeReportSet.CommandFailedReport) jadeReport;
+            commandFailedReport.getCode();
+            jadeReportCode = commandFailedReport.getCode();
+        }
+        throw new SimpleCommandException(
+                jadeReportCode, String.format("Controller action failed: %s", jadeReport.getMessage()));
     }
 
     /**

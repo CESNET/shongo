@@ -8,6 +8,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.ObjectType;
+import cz.cesnet.shongo.controller.RoomNotExistsException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.executable.ExecutableManager;
@@ -232,8 +233,8 @@ public class ServiceImpl implements Service
             RecordableEndpoint recordableEndpoint =
                     (RecordableEndpoint) executableManager.getRoomEndpoint(deviceResourceId, roomId);
             if (recordableEndpoint == null) {
-                throw new CommandException("Room " + roomId + " doesn't exist in device " +
-                        ObjectIdentifier.formatId(ObjectType.RESOURCE, deviceResourceId) + ".");
+                throw new RoomNotExistsException(
+                        roomId, ObjectIdentifier.formatId(ObjectType.RESOURCE, deviceResourceId));
             }
             DeviceResource resource = recordableEndpoint.getResource();
             RecordingCapability recordingCapability = resource.getCapabilityRequired(RecordingCapability.class);

@@ -19,6 +19,15 @@ and you have to restart application every time you make a change.
       openssl pkcs12 -export -in server.crt -inkey server.key -out server.p12
       keytool -importkeystore -srckeystore server.p12 -srcstoretype PKCS12 -destkeystore server.keystore
 
+##APACHE SSL
+
+Apache configuration:
+
+    SSLEngine on
+    SSLCertificateFile      /etc/ssl/certs/<domain>.cert.pem
+    SSLCertificateKeyFile   /etc/ssl/private/<domain>.keynopass.pem
+    SSLCertificateChainFile /etc/ssl/certs/<domain>.cert.withcabundle.pem
+
 ##APACHE PROXY
 
 Apache configuration:
