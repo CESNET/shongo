@@ -28,7 +28,7 @@
     </div>
     <!-- CESNET's linker: end -->
 
-    <div id="page_wrapper">
+    <div id="page_wrapper" data-snap-ignore="true">
 
         <!-- Header: begin -->
         <nav class="navbar navbar-default" role="navigation">
@@ -163,18 +163,18 @@
 <!-- Content wrapper: end -->
 
 <!-- CESNET's footer: start -->
-<div id="footer">
+<div id="footer" data-snap-ignore="true">
     <footer>
         <div class="container">
             <div class="row">
-                <div class="col col-md-3">
+                <div class="col col-xs-3">
                     <div class="logo-wrapper">
                         <img src="${url.resources}/img/logo-cesnet.png" class="img-responsive" alt="cesnet logo">
                     </div>
                 </div>
-                <div class="col-lg-7 col-lg-push-2 col-md-push-1 col-md-8">
+                <div class="col-lg-7 col-lg-push-2 col-xs-push-1 col-xs-8">
                     <div class="row">
-                        <div class="col col-sm-4">
+                        <div class="col col-xs-4">
                             <h2>${message("footer.links")}</h2>
                             <ul>
                                 <li><a href="http://pki.cesnet.cz/cs/ch-intro.html">CESNET PKI</a></li>
@@ -184,7 +184,7 @@
                                 <li><a href="http://perun.cesnet.cz/web/">PERUN</a></li>
                             </ul>
                         </div>
-                        <div class="col col-sm-4">
+                        <div class="col col-xs-4">
                             <h2>${message("footer.contact")}</h2>
                             ${message("footer.contact.name")}<br/>
                             ${message("footer.contact.address")}<br/>
@@ -192,7 +192,7 @@
                             ${message("footer.fax")}: ${message("footer.contact.fax")}<br/>
                             <a href="mailto:${message("footer.contact.email")}">${message("footer.contact.email")}</a>
                         </div>
-                        <div class="col col-sm-4">
+                        <div class="col col-xs-4">
                             <h2>${message("footer.serviceDesk")}</h2>
                             ${message("footer.tel")}: ${message("footer.serviceDesk.tel")}<br/>
                             ${message("footer.gsm")}: ${message("footer.serviceDesk.gsm")}<br/>

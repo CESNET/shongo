@@ -19,6 +19,16 @@ body {
 .push {
   height: 280px;
 }
+/* Minimum width */
+#cesnet_linker_content_wrapper {
+  min-width: 900px;
+}
+#wrapper {
+  min-width: 900px;
+}
+#footer {
+  min-width: 900px;
+}
 /* cesnet footer */
 #footer {
   clear: both;
@@ -88,15 +98,10 @@ body {
 #cesnet_linker.linker-desktop .item.parent.open .children {
   display: block !important;
 }
-#cesnet_linker_content_wrapper {
-  min-width: 900px;
-}
 /* body */
-body,
-html {
+body {
   font-family: Helvetica, Arial, sans-serif;
   color: #66615c;
-  min-width: 900px;
 }
 /* links */
 a,
