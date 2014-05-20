@@ -46,9 +46,11 @@ function getResources(domain, defaultAdministratorEmail) {
         "meetings": "",
         "default": "YY-"
     });
+    // Maximum Future
+    var maximumFuture = "P4Y";
 
     // Naming service
-    /*resources.push({
+    resources.push({
         type: "value",
         name: "namingService",
         description: "Naming service for all technologies",
@@ -67,6 +69,8 @@ function getResources(domain, defaultAdministratorEmail) {
             "meetings": "CESNET Production Adobe Connect",
             "default": "CESNET Testing Adobe Connect"
         }),
+        allocationOrder: 1,
+        maximumFuture: maximumFuture,
         agent: common.select(domain, {
             "meetings": "connect1",
             "default": "connect-test"
@@ -84,7 +88,7 @@ function getResources(domain, defaultAdministratorEmail) {
             "default": 20
         }),
         administrators: resourceAdministrators
-    });*/
+    });
 
     // MCU1
     resources.push({
@@ -92,6 +96,7 @@ function getResources(domain, defaultAdministratorEmail) {
         name: "mcu1",
         description: "CESNET Cisco MCU 1",
         allocationOrder: 1,
+        maximumFuture: maximumFuture,
         agent: "mcu1",
         address: "mcuc.cesnet.cz",
         aliases: {
@@ -116,7 +121,9 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "mcu",
         name: "mcu2",
         description: "CESNET Cisco MCU 2",
+        allocatable: 0,
         allocationOrder: 2,
+        maximumFuture: maximumFuture,
         agent: "mcu2",
         address: "mcuc2.cesnet.cz",
         aliases: {
@@ -141,7 +148,9 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "mcu",
         name: "mcu3",
         description: "CESNET Cisco MCU 3",
+     allocatable: 0,
         allocationOrder: 3,
+        maximumFuture: maximumFuture,
         agent: "mcu3",
         address: "mcuc3.cesnet.cz",
         aliases: {
@@ -150,7 +159,7 @@ function getResources(domain, defaultAdministratorEmail) {
             number: common.select(domain, {
                 "meetings": "950083[800:850]",
                 "shongo-dev": "950083[850:899]",
-                "default": "950083[890:099]"
+                "default": "950083[890:899]"
             }),
             domain: "cesnet.cz"
         },
@@ -162,10 +171,12 @@ function getResources(domain, defaultAdministratorEmail) {
     });
 
     // TCS1
-    /*resources.push({
+    resources.push({
         type: "tcs",
         name: "tcs1",
+        allocatable: 0,
         allocationOrder: 1,
+        maximumFuture: maximumFuture,
         agent: "tcs1",
         address: "rec1.cesnet.cz",
         licenseCount: common.select(domain, {
@@ -180,6 +191,7 @@ function getResources(domain, defaultAdministratorEmail) {
         type: "tcs",
         name: "tcs2",
         allocationOrder: 2,
+        maximumFuture: maximumFuture,
         agent: "tcs2",
         address: "rec2.cesnet.cz",
         licenseCount: common.select(domain, {
@@ -187,7 +199,7 @@ function getResources(domain, defaultAdministratorEmail) {
             "default": 3
         }),
         administrators: resourceAdministrators
-    });*/
+    });
 
     return resources;
 }
@@ -228,7 +240,7 @@ console.log("You have selected '" + domain + "' domain.");
 console.log("Controller URL is '" + domainUrl + "'.");
 console.log("Resources:");
 console.log(common.formatResources(resources));
-common.waitForKeyPress("Check the configuration and press any key to create the infrastructure...");
+common.waitForKeyPress("Check the configuration and press any key to create or update the infrastructure...");
 
 // Check controller availability
 if (!common.execClientCliCommand("status")) {

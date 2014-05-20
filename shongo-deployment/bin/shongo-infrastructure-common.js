@@ -86,9 +86,16 @@ module.exports = {
 
     /**
      * @param object to be dumped
+     * @param indent if the result should be indented
      */
-    dumpObject: function(object) {
-        console.log(require('util').inspect(object, true, 10));
+    dumpObject: function(object, indent) {
+        if (indent) {
+            object = JSON.stringify(object, null, 4);
+        }
+        else {
+            object = require('util').inspect(object, true, 10);
+        }
+        console.log(this.formatColored(object, this.Color.DIM));
     },
 
     /**
@@ -164,12 +171,18 @@ module.exports = {
                 appendAttribute("agent", this.Color.GREEN);
             }
             if (resource.allocationOrder != null) {
-                appendAttribute("allocationOrder", this.Color.RED);
+                appendAttribute("order", this.Color.RED, resource.allocationOrder);
+            }
+            if (resource.maximumFuture != null) {
+                appendAttribute("maxFuture", this.Color.RED, resource.maximumFuture);
             }
             if (resource.type == "value") {
                 appendAttribute("patternPrefix", this.Color.YELLOW);
             }
             output += ")";
+            if (resource.allocatable == 0) {
+                output += this.formatColored(" [not-allocatable]", this.Color.RED);
+            }
             // Format resource description
             if (resource.type == "mcu" || resource.type == "connect" || resource.type == "tcs") {
                 appendBreak();
@@ -266,7 +279,7 @@ module.exports = {
     /**
      * Create or update given {@code resource}.
      */
-    mergeResource: function(resource) {
+    mergeResource: function(resource, onlyDump) {
         var resourceName = resource.name;
         var resourceId = this.getResourceIdByName(resourceName);
         var oldResource = null;
@@ -301,9 +314,13 @@ module.exports = {
             console.log("Updating resource '" + resourceName + "' with id '" + resourceId + "'...");
             command = "modify-resource " + resourceId + " " + JSON.stringify(resource);
         }
-        //this.dumpObject(command);
-        var result = this.execClientCliCommand(command);
-        console.log(result);
+        if (onlyDump) {
+            this.dumpObject(command);
+        }
+        else {
+            var result = this.execClientCliCommand(command);
+            console.log(result);
+        }
     },
 
     /**
@@ -321,17 +338,26 @@ module.exports = {
         if (resourceSource.description != null) {
             resourceTarget.description = resourceSource.description;
         }
+        if (resourceSource.allocatable != null) {
+            resourceTarget.allocatable = resourceSource.allocatable;
+        }
         if (resourceTarget.allocatable == null) {
             resourceTarget.allocatable = 1;
         }
         if (resourceSource.allocationOrder != null) {
             resourceTarget.allocationOrder = resourceSource.allocationOrder;
         }
+        if (resourceSource.maximumFuture != null) {
+            resourceTarget.maximumFuture = resourceSource.maximumFuture;
+        }
         if (resourceSource.address != null) {
             resourceTarget.address = resourceSource.address;
         }
         if (resourceSource.agent != null) {
-            resourceTarget.mode = {connectorAgentName: resourceSource.agent};
+            resourceTarget.mode = {
+                class : "ManagedMode",
+                connectorAgentName: resourceSource.agent
+            };
         }
         if (resourceTarget.capabilities == null) {
             resourceTarget.capabilities = [];
@@ -355,10 +381,13 @@ module.exports = {
         var oldValueProviderCapability = {};
         var oldValueProvider = {};
         if (oldResource != null) {
-            if (oldResource.capabilities.length == 1) {
-                oldValueProviderCapability = oldResource.capabilities[0];
-                if (oldValueProviderCapability.valueProvider != null) {
-                    oldValueProvider = oldValueProviderCapability.valueProvider;
+            for (var index = 0; index < oldResource.capabilities.length; index++) {
+                var capability = oldResource.capabilities[index];
+                if (capability.class == "ValueProviderCapability") {
+                    oldValueProviderCapability = capability;
+                    if (oldValueProviderCapability.valueProvider != null) {
+                        oldValueProvider = oldValueProviderCapability.valueProvider;
+                    }
                 }
             }
         }
@@ -426,7 +455,6 @@ module.exports = {
         // Prepare resource
         var resourceConnect =  {
             class: "DeviceResource",
-            maximumFuture: "P1Y",
             technologies: ["ADOBE_CONNECT"]
         };
         this.prepareResourceCommon(resourceConnect, resource);
@@ -523,7 +551,6 @@ module.exports = {
         // Prepare resource
         var resourceMcu = {
             class: "DeviceResource",
-            maximumFuture: "P1Y",
             technologies: ["H323","SIP"]
         };
         this.prepareResourceCommon(resourceMcu, resource);
@@ -540,7 +567,6 @@ module.exports = {
             aliases: [
                 { type: "ROOM_NAME", value: aliasesNamePrefix + "{value}" }
             ],
-            maximumFuture: "P4Y",
             restrictedToResource: 1
         });
         resourceMcu.capabilities.push({
@@ -566,8 +592,30 @@ module.exports = {
     /**
      * Prepare Cisco TCS resource.
      */
-    prepareResourceTcs: function(resource) {
-        throw "TODO: implement tcs";
+    prepareResourceTcs: function(resource, oldResource) {
+        // Get old resource components
+        var oldRecordingCapability = {};
+        if (oldResource != null) {
+            for (var index = 0; index < oldResource.capabilities.length; index++) {
+                var capability = oldResource.capabilities[index];
+                if (capability.class == "RecordingCapability") {
+                    oldRecordingCapability = capability;
+                }
+            }
+        }
+
+        // Prepare resource
+        var resourceTcs = {
+            class: "DeviceResource",
+            technologies: ["H323", "SIP"]
+        };
+        this.prepareResourceCommon(resourceTcs, resource);
+        resourceTcs.capabilities.push({
+            class: "RecordingCapability",
+            id: oldRecordingCapability.id,
+            licenseCount: resource.licenseCount
+        });
+        return resourceTcs;
     },
 
     /**
