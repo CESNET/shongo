@@ -232,11 +232,7 @@ module.exports = {
      * @return resourceId for given {@code resourceName}
      */
     getResourceIdByName: function(resourceName) {
-        var result = this.execClientCliCommand("list-resources -name " + resourceName);
-        if (result == null) {
-            return null;
-        }
-        result = JSON.parse(result);
+        var result = this.execClientCliCommandJsonResult("list-resources -name " + resourceName);
         if (result == null || result.length != 1) {
             return null;
         }
@@ -248,11 +244,7 @@ module.exports = {
      * @return resource for given {@code resourceId}
      */
     getResource: function(resourceId) {
-        var result = this.execClientCliCommand("get-resource " + resourceId);
-        if (result == null) {
-            return null;
-        }
-        result = JSON.parse(result);
+        var result = this.execClientCliCommandJsonResult("get-resource " + resourceId);
         if (result == null) {
             return null;
         }
@@ -265,11 +257,7 @@ module.exports = {
      * @return reservationRequestId for given {@code description} and {@coe resourceId}
      */
     getReservationRequestId: function(description, resourceId) {
-        var result = this.execClientCliCommand("list-reservation-requests -description '" + description +"' -resource " + resourceId);
-        if (result == null) {
-            return null;
-        }
-        result = JSON.parse(result);
+        var result = this.execClientCliCommandJsonResult("list-reservation-requests -description '" + description +"' -resource " + resourceId);
         if (result == null || result.length != 1) {
             return null;
         }
@@ -286,6 +274,7 @@ module.exports = {
         if (resourceId != null) {
             oldResource = this.getResource(resourceId);
         }
+        var resourceAdministrators = resource.administrators;
 
         resource.id = resourceId;
         switch (resource.type) {
@@ -318,8 +307,66 @@ module.exports = {
             this.dumpObject(command);
         }
         else {
-            var result = this.execClientCliCommand(command);
-            console.log(result);
+            console.log(this.execClientCliCommand(command));
+        }
+
+        // Manage ACL records for resource administrators
+        var resourceAdministratorUserIds = null;
+        if (resourceAdministrators != null && resourceAdministrators.length > 0) {
+            resourceAdministratorUserIds = {};
+            for (var index = 0; index < resourceAdministrators.length; index++) {
+                var administrator = resourceAdministrators[index];
+                if (administrator.userId != null) {
+                    resourceAdministratorUserIds[administrator.userId] = true;
+                }
+            }
+        }
+        if (resourceAdministratorUserIds != null) {
+            // Get resource id
+            if (resourceId == null) {
+                resourceId = this.getResourceIdByName(resourceName);
+                if (resourceId == null) {
+                    throw "Resource with name'" + resourceName + "' doesn't exist."
+                }
+            }
+
+            // List existing acl-records and remove them
+            var aclEntries = this.execClientCliCommandJsonResult("list-acl -object " + resourceId);
+            if (aclEntries != null && aclEntries.length > 0) {
+                for (var index = 0; index < aclEntries.length; index++) {
+                    var aclEntry = aclEntries[index];
+                    var aclEntryPrincipalId = aclEntry.identityPrincipalId;
+                    if (aclEntry.identityType == "USER" && aclEntry.role == "OWNER") {
+                        if (resourceAdministratorUserIds[aclEntryPrincipalId]) {
+                            console.log("Resource '" + resourceName + "': User administrator '" + aclEntryPrincipalId + "' already exists...");
+                            delete resourceAdministratorUserIds[aclEntryPrincipalId];
+                        }
+                        else {
+                            var commandDeleteAcl = "delete-acl " + aclEntry.id;
+                            console.log("Resource '" + resourceName + "': Deleting user administrator '" + aclEntryPrincipalId + "'...");
+                            if (onlyDump) {
+                                this.dumpObject(commandDeleteAcl);
+                            }
+                            else {
+                                console.log(this.execClientCliCommand(commandDeleteAcl));
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            // Create the rest of resource administrator acl entries
+            for (var resourceAdministratorUserId in resourceAdministratorUserIds) {
+                var commandCreateAcl = "create-acl " + resourceAdministratorUserId + " " + resourceId + " OWNER";
+                console.log("Resource '" + resourceName + "': Creating user administrator '" + resourceAdministratorUserId + "'...");
+                if (onlyDump) {
+                    this.dumpObject(commandCreateAcl);
+                }
+                else {
+                    console.log(this.execClientCliCommand(commandCreateAcl));
+                }
+            }
         }
     },
 
@@ -671,6 +718,18 @@ module.exports = {
             return null;
         }
         return result;
+    },
+
+    /**
+     * @param command to be executed by shongo-client-cli
+     * @returns result from command
+     */
+    execClientCliCommandJsonResult: function(command) {
+        var result = this.execClientCliCommand(command);
+        if (result == null) {
+            return null;
+        }
+        return JSON.parse(result);
     },
 
     /**

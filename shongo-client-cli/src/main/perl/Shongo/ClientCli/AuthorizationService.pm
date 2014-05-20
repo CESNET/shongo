@@ -606,14 +606,18 @@ sub list_acl()
     }
     my $table = {
         'columns' => [
-            {'field' => 'id',        'title' => 'Id'},
-            {'field' => 'identity',  'title' => 'User/Group'},
-            {'field' => 'object',    'title' => 'Object'},
-            {'field' => 'role',      'title' => 'Role'},
-            {'field' => 'deletable', 'title' => 'Deletable'},
+            {'field' => 'id',                  'title' => 'Id'},
+            {'field' => 'identityType',        'title' => 'Type'},
+            {'field' => 'identityPrincipalId', 'title' => 'User/Group'},
+            {'field' => 'object',              'title' => 'Object'},
+            {'field' => 'role',                'title' => 'Role'},
+            {'field' => 'deletable',           'title' => 'Deletable'},
         ],
         'data' => []
     };
+    if ( !Shongo::ClientCli::is_scripting() ) {
+        splice(@{$table->{'columns'}}, 1, 1);
+    }
     foreach my $entry (@{$response->{'items'}}) {
         my $identity = $entry->{'identityPrincipalId'};
         if ( $entry->{'identityType'} eq 'USER' ) {
@@ -624,7 +628,8 @@ sub list_acl()
         }
         push(@{$table->{'data'}}, {
             'id' => $entry->{'id'},
-            'identity' => [$entry->{'identityPrincipalId'}, $identity],
+            'identityType' => $entry->{'identityType'},
+            'identityPrincipalId' => [$entry->{'identityPrincipalId'}, $identity],
             'object' => $entry->{'objectId'},
             'role' => $entry->{'role'},
             'deletable' => $entry->{'deletable'} ? 'yes' : 'no',

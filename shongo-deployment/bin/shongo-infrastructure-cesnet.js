@@ -26,7 +26,7 @@ const DOMAINS = {
  * @param domain
  * @returns {Array} of resources for given {@code mode}
  */
-function getResources(domain, defaultAdministratorEmail) {
+function getResources(domain, defaultAdministrator) {
     var resources = [];
 
     // Resource administrators
@@ -39,7 +39,7 @@ function getResources(domain, defaultAdministratorEmail) {
         resourceAdministrators.push({userId: 13728}); // pavelka@cesnet.cz
     }
     else {
-        resourceAdministrators.push({email: defaultAdministratorEmail});
+        resourceAdministrators.push(defaultAdministrator);
     }
     // Alias name prefix
     var aliasNamePrefix = common.select(domain, {
@@ -226,14 +226,21 @@ if (!common.hasArgument(0)) {
 // Get domain, url, email and resources
 var domain = common.getArgument(0);
 var domainUrl = DOMAINS[domain];
-var administratorEmail = "srom.martin@gmail.com";
+var administrator = {email: "srom.martin@gmail.com"};
 if (domainUrl == null) {
-    console.log("Using '" + domain + "' as resource administrator email.");
-    administratorEmail = domain;
+    if (domain.substring(0, 5) == "user:") {
+        domain = domain.substring(5);
+        console.log("Using user '" + domain + "' as resource administrator.");
+        administrator = {userId: domain};
+    }
+    else {
+        console.log("Using '" + domain + "' as resource administrator email.");
+        administrator = {email: domain};
+    }
     domainUrl = "localhost";
     domain = "local"
 }
-var resources = getResources(domain, administratorEmail);
+var resources = getResources(domain, administrator);
 
 // Print current configuration
 console.log("You have selected '" + domain + "' domain.");
@@ -249,7 +256,9 @@ if (!common.execClientCliCommand("status")) {
 }
 // Create or update resources
 for (var index = 0; index < resources.length; index++) {
+    console.log();
     common.mergeResource(resources[index]);
 }
 // Book values in namingService
-//common.bookValues("namingService", "existing-room-names", EXISTING_ROOM_NAMES);
+console.log();
+common.bookValues("namingService", "existing-room-names", EXISTING_ROOM_NAMES);
