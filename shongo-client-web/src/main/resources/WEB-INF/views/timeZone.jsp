@@ -17,6 +17,7 @@
 <head>
     <title>Shongo</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css"/>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/js/browser-supported.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery.min.js"></script>
     <script type="text/javascript" src="${pageContext.request.contextPath}/js/jstz.min.js"></script>
     <script type="text/javascript">
@@ -47,7 +48,9 @@
 
     <%-- User is not logged in and thus detect only time zone offset --%>
     <c:if test="${!isAuthenticated}">
-        redirectSetTimeZone(getTimeZoneOffset());
+        function init() {
+            redirectSetTimeZone(getTimeZoneOffset());
+        }
     </c:if>
 
     <%-- User is logged in and thus detect precisely the current time zone by GEO location, jstz library or offset --%>
@@ -60,7 +63,7 @@
          */
         function getGeoLocation(successCallback, errorCallback)
         {
-            if (navigator.geolocation) {
+            if (navigator != null && navigator.geolocation) {
                 console.debug("Getting GEO location");
                 navigator.geolocation.getCurrentPosition(function(position) {
                     console.debug("Getting GEO location SUCCEEDED.", position);
@@ -137,18 +140,26 @@
         }
 
         // Try to determine timezone or use only offset
-        getTimeZone(function(timeZone){
-            console.debug("Get timezone SUCCEEDED", timeZone);
-            redirectSetTimeZone(timeZone);
-        }, function(error){
-            console.debug("Get timezone FAILED", error);
-            console.debug("Using time zone offset", getTimeZoneOffset());
-            setTimeout(function(){
-                redirectSetTimeZone(getTimeZoneOffset());
-            }, 0);
-        });
+        function init() {
+            getTimeZone(function(timeZone){
+                console.debug("Get timezone SUCCEEDED", timeZone);
+                redirectSetTimeZone(timeZone);
+            }, function(error){
+                console.debug("Get timezone FAILED", error);
+                console.debug("Using time zone offset", getTimeZoneOffset());
+                setTimeout(function(){
+                    redirectSetTimeZone(getTimeZoneOffset());
+                }, 0);
+            });
+        }
     </c:if>
 
+        if (!isBrowserSupported()) {
+            document.write("<h1><spring:message code="browser.notSupported"/></h1><p><spring:message code="browser.supported"/></p>");
+        }
+        else {
+            init();
+        }
     </script>
 </head>
 

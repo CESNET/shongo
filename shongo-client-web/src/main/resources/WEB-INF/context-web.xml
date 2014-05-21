@@ -67,7 +67,6 @@
 
     <!-- Resolves the locale from user’s session -->
     <bean id="localeResolver" class="cz.cesnet.shongo.client.web.support.resolvers.LocaleResolver">
-        <property name="defaultLocale" value="en"/>
     </bean>
 
     <!-- Initialize interceptors -->

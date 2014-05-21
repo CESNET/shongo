@@ -1,6 +1,13 @@
 var applicationModule = angular.module('ngApplication', ['ui.bootstrap']);
 
 /**
+ * Supply "console.log" as "console.debug" if it doesn't exist.
+ */
+if (window.console != null && window.console.log != null && window.console.debug == null) {
+    window.console.debug = window.console.log;
+}
+
+/**
  * Global Configuration.
  */
 applicationModule.config(['$httpProvider', function($httpProvider) {
