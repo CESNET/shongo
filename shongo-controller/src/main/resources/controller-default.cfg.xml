@@ -120,7 +120,7 @@
         <port>25</port>
         <!--<username></username>-->
         <!--<password></password>-->
-        <subject-prefix></subject-prefix>
+        <subject-prefix xml:space="preserve">[${domain.code}] </subject-prefix>
     </smtp>
 
     <!-- Configuration of notifications -->

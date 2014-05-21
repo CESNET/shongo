@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.settings.UserSessionSettings;
+import cz.cesnet.shongo.util.PatternParser;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
@@ -13,6 +14,8 @@ import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.*;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 
 /**
  * Configuration for the {@link Controller}.
@@ -30,6 +33,7 @@ public class ControllerConfiguration extends CombinedConfiguration
      * Domain configuration.
      */
     public static final String DOMAIN_NAME = "domain.name";
+    public static final String DOMAIN_CODE = "domain.code";
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
 
     /**
@@ -73,7 +77,6 @@ public class ControllerConfiguration extends CombinedConfiguration
     public static final String SMTP_PORT = "smtp.port";
     public static final String SMTP_USERNAME = "smtp.username";
     public static final String SMTP_PASSWORD = "smtp.password";
-    public static final String SMTP_SUBJECT_PREFIX = "smtp.subject-prefix";
 
     /**
      * Period in which the executor works.
@@ -261,6 +264,14 @@ public class ControllerConfiguration extends CombinedConfiguration
     }
 
     /**
+     * @return subject prefix for emails sent by SMTP
+     */
+    public String getSmtpSubjectPrefix()
+    {
+        return evaluate(getString("smtp.subject-prefix"));
+    }
+
+    /**
      * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL}
      */
     public String getNotificationReservationRequestUrl()
@@ -360,5 +371,49 @@ public class ControllerConfiguration extends CombinedConfiguration
     public synchronized void setAdministrators(List<PersonInformation> administrators)
     {
         this.administrators = administrators;
+    }
+
+    /**
+     * Pattern for parameters.
+     */
+    private static final Pattern EXPRESSION_PARAM_PATTERN = Pattern.compile("\\$\\{([^\\$]+)\\}");
+
+    /**
+     * Parser for parameters.
+     */
+    private static final PatternParser EXPRESSION_PATTERN_PARSER = new PatternParser(EXPRESSION_PARAM_PATTERN);
+
+    /**
+     * @param text
+     * @return evaluated string
+     */
+    public String evaluate(String text)
+    {
+        if (text == null) {
+            return null;
+        }
+        return EXPRESSION_PATTERN_PARSER.parseAndJoin(text, new PatternParser.Callback()
+        {
+            @Override
+            public String processString(String string)
+            {
+                return string;
+            }
+
+            @Override
+            public String processMatch(MatchResult match)
+            {
+                String name = match.group(1);
+                if (name.equals("domain.name")) {
+                    return Domain.getLocalDomain().getName();
+                }
+                else if (name.equals("domain.code")) {
+                    return Domain.getLocalDomain().getCode();
+                }
+                else {
+                    throw new IllegalArgumentException("Parameter " + name + " not defined.");
+                }
+            }
+        });
     }
 }

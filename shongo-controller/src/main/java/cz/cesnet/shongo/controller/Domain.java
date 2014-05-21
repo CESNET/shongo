@@ -15,6 +15,11 @@ public class Domain
     private String name;
 
     /**
+     * Represents shorten version of {@link #name} (e.g., used in description of virtual rooms)
+     */
+    private String code;
+
+    /**
      * Represents a user-visible domain organization (e.g., "CESNET, z.s.p.o.").
      */
     private String organization;
@@ -62,6 +67,27 @@ public class Domain
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #code}
+     */
+    public String getCode()
+    {
+        if (code == null) {
+            return name;
+        }
+        else {
+            return code;
+        }
+    }
+
+    /**
+     * @param code sets the {@link #code}
+     */
+    public void setCode(String code)
+    {
+        this.code = code;
     }
 
     /**
@@ -128,5 +154,16 @@ public class Domain
             throw new IllegalStateException("No local domain is defined.");
         }
         return localDomain.getName();
+    }
+
+    /**
+     * @return {@link #localDomain#getCode()} ()}
+     */
+    public static String getLocalDomainCode()
+    {
+        if (localDomain == null) {
+            throw new IllegalStateException("No local domain is defined.");
+        }
+        return localDomain.getCode();
     }
 }

@@ -212,6 +212,7 @@ public class Controller
         // Initialize domain
         Domain localDomain = new Domain();
         localDomain.setName(this.configuration.getString(ControllerConfiguration.DOMAIN_NAME));
+        localDomain.setCode(this.configuration.getString(ControllerConfiguration.DOMAIN_CODE));
         localDomain.setOrganization(this.configuration.getString(ControllerConfiguration.DOMAIN_ORGANIZATION));
         Domain.setLocalDomain(localDomain);
 

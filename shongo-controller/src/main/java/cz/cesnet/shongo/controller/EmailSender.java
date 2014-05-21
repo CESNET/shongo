@@ -90,7 +90,7 @@ public class EmailSender
     public EmailSender(ControllerConfiguration configuration)
     {
         this(configuration.getString(ControllerConfiguration.SMTP_SENDER),
-                configuration.getString(ControllerConfiguration.SMTP_SUBJECT_PREFIX));
+                configuration.getSmtpSubjectPrefix());
 
         // Skip configuration without host
         if (!configuration.containsKey(ControllerConfiguration.SMTP_HOST)) {
