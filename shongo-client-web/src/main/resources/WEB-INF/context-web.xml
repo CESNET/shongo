@@ -98,4 +98,8 @@
         <property name="cacheTemplates" value="false"/>
     </bean>
 
+    <!-- Error handler -->
+    <bean id="errorHandler" class="cz.cesnet.shongo.client.web.ErrorHandler">
+    </bean>
+
 </beans>

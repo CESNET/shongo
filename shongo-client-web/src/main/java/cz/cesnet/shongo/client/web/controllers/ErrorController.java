@@ -9,12 +9,14 @@ import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;
+import cz.cesnet.shongo.client.web.support.interceptors.IgnoreDateTimeZone;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.WebAttributes;
@@ -114,6 +116,23 @@ public class ErrorController
     }
 
     /**
+     * Handle login error view.
+     */
+    @RequestMapping("/login-error")
+    @IgnoreDateTimeZone
+    public ModelAndView handleLoginErrorView(HttpServletRequest request, HttpServletResponse response)
+    {
+        // Update request url to login (we don't want to reference the login-error page itself anywhere)
+        String requestUri = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
+        requestUri = requestUri.replace("/login-error", ClientWebUrl.LOGIN);
+        request.setAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE, requestUri);
+        String message = "Login error";
+        Integer statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+        Throwable throwable = (Throwable) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        return errorHandler.handleError(request, response, requestUri, statusCode, message, throwable);
+    }
+
+    /**
      * Handle error report problem.
      */
     @RequestMapping(value = "/error/submit", method = {RequestMethod.POST})
@@ -157,43 +176,12 @@ public class ErrorController
     }
 
     /**
-     * Handle login error view.
-     */
-    @RequestMapping("/login-error")
-    public ModelAndView handleLoginErrorView(HttpServletRequest request)
-    {
-        // Update request url to login (we don't want to reference the login-error page itself anywhere)
-        String requestUrl = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
-        requestUrl = requestUrl.replace("/login-error", ClientWebUrl.LOGIN);
-        request.setAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE, requestUrl);
-
-        Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (exception != null) {
-            Throwable exceptionCause = exception.getCause();
-            if (exceptionCause instanceof ControllerConnectException) {
-                return new ModelAndView(handleControllerNotAvailableView());
-            }
-        }
-        ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
-        return errorHandler.handleErrorView(errorModel, reCaptcha, commonService);
-    }
-
-    /**
-     * Handle controller not available view.
-     */
-    @RequestMapping(value = "/controller-not-available")
-    public String handleControllerNotAvailableView()
-    {
-        return "errorControllerNotAvailable";
-    }
-
-    /**
      * Raise test error.
      */
-    @RequestMapping(value = "/test-error")
+    @RequestMapping(value = "/development/error")
     public String handleTestError()
     {
-        throw new RuntimeException("Test error");
+        throw new RuntimeException("Error");
     }
 
     /**

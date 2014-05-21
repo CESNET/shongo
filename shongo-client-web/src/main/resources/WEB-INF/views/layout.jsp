@@ -6,6 +6,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tiles:importAttribute name="js"/>
@@ -15,24 +16,26 @@
 
 <%-- Context path --%>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<security:authorize access="isAuthenticated()" var="isAuthenticated"/>
 
 <%-- Logged out overlay --%>
 <tag:url var="homeUrl" value="<%= ClientWebUrl.HOME %>"/>
 <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
 <tag:url var="loggedUrl" value="<%= ClientWebUrl.LOGGED %>"/>
-<c:set var="sessionExpiredOverlay">
-    <spring:escapeBody htmlEscape="false" javaScriptEscape="true">
-        <div id="session-expired-overlay">
-            <div class="information-box">
-                <span><spring:message code="views.layout.autoLogout"/></span>
-                <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
-                <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>
-                <a class="btn btn-default" href="${homeUrl}"><spring:message code="navigation.home"/></a>
+<c:if test="${isAuthenticated}">
+    <c:set var="sessionExpiredOverlay">
+        <spring:escapeBody htmlEscape="false" javaScriptEscape="true">
+            <div id="session-expired-overlay">
+                <div class="information-box">
+                    <span><spring:message code="views.layout.autoLogout"/></span>
+                    <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
+                    <a class="btn btn-primary" href="${loginUrl}"><spring:message code="views.layout.login"/></a>
+                    <a class="btn btn-default" href="${homeUrl}"><spring:message code="navigation.home"/></a>
+                </div>
             </div>
-        </div>
-    </spring:escapeBody>
-</c:set>
-
+        </spring:escapeBody>
+    </c:set>
+</c:if>
 
 <c:set var="head">
 
@@ -47,7 +50,9 @@
 <c:forEach items="${i18n}" var="file">
     <script src="${contextPath}/js/${file}.${requestContext.locale.language}.js"></script><%--
 --%></c:forEach>
+</c:if>
 
+<c:if test="${isAuthenticated}">
     <!-- Check for expired session: start -->
     <script type="text/javascript">
         var __sessionExpiredTimer = setInterval(function(){

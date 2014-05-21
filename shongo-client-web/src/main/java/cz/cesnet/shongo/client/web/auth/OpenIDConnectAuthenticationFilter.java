@@ -9,9 +9,7 @@ import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -27,8 +25,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -107,7 +103,9 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             return authentication;
         }*/
         if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
-            handleError(request, response);
+            String error = request.getParameter("error");
+            String errorDescription = request.getParameter("error_description");
+            handleError(error, errorDescription);
             return null;
         }
         else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
@@ -197,7 +195,12 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         if (tokenResponse.has("error")) {
             String error = tokenResponse.get("error").getTextValue();
             String description = tokenResponse.get("error_description").getTextValue();
-            throw new AuthenticationServiceException("Unable to obtain access token. " + error + ": " + description);
+            if (error != null && error.equals("invalid_grant_expired")) {
+                throw new AuthorizationCodeExpiredException(authorizationCode);
+            }
+            else {
+                throw new AuthenticationServiceException("Unable to obtain access token. " + error + ": " + description);
+            }
         }
         // Handle success
         if (!tokenResponse.has("access_token")) {
@@ -237,13 +240,11 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     /**
      * Handle authorization error.
      *
-     * @param request
-     * @param response
+     * @param error
+     * @param errorDescription
      */
-    protected void handleError(HttpServletRequest request, HttpServletResponse response)
+    protected void handleError(String error, String errorDescription)
     {
-        String error = request.getParameter("error");
-        String errorDescription = request.getParameter("error_description");
         throw new AuthenticationServiceException(error + ": " + errorDescription);
     }
 

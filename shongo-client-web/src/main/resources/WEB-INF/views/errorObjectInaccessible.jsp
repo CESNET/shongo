@@ -1,4 +1,3 @@
-
 <%--
   -- Page which is shown when the reservation request doesn't exist or user doesn't have proper permissions.
   --%>

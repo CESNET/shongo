@@ -66,6 +66,11 @@
         <put-attribute name="content" value="/WEB-INF/views/errorNotFound.jsp" type="template"/>
     </definition>
 
+    <definition name="errorAuthentication" extends="layout">
+        <put-attribute name="title" value="views.errorAuthentication.title"/>
+        <put-attribute name="content" value="/WEB-INF/views/errorAuthentication.jsp" type="template"/>
+    </definition>
+
     <definition name="errorControllerNotAvailable" extends="layout">
         <put-attribute name="title" value="views.errorControllerNotAvailable.title"/>
         <put-attribute name="heading" value=""/>

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
+import cz.cesnet.shongo.client.web.auth.AuthorizationCodeExpiredException;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
 import cz.cesnet.shongo.controller.ControllerConnectException;
@@ -12,7 +13,10 @@ import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -21,10 +25,12 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -51,6 +57,9 @@ public class ErrorHandler
     @Resource
     private ReCaptcha reCaptcha;
 
+    @Resource
+    private MessageSource messageSource;
+
     /**
      * Handle error.
      *
@@ -60,7 +69,7 @@ public class ErrorHandler
      * @param statusCode
      * @param message
      * @param throwable
-     * @return {@link org.springframework.web.servlet.ModelAndView}
+     * @return {@link ModelAndView}
      */
     public ModelAndView handleError(HttpServletRequest request, HttpServletResponse response,
             String requestUri, Integer statusCode, String message, Throwable throwable)
@@ -70,47 +79,19 @@ public class ErrorHandler
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
         Throwable cause = throwable;
+        ModelAndView modelAndView = null;
         while (cause != null) {
-            if (cause instanceof UserMessageException) {
-                UserMessageException userMessageException = (UserMessageException) cause;
-                ModelAndView modelAndView = new ModelAndView("userMessage");
-                modelAndView.addObject("titleCode", userMessageException.getTitleCode());
-                modelAndView.addObject("messageCode", userMessageException.getMessageCode());
-                return modelAndView;
+            ModelAndView causeModelAndView = handleCause(request, cause, message);
+            if (causeModelAndView != null) {
+                modelAndView = causeModelAndView;
             }
-            else if (cause instanceof ControllerConnectException) {
-                return new ModelAndView("errorControllerNotAvailable");
-            }
-            else if (cause instanceof ControllerReportSet.SecurityNotAuthorizedException) {
-                ControllerReportSet.SecurityNotAuthorizedException securityNotAuthorizedException =
-                        (ControllerReportSet.SecurityNotAuthorizedException) cause;
-                String action = securityNotAuthorizedException.getReport().getAction();
-                Matcher matcher = NOT_AUTHORIZED_PATTERN.matcher(action);
-                if (matcher.find()) {
-                    ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
-                    modelAndView.addObject("objectId", matcher.group(1));
-                    return modelAndView;
-                }
-            }
-            else if (cause instanceof ObjectInaccessibleException) {
-                ObjectInaccessibleException objectInaccessibleException = (ObjectInaccessibleException) cause;
-                ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
-                modelAndView.addObject("objectId", objectInaccessibleException.getObjectId());
-                return modelAndView;
-            }
-            else if (cause instanceof org.eclipse.jetty.io.EofException) {
-                // Just log that exceptions and do not report it
-                logger.warn("Not reported exception.", cause);
-                return null;
-            }
-            else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
-                logger.warn("Invalid security token, redirecting to login page...", cause);
-                return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
-            }
-            else if (cause instanceof ApiFaultException) {
+            if (cause instanceof ApiFaultException) {
                 throwable = cause;
             }
             cause = cause.getCause();
+        }
+        if (modelAndView != null) {
+            return modelAndView;
         }
 
         ErrorModel errorModel = null;
@@ -137,7 +118,7 @@ public class ErrorHandler
             return null;
         }
         else {
-            ModelAndView modelAndView = handleErrorView(errorModel, reCaptcha, commonService);
+            modelAndView = handleErrorView(errorModel, reCaptcha, commonService);
             HttpSession httpSession = request.getSession();
             for (Map.Entry<String, Object> entry : modelAndView.getModel().entrySet()) {
                 httpSession.setAttribute(entry.getKey(), entry.getValue());
@@ -242,5 +223,68 @@ public class ErrorHandler
             logger.error("Failed to send email '" + subject + "':\n" + content, exception);
             return false;
         }
+    }
+
+    /**
+     * Try to handle cause by {@link ModelAndView}.
+     * @param request
+     * @param cause
+     * @param message
+     * @return {@link ModelAndView} or {@code null}
+     */
+    private ModelAndView handleCause(HttpServletRequest request, Throwable cause, String message)
+    {
+        if (cause instanceof UserMessageException) {
+            UserMessageException userMessageException = (UserMessageException) cause;
+            ModelAndView modelAndView = new ModelAndView("userMessage");
+            modelAndView.addObject("titleCode", userMessageException.getTitleCode());
+            modelAndView.addObject("messageCode", userMessageException.getMessageCode());
+            return modelAndView;
+        }
+        else if (cause instanceof AuthenticationServiceException) {
+            Locale locale = RequestContextUtils.getLocale(request);
+            ModelAndView modelAndView = new ModelAndView("errorAuthentication");
+            String reason = null;
+            if (cause instanceof AuthorizationCodeExpiredException) {
+                message = messageSource.getMessage("views.errorAuthentication.expired", null, locale);
+            }
+            else {
+                message = messageSource.getMessage("views.errorAuthentication.unknown", null, locale);
+                reason = cause.getMessage();
+            }
+            modelAndView.addObject("message", message);
+            modelAndView.addObject("reason", reason);
+            return modelAndView;
+        }
+        else if (cause instanceof ControllerConnectException) {
+            return new ModelAndView("errorControllerNotAvailable");
+        }
+        else if (cause instanceof ControllerReportSet.SecurityNotAuthorizedException) {
+            ControllerReportSet.SecurityNotAuthorizedException securityNotAuthorizedException =
+                    (ControllerReportSet.SecurityNotAuthorizedException) cause;
+            String action = securityNotAuthorizedException.getReport().getAction();
+            Matcher matcher = NOT_AUTHORIZED_PATTERN.matcher(action);
+            if (matcher.find()) {
+                ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
+                modelAndView.addObject("objectId", matcher.group(1));
+                return modelAndView;
+            }
+        }
+        else if (cause instanceof ObjectInaccessibleException) {
+            ObjectInaccessibleException objectInaccessibleException = (ObjectInaccessibleException) cause;
+            ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
+            modelAndView.addObject("objectId", objectInaccessibleException.getObjectId());
+            return modelAndView;
+        }
+        else if (cause instanceof org.eclipse.jetty.io.EofException) {
+            // Just log that exceptions and do not report it
+            logger.warn("Not reported exception.", cause);
+            return null;
+        }
+        else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
+            logger.warn("Invalid security token, redirecting to login page...", cause);
+            return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
+        }
+        return null;
     }
 }

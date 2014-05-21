@@ -62,10 +62,6 @@
     <bean id="permissionEvaluator" class="cz.cesnet.shongo.client.web.auth.PermissionEvaluator">
     </bean>
 
-    <!-- Error handler -->
-    <bean id="errorHandler" class="cz.cesnet.shongo.client.web.ErrorHandler">
-    </bean>
-
     <!-- reCaptcha -->
     <bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaImpl">
         <property name="publicKey" value="6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej"/>
