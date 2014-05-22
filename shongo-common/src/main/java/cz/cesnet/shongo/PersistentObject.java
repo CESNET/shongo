@@ -47,7 +47,7 @@ public abstract class PersistentObject
     /**
      * @param id
      * @return true whether {@link #id} equals given {@code id},
-     * false otherwise
+     *         false otherwise
      */
     public boolean equalsId(String id)
     {
@@ -61,7 +61,7 @@ public abstract class PersistentObject
     /**
      * @param id
      * @return true whether {@link #id} equals given {@code id},
-     * false otherwise
+     *         false otherwise
      */
     public boolean equalsId(Long id)
     {
