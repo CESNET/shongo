@@ -11,6 +11,16 @@ import org.joda.time.ReadablePartial;
  */
 public class PersistentReadablePartial extends PersistentStringType
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "ReadablePartial";
+
+    /**
+     * Maximum database field length.
+     */
+    public static final int LENGTH = 32;
+
     public static final PersistentReadablePartial INSTANCE = new PersistentReadablePartial();
 
     @Override

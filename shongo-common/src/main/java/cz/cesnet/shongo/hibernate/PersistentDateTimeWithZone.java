@@ -21,6 +21,16 @@ import java.sql.Types;
  */
 public class PersistentDateTimeWithZone implements UserType, Serializable
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "DateTimeWithZone";
+
+    /**
+     * Maximum database field length.
+     */
+    public static final int TIME_ZONE_LENGTH = PersistentDateTimeZone.LENGTH;
+
     public static final PersistentDateTimeWithZone INSTANCE = new PersistentDateTimeWithZone();
 
     private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP, Types.VARCHAR};

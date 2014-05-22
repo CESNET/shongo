@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -61,8 +62,8 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotStart}
      */
     @Column
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
-    @org.hibernate.annotations.Type(type = "DateTime")
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -80,8 +81,8 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * @return {@link #slotEnd}
      */
     @Column
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
-    @org.hibernate.annotations.Type(type = "DateTime")
     public DateTime getSlotEnd()
     {
         return slotEnd;

@@ -10,6 +10,16 @@ import org.joda.time.Period;
  */
 public class PersistentPeriod extends PersistentStringType
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "Period";
+
+    /**
+     * Maximum database field length.
+     */
+    public static final int LENGTH = 64;
+
     public static final PersistentPeriod INSTANCE = new PersistentPeriod();
 
     @Override

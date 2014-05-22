@@ -11,8 +11,8 @@ import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.resource.ResourceReservation;
 import cz.cesnet.shongo.controller.booking.room.RoomReservation;
 import cz.cesnet.shongo.controller.booking.value.ValueReservation;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.ReportableSimple;
-import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -127,7 +127,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotStart}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -152,7 +152,7 @@ public class Reservation extends PersistentObject implements ReportableSimple
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {

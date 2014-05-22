@@ -11,6 +11,81 @@ DROP VIEW IF EXISTS executable_summary;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
 /**
+ * Create missing foreign keys' indexes.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+DROP FUNCTION IF EXISTS create_fk_indexes();
+CREATE FUNCTION create_fk_indexes () RETURNS INTEGER AS $$
+DECLARE result RECORD;
+DECLARE count INT = 0;
+BEGIN
+    RAISE NOTICE 'Creating missing FK indexes...';
+    FOR result IN (
+      SELECT 'CREATE INDEX ' || relname || '_' || array_to_string(column_name_list, '_') || '_idx ' ||
+             'ON ' || conrelid || ' (' || array_to_string(column_name_list, ',') || ')' AS command
+      FROM (
+          SELECT DISTINCT conrelid,
+                 array_agg(attname) column_name_list,
+                 array_agg(attnum) as column_list
+          FROM pg_attribute
+          JOIN (
+              SELECT conrelid::regclass,
+                     conname,
+                     unnest(conkey) as column_index
+                FROM (
+                    SELECT DISTINCT conrelid,
+                           conname,
+                           conkey
+                      FROM pg_constraint
+                      JOIN pg_class ON pg_class.oid = pg_constraint.conrelid
+                      JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+                     WHERE nspname !~ '^pg_' and nspname <> 'information_schema'
+                ) fkey
+          ) fkey ON fkey.conrelid = pg_attribute.attrelid AND fkey.column_index = pg_attribute.attnum
+          GROUP BY conrelid, conname
+      ) candidate_index
+      JOIN pg_class ON pg_class.oid = candidate_index.conrelid
+      LEFT JOIN pg_index ON pg_index.indrelid = conrelid AND indkey::text = array_to_string(column_list, ' ')
+      WHERE indexrelid IS NULL
+    ) LOOP
+	      RAISE NOTICE 'Executing "%"...', result.command;
+	      EXECUTE result.command;
+	      count := count + 1;
+    END LOOP;
+    RETURN count;
+END;$$ LANGUAGE 'plpgsql';
+SELECT 'Number of created FK indexes: ' || create_fk_indexes();
+
+/**
+ * Alter columns to TEXT types.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+DROP FUNCTION IF EXISTS alter_text_columns();
+CREATE FUNCTION alter_text_columns() RETURNS INTEGER AS $$
+DECLARE result RECORD;
+DECLARE count INT = 0;
+BEGIN
+    RAISE NOTICE 'Altering text columns...';
+    FOR result IN (
+        SELECT 'ALTER TABLE ' || tables.table_name || ' ALTER COLUMN ' || columns.column_name || ' TYPE TEXT' AS command
+        FROM information_schema.tables AS tables
+        LEFT JOIN information_schema.columns AS columns ON columns.table_name = tables.table_name
+        WHERE tables.table_schema = 'public'
+          AND tables.table_type = 'BASE TABLE'
+          AND columns.character_maximum_length IS NOT NULL
+          AND columns.column_name IN ('command', 'description', 'reason', 'meeting_name', 'meeting_description', 'room_description')
+    ) LOOP
+	      RAISE NOTICE 'Executing "%"...', result.command;
+	      EXECUTE result.command;
+	      count := count + 1;
+    END LOOP;
+    RETURN count;
+END;$$ LANGUAGE 'plpgsql';
+SELECT 'Number of columns changed to text type: ' || alter_text_columns();
+
+/**
  * View of room name for specifications for aliases or sets of aliases.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>

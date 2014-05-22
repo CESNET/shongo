@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.booking.executable.Executable;
 import cz.cesnet.shongo.controller.booking.executable.ExecutionTarget;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.AbstractReport;
 import org.joda.time.DateTime;
 
@@ -88,7 +88,7 @@ public abstract class ExecutionReport extends AbstractReport
      * @return {@link #dateTime}
      */
     @Column
-    @org.hibernate.annotations.Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     public DateTime getDateTime()
     {
         return dateTime;

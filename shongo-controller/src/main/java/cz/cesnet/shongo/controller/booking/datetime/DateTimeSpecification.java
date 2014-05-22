@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
+import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -59,8 +61,8 @@ public class DateTimeSpecification extends SimplePersistentObject
      * @return {@link #absoluteDateTime}
      */
     @Column
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
-    @org.hibernate.annotations.Type(type = "DateTime")
     public DateTime getAbsoluteDateTime()
     {
         return absoluteDateTime;
@@ -77,9 +79,9 @@ public class DateTimeSpecification extends SimplePersistentObject
     /**
      * @return {@link #relativeDateTime}
      */
-    @Column
+    @Column(length = PersistentPeriod.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentPeriod.NAME)
     @Access(AccessType.FIELD)
-    @org.hibernate.annotations.Type(type = "Period")
     public Period getRelativeDateTime()
     {
         return relativeDateTime;

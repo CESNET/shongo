@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
-import org.hibernate.annotations.Type;
+import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -32,8 +31,8 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
      * @return {@link #duration}
      */
     @Override
-    @Column
-    @Type(type = "Period")
+    @Column(length = PersistentPeriod.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentPeriod.NAME)
     @Access(AccessType.FIELD)
     public Period getDuration()
     {

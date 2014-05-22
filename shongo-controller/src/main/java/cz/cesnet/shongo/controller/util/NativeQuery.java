@@ -15,7 +15,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provider for native queries from resources.
@@ -192,12 +196,61 @@ public class NativeQuery
     public static void executeNativeUpdate(EntityManager entityManager, String nativeQuery)
     {
         entityManager.getTransaction().begin();
-        for (String statement : nativeQuery.split(";")) {
+
+        List<String> statements = new LinkedList<String>();
+        Pattern pattern = Pattern.compile("(;|\\$\\$)");
+        Matcher matcher = pattern.matcher(nativeQuery);
+        int index = 0;
+        StringBuilder longStatement = null;
+        boolean longStatementActive = false;
+        while (matcher.find(index)) {
+            int start = matcher.start();
+            int end = matcher.end();
+            String statement = nativeQuery.substring(index, start);
+            statement = statement.replace(":", "\\:");
+            String separator = nativeQuery.substring(start, end);
+            if (longStatement != null) {
+                longStatement.append(statement);
+                if (separator.equals("$$")) {
+                    longStatement.append(separator);
+                    longStatementActive = false;
+                }
+                else if (longStatementActive) {
+                    longStatement.append(separator);
+                }
+                else {
+                    statements.add(longStatement.toString());
+                    longStatement = null;
+                }
+            }
+            else if (separator.equals("$$")) {
+                longStatement = new StringBuilder();
+                longStatement.append(statement);
+                longStatement.append(separator);
+                longStatementActive = true;
+            }
+            else {
+                statements.add(statement);
+            }
+            index = end;
+        }
+
+        for (String statement : statements) {
             statement = statement.trim();
             if (statement.isEmpty()) {
                 continue;
             }
-            entityManager.createNativeQuery(statement).executeUpdate();
+            if (statement.startsWith("SELECT")) {
+                Object result = entityManager.createNativeQuery(statement).getSingleResult();
+                if (result instanceof String) {
+                    String message = (String) result;
+                    message = message.replace("\\:", ":");
+                    logger.info(message);
+                }
+            }
+            else {
+                entityManager.createNativeQuery(statement).executeUpdate();
+            }
         }
         entityManager.getTransaction().commit();
     }

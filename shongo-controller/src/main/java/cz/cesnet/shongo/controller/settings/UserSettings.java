@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.SimplePersistentObject;
-import org.hibernate.annotations.Type;
+import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
+import cz.cesnet.shongo.hibernate.PersistentLocale;
 import org.joda.time.DateTimeZone;
 
 import javax.persistence.*;
@@ -96,8 +97,8 @@ public class UserSettings extends SimplePersistentObject
     /**
      * @return {@link #locale}
      */
-    @Column
-    @Type(type = "Locale")
+    @Column(length = PersistentLocale.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentLocale.NAME)
     @Access(AccessType.FIELD)
     public Locale getLocale()
     {
@@ -115,8 +116,8 @@ public class UserSettings extends SimplePersistentObject
     /**
      * @return {@link #homeTimeZone}
      */
-    @Column
-    @Type(type = "DateTimeZone")
+    @Column(length = PersistentDateTimeZone.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
     @Access(AccessType.FIELD)
     public DateTimeZone getHomeTimeZone()
     {
@@ -134,8 +135,8 @@ public class UserSettings extends SimplePersistentObject
     /**
      * @return {@link #currentTimeZone}
      */
-    @Column
-    @Type(type = "DateTimeZone")
+    @Column(length = PersistentDateTimeZone.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
     @Access(AccessType.FIELD)
     public DateTimeZone getCurrentTimeZone()
     {

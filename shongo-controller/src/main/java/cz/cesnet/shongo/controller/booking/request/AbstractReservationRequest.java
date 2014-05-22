@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.booking.reservation.Reservation;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
 import cz.cesnet.shongo.util.ObjectHelper;
@@ -123,7 +124,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #createdAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getCreatedAt()
     {
@@ -151,7 +152,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #updatedAt}
      */
     @Column(nullable = false)
-    @org.hibernate.annotations.Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getUpdatedAt()
     {

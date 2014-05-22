@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.SimplePersistentObject;
-import org.hibernate.annotations.Type;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -73,7 +73,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #start}
      */
     @Column(name = "interval_start")
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     public DateTime getStart()
     {
         return start;
@@ -91,7 +91,7 @@ public class PreprocessedState extends SimplePersistentObject
      * @return {@link #end}
      */
     @Column(name = "interval_end")
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     public DateTime getEnd()
     {
         return end;

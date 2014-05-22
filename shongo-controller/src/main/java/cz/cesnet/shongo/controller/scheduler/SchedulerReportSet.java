@@ -373,7 +373,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "DateTime")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentDateTime.NAME)
         public org.joda.time.DateTime getMaxDateTime()
         {
             return maxDateTime;
@@ -1180,7 +1180,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -1331,7 +1331,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usage_interval_start"),@javax.persistence.Column(name="usage_interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getUsageInterval()
         {
             return usageInterval;
@@ -1929,7 +1929,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -2229,7 +2229,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="usage_interval_start"),@javax.persistence.Column(name="usage_interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getUsageInterval()
         {
             return usageInterval;
@@ -2427,7 +2427,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -2656,7 +2656,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="interval_start"),@javax.persistence.Column(name="interval_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getInterval()
         {
             return interval;
@@ -2770,7 +2770,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="executable_slot_start"),@javax.persistence.Column(name="executable_slot_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getExecutableSlot()
         {
             return executableSlot;
@@ -2782,7 +2782,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @org.hibernate.annotations.Columns(columns={@javax.persistence.Column(name="service_slot_start"),@javax.persistence.Column(name="service_slot_end")})
-        @org.hibernate.annotations.Type(type = "Interval")
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentInterval.NAME)
         public org.joda.time.Interval getServiceSlot()
         {
             return serviceSlot;
@@ -4045,8 +4045,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setMaxDuration(maxDuration);
         }
 
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
+        @javax.persistence.Column(length = cz.cesnet.shongo.hibernate.PersistentPeriod.LENGTH)
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentPeriod.NAME)
         public org.joda.time.Period getDuration()
         {
             return duration;
@@ -4057,8 +4057,8 @@ public class SchedulerReportSet extends AbstractReportSet
             this.duration = duration;
         }
 
-        @javax.persistence.Column
-        @org.hibernate.annotations.Type(type = "Period")
+        @javax.persistence.Column(length = cz.cesnet.shongo.hibernate.PersistentPeriod.LENGTH)
+        @org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.PersistentPeriod.NAME)
         public org.joda.time.Period getMaxDuration()
         {
             return maxDuration;

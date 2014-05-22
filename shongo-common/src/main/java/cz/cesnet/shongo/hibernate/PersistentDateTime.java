@@ -19,6 +19,11 @@ import java.sql.Types;
  */
 public class PersistentDateTime implements UserType, Serializable
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "DateTime";
+
     public static final PersistentDateTime INSTANCE = new PersistentDateTime();
 
     private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP};

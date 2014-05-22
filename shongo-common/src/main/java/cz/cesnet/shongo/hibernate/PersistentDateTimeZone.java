@@ -10,6 +10,16 @@ import org.joda.time.DateTimeZone;
  */
 public class PersistentDateTimeZone extends PersistentStringType
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "DateTimeZone";
+
+    /**
+     * Maximum database field length.
+     */
+    public static final int LENGTH = 32;
+
     public static final PersistentDateTimeZone INSTANCE = new PersistentDateTimeZone();
 
     @Override

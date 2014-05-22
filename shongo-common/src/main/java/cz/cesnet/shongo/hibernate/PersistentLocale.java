@@ -13,6 +13,16 @@ import java.util.Locale;
  */
 public class PersistentLocale extends PersistentStringType
 {
+    /**
+     * Name for {@link org.hibernate.annotations.TypeDef}.
+     */
+    public static final String NAME = "Locale";
+
+    /**
+     * Maximum database field length.
+     */
+    public static final int LENGTH = 16;
+
     public static final PersistentLocale INSTANCE = new PersistentLocale();
 
     @Override

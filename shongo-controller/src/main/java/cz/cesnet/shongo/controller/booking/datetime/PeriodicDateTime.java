@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.SimplePersistentObject;
-import org.hibernate.annotations.Type;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
+import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
+import cz.cesnet.shongo.hibernate.PersistentPeriod;
+import cz.cesnet.shongo.hibernate.PersistentReadablePartial;
 import org.joda.time.*;
 
 import javax.persistence.*;
@@ -91,7 +94,7 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
      * @return {@link #start}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     public DateTime getStart()
     {
         return start;
@@ -108,8 +111,8 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     /**
      * @return {@link #timeZone}
      */
-    @Column
-    @Type(type = "DateTimeZone")
+    @Column(length = PersistentDateTimeZone.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentDateTimeZone.NAME)
     @Access(AccessType.FIELD)
     public DateTimeZone getTimeZone()
     {
@@ -130,8 +133,8 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     /**
      * @return {@link #period}
      */
-    @Column
-    @Type(type = "Period")
+    @Column(length = PersistentPeriod.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentPeriod.NAME)
     public Period getPeriod()
     {
         return period;
@@ -148,8 +151,8 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
     /**
      * @return {@link #end}
      */
-    @Column(name = "ending")
-    @Type(type = "ReadablePartial")
+    @Column(name = "ending", length = PersistentReadablePartial.LENGTH)
+    @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
     public ReadablePartial getEnd()
     {
         return end;
@@ -543,8 +546,8 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
         /**
          * @return {@link #dateTimeFrom}
          */
-        @Column
-        @Type(type = "ReadablePartial")
+        @Column(length = PersistentReadablePartial.LENGTH)
+        @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeFrom()
         {
@@ -557,8 +560,8 @@ public class PeriodicDateTime extends SimplePersistentObject implements Cloneabl
         /**
          * @return {@link #dateTimeTo}
          */
-        @Column
-        @Type(type = "ReadablePartial")
+        @Column(length = PersistentReadablePartial.LENGTH)
+        @org.hibernate.annotations.Type(type = PersistentReadablePartial.NAME)
         @Access(AccessType.FIELD)
         public ReadablePartial getDateTimeTo()
         {

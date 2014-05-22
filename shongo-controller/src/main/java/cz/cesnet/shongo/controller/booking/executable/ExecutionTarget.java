@@ -5,9 +5,9 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.ExecutionAction;
 import cz.cesnet.shongo.controller.util.StateReportSerializer;
+import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.ReportableSimple;
-import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -66,7 +66,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotStart}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
@@ -85,7 +85,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
@@ -150,7 +150,7 @@ public abstract class ExecutionTarget extends PersistentObject implements Report
      * @return {@link #nextAttempt}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = PersistentDateTime.NAME)
     public DateTime getNextAttempt()
     {
         return nextAttempt;

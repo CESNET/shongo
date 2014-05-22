@@ -317,7 +317,11 @@ public abstract class Type
         public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
             List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
-            persistenceAnnotations.add("@org.hibernate.annotations.Type(type = \"" + persistentType + "\")");
+            if (!persistentType.equals("DateTime")) {
+                persistenceAnnotations.clear();
+                persistenceAnnotations.add("@javax.persistence.Column(length = cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".LENGTH)");
+            }
+            persistenceAnnotations.add("@org.hibernate.annotations.Type(type = cz.cesnet.shongo.hibernate.Persistent" + persistentType + ".NAME)");
             return persistenceAnnotations;
         }
     }
