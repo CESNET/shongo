@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.value.provider;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
 import cz.cesnet.shongo.TodoImplementException;
@@ -67,6 +68,7 @@ public class PatternValueProvider extends ValueProvider
      * @return {@link #patterns}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @Access(AccessType.FIELD)
     public List<String> getPatterns()
     {

@@ -61,6 +61,6 @@ public class UserPerson extends AbstractPerson
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        userId = dataMap.getStringRequired(USER_ID);
+        userId = dataMap.getStringRequired(USER_ID, Controller.USER_ID_COLUMN_LENGTH);
     }
 }

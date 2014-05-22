@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.hibernate;
 
+import cz.cesnet.shongo.api.Converter;
 import org.hibernate.HibernateException;
 import org.joda.time.DateTimeZone;
 
@@ -18,7 +19,7 @@ public class PersistentDateTimeZone extends PersistentStringType
     /**
      * Maximum database field length.
      */
-    public static final int LENGTH = 32;
+    public static final int LENGTH = Converter.DATE_TIME_ZONE_MAXIMUM_LENGTH;
 
     public static final PersistentDateTimeZone INSTANCE = new PersistentDateTimeZone();
 

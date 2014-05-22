@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.booking.room.settting;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.AdobeConnectAccessMode;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 /**
@@ -26,6 +28,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     /**
      * @return {@link #pin}
      */
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getPin()
     {
         return pin;

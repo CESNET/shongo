@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
@@ -116,6 +117,7 @@ public class DeviceResource extends Resource
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
@@ -179,7 +181,7 @@ public class DeviceResource extends Resource
     /**
      * @return {@link #preferredTechnology}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public Technology getPreferredTechnology()
     {

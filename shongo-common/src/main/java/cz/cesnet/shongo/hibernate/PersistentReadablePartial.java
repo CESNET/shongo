@@ -19,7 +19,7 @@ public class PersistentReadablePartial extends PersistentStringType
     /**
      * Maximum database field length.
      */
-    public static final int LENGTH = 32;
+    public static final int LENGTH = Converter.READABLE_PARTIAL_MAXIMUM_LENGTH;
 
     public static final PersistentReadablePartial INSTANCE = new PersistentReadablePartial();
 

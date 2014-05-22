@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.participant;
 
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 
@@ -73,7 +74,7 @@ public class InvitedPersonParticipant extends PersonParticipant implements State
     /**
      * @return {@link #invitationState}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public InvitationState getInvitationState()
     {

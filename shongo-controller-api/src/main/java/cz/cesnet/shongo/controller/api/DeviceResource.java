@@ -120,9 +120,8 @@ public class DeviceResource extends Resource
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        address = dataMap.getString(ADDRESS);
+        address = dataMap.getString(ADDRESS, DEFAULT_COLUMN_LENGTH);
         technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
         mode = dataMap.getVariant(MODE, ManagedMode.class, String.class);
     }
-
 }

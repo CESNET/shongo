@@ -62,6 +62,6 @@ public class ManagedMode extends AbstractComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        connectorAgentName = dataMap.getStringRequired(CONNECTOR_AGENT_NAME);
+        connectorAgentName = dataMap.getStringRequired(CONNECTOR_AGENT_NAME, DEFAULT_COLUMN_LENGTH);
     }
 }

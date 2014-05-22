@@ -20,6 +20,12 @@ import java.util.regex.Pattern;
  */
 public class Converter
 {
+    public static final int ENUM_VALUE_MAXIMUM_LENGTH = 64;
+    public static final int READABLE_PARTIAL_MAXIMUM_LENGTH = 32;
+    public static final int PERIOD_MAXIMUM_LENGTH = 64;
+    public static final int LOCALE_MAXIMUM_LENGTH = 16;
+    public static final int DATE_TIME_ZONE_MAXIMUM_LENGTH = 32;
+
     private static Logger logger = LoggerFactory.getLogger(Converter.class);
 
     private static final long DATETIME_INFINITY_START_MILLIS = Temporal.DATETIME_INFINITY_START.getMillis();
@@ -202,7 +208,8 @@ public class Converter
             return enumClass.cast(value);
         }
         else {
-            return convertStringToEnum(value.toString(), enumClass);
+            String stringValue = checkMaximumStringLength(value.toString(), ENUM_VALUE_MAXIMUM_LENGTH);
+            return convertStringToEnum(stringValue, enumClass);
         }
     }
 
@@ -252,7 +259,8 @@ public class Converter
             return (Locale) value;
         }
         else {
-            return convertStringToLocale(value.toString());
+            String stringValue = checkMaximumStringLength(value.toString(), LOCALE_MAXIMUM_LENGTH);
+            return convertStringToLocale(stringValue);
         }
     }
 
@@ -361,7 +369,8 @@ public class Converter
             return (DateTimeZone) value;
         }
         else {
-            return convertStringToDateTimeZone(value.toString());
+            String stringValue = checkMaximumStringLength(value.toString(), DATE_TIME_ZONE_MAXIMUM_LENGTH);
+            return convertStringToDateTimeZone(stringValue);
         }
     }
 
@@ -412,7 +421,8 @@ public class Converter
             return (Period) value;
         }
         else {
-            return convertStringToPeriod(value.toString());
+            String stringValue = checkMaximumStringLength(value.toString(), PERIOD_MAXIMUM_LENGTH);
+            return convertStringToPeriod(stringValue);
         }
     }
 
@@ -546,7 +556,8 @@ public class Converter
             return (ReadablePartial) value;
         }
         else {
-            return convertStringToReadablePartial(value.toString());
+            String stringValue = checkMaximumStringLength(value.toString(), READABLE_PARTIAL_MAXIMUM_LENGTH);
+            return convertStringToReadablePartial(stringValue);
         }
     }
 
@@ -876,5 +887,50 @@ public class Converter
         else {
             throw new IllegalArgumentException("Required classes must not be empty.");
         }
+    }
+
+    /**
+     * @param value         to be checked
+     * @param maximumLength to be checked in given {@code value}
+     * @return given {@code value}
+     */
+    public static String checkMaximumStringLength(String value, int maximumLength)
+            throws CommonReportSet.ValueMaximumLengthExceededException
+    {
+        if (value == null) {
+            return null;
+        }
+        if (value.length() > maximumLength) {
+            throw new CommonReportSet.ValueMaximumLengthExceededException(value, maximumLength);
+        }
+        return value;
+    }
+
+    /**
+     * @param values         to be checked
+     * @param maximumLength to be checked in given {@code value}
+     * @return given {@code value}
+     */
+    public static List<String> checkMaximumStringLength(List<String> values, int maximumLength)
+            throws CommonReportSet.ValueMaximumLengthExceededException
+    {
+        for (String value : values) {
+            checkMaximumStringLength(value, maximumLength);
+        }
+        return values;
+    }
+
+    /**
+     * @param values         to be checked
+     * @param maximumLength to be checked in given {@code value}
+     * @return given {@code value}
+     */
+    public static Set<String> checkMaximumStringLength(Set<String> values, int maximumLength)
+            throws CommonReportSet.ValueMaximumLengthExceededException
+    {
+        for (String value : values) {
+            checkMaximumStringLength(value, maximumLength);
+        }
+        return values;
     }
 }

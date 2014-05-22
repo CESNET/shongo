@@ -3,8 +3,10 @@ package cz.cesnet.shongo.controller.booking.resource;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -100,7 +102,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     /**
      * @return {@link #userId}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getUserId()
     {
         return userId;
@@ -117,7 +119,7 @@ public class Resource extends PersistentObject implements ReportableComplex
     /**
      * @return {@link #name}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getName()
     {
         return name;
@@ -309,6 +311,7 @@ public class Resource extends PersistentObject implements ReportableComplex
      * @return {@link #administratorEmails}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @Access(AccessType.FIELD)
     public List<String> getAdministratorEmails()
     {

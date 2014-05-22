@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
@@ -36,7 +39,7 @@ public class Address
     /**
      * @return {@link #value}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getValue()
     {
         return value;

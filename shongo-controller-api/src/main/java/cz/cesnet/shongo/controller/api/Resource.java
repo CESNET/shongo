@@ -268,14 +268,14 @@ public class Resource extends IdentifiedComplexType
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        userId = dataMap.getString(USER_ID);
+        userId = dataMap.getString(USER_ID, Controller.USER_ID_COLUMN_LENGTH);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
-        name = dataMap.getStringRequired(NAME);
+        name = dataMap.getStringRequired(NAME, DEFAULT_COLUMN_LENGTH);
         description = dataMap.getString(DESCRIPTION);
         capabilities = dataMap.getList(CAPABILITIES, Capability.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
-        administratorEmails = dataMap.getList(ADMINISTRATOR_EMAILS, String.class);
+        administratorEmails = dataMap.getStringList(ADMINISTRATOR_EMAILS, DEFAULT_COLUMN_LENGTH);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
     }
 }

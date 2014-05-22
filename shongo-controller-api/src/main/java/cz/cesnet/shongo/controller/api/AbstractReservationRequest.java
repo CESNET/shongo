@@ -306,7 +306,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         super.fromData(dataMap);
         type = dataMap.getEnum(TYPE, ReservationRequestType.class);
         dateTime = dataMap.getDateTime(DATETIME);
-        userId = dataMap.getString(USER_ID);
+        userId = dataMap.getString(USER_ID, Controller.USER_ID_COLUMN_LENGTH);
         purpose = dataMap.getEnumRequired(PURPOSE, ReservationRequestPurpose.class);
         priority = dataMap.getInteger(PRIORITY);
         description = dataMap.getString(DESCRIPTION);

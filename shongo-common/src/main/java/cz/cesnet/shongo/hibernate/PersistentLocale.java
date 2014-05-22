@@ -2,7 +2,6 @@ package cz.cesnet.shongo.hibernate;
 
 import cz.cesnet.shongo.api.Converter;
 import org.hibernate.HibernateException;
-import org.joda.time.DateTimeZone;
 
 import java.util.Locale;
 
@@ -21,7 +20,7 @@ public class PersistentLocale extends PersistentStringType
     /**
      * Maximum database field length.
      */
-    public static final int LENGTH = 16;
+    public static final int LENGTH = Converter.LOCALE_MAXIMUM_LENGTH;
 
     public static final PersistentLocale INSTANCE = new PersistentLocale();
 

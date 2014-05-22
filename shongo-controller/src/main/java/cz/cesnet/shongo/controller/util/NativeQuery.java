@@ -234,6 +234,10 @@ public class NativeQuery
             }
             index = end;
         }
+        String lastStatement = nativeQuery.substring(index, nativeQuery.length()).trim();
+        if (!lastStatement.isEmpty()) {
+            statements.add(lastStatement);
+        }
 
         for (String statement : statements) {
             statement = statement.trim();

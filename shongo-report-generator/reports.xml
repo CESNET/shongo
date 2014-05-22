@@ -318,6 +318,25 @@
         </report>
 
         <report>
+            <id>value-maximum-length-exceeded</id>
+            <classification severity="error"/>
+            <params>
+                <param name="value" type="String"/>
+                <param name="maximumLength" type="Integer"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Value '${value}' exceeds the maximum length ${maximumLength}.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
             <id>class-undefined</id>
             <classification severity="error"/>
             <params>
@@ -406,6 +425,26 @@
             </description>
             <message>
                 Attribute ${attribute} in class ${class} wasn't present but it is required.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <visible>user</visible>
+        </report>
+
+        <report>
+            <id>class-attribute-value-maximum-length-exceeded</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="String"/>
+                <param name="attribute" type="String"/>
+                <param name="maximumLength" type="Integer"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Value for attribute ${attribute} in class ${class} exceeds the maximum length ${maximumLength}.
             </message>
             <example>
                 TODO:

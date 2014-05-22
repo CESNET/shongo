@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.booking.resource;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
@@ -20,7 +22,7 @@ public class ManagedMode extends Mode
     /**
      * @return {@link #connectorAgentName}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @org.hibernate.annotations.Index(name = "connector_agent_name")
     public String getConnectorAgentName()
     {

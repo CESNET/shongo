@@ -3,10 +3,12 @@ package cz.cesnet.shongo.controller.booking.request;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.booking.Allocation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.specification.Specification;
@@ -134,7 +136,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #createdBy}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getCreatedBy()
     {
         return createdBy;
@@ -162,7 +164,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #updatedBy}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getUpdatedBy()
     {
         return updatedBy;
@@ -197,7 +199,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #state}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public State getState()
     {
@@ -234,7 +236,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #purpose}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public ReservationRequestPurpose getPurpose()
     {
@@ -356,7 +358,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #reusement}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public ReservationRequestReusement getReusement()
     {

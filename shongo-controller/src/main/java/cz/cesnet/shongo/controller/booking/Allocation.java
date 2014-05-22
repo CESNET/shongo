@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequestSet;
@@ -46,7 +47,7 @@ public class Allocation extends SimplePersistentObject
     /**
      * @return {@link #state}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public State getState()
     {

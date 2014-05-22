@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.acl.AclEntry;
 
 import javax.persistence.*;
@@ -68,7 +69,7 @@ public class AclEntryDependency extends SimplePersistentObject
     /**
      * @return {@link #type}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public Type getType()
     {

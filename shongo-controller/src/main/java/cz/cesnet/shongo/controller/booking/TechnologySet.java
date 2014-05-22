@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -43,6 +44,7 @@ public class TechnologySet extends SimplePersistentObject implements Collection<
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()

@@ -18,7 +18,6 @@ import java.sql.Types;
  */
 public abstract class PersistentStringType implements UserType, Serializable
 {
-
     private static final int[] SQL_TYPES = new int[]{Types.VARCHAR};
 
     @Override

@@ -37,7 +37,7 @@ public class ExecutionReportSet extends AbstractReportSet
             setJadeReport(jadeReport);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getCommand()
         {
             return command;
@@ -175,7 +175,7 @@ public class ExecutionReportSet extends AbstractReportSet
             setReason(reason);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getReason()
         {
             return reason;
@@ -285,7 +285,7 @@ public class ExecutionReportSet extends AbstractReportSet
             setRoomName(roomName);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getRoomName()
         {
             return roomName;

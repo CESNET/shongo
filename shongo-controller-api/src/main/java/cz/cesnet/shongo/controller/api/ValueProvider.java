@@ -108,7 +108,7 @@ public abstract class ValueProvider extends IdentifiedComplexType
         public void fromData(DataMap dataMap)
         {
             super.fromData(dataMap);
-            patterns = dataMap.getListRequired(PATTERNS, String.class);
+            patterns = dataMap.getStringListRequired(PATTERNS, DEFAULT_COLUMN_LENGTH);
             allowAnyRequestedValue = dataMap.getBool(ALLOW_ANY_REQUESTED_VALUE);
         }
     }

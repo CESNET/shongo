@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.*;
 
 import java.util.*;
@@ -150,9 +151,33 @@ public class DataMap
         return Converter.convertToString(data.get(property));
     }
 
+    public String getString(String property, int maximumLength)
+    {
+        String value = Converter.convertToString(data.get(property));
+        try {
+            return Converter.checkMaximumStringLength(value, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
+    }
+
     public String getStringRequired(String property)
     {
         return Converter.convertToString(getRequired(property));
+    }
+
+    public String getStringRequired(String property, int maximumLength)
+    {
+        String value = Converter.convertToString(getRequired(property));
+        try {
+            return Converter.checkMaximumStringLength(value, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
     }
 
     public boolean getBool(String property)
@@ -268,6 +293,18 @@ public class DataMap
         return Converter.convertToList(data.get(property), componentClass);
     }
 
+    public List<String> getStringList(String property, int maximumLength)
+    {
+        List<String> stringList = Converter.convertToList(data.get(property), String.class);
+        try {
+            return Converter.checkMaximumStringLength(stringList, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
+    }
+
     public <T> List<T> getListRequired(String property, Class<T> componentClass)
     {
         List<T> value = Converter.convertToList(getRequired(property), componentClass);
@@ -275,6 +312,21 @@ public class DataMap
             throw new CommonReportSet.ClassCollectionRequiredException(complexType.getClassName(), property);
         }
         return value;
+    }
+
+    public List<String> getStringListRequired(String property, int maximumLength)
+    {
+        List<String> stringList = Converter.convertToList(getRequired(property), String.class);
+        if (stringList.size() == 0) {
+            throw new CommonReportSet.ClassCollectionRequiredException(complexType.getClassName(), property);
+        }
+        try {
+            return Converter.checkMaximumStringLength(stringList, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
     }
 
     public List<Object> getList(String property, Class... componentClasses)
@@ -296,6 +348,18 @@ public class DataMap
         return Converter.convertToSet(data.get(property), componentClass);
     }
 
+    public Set<String> getStringSet(String property, int maximumLength)
+    {
+        Set<String> stringSet = Converter.convertToSet(data.get(property), String.class);
+        try {
+            return Converter.checkMaximumStringLength(stringSet, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
+    }
+
     public <T> Set<T> getSetRequired(String property, Class<T> componentClass)
     {
         Set<T> value = Converter.convertToSet(getRequired(property), componentClass);
@@ -303,6 +367,21 @@ public class DataMap
             throw new CommonReportSet.ClassCollectionRequiredException(complexType.getClassName(), property);
         }
         return value;
+    }
+
+    public Set<String> getStringSetRequired(String property, int maximumLength)
+    {
+        Set<String> stringSet = Converter.convertToSet(getRequired(property), String.class);
+        if (stringSet.size() == 0) {
+            throw new CommonReportSet.ClassCollectionRequiredException(complexType.getClassName(), property);
+        }
+        try {
+            return Converter.checkMaximumStringLength(stringSet, maximumLength);
+        }
+        catch (CommonReportSet.ValueMaximumLengthExceededException exception) {
+            throw new CommonReportSet.ClassAttributeValueMaximumLengthExceededException(
+                    getString("class"), property, maximumLength);
+        }
     }
 
     public <K, V> Map<K, V> getMap(String property, Class<K> keyClass, Class<V> valueClass)

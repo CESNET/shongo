@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.alias;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Resource;
@@ -103,6 +104,7 @@ public class AliasSpecification extends Specification
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<AliasType> getAliasTypes()
@@ -149,6 +151,7 @@ public class AliasSpecification extends Specification
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getAliasTechnologies()
@@ -184,7 +187,7 @@ public class AliasSpecification extends Specification
     /**
      * @return {@link #value}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getValue()
     {
         return value;

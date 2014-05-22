@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.AclIdentityType;
+import cz.cesnet.shongo.controller.api.Controller;
 
 import javax.persistence.*;
 
@@ -30,7 +32,7 @@ public class AclIdentity extends SimplePersistentObject
     /**
      * @return {@link #type}
      */
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public AclIdentityType getType()
     {
@@ -48,7 +50,7 @@ public class AclIdentity extends SimplePersistentObject
     /**
      * @return {@link #principalId}
      */
-    @Column(name = "principal_id", nullable = false)
+    @Column(name = "principal_id", nullable = false, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getPrincipalId()
     {
         return principalId;

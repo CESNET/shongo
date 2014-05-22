@@ -178,7 +178,13 @@ public abstract class Type
         public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
             List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
-            persistenceAnnotations.add("@javax.persistence.Column");
+            if (getClassName().equals("String")) {
+                persistenceAnnotations.add("@javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)");
+
+            }
+            else {
+                persistenceAnnotations.add("@javax.persistence.Column");
+            }
             return persistenceAnnotations;
         }
     }
@@ -194,6 +200,8 @@ public abstract class Type
         public List<String> getPersistenceAnnotations(String reportName, String columnName)
         {
             List<String> persistenceAnnotations = super.getPersistenceAnnotations(reportName, columnName);
+            persistenceAnnotations.clear();
+            persistenceAnnotations.add("@javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)");
             persistenceAnnotations.add("@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)");
             return persistenceAnnotations;
         }
@@ -242,7 +250,11 @@ public abstract class Type
                         + "joinColumns = @javax.persistence.JoinColumn(name = \"" + joinColumn + "\"))");
                 persistenceAnnotations.add("@javax.persistence.ElementCollection");
                 if (elementType instanceof EnumAtomicType) {
+                    persistenceAnnotations.add("@javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)");
                     persistenceAnnotations.add("@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)");
+                }
+                else if (elementType instanceof AtomicType && elementType.getClassName().equals("String")) {
+                    persistenceAnnotations.add("@javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)");
                 }
             }
             return persistenceAnnotations;

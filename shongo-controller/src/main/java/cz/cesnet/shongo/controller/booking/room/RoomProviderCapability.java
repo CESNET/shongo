@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.resource.DeviceCapability;
 import cz.cesnet.shongo.controller.booking.resource.DeviceResource;
@@ -96,6 +97,7 @@ public class RoomProviderCapability extends DeviceCapability
      * @return {@link #requiredAliasTypes}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<AliasType> getRequiredAliasTypes()

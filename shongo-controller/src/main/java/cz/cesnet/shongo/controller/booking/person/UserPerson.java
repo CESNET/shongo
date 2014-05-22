@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.person;
 
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.*;
@@ -54,7 +55,7 @@ public class UserPerson extends AbstractPerson
     /**
      * @return {@link #userId}
      */
-    @Column
+    @Column(length = Controller.USER_ID_COLUMN_LENGTH)
     @Access(AccessType.FIELD)
     public String getUserId()
     {

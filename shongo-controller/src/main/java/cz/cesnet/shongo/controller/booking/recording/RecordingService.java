@@ -4,6 +4,7 @@ import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.api.jade.recording.GetActiveRecording;
@@ -94,6 +95,7 @@ public class RecordingService extends ExecutableService implements EndpointExecu
     /**
      * @return {@link #recordingId}
      */
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getRecordingId()
     {
         return recordingId;

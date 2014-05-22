@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
@@ -10,6 +11,11 @@ import cz.cesnet.shongo.api.DataMap;
  */
 public class Controller extends AbstractComplexType
 {
+    /**
+     * Maximum database field length of enum columns.
+     */
+    public static final int USER_ID_COLUMN_LENGTH = 32;
+
     /**
      * Controller domain.
      */

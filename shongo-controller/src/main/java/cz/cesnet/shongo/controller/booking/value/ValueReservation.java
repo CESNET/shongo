@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.value;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.reservation.TargetedReservation;
@@ -54,7 +55,7 @@ public class ValueReservation extends TargetedReservation
     /**
      * @return {@link #value}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getValue()
     {
         return value;

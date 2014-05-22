@@ -900,6 +900,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.CollectionTable(name = "scheduler_report_technologies", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)
         @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.Technology> getTechnologies()
         {
@@ -1690,7 +1691,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setTechnology(technology);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)
         @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public cz.cesnet.shongo.Technology getTechnology()
         {
@@ -2415,7 +2416,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setInterval(interval);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getValue()
         {
             return value;
@@ -2545,7 +2546,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setValue(value);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getValue()
         {
             return value;
@@ -2900,7 +2901,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setRoomEndpointId(roomEndpointId);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getRoomEndpointId()
         {
             return roomEndpointId;
@@ -3075,6 +3076,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.CollectionTable(name = "scheduler_report_technologies", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)
         @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.Technology> getTechnologies()
         {
@@ -3088,6 +3090,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.CollectionTable(name = "scheduler_report_alias_types", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.ENUM_COLUMN_LENGTH)
         @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public java.util.Set<cz.cesnet.shongo.AliasType> getAliasTypes()
         {
@@ -3099,7 +3102,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.aliasTypes = aliasTypes;
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getValue()
         {
             return value;
@@ -3685,6 +3688,7 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.CollectionTable(name = "scheduler_report_reservation_requests", joinColumns = @javax.persistence.JoinColumn(name = "scheduler_report_id"))
         @javax.persistence.ElementCollection
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public java.util.List<String> getReservationRequests()
         {
             return reservationRequests;
@@ -3751,7 +3755,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setReservationRequest(reservationRequest);
         }
 
-        @javax.persistence.Column
+        @javax.persistence.Column(length = cz.cesnet.shongo.api.AbstractComplexType.DEFAULT_COLUMN_LENGTH)
         public String getReservationRequest()
         {
             return reservationRequest;

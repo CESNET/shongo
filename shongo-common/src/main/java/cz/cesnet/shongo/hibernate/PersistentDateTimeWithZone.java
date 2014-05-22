@@ -3,7 +3,6 @@ package cz.cesnet.shongo.hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.TimestampType;
 import org.hibernate.usertype.UserType;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -89,8 +88,9 @@ public class PersistentDateTimeWithZone implements UserType, Serializable
             StandardBasicTypes.STRING.nullSafeSet(preparedStatement, null, index + 1, session);
         } else {
             DateTime dateTime = (DateTime) value;
+            String timeZoneId = dateTime.getZone().getID();
             StandardBasicTypes.TIMESTAMP.nullSafeSet(preparedStatement, dateTime.toDate(), index, session);
-            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, dateTime.getZone().getID(), index + 1, session);
+            StandardBasicTypes.STRING.nullSafeSet(preparedStatement, timeZoneId, index + 1, session);
         }
     }
 

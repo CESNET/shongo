@@ -260,7 +260,7 @@ public class H323RoomSetting extends RoomSetting
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        pin = dataMap.getString(PIN);
+        pin = dataMap.getString(PIN, DEFAULT_COLUMN_LENGTH);
         listedPublicly = dataMap.getBoolean(LISTED_PUBLICLY);
         allowContent = dataMap.getBoolean(ALLOW_CONTENT);
         allowGuests = dataMap.getBoolean(ALLOW_GUESTS);

@@ -59,7 +59,7 @@ public class AdobeConnectRoomSetting extends RoomSetting
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        pin = dataMap.getString(PIN);
+        pin = dataMap.getString(PIN, DEFAULT_COLUMN_LENGTH);
         accessMode = dataMap.getEnum(ACCESS_MODE,AdobeConnectAccessMode.class);
     }
 

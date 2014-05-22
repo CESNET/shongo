@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.*;
 
@@ -73,7 +74,7 @@ public class AclEntry extends SimplePersistentObject
     /**
      * @return {@link #role}
      */
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     public String getRole()
     {
         return role;

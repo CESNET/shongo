@@ -109,8 +109,8 @@ public class AnonymousPerson extends AbstractPerson
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        name = dataMap.getStringRequired(NAME);
-        organization = dataMap.getString(ORGANIZATION);
-        email = dataMap.getStringRequired(EMAIL);
+        name = dataMap.getStringRequired(NAME, DEFAULT_COLUMN_LENGTH);
+        organization = dataMap.getString(ORGANIZATION, DEFAULT_COLUMN_LENGTH);
+        email = dataMap.getStringRequired(EMAIL, DEFAULT_COLUMN_LENGTH);
     }
 }

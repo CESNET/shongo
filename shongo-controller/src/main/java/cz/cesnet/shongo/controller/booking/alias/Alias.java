@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.alias;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.*;
 import java.util.*;
@@ -47,7 +48,7 @@ public class Alias extends SimplePersistentObject implements Cloneable
     /**
      * @return {@link #type}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public AliasType getType()
     {
@@ -74,7 +75,7 @@ public class Alias extends SimplePersistentObject implements Cloneable
     /**
      * @return {@link #value}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getValue()
     {
         return value;

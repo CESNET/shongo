@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.booking.Allocation;
@@ -10,7 +11,6 @@ import cz.cesnet.shongo.controller.booking.specification.Specification;
 import cz.cesnet.shongo.controller.booking.specification.StatefulSpecification;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
-import cz.cesnet.shongo.controller.booking.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
@@ -161,7 +161,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     /**
      * @return {@link #allocationState}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public AllocationState getAllocationState()
     {

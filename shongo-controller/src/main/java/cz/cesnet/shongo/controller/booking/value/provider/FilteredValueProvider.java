@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.value.provider;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.resource.Capability;
@@ -63,7 +64,7 @@ public class FilteredValueProvider extends ValueProvider
     /**
      * @return {@link #type}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public FilterType getType()
     {

@@ -118,6 +118,6 @@ public class ValueSpecification extends Specification
     {
         super.fromData(dataMap);
         resourceId = dataMap.getStringRequired(RESOURCE_ID);
-        values = dataMap.getSet(VALUES, String.class);
+        values = dataMap.getStringSet(VALUES, DEFAULT_COLUMN_LENGTH);
     }
 }

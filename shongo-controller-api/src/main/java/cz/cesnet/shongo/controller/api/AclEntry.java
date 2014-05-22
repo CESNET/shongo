@@ -218,7 +218,7 @@ public class AclEntry extends IdentifiedComplexType
     {
         super.fromData(dataMap);
         identityType = dataMap.getEnumRequired(IDENTITY_TYPE, AclIdentityType.class);
-        identityPrincipalId = dataMap.getString(IDENTITY_PRINCIPAL_ID);
+        identityPrincipalId = dataMap.getString(IDENTITY_PRINCIPAL_ID, Controller.USER_ID_COLUMN_LENGTH);
         objectId = dataMap.getString(OBJECT_ID);
         role = dataMap.getEnum(ROLE, ObjectRole.class);
         deletable = dataMap.getBool(DELETABLE);

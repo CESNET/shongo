@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.value;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.value.provider.FilteredValueProvider;
 
 import javax.persistence.Column;
@@ -39,7 +40,7 @@ public class FilteredValueReservation extends ValueReservation
     /**
      * @return {@link #value}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getRequestedValue()
     {
         return requestedValue;

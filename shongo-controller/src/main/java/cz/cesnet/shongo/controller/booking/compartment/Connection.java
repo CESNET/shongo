@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.compartment;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Dial;
 import cz.cesnet.shongo.connector.api.jade.endpoint.HangUpAll;
 import cz.cesnet.shongo.connector.api.jade.multipoint.DialRoomParticipant;
@@ -105,7 +106,7 @@ public class Connection extends Executable
     /**
      * @return {@link #connectionId}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getConnectionId()
     {
         return connectionId;

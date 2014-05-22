@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.hibernate;
 
+import cz.cesnet.shongo.api.Converter;
 import org.hibernate.HibernateException;
 import org.joda.time.Period;
 
@@ -18,7 +19,7 @@ public class PersistentPeriod extends PersistentStringType
     /**
      * Maximum database field length.
      */
-    public static final int LENGTH = 64;
+    public static final int LENGTH = Converter.PERIOD_MAXIMUM_LENGTH;
 
     public static final PersistentPeriod INSTANCE = new PersistentPeriod();
 

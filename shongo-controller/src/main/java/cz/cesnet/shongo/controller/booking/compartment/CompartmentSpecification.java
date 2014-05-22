@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.compartment;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import cz.cesnet.shongo.controller.api.Synchronization;
@@ -129,7 +130,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @return {@link #callInitiation}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public CallInitiation getCallInitiation()
     {

@@ -12,28 +12,32 @@ public class CommonReportSet extends AbstractReportSet
     public static final int UNKNOWN_ERROR_CODE = 0;
     public static final int TYPE_MISMATCH_CODE = 1;
     public static final int TYPE_ILLEGAL_VALUE_CODE = 2;
-    public static final int CLASS_UNDEFINED_CODE = 3;
-    public static final int CLASS_INSTANTIATION_ERROR_CODE = 4;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED_CODE = 5;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_CODE = 6;
-    public static final int CLASS_ATTRIBUTE_REQUIRED_CODE = 7;
-    public static final int CLASS_ATTRIBUTE_READONLY_CODE = 8;
-    public static final int CLASS_COLLECTION_REQUIRED_CODE = 9;
-    public static final int COLLECTION_ITEM_NULL_CODE = 10;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH_CODE = 11;
-    public static final int OBJECT_NOT_EXISTS_CODE = 12;
-    public static final int OBJECT_INVALID_CODE = 13;
-    public static final int OBJECT_NOT_DELETABLE_REFERENCED_CODE = 14;
-    public static final int METHOD_NOT_DEFINED_CODE = 15;
+    public static final int VALUE_MAXIMUM_LENGTH_EXCEEDED_CODE = 3;
+    public static final int CLASS_UNDEFINED_CODE = 4;
+    public static final int CLASS_INSTANTIATION_ERROR_CODE = 5;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED_CODE = 6;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_CODE = 7;
+    public static final int CLASS_ATTRIBUTE_REQUIRED_CODE = 8;
+    public static final int CLASS_ATTRIBUTE_VALUE_MAXIMUM_LENGTH_EXCEEDED_CODE = 9;
+    public static final int CLASS_ATTRIBUTE_READONLY_CODE = 10;
+    public static final int CLASS_COLLECTION_REQUIRED_CODE = 11;
+    public static final int COLLECTION_ITEM_NULL_CODE = 12;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH_CODE = 13;
+    public static final int OBJECT_NOT_EXISTS_CODE = 14;
+    public static final int OBJECT_INVALID_CODE = 15;
+    public static final int OBJECT_NOT_DELETABLE_REFERENCED_CODE = 16;
+    public static final int METHOD_NOT_DEFINED_CODE = 17;
 
     public static final String UNKNOWN_ERROR = "unknown-error";
     public static final String TYPE_MISMATCH = "type-mismatch";
     public static final String TYPE_ILLEGAL_VALUE = "type-illegal-value";
+    public static final String VALUE_MAXIMUM_LENGTH_EXCEEDED = "value-maximum-length-exceeded";
     public static final String CLASS_UNDEFINED = "class-undefined";
     public static final String CLASS_INSTANTIATION_ERROR = "class-instantiation-error";
     public static final String CLASS_ATTRIBUTE_UNDEFINED = "class-attribute-undefined";
     public static final String CLASS_ATTRIBUTE_TYPE_MISMATCH = "class-attribute-type-mismatch";
     public static final String CLASS_ATTRIBUTE_REQUIRED = "class-attribute-required";
+    public static final String CLASS_ATTRIBUTE_VALUE_MAXIMUM_LENGTH_EXCEEDED = "class-attribute-value-maximum-length-exceeded";
     public static final String CLASS_ATTRIBUTE_READONLY = "class-attribute-readonly";
     public static final String CLASS_COLLECTION_REQUIRED = "class-collection-required";
     public static final String COLLECTION_ITEM_NULL = "collection-item-null";
@@ -51,11 +55,13 @@ public class CommonReportSet extends AbstractReportSet
         addMessage(UNKNOWN_ERROR, new Report.UserType[]{Report.UserType.USER}, Report.Language.ENGLISH, "Unknown error.");
         addMessage(TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.");
         addMessage(TYPE_ILLEGAL_VALUE, new Report.UserType[]{}, Report.Language.ENGLISH, "Value ${value} is illegal for type ${type}.");
+        addMessage(VALUE_MAXIMUM_LENGTH_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "Value '${value}' exceeds the maximum length ${maximumLength}.");
         addMessage(CLASS_UNDEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} is not defined.");
         addMessage(CLASS_INSTANTIATION_ERROR, new Report.UserType[]{}, Report.Language.ENGLISH, "Class ${class} cannot be instanced.");
         addMessage(CLASS_ATTRIBUTE_UNDEFINED, new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} is not defined in class ${class}.");
         addMessage(CLASS_ATTRIBUTE_TYPE_MISMATCH, new Report.UserType[]{}, Report.Language.ENGLISH, "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${presentType} doesn't match required type ${requiredType}.");
         addMessage(CLASS_ATTRIBUTE_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Attribute ${attribute} in class ${class} wasn't present but it is required.");
+        addMessage(CLASS_ATTRIBUTE_VALUE_MAXIMUM_LENGTH_EXCEEDED, new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} exceeds the maximum length ${maximumLength}.");
         addMessage(CLASS_ATTRIBUTE_READONLY, new Report.UserType[]{}, Report.Language.ENGLISH, "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.");
         addMessage(CLASS_COLLECTION_REQUIRED, new Report.UserType[]{}, Report.Language.ENGLISH, "Collection ${collection} in class ${class} wasn't present or was empty but it is required.");
         addMessage(COLLECTION_ITEM_NULL, new Report.UserType[]{}, Report.Language.ENGLISH, "Null item cannot be present in collection ${collection}.");
@@ -525,6 +531,166 @@ public class CommonReportSet extends AbstractReportSet
         public ApiFault getApiFault()
         {
             return (TypeIllegalValueReport) report;
+        }
+    }
+
+    /**
+     * Value '{@link #value}' exceeds the maximum length {@link #maximumLength}.
+     */
+    public static class ValueMaximumLengthExceededReport extends AbstractReport implements ApiFault
+    {
+        protected String value;
+
+        protected Integer maximumLength;
+
+        public ValueMaximumLengthExceededReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "value-maximum-length-exceeded";
+        }
+
+        public ValueMaximumLengthExceededReport(String value, Integer maximumLength)
+        {
+            setValue(value);
+            setMaximumLength(maximumLength);
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public void setValue(String value)
+        {
+            this.value = value;
+        }
+
+        public Integer getMaximumLength()
+        {
+            return maximumLength;
+        }
+
+        public void setMaximumLength(Integer maximumLength)
+        {
+            this.maximumLength = maximumLength;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return VALUE_MAXIMUM_LENGTH_EXCEEDED_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ValueMaximumLengthExceededException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            value = (String) reportSerializer.getParameter("value", String.class);
+            maximumLength = (Integer) reportSerializer.getParameter("maximumLength", Integer.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("value", value);
+            reportSerializer.setParameter("maximumLength", maximumLength);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("value", value);
+            parameters.put("maximumLength", maximumLength);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("value-maximum-length-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ValueMaximumLengthExceededReport}.
+     */
+    public static class ValueMaximumLengthExceededException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ValueMaximumLengthExceededException(ValueMaximumLengthExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ValueMaximumLengthExceededException(Throwable throwable, ValueMaximumLengthExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ValueMaximumLengthExceededException(String value, Integer maximumLength)
+        {
+            ValueMaximumLengthExceededReport report = new ValueMaximumLengthExceededReport();
+            report.setValue(value);
+            report.setMaximumLength(maximumLength);
+            this.report = report;
+        }
+
+        public ValueMaximumLengthExceededException(Throwable throwable, String value, Integer maximumLength)
+        {
+            super(throwable);
+            ValueMaximumLengthExceededReport report = new ValueMaximumLengthExceededReport();
+            report.setValue(value);
+            report.setMaximumLength(maximumLength);
+            this.report = report;
+        }
+
+        public String getValue()
+        {
+            return getReport().getValue();
+        }
+
+        public Integer getMaximumLength()
+        {
+            return getReport().getMaximumLength();
+        }
+
+        @Override
+        public ValueMaximumLengthExceededReport getReport()
+        {
+            return (ValueMaximumLengthExceededReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ValueMaximumLengthExceededReport) report;
         }
     }
 
@@ -1325,6 +1491,189 @@ public class CommonReportSet extends AbstractReportSet
         public ApiFault getApiFault()
         {
             return (ClassAttributeRequiredReport) report;
+        }
+    }
+
+    /**
+     * Value for attribute {@link #attribute} in class {@link #className} exceeds the maximum length {@link #maximumLength}.
+     */
+    public static class ClassAttributeValueMaximumLengthExceededReport extends AbstractReport implements ApiFault
+    {
+        protected String className;
+
+        protected String attribute;
+
+        protected Integer maximumLength;
+
+        public ClassAttributeValueMaximumLengthExceededReport()
+        {
+        }
+
+        @Override
+        public String getUniqueId()
+        {
+            return "class-attribute-value-maximum-length-exceeded";
+        }
+
+        public ClassAttributeValueMaximumLengthExceededReport(String className, String attribute, Integer maximumLength)
+        {
+            setClassName(className);
+            setAttribute(attribute);
+            setMaximumLength(maximumLength);
+        }
+
+        public String getClassName()
+        {
+            return className;
+        }
+
+        public void setClassName(String className)
+        {
+            this.className = className;
+        }
+
+        public String getAttribute()
+        {
+            return attribute;
+        }
+
+        public void setAttribute(String attribute)
+        {
+            this.attribute = attribute;
+        }
+
+        public Integer getMaximumLength()
+        {
+            return maximumLength;
+        }
+
+        public void setMaximumLength(Integer maximumLength)
+        {
+            this.maximumLength = maximumLength;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return CLASS_ATTRIBUTE_VALUE_MAXIMUM_LENGTH_EXCEEDED_CODE;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(UserType.USER, Language.ENGLISH);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ClassAttributeValueMaximumLengthExceededException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            attribute = (String) reportSerializer.getParameter("attribute", String.class);
+            maximumLength = (Integer) reportSerializer.getParameter("maximumLength", Integer.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("attribute", attribute);
+            reportSerializer.setParameter("maximumLength", maximumLength);
+        }
+
+        @Override
+        public int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public java.util.Map<String, Object> getParameters()
+        {
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>();
+            parameters.put("class", className);
+            parameters.put("attribute", attribute);
+            parameters.put("maximumLength", maximumLength);
+            return parameters;
+        }
+
+        @Override
+        public String getMessage(UserType userType, Language language, org.joda.time.DateTimeZone timeZone)
+        {
+            return MESSAGES.getMessage("class-attribute-value-maximum-length-exceeded", userType, language, timeZone, getParameters());
+        }
+    }
+
+    /**
+     * Exception for {@link ClassAttributeValueMaximumLengthExceededReport}.
+     */
+    public static class ClassAttributeValueMaximumLengthExceededException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ClassAttributeValueMaximumLengthExceededException(ClassAttributeValueMaximumLengthExceededReport report)
+        {
+            this.report = report;
+        }
+
+        public ClassAttributeValueMaximumLengthExceededException(Throwable throwable, ClassAttributeValueMaximumLengthExceededReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ClassAttributeValueMaximumLengthExceededException(String className, String attribute, Integer maximumLength)
+        {
+            ClassAttributeValueMaximumLengthExceededReport report = new ClassAttributeValueMaximumLengthExceededReport();
+            report.setClassName(className);
+            report.setAttribute(attribute);
+            report.setMaximumLength(maximumLength);
+            this.report = report;
+        }
+
+        public ClassAttributeValueMaximumLengthExceededException(Throwable throwable, String className, String attribute, Integer maximumLength)
+        {
+            super(throwable);
+            ClassAttributeValueMaximumLengthExceededReport report = new ClassAttributeValueMaximumLengthExceededReport();
+            report.setClassName(className);
+            report.setAttribute(attribute);
+            report.setMaximumLength(maximumLength);
+            this.report = report;
+        }
+
+        public String getClassName()
+        {
+            return getReport().getClassName();
+        }
+
+        public String getAttribute()
+        {
+            return getReport().getAttribute();
+        }
+
+        public Integer getMaximumLength()
+        {
+            return getReport().getMaximumLength();
+        }
+
+        @Override
+        public ClassAttributeValueMaximumLengthExceededReport getReport()
+        {
+            return (ClassAttributeValueMaximumLengthExceededReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ClassAttributeValueMaximumLengthExceededReport) report;
         }
     }
 
@@ -2591,11 +2940,13 @@ public class CommonReportSet extends AbstractReportSet
         addReportClass(UnknownErrorReport.class);
         addReportClass(TypeMismatchReport.class);
         addReportClass(TypeIllegalValueReport.class);
+        addReportClass(ValueMaximumLengthExceededReport.class);
         addReportClass(ClassUndefinedReport.class);
         addReportClass(ClassInstantiationErrorReport.class);
         addReportClass(ClassAttributeUndefinedReport.class);
         addReportClass(ClassAttributeTypeMismatchReport.class);
         addReportClass(ClassAttributeRequiredReport.class);
+        addReportClass(ClassAttributeValueMaximumLengthExceededReport.class);
         addReportClass(ClassAttributeReadonlyReport.class);
         addReportClass(ClassCollectionRequiredReport.class);
         addReportClass(CollectionItemNullReport.class);

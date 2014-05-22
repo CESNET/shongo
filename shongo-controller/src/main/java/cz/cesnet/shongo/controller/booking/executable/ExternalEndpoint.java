@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.participant.ExternalEndpointParticipant;
 import cz.cesnet.shongo.controller.booking.alias.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -55,6 +56,7 @@ public class ExternalEndpoint extends Endpoint
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
@@ -67,7 +69,8 @@ public class ExternalEndpoint extends Endpoint
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        this.technologies = technologies;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
     }
 
     /**

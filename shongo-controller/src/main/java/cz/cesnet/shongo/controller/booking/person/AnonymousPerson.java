@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.person;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -56,7 +57,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     /**
      * @return {@link #name}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getName()
     {
         return name;
@@ -73,7 +74,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     /**
      * @return {@link #organization}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getOrganization()
     {
         return organization;
@@ -90,7 +91,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     /**
      * @return {@link #email}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getEmail()
     {
         return email;
@@ -107,7 +108,7 @@ public class AnonymousPerson extends AbstractPerson implements PersonInformation
     /**
      * @return {@link #phoneNumber}
      */
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     public String getPhoneNumber()
     {
         return phoneNumber;

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.acl;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.api.AbstractComplexType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +24,7 @@ public class AclObjectClass extends SimplePersistentObject
     /**
      * @return {@link #className}
      */
-    @Column(name = "class", nullable = false, unique = true)
+    @Column(name = "class", nullable = false, unique = true, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     public String getClassName()
     {
         return className;

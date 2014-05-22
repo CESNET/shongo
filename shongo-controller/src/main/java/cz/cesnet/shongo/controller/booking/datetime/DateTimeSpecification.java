@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.datetime;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.hibernate.PersistentDateTime;
 import cz.cesnet.shongo.hibernate.PersistentPeriod;
 import org.joda.time.DateTime;
@@ -42,7 +43,7 @@ public class DateTimeSpecification extends SimplePersistentObject
     /**
      * @return {@link #type}
      */
-    @Column
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public Type getType()
     {

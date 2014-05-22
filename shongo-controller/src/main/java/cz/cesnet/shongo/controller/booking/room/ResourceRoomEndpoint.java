@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
@@ -95,7 +96,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
      * @return {@link #roomId}
      */
     @Override
-    @Column
+    @Column(length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @org.hibernate.annotations.Index(name = "room_id")
     public String getRoomId()
     {
@@ -111,7 +112,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     }
 
     @ElementCollection
-    @Column(name = "recording_folder_id", nullable = false)
+    @Column(name = "recording_folder_id", nullable = false, length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @MapKeyJoinColumn(name = "recording_capability_id")
     @Access(AccessType.FIELD)
     @Override

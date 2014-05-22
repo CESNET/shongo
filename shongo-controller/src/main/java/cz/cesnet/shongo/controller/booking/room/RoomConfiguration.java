@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.room;
 
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.room.settting.RoomSetting;
 
 import javax.persistence.*;
@@ -41,6 +42,7 @@ public class RoomConfiguration extends SimplePersistentObject
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
@@ -54,9 +56,7 @@ public class RoomConfiguration extends SimplePersistentObject
     public void setTechnologies(Set<Technology> technologies)
     {
         this.technologies.clear();
-        for (Technology technology : technologies) {
-            this.technologies.add(technology);
-        }
+        this.technologies.addAll(technologies);
     }
 
     /**

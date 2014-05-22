@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.booking.value;
 
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.value.provider.ValueProvider;
@@ -64,7 +65,7 @@ public class ValueSpecification extends Specification
      * @return {@link #technologies}
      */
     @ElementCollection()
-    @Column(name = "requested_values")
+    @Column(name = "requested_values", length = AbstractComplexType.DEFAULT_COLUMN_LENGTH)
     @Access(AccessType.FIELD)
     public Set<String> getValues()
     {

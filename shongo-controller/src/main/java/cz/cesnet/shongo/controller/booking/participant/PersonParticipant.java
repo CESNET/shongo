@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.booking.participant;
 
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.person.AbstractPerson;
 import cz.cesnet.shongo.util.ObjectHelper;
 
@@ -45,7 +46,7 @@ public class PersonParticipant extends AbstractParticipant implements ObjectHelp
     /**
      * @return {@link #role}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public ParticipantRole getRole()
     {

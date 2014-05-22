@@ -66,6 +66,13 @@ public class ApiFaultString implements ReportSerializer
             }
             return value.getTextValue();
         }
+        else if (Integer.class.equals(type)) {
+            JsonNode value = jsonNode.get(name);
+            if (value == null) {
+                return null;
+            }
+            return value.getIntValue();
+        }
         else if (AbstractReport.class.isAssignableFrom(type)) {
             ObjectNode value = (ObjectNode) jsonNode.get(name);
             if (value == null) {
@@ -102,6 +109,9 @@ public class ApiFaultString implements ReportSerializer
     {
         if (value instanceof String) {
             jsonNode.put(name, (String) value);
+        }
+        else if (value instanceof Integer) {
+            jsonNode.put(name, (Integer) value);
         }
         else if (value instanceof SerializableReport) {
             SerializableReport serializableReport = (SerializableReport) value;

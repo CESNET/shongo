@@ -7,6 +7,16 @@ package cz.cesnet.shongo.api;
  */
 public abstract class AbstractComplexType implements ComplexType
 {
+    /**
+     * Maximum database field length of enum columns.
+     */
+    public static final int ENUM_COLUMN_LENGTH = Converter.ENUM_VALUE_MAXIMUM_LENGTH;
+
+    /**
+     * Maximum database field length of other columns.
+     */
+    public static final int DEFAULT_COLUMN_LENGTH = 255;
+
     @Override
     public String getClassName()
     {

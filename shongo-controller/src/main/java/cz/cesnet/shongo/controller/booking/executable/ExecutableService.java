@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.booking.executable;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutionReport;
 import cz.cesnet.shongo.controller.executor.Executor;
@@ -59,7 +60,7 @@ public abstract class ExecutableService extends ExecutionTarget
     /**
      * @return {@link #state}
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     public State getState()
     {

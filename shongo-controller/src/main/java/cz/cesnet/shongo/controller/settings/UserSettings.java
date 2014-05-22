@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.SimplePersistentObject;
+import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.hibernate.PersistentDateTimeZone;
 import cz.cesnet.shongo.hibernate.PersistentLocale;
 import org.joda.time.DateTimeZone;
@@ -63,7 +64,7 @@ public class UserSettings extends SimplePersistentObject
     /**
      * @return {@link #userId}
      */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = Controller.USER_ID_COLUMN_LENGTH)
     public String getUserId()
     {
         return userId;

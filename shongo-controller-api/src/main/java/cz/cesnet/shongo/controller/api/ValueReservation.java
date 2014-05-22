@@ -44,6 +44,6 @@ public class ValueReservation extends ResourceReservation
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        value = dataMap.getString(VALUE);
+        value = dataMap.getString(VALUE, DEFAULT_COLUMN_LENGTH);
     }
 }

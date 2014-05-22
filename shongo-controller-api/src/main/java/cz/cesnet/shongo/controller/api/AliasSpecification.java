@@ -233,7 +233,7 @@ public class AliasSpecification extends Specification
         super.fromData(dataMap);
         aliasTypes = dataMap.getSet(ALIAS_TYPES, AliasType.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
-        value = dataMap.getString(VALUE);
+        value = dataMap.getString(VALUE, DEFAULT_COLUMN_LENGTH);
         resourceId = dataMap.getString(RESOURCE_ID);
     }
 }

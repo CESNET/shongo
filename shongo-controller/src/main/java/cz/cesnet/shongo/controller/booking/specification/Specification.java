@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.booking.specification;
 import cz.cesnet.shongo.SimplePersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.AbstractComplexType;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.booking.alias.AliasSetSpecification;
 import cz.cesnet.shongo.controller.booking.alias.AliasSpecification;
@@ -39,6 +40,7 @@ public abstract class Specification extends SimplePersistentObject implements Re
      * @return {@link #technologies}
      */
     @ElementCollection
+    @Column(length = AbstractComplexType.ENUM_COLUMN_LENGTH)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
