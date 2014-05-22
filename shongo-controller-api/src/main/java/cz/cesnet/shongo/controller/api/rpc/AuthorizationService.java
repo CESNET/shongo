@@ -182,8 +182,8 @@ public interface AuthorizationService extends Service
 
     /**
      * @param securityToken token of the user requesting the operation
-     * @return map of user-id and description how the user is referenced
+     * @return list of {@link ReferencedUser}s
      */
     @API
-    public Map<String, String> listReferencedUsers(SecurityToken securityToken);
+    public List<ReferencedUser> listReferencedUsers(SecurityToken securityToken);
 }

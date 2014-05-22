@@ -736,7 +736,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Map<String, String> listReferencedUsers(SecurityToken securityToken)
+    public List<ReferencedUser> listReferencedUsers(SecurityToken securityToken)
     {
         authorization.validate(securityToken);
 
@@ -750,10 +750,40 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             String referencedUsersQuery = NativeQuery.getNativeQuery(NativeQuery.REFERENCED_USER_LIST);
             List referencedUsersResult = entityManager.createNativeQuery(referencedUsersQuery).getResultList();
-            Map<String, String> referencedUsers = new LinkedHashMap<String, String>();
+            List<ReferencedUser> referencedUsers = new LinkedList<ReferencedUser>();
+            Set<String> userIds = new LinkedHashSet<String>();
             for (Object referencedUserItem : referencedUsersResult) {
                 Object[] referencedUser = (Object[]) referencedUserItem;
-                referencedUsers.put(referencedUser[0].toString(), referencedUser[1].toString());
+                String userId = referencedUser[0].toString();
+                if (userId.equals("0")) {
+                    continue;
+                }
+                userIds.add(userId);
+            }
+            Map<String, UserInformation> userInformationByUserId = new HashMap<String, UserInformation>();
+            for (UserInformation userInformation : authorization.listUserInformation(userIds, null)) {
+                userInformationByUserId.put(userInformation.getUserId(), userInformation);
+            }
+            for (Object referencedUserItem : referencedUsersResult) {
+                Object[] referencedUserResult = (Object[]) referencedUserItem;
+                String userId = referencedUserResult[0].toString();
+                UserInformation userInformation = userInformationByUserId.get(userId);
+                if (userInformation == null) {
+                    userInformation = authorization.getUserInformation(userId);
+                }
+                ReferencedUser referencedUser = new ReferencedUser();
+                referencedUser.setUserInformation(userInformation);
+                referencedUser.setReservationRequestCount(
+                        referencedUserResult[1] != null ? ((Number) referencedUserResult[1]).intValue() : 0);
+                referencedUser.setResourceCount(
+                        referencedUserResult[2] != null ? ((Number) referencedUserResult[2]).intValue() : 0);
+                referencedUser.setUserSettingCount(
+                        referencedUserResult[3] != null ? ((Number) referencedUserResult[3]).intValue() : 0);
+                referencedUser.setAclEntryCount(
+                        referencedUserResult[4] != null ? ((Number) referencedUserResult[4]).intValue() : 0);
+                referencedUser.setUserPersonCount(
+                        referencedUserResult[5] != null ? ((Number) referencedUserResult[5]).intValue() : 0);
+                referencedUsers.add(referencedUser);
             }
             entityManager.getTransaction().commit();
             return referencedUsers;

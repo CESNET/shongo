@@ -680,14 +680,64 @@ sub list_referenced_users()
     my $table = {
         'columns' => [
             {'field' => 'userId', 'title' => 'User ID'},
+            {'field' => 'name', 'title' => 'Name'},
+            {'field' => 'email', 'title' => 'Email'},
             {'field' => 'description', 'title' => 'Referenced In'}
         ],
         'data' => []
     };
-    foreach my $userId (sort(keys %{$response})) {
+    foreach my $referenced_user (@{$response}) {
+        my $user = $referenced_user->{'userInformation'};
+        my $name = '';
+        if ( defined($user->{'firstName'}) ) {
+            $name .= $user->{'firstName'};
+        }
+        if ( defined($user->{'lastName'}) ) {
+            if ( $name ne '' ) {
+                $name .= ' ';
+            }
+            $name .= $user->{'lastName'};
+        }
+        my $email = '';
+        if ( defined($user->{'email'}) ) {
+            $email = $user->{'email'};
+        }
+        my $description = '';
+        if ( defined($referenced_user->{'reservationRequestCount'}) && $referenced_user->{'reservationRequestCount'} > 0 ) {
+            if ($description ne '' ) {
+                $description .= ', ';
+            }
+            $description .= $referenced_user->{'reservationRequestCount'} . ' requests';
+        }
+        if ( defined($referenced_user->{'resourceCount'}) && $referenced_user->{'resourceCount'} > 0 ) {
+            if ($description ne '' ) {
+                $description .= ', ';
+            }
+            $description .= $referenced_user->{'resourceCount'} . ' resources';
+        }
+        if ( defined($referenced_user->{'userSettingsCount'}) && $referenced_user->{'userSettingsCount'} > 0 ) {
+            if ($description ne '' ) {
+                $description .= ', ';
+            }
+            $description .= $referenced_user->{'userSettingsCount'} . ' settings';
+        }
+        if ( defined($referenced_user->{'aclEntryCount'}) && $referenced_user->{'aclEntryCount'} > 0 ) {
+            if ($description ne '' ) {
+                $description .= ', ';
+            }
+            $description .= $referenced_user->{'aclEntryCount'} . ' acls';
+        }
+        if ( defined($referenced_user->{'userPersonCount'}) && $referenced_user->{'userPersonCount'} > 0 ) {
+            if ($description ne '' ) {
+                $description .= ', ';
+            }
+            $description .= $referenced_user->{'userPersonCount'} . ' persons';
+        }
         push(@{$table->{'data'}}, {
-            'userId' => $userId,
-            'description' => $response->{$userId}
+            'userId' => $user->{'userId'},
+            'name' => $name,
+            'email' => $email,
+            'description' => $description
         });
     }
     console_print_table($table);
