@@ -211,6 +211,7 @@ public class AliasSpecification extends Specification
         this.resourceId = resourceId;
     }
 
+    public static final String CLASS = AliasSpecification.class.getSimpleName();
     public static final String ALIAS_TYPES = "aliasTypes";
     public static final String TECHNOLOGIES = "technologies";
     public static final String VALUE = "value";

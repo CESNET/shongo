@@ -335,6 +335,8 @@
             </form:label>
             <div class="col-xs-4">
                 <form:input path="roomName" cssClass="form-control" cssErrorClass="form-control error" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="roomName" cssClass="error"/>
             </div>
         </div>
@@ -453,6 +455,8 @@
             </form:label>
             <div class="col-xs-4">
                 <form:input cssClass="form-control" cssErrorClass="form-control error" path="end" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
+            </div>
+            <div class="col-xs-offset-3 col-xs-9">
                 <form:errors path="end" cssClass="error"/>
             </div>
         </div>
@@ -578,6 +582,8 @@
         </form:label>
         <div class="col-xs-4">
             <form:input cssClass="form-control" cssErrorClass="form-control error" path="roomPin"  tabindex="${tabIndex}"/>
+        </div>
+        <div class="col-xs-offset-3 col-xs-9">
             <form:errors path="roomPin" cssClass="error"/>
         </div>
     </div>

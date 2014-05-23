@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.api.AdobeConnectRoomSetting;
+import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -168,42 +172,58 @@ public class ReservationRequestValidator implements Validator
                     break;
             }
             // Check availability
-            Object availabilityCheckResult = reservationService.checkAvailability(availabilityCheckRequest);
-            if (!Boolean.TRUE.equals(availabilityCheckResult)) {
-                AllocationStateReport allocationStateReport = (AllocationStateReport) availabilityCheckResult;
-                AllocationStateReport.UserError userError = allocationStateReport.toUserError();
-                if (userError instanceof AllocationStateReport.AliasAlreadyAllocated) {
-                    errors.rejectValue(
-                            "roomName", "validation.field.roomNameNotAvailable");
-                }
-                else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
-                    errors.rejectValue(
-                            slotField, "validation.field.permanentRoomAlreadyUsed");
-                }
-                else if (userError instanceof AllocationStateReport.ReusementInvalidSlot) {
-                    errors.rejectValue(
-                            slotField, "validation.field.permanentRoomNotAvailable");
-                }
-                else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded
-                        || userError instanceof AllocationStateReport.RecordingRoomCapacityExceed
-                        || (userError instanceof AllocationStateReport.ResourceNotFound &&
-                                    AllocationStateReport.ResourceNotFound.Type.RECORDING.equals(
-                                            ((AllocationStateReport.ResourceNotFound) userError).getType()))) {
-                    errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
-                }
-                else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
-                    errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
-                }
-                else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
-                    errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
-                }
-                else if (userError instanceof AllocationStateReport.MaximumDurationExceeded) {
-                    errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
-                }
-                else {
-                    logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
+            try {
+                Object availabilityCheckResult = reservationService.checkAvailability(availabilityCheckRequest);
+                if (!Boolean.TRUE.equals(availabilityCheckResult)) {
+                    AllocationStateReport allocationStateReport = (AllocationStateReport) availabilityCheckResult;
+                    AllocationStateReport.UserError userError = allocationStateReport.toUserError();
+                    if (userError instanceof AllocationStateReport.AliasAlreadyAllocated) {
+                        errors.rejectValue(
+                                "roomName", "validation.field.roomNameNotAvailable");
+                    }
+                    else if (userError instanceof AllocationStateReport.ReusementAlreadyUsed) {
+                        errors.rejectValue(
+                                slotField, "validation.field.permanentRoomAlreadyUsed");
+                    }
+                    else if (userError instanceof AllocationStateReport.ReusementInvalidSlot) {
+                        errors.rejectValue(
+                                slotField, "validation.field.permanentRoomNotAvailable");
+                    }
+                    else if (userError instanceof AllocationStateReport.RecordingCapacityExceeded
+                            || userError instanceof AllocationStateReport.RecordingRoomCapacityExceed
+                            || (userError instanceof AllocationStateReport.ResourceNotFound &&
+                                        AllocationStateReport.ResourceNotFound.Type.RECORDING.equals(
+                                                ((AllocationStateReport.ResourceNotFound) userError).getType()))) {
+                        errors.rejectValue("roomRecorded", null, userError.getMessage(locale, timeZone));
+                    }
+                    else if (userError instanceof AllocationStateReport.RoomCapacityExceeded) {
+                        errors.rejectValue("roomParticipantCount", null, userError.getMessage(locale, timeZone));
+                    }
+                    else if (userError instanceof AllocationStateReport.MaximumFutureExceeded) {
+                        errors.rejectValue(slotField, null, userError.getMessage(locale, timeZone));
+                    }
+                    else if (userError instanceof AllocationStateReport.MaximumDurationExceeded) {
+                        errors.rejectValue(slotFieldDuration, null, userError.getMessage(locale, timeZone));
+                    }
+                    else {
+                        logger.warn("Validation of availability failed: {}\n{}", userError, allocationStateReport);
+                    }
                 }
             }
+            catch (CommonReportSet.ClassAttributeValueMaximumLengthExceededException exception) {
+                String className = exception.getClassName();
+                String attribute = exception.getAttribute();
+                int maximumLength = exception.getMaximumLength();
+                if (className.equals(AliasSpecification.CLASS) && attribute.equals(AliasSpecification.VALUE)) {
+                    errors.rejectValue("roomName", "validation.field.maximumLengthExceeded",
+                            new Object[]{maximumLength}, null);
+                }
+                else if (attribute.equals(H323RoomSetting.PIN) || attribute.equals(AdobeConnectRoomSetting.PIN)) {
+                    errors.rejectValue("roomPin", "validation.field.maximumLengthExceeded",
+                            new Object[]{maximumLength}, null);
+                }
+            }
+
         }
     }
 
