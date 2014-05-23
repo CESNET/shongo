@@ -294,7 +294,7 @@ sub list_users()
     my ($options, @args) = @_;
     my $request = {};
     if ( scalar(@args) >= 1 ) {
-        $request->{'filter'} = $args[0];
+        $request->{'search'} = $args[0];
     }
     if ( defined($options->{'group'}) ) {
         $request->{'groupIds'} = [$options->{'group'}];

@@ -132,12 +132,14 @@ public class LocalStorageHandler
             }
         });
         List<Folder> folders = new LinkedList<Folder>();
-        for (String ioFolder : ioFolders) {
-            Folder folder = new Folder();
-            folder.setFolderId(getChildId(folderId, ioFolder));
-            folder.setParentFolderId(folderId);
-            folder.setFolderName(ioFolder);
-            folders.add(folder);
+        if (ioFolders != null) {
+            for (String ioFolder : ioFolders) {
+                Folder folder = new Folder();
+                folder.setFolderId(getChildId(folderId, ioFolder));
+                folder.setParentFolderId(folderId);
+                folder.setFolderName(ioFolder);
+                folders.add(folder);
+            }
         }
         return folders;
     }
