@@ -54,10 +54,11 @@ function getResources(domain, defaultAdministrator) {
         type: "value",
         name: "namingService",
         description: "Naming service for all technologies",
+        allocatable: 1,
         patternPrefix: common.select(domain, {
             "meetings": "ZZ-shongo-",
-            "shongo-dev": "shongo-dev",
-            "default": "shongo-local"
+            "shongo-dev": "shongo-dev-",
+            "default": "shongo-local-"
         })
     });
 
@@ -69,6 +70,7 @@ function getResources(domain, defaultAdministrator) {
             "meetings": "CESNET Production Adobe Connect",
             "default": "CESNET Testing Adobe Connect"
         }),
+        allocatable: 1,
         allocationOrder: 1,
         maximumFuture: maximumFuture,
         agent: common.select(domain, {
@@ -80,8 +82,10 @@ function getResources(domain, defaultAdministrator) {
             "default": "https://tconn.cesnet.cz"
         }),
         aliases: {
-            nameValueProvider: "namingService",
-            namePrefix: aliasNamePrefix
+            name: {
+                prefix: aliasNamePrefix,
+                valueProvider: "namingService"
+            }
         },
         licenseCount: common.select(domain, {
             "meetings": 100,
@@ -90,24 +94,42 @@ function getResources(domain, defaultAdministrator) {
         administrators: resourceAdministrators
     });
 
+    // MCU numbers
+    resources.push({
+        type: "value",
+        name: "mcuNumbers",
+        description: "Value provider for MCU numbers",
+        pattern: common.select(domain, {
+            "meetings": "950083[200:399]",
+            "shongo-dev": "950083[050:099]",
+            "default": "950083[090:099]"
+        })
+    });
+
     // MCU1
     resources.push({
         type: "mcu",
         name: "mcu1",
         description: "CESNET Cisco MCU 1",
+        allocatable: 0,
         allocationOrder: 1,
         maximumFuture: maximumFuture,
         agent: "mcu1",
         address: "mcuc.cesnet.cz",
         aliases: {
-            nameValueProvider: "namingService",
-            namePrefix: aliasNamePrefix,
-            number: common.select(domain, {
-                "meetings": "950087[200:299]",
-                "shongo-dev": "950087[050:099]",
-                "default": "950087[090:099]"
-            }),
-            domain: "cesnet.cz"
+            name: {
+                prefix: aliasNamePrefix,
+                valueProvider: "namingService"
+            },
+            number: {
+                prefix: "950087",
+                valuePattern: common.select(domain, {
+                    "meetings": "[200:299]",
+                    "shongo-dev": "[050:099]",
+                    "default": "[090:099]"
+                }),
+                domain: "cesnet.cz"
+            }
         },
         licenseCount: common.select(domain, {
             "meetings": 15,
@@ -121,19 +143,20 @@ function getResources(domain, defaultAdministrator) {
         type: "mcu",
         name: "mcu2",
         description: "CESNET Cisco MCU 2",
+        allocatable: 1,
         allocationOrder: 2,
         maximumFuture: maximumFuture,
         agent: "mcu2",
         address: "mcuc2.cesnet.cz",
         aliases: {
-            nameValueProvider: "namingService",
-            namePrefix: aliasNamePrefix,
-            number: common.select(domain, {
-                "meetings": "950083[700:750]",
-                "shongo-dev": "950083[750:799]",
-                "default": "950083[790:799]"
-            }),
-            domain: "cesnet.cz"
+            name: {
+                prefix: aliasNamePrefix,
+                valueProvider: "namingService"
+            },
+            number: {
+                valueProvider: "mcuNumbers",
+                domain: "cesnet.cz"
+            }
         },
         licenseCount: common.select(domain, {
             "meetings": 15,
@@ -147,19 +170,20 @@ function getResources(domain, defaultAdministrator) {
         type: "mcu",
         name: "mcu3",
         description: "CESNET Cisco MCU 3",
+        allocatable: 1,
         allocationOrder: 3,
         maximumFuture: maximumFuture,
         agent: "mcu3",
         address: "mcuc3.cesnet.cz",
         aliases: {
-            nameValueProvider: "namingService",
-            namePrefix: aliasNamePrefix,
-            number: common.select(domain, {
-                "meetings": "950083[800:850]",
-                "shongo-dev": "950083[850:899]",
-                "default": "950083[890:899]"
-            }),
-            domain: "cesnet.cz"
+            name: {
+                prefix: aliasNamePrefix,
+                valueProvider: "namingService"
+            },
+            number: {
+                valueProvider: "mcuNumbers",
+                domain: "cesnet.cz"
+            }
         },
         licenseCount: common.select(domain, {
             "meetings": 15,
@@ -172,6 +196,7 @@ function getResources(domain, defaultAdministrator) {
     resources.push({
         type: "tcs",
         name: "tcs1",
+        allocatable: 0,
         allocationOrder: 1,
         maximumFuture: maximumFuture,
         agent: "tcs1",
@@ -187,6 +212,7 @@ function getResources(domain, defaultAdministrator) {
     resources.push({
         type: "tcs",
         name: "tcs2",
+        allocatable: 1,
         allocationOrder: 2,
         maximumFuture: maximumFuture,
         agent: "tcs2",
@@ -219,6 +245,11 @@ if (!common.hasArgument(0)) {
     console.error("                      will be used as resource administrator email");
     return 1;
 }
+var debug = false;
+if (common.hasArgument(1) && common.getArgument(1) == "--debug") {
+    debug = true;
+    console.info("Running in " + common.formatColored("DEBUG", common.Color.RED) + " mode...");
+}
 
 // Get domain, url, email and resources
 var domain = common.getArgument(0);
@@ -244,7 +275,8 @@ console.log("You have selected '" + domain + "' domain.");
 console.log("Controller URL is '" + domainUrl + "'.");
 console.log("Resources:");
 console.log(common.formatResources(resources));
-common.waitForKeyPress("Check the configuration and press any key to create or update the infrastructure...");
+common.waitForKeyPress("Check the configuration and press any key to create or update the infrastructure" +
+    (debug ? (" in " + common.formatColored("DEBUG", common.Color.RED) + " mode") : "") + "...");
 
 // Check controller availability
 if (!common.execClientCliCommand("status")) {
@@ -254,7 +286,10 @@ if (!common.execClientCliCommand("status")) {
 // Create or update resources
 for (var index = 0; index < resources.length; index++) {
     console.log();
-    common.mergeResource(resources[index]);
+    common.mergeResource(resources[index], debug);
+}
+if (debug) {
+    return;
 }
 // Book values in namingService
 console.log();

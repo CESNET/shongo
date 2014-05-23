@@ -253,9 +253,9 @@ public class Resource extends IdentifiedComplexType
     public static final String PARENT_RESOURCE_ID = "parentResourceId";
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
-    public static final String ALLOCATION_ORDER = "allocationOrder";
     public static final String CAPABILITIES = "capabilities";
     public static final String ALLOCATABLE = "allocatable";
+    public static final String ALLOCATION_ORDER = "allocationOrder";
     public static final String MAXIMUM_FUTURE = "maximumFuture";
     public static final String ADMINISTRATOR_EMAILS = "administratorEmails";
     public static final String CHILD_RESOURCE_IDS = "childResourceIds";
@@ -268,9 +268,9 @@ public class Resource extends IdentifiedComplexType
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
         dataMap.set(NAME, name);
         dataMap.set(DESCRIPTION, description);
-        dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(CAPABILITIES, capabilities);
         dataMap.set(ALLOCATABLE, allocatable);
+        dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(ADMINISTRATOR_EMAILS, administratorEmails);
         dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
 
@@ -295,9 +295,9 @@ public class Resource extends IdentifiedComplexType
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
         name = dataMap.getStringRequired(NAME, DEFAULT_COLUMN_LENGTH);
         description = dataMap.getString(DESCRIPTION);
-        allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         capabilities = dataMap.getList(CAPABILITIES, Capability.class);
         allocatable = dataMap.getBool(ALLOCATABLE);
+        allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
         administratorEmails = dataMap.getStringList(ADMINISTRATOR_EMAILS, DEFAULT_COLUMN_LENGTH);
         childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);

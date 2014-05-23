@@ -177,7 +177,12 @@ module.exports = {
                 appendAttribute("maxFuture", this.Color.RED, resource.maximumFuture);
             }
             if (resource.type == "value") {
-                appendAttribute("patternPrefix", this.Color.YELLOW);
+                if (resource.patternPrefix != null) {
+                    appendAttribute("patternPrefix", this.Color.YELLOW);
+                }
+                if (resource.pattern != null) {
+                    appendAttribute("pattern", this.Color.YELLOW);
+                }
             }
             output += ")";
             if (resource.allocatable == 0) {
@@ -190,19 +195,27 @@ module.exports = {
                 appendBreak();
                 appendAttribute("licenseCount", this.Color.RED);
             }
-            if (resource.type == "mcu" || resource.type == "connect") {
-                if (resource.aliases != null && resource.aliases.namePrefix != "") {
-                    appendBreak();
-                    appendAttribute("namePrefix", this.Color.YELLOW, resource.aliases.namePrefix);
-                    appendBreak();
-                    appendAttribute("nameValueProvider", this.Color.YELLOW, resource.aliases.nameValueProvider);
+
+            if (resource.aliases != null) {
+                for (var alias in resource.aliases) {
+                    var aliasDefinition = resource.aliases[alias];
+                    if (aliasDefinition.prefix != null) {
+                        appendBreak();
+                        appendAttribute(alias + ":prefix", this.Color.YELLOW, aliasDefinition.prefix);
+                    }
+                    if (aliasDefinition.valueProvider != null) {
+                        appendBreak();
+                        appendAttribute(alias + ":valueProvider", this.Color.YELLOW, aliasDefinition.valueProvider);
+                    }
+                    if (aliasDefinition.valuePattern != null) {
+                        appendBreak();
+                        appendAttribute(alias + ":valuePattern", this.Color.YELLOW, aliasDefinition.valuePattern);
+                    }
+                    if (aliasDefinition.domain != null) {
+                        appendBreak();
+                        appendAttribute(alias + ":domain", this.Color.YELLOW, aliasDefinition.domain);
+                    }
                 }
-            }
-            if (resource.type == "mcu") {
-                appendBreak();
-                appendAttribute("number", this.Color.YELLOW, resource.aliases.number);
-                appendBreak();
-                appendAttribute("domain", this.Color.YELLOW, resource.aliases.domain);
             }
             if (resource.administrators != null) {
                 var administrators = "";
@@ -304,7 +317,7 @@ module.exports = {
             command = "modify-resource " + resourceId + " " + JSON.stringify(resource);
         }
         if (onlyDump) {
-            this.dumpObject(command);
+            this.dumpObject(resource);
         }
         else {
             console.log(this.execClientCliCommand(command));
@@ -424,22 +437,8 @@ module.exports = {
      * Prepare value provider resource.
      */
     prepareResourceValue: function(resource, oldResource) {
-        // Get old resource components
-        var oldValueProviderCapability = {};
-        var oldValueProvider = {};
-        if (oldResource != null) {
-            for (var index = 0; index < oldResource.capabilities.length; index++) {
-                var capability = oldResource.capabilities[index];
-                if (capability.class == "ValueProviderCapability") {
-                    oldValueProviderCapability = capability;
-                    if (oldValueProviderCapability.valueProvider != null) {
-                        oldValueProvider = oldValueProviderCapability.valueProvider;
-                    }
-                }
-            }
-        }
-
-        // Prepare resource
+        var oldValueProviderCapability = this.getCapability(oldResource, "ValueProviderCapability");
+        var oldValueProvider = this.getValueProvider(oldValueProviderCapability);
         var resourceValue = {};
         this.prepareResourceCommon(resourceValue, resource);
         resourceValue.capabilities.push({
@@ -450,7 +449,7 @@ module.exports = {
                 id: oldValueProvider.id,
                 allowAnyRequestedValue: "1",
                 patterns : [
-                    resource.patternPrefix + "-{hash}"
+                    this.getPattern(resource.patternPrefix, resource.pattern)
                 ]
             }
         });
@@ -461,45 +460,8 @@ module.exports = {
      * Prepare Adobe Connect resource.
      */
     prepareResourceConnect: function(resource, oldResource) {
-        // Get old resource components
-        var oldRoomProviderCapability = {};
-        var oldRecordingCapability = {};
-        var oldUriAliasProviderCapability = {};
-        var oldUriValueProvider = {};
-        if (oldResource != null) {
-            for (var index = 0; index < oldResource.capabilities.length; index++) {
-                var capability = oldResource.capabilities[index];
-                if (capability.class == "RoomProviderCapability") {
-                    oldRoomProviderCapability = capability;
-                }
-                else if (capability.class == "RecordingCapability") {
-                    oldRecordingCapability = capability;
-                }
-                else if (capability.class == "AliasProviderCapability") {
-                    oldUriAliasProviderCapability = capability;
-                    if (oldUriAliasProviderCapability.valueProvider != null) {
-                        oldUriValueProvider = oldUriAliasProviderCapability.valueProvider;
-                    }
-                }
-            }
-        }
-
-        // Prepare requirements
-        var aliasesValueProvider = null;
-        var aliasesNamePrefix = "";
-        if (resource.aliases != null) {
-            if (resource.aliases.namePrefix != null) {
-                aliasesNamePrefix = resource.aliases.namePrefix;
-            }
-            if (resource.aliases.nameValueProvider != null) {
-                aliasesValueProvider = this.getResourceIdByName(resource.aliases.nameValueProvider);
-            }
-        }
-        if (aliasesValueProvider == null) {
-            throw "Name ValueProvider for resource '" + resource.name + "' doesn't exists";
-        }
-
-        // Prepare resource
+        var oldRoomProviderCapability = this.getCapability(oldResource, "RoomProviderCapability");
+        var oldRecordingCapability = this.getCapability(oldResource, "RecordingCapability");
         var resourceConnect =  {
             class: "DeviceResource",
             technologies: ["ADOBE_CONNECT"]
@@ -513,23 +475,15 @@ module.exports = {
         });
         resourceConnect.capabilities.push({
             class: "RecordingCapability",
+
             id: oldRecordingCapability.id
         });
-        resourceConnect.capabilities.push({
-            class: "AliasProviderCapability",
-            id: oldUriAliasProviderCapability.id,
-            valueProvider: {
-                class: "ValueProvider.Filtered",
-                id: oldUriValueProvider.id,
-                filterType: "CONVERT_TO_URL",
-                valueProvider: aliasesValueProvider
-            },
-            aliases: [
-                { type: "ROOM_NAME", value: aliasesNamePrefix + "{requested-value}" },
-                { type: "ADOBE_CONNECT_URI", value: "{device.address}/" + aliasesNamePrefix + "{value}" }
-            ],
-            restrictedToResource: 1
-        });
+        if (resource.aliases != null) {
+            this.addAliasProviderCapability(resourceConnect, oldResource, resource.aliases.name, {
+                "ROOM_NAME": "{prefix}{requested-value}",
+                "ADOBE_CONNECT_URI":"{device.address}/{prefix}{value}"
+            });
+        }
         return resourceConnect;
     },
 
@@ -537,65 +491,7 @@ module.exports = {
      * Prepare Cisco MCU resource.
      */
     prepareResourceMcu: function(resource, oldResource) {
-        // Get old resource components
-        var oldRoomProviderCapability = {};
-        var oldRoomNameAliasProviderCapability = {};
-        var oldNumberAliasProviderCapability = {};
-        var oldNumberValueProvider = {};
-        if (oldResource != null) {
-            for (var index = 0; index < oldResource.capabilities.length; index++) {
-                var capability = oldResource.capabilities[index];
-                if (capability.class == "RoomProviderCapability") {
-                    oldRoomProviderCapability = capability;
-                }
-                else if (capability.class == "RecordingCapability") {
-                    oldRecordingCapability = capability;
-                }
-                else if (capability.class == "AliasProviderCapability") {
-                    if (capability.aliases.length == 1 && capability.aliases[0].type == "ROOM_NAME") {
-                        oldRoomNameAliasProviderCapability = capability;
-                    }
-                    else {
-                        oldNumberAliasProviderCapability = capability;
-                        if (oldNumberAliasProviderCapability.valueProvider != null) {
-                            oldNumberValueProvider = oldNumberAliasProviderCapability.valueProvider;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Prepare requirements
-        var aliasesValueProvider = null;
-        var aliasesNamePrefix = "";
-        var aliasesNumberRange = "";
-        var aliasesNumberPrefix = "";
-        if (resource.aliases != null) {
-            if (resource.aliases.namePrefix != null) {
-                aliasesNamePrefix = resource.aliases.namePrefix;
-            }
-            if (resource.aliases.nameValueProvider != null) {
-                aliasesValueProvider = this.getResourceIdByName(resource.aliases.nameValueProvider);
-            }
-            if (resource.aliases.number != null) {
-                var numberSplitted = resource.aliases.number.replace(/(\[|\])/g, " ").trim().split(" ");
-                if (numberSplitted.length == 1) {
-                    aliasesNumberRange = numberSplitted[0];
-                }
-                else if (numberSplitted.length == 2) {
-                    aliasesNumberPrefix = numberSplitted[0];
-                    aliasesNumberRange = numberSplitted[1];
-                }
-                else {
-                     throw "Illegal format of number '" + resource.aliases.number + "'.";
-                }
-            }
-        }
-        if (aliasesValueProvider == null) {
-            throw "Name ValueProvider for resource '" + resource.name + "'doesn't exists";
-        }
-
-        // Prepare resource
+        var oldRoomProviderCapability = this.getCapability(oldResource, "RoomProviderCapability");
         var resourceMcu = {
             class: "DeviceResource",
             technologies: ["H323","SIP"]
@@ -607,32 +503,18 @@ module.exports = {
             licenseCount: resource.licenseCount,
             requiredAliasTypes: ["ROOM_NAME", "H323_E164"]
         });
-        resourceMcu.capabilities.push({
-            class: "AliasProviderCapability",
-            id: oldRoomNameAliasProviderCapability.id,
-            valueProvider: aliasesValueProvider,
-            aliases: [
-                { type: "ROOM_NAME", value: aliasesNamePrefix + "{value}" }
-            ],
-            restrictedToResource: 1
-        });
-        resourceMcu.capabilities.push({
-            class: "AliasProviderCapability",
-            id: oldNumberAliasProviderCapability.id,
-            valueProvider: {
-                class: "ValueProvider.Pattern",
-                id: oldNumberValueProvider.id,
-                patterns: ["{number:" + aliasesNumberRange + "}"]
-            },
-            aliases: [
-                { type: "H323_E164", value: aliasesNumberPrefix + "{value}" },
-                { type: "H323_URI", value: aliasesNumberPrefix + "{value}@{device.address}" },
-                { type: "H323_IP", value: "195.113.222.60 {value}#" },
-                { type: "SIP_URI", value: aliasesNumberPrefix + "{value}@cesnet.cz" },
-                { type: "SIP_IP", value: "195.113.222.60 {value}#" }
-            ],
-            restrictedToResource: 1
-        });
+        if (resource.aliases != null) {
+            this.addAliasProviderCapability(resourceMcu, oldResource, resource.aliases.name, {
+                "ROOM_NAME": "{prefix}{value}"
+            });
+            this.addAliasProviderCapability(resourceMcu, oldResource, resource.aliases.number, {
+                "H323_E164": "{prefix}{value}",
+                "H323_URI": "{prefix}{value}@{device.address}",
+                "H323_IP": "195.113.222.60 {value}#",
+                "SIP_URI": "{prefix}{value}@cesnet.cz",
+                "SIP_IP": "195.113.222.60 {value}#"
+            });
+        }
         return resourceMcu;
     },
 
@@ -641,17 +523,7 @@ module.exports = {
      */
     prepareResourceTcs: function(resource, oldResource) {
         // Get old resource components
-        var oldRecordingCapability = {};
-        if (oldResource != null) {
-            for (var index = 0; index < oldResource.capabilities.length; index++) {
-                var capability = oldResource.capabilities[index];
-                if (capability.class == "RecordingCapability") {
-                    oldRecordingCapability = capability;
-                }
-            }
-        }
-
-        // Prepare resource
+        var oldRecordingCapability = this.getCapability(oldResource, "RecordingCapability");
         var resourceTcs = {
             class: "DeviceResource",
             technologies: ["H323", "SIP"]
@@ -663,6 +535,151 @@ module.exports = {
             licenseCount: resource.licenseCount
         });
         return resourceTcs;
+    },
+
+    /**
+     * @param prefix
+     * @param pattern
+     * @returns pattern for value provider
+     */
+    getPattern: function(prefix, pattern) {
+        if (pattern == null) {
+            pattern = "{hash}";
+        }
+        else {
+            pattern = pattern.replace(/\[/g, "{number:");
+            pattern = pattern.replace(/\]/g, "}");
+        }
+        if (prefix != null) {
+            pattern = prefix + pattern;
+        }
+        return pattern;
+    },
+
+    /**
+     * @param resource
+     * @param capabilityType
+     * @returns object
+     */
+    getCapability: function(resource, capabilityType) {
+        if (resource != null) {
+            for (var index = 0; index < resource.capabilities.length; index++) {
+                var capability = resource.capabilities[index];
+                if (capability.class == capabilityType) {
+                    return capability;
+                }
+            }
+        }
+        return {};
+    },
+
+    /**
+     * @param resource
+     * @param aliasType
+     * @returns object
+     */
+    getAliasProviderCapability: function(resource, aliasType) {
+        if (resource != null) {
+            for (var index = 0; index < resource.capabilities.length; index++) {
+                var capability = resource.capabilities[index];
+                if (capability.class == "AliasProviderCapability") {
+                    if (aliasType == null) {
+                        return capability;
+                    }
+                    else {
+                        for (var aliasIndex = 0; aliasIndex < capability.aliases.length; aliasIndex++) {
+                            if (capability.aliases[aliasIndex].type == aliasType) {
+                                return capability;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return {};
+    },
+
+    /**
+     * @param capability
+     * @returns object
+     */
+    getValueProvider: function(capability) {
+        if (capability != null && capability.valueProvider != null) {
+            return capability.valueProvider;
+        }
+        return {};
+    },
+
+    /**
+     * Create new alias provider capability.
+     *
+     * @param resourceTarget
+     * @param resourceSource
+     * @param aliasSource
+     * @param aliasValueByAliasType
+     */
+    addAliasProviderCapability: function(resourceTarget, resourceSource, aliasSource, aliasValueByAliasType) {
+        if (aliasSource == null) {
+            return;
+        }
+        var firstAliasType = null;
+        for (var type in aliasValueByAliasType) {
+            firstAliasType = type;
+            break;
+        }
+        var oldCapability = this.getAliasProviderCapability(resourceSource, firstAliasType);
+        var oldValueProvider = this.getValueProvider(oldCapability);
+
+        // Create capability
+        var capability = {
+            class: "AliasProviderCapability",
+            id: oldCapability.id,
+            aliases: [],
+            restrictedToResource: 1
+        };
+
+
+        // Value provider
+        if (aliasSource.valueProvider != null) {
+            var valueProviderId = this.getResourceIdByName(aliasSource.valueProvider);
+            if (valueProviderId == null) {
+                throw "ValueProvider '" + aliasSource.valueProvider + "' doesn't exist.";
+            }
+            if (aliasValueByAliasType["ADOBE_CONNECT_URI"] != null) {
+                capability.valueProvider = {
+                    class: "ValueProvider.Filtered",
+                    id: oldValueProvider.id,
+                    valueProvider: valueProviderId,
+                    filterType: "CONVERT_TO_URL"
+                };
+            }
+            else {
+                capability.valueProvider = valueProviderId;
+            }
+        }
+        // Value pattern
+        else if (aliasSource.valuePattern != null) {
+            capability.valueProvider =  {
+                class: "ValueProvider.Pattern",
+                id: oldValueProvider.id,
+                patterns: [this.getPattern(aliasSource.prefix, aliasSource.valuePattern)]
+            }
+        }
+
+        // Aliases
+        var aliasPrefix = aliasSource.prefix;
+        if (aliasPrefix == null) {
+            aliasPrefix = "";
+        }
+        for (var aliasType in aliasValueByAliasType) {
+            var aliasValue = aliasValueByAliasType[aliasType];
+            aliasValue = aliasValue.replace(/\{prefix\}/g, aliasPrefix);
+            capability.aliases.push({
+                type: aliasType,
+                value: aliasValue
+            });
+        }
+        resourceTarget.capabilities.push(capability);
     },
 
     /**

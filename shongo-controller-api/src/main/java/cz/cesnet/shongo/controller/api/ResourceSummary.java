@@ -31,6 +31,11 @@ public class ResourceSummary extends IdentifiedComplexType
     private String parentResourceId;
 
     /**
+     * Specifies whether resource can be scheduled by a scheduler.
+     */
+    private Boolean allocatable;
+
+    /**
      * Order in which the resource should be tried to be allocated ({@code null} means the last).
      */
     private Integer allocationOrder;
@@ -100,6 +105,22 @@ public class ResourceSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #allocatable}
+     */
+    public Boolean getAllocatable()
+    {
+        return (allocatable != null ? allocatable : Boolean.FALSE);
+    }
+
+    /**
+     * @param allocatable sets the {@link #allocatable}
+     */
+    public void setAllocatable(Boolean allocatable)
+    {
+        this.allocatable = allocatable;
+    }
+
+    /**
      * @return {@link #allocationOrder}
      */
     public Integer getAllocationOrder()
@@ -119,6 +140,7 @@ public class ResourceSummary extends IdentifiedComplexType
     private static final String NAME = "name";
     private static final String TECHNOLOGIES = "technologies";
     private static final String PARENT_RESOURCE_ID = "parentResourceId";
+    private static final String ALLOCATABLE = "allocatable";
     private static final String ALLOCATION_ORDER = "allocationOrder";
 
     @Override
@@ -127,6 +149,7 @@ public class ResourceSummary extends IdentifiedComplexType
         DataMap dataMap = super.toData();
         dataMap.set(USER_ID, userId);
         dataMap.set(NAME, name);
+        dataMap.set(ALLOCATABLE, allocatable);
         dataMap.set(ALLOCATION_ORDER, allocationOrder);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
@@ -139,6 +162,7 @@ public class ResourceSummary extends IdentifiedComplexType
         super.fromData(dataMap);
         userId = dataMap.getString(USER_ID);
         name = dataMap.getString(NAME);
+        allocatable = dataMap.getBool(ALLOCATABLE);
         allocationOrder = dataMap.getInteger(ALLOCATION_ORDER);
         technologies = dataMap.getString(TECHNOLOGIES);
         parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);

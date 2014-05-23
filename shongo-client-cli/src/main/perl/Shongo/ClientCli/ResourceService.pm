@@ -201,12 +201,13 @@ sub list_resources()
 
     my $table = {
         'columns' => [
-            {'field' => 'id',   'title' => 'Identifier'},
-            {'field' => 'user', 'title' => 'User'},
-            {'field' => 'name', 'title' => 'Name'},
-            {'field' => 'order', 'title' => 'Order'},
+            {'field' => 'id',           'title' => 'Identifier'},
+            {'field' => 'user',         'title' => 'User'},
+            {'field' => 'name',         'title' => 'Name'},
+            {'field' => 'allocatable',  'title' => 'Allocatable'},
+            {'field' => 'order',        'title' => 'Order'},
             {'field' => 'technologies', 'title' => 'Technologies'},
-            {'field' => 'parent', 'title' => 'Parent Resource'},
+            {'field' => 'parent',       'title' => 'Parent Resource'},
         ],
         'data' => []
     };
@@ -224,6 +225,7 @@ sub list_resources()
             'id' => $resource->{'id'},
             'user' => [$resource->{'userId'}, $application->format_user($resource->{'userId'})],
             'name' => $resource->{'name'},
+            'allocatable' => $resource->{'allocatable'} ? 'yes' : 'no',
             'order' => $resource->{'allocationOrder'},
             'technologies' => [$resource->{'technologies'}, $technologies],
             'parent' => $resource->{'parentResourceId'},
