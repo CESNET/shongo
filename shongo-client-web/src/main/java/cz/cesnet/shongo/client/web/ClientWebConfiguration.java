@@ -34,11 +34,6 @@ public class ClientWebConfiguration extends CombinedConfiguration
     private URL controllerUrl;
 
     /**
-     * Application parameters.
-     */
-    private Map<String, String> parameters;
-
-    /**
      * @return {@link #clientWebConfiguration}
      */
     public static ClientWebConfiguration getInstance()
