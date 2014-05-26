@@ -62,6 +62,11 @@ public class AdobeConnectRecordingManager
     private final int recordingsCheckTimeout;
 
     /**
+     * Prefix for recordings.
+     */
+    private final String recordingsPrefix;
+
+    /**
      * Name of folder for recordings
      */
     protected String recordingsFolderName;
@@ -84,8 +89,9 @@ public class AdobeConnectRecordingManager
     public AdobeConnectRecordingManager(final AdobeConnectConnector connector) throws CommandException
     {
         this.connector = connector;
-        this.recordingsCheckTimeout = (int) connector.getOptionDuration("check-recordings-period",
+        this.recordingsCheckTimeout = (int) connector.getOptionDuration("recordings-check-period",
                 Duration.standardMinutes(5)).getMillis();
+        this.recordingsPrefix = connector.getOption("recordings-prefix", "");
         this.recordingsFolderName = connector.getOption("recordings-folder-name");
         this.recordingsFolderId = getRecordingsFolderId();
 
@@ -294,7 +300,7 @@ public class AdobeConnectRecordingManager
 
         Element response = connector.request("sco-contents", attributes);
         for (Element resultRecording : response.getChild("scos").getChildren()) {
-            recordingList.add(extractRecording(resultRecording));
+            recordingList.add(parseRecording(resultRecording));
         }
         return Collections.unmodifiableList(recordingList);
     }
@@ -305,7 +311,7 @@ public class AdobeConnectRecordingManager
     public Recording getRecording(String recordingId) throws CommandException
     {
         Element resultRecording = connector.getScoInfo(recordingId);
-        return extractRecording(resultRecording);
+        return parseRecording(resultRecording);
     }
 
     /**
@@ -324,7 +330,7 @@ public class AdobeConnectRecordingManager
         if (resultRecording == null) {
             return null;
         }
-        return extractRecording(resultRecording);
+        return parseRecording(resultRecording);
     }
 
     /**
@@ -523,16 +529,16 @@ public class AdobeConnectRecordingManager
     }
 
     /**
-     * @param resultRecording
+     * @param recordingElement
      * @return {@link Recording} from given {@code resultRecording}
      */
-    private Recording extractRecording(Element resultRecording)
+    private Recording parseRecording(Element recordingElement)
     {
         Recording recording = new Recording();
-        recording.setId(resultRecording.getAttributeValue("sco-id"));
-        recording.setRecordingFolderId(resultRecording.getAttributeValue("folder-id"));
+        recording.setId(recordingElement.getAttributeValue("sco-id"));
+        recording.setRecordingFolderId(recordingElement.getAttributeValue("folder-id"));
 
-        String recordingName = resultRecording.getChildText("name");
+        String recordingName = recordingElement.getChildText("name");
         recording.setName(recordingName);
         Matcher matcher = RECORDING_FILE_NAME_PATTERN.matcher(recordingName);
         if (matcher.find()) {
@@ -542,19 +548,19 @@ public class AdobeConnectRecordingManager
             recording.setFileName(recordingName);
         }
 
-        String description = resultRecording.getChildText("description");
+        String description = recordingElement.getChildText("description");
         recording.setDescription(description == null ? "" : description);
 
-        String dateBegin = resultRecording.getChildText("date-begin");
+        String dateBegin = recordingElement.getChildText("date-begin");
         recording.setBeginDate(DateTime.parse(dateBegin));
 
-        String dateEnd = resultRecording.getChildText("date-end");
+        String dateEnd = recordingElement.getChildText("date-end");
         if (dateEnd != null) {
             recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
         }
 
         Address deviceAddress = connector.getConnectorInfo().getDeviceAddress();
-        String recordingUrlPath = resultRecording.getChildText("url-path");
+        String recordingUrlPath = recordingElement.getChildText("url-path");
         String recordingUrl = "https://" + deviceAddress.getHost() + ":" + deviceAddress.getPort() + recordingUrlPath;
         recording.setViewUrl(recordingUrl);
         if (dateEnd != null) {
@@ -575,7 +581,8 @@ public class AdobeConnectRecordingManager
         Element recordingFolderElement = connector.getScoInfo(folderId);
         String recordingFolderName = recordingFolderElement.getChild("name").getValue();
         try {
-            String recordingName = recordingFolderName + "_" + RECORDING_NAME_DATETIME_FORMATTER.print(dateTime);
+            String recordingName = recordingsPrefix + recordingFolderName
+                    + "_" + RECORDING_NAME_DATETIME_FORMATTER.print(dateTime);
             return URLEncoder.encode(recordingName, "UTF8");
         }
         catch (UnsupportedEncodingException e) {

@@ -662,7 +662,7 @@ module.exports = {
             capability.valueProvider =  {
                 class: "ValueProvider.Pattern",
                 id: oldValueProvider.id,
-                patterns: [this.getPattern(aliasSource.prefix, aliasSource.valuePattern)]
+                patterns: [this.getPattern(null, aliasSource.valuePattern)]
             }
         }
 

@@ -35,6 +35,11 @@ public class NotifyTarget extends ControllerCommand
     {
     }
 
+    public NotifyTarget(Service.NotifyTargetType targetType)
+    {
+        this.targetType = targetType;
+    }
+
     public NotifyTarget(Service.NotifyTargetType targetType, String targetId)
     {
         this.targetType = targetType;

@@ -133,7 +133,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Setup options
         this.requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
-        this.capacityCheckTimeout = (int) getOptionDuration("check-capacities-period",
+        this.capacityCheckTimeout = (int) getOptionDuration("capacity-check-period",
                 Duration.standardMinutes(5)).getMillis();
         this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
         this.meetingsFolderName = getOption("meetings-folder-name");

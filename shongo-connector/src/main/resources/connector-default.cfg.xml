@@ -55,14 +55,16 @@
                 <options>
                     # Request timeout
                     <timeout>PT10S</timeout>
-                    # Periods for checking of room recordings/capacities
-                    <check-recordings-period>PT5M</check-recordings-period>
-                    <check-capacities-period>PT5M</check-capacities-period>
+                    # Capacity checking
+                    <capacity-check-period>PT5M</capacity-check-period>
                     # Regex for extraction of path from url
                     <url-path-extraction-from-uri>connect\.cesnet\.cz/(.+)$</url-path-extraction-from-uri>
                     # Folders to be created on server
                     <recordings-folder-name>shongo-rec</recordings-folder-name>
                     <meetings-folder-name>shongo</meetings-folder-name>
+                    # Recording configuration
+                    <recordings-check-period>PT5M</recordings-check-period>
+                    <recordings-prefix>rec_</recordings-prefix>
                 </options>
             </device>
         </instance>
@@ -106,16 +108,16 @@
                     <password>(heslo)</password>
                 </auth>
                 <options>
-                    # Period for checking of recordings
-                    <check-recordings-period>PT5M</check-recordings-period>
                     # Recording settings
                     <default-bitrate>768</default-bitrate>
                     <alias>999</alias>
                     # Folder configuration
                     <storage>/media/shongo-dev/storage</storage>
                     <metadata-storage>/media/shongo-dev/metadata</metadata-storage>
-                    <recordings-prefix>shongo-dev</recordings-prefix>
                     <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
+                    # Recordings configuration
+                    <check-recordings-period>PT5M</check-recordings-period>
+                    <recordings-prefix>rec_</recordings-prefix>
                 </options>
             </device>
         </instance>

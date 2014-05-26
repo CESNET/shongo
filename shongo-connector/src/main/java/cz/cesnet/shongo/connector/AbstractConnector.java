@@ -140,6 +140,20 @@ abstract public class AbstractConnector implements CommonService
 
     /**
      * @param name
+     * @param defaultValue
+     * @return value of options with given {@code name}
+     */
+    protected String getOption(String name, String defaultValue)
+    {
+        String value = getOption(name);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    /**
+     * @param name
      * @return value of option with given {@code name}
      */
     protected Pattern getOptionPattern(String name)
