@@ -296,8 +296,6 @@ public class ServerAuthorization extends Authorization
         }
         if (search != null) {
             try {
-                search = search.replaceAll("[^\\w ]", " ");
-
                 listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
                 listUsersUrlQuery += "search=" + URLEncoder.encode(search, "UTF-8");
             }

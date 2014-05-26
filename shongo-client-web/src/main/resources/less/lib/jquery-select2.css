@@ -1110,3 +1110,8 @@ html[dir="rtl"] .select2-search-choice-close {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
 }
+
+/* Search errors */
+.select2-no-results .error {
+    font-weight: normal;
+}

@@ -130,7 +130,24 @@
                         return {results: results};
                     },
                     transport: function (options) {
-                        return $.ajax(options).fail($application.handleAjaxFailure);
+                        var control = this.data().select2;
+                        if (control.opts.formatNoMatchesDefault == null) {
+                            control.opts.formatNoMatchesDefault = control.opts.formatNoMatches;
+                        }
+                        control.opts.formatNoMatches = control.opts.formatNoMatchesDefault;
+                        return $.ajax(options).fail(function(response){
+                            if (response.status == 500) {
+                                var error = JSON.parse(response.responseText);
+                                if (error.error == "type-illegal-value") {
+                                    control.opts.formatNoMatches = function(term){
+                                        return "<span class='error'><spring:message code="validation.field.invalidValue"/></span>";
+                                    };
+                                    options.success([]);
+                                    return;
+                                }
+                            }
+                            $application.handleAjaxFailure(response);
+                        });
                     }
                 },
                 escapeMarkup: function (markup) { return markup; },

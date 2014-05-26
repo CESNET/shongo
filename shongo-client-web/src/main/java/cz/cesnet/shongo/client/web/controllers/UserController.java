@@ -3,7 +3,6 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.client.web.models.UserSettingsModel;
 import cz.cesnet.shongo.client.web.support.BackUrl;

@@ -234,6 +234,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         UserSession userSession = UserSession.getInstance(request);
         userSession.setDetectedTimeZone(null);
         userSession.loadUserSettings(userSettings, request, securityToken);
+        userSession.afterLogin();
         return authentication;
     }
 

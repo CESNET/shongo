@@ -5,18 +5,24 @@ import cz.cesnet.shongo.client.web.auth.AjaxRequestMatcher;
 import cz.cesnet.shongo.client.web.auth.AuthorizationCodeExpiredException;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
+import cz.cesnet.shongo.client.web.models.UserSession;
 import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.CommonService;
+import cz.cesnet.shongo.report.AbstractReport;
+import cz.cesnet.shongo.report.ApiFault;
 import cz.cesnet.shongo.report.ApiFaultException;
+import cz.cesnet.shongo.report.ReportRuntimeException;
 import cz.cesnet.shongo.util.PasswordAuthenticator;
 import net.tanesha.recaptcha.ReCaptcha;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
 import org.springframework.web.util.WebUtils;
 
 import javax.annotation.Resource;
@@ -283,7 +289,31 @@ public class ErrorHandler
         }
         else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
             logger.warn("Invalid security token, redirecting to login page...", cause);
-            return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
+            UserSession userSession = UserSession.getInstance(request);
+            if (userSession.attemptLogin()) {
+                return new ModelAndView("redirect:" + ClientWebUrl.LOGIN);
+            }
+            else {
+                return handleCause(request, new AuthenticationServiceException(cause.getMessage()), message);
+            }
+        }
+        else if (AjaxRequestMatcher.isAjaxRequest(request)) {
+            String error;
+            String description;
+            if (cause instanceof ReportRuntimeException) {
+                ReportRuntimeException reportException = (ReportRuntimeException) cause;
+                AbstractReport report = reportException.getReport();
+                error = report.getUniqueId();
+                description = report.getMessage();
+            }
+            else {
+                error = cause.getClass().getCanonicalName();
+                description = cause.getMessage();
+            }
+            ModelAndView modelAndView = new ModelAndView(new MappingJacksonJsonView());
+            modelAndView.addObject("error", error);
+            modelAndView.addObject("description", description);
+            return modelAndView;
         }
         return null;
     }

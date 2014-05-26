@@ -26,6 +26,13 @@ public class AjaxRequestMatcher implements RequestMatcher
     public static boolean isAjaxRequest(HttpServletRequest request)
     {
         String ajaxHeaderValue = request.getHeader("x-requested-with");
-        return ajaxHeaderValue != null && StringUtils.equalsIgnoreCase("XMLHttpRequest", ajaxHeaderValue);
+        if(ajaxHeaderValue != null && StringUtils.equalsIgnoreCase("XMLHttpRequest", ajaxHeaderValue)) {
+            return true;
+        }
+        String requestUri = request.getRequestURI();
+        if (requestUri.endsWith("/data")) {
+            return true;
+        }
+        return false;
     }
 }

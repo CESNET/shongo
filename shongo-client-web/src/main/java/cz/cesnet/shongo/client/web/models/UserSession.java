@@ -66,6 +66,11 @@ public class UserSession implements Serializable
     private UserSettingsModel userSettings;
 
     /**
+     * Number of automatic login attempts.
+     */
+    private int loginCounter = 0;
+
+    /**
      * Constructor.
      */
     public UserSession()
@@ -293,5 +298,25 @@ public class UserSession implements Serializable
         });
 
         WebUtils.setSessionAttribute(request, USER_SESSION_ATTRIBUTE, this);
+    }
+
+    /**
+     * @return true whether automatic login is allowed, false otherwise
+     */
+    public boolean attemptLogin()
+    {
+        loginCounter++;
+        if (loginCounter < 3) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Call when user is logged in.
+     */
+    public void afterLogin()
+    {
+        loginCounter = 0;
     }
 }
