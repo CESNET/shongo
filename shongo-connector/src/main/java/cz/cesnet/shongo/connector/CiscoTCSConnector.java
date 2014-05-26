@@ -184,7 +184,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         this.recordingsCheckTimeout = (int) getOptionDuration("recordings-check-period",
                 Duration.standardMinutes(5)).getMillis();
-        this.recordingsPrefix = getOption("recordings-prefix", "");
+        this.recordingsPrefix = getOption("recordings-prefix", "shongo_");
 
         if (getOption("alias") != null) {
             this.ALIAS = getOption("alias");
@@ -363,7 +363,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             }
 
             // Delete original recordings
-            for (Recording recording : listOriginalRecordings(recordingFolderId)) {
+            for (Recording recording : listOriginalRecordings(recordingFolderId + "*")) {
                 deleteOriginalRecording(recording.getId());
             }
         }
@@ -1133,7 +1133,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
             synchronized (CiscoTCSConnector.class) {
                 logger.debug("Checking recordings to be moved...");
-                List<Recording> recordings = listOriginalRecordings("");
+                List<Recording> recordings = listOriginalRecordings("*");
                 if (recordings.size() > 0) {
                     Set<String> existingFolderNames = new HashSet<String>();
                     for (Folder folder : metadataStorage.listFolders(null, null)) {

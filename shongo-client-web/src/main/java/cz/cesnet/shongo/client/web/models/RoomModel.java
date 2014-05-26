@@ -542,12 +542,12 @@ public class RoomModel extends ParticipantConfigurationModel
             AliasType aliasType = alias.getType();
             switch (aliasType) {
                 case H323_E164:
-                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("+420" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
-                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
@@ -557,14 +557,14 @@ public class RoomModel extends ParticipantConfigurationModel
                 case H323_IP:
                 case SIP_URI:
                 case SIP_IP:
-                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable(alias.getValue()));
                     stringBuilder.append("</td></tr>");
                     break;
                 case ADOBE_CONNECT_URI:
-                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append("<tr><td class=\"title\">");
                     stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");
                     if (isAvailable) {
