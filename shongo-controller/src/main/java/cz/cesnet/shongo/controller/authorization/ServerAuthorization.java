@@ -286,7 +286,7 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserData> onListUserData(final Set<String> filterUserIds, final String search)
+    protected Collection<UserData> onListUserData(final Set<String> filterUserIds, String search)
     {
         String listUsersUrlQuery = "";
         if (filterUserIds != null && filterUserIds.size() > 0) {
@@ -296,6 +296,8 @@ public class ServerAuthorization extends Authorization
         }
         if (search != null) {
             try {
+                search = search.replaceAll("[^\\w ]", " ");
+
                 listUsersUrlQuery += (listUsersUrlQuery.isEmpty() ? "?" : "&");
                 listUsersUrlQuery += "search=" + URLEncoder.encode(search, "UTF-8");
             }
@@ -304,6 +306,7 @@ public class ServerAuthorization extends Authorization
             }
         }
         String listUsersUrl = authorizationServer + USER_SERVICE_PATH + listUsersUrlQuery;
+        final String listUsersSearch = search;
         return performGetRequest(listUsersUrl, "Retrieving user information failed",
                 new RequestHandler<Collection<UserData>>()
                 {
@@ -342,7 +345,7 @@ public class ServerAuthorization extends Authorization
 
                         }
                         else if (detail.startsWith("Invalid search string")) {
-                            throw new CommonReportSet.TypeIllegalValueException("search string", search);
+                            throw new CommonReportSet.TypeIllegalValueException("search string", listUsersSearch);
                         }
                     }
                 });
