@@ -12,6 +12,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.ModifyRoom;
 import cz.cesnet.shongo.connector.api.jade.recording.DeleteRecordingFolder;
 import cz.cesnet.shongo.connector.api.jade.recording.ModifyRecordingFolder;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ObjectRole;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -278,7 +279,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint
     public RecordingFolder getRecordingFolderApi()
     {
         RecordingFolder recordingFolder = new RecordingFolder();
-        recordingFolder.setName(String.format("exe:%d:res:%d:room:%s", getId(), getResource().getId(), getRoomId()));
+        recordingFolder.setName(String.format("%s:%d", Domain.getLocalDomainCode(), getId()));
         recordingFolder.setUserPermissions(getRecordingFolderUserPermissions());
         return recordingFolder;
     }

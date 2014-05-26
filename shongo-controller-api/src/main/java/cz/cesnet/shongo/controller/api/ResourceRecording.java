@@ -4,7 +4,7 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.Recording;
 
 /**
- * Represents {@link Recording} which belongs to some {@link Executable} and which is located in some recording folder.
+ * Represents {@link Recording} which was created in some {@link Resource} and which is located in some recording folder.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -60,13 +60,13 @@ public class ResourceRecording extends Recording
         this.resourceId = resourceId;
     }
 
-    public static final String EXECUTABLE_ID = "executableId";
+    public static final String RESOURCE_ID = "resourceId";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(EXECUTABLE_ID, resourceId);
+        dataMap.set(RESOURCE_ID, resourceId);
         return dataMap;
     }
 
@@ -74,6 +74,6 @@ public class ResourceRecording extends Recording
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        resourceId = dataMap.getString(EXECUTABLE_ID);
+        resourceId = dataMap.getString(RESOURCE_ID);
     }
 }

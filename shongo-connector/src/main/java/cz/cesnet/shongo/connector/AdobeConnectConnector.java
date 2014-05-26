@@ -6,9 +6,6 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
-import cz.cesnet.shongo.controller.RecordingUnavailableException;
-import cz.cesnet.shongo.controller.RoomNotExistsException;
-import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -22,8 +19,6 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,19 +49,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public static final String URL_PATH_EXTRACTION_FROM_URI = "url-path-extraction-from-uri";
 
     /**
-     * Pattern for recording names (with _[])
+     * Small timeout used between some AC request
      */
-    private final Pattern RECRDING_AC_TITLE_PATTERN = Pattern.compile("(.*)_([0-9]+)$");
+    public final static long REQUEST_DELAY = 100;
 
     /**
      * Patterns for options.
      */
     private Pattern urlPathExtractionFromUri = null;
-
-    /**
-     * Recordings prefix.
-     */
-//    private String RECORDINGS_PREFIX = "";
 
     /**
      * Name of folder for meetings
@@ -76,17 +66,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     /**
      * Root folder ID for meetings
      */
-    protected String meetingsFolderID;
-
-    /**
-     * Name of folder for recordings
-     */
-    protected String recordingsFolderName;
-
-    /**
-     * Root folder ID for meetings
-     */
-    protected String recordingsFolderID;
+    protected String meetingsFolderId;
 
     /**
      * This is the user log in name, typically the user email address.
@@ -104,36 +84,25 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private int requestTimeout;
 
     /**
+     * Timeout for checking room capacity.
+     */
+    private int capacityCheckTimeout;
+
+    /**
      * The Java session ID that is generated upon successful login.  All calls
      * except login must provide this ID for authentication.
      */
-    private String breezesession;
+    private String breezeSession;
 
     /**
      * If capacity check is running.
      */
     private volatile boolean capacityChecking = false;
 
-
     /**
-     * If recording check is running.
+     * @see AdobeConnectRecordingManager
      */
-    private volatile boolean recordingChecking = false;
-
-    /**
-     * Timeout for checking room capacity, default value is 5 minutes
-     */
-    private final long CAPACITY_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
-
-    /**
-     * Timeout for checking if recording are in right folder, default value is 5 minutes
-     */
-    private final long RECORDING_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
-
-    /**
-     * Small timeout used between some AC request
-     */
-    private final long AC_REQUEST_DELAY = 100;
+    private AdobeConnectRecordingManager recordingManager;
 
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
@@ -144,7 +113,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      *                      the Breeze system.  This is often an administrator but
      *                      Breeze will properly apply permissions for any user.
      * @param password      The password of the user who's logging in.
-     * @param breezesession The Java session ID created by the Breeze server upon
+     * @param breezeSession The Java session ID created by the Breeze server upon
      *                      successful login.
      *
     public AdobeConnectConnector()
@@ -152,7 +121,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         this.serverUrl = serverUrl;
         this.login = login;
         this.password = password;
-        this.breezesession = breezesession;
+        this.breezeSession = breezeSession;
     }*/
 
     @Override
@@ -164,13 +133,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Setup options
         this.requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
+        this.capacityCheckTimeout = (int) getOptionDuration("check-capacities-period",
+                Duration.standardMinutes(5)).getMillis();
         this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
-        this.recordingsFolderName = getOption("recordings-folder-name");
         this.meetingsFolderName = getOption("meetings-folder-name");
-//        this.RECORDINGS_PREFIX = getOption("recordings-prefix") == null ? "" : getOption("recordings-prefix");
 
         this.login();
 
+        this.recordingManager = new AdobeConnectRecordingManager(this);
         this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
 
@@ -403,347 +373,62 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public String createRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        String recordingFolderName = recordingFolder.getName();
-        String suffix = "";
-        Integer index = 0;
-        while (true) {
-            try {
-                RequestAttributeList attributes = new RequestAttributeList();
-                attributes.add("sco-id", getRecordingsFolderID());
-                attributes.add("filter-name", URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8"));
-
-
-                Element recFolders = request("sco-contents", attributes);
-                if (recFolders.getChild("scos").getChildren().size() == 0) {
-                    recordingFolderName = URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8");
-                    break;
-                }
-
-                index = index + 1;
-                suffix = index.toString();
-            }
-            catch (UnsupportedEncodingException e) {
-                throw new CommandException("Error while message encoding.", e);
-            }
-        }
-
-        RequestAttributeList folderAttributes = new RequestAttributeList();
-        folderAttributes.add("folder-id", getRecordingsFolderID());
-        folderAttributes.add("name", recordingFolderName);
-        folderAttributes.add("type", "folder");
-
-        Element folder = request("sco-update", folderAttributes);
-        String recordingId = folder.getChild("sco").getAttributeValue("sco-id");
-
-        if (recordingFolder.getUserPermissions().size() > 0) {
-            recordingFolder.setId(recordingId);
-            modifyRecordingFolder(recordingFolder);
-        }
-
-        return recordingId;
+        return recordingManager.createRecordingFolder(recordingFolder);
     }
 
     @Override
     public void modifyRecordingFolder(RecordingFolder recordingFolder) throws CommandException
     {
-        resetPermissions(recordingFolder.getId());
-
-        RequestAttributeList userAttributes = new RequestAttributeList();
-        userAttributes.add("acl-id",recordingFolder.getId());
-
-        for (Map.Entry<String, RecordingFolder.UserPermission> userPermissions : recordingFolder.getUserPermissions().entrySet()) {
-            UserInformation userInformation = getUserInformationById(userPermissions.getKey());
-
-            // Configure all principal names for participant
-            Set<String> principalNames = userInformation.getPrincipalNames();
-            if (principalNames.size() == 0) {
-                throw new CommandException("User " + userInformation.getFullName() + " has no principal names.");
-            }
-            for (String principalName : principalNames) {
-                String userId = createAdobeConnectUser(principalName, userInformation);
-                String role = "denied";
-
-                switch (userPermissions.getValue()) {
-                    case READ:
-                        role = "view";
-                        break;
-                    case WRITE:
-                        role = "manage";
-                        break;
-                }
-                userAttributes.add("principal-id", userId);
-                userAttributes.add("permission-id", role);
-                logger.debug("Setting permissions '{}' for recordings folder '{}' for user '{}' (principal-id: {}).",
-                        new Object[]{userPermissions.getValue(), recordingFolder.getId(), userInformation.getFullName(), userId});
-            }
-
-        }
-
-        request("permissions-update",userAttributes);
+        recordingManager.modifyRecordingFolder(recordingFolder);
     }
 
     @Override
     public void deleteRecordingFolder(String recordingFolderId) throws CommandException
     {
-        deleteSCO(recordingFolderId);
+        recordingManager.deleteRecordingFolder(recordingFolderId);
     }
 
     @Override
     public Collection<Recording> listRecordings(String recordingFolderId) throws CommandException
     {
-        ArrayList<Recording> recordingList = new ArrayList<Recording>();
-
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", recordingFolderId);
-        attributes.add("filter-icon", "archive");
-        attributes.add("filter-out-date-end","null");
-
-        Element response = request("sco-contents", attributes);
-        for (Element resultRecording : response.getChild("scos").getChildren()) {
-            recordingList.add(extractRecording(resultRecording));
-        }
-        return Collections.unmodifiableList(recordingList);
+        return recordingManager.listRecordings(recordingFolderId);
     }
 
     @Override
     public Recording getRecording(String recordingId) throws CommandException
     {
-        Element resultRecording = getScoInfo(recordingId);
-        return extractRecording(resultRecording);
-    }
-
-    /**
-     * Returns active recording for room with alias, if any
-     * @param roomId
-     * @return Recording info, or null, if no active recording
-     * @throws CommandException
-     */
-    protected Recording getActiveRecording(String roomId) throws CommandException
-    {
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-        attributes.add("filter-icon", "archive");
-        attributes.add("filter-date-end", "null");
-
-        Element response = request("sco-contents", attributes);
-
-        Element resultRecording = response.getChild("scos").getChild("sco");
-        if (resultRecording == null) {
-            return null;
-        }
-
-        return extractRecording(resultRecording);
+        return recordingManager.getRecording(recordingId);
     }
 
     @Override
     public Recording getActiveRecording(Alias alias) throws CommandException
     {
-        String path = getLastPathSegmentFromURI(alias.getValue());
-        String scoId = getScoByUrl(path);
-
-        return getActiveRecording(scoId);
+        return recordingManager.getActiveRecording(alias);
     }
 
     @Override
     public boolean isRecordingActive(String recordingId) throws CommandException
     {
-        return getScoInfo(recordingId).getChild("date-end") == null;
+        return recordingManager.isRecordingActive(recordingId);
     }
 
     @Override
-    public String startRecording(String folderId, Alias alias, RecordingSettings recordingSettings)
+    public String startRecording(String recordingFolderId, Alias alias, RecordingSettings recordingSettings)
             throws CommandException
     {
-        String recordingName;
-        try {
-            recordingName = URLEncoder.encode("[flr:" + folderId + "] " + DateTimeFormat.forStyle("SM").print(DateTime.now()),"UTF8");
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new CommandException("Error while URL encoding.", e);
-        }
-
-        RequestAttributeList attributes = new RequestAttributeList();
-
-        String path = getLastPathSegmentFromURI(alias.getValue());
-        String scoId = getScoByUrl(path);
-        attributes.add("sco-id", scoId);
-        attributes.add("active", "true");
-        attributes.add("name",recordingName);
-
-        // throw exception if recording is not ready = no participants in the room
-        try {
-            request("meeting-recorder-activity-update", attributes);
-        } catch (RequestFailedCommandException ex) {
-            if ("no-access".equals(ex.getCode()) && "not-available".equals(ex.getSubCode())) {
-                throw new RecordingUnavailableException("Recording is not available now.");
-            }
-
-            if ("internal-error".equals(ex.getCode())) {
-                logger.warn("AC internal error thrown during starting recording (meeting is probably just starting).");
-                throw new RecordingUnavailableException("Recording is not available now.");
-            }
-
-            throw ex;
-        }
-
-        RequestAttributeList recAttributes = new RequestAttributeList();
-        recAttributes.add("sco-id", scoId);
-
-        Element response;
-        int count = 0;
-        while (true) {
-            try {
-                Thread.sleep(AC_REQUEST_DELAY);
-            }
-            catch (InterruptedException e) {
-                logger.debug("unexpected wakening, but nothing to worry about");
-            }
-            response = request("meeting-recorder-activity-info", recAttributes);
-
-            if (response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id") != null) {
-                break;
-            }
-
-            count++;
-            logger.debug("Failed to get recording id for " + count + ". times. It probably meens, that recording didn't start.");
-
-            if (count > 4) {
-                throw new CommandException("Cannot get recording id for.");
-            }
-        }
-
-        return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
+        return recordingManager.startRecording(recordingFolderId, alias, recordingSettings);
     }
 
     @Override
     public void stopRecording(String recordingId) throws CommandException
     {
-        Element recordingInfo = getScoInfo(recordingId);
-        String roomId = recordingInfo.getAttributeValue("folder-id");
-
-        // Get identifier of recording folder
-        String recordingFolderId;
-        String recordingName = recordingInfo.getChildText("name");
-        Pattern pattern = Pattern.compile("\\[[^:]+:(\\d+)\\]");
-        Matcher matcher = pattern.matcher(recordingName);
-        if (matcher.find()) {
-            // Get recording folder id from matcher
-            recordingFolderId = matcher.group(1);
-        }
-        else {
-            // Get recording folder id from controller
-            recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
-            if (recordingFolderId == null) {
-                throw new CommandException("FolderId from GetRecordingFolderId was null.");
-            }
-        }
-
-        // Stop recording
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-        attributes.add("active", "false");
-        request("meeting-recorder-activity-update", attributes);
-
-        // Move recording
-        moveRecording(recordingId,recordingFolderId);
-        cachedMovedRecordings.add(recordingId);
+        recordingManager.stopRecording(recordingId);
     }
 
     @Override
     public void deleteRecording(String recordingId) throws CommandException
     {
-        deleteSCO(recordingId);
-    }
-
-    private synchronized void moveRecording(String recordingId, String recordingFolderId) throws CommandException
-    {
-        if (isRecordingStored(recordingId,recordingFolderId)) {
-            return;
-        }
-
-        RequestAttributeList moveAttributes = new RequestAttributeList();
-        moveAttributes.add("sco-id", recordingId);
-        moveAttributes.add("folder-id", recordingFolderId);
-
-        logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
-        // Counter for duplicate names
-        int i = 0;
-        // Move or rename if duplicate name (add "_X")
-        while (true) {
-            try {
-                request("sco-move", moveAttributes);
-                break;
-            } catch (RequestFailedCommandException ex) {
-                    if ("invalid".equals(ex.getCode()) && "duplicate".equals(ex.getRequestResult().getChild("status").getChild("invalid").getAttributeValue("subcode"))) {
-                        String field = ex.getRequestResult().getChild(
-                                "status").getChild(ex.getCode()).getAttributeValue("field");
-                        String name = getScoInfo(recordingId).getChildText(field);
-
-                        renameSco(recordingId,incrementNameSufix(name));
-
-                        continue;
-                    }
-
-                    throw ex;
-                }
-
-            }
-    }
-
-    /**
-     * Cache of {@link UserInformation} by shongo-user-id.
-     */
-    private List<String> cachedMovedRecordings = new ArrayList<String>();
-
-    public boolean isRecordingStored(String recordingId) throws CommandException
-    {
-        return isRecordingStored(recordingId, null);
-    }
-
-    /**
-     * Check if recording is stored in dedicated folder (given or system if null), or still in room. Logs warning, if recording is stored in another folder, then it is supposed to.
-     *
-     * @param recordingId
-     * @return
-     * @throws CommandException
-     */
-    public boolean isRecordingStored(String recordingId, String recordingFolderId) throws CommandException
-    {
-        if (cachedMovedRecordings.contains(recordingId)) {
-            return true;
-        }
-
-        Element recording = getScoInfo(recordingId);
-        String folderId = recording.getAttributeValue("folder-id");
-
-        if (recordingFolderId != null) {
-            if (folderId.equals(recordingFolderId)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-
-        RequestAttributeList recFoldersAttributes = new RequestAttributeList();
-        recFoldersAttributes.add("sco-id", getRecordingsFolderID());
-
-        List<Element> recFolders = request("sco-contents",recFoldersAttributes).getChild("scos").getChildren();
-
-        for (Element recFolder : recFolders) {
-            if (recFolder.getAttributeValue("sco-id").equals(folderId)) {
-                cachedMovedRecordings.add(recordingId);
-                return true;
-            }
-        }
-
-        Element folder = getScoInfo(folderId);
-        if ("folder".equals(folder.getAttributeValue("type"))) {
-            logger.warn("Recording is stored in wrong folder (outside folder " + recordingsFolderName + "): " + folder.getChildText("name"));
-            return true;
-        } else {
-            return false;
-        }
+        recordingManager.deleteRecording(recordingId);
     }
 
     @Override
@@ -972,54 +657,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         return request("permissions-info", permissionsAttributes);
     }
 
-    /**
-     * Set parent (meetings) permissions for the recordings.
-     *
-     * @param roomId identifier of the room
-     * @param permissions XML Element from API call "permissions-info"
-     * @throws CommandException
-     */
-    protected void setRecordingPermissionsAsMeetings(String roomId, Element permissions) throws CommandException
-    {
-        RequestAttributeList userAttributes = new RequestAttributeList();
-
-        for (Recording recording : listRecordings(roomId))
-        {
-            userAttributes.add("acl-id", recording.getId());
-
-            resetPermissions(recording.getId());
-
-            for (Element principal : permissions.getChild("permissions").getChildren("principal")) {
-                String principalId = principal.getAttributeValue("principal-id");
-                userAttributes.add("principal-id", principalId);
-                if ("host".equals(principal.getAttributeValue("permission-id"))) {
-                    userAttributes.add("permission-id", "manage");
-                }
-                else { //TODO: zatim se ale nepropaguji
-                    userAttributes.add("permisson-id", "publish");
-                }
-            }
-
-            if (userAttributes.getValue("principal-id") == null) {
-                return;
-            }
-
-            logger.debug("Setting permissions for recording '{}' (sco ID: '{}').", recording.getName(), recording.getId());
-            request("permissions-update", userAttributes);
-        }
-    }
-
-    /**
-     * Set parent (meetings) permissions for the recordings.
-     *
-     * @param roomId identifier of the room
-     * @throws CommandException
-     */
-    protected void setRecordingPermissionsAsMeetings(String roomId) throws CommandException
-    {
-        setRecordingPermissionsAsMeetings(roomId, getSCOPermissions(roomId));
-    }
-
     protected void resetPermissions(String roomId) throws CommandException
     {
         RequestAttributeList permissionsResetAttributes = new RequestAttributeList();
@@ -1034,7 +671,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         try {
             RequestAttributeList attributes = new RequestAttributeList();
             attributes.add("folder-id",
-                    (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
+                    (this.meetingsFolderId != null ? this.meetingsFolderId : this.getMeetingsFolderId()));
             attributes.add("type", "meeting");
             attributes.add("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
 
@@ -1122,7 +759,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             addRoomParticipants(roomId, room.getParticipantRoles());
         }
         else if (room.getLicenseCount() == 0) {
-            setRecordingPermissionsAsMeetings(roomId);
+            recordingManager.setRecordingPermissionsAsMeetings(roomId);
             resetPermissions(roomId);
             endMeeting(roomId);
         }
@@ -1200,31 +837,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         endMeeting(roomId);
 
         // Backup content
-        // Recordings
-        RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", roomId);
-        attributes.add("filter-icon", "archive");
-        List<Element> recordings = request("sco-contents", attributes).getChild("scos").getChildren();
-
-        if (recordings.size() > 0) {
-            String recordingFolderId = null;
-            try {
-                recordingFolderId = (String) performControllerAction(new GetRecordingFolderId(roomId));
-            }
-            catch (CommandException exception) {
-                if (RoomNotExistsException.CODE.equals(exception.getCode())) {
-                    logger.warn("Cannot get recording folder id while deleting room " + roomId + "...", exception);
-                }
-                else {
-                    throw exception;
-                }
-            }
-            if (recordingFolderId != null) {
-                for(Element recording : recordings) {
-                    moveRecording(recording.getAttributeValue("sco-id"),recordingFolderId);
-                }
-            }
-        }
+        recordingManager.backupRoomRecordings(roomId);
 
         deleteSCO(roomId);
     }
@@ -1234,11 +847,8 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         Element scoInfo = getScoInfo(roomId);
         Document document = scoInfo.getDocument();
-
-        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
-        String xmlString = outputter.outputString(document);
-
-        return xmlString;
+        XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
+        return xmlOutput.outputString(document);
     }
 
     @Override
@@ -1408,36 +1018,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         request("meeting-usermanager-remove-user", attributes);
     }
 
-    private Recording extractRecording(Element resultRecording)
-    {
-        Recording recording = new Recording();
-        recording.setId(resultRecording.getAttributeValue("sco-id"));
-        recording.setRecordingFolderId(resultRecording.getAttributeValue("folder-id"));
-        recording.setName(resultRecording.getChildText("name"));
-
-        String description = resultRecording.getChildText("description");
-        recording.setDescription(description == null ? "" : description);
-
-        String dateBegin = resultRecording.getChildText("date-begin");
-        recording.setBeginDate(DateTime.parse(dateBegin));
-
-        String dateEnd = resultRecording.getChildText("date-end");
-        if (dateEnd != null) {
-            recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
-        }
-
-        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
-                + resultRecording.getChildText("url-path");
-
-        recording.setFileName(resultRecording.getChildText("name"));
-        recording.setViewUrl(baseUrl);
-        if (dateEnd != null) {
-            recording.setEditUrl(baseUrl + "?pbMode=edit");
-        }
-
-        return recording;
-    }
-
     protected Element getScoInfo(String scoId) throws CommandException
     {
         try {
@@ -1480,24 +1060,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Add sufix _[0-9] to name or increment it
-     *
-     * @param name
-     * @return
-     */
-    private String incrementNameSufix(String name)
-    {
-        Matcher matcher = RECRDING_AC_TITLE_PATTERN.matcher(name);
-        if (!matcher.find()) {
-            return name + "_0";
-        } else {
-            int nextNumber = Integer.parseInt(matcher.group(2)) + 1;
-            System.out.println(Integer.parseInt(matcher.group(2)));
-            return matcher.group(1) + "_" + nextNumber;
-        }
-    }
-
-    /**
      * Retrieves the appropriate Breeze URL.
      *
      * @param action    the action to perform
@@ -1523,13 +1085,13 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 + queryString);
     }
 
-    protected String getBreezesession() throws Exception
+    protected String getBreezeSession() throws Exception
     {
 
-        if (breezesession == null) {
+        if (breezeSession == null) {
             login();
         }
-        return breezesession;
+        return breezeSession;
     }
 
     /**
@@ -1538,9 +1100,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @return meeting folder SCO-ID
      * @throws CommandException
      */
-    protected String getMeetingsFolderID() throws CommandException
+    protected String getMeetingsFolderId() throws CommandException
     {
-        if (meetingsFolderID == null) {
+        if (meetingsFolderId == null) {
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("meetings".equals(sco.getAttributeValue("type"))) {
@@ -1553,12 +1115,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
                         if (meetingsFolderName.equals(folder.getChildText("name"))) {
-                            meetingsFolderID = folder.getAttributeValue("sco-id");
+                            meetingsFolderId = folder.getAttributeValue("sco-id");
                         }
                     }
 
                     // Creates meetings folder if not exists
-                    if (meetingsFolderID == null) {
+                    if (meetingsFolderId == null) {
                         logger.debug("Folder /" + meetingsFolderName + " for shongo meetings does not exists, creating...");
 
                         RequestAttributeList folderAttributes = new RequestAttributeList();
@@ -1569,9 +1131,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
                         Element folder = request("sco-update", folderAttributes);
 
-                        meetingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
+                        meetingsFolderId = folder.getChild("sco").getAttributeValue("sco-id");
 
-                        logger.debug("Folder /" + meetingsFolderName + " for meetings created with sco-id: " + meetingsFolderID);
+                        logger.debug("Folder /" + meetingsFolderName + " for meetings created with sco-id: " + meetingsFolderId);
                     }
 
                     break;
@@ -1579,73 +1141,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
         }
 
-        return meetingsFolderID;
-    }
-
-    /**
-     * Sets and returns SCO-ID of folder for recordings.
-     *
-     * @return recordings folder SCO-ID
-     * @throws CommandException
-     */
-    protected String getRecordingsFolderID() throws CommandException
-    {
-        if (recordingsFolderID == null) {
-            Element response = request("sco-shortcuts", null);
-            for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
-                if ("content".equals(sco.getAttributeValue("type"))) {
-                    // Find sco-id of recordings-folder folder
-                    RequestAttributeList searchAttributes = new RequestAttributeList();
-                    searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
-                    searchAttributes.add("filter-is-folder", "1");
-
-                    Element shongoFolder = request("sco-contents", searchAttributes);
-
-                    for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
-                        if (recordingsFolderName.equals(folder.getChildText("name"))) {
-                            recordingsFolderID = folder.getAttributeValue("sco-id");
-                        }
-                    }
-
-                    // Creates recording folder if not exists
-                    if (recordingsFolderID == null) {
-                        logger.debug("Folder /" + recordingsFolderName + " for shongo meetings does not exists, creating...");
-
-                        RequestAttributeList folderAttributes = new RequestAttributeList();
-                        folderAttributes.add("folder-id", sco.getAttributeValue("sco-id"));
-                        folderAttributes.add("name", recordingsFolderName);
-                        folderAttributes.add("type", "folder");
-
-                        Element folder = request("sco-update", folderAttributes);
-
-                        recordingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
-
-                        logger.debug("Folder /" + recordingsFolderName + " for meetings created with sco-id: " + recordingsFolderID);
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        // Check if permission for this folder is denied, or sets it
-        RequestAttributeList permissionsInfoAttributes = new RequestAttributeList();
-        permissionsInfoAttributes.add("acl-id",recordingsFolderID);
-        permissionsInfoAttributes.add("filter-principal-id","public-access");
-
-        String permissions = request("permissions-info",permissionsInfoAttributes).getChild("permissions").getChild("principal").getAttributeValue(
-                "permission-id");
-
-        if (!"denied".equals(permissions)) {
-            RequestAttributeList permissionsUpdateAttributes = new RequestAttributeList();
-            permissionsUpdateAttributes.add("acl-id", recordingsFolderID);
-            permissionsUpdateAttributes.add("principal-id", "public-access");
-            permissionsUpdateAttributes.add("permission-id", "denied");
-
-            request("permissions-update", permissionsUpdateAttributes);
-        }
-
-        return recordingsFolderID;
+        return meetingsFolderId;
     }
 
     /**
@@ -1653,7 +1149,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void login() throws CommandException
     {
-        if (this.breezesession != null) {
+        if (this.breezeSession != null) {
             logout();
         }
 
@@ -1698,15 +1194,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
             String breezesessionNext = st.nextToken();
             int semiIndex = breezesessionNext.indexOf(';');
-            this.breezesession = breezesessionNext.substring(0, semiIndex);
+            this.breezeSession = breezesessionNext.substring(0, semiIndex);
 
 
-            this.meetingsFolderID = this.getMeetingsFolderID();
-            this.recordingsFolderID = this.getRecordingsFolderID();
+            this.meetingsFolderId = this.getMeetingsFolderId();
         }
 
 
-        if (breezesession == null) {
+        if (breezeSession == null) {
             throw new CommandException("Could not log in to Adobe Connect server: " + info.getDeviceAddress());
         }
 
@@ -1718,10 +1213,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             {
                 setCapacityChecking(true);
                 logger.info("Checking of rooms capacity - starting...");
-
                 while (isConnected()) {
                     try {
-                        Thread.sleep(CAPACITY_CHECK_TIMEOUT);
+                        Thread.sleep(capacityCheckTimeout);
                     } catch (InterruptedException e) {
                        Thread.currentThread().interrupt();
                        continue;
@@ -1733,48 +1227,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                         logger.warn("Capacity check failed", exception);
                     }
                 }
-
+                logger.info("Checking of rooms capacity - exiting...");
                 setCapacityChecking(false);
             }
         };
-
-        Thread moveRecordingThread = new Thread() {
-            private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
-
-            @Override
-            public void run()
-            {
-                setRecordingChecking(true);
-                logger.info("Checking of recordings - starting...");
-
-                while (isConnected()) {
-                    try {
-                        Thread.sleep(RECORDING_CHECK_TIMEOUT);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        continue;
-                    }
-
-                    try {
-                        checkRecordings();
-                    } catch (Exception exception) {
-                        logger.warn("Checking location of recording failed", exception);
-                    }
-                }
-
-                setRecordingChecking(false);
-            }
-        };
-
+        capacityCheckThread.setName(Thread.currentThread().getName() + "-capacities");
         synchronized (this) {
             if (!this.capacityChecking) {
                 capacityCheckThread.start();
-            }
-        }
-
-        synchronized (this) {
-            if (!this.recordingChecking) {
-                moveRecordingThread.start();
             }
         }
     }
@@ -1782,11 +1242,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private synchronized void setCapacityChecking(boolean value)
     {
         this.capacityChecking = value;
-    }
-
-    private synchronized void setRecordingChecking(boolean value)
-    {
-        this.recordingChecking = value;
     }
 
     /**
@@ -1798,7 +1253,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         Element response = request("report-active-meetings",new RequestAttributeList());
 
         RequestAttributeList attributes = new RequestAttributeList();
-        attributes.add("sco-id", getMeetingsFolderID());
+        attributes.add("sco-id", getMeetingsFolderId());
         attributes.add("type", "meeting");
         Element shongoRoomsElement = request("sco-contents",attributes);
 
@@ -1889,78 +1344,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     /**
-     * Check if all recordings are stored, otherwise move them to appropriate folder (asks controller for folder name)
-     *
-     * @throws CommandException
-     */
-    protected void checkRecordings() throws CommandException
-    {
-        RequestAttributeList recordingsAttributes = new RequestAttributeList();
-        // choose only recordings
-        recordingsAttributes.add("filter-icon","archive");
-        // filter out all recordings in progress
-        recordingsAttributes.add("filter-out-date-end","null");
-
-        List<Element> recordings = request("report-bulk-objects", recordingsAttributes).getChild("report-bulk-objects").getChildren();
-
-        List<String> allStoredRecordings = new ArrayList<String>();
-
-        for (Element recording : recordings) {
-            String recordingId = recording.getAttributeValue("sco-id");
-            String folderId = getScoInfo(recordingId).getAttributeValue("folder-id");
-
-            // Get all shongo meetings
-            RequestAttributeList attributes = new RequestAttributeList();
-            attributes.add("sco-id",getMeetingsFolderID());
-            attributes.add("type", "meeting");
-            Element shongoRoomsElement = request("sco-contents",attributes);
-
-            List<String> shongoRooms = new ArrayList<String>();
-            for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {
-                shongoRooms.add(sco.getAttributeValue("sco-id"));
-            }
-
-            // Skip all non-shongo rooms
-            if (!shongoRooms.contains(folderId)) {
-                //logger.debug("There is recording for non-shongo room");
-                continue;
-            }
-
-            // Move if not stored yet
-            if (isRecordingStored(recordingId)) {
-                allStoredRecordings.add(recordingId);
-            } else {
-                Element folder = getScoInfo(folderId);
-
-                if ("meeting".equals(folder.getAttributeValue("type"))) {
-                    String destinationId = (String) performControllerAction(new GetRecordingFolderId(folderId));
-                    if (destinationId == null) {
-                        throw new CommandException("FolderId from GetRecordingFolderId was null.");
-                    }
-
-                    moveRecording(recordingId, destinationId);
-                    cachedMovedRecordings.add(recordingId);
-                    allStoredRecordings.add(recordingId);
-
-                    continue;
-                }
-
-                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording
-                        .getAttributeValue("sco-id") + ") for shongo room was not stored or found in any meeting.");
-            }
-        }
-
-        // Retain only existing stored recordings
-        cachedMovedRecordings.retainAll(allStoredRecordings);
-    }
-
-    /**
      * Logout of the server, clearing the session as well.
      */
     public void logout() throws CommandException
     {
         request("logout", null);
-        this.breezesession = null;
+        this.breezeSession = null;
     }
 
     /**
@@ -1975,7 +1364,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             throws CommandException
     {
         try {
-            if (this.breezesession == null) {
+            if (this.breezeSession == null) {
                 if (action.equals("logout")) {
                     return null;
                 }
@@ -1995,7 +1384,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     // Send request
                     URLConnection conn = url.openConnection();
                     conn.setConnectTimeout(requestTimeout);
-                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
+                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezeSession);
                     conn.connect();
 
                     // Read result
@@ -2019,7 +1408,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                         retryCount--;
                         logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
                         this.info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
-                        breezesession = null;
+                        breezeSession = null;
                         login();
                         continue;
                     }
@@ -2193,7 +1582,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
 
-    public class RequestAttributeList extends LinkedList<Entry>
+    public static class RequestAttributeList extends LinkedList<Entry>
     {
         public void add(String key, String value) throws CommandException
         {
@@ -2229,7 +1618,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         }
     }
     
-    public class Entry
+    public static class Entry
     {
         private String key;
         private String value;

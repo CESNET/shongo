@@ -43,8 +43,10 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <%--<th><pagination-sort column="NAME">
-                <spring:message code="views.room.recording.name"/></th>--%>
+            <%----%>
+            <th><pagination-sort column="ID">ID</pagination-sort></th>
+            <th><pagination-sort column="NAME">
+                <spring:message code="views.room.recording.name"/></pagination-sort></th>
             <th><pagination-sort column="START">
                 <spring:message code="views.room.recording.date"/></pagination-sort></th>
             <th><pagination-sort column="DURATION">
@@ -60,7 +62,11 @@
         </thead>
         <tbody>
         <tr ng-repeat="roomRecording in items">
-            <%--<td>
+            <%----%>
+            <td>
+                {{roomRecording.id}}
+            </td>
+            <td>
                 <span ng-show="roomRecording.description">
                     <tag:help label="{{roomRecording.name}}">
                         <strong><spring:message code="views.room.recording.description"/>:</strong>
@@ -70,7 +76,7 @@
                 <span ng-hide="roomRecording.description">
                     {{roomRecording.name}}
                 </span>
-            </td>--%>
+            </td>
             <td>
                 {{roomRecording.beginDate}}
             </td>

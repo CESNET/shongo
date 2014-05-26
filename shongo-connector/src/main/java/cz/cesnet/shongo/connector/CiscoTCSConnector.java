@@ -114,7 +114,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Timeout for checking if recording are in right folder, default value is 5 minutes
      */
-    private final long RECORDING_CHECK_TIMEOUT = Duration.standardMinutes(5).getMillis();
+    private int recordingsCheckTimeout;
 
     /**
      * Namespace
@@ -124,12 +124,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Default bitrate for recordings.
      */
-    private String DEFAULT_BITRATE = "768";
+    private String defaultBitrate = "768";
 
     /**
      * Recordings prefix.
      */
-    private String RECORDINGS_PREFIX = "";
+    private String recordingsPrefix = "";
 
     /**
      * TCS Alias for shongo recordings.
@@ -174,10 +174,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
         this.password = password;
 
         if (getOption("default-bitrate") != null) {
-            this.DEFAULT_BITRATE = getOption("default-bitrate");
+            this.defaultBitrate = getOption("default-bitrate");
         }
 
-        this.RECORDINGS_PREFIX = getOption("recordings-prefix") == null ? "" : getOption("recordings-prefix");
+        this.recordingsCheckTimeout = (int) getOptionDuration("check-recordings-period",
+                Duration.standardMinutes(5)).getMillis();
+        this.recordingsPrefix = getOption("recordings-prefix") == null ? "" : getOption("recordings-prefix");
 
         if (getOption("alias") != null) {
             this.ALIAS = getOption("alias");
@@ -228,11 +230,10 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             {
                 setRecordingChecking(true);
                 logger.info("Checking of recordings - starting...");
-
                 try {
                     while (isConnected()) {
                         try {
-                            Thread.sleep(RECORDING_CHECK_TIMEOUT);
+                            Thread.sleep(recordingsCheckTimeout);
 
                         }
                         catch (InterruptedException e) {
@@ -249,10 +250,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                     }
                 }
                 finally {
+                    logger.info("Checking of recordings - exiting...");
                     setRecordingChecking(false);
                 }
             }
         };
+        moveRecordingThread.setName(Thread.currentThread().getName() + "-recordings");
 
         synchronized (this) {
             if (!this.recordingChecking) {
@@ -555,7 +558,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
-        String bitrate = recordingSettings.getBitrate() == null ? DEFAULT_BITRATE : recordingSettings.getBitrate();
+        String bitrate = recordingSettings.getBitrate() == null ? defaultBitrate : recordingSettings.getBitrate();
         command.setParameter("Bitrate", bitrate);
         //TODO: create alias for adhoc recording, find out if necessary
         command.setParameter("Alias", ALIAS);
@@ -1015,7 +1018,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     {
         StringBuilder titleBuilder = new StringBuilder();
         titleBuilder.append("[");
-        titleBuilder.append(RECORDINGS_PREFIX);
+        titleBuilder.append(recordingsPrefix);
         titleBuilder.append(":flr:");
         titleBuilder.append(folderId);
         titleBuilder.append(";alias:");
