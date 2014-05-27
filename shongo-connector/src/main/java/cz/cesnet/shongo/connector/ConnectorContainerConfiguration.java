@@ -7,11 +7,11 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 /**
- * Configuration for the {@link Connector}.
+ * Configuration for the {@link ConnectorContainer}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ConnectorConfiguration extends CombinedConfiguration
+public class ConnectorContainerConfiguration extends CombinedConfiguration
 {
     /**
      * Configuration parameters names.
@@ -25,7 +25,7 @@ public class ConnectorConfiguration extends CombinedConfiguration
     /**
      * Constructor.
      */
-    public ConnectorConfiguration()
+    public ConnectorContainerConfiguration()
     {
         NodeCombiner nodeCombiner = new UnionCombiner();
         nodeCombiner.addListNode("participant");

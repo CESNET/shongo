@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public abstract class ConnectorCommand extends Command
+public abstract class ConnectorCommand<T> extends Command
 {
     protected static Logger logger = LoggerFactory.getLogger(ConnectorCommand.class);
 
@@ -32,7 +32,7 @@ public abstract class ConnectorCommand extends Command
      * @throws CommandException
      * @throws CommandUnsupportedException
      */
-    public abstract Object execute(CommonService connector) throws CommandException, CommandUnsupportedException;
+    public abstract T execute(CommonService connector) throws CommandException, CommandUnsupportedException;
 
     /**
      * Returns the passed connector as a MonitoringService. Throws an exception if the typecast fails.

@@ -92,9 +92,12 @@ public class AdobeConnectRecordingManager
         ConnectorConfiguration connectorConfiguration = connector.getConfiguration();
         this.connector = connector;
         this.recordingsCheckTimeout = (int) connectorConfiguration.getOptionDuration(
-                "recordings-check-period", Duration.standardMinutes(5)).getMillis();
-        this.recordingsPrefix = connectorConfiguration.getOptionString("recordings-prefix", "");
-        this.recordingsFolderName = connectorConfiguration.getOptionString("recordings-folder-name");
+                AdobeConnectConnector.RECORDINGS_CHECK_PERIOD,
+                AdobeConnectConnector.RECORDINGS_CHECK_PERIOD_DEFAULT).getMillis();
+        this.recordingsPrefix = connectorConfiguration.getOptionString(
+                AdobeConnectConnector.RECORDINGS_PREFIX, "");
+        this.recordingsFolderName = connectorConfiguration.getOptionString(
+                AdobeConnectConnector.RECORDINGS_FOLDER_NAME);
         this.recordingsFolderId = getRecordingsFolderId();
 
         Thread moveRecordingThread = new Thread()

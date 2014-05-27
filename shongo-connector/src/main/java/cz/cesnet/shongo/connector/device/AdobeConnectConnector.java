@@ -47,7 +47,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     /**
      * Options for the {@link AdobeConnectConnector}.
      */
+    public static final String CAPACITY_CHECK_PERIOD = "capacity-check-period";
+    public static final Duration CAPACITY_CHECK_PERIOD_DEFAULT = Duration.standardMinutes(5);
+    public static final String MEETINGS_FOLDER_NAME = "meetings-folder-name";
+    public static final String RECORDINGS_FOLDER_NAME = "recordings-folder-name";
+    public static final String RECORDINGS_PREFIX = "recordings-prefix";
+    public static final String RECORDINGS_CHECK_PERIOD = "recordings-check-period";
+    public static final Duration RECORDINGS_CHECK_PERIOD_DEFAULT = Duration.standardMinutes(5);
     public static final String URL_PATH_EXTRACTION_FROM_URI = "url-path-extraction-from-uri";
+
 
     /**
      * Small timeout used between some AC request
@@ -113,9 +121,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Setup options
         this.capacityCheckTimeout = (int) configuration.getOptionDuration(
-                "capacity-check-period", Duration.standardMinutes(5)).getMillis();
+                CAPACITY_CHECK_PERIOD, CAPACITY_CHECK_PERIOD_DEFAULT).getMillis();
         this.urlPathExtractionFromUri = configuration.getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
-        this.meetingsFolderName = configuration.getOptionString("meetings-folder-name");
+        this.meetingsFolderName = configuration.getOptionString(MEETINGS_FOLDER_NAME);
 
         this.login();
 

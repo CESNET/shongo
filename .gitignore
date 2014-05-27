@@ -3,10 +3,5 @@
 *.iml
 .jade
 target/
-shongo-client-cli.cfg.xml
-shongo-client-web.cfg.xml
-shongo-controller.cfg.xml
-shongo-connector.cfg.xml
-root.access-token
 *.fsps
 *.class

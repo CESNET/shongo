@@ -23,25 +23,9 @@ public abstract class ConnectorConfiguration
     public abstract Class<? extends CommonService> getConnectorClass();
 
     /**
-     * @return {@link DeviceAddress} for managed device
+     * @return {@link DeviceConfiguration} for managed device
      */
-    public DeviceAddress getDeviceAddress()
-    {
-        return null;
-    }
-
-    /**
-     * @return username for managed device
-     */
-    public String getDeviceAuthUserName()
-    {
-        return null;
-    }
-
-    /**
-     * @return password for {@link #getDeviceAuthUserName()}
-     */
-    public String getDeviceAuthPassword()
+    public DeviceConfiguration getDeviceConfiguration()
     {
         return null;
     }
@@ -56,7 +40,15 @@ public abstract class ConnectorConfiguration
      * @param option
      * @return value for given {@code option} which must be not null
      */
-    public abstract String getOptionStringRequired(String option);
+    public String getOptionStringRequired(String option)
+    {
+        String value = getOptionString(option);
+        if (value == null) {
+            throw new IllegalArgumentException(
+                    "Option '" + option + "' must be set in connector '" + getAgentName() + "' configuration.");
+        }
+        return value;
+    }
 
     /**
      * @param option

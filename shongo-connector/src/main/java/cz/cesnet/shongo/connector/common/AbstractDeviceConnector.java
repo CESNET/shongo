@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
 import cz.cesnet.shongo.connector.api.ConnectorStatus;
+import cz.cesnet.shongo.connector.api.DeviceConfiguration;
 import cz.cesnet.shongo.connector.api.DeviceConnectorStatus;
 import org.joda.time.Duration;
 
@@ -130,11 +131,13 @@ abstract public class AbstractDeviceConnector extends AbstractConnector
     @Override
     public final void connect(ConnectorConfiguration configuration) throws CommandException
     {
-        this.deviceAddress = configuration.getDeviceAddress();
+        DeviceConfiguration deviceConfiguration = configuration.getDeviceConfiguration();
+        this.configuration = configuration;
+        this.deviceAddress = deviceConfiguration.getAddress();
         this.requestTimeout = (int) configuration.getOptionDuration(OPTION_TIMEOUT, OPTION_TIMEOUT_DEFAULT).getMillis();
 
-        String userName = configuration.getDeviceAuthUserName();
-        String password = configuration.getDeviceAuthPassword();
+        String userName = deviceConfiguration.getUserName();
+        String password = deviceConfiguration.getPassword();
         connect(deviceAddress, userName, password);
     }
 

@@ -9,9 +9,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
-import jade.core.ContainerID;
-import jade.core.Profile;
-import jade.core.ProfileImpl;
+import jade.core.*;
 import jade.core.Runtime;
 import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
@@ -409,8 +407,9 @@ public class Container
      *
      * @param agentName
      * @param agent
+     * @return given {@code agent}
      */
-    public void addAgent(String agentName, Agent agent, Object[] arguments)
+    public Agent addAgent(String agentName, Agent agent, Object[] arguments)
     {
         logger.debug("Adding agent '{}'...", agentName);
         agents.put(agentName, agent);
@@ -421,6 +420,7 @@ public class Container
         if (isStarted()) {
             startAgent(agentName);
         }
+        return agent;
     }
 
     /**

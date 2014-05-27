@@ -10,7 +10,7 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  * @see {@link cz.cesnet.shongo.connector.api.RoomService#createRoom}
  */
-public class CreateRoom extends ConnectorCommand
+public class CreateRoom extends ConnectorCommand<String>
 {
     private Room room;
 
@@ -34,7 +34,7 @@ public class CreateRoom extends ConnectorCommand
     }
 
     @Override
-    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
+    public String execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Creating room {}", room);
         return getMultipoint(connector).createRoom(room);

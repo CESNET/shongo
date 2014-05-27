@@ -5,7 +5,7 @@ package cz.cesnet.shongo.connector.api;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ConnectorInitException extends Exception
+public class ConnectorInitException extends RuntimeException
 {
     public ConnectorInitException(String message)
     {

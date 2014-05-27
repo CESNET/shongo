@@ -3,6 +3,9 @@ package cz.cesnet.shongo.connector.common;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
+import cz.cesnet.shongo.connector.api.ConnectorInitException;
+import cz.cesnet.shongo.connector.api.DeviceConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 
 /**
@@ -23,14 +26,82 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
     private String name;
 
     /**
+     * Connector class.
+     */
+    private Class<? extends CommonService> connectorClass;
+
+    /**
+     * {@link DeviceConfiguration} for managed device.
+     */
+    private DeviceConfiguration deviceConfiguration;
+
+    /**
+     * Constructor.
+     */
+    public ConnectorConfigurationImpl(final DeviceAddress deviceAddress, final String userName, final String password)
+    {
+        configuration = new HierarchicalConfiguration();
+        deviceConfiguration = new DeviceConfiguration()
+        {
+            @Override
+            public DeviceAddress getAddress()
+            {
+                return deviceAddress;
+            }
+
+            @Override
+            public String getUserName()
+            {
+                return userName;
+            }
+
+            @Override
+            public String getPassword()
+            {
+                return password;
+            }
+        };
+    }
+
+    /**
      * Constructor.
      *
      * @param configuration sets the {@link #configuration}
      */
-    public ConnectorConfigurationImpl(HierarchicalConfiguration configuration)
+    public ConnectorConfigurationImpl(final HierarchicalConfiguration configuration)
     {
         this.configuration = configuration;
         this.name = configuration.getString("name");
+        String className = "cz.cesnet.shongo.connector.device." + configuration.getString("class");
+        try {
+            this.connectorClass = (Class<? extends CommonService>) Class.forName(className);
+        }
+        catch (ClassNotFoundException exception) {
+            throw new ConnectorInitException("Connector class not found: " + className, exception);
+        }
+        if (AbstractDeviceConnector.class.isAssignableFrom(this.connectorClass)) {
+            deviceConfiguration = new DeviceConfiguration() {
+                @Override
+                public DeviceAddress getAddress()
+                {
+                    String host = getStringRequired("host");
+                    int port = configuration.getInteger("port", DeviceAddress.DEFAULT_PORT);
+                    return new DeviceAddress(host, port);
+                }
+
+                @Override
+                public String getUserName()
+                {
+                    return getStringRequired("auth.username");
+                }
+
+                @Override
+                public String getPassword()
+                {
+                    return getStringRequired("auth.password");
+                }
+            };
+        }
     }
 
     @Override
@@ -42,49 +113,19 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
     @Override
     public Class<? extends CommonService> getConnectorClass()
     {
-        String className = "cz.cesnet.shongo.connector.device." + configuration.getString("class");
-        try {
-            return (Class<? extends CommonService>) Class.forName(className);
-        }
-        catch (ClassNotFoundException exception) {
-            throw new RuntimeException("Connector class not found: " + className, exception);
-        }
-    }
-
-    public DeviceAddress getDeviceAddress()
-    {
-        String host = getStringRequired("host");
-        int port = configuration.getInteger("port", DeviceAddress.DEFAULT_PORT);
-        return new DeviceAddress(host, port);
+        return connectorClass;
     }
 
     @Override
-    public String getDeviceAuthUserName()
+    public DeviceConfiguration getDeviceConfiguration()
     {
-        return getStringRequired("auth.username");
-    }
-
-    @Override
-    public String getDeviceAuthPassword()
-    {
-        return getStringRequired("auth.password");
+        return deviceConfiguration;
     }
 
     @Override
     public String getOptionString(String option)
     {
         return configuration.getString("options." + option);
-    }
-
-    @Override
-    public String getOptionStringRequired(String option)
-    {
-        String value = getOptionString(option);
-        if (value == null) {
-            throw new IllegalArgumentException(
-                    "Option '" + option + "' must be set in connector '" + name + "' configuration.");
-        }
-        return value;
     }
 
     private String getStringRequired(String attribute)

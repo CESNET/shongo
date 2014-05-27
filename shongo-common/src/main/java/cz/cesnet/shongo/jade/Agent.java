@@ -120,9 +120,12 @@ public class Agent extends jade.core.Agent
         return sendLocalCommand;
     }
 
-    @Override
-    protected void setup()
+    protected void setupAgent()
     {
+        if (agentDescription != null) {
+            // Already initialized
+            return;
+        }
         // Register content language
         getContentManager().registerLanguage(new SLCodec());
 
@@ -137,6 +140,12 @@ public class Agent extends jade.core.Agent
         // Prepare agent description for DF
         agentDescription = new DFAgentDescription();
         agentDescription.setName(getAID());
+    }
+
+    @Override
+    protected void setup()
+    {
+        setupAgent();
 
         logger.debug("Agent [{}] is ready!", getAID().getName());
 
@@ -149,6 +158,7 @@ public class Agent extends jade.core.Agent
         unregisterServices();
 
         started = false;
+        agentDescription = null;
 
         super.takeDown();
 

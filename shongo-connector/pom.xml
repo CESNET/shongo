@@ -132,7 +132,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>cz.cesnet.shongo.connector.Connector</mainClass>
+                            <mainClass>cz.cesnet.shongo.connector.ConnectorContainer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

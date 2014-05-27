@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
 import cz.cesnet.shongo.connector.device.CiscoMCUConnector;
 import junit.framework.Assert;
 import org.apache.log4j.Level;
@@ -21,12 +22,12 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CiscoMCUConnectorTest
+public class ConnectionResetTest
 {
     private static boolean invokeConnectionReset = false;
 
     @Test
-    public void test() throws Exception
+    public void testConnectionReset() throws Exception
     {
         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(XmlRpcErrorLogger.class);
         logger.setLevel(Level.OFF);
@@ -49,9 +50,10 @@ public class CiscoMCUConnectorTest
                 return exception.getMessage().endsWith("Connection reset") || super.isExecApiRetryPossible(exception);
             }
         };
-        connector.connect(DeviceAddress.parseAddress("http://127.0.0.1:" + webServer.getPort()), "test", "test");
+        connector.connect(new ConnectorConfigurationImpl(
+                DeviceAddress.parseAddress("http://127.0.0.1:" + webServer.getPort()), "test", "test"));
         invokeConnectionReset = true;
-        connector.listRooms();
+        Assert.assertNotNull(connector.listRooms());
         Assert.assertFalse(invokeConnectionReset);
     }
 
@@ -59,7 +61,7 @@ public class CiscoMCUConnectorTest
     {
         public Map query(Map parameters)
         {
-            Map result = new HashMap();
+            Map<String, String> result = new HashMap<String, String>();
             result.put("apiVersion", "2.9");
             result.put("model", "Codian MCU Test");
             return result;
@@ -74,7 +76,7 @@ public class CiscoMCUConnectorTest
                 invokeConnectionReset = false;
                 throw new SocketException("Connection reset");
             }
-            Map result = new HashMap();
+            Map<String, String> result = new HashMap<String, String>();
             return result;
         }
     }
