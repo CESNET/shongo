@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.ConnectorOptions;
+import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
+import cz.cesnet.shongo.connector.jade.ConnectorAgent;
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
 import cz.cesnet.shongo.connector.jade.ManageLocalCommand;
 import cz.cesnet.shongo.jade.Container;
@@ -163,8 +163,8 @@ public class Connector
         jadeContainer.start();
 
         // start configured agents
-        for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
-            String agentName = instCfg.getString("name");
+        for (HierarchicalConfiguration connector : configuration.configurationsAt("connectors.connector")) {
+            String agentName = connector.getString("name");
             addAgent(agentName, configuration);
         }
         configureAgents();
@@ -176,25 +176,12 @@ public class Connector
     public void configureAgents()
     {
         // Configure agents
-        for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
-            String agentName = instCfg.getString("name");
-            if (instCfg.getProperty("device.connector-class") != null) {
-                ConnectorOptions connectorOptions = null;
-                if (!instCfg.configurationsAt("device.options").isEmpty()) {
-                    final HierarchicalConfiguration conf = instCfg.configurationAt("device.options");
-                    connectorOptions = new ConfigurationConnectorOptions(conf);
-                }
-
-                // command the agent to manage a device
-                ManageLocalCommand cmd = new ManageLocalCommand(
-                        instCfg.getString("device.connector-class"),
-                        instCfg.getString("device.host"),
-                        instCfg.getInt("device.port", Address.DEFAULT_PORT),
-                        instCfg.getString("device.auth.username"),
-                        instCfg.getString("device.auth.password"),
-                        connectorOptions
-                );
-                jadeContainer.performAgentLocalCommand(agentName, cmd);
+        for (HierarchicalConfiguration connector : configuration.configurationsAt("connectors.connector")) {
+            ConnectorConfigurationImpl connectorConfiguration = new ConnectorConfigurationImpl(connector);
+            if (connectorConfiguration.getClass() != null) {
+                // Command the agent to manage a device
+                String agentName = connectorConfiguration.getAgentName();
+                jadeContainer.performAgentLocalCommand(agentName, new ManageLocalCommand(connectorConfiguration));
             }
         }
     }

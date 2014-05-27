@@ -14,114 +14,106 @@
     <jade>
         <host>127.0.0.1</host>
         <port>8383</port>
-        <!-- Timeout to receive response when performing commands from agents -->
+        <!-- Timeout to receive response when performing JADE commands from agents -->
         <command-timeout>PT10S</command-timeout>
     </jade>
 
     <!-- Connector instances (agents) to automatically start -->
-    <instances>
+    <connectors>
+
+        <!-- Adobe Connect Pro
+        <connector>
+            <name>Adobe Connect Pro</name>
+            <class>AdobeConnectConnector</class>
+            <host>connect.cesnet.cz</host>
+            <port>443</port>
+            <auth>
+                <username>admin</username>
+                <password>(password)</password>
+            </auth>
+            <options>
+                # Request timeout
+                <timeout>PT10S</timeout>
+                # Capacity checking
+                <capacity-check-period>PT5M</capacity-check-period>
+                # Regex for extraction of path from url
+                <url-path-extraction-from-uri>connect\.cesnet\.cz/(.+)$</url-path-extraction-from-uri>
+                # Folders to be created on server
+                <recordings-folder-name>shongo-rec</recordings-folder-name>
+                <meetings-folder-name>shongo</meetings-folder-name>
+                # Recording configuration
+                <recordings-check-period>PT5M</recordings-check-period>
+                <recordings-prefix>rec_</recordings-prefix>
+            </options>
+        </connector>
+        -->
+
+        <!-- Cisco MCU
+        <connector>
+            <name>MCU</name>
+            <class>CiscoMCUConnector</class>
+            <host>mcuc.cesnet.cz</host>
+            <auth>
+                <username>admin</username>
+                <password>(password)</password>
+            </auth>
+            <options>
+                <timeout>PT30S</timeout>
+                <room-number-extraction-from-h323-number>(\d{3})$</room-number-extraction-from-h323-number>
+                <room-number-extraction-from-sip-uri>^[+\d]*(\d{3})@</room-number-extraction-from-sip-uri>
+                <participants>
+                    <participant>
+                        # Hide TCS participant (TCS)
+                        <address>950084999</address>
+                        <hide>true</hide>
+                    </participant>
+                </participants>
+            </options>
+        </connector>
+        -->
+
+        <!-- Cisco TelePresence Content server
+        <connector>
+            <name>TelepresenceContent server</name>
+            <class>CiscoTCSConnector</class>
+            <host>195.113.151.188</host>
+            <port>80</port>
+            <auth>
+                <username>admin</username>
+                <password>(heslo)</password>
+            </auth>
+            <options>
+                # Recording settings
+                <default-bitrate>768</default-bitrate>
+                <alias>999</alias>
+                # Folder configuration
+                <storage>/media/shongo-dev/storage</storage>
+                <metadata-storage>/media/shongo-dev/metadata</metadata-storage>
+                <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
+                # Recordings configuration
+                <check-recordings-period>PT5M</check-recordings-period>
+                <recordings-prefix>rec_</recordings-prefix>
+            </options>
+        </connector>
+         -->
 
         <!-- instance
-        <instance>
+        <connector>
             # Agent name
             <name>c90agent</name>
+            <class>CodecC90Connector</class>
             # Device to be managed
-            <device>
-                <connector-class>cz.cesnet.shongo.connector.CodecC90Connector</connector-class>
-                <host>147.251.54.102</host>
-                <port>22</port>
-                <auth>
-                    <username>admin</username>
-                    <password>(password)</password>
-                </auth>
-                <options>
-                    <timeout>PT30S</timeout>
-                </options>
-            </device>
-        </instance>
+            <host>147.251.54.102</host>
+            <port>22</port>
+            <auth>
+                <username>admin</username>
+                <password>(password)</password>
+            </auth>
+            <options>
+                <timeout>PT30S</timeout>
+            </options>
+        </connector>
         -->
-
-        <!-- instance of Adobe Connect Pro
-        <instance>
-            <name>Adobe Connect Pro</name>
-            <device>
-                <connector-class>cz.cesnet.shongo.connector.AdobeConnectConnector</connector-class>
-                <host>connect.cesnet.cz</host>
-                <port>443</port>
-                <auth>
-                    <username>admin</username>
-                    <password>(password)</password>
-                </auth>
-                <options>
-                    # Request timeout
-                    <timeout>PT10S</timeout>
-                    # Capacity checking
-                    <capacity-check-period>PT5M</capacity-check-period>
-                    # Regex for extraction of path from url
-                    <url-path-extraction-from-uri>connect\.cesnet\.cz/(.+)$</url-path-extraction-from-uri>
-                    # Folders to be created on server
-                    <recordings-folder-name>shongo-rec</recordings-folder-name>
-                    <meetings-folder-name>shongo</meetings-folder-name>
-                    # Recording configuration
-                    <recordings-check-period>PT5M</recordings-check-period>
-                    <recordings-prefix>rec_</recordings-prefix>
-                </options>
-            </device>
-        </instance>
-        -->
-
-        <!-- instance of Cisco MCU
-        <instance>
-            <name>MCU</name>
-            <device>
-                <connector-class>cz.cesnet.shongo.connector.CiscoMCUConnector</connector-class>
-                <host>mcuc.cesnet.cz</host>
-                <auth>
-                    <username>admin</username>
-                    <password>(password)</password>
-                </auth>
-                <options>
-                    <timeout>PT30S</timeout>
-                    <room-number-extraction-from-h323-number>(\d{3})$</room-number-extraction-from-h323-number>
-                    <room-number-extraction-from-sip-uri>^[+\d]*(\d{3})@</room-number-extraction-from-sip-uri>
-                    <participants>
-                        <participant>
-                            # Hide TCS participant (TCS)
-                            <address>950084999</address>
-                            <hide>true</hide>
-                        </participant>
-                    </participants>
-                </options>
-            </device>
-        </instance>
-        -->
-
-        <!-- instance of Cisco TelePresence Content server
-        <instance>
-            <name>TelepresenceContent server</name>
-            <device>
-                <connector-class>cz.cesnet.shongo.connector.CiscoTCSConnector</connector-class>
-                <host>195.113.151.188</host>
-                <port>80</port>
-                <auth>
-                    <username>admin</username>
-                    <password>(heslo)</password>
-                </auth>
-                <options>
-                    # Recording settings
-                    <default-bitrate>768</default-bitrate>
-                    <alias>999</alias>
-                    # Folder configuration
-                    <storage>/media/shongo-dev/storage</storage>
-                    <metadata-storage>/media/shongo-dev/metadata</metadata-storage>
-                    <downloadable-url-base>https://shongo-auth-dev.cesnet.cz/tcs/shongo-dev/</downloadable-url-base>
-                    # Recordings configuration
-                    <check-recordings-period>PT5M</check-recordings-period>
-                    <recordings-prefix>rec_</recordings-prefix>
-                </options>
-            </device>
-        </instance>
-         -->
-    </instances>
+    </connectors>
 
 </configuration>

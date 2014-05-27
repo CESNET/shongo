@@ -1,10 +1,11 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
@@ -35,7 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link AbstractConnector} for Adobe Connect.
+ * {@link cz.cesnet.shongo.connector.common.AbstractConnector} for Adobe Connect.
  *
  * @author opicak <pavelka@cesnet.cz>
  */
@@ -52,6 +53,17 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * Small timeout used between some AC request
      */
     public final static long REQUEST_DELAY = 100;
+
+    /**
+     * The Java session ID that is generated upon successful login.  All calls
+     * except login must provide this ID for authentication.
+     */
+    private String connectionSession;
+
+    /**
+     * @see ConnectionState
+     */
+    private ConnectionState connectionState;
 
     /**
      * Patterns for options.
@@ -79,20 +91,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     private String password;
 
     /**
-     * Timeout for {@link #request}.
-     */
-    private int requestTimeout;
-
-    /**
      * Timeout for checking room capacity.
      */
     private int capacityCheckTimeout;
-
-    /**
-     * The Java session ID that is generated upon successful login.  All calls
-     * except login must provide this ID for authentication.
-     */
-    private String breezeSession;
 
     /**
      * If capacity check is running.
@@ -104,60 +105,33 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     private AdobeConnectRecordingManager recordingManager;
 
-    /*
-     * @param serverUrl     the base URL of the Breeze server, including the
-     *                      trailing slash http://www.breeze.example/ is a typical
-     *                      example.  Most Breeze installations will not need any
-     *                      path except that of the host.
-     * @param login         the login of the user as whom the adapter will act on
-     *                      the Breeze system.  This is often an administrator but
-     *                      Breeze will properly apply permissions for any user.
-     * @param password      The password of the user who's logging in.
-     * @param breezeSession The Java session ID created by the Breeze server upon
-     *                      successful login.
-     *
-    public AdobeConnectConnector()
-    {
-        this.serverUrl = serverUrl;
-        this.login = login;
-        this.password = password;
-        this.breezeSession = breezeSession;
-    }*/
-
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
-        this.info.setDeviceAddress(address);
         this.login = username;
         this.password = password;
 
         // Setup options
-        this.requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
-        this.capacityCheckTimeout = (int) getOptionDuration("capacity-check-period",
-                Duration.standardMinutes(5)).getMillis();
-        this.urlPathExtractionFromUri = getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
-        this.meetingsFolderName = getOption("meetings-folder-name");
+        this.capacityCheckTimeout = (int) configuration.getOptionDuration(
+                "capacity-check-period", Duration.standardMinutes(5)).getMillis();
+        this.urlPathExtractionFromUri = configuration.getOptionPattern(URL_PATH_EXTRACTION_FROM_URI);
+        this.meetingsFolderName = configuration.getOptionString("meetings-folder-name");
 
         this.login();
 
         this.recordingManager = new AdobeConnectRecordingManager(this);
-        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
 
-    /**
-     * Returns true if state is set to LOOSELY_CONNECTED, false otherwise.
-     *
-     * @return boolean for connection state
-     */
-    public boolean isConnected()
+    @Override
+    public ConnectionState getConnectionState()
     {
-        return (this.info.getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+        return this.connectionState;
     }
 
     @Override
     public void disconnect() throws CommandException
     {
-        this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        this.connectionState = ConnectionState.DISCONNECTED;
         this.logout();
     }
 
@@ -359,7 +333,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
     {
-        return null;  //TODO
+        return null; // TODO
     }
 
     @Override
@@ -524,8 +498,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
             room.addTechnology(Technology.ADOBE_CONNECT);
 
-            String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() +
-                    sco.getChildText("url-path");
+            String uri = "https://" + deviceAddress + sco.getChildText("url-path");
             room.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
 
             // options
@@ -1071,27 +1044,22 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         if (action == null || action.isEmpty()) {
             throw new CommandException("Action of AC call cannot be empty.");
         }
-
         String queryString = "";
-
         if (attributes != null) {
             for (Entry entry : attributes) {
                 queryString += '&' + entry.getKey() + '=' + entry.getValue();
             }
         }
-
-        return new URL("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress()
-                .getPort() + "/api/xml?" + "action=" + action
-                + queryString);
+        return new URL("https://" + deviceAddress + "/api/xml?" + "action=" + action + queryString);
     }
 
-    protected String getBreezeSession() throws Exception
+    protected String getConnectionSession() throws Exception
     {
 
-        if (breezeSession == null) {
+        if (connectionSession == null) {
             login();
         }
-        return breezeSession;
+        return connectionSession;
     }
 
     /**
@@ -1149,61 +1117,53 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void login() throws CommandException
     {
-        if (this.breezeSession != null) {
+        if (this.connectionSession != null) {
             logout();
         }
 
-        ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
+        ConfiguredSSLContext.getInstance().addAdditionalCertificates(deviceAddress.getHost());
 
         RequestAttributeList loginAtributes = new RequestAttributeList();
         loginAtributes.add("login", this.login);
         loginAtributes.add("password", this.password);
 
-        URLConnection conn;
+        URLConnection connection;
         try {
             URL loginUrl = breezeUrl("login", loginAtributes);
-            conn = loginUrl.openConnection();
-            conn.connect();
+            connection = loginUrl.openConnection();
+            connection.connect();
 
-            InputStream resultStream = conn.getInputStream();
-            Document doc = new SAXBuilder().build(resultStream);
-
-            if (this.isError(doc)) {
-                throw new CommandException("Login to server " + info.getDeviceAddress() + " failed");
+            InputStream resultStream = connection.getInputStream();
+            Document resultDocument = new SAXBuilder().build(resultStream);
+            if (this.isError(resultDocument)) {
+                throw new CommandException("Login to server " + deviceAddress + " failed");
             }
             else {
-                logger.debug(String.format("Login to server %s succeeded", info.getDeviceAddress()));
+                logger.debug(String.format("Login to server %s succeeded", deviceAddress));
             }
         }
         catch (Exception exception) {
             throw new CommandException(exception.getMessage(), exception);
         }
 
-        String breezesessionString = conn.getHeaderField("Set-Cookie");
-
-        StringTokenizer st = new StringTokenizer(breezesessionString, "=");
+        String connectionSessionString = connection.getHeaderField("Set-Cookie");
+        StringTokenizer st = new StringTokenizer(connectionSessionString, "=");
         String sessionName = null;
-
         if (st.countTokens() > 1) {
             sessionName = st.nextToken();
         }
 
-        if (sessionName != null &&
-                (sessionName.equals("JSESSIONID") ||
-                         sessionName.equals("BREEZESESSION"))) {
-
-            String breezesessionNext = st.nextToken();
-            int semiIndex = breezesessionNext.indexOf(';');
-            this.breezeSession = breezesessionNext.substring(0, semiIndex);
-
-
+        if (sessionName != null && (sessionName.equals("JSESSIONID") || sessionName.equals("BREEZESESSION"))) {
+            String connectionSessionNext = st.nextToken();
+            int separatorIndex = connectionSessionNext.indexOf(';');
+            this.connectionSession = connectionSessionNext.substring(0, separatorIndex);
             this.meetingsFolderId = this.getMeetingsFolderId();
         }
 
-
-        if (breezeSession == null) {
-            throw new CommandException("Could not log in to Adobe Connect server: " + info.getDeviceAddress());
+        if (connectionSession == null) {
+            throw new CommandException("Could not log in to Adobe Connect server: " + deviceAddress);
         }
+        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
         Thread capacityCheckThread = new Thread() {
             private Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
@@ -1349,7 +1309,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     public void logout() throws CommandException
     {
         request("logout", null);
-        this.breezeSession = null;
+        this.connectionSession = null;
     }
 
     /**
@@ -1364,7 +1324,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             throws CommandException
     {
         try {
-            if (this.breezeSession == null) {
+            if (this.connectionSession == null) {
                 if (action.equals("logout")) {
                     return null;
                 }
@@ -1374,7 +1334,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
 
             URL url = breezeUrl(action, attributes);
-            logger.debug(String.format("Calling action %s on %s", url, info.getDeviceAddress()));
+            logger.debug(String.format("Calling action %s on %s", url, deviceAddress));
 
             int retryCount = 5;
             while (retryCount > 0) {
@@ -1384,7 +1344,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     // Send request
                     URLConnection conn = url.openConnection();
                     conn.setConnectTimeout(requestTimeout);
-                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezeSession);
+                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.connectionSession);
                     conn.connect();
 
                     // Read result
@@ -1406,16 +1366,16 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 if (isError(result)) {
                     if (isLoginNeeded(result)) {
                         retryCount--;
-                        logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
-                        this.info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
-                        breezeSession = null;
+                        logger.debug(String.format("Reconnecting to server %s", deviceAddress));
+                        this.connectionState = ConnectionState.RECONNECTING;
+                        connectionSession = null;
                         login();
                         continue;
                     }
                     throw new RequestFailedCommandException(url, result);
                 }
                 else {
-                    logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
+                    logger.debug(String.format("Command %s succeeded on %s", action, deviceAddress));
                     return result.getRootElement();
                 }
             }
@@ -1431,7 +1391,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             throw new RuntimeException("Error initializing parser", e);
         }
         catch (RequestFailedCommandException exception) {
-            logger.warn(String.format("Command %s has failed on %s: %s", action, info.getDeviceAddress(), exception));
+            logger.warn(String.format("Command %s has failed on %s: %s", action, deviceAddress, exception));
             throw exception;
         }
     }
@@ -1500,9 +1460,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             String server = "tconn.cesnet.cz";
 
             AdobeConnectConnector acc = new AdobeConnectConnector();
-            Address address = new Address(server, 443);
+            DeviceAddress deviceAddress = new DeviceAddress(server, 443);
 
-            acc.connect(address, "admin", "<password>");
+            acc.connect(deviceAddress, "admin", "<password>");
 
             /************************/
 

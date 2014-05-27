@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
@@ -7,7 +7,10 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
+import cz.cesnet.shongo.connector.common.Command;
+import cz.cesnet.shongo.connector.support.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.MathHelper;
@@ -98,6 +101,11 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     public static final int DEFAULT_PORT = 443;
 
     /**
+     * @see ConnectionState
+     */
+    private ConnectionState connectionState;
+
+    /**
      * {@link XmlRpcClient} used for the XML-RPC API communication with the device.
      */
     private XmlRpcClient xmlRpcClient;
@@ -152,8 +160,8 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private URL getDeviceApiUrl() throws MalformedURLException
     {
         // RPC2 is a fixed path given by Cisco, see the API docs
-        Address address = info.getDeviceAddress();
-        return new URL(address.isSsl() ? "https" : "http", address.getHost(), info.getDeviceAddress().getPort(), "/RPC2");
+        String protocol = (deviceAddress.isSsl() ? "https" : "http");
+        return new URL(protocol, deviceAddress.getHost(), deviceAddress.getPort(), "/RPC2");
     }
 
     /**
@@ -162,28 +170,11 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
      */
     private URL getDeviceHttpUrl(String file) throws MalformedURLException
     {
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), file);
+        String protocol = (deviceAddress.isSsl() ? "https" : "http");
+        return new URL(protocol, deviceAddress.getHost(), deviceAddress.getPort(), file);
     }
 
     // COMMON SERVICE
-
-    @Override
-    public void setOptions(ConnectorOptions options)
-    {
-        super.setOptions(options);
-
-        hiddenParticipantAddresses.clear();
-        for (ConnectorOptions participant : options.getOptionsList("participants.participant")) {
-            boolean hide = participant.getBool("hide");
-            if (hide) {
-                String address = participant.getString("address");
-                if (address == null || address.isEmpty()) {
-                    throw new IllegalArgumentException("Address for participant must be filled.");
-                }
-                hiddenParticipantAddresses.add(address);
-            }
-        }
-    }
 
     /**
      * Connects to the MCU.
@@ -191,36 +182,31 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
      * Sets up the device URL where to send requests.
      * The communication protocol is stateless, though, so it just gets some info and does not hold the line.
      *
-     * @param address  device address to connect to
+     * @param deviceAddress  device address to connect to
      * @param username username for authentication on the device
      * @param password password for authentication on the device
      * @throws cz.cesnet.shongo.api.jade.CommandException
      *
      */
     @Override
-    public synchronized void connect(Address address, String username, String password) throws CommandException
+    public synchronized void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
-        if (address.getPort() == Address.DEFAULT_PORT) {
-            address.setPort(DEFAULT_PORT);
+        if (deviceAddress.getPort() == DeviceAddress.DEFAULT_PORT) {
+            deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        info.setDeviceAddress(address);
-
         // Load options
-        roomNumberFromH323Number = getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
-        roomNumberFromSIPURI = getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
+        roomNumberFromH323Number = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        roomNumberFromSIPURI = configuration.getOptionPattern(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
 
         try {
-            // Determine timeout
-            int requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
-
             // not standard basic auth - credentials are to be passed together with command parameters
             authUsername = username;
             authPassword = password;
 
             // Trust device certificate
-            if (address.isSsl()) {
-                ConfiguredSSLContext.getInstance().addAdditionalCertificates(address.getHost());
+            if (deviceAddress.isSsl()) {
+                ConfiguredSSLContext.getInstance().addAdditionalCertificates(deviceAddress.getHost());
             }
 
             // Create XmlRpcClient for XML-RPC API communication
@@ -231,12 +217,27 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             xmlRpcClient.setConfig(config);
             xmlRpcClient.setTransportFactory(new KeepAliveTransportFactory(xmlRpcClient));
 
-
             // Create HttpClient for Http communication
             httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
             HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), requestTimeout);
 
-            initDeviceInfo();
+            // Get and check device info
+            Map<String, Object> device = execApi(new Command("device.query"));
+            try {
+                Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
+                if (apiVersion < 2.9) {
+                    throw new CommandException(String.format(
+                            "Device API %.1f too old. The connector only works with API 2.9 or higher.", apiVersion));
+                }
+            }
+            catch (Exception exception) {
+                throw new CommandException("Cannot determine the device API version.", exception);
+            }
+            setDeviceName((String) device.get("model"));
+            setDeviceSerialNumber((String) device.get("serial"));
+            setDeviceSoftwareVersion(device.get("softwareVersion") + " ("
+                    + "API: " + device.get("apiVersion") + ", "
+                    + "build: " + device.get("buildVersion") + ")");
         }
         catch (MalformedURLException e) {
             throw new CommandException("Error constructing URL of the device.", e);
@@ -245,8 +246,14 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             throw new CommandException("Error setting up connection to the device.", e);
         }
 
-        info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
+    }
+
+    @Override
+    public ConnectionState getConnectionState()
+    {
+        return this.connectionState;
     }
 
     @Override
@@ -254,7 +261,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     {
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
-        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        this.connectionState = ConnectionState.DISCONNECTED;
         xmlRpcClient = null; // just for sure the attributes are not used anymore
     }
 
@@ -776,42 +783,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
 
     //</editor-fold>
 
-    private void initDeviceInfo() throws CommandException
-    {
-        Map<String, Object> device = execApi(new Command("device.query"));
-
-        try {
-            Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
-            if (apiVersion < 2.9) {
-                throw new CommandException(String.format(
-                        "Device API %.1f too old. The connector only works with API 2.9 or higher.",
-                        apiVersion
-                ));
-            }
-        }
-        catch (NullPointerException e) {
-            throw new CommandException("Cannot determine the device API version.", e);
-        }
-        catch (NumberFormatException e) {
-            throw new CommandException("Cannot determine the device API version.", e);
-        }
-
-
-        DeviceInfo di = new DeviceInfo();
-
-        di.setName((String) device.get("model"));
-
-        String version = device.get("softwareVersion")
-                + " (API: " + device.get("apiVersion")
-                + ", build: " + device.get("buildVersion")
-                + ")";
-        di.setSoftwareVersion(version);
-
-        di.setSerialNumber((String) device.get("serial"));
-
-        info.setDeviceInfo(di);
-    }
-
     /**
      * Perform http request for given {@code file}
      *
@@ -893,8 +864,7 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     private synchronized Map<String, Object> execApi(Command command) throws CommandException
     {
         command.unsetParameter("authenticationPassword");
-        logger.debug(String.format("%s issuing command '%s' on %s",
-                CiscoMCUConnector.class, command, info.getDeviceAddress()));
+        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
 
         command.setParameter("authenticationUser", authUsername);
         command.setParameter("authenticationPassword", authPassword);
@@ -1408,7 +1378,7 @@ ParamsLoop:
         }
 
         CiscoMCUConnector connector = new CiscoMCUConnector();
-        connector.connect(Address.parseAddress(address), username, password);
+        connector.connect(DeviceAddress.parseAddress(address), username, password);
 
         // Participant snapshot
         //MediaData mediaData = connector.getRoomParticipantSnapshots("YY-shongo-local-qgotdi", "4");

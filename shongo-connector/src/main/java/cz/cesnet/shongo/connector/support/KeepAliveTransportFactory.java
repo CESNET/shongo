@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.support;
 
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.client.*;

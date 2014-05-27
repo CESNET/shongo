@@ -13,6 +13,6 @@ public class GetDeviceLoadInfo extends ConnectorCommand
     @Override
     public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return connector.getDeviceLoadInfo();
+        return getMonitoring(connector).getDeviceLoadInfo();
     }
 }

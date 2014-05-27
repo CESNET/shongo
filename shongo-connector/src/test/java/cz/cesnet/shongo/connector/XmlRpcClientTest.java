@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.connector.support.KeepAliveTransportFactory;
 import org.apache.xmlrpc.client.*;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.server.XmlRpcServer;
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URL;
 
 /**
- * Tests for using the XML-RPC client with {@link KeepAliveTransportFactory}.
+ * Tests for using the XML-RPC client with {@link cz.cesnet.shongo.connector.support.KeepAliveTransportFactory}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

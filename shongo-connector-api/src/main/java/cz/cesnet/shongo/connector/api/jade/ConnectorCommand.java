@@ -3,10 +3,7 @@ package cz.cesnet.shongo.connector.api.jade;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.EndpointService;
-import cz.cesnet.shongo.connector.api.MultipointService;
-import cz.cesnet.shongo.connector.api.RecordingService;
+import cz.cesnet.shongo.connector.api.*;
 import jade.content.onto.Ontology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +33,25 @@ public abstract class ConnectorCommand extends Command
      * @throws CommandUnsupportedException
      */
     public abstract Object execute(CommonService connector) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Returns the passed connector as a MonitoringService. Throws an exception if the typecast fails.
+     *
+     * @param connector a connector
+     * @return connector typecast to an MonitoringService
+     * @throws CommandUnsupportedException
+     */
+    protected static MonitoringService getMonitoring(CommonService connector)
+            throws CommandException, CommandUnsupportedException
+    {
+        if (connector == null) {
+            throw new CommandException("Not connected to the multipoint.");
+        }
+        if (!(connector instanceof MonitoringService)) {
+            throw new CommandUnsupportedException("The command is implemented only on devices which can be monitored.");
+        }
+        return (MonitoringService) connector;
+    }
 
     /**
      * Returns the passed connector as an EndpointService. Throws an exception if the typecast fails.

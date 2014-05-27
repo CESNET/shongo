@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.common;
 
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.CommandException;
@@ -9,7 +9,7 @@ import cz.cesnet.shongo.connector.api.MultipointService;
  *
  * @author @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractMultipointConnector extends AbstractConnector implements MultipointService
+public abstract class AbstractMultipointConnector extends AbstractDeviceConnector implements MultipointService
 {
     @Override
     public abstract String createRoom(Room room) throws CommandException;

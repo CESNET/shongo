@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 
 import cz.cesnet.shongo.AliasType;
@@ -6,8 +6,9 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
+import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.api.RecordingService;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.connector.storage.*;
@@ -55,13 +56,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link AbstractConnector} for Cisco TelePresence Content Server
+ * {@link cz.cesnet.shongo.connector.common.AbstractConnector} for Cisco TelePresence Content Server
  *
  * @author Ondrej Pavelka <pavelka@cesnet.cz>
  */
-public class CiscoTCSConnector extends AbstractConnector implements RecordingService
+public class CiscoTCSConnector extends AbstractDeviceConnector implements RecordingService
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
+
+    /**
+     * @see ConnectionState
+     */
+    private ConnectionState connectionState;
 
     /**
      * This is the user log in name, typically the user email address.
@@ -129,18 +135,17 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     /**
      * Default bitrate for recordings.
      */
-    private String defaultBitrate = "768";
+    private String recordingDefaultBitrate = "768";
 
     /**
      * TCS Alias for shongo recordings.
      */
-    private String ALIAS;
+    private String recordingAlias;
 
     /**
      * for debuging TCS date flow
      */
-
-    private boolean DEBUG = false;
+    private boolean debug = false;
 
     /**
      * Storage unit for recordings (can have slow access)
@@ -172,59 +177,40 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
-        this.info.setDeviceAddress(address);
         this.login = username;
         this.password = password;
 
-        if (getOption("default-bitrate") != null) {
-            this.defaultBitrate = getOption("default-bitrate");
+        this.recordingsCheckTimeout = (int) configuration.getOptionDuration(
+                "recordings-check-period", Duration.standardMinutes(5)).getMillis();
+        this.recordingsPrefix = configuration.getOptionString("recordings-prefix", "shongo_");
+
+        String recordingDefaultBitrate = configuration.getOptionString("default-bitrate");
+        if (recordingDefaultBitrate != null) {
+            this.recordingDefaultBitrate = recordingDefaultBitrate;
         }
+        this.recordingAlias = configuration.getOptionStringRequired("alias");
 
-        this.recordingsCheckTimeout = (int) getOptionDuration("recordings-check-period",
-                Duration.standardMinutes(5)).getMillis();
-        this.recordingsPrefix = getOption("recordings-prefix", "shongo_");
+        String metadataStorage = configuration.getOptionStringRequired("metadata-storage");
+        this.metadataStorage = new LocalStorageHandler(metadataStorage);
 
-        if (getOption("alias") != null) {
-            this.ALIAS = getOption("alias");
-        }
-        else {
-            throw new RuntimeException("Option alias must be set in connector config file.");
-        }
+        String storage = configuration.getOptionStringRequired("storage");
+        String downloadableUrlBase = configuration.getOptionStringRequired("downloadable-url-base");
+        this.storage = new ApacheStorage(storage, downloadableUrlBase, new AbstractStorage.UserInformationProvider()
+        {
+            @Override
+            public UserInformation getUserInformation(String userId) throws CommandException
+            {
+                return getUserInformationById(userId);
+            }
+        });
 
-        if (getOption("metadata-storage") == null) {
-            throw new RuntimeException("Option metadata-storage must be set in connector config file.");
-        }
-
-        if (getOption("storage") == null) {
-            throw new RuntimeException("Option storage must be set in connector config file.");
-        }
-
-        if (getOption("downloadable-url-base") == null) {
-            throw new RuntimeException("Option downloadable-url-base must be set in connector config file.");
-        }
-
-        if (getOption("debug") != null) {
-            this.DEBUG = new Boolean(getOption("debug"));
-        }
-
-        storage = new ApacheStorage(getOption("storage"), getOption("downloadable-url-base"),
-                new AbstractStorage.UserInformationProvider()
-                {
-                    @Override
-                    public UserInformation getUserInformation(String userId) throws CommandException
-                    {
-                        return getUserInformationById(userId);
-                    }
-                });
-
-        metadataStorage = new LocalStorageHandler(getOption("metadata-storage"));
+        this.debug = configuration.getOptionBool("debug");
 
         checkServerVitality();
 
-        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
-
+        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
 
         Thread moveRecordingThread = new Thread()
         {
@@ -270,19 +256,15 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     }
 
     @Override
-    public void disconnect() throws CommandException
+    public ConnectionState getConnectionState()
     {
-        this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        return connectionState;
     }
 
-    /**
-     * Returns true if state is set to LOOSELY_CONNECTED, false otherwise.
-     *
-     * @return boolean for connection state
-     */
-    public boolean isConnected()
+    @Override
+    public void disconnect() throws CommandException
     {
-        return (this.info.getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+        this.connectionState = ConnectionState.DISCONNECTED;
     }
 
     /**
@@ -293,20 +275,11 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
     public void checkServerVitality() throws CommandException
     {
         Command command = new Command("GetSystemInformation");
-        Element result = exec(command);
-        if (!"true".equals(result.getChild("GetSystemInformationResponse")
-                .getChild("GetSystemInformationResult").getChildText("EngineOK"))) {
-            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
-
-            throw new CommandException(
-                    "Server " + this.info.getDeviceAddress().getHost() + " is not working. Check its status.");
+        Element result = exec(command).getChild("GetSystemInformationResponse");
+        if (!"true".equals(result.getChild("GetSystemInformationResult").getChildText("EngineOK"))) {
+            this.connectionState = ConnectionState.DISCONNECTED;
+            throw new CommandException("Server " + deviceAddress.getHost() + " is not working. Check its status.");
         }
-    }
-
-    @Override
-    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
-    {
-        throw new TodoImplementException("CiscoTCSConnector.getDeviceLoadInfo");
     }
 
     @Override
@@ -501,10 +474,10 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
 
         command = new Command("Dial");
         command.setParameter("Number", alias.getValue());
-        String bitrate = recordingSettings.getBitrate() == null ? defaultBitrate : recordingSettings.getBitrate();
+        String bitrate = recordingSettings.getBitrate() == null ? recordingDefaultBitrate : recordingSettings.getBitrate();
         command.setParameter("Bitrate", bitrate);
         //TODO: create alias for adhoc recording, find out if necessary
-        command.setParameter("Alias", ALIAS);
+        command.setParameter("Alias", recordingAlias);
         command.setParameter("ConferenceID", conferenceID);
         //TODO: set technology if SIP
         command.setParameter("CallType", "h323");
@@ -625,15 +598,12 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             HttpClient lHttpClient = new DefaultHttpClient();
             while (true) {
 
-                logger.debug(String.format("%s issuing command '%s' on %s",
-                        CiscoTCSConnector.class, command.getCommand(), this.info.getDeviceAddress()));
+                logger.debug(String.format("Issuing command '%s' on %s", command.getCommand(), deviceAddress));
 
                 final ContextAwareAuthScheme md5Auth = new DigestScheme();
 
                 // Setup POST request
-                Address address = this.info.getDeviceAddress();
-                HttpPost lHttpPost = new HttpPost(
-                        "http://" + address.getHost() + ":" + address.getPort() + "/tcs/SoapServer.php");
+                HttpPost lHttpPost = new HttpPost("http://" + deviceAddress + "/tcs/SoapServer.php");
 
                 ConfiguredSSLContext.getInstance().addAdditionalCertificates(lHttpPost.getURI().getHost());
 
@@ -708,7 +678,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
                         Document resultDocument = saxBuilder.build(new StringReader(removeNamespace(resultString)));
                         Element rootElement = resultDocument.getRootElement();
 
-                        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
+                        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
                         Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
                         Element bodyElement = rootElement.getChild("Body", envelopeNS);
                         if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -729,7 +699,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
             }
         }
         catch (Exception exception) {
-            this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+            this.connectionState = ConnectionState.DISCONNECTED;
             throw new CommandException("Command '" + command.getCommand() + "' issuing error", exception);
         }
     }
@@ -743,7 +713,7 @@ public class CiscoTCSConnector extends AbstractConnector implements RecordingSer
      */
     private Element exec(Command command) throws CommandException
     {
-        return exec(command, this.DEBUG);
+        return exec(command, this.debug);
     }
 
     /**

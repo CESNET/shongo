@@ -1,0 +1,143 @@
+package cz.cesnet.shongo.connector.api;
+
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import org.joda.time.Duration;
+
+import java.util.regex.Pattern;
+
+/**
+ * Represents a configuration for single connector instance.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+public abstract class ConnectorConfiguration
+{
+    /**
+     * @return connector agent name
+     */
+    public abstract String getAgentName();
+
+    /**
+     * @return connector class
+     */
+    public abstract Class<? extends CommonService> getConnectorClass();
+
+    /**
+     * @return {@link DeviceAddress} for managed device
+     */
+    public DeviceAddress getDeviceAddress()
+    {
+        return null;
+    }
+
+    /**
+     * @return username for managed device
+     */
+    public String getDeviceAuthUserName()
+    {
+        return null;
+    }
+
+    /**
+     * @return password for {@link #getDeviceAuthUserName()}
+     */
+    public String getDeviceAuthPassword()
+    {
+        return null;
+    }
+
+    /**
+     * @param option
+     * @return value for given {@code option}
+     */
+    public abstract String getOptionString(String option);
+
+    /**
+     * @param option
+     * @return value for given {@code option} which must be not null
+     */
+    public abstract String getOptionStringRequired(String option);
+
+    /**
+     * @param option
+     * @param defaultValue
+     * @return value of given {@code option}
+     */
+    public String getOptionString(String option, String defaultValue)
+    {
+        String value = getOptionString(option);
+        if (value == null) {
+            return defaultValue;
+        }
+        else {
+            return value;
+        }
+    }
+
+    /**
+     * @param option
+     * @param defaultValue
+     * @return value of given {@code option}
+     */
+    public int getOptionInt(String option, int defaultValue)
+    {
+        String value = getOptionString(option);
+        if (value != null) {
+            return Integer.parseInt(value);
+        }
+        else {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * @param option
+     * @return value of given {@code option}
+     */
+    public int getOptionIntRequired(String option)
+    {
+        return Integer.parseInt(getOptionStringRequired(option));
+    }
+
+    /**
+     * @param option
+     * @return value of given {@code option}
+     */
+    public boolean getOptionBool(String option)
+    {
+        String value = getOptionString(option);
+        if (value != null) {
+            return Boolean.parseBoolean(value);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * @param option
+     * @param defaultValue
+     * @return value of given {@code option}
+     */
+    public Duration getOptionDuration(String option, Duration defaultValue)
+    {
+        String duration = getOptionString(option);
+        if (duration != null) {
+            return Duration.parse(duration);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * @param option
+     * @return value of given {@code option}
+     */
+    public Pattern getOptionPattern(String option)
+    {
+        String value = getOptionString(option);
+        if (value != null) {
+            return Pattern.compile(value);
+        }
+        return null;
+    }
+}

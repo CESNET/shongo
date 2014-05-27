@@ -8,7 +8,7 @@ import java.util.TreeMap;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class EndpointDeviceState extends DeviceState
+public class EndpointDeviceState
 {
     /**
      * Is the device muted? <code>null</code> if the state cannot be determined

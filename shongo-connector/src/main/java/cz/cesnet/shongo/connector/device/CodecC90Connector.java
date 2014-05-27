@@ -1,12 +1,15 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.api.MonitoringService;
+import cz.cesnet.shongo.connector.api.UsageStats;
+import cz.cesnet.shongo.connector.common.AbstractSSHConnector;
+import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
-import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +20,16 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +40,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CodecC90Connector extends AbstractSSHConnector implements EndpointService
+public class CodecC90Connector extends AbstractSSHConnector implements EndpointService, MonitoringService
 {
     private static Logger logger = LoggerFactory.getLogger(CodecC90Connector.class);
 
@@ -94,7 +99,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         }
 
         final CodecC90Connector conn = new CodecC90Connector();
-        conn.connect(Address.parseAddress(address), username, password);
+        conn.connect(DeviceAddress.parseAddress(address), username, password);
 
         Document result = conn.exec(new Command("xstatus SystemUnit uptime"));
         System.out.println("result:");
@@ -122,6 +127,32 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         conn.disconnect();
     }
 
+    /**
+     * Just for debugging purposes, for printing results of commands.
+     * <p/>
+     * Taken from:
+     * http://stackoverflow.com/questions/2325388/java-shortest-way-to-pretty-print-to-stdout-a-org-w3c-dom-document
+     *
+     * @param doc XML document to be printed
+     * @param out stream to print the document to
+     * @throws IOException
+     * @throws javax.xml.transform.TransformerException
+     *
+     */
+    protected static void printDocument(Document doc, OutputStream out) throws IOException, TransformerException
+    {
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+        transformer.transform(new DOMSource(doc),
+                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
+    }
+
     @Override
     protected void initSession() throws IOException
     {
@@ -135,39 +166,36 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         sendCommand(new Command("xpreferences outputmode xml"));
     }
 
-    protected DeviceInfo gatherDeviceInfo() throws IOException, CommandException
+    protected void initDeviceInfo() throws IOException, CommandException
     {
         try {
             Document result = exec(new Command("xstatus SystemUnit"));
-            DeviceInfo di = new DeviceInfo();
 
-            di.setName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
-            di.setDescription(getResultString(result, "/XmlDoc/Status/SystemUnit/ContactInfo"));
+            setDeviceName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
+            setDeviceDescription(getResultString(result, "/XmlDoc/Status/SystemUnit/ContactInfo"));
 
-            String version = getResultString(result, "/XmlDoc/Status/SystemUnit/Software/Version")
+            String softwareVersion = getResultString(result, "/XmlDoc/Status/SystemUnit/Software/Version")
                     + " (released "
                     + getResultString(result, "/XmlDoc/Status/SystemUnit/Software/ReleaseDate")
                     + ")";
-            di.setSoftwareVersion(version);
+            setDeviceSoftwareVersion(softwareVersion);
 
-            String sn = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
+            String serialNumber = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
                     + ", MainBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/MainBoard/SerialNumber")
                     + ", VideoBoard: " + getResultString(result,
                     "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
                     + ", AudioBoard: " + getResultString(result,
                     "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
-            di.setSerialNumber(sn);
-
-            return di;
+            setDeviceSerialNumber(serialNumber);
         }
-        catch (SAXException e) {
-            throw new CommandException("Command gave unexpected output", e);
+        catch (SAXException exception) {
+            throw new CommandException("Command gave unexpected output", exception);
         }
-        catch (ParserConfigurationException e) {
-            throw new CommandException("Error initializing result parser", e);
+        catch (ParserConfigurationException exception) {
+            throw new CommandException("Error initializing result parser", exception);
         }
-        catch (XPathExpressionException e) {
-            throw new CommandException("Error querying command output XML tree", e);
+        catch (XPathExpressionException exception) {
+            throw new CommandException("Error querying command output XML tree", exception);
         }
     }
 
@@ -186,18 +214,17 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
      */
     private Document issueCommand(Command command) throws CommandException
     {
-        logger.debug(String.format("%s issuing command '%s' on %s", CodecC90Connector.class, command,
-                info.getDeviceAddress()));
+        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
 
         try {
             Document result = exec(command);
             if (isError(result)) {
                 String errMsg = getErrorMessage(result);
-                logger.error(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(), errMsg));
+                logger.error(String.format("Command %s failed on %s: %s", command, deviceAddress, errMsg));
                 throw new CommandException(errMsg);
             }
             else {
-                logger.debug(String.format("Command '%s' succeeded on %s", command, info.getDeviceAddress()));
+                logger.debug(String.format("Command '%s' succeeded on %s", command, deviceAddress));
                 return result;
             }
         }
@@ -330,6 +357,12 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         catch (XPathExpressionException e) {
             throw new CommandException("Program error in parsing the command result.", e);
         }
+    }
+
+    @Override
+    public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
+    {
+        return null;
     }
 
     // ENDPOINT SERVICE

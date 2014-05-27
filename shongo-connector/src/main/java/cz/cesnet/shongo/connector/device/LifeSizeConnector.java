@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
@@ -6,7 +6,9 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.AbstractSSHConnector;
+import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,7 @@ import static cz.cesnet.shongo.Technology.SIP;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class LifeSizeConnector extends AbstractSSHConnector implements EndpointService
+public class LifeSizeConnector extends AbstractSSHConnector implements EndpointService, MonitoringService
 {
     private static Logger logger = LoggerFactory.getLogger(LifeSizeConnector.class);
 
@@ -71,6 +73,11 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
     }
 
     /**
+     * @see cz.cesnet.shongo.connector.api.EndpointDeviceState
+     */
+    private EndpointDeviceState state;
+
+    /**
      * An example of interaction with the device.
      * <p/>
      * Just for debugging purposes.
@@ -110,11 +117,10 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
         }
 
         final LifeSizeConnector conn = new LifeSizeConnector();
-        conn.connect(Address.parseAddress(address), username, password);
+        conn.connect(DeviceAddress.parseAddress(address), username, password);
 
-        DeviceInfo di = conn.gatherDeviceInfo();
-        System.out.printf("Device info: %s; %s (SN: %s, version: %s)\n",
-                di.getName(), di.getDescription(), di.getSerialNumber(), di.getSoftwareVersion());
+        System.out.printf("Device info: %s; %s (SN: %s, version: %s)\n", conn.getDeviceName(),
+                conn.getDeviceDescription(), conn.getDeviceSerialNumber(), conn.getDeviceSoftwareVersion());
 
         System.out.println("Dialing...");
         String callId = conn.dial(new Alias(AliasType.H323_E164, "950087201"));
@@ -124,7 +130,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
         Thread.sleep(10000);
         System.out.println("Woke up!");
 
-        EndpointDeviceState eds = (EndpointDeviceState) conn.getConnectorInfo().getDeviceState();
+        EndpointDeviceState eds = conn.state;
         System.out.println("Active calls:");
         if (eds.getCalls().isEmpty()) {
             System.out.println("  -- none --");
@@ -146,7 +152,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
 
         Thread.sleep(15000);
 
-        EndpointDeviceState eds2 = (EndpointDeviceState) conn.getConnectorInfo().getDeviceState();
+        EndpointDeviceState eds2 = conn.state;
         System.out.println("Active calls:");
         if (eds2.getCalls().isEmpty()) {
             System.out.println("  -- none --");
@@ -179,9 +185,9 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
     }
 
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
-        super.connect(address, username, password);
+        super.connect(deviceAddress, username, password);
         startMonitoring();
     }
 
@@ -199,7 +205,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
 
         public MonitoringThread(long sleepTime)
         {
-            super("Monitoring-" + info.getDeviceAddress());
+            super("Monitoring-" + deviceAddress);
             this.sleepTime = sleepTime;
         }
 
@@ -239,7 +245,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
     private void stopMonitoring()
     {
         if (monitoringThread == null) {
-            logger.error("The monitoring thread for {} died unexpectedly.", info.getDeviceAddress());
+            logger.error("The monitoring thread for {} died unexpectedly.", deviceAddress);
         }
         else {
             monitoringThread.quit();
@@ -256,31 +262,24 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
     }
 
     @Override
-    protected DeviceInfo gatherDeviceInfo() throws IOException, CommandException
+    protected void initDeviceInfo() throws IOException, CommandException
     {
         try {
-            DeviceInfo di = new DeviceInfo();
-
-            di.setName(getResultFields(createCommand("get system model"))[1]);
-            di.setDescription(getResultString(createCommand("get system name")));
-
-            String[] sn = getResultFields(createCommand("get system serial-number"));
-            di.setSerialNumber(String.format("CPU board: %s, System board: %s", sn[0], sn[1]));
-
-            di.setSoftwareVersion(getResultFields(createCommand("get system version"))[1]);
-
-            return di;
+            String[] serialNumber = getResultFields(createCommand("get system serial-number"));
+            setDeviceName(getResultFields(createCommand("get system model"))[1]);
+            setDeviceDescription(getResultString(createCommand("get system name")));
+            setDeviceSerialNumber(String.format("CPU board: %s, System board: %s", serialNumber[0], serialNumber[1]));
+            setDeviceSoftwareVersion(getResultFields(createCommand("get system version"))[1]);
         }
-        catch (ArrayIndexOutOfBoundsException e) {
-            throw new CommandException("Error getting device info", e);
+        catch (ArrayIndexOutOfBoundsException exception) {
+            throw new CommandException("Error getting device info", exception);
         }
     }
 
     @Override
     protected void initDeviceState() throws IOException, CommandException
     {
-        EndpointDeviceState state = new EndpointDeviceState();
-        info.setDeviceState(state);
+        state = new EndpointDeviceState();
 
         String[] result;
 
@@ -518,8 +517,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
             commandLock.lock();
         }
 
-        logger.debug(String.format("%s issuing command '%s' on %s",
-                LifeSizeConnector.class, command, info.getDeviceAddress()));
+        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
         try {
             sendCommand(command);
 Reading:
@@ -529,8 +527,7 @@ Reading:
                 int errCode = Integer.parseInt(lastLineMatcher.group(1));
                 if (errCode != 0) {
                     String description = ERROR_DESCRIPTIONS.get(errCode);
-                    logger.debug(String.format("Command %s failed on %s: %s",
-                            command, info.getDeviceAddress(), description));
+                    logger.debug(String.format("Command %s failed on %s: %s", command, deviceAddress, description));
                     throw new CommandException(description);
                 }
 
@@ -565,7 +562,7 @@ Reading:
                             }
                         }
 
-                        logger.debug(String.format("Command '%s' succeeded on %s", command, info.getDeviceAddress()));
+                        logger.debug(String.format("Command '%s' succeeded on %s", command, deviceAddress));
                         return Arrays.copyOfRange(lines, startLine, endLine);
                     }
                     else {
@@ -597,22 +594,6 @@ Reading:
     }
 
     /**
-     * Get information about connector.
-     *
-     * To get the freshest device state, call this method every time some state is to be gathered - it gets updated
-     * right before getting the state. Automatic updates of the device state are performed every several seconds,
-     * though, so it is not necessary to call this method again and again.
-     *
-     * @return information about the connector
-     */
-    @Override
-    public ConnectorInfo getConnectorInfo()
-    {
-        flushAsynchronousMessages();
-        return super.getConnectorInfo();
-    }
-
-    /**
      * Asks the connector to get all unhandled asynchronous messages.
      */
     private void flushAsynchronousMessages()
@@ -635,12 +616,6 @@ Reading:
      */
     private void processAsynchronousMessage(String[] fields)
     {
-        DeviceState ds = info.getDeviceState();
-        if (!(ds instanceof EndpointDeviceState)) {
-            throw new IllegalStateException("Invalid device state class, expected " + EndpointDeviceState.class);
-        }
-        EndpointDeviceState deviceState = (EndpointDeviceState) ds;
-
         if (fields[0].equals("CS")) {
             logger.debug("Processing Call Status message: {},{},{},{},{},{},{},{}", fields);
             processCallStatusMessage(fields, false);
@@ -654,23 +629,23 @@ Reading:
             boolean remote = ("Yes".equals(fields[4]));
             String state = fields[3]; // Initiated, Terminated, or Relinquished
             if ("Relinquished".equals(state)) {
-                deviceState.setSendingPresentation(false);
-                deviceState.setReceivingPresentation(true);
+                this.state.setSendingPresentation(false);
+                this.state.setReceivingPresentation(true);
             }
             else if ("Initiated".equals(state)) {
                 if (remote) {
-                    deviceState.setReceivingPresentation(true);
+                    this.state.setReceivingPresentation(true);
                 }
                 else {
-                    deviceState.setSendingPresentation(true);
+                    this.state.setSendingPresentation(true);
                 }
             }
             else if ("Terminated".equals(state)) {
                 if (remote) {
-                    deviceState.setReceivingPresentation(false);
+                    this.state.setReceivingPresentation(false);
                 }
                 else {
-                    deviceState.setSendingPresentation(false);
+                    this.state.setSendingPresentation(false);
                 }
             }
             else {
@@ -683,7 +658,7 @@ Reading:
         }
         else if (fields[0].equals("MS")) {
             logger.debug("Processing Mute Status message: {},{}", fields);
-            deviceState.setMuted("true".equals(fields[1]));
+            this.state.setMuted("true".equals(fields[1]));
         }
         else if (fields[0].equals("VC")) {
             logger.debug("Processing Video Capabilities message: {},{},{},{},{}", fields);
@@ -691,7 +666,7 @@ Reading:
         }
         else if (fields[0].equals("SS")) {
             logger.debug("Processing System Sleep message: {},{}", fields);
-            deviceState.setSleeping("true".equals(fields[1]));
+            this.state.setSleeping("true".equals(fields[1]));
         }
         else {
             logger.error("Unknown asynchronous message encountered: {}", fields);
@@ -700,8 +675,7 @@ Reading:
 
     private void processCallStatusMessage(String[] fields, boolean incoming)
     {
-        EndpointDeviceState deviceState = (EndpointDeviceState) info.getDeviceState();
-        Map<Integer, CallInfo> calls = deviceState.getCalls();
+        Map<Integer, CallInfo> calls = state.getCalls();
 
         CallState callState = DEVICE_CALL_STATES.get(fields[3]);
         if (callState == null) {
@@ -900,16 +874,21 @@ Reading:
         }
     }
 
+    @Override
+    public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException();
+    }
+
     // ENDPOINT SERVICE
 
     @Override
     public String dial(Alias alias) throws CommandException
     {
         String address = alias.getValue();
-        EndpointDeviceState deviceState = (EndpointDeviceState) info.getDeviceState();
 
         // get a snapshot of calls
-        Set<Integer> originalCallIds = new TreeSet<Integer>(deviceState.getCalls().keySet());
+        Set<Integer> originalCallIds = new TreeSet<Integer>(state.getCalls().keySet());
 
         issueCommand(createCommand("control call dial").addArgument(address));
 
@@ -918,7 +897,7 @@ Reading:
         final int attemptDelay = 100;
         for (int i = 0; i < attemptsLimit; i++) {
             flushAsynchronousMessages();
-            for (Integer callId : deviceState.getCalls().keySet()) {
+            for (Integer callId : state.getCalls().keySet()) {
                 if (!originalCallIds.contains(callId)) {
                     return String.valueOf(callId);
                 }

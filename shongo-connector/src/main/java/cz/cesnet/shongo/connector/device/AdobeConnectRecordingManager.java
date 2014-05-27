@@ -1,11 +1,12 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.RecordingFolder;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
 import cz.cesnet.shongo.connector.api.RecordingSettings;
 import cz.cesnet.shongo.controller.RecordingUnavailableException;
 import cz.cesnet.shongo.controller.RoomNotExistsException;
@@ -26,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link cz.cesnet.shongo.connector.AbstractConnector} for Adobe Connect.
+ * {@link cz.cesnet.shongo.connector.common.AbstractConnector} for Adobe Connect.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -88,11 +89,12 @@ public class AdobeConnectRecordingManager
      */
     public AdobeConnectRecordingManager(final AdobeConnectConnector connector) throws CommandException
     {
+        ConnectorConfiguration connectorConfiguration = connector.getConfiguration();
         this.connector = connector;
-        this.recordingsCheckTimeout = (int) connector.getOptionDuration("recordings-check-period",
-                Duration.standardMinutes(5)).getMillis();
-        this.recordingsPrefix = connector.getOption("recordings-prefix", "");
-        this.recordingsFolderName = connector.getOption("recordings-folder-name");
+        this.recordingsCheckTimeout = (int) connectorConfiguration.getOptionDuration(
+                "recordings-check-period", Duration.standardMinutes(5)).getMillis();
+        this.recordingsPrefix = connectorConfiguration.getOptionString("recordings-prefix", "");
+        this.recordingsFolderName = connectorConfiguration.getOptionString("recordings-folder-name");
         this.recordingsFolderId = getRecordingsFolderId();
 
         Thread moveRecordingThread = new Thread()
@@ -559,7 +561,7 @@ public class AdobeConnectRecordingManager
             recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
         }
 
-        Address deviceAddress = connector.getConnectorInfo().getDeviceAddress();
+        DeviceAddress deviceAddress = connector.getDeviceAddress();
         String recordingUrlPath = recordingElement.getChildText("url-path");
         String recordingUrl = "https://" + deviceAddress.getHost() + ":" + deviceAddress.getPort() + recordingUrlPath;
         recording.setViewUrl(recordingUrl);

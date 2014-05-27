@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.device.CiscoMCUConnector;
 import junit.framework.Assert;
 import org.apache.log4j.Level;
 import org.apache.xmlrpc.XmlRpcException;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Tests for {@link cz.cesnet.shongo.connector.CiscoTCSConnector}.
+ * Tests for {@link cz.cesnet.shongo.connector.device.CiscoTCSConnector}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -48,7 +49,7 @@ public class CiscoMCUConnectorTest
                 return exception.getMessage().endsWith("Connection reset") || super.isExecApiRetryPossible(exception);
             }
         };
-        connector.connect(Address.parseAddress("http://127.0.0.1:" + webServer.getPort()), "test", "test");
+        connector.connect(DeviceAddress.parseAddress("http://127.0.0.1:" + webServer.getPort()), "test", "test");
         invokeConnectionReset = true;
         connector.listRooms();
         Assert.assertFalse(invokeConnectionReset);

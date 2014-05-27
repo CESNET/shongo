@@ -1,10 +1,14 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.device;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.util.DeviceAddress;
+import cz.cesnet.shongo.connector.common.AbstractConnector;
+import cz.cesnet.shongo.connector.common.AbstractDeviceConnector;
+import cz.cesnet.shongo.connector.common.Command;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +50,7 @@ import java.io.InputStreamReader;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class PolycomHDXConnector extends AbstractConnector implements EndpointService
+public class PolycomHDXConnector extends AbstractDeviceConnector implements EndpointService
 {
     private static Logger logger = LoggerFactory.getLogger(PolycomHDXConnector.class);
 
@@ -90,7 +94,7 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
         }
 
         final PolycomHDXConnector conn = new PolycomHDXConnector();
-        conn.connect(Address.parseAddress(address), username, password);
+        conn.connect(DeviceAddress.parseAddress(address), username, password);
 
         try {
             conn.mute();
@@ -116,9 +120,15 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
 
 
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
         // TODO
+    }
+
+    @Override
+    public ConnectionState getConnectionState()
+    {
+        throw new TodoImplementException();
     }
 
     @Override
@@ -212,11 +222,5 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
     public void showMessage(int duration, String text) throws CommandException, CommandUnsupportedException
     {
         // TODO
-    }
-
-    @Override
-    public DeviceLoadInfo getDeviceLoadInfo() throws CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException();
     }
 }

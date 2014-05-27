@@ -5,7 +5,7 @@ package cz.cesnet.shongo.api.util;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Address
+public class DeviceAddress
 {
     private final boolean ssl;
     private final String host;
@@ -25,7 +25,7 @@ public class Address
      * @param input input string
      * @return an address object containing the address from the input string
      */
-    public static Address parseAddress(String input)
+    public static DeviceAddress parseAddress(String input)
     {
         return parseAddress(input, DEFAULT_PORT);
     }
@@ -40,7 +40,7 @@ public class Address
      * @param defaultPort default port to be used when the input string does not contain the port specification
      * @return an address object containing the address from the input string
      */
-    public static Address parseAddress(String input, int defaultPort)
+    public static DeviceAddress parseAddress(String input, int defaultPort)
     {
         String host = input;
         int port = defaultPort;
@@ -56,7 +56,7 @@ public class Address
             }
         }
 
-        return new Address(host, port);
+        return new DeviceAddress(host, port);
     }
 
     /**
@@ -66,12 +66,12 @@ public class Address
      *
      * @param host device host
      */
-    public Address(String host)
+    public DeviceAddress(String host)
     {
         this(host, DEFAULT_PORT);
     }
 
-    public Address(String host, int port)
+    public DeviceAddress(String host, int port)
     {
         if (host.startsWith("http://")) {
             host = host.substring(7);
@@ -106,6 +106,11 @@ public class Address
 
     public String toString()
     {
-        return String.format("%s:%d", host, port);
+        if (port != DEFAULT_PORT) {
+            return String.format("%s:%d", host, port);
+        }
+        else {
+            return host;
+        }
     }
 }

@@ -1,14 +1,16 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.jade;
 
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.connector.Connector;
+import cz.cesnet.shongo.connector.ConnectorScope;
 import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
-import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
+import cz.cesnet.shongo.connector.common.AbstractConnector;
 import cz.cesnet.shongo.controller.ControllerScope;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.*;
@@ -42,11 +44,12 @@ public class ConnectorAgent extends Agent
     protected void setup()
     {
         Object[] arguments = getArguments();
-        if (arguments.length == 0 || !(arguments[0] instanceof ConnectorConfiguration)) {
+        if (arguments.length == 0 || !(arguments[0] instanceof cz.cesnet.shongo.connector.ConnectorConfiguration)) {
             throw new IllegalArgumentException("ConnectorConfiguration is required as first argument.");
         }
-        ConnectorConfiguration configuration = (ConnectorConfiguration) arguments[0];
-        setCommandTimeout((int) configuration.getJadeCommandTimeout().getMillis());
+        cz.cesnet.shongo.connector.ConnectorConfiguration connectorConfiguration =
+                (cz.cesnet.shongo.connector.ConnectorConfiguration) arguments[0];
+        setCommandTimeout((int) connectorConfiguration.getJadeCommandTimeout().getMillis());
 
         addOntology(ConnectorOntology.getInstance());
         addOntology(ControllerOntology.getInstance());
@@ -91,49 +94,43 @@ public class ConnectorAgent extends Agent
     /**
      * Starts managing a device. Initializes a connector to the device.
      */
-    public void manage(String connectorClass, String address, int port, String username, String password,
-            ConnectorOptions options)
+    public void manage(ConnectorConfiguration connectorConfiguration)
             throws ConnectorInitException
     {
+        Class<? extends CommonService> connectorClass;
         try {
-            Constructor co = Class.forName(connectorClass).getConstructor();
-            connectorService = (CommonService) co.newInstance();
-            if (connectorService == null) {
-                throw new ConnectorInitException(
-                        "Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
-            }
+            connectorClass = connectorConfiguration.getConnectorClass();
+        }
+        catch (Exception exception) {
+            throw new RuntimeException("Invalid connector class", exception);
+        }
+        try {
+
+            Constructor constructor = connectorClass.getConstructor();
+            connectorService = (CommonService) constructor.newInstance();
             if (connectorService instanceof AbstractConnector) {
                 AbstractConnector abstractConnector = (AbstractConnector) connectorService;
-                abstractConnector.setConnectorAgent(this);
+                abstractConnector.setConfiguration(connectorConfiguration);
+                abstractConnector.setAgent(this);
             }
-
-            if (options != null) {
-                connectorService.setOptions(options);
-            }
-            connectorService.connect(new Address(address, port), username, password);
-
-            logger.info("Connector ready: {}", connectorService.getConnectorInfo());
-        }
-        catch (CommandException exception) {
-            throw new ConnectorInitException("Connector failed to connect to the device", exception);
+            connectorService.connect(connectorConfiguration);
+            logger.info("Connector managed: {}", connectorService.getStatus());
         }
         catch (NoSuchMethodException exception) {
-            throw new ConnectorInitException(
-                    "Invalid connector class: " + connectorClass + " (does not define an appropriate constructor)",
-                    exception
-            );
-        }
-        catch (ClassNotFoundException exception) {
-            throw new ConnectorInitException("Connector class not found: " + connectorClass, exception);
+            throw new RuntimeException("Invalid connector class: " + connectorClass +
+                    " (does not define an appropriate constructor)", exception);
         }
         catch (InvocationTargetException exception) {
-            throw new ConnectorInitException("Connector class init failed", exception);
+            throw new RuntimeException("Connector class init failed", exception);
         }
         catch (InstantiationException exception) {
-            throw new ConnectorInitException("Connector class init failed", exception);
+            throw new RuntimeException("Connector class init failed", exception);
         }
         catch (IllegalAccessException exception) {
-            throw new ConnectorInitException("Connector class not accessible: " + connectorClass, exception);
+            throw new RuntimeException("Connector class not accessible: " + connectorClass, exception);
+        }
+        catch (CommandException exception) {
+            throw new ConnectorInitException("Connector failed to manage", exception);
         }
     }
 

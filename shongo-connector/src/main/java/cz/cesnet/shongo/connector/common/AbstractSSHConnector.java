@@ -1,13 +1,11 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.common;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.ConnectorInfo;
-import cz.cesnet.shongo.connector.api.DeviceInfo;
+import cz.cesnet.shongo.api.util.DeviceAddress;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,12 +21,17 @@ import java.util.regex.Pattern;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-abstract public class AbstractSSHConnector extends AbstractConnector
+abstract public class AbstractSSHConnector extends AbstractDeviceConnector
 {
     /**
      * The default port number to connect to.
      */
     public static final int DEFAULT_PORT = 22;
+
+    /**
+     * @see ConnectionState
+     */
+    private ConnectionState connectionState;
 
     /**
      * Shell channel open to the device.
@@ -71,34 +74,29 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         commandOutputPattern = Pattern.compile(commandOutputPatternStr);
     }
 
-    private Address connectAddress;
     private String username;
     private String password;
 
     /**
      * Connects the connector to the managed device.
      *
-     * @param address  device address to connect to
+     * @param deviceAddress  device address to connect to
      * @param username username to use for authentication on the device
      * @param password password to use for authentication on the device
      */
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public void connect(DeviceAddress deviceAddress, String username, String password) throws CommandException
     {
-        if (address.getPort() == Address.DEFAULT_PORT) {
-            address.setPort(DEFAULT_PORT);
+        if (deviceAddress.getPort() == DeviceAddress.DEFAULT_PORT) {
+            deviceAddress.setPort(DEFAULT_PORT);
         }
 
-        connectAddress = address;
         this.username = username;
         this.password = password;
 
-        // Determine timeout
-        int requestTimeout = (int) getOptionDuration(OPTION_TIMEOUT, DEFAULT_TIMEOUT).getMillis();
-
         try {
             JSch jsch = new JSch();
-            Session session = jsch.getSession(username, address.getHost(), address.getPort());
+            Session session = jsch.getSession(username, deviceAddress.getHost(), deviceAddress.getPort());
             session.setPassword(password);
             // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
             session.setConfig("StrictHostKeyChecking", "no");
@@ -109,11 +107,10 @@ abstract public class AbstractSSHConnector extends AbstractConnector
             commandResultStream = channel.getInputStream();
             channel.connect(); // runs a separate thread for handling the streams
 
-            info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
-            info.setDeviceAddress(address);
+            this.connectionState = ConnectionState.CONNECTED;
 
             initSession();
-            info.setDeviceInfo(gatherDeviceInfo());
+            initDeviceInfo();
             initDeviceState();
         }
         catch (JSchException e) {
@@ -122,6 +119,12 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         catch (IOException e) {
             throw new CommandException("Error connecting to the device", e);
         }
+    }
+
+    @Override
+    public ConnectionState getConnectionState()
+    {
+        return connectionState;
     }
 
     /**
@@ -137,7 +140,7 @@ abstract public class AbstractSSHConnector extends AbstractConnector
      *
      * @return a <code>DeviceInfo</code> object
      */
-    protected abstract DeviceInfo gatherDeviceInfo() throws IOException, CommandException;
+    protected abstract void initDeviceInfo() throws IOException, CommandException;
 
     /**
      * Initializes state info about the device (i.e., mute state, active calls, ...).
@@ -151,7 +154,7 @@ abstract public class AbstractSSHConnector extends AbstractConnector
     public void disconnect() throws CommandException
     {
         disconnectImpl();
-        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        this.connectionState = ConnectionState.DISCONNECTED;
     }
 
     private void disconnectImpl() throws CommandException
@@ -176,14 +179,14 @@ abstract public class AbstractSSHConnector extends AbstractConnector
 
     public void reconnect() throws CommandException
     {
-        info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
+        this.connectionState = ConnectionState.RECONNECTING;
         disconnectImpl();
-        connect(connectAddress, username, password);
+        connect(deviceAddress, username, password);
     }
 
     protected void sendCommand(Command command) throws IOException
     {
-        switch (info.getConnectionState()) {
+        switch (connectionState) {
             case DISCONNECTED:
                 throw new IllegalStateException("The connector is disconnected");
             case RECONNECTING:
@@ -212,7 +215,7 @@ abstract public class AbstractSSHConnector extends AbstractConnector
      */
     protected String readOutput() throws IOException
     {
-        switch (info.getConnectionState()) {
+        switch (connectionState) {
             case DISCONNECTED:
                 throw new IllegalStateException("The connector is disconnected");
             case RECONNECTING:
@@ -260,7 +263,7 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         public void run()
         {
             // until someone disconnects the connector by hand, try to reconnect
-            while (info.getConnectionState() != ConnectorInfo.ConnectionState.DISCONNECTED) {
+            while (connectionState != ConnectionState.DISCONNECTED) {
                 try {
                     reconnect();
                     return;
