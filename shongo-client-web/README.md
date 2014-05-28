@@ -76,3 +76,86 @@ Install instructions for node.js and less compiler:
     sudo make install
 
     npm install -g less
+
+## DESIGNS
+
+Each design should be stored in own folder with name which represents the design name.
+
+### Requirements
+
+Each folder must contain:
+
+* <code>&lt;desing-name&gt;/layout.ftl</code> - design HTML layout file with [FreeMarker](http://freemarker.org/docs/dgui_template_exp.html) syntax to retrieve variables
+
+* <code>&lt;desing-name&gt;/layout.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with english translation messages
+
+* <code>&lt;desing-name&gt;/layout_cs.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with czech translation messages
+
+* <code>&lt;desing-name&gt;/css/style.css</code> - design CSS file
+
+Each folder should contain:
+
+* <code>/img/icon.ico</code> - icon for web browsers (@see favicon)
+* <code>/img/apple-touch-icon.png</code> - icon for apple touch (@see apple-touch-icon)
+
+In HTML layout file <code>/layout.ftl</code> you may use:
+
+Functions:
+
+* <code>${message("&lt;message-code&gt;")}</code> - for retrieving translated messages from layout properties files
+* <code>${escapeJavaScript("&lt;code&gt;")}</code> - for escaping strings for usage in javascript string
+
+Page construction variables:
+
+* <code>${title}</code> - for rendering current page title
+* <code>${head}</code> - for rendering current page part of &lt;head&gt; section (CSS/JS imports and common javascript code, the &lt;head&gt; tag is not included)
+* <code>${content}</code> - for rendering current page content
+
+Support page variables:
+
+* <code>${app.version}</code> - application version (e.g., *1.2.3*)
+* <code>${url.resources}</code> - URL base path for resources (e.g., *${url.resources}/img/logo.png* to access *logo.png* in *&lt;desing-name&gt;/img/* folder)
+* <code>${url.changelog}</code> - URL to show changelog
+* <code>${url.home}</code> - URL to show main page
+* <code>${url.languageCs}</code> - URL to change user language to czech
+* <code>${url.languageEn}</code> - URL to change user language to english
+* <code>${url.user.login}</code> - URL to redirect user to authentication server
+* <code>${url.user.logout}</code> - URL to clear user authentication information
+* <code>${url.report}</code> - URL to show report problem page
+* <code>${url.userSettings}</code> - URL to show
+* <code>${url.userSettingsAdvancedMode(true|false)}</code> - URL to switch on/off the advance user interface
+* <code>${url.userSettingsAdministratorMode(true|false)}</code> - URL to switch on/off the administrator mode
+* <code>${user}</code> - Object containing user session information
+* <code>${user.id}</code> - User id
+* <code>${user.name}</code> - Full user name
+* <code>${user.advancedMode}</code> - Specifies whether user is in advance user interface
+* <code>${user.administratorMode}</code> - Specifies whether user is in administrator mode
+* <code>${user.administratorModeAvailable}</code> - Specifies whether user can switch to administrator mode
+* <code>${session.locale.title}</code> - Locale title
+* <code>${session.locale.language}</code> - Locale language (e.g., *en* or *cs*)
+* <code>${session.timezone.title}</code> - Timezone title (e.g., *+01:00*)
+* <code>${session.timezone.help}</code> - Timezone description
+* <code>${links}</code> - Sequence of <code>Link</code> objects
+* <code>${breadcrumbs}</code> - Sequence of <code>Breadcrumb</code> objects
+
+<code>Link</code> object:
+
+* <code>${&lt;link-object&gt;.title}</code> - Link title
+* <code>${&lt;link-object&gt;.url}</code> - Link url
+
+<code>Breadcrumb</code> object:
+
+* <code>${&lt;breadcrumb-object&gt;.title}</code> - Breadcrumb title
+* <code>${&lt;breadcrumb-object&gt;.url}</code> - Breadcrumb url
+
+### Example
+
+<pre>
+cesnet/
+cesnet/layout.ftl
+cesnet/layout.properties
+cesnet/layout_cs.properties
+cesnet/css/style.css
+cesnet/img/icon.ico
+cesnet/img/apple-touch-icon.png
+</pre>

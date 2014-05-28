@@ -83,10 +83,10 @@ done
 shift $(($OPTIND - 1))
 
 case $1 in
-    connector)
+    shongo-connector)
         check_connector $2
         ;;
-    client-web)
+    shongo-client-web)
         check_client_web
         ;;
     *)

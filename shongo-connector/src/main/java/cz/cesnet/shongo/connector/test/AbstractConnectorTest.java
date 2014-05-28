@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector.test;
 
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.ConnectorContainer;
+import cz.cesnet.shongo.connector.ConnectorContainerConfiguration;
 import cz.cesnet.shongo.connector.ConnectorScope;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
@@ -9,24 +10,27 @@ import cz.cesnet.shongo.connector.api.DeviceConfiguration;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.common.AbstractConnector;
-import cz.cesnet.shongo.connector.device.AdobeConnectConnector;
+import cz.cesnet.shongo.connector.common.ConnectorConfigurationImpl;
+import cz.cesnet.shongo.connector.jade.ConnectorAgent;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.util.Logging;
 import jade.core.AID;
+import org.apache.commons.configuration.AbstractConfiguration;
+import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 /**
  * Class for testing connectors.
@@ -38,7 +42,13 @@ public abstract class AbstractConnectorTest
     private static Logger logger = LoggerFactory.getLogger(AbstractConnectorTest.class);
 
     /**
-     * Constants for {@link cz.cesnet.shongo.connector.test.AbstractConnectorTest}..
+     * @see ConnectorContainer#DEFAULT_CONFIGURATION_FILE_NAMES
+     */
+    public static final List<String> DEFAULT_CONFIGURATION_FILE_NAMES =
+            Arrays.asList(ConnectorContainer.DEFAULT_CONFIGURATION_FILE_NAMES);
+
+    /**
+     * Constants for {@link AbstractConnectorTest}..
      */
     private static final String JADE_MAIN_HOST = "127.0.0.1";
     private static final int JADE_MAIN_PORT = 8282;
@@ -53,17 +63,74 @@ public abstract class AbstractConnectorTest
     protected Container mainContainer;
 
     /**
-     * Main JADE agent (used for sending commands to {@link cz.cesnet.shongo.connector.jade.ConnectorAgent}).
+     * Main JADE agent (used for sending commands to {@link ConnectorAgent}).
      */
     protected Agent mainAgent;
 
     /**
-     * {@link cz.cesnet.shongo.connector.ConnectorContainer} with {@link cz.cesnet.shongo.connector.jade.ConnectorAgent}s.
+     * {@link ConnectorContainer} with {@link ConnectorAgent}s.
      */
     protected ConnectorContainer connectorContainer;
 
     /**
-     * Execute this {@link cz.cesnet.shongo.connector.test.AbstractConnectorTest}.
+     * @see ConnectorContainerConfiguration
+     */
+    protected ConnectorContainerConfiguration containerConfiguration;
+
+    /**
+     * Constructor.
+     *
+     * @param configurationFileNames
+     */
+    protected AbstractConnectorTest(String directory, List<String> configurationFileNames)
+    {
+        List<AbstractConfiguration> configurations = new LinkedList<AbstractConfiguration>();
+        for (String configurationFileName : configurationFileNames) {
+            String configurationFilePath = directory + "/" + configurationFileName;
+            if (!new File(configurationFilePath).exists()) {
+                String newDirectory = directory.replaceFirst("\\.\\./", "");
+                String newConfigurationFilePath = configurationFilePath;
+                while (!newDirectory.equals(directory)) {
+                    directory = newDirectory;
+                    logger.info("Configuration file '" + newConfigurationFilePath + "' doesn't exist. Trying parent directory...");
+                    newConfigurationFilePath = newDirectory + "/" + configurationFileName;
+                    if (new File(newConfigurationFilePath).exists()) {
+                        configurationFilePath = newConfigurationFilePath;
+                        break;
+                    }
+                    newDirectory = directory.replaceFirst("\\.\\./", "");
+                }
+            }
+            if (new File(configurationFilePath).exists()) {
+                configurations.add(ConnectorContainerConfiguration.loadConfiguration(configurationFilePath));
+            }
+            else {
+                logger.warn("Configuration file '" + configurationFilePath + "' doesn't exist.");
+            }
+        }
+        this.containerConfiguration = new ConnectorContainerConfiguration(configurations);
+    }
+
+    /**
+     * @param connectorName
+     * @return {@link ConnectorConfiguration} for given {@code connectorName}
+     */
+    public ConnectorConfiguration getConnectorConfiguration(String connectorName)
+    {
+        CombinedConfiguration connectorConfiguration = containerConfiguration.getConnectorConfiguration(connectorName);
+        if (connectorConfiguration == null) {
+            throw new IllegalArgumentException(
+                    "Configuration for '" + connectorName + "' doesn't exist.");
+        }
+        if (connectorConfiguration.getString("class") == null) {
+            throw new IllegalArgumentException(
+                    "Configuration for '" + connectorName + "' doesn't define connector class.");
+        }
+        return new ConnectorConfigurationImpl(connectorConfiguration);
+    }
+
+    /**
+     * Execute this {@link AbstractConnectorTest}.
      */
     public final void execute()
     {
@@ -113,6 +180,16 @@ public abstract class AbstractConnectorTest
     }
 
     /**
+     * @param connectorName
+     */
+    protected Connector addConnector(String connectorName)
+    {
+        ConnectorConfiguration connectorConfiguration = getConnectorConfiguration(connectorName);
+        addConnector(connectorConfiguration);
+        return new Connector(connectorConfiguration);
+    }
+
+    /**
      * @param connectorConfiguration to be added to the {@link #connectorContainer}
      */
     protected void addConnector(ConnectorConfiguration connectorConfiguration)
@@ -123,6 +200,9 @@ public abstract class AbstractConnectorTest
         String connectorAgentName = connectorConfiguration.getAgentName();
         boolean started = false;
         while (!started) {
+            if(!connectorContainer.hasConnectorAgent(connectorAgentName)) {
+                throw new RuntimeException("Connector '" + connectorAgentName + "' failed to start.");
+            }
             for (AID agent : mainAgent.findAgentsByService(ConnectorScope.CONNECTOR_AGENT_SERVICE, 1000)) {
                 if (agent.getLocalName().equals(connectorAgentName)) {
                     started = true;
@@ -133,13 +213,13 @@ public abstract class AbstractConnectorTest
     }
 
     /**
-     * @param connectorAgentName
+     * @param connector
      * @param connectorCommand
      * @return result
      */
-    protected <T> T performCommand(String connectorAgentName, ConnectorCommand<T> connectorCommand)
+    protected <T> T performCommand(Connector connector, ConnectorCommand<T> connectorCommand)
     {
-        SendLocalCommand sendLocalCommand = mainAgent.sendCommand(connectorAgentName, connectorCommand);
+        SendLocalCommand sendLocalCommand = mainAgent.sendCommand(connector.getName(), connectorCommand);
         return (T) sendLocalCommand.getResult();
     }
 
@@ -240,6 +320,75 @@ public abstract class AbstractConnectorTest
         Container.killAllJadeThreads();
 
         logger.info("Connector Test finished.");
+    }
+
+    private MutableInt level = new MutableInt();
+
+    private Stack<MutableInt> levels = new Stack<MutableInt>();
+
+    protected void printTestBegin(Connector connector, String name)
+    {
+        this.level.increment();
+
+        StringBuilder message = new StringBuilder();
+        for (MutableInt level : this.levels) {
+            message.append(level);
+            message.append("");
+        }
+        message.append(level);
+        message.append("");
+        message.append(" Testing '");
+        message.append(connector.getName());
+        message.append("': ");
+        message.append(name);
+        message.append("...\n");
+        message.append("--------------------------------------------------------------------------------");
+        if (this.levels.size() == 0) {
+            logger.info("");
+        }
+        logger.info(message.toString());
+
+        this.levels.push(this.level);
+        this.level = new MutableInt(0);
+    }
+
+    protected void printTestEnd(Connector connector)
+    {
+        this.level = this.levels.pop();
+        if (this.levels.size() == 0) {
+            StringBuilder message = new StringBuilder();
+            for (MutableInt level : this.levels) {
+                message.append(level);
+                message.append("");
+            }
+            message.append(level);
+            message.append("");
+            message.append(" Testing '");
+            message.append(connector.getName());
+            message.append("' finished.\n");
+            message.append("--------------------------------------------------------------------------------");
+            logger.info(message.toString());
+        }
+    }
+
+    public static class Connector
+    {
+        private ConnectorConfiguration configuration;
+
+        public Connector(ConnectorConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
+        public String getName()
+        {
+            return configuration.getAgentName();
+        }
+
+        public String getAddress()
+        {
+            return "https://" + configuration.getDeviceConfiguration().getAddress().getHost();
+        }
     }
 
     /**

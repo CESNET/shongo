@@ -1,13 +1,8 @@
 backup/
-data/
 keystore/
 log/
 migrations/backup
-migrations/meetings_*
-migrations/shongo-dev_*
-migrations/srom-dev_*
 service/*.log
 service/*.pid
-shongo-*.cfg.xml
-shongo-*.test.xml
+shongo-*.xml
 root.access-token

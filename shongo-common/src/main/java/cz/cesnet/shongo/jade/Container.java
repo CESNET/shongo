@@ -22,6 +22,7 @@ import jade.wrapper.StaleProxyException;
 import jade.wrapper.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.management.resources.agent;
 
 import java.util.*;
 
@@ -434,6 +435,22 @@ public class Container
         stopAgent(agentName);
         agents.remove(agentName);
         agentsArguments.remove(agentName);
+    }
+
+    /**
+     * @param agentName
+     * @return true when the agent exists, false otherwise
+     */
+    public boolean hasAgent(String agentName)
+    {
+        AgentController agentController = agentControllers.get(agentName);
+        try {
+            State state = agentController.getState();
+            return true;
+        }
+        catch (Exception exception) {
+            return false;
+        }
     }
 
     /**

@@ -43,14 +43,17 @@ public class ConnectorContainer
             LoggerFactory.getLogger(ConnectorContainer.class.getName() + ".ExecutedCommand");
 
     /**
-     * Default configuration filename.
+     * Default configuration file names.
      */
-    public static final String DEFAULT_CONFIGURATION_FILENAME = "shongo-connector.cfg.xml";
+    public static final String[] DEFAULT_CONFIGURATION_FILE_NAMES = new String[]{
+            "shongo-connector.cfg.xml",
+            "shongo-connector.auth.xml"
+    };
 
     /**
      * Connector configuration.
      */
-    private ConnectorContainerConfiguration configuration = new ConnectorContainerConfiguration();
+    private ConnectorContainerConfiguration configuration;
 
     /**
      * List of {@link cz.cesnet.shongo.connector.api.ConnectorConfiguration}.
@@ -64,10 +67,28 @@ public class ConnectorContainer
 
     /**
      * Constructor.
+     *
+     * @param configuration sets the {@link #configuration}
+     */
+    public ConnectorContainer(ConnectorContainerConfiguration configuration)
+    {
+        this.configuration = configuration;
+
+        // Add connector configurations
+        for (CombinedConfiguration combinedConfiguration : configuration.getConnectorConfigurations()) {
+            if (combinedConfiguration.getString("class") == null) {
+                continue;
+            }
+            addConnectorConfiguration(new ConnectorConfigurationImpl(combinedConfiguration));
+        }
+    }
+
+    /**
+     * Constructor.
      */
     public ConnectorContainer()
     {
-        setConfiguration(null);
+        this(new ConnectorContainerConfiguration());
     }
 
     /**
@@ -77,57 +98,18 @@ public class ConnectorContainer
      */
     public ConnectorContainer(AbstractConfiguration configuration)
     {
-        setConfiguration(configuration);
+        this(new ConnectorContainerConfiguration(configuration));
     }
 
     /**
      * Constructor.
      *
-     * @param configurationFileName
+     * @param configurationFileNames
      */
-    public ConnectorContainer(String configurationFileName)
+    public ConnectorContainer(List<String> configurationFileNames)
     {
-        // Passed configuration has lower priority
-        try {
-            XMLConfiguration xmlConfiguration = new XMLConfiguration();
-            xmlConfiguration.setDelimiterParsingDisabled(true);
-            xmlConfiguration.load(configurationFileName);
-            setConfiguration(xmlConfiguration);
-        }
-        catch (ConfigurationException e) {
-            logger.warn(e.getMessage());
-        }
-    }
-
-    /**
-     * @param configuration to be used
-     */
-    private void setConfiguration(AbstractConfiguration configuration)
-    {
-        this.configuration = new ConnectorContainerConfiguration();
-        // System properties has the highest priority
-        this.configuration.addConfiguration(new SystemConfiguration());
-        // Added given configuration
-        if (configuration != null) {
-            this.configuration.addConfiguration(configuration);
-        }
-        // Default configuration has the lowest priority
-        try {
-            XMLConfiguration xmlConfiguration = new XMLConfiguration();
-            xmlConfiguration.setDelimiterParsingDisabled(true);
-            xmlConfiguration.load(getClass().getClassLoader().getResource("connector-default.cfg.xml"));
-            this.configuration.addConfiguration(xmlConfiguration);
-        }
-        catch (Exception exception) {
-            throw new RuntimeException("Failed to load default connector configuration!", exception);
-        }
-        // Load connector configurations
-        for (HierarchicalConfiguration connector : this.configuration.configurationsAt("connectors.connector")) {
-            ConnectorConfigurationImpl connectorConfiguration = new ConnectorConfigurationImpl(connector);
-            if (connectorConfiguration.getClass() != null) {
-                addConnectorConfiguration(connectorConfiguration);
-            }
-        }
+        this.configuration = new ConnectorContainerConfiguration(
+                ConnectorContainerConfiguration.loadConfigurations(configurationFileNames));
     }
 
     /**
@@ -208,6 +190,15 @@ public class ConnectorContainer
     {
         String agentName = configuration.getAgentName();
         jadeContainer.addAgent(agentName, ConnectorAgent.class, new Object[]{this.configuration, configuration});
+    }
+
+    /**
+     * @param connectorAgentName
+     * @return true when the agent exists, false otherwise
+     */
+    public boolean hasConnectorAgent(String connectorAgentName)
+    {
+        return jadeContainer.hasAgent(connectorAgentName);
     }
 
     private void runShell()
@@ -383,25 +374,25 @@ public class ConnectorContainer
             }
         }
 
-        final ConnectorContainer connectorContainer;
-
-        // load configuration
-        String configFilename = null;
+        // Prepare configuration file names
+        List<String> configurationFileNames = new LinkedList<String>();
         if (commandLine.hasOption(optionConfig.getOpt())) {
-            configFilename = commandLine.getOptionValue(optionConfig.getOpt());
-        }
-        else {
-            if (new File(DEFAULT_CONFIGURATION_FILENAME).exists()) {
-                configFilename = DEFAULT_CONFIGURATION_FILENAME;
+            for (String configurationFilename : commandLine.getOptionValues(optionConfig.getOpt())) {
+                if (!new File(configurationFilename).exists()) {
+                    throw new IllegalArgumentException(
+                            "Configuration file '" + configurationFilename + "' doesn't exist.");
+                }
+                configurationFileNames.add(configurationFilename);
             }
         }
-        if (configFilename != null) {
-            logger.info("Connector loading configuration from {}", configFilename);
-            connectorContainer = new ConnectorContainer(configFilename);
-        }
         else {
-            connectorContainer = new ConnectorContainer();
+            for (String configurationFilename : DEFAULT_CONFIGURATION_FILE_NAMES) {
+                if (new File(configurationFilename).exists()) {
+                    configurationFileNames.add(configurationFilename);
+                }
+            }
         }
+        final ConnectorContainer connectorContainer = new ConnectorContainer(configurationFileNames);
 
         // Thread that checks the connection to the main controller
         // and if it is down it tries to connect.

@@ -77,7 +77,7 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
             this.connectorClass = (Class<? extends CommonService>) Class.forName(className);
         }
         catch (ClassNotFoundException exception) {
-            throw new ConnectorInitException("Connector class not found: " + className, exception);
+            throw new ConnectorInitException("Connector class for " + name + " not found: " + className, exception);
         }
         if (AbstractDeviceConnector.class.isAssignableFrom(this.connectorClass)) {
             deviceConfiguration = new DeviceConfiguration() {
@@ -107,7 +107,7 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
     @Override
     public String getAgentName()
     {
-        return getStringRequired("name");
+        return name;
     }
 
     @Override
@@ -133,7 +133,7 @@ public class ConnectorConfigurationImpl extends ConnectorConfiguration
         String value = configuration.getString(attribute);
         if (value == null) {
             throw new IllegalArgumentException(
-                    "Attribute '" + attribute + "' must be set in connector '" + name + "' configuration.");
+                    "Attribute '" + attribute + "' must be set in connector configuration for '" + name + "'.");
         }
         return value;
     }
