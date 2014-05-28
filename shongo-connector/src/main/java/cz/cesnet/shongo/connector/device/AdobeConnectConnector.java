@@ -414,6 +414,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
+    public void checkRecordings() throws CommandException
+    {
+        recordingManager.checkRecordings();
+    }
+
+    @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
         RequestAttributeList attributes = new RequestAttributeList();

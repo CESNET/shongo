@@ -10,7 +10,7 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link cz.cesnet.shongo.connector.api.RecordingService#createRecordingFolder}
  */
-public class CreateRecordingFolder extends ConnectorCommand
+public class CreateRecordingFolder extends ConnectorCommand<String>
 {
     private RecordingFolder recordingFolder;
 
@@ -34,7 +34,7 @@ public class CreateRecordingFolder extends ConnectorCommand
     }
 
     @Override
-    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
+    public String execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         return getRecording(connector).createRecordingFolder(recordingFolder);
     }

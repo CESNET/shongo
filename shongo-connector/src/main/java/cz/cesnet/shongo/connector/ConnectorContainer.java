@@ -108,8 +108,8 @@ public class ConnectorContainer
      */
     public ConnectorContainer(List<String> configurationFileNames)
     {
-        this.configuration = new ConnectorContainerConfiguration(
-                ConnectorContainerConfiguration.loadConfigurations(configurationFileNames));
+        this(new ConnectorContainerConfiguration(
+                ConnectorContainerConfiguration.loadConfigurations(configurationFileNames)));
     }
 
     /**

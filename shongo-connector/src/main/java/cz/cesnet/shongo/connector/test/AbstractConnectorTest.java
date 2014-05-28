@@ -24,6 +24,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.apache.commons.lang.mutable.MutableInt;
+import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
@@ -140,46 +141,6 @@ public abstract class AbstractConnectorTest
     }
 
     /**
-     * Add new connector to {@link #connectorContainer}.
-     *
-     * @param agentName
-     * @param connectorClass
-     * @param deviceConfiguration
-     * @param options
-     */
-    protected void addConnector(final String agentName, final Class<? extends AbstractConnector> connectorClass,
-            final DeviceConfiguration deviceConfiguration, final Map<String, String> options)
-    {
-        ConnectorConfiguration connectorConfiguration = new ConnectorConfiguration()
-        {
-            @Override
-            public String getAgentName()
-            {
-                return agentName;
-            }
-
-            @Override
-            public Class<? extends CommonService> getConnectorClass()
-            {
-                return connectorClass;
-            }
-
-            @Override
-            public DeviceConfiguration getDeviceConfiguration()
-            {
-                return deviceConfiguration;
-            }
-
-            @Override
-            public String getOptionString(String option)
-            {
-                return options.get(option);
-            }
-        };
-        addConnector(connectorConfiguration);
-    }
-
-    /**
      * @param connectorName
      */
     protected Connector addConnector(String connectorName)
@@ -221,6 +182,28 @@ public abstract class AbstractConnectorTest
     {
         SendLocalCommand sendLocalCommand = mainAgent.sendCommand(connector.getName(), connectorCommand);
         return (T) sendLocalCommand.getResult();
+    }
+
+    /**
+     * @param duration
+     */
+    protected void sleep(Duration duration)
+    {
+        try {
+            Thread.sleep(duration.getMillis());
+        }
+        catch (InterruptedException exception) {
+            logger.warn("Sleep interrupted", exception);
+        }
+    }
+
+    /**
+     * @param message
+     */
+    protected void waitForUserCheck(String message)
+    {
+        javax.swing.JOptionPane.showMessageDialog(
+                null, message, "Waiting", javax.swing.JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**

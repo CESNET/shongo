@@ -23,6 +23,23 @@ public class RecordingFolder extends IdentifiedComplexType
     private Map<String, UserPermission> userPermissions = new HashMap<String, UserPermission>();
 
     /**
+     * Constructor.
+     */
+    public RecordingFolder()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name sets the {@link #name}
+     */
+    public RecordingFolder(String name)
+    {
+        this.name = name;
+    }
+
+    /**
      * @return {@link #name}
      */
     public String getName()

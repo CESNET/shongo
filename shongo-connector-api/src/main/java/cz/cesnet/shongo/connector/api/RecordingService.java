@@ -69,7 +69,6 @@ public interface RecordingService
      */
     public Recording getActiveRecording(Alias alias) throws CommandException, CommandUnsupportedException;
 
-
     /**
      * Check whether recording with given {@code recordingId} is currently active (is being recorded).
      *
@@ -96,7 +95,7 @@ public interface RecordingService
      *
      * @param recordingId identifier of the recording to stop, previously returned by the {@link #startRecording} method
      */
-    void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException;
+    public void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Deletes a recording with given {@code recordingId}.
@@ -106,5 +105,12 @@ public interface RecordingService
      *
      * @param recordingId identifier of the recording, previously returned by the {@link #startRecording} method
      */
-    void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException;
+    public void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Check recordings in device and move them to appropriate recording folder.
+     *
+     * @throws CommandException
+     */
+    public void checkRecordings() throws CommandException;
 }

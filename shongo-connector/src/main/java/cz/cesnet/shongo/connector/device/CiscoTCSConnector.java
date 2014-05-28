@@ -1095,12 +1095,11 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
      *
      * @throws CommandException
      */
-    private void checkRecordings() throws CommandException
+    public void checkRecordings() throws CommandException
     {
         ExecutorService exec = Executors.newFixedThreadPool(NUM_OF_THREADS);
         try {
             List<Recording> recordingsToCheck = new LinkedList<Recording>();
-
             synchronized (CiscoTCSConnector.class) {
                 logger.debug("Checking recordings to be moved...");
                 List<Recording> recordings = listOriginalRecordings("*");

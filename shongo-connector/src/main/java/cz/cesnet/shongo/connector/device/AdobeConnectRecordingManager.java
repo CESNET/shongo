@@ -720,7 +720,7 @@ public class AdobeConnectRecordingManager
      *
      * @throws cz.cesnet.shongo.api.jade.CommandException
      */
-    private void checkRecordings() throws CommandException
+    public synchronized void checkRecordings() throws CommandException
     {
         AdobeConnectConnector.RequestAttributeList recordingsAttributes =
                 new AdobeConnectConnector.RequestAttributeList();
