@@ -40,7 +40,7 @@ import java.util.*;
  */
 public abstract class AbstractConnectorTest
 {
-    private static Logger logger = LoggerFactory.getLogger(AbstractConnectorTest.class);
+    protected static Logger logger = LoggerFactory.getLogger(AbstractConnectorTest.class);
 
     /**
      * @see ConnectorContainer#DEFAULT_CONFIGURATION_FILE_NAMES
@@ -181,7 +181,12 @@ public abstract class AbstractConnectorTest
     protected <T> T performCommand(Connector connector, ConnectorCommand<T> connectorCommand)
     {
         SendLocalCommand sendLocalCommand = mainAgent.sendCommand(connector.getName(), connectorCommand);
-        return (T) sendLocalCommand.getResult();
+        if (sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
+            return (T) sendLocalCommand.getResult();
+        }
+        else {
+            throw new RuntimeException(sendLocalCommand.getJadeReport().toString());
+        }
     }
 
     /**

@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.RoomNotExistsException;
 import cz.cesnet.shongo.controller.api.jade.GetRecordingFolderId;
 import org.jdom2.Element;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -561,7 +560,7 @@ public class AdobeConnectRecordingManager
 
         String dateEnd = recordingElement.getChildText("date-end");
         if (dateEnd != null) {
-            recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toPeriod());
+            recording.setDuration(new Interval(DateTime.parse(dateBegin), DateTime.parse(dateEnd)).toDuration());
         }
 
         DeviceAddress deviceAddress = connector.getDeviceAddress();
@@ -619,19 +618,6 @@ public class AdobeConnectRecordingManager
      * or still in room. Logs warning, if recording is stored in another folder, then it is supposed to.
      *
      * @param recordingId
-     * @return result
-     * @throws CommandException
-     */
-    private boolean isRecordingStored(String recordingId) throws CommandException
-    {
-        return isRecordingStored(recordingId, null);
-    }
-
-    /**
-     * Check if recording is stored in dedicated folder (given or system if null),
-     * or still in room. Logs warning, if recording is stored in another folder, then it is supposed to.
-     *
-     * @param recordingId
      * @param recordingFolderId
      * @return result
      * @throws cz.cesnet.shongo.api.jade.CommandException
@@ -643,10 +629,9 @@ public class AdobeConnectRecordingManager
         }
 
         Element recording = connector.getScoInfo(recordingId);
-        String folderId = recording.getAttributeValue("folder-id");
-
+        String currentRecordingFolderId = recording.getAttributeValue("folder-id");
         if (recordingFolderId != null) {
-            if (folderId.equals(recordingFolderId)) {
+            if (currentRecordingFolderId.equals(recordingFolderId)) {
                 return true;
             }
             else {
@@ -659,13 +644,13 @@ public class AdobeConnectRecordingManager
         List<Element> recFolders = connector.request("sco-contents", recFoldersAttributes)
                 .getChild("scos").getChildren();
         for (Element recFolder : recFolders) {
-            if (recFolder.getAttributeValue("sco-id").equals(folderId)) {
+            if (recFolder.getAttributeValue("sco-id").equals(currentRecordingFolderId)) {
                 cachedMovedRecordings.add(recordingId);
                 return true;
             }
         }
 
-        Element folder = connector.getScoInfo(folderId);
+        Element folder = connector.getScoInfo(currentRecordingFolderId);
         if ("folder".equals(folder.getAttributeValue("type"))) {
             logger.warn("Recording is stored in wrong folder (outside folder {}): {}",
                     recordingsFolderName, folder.getChildText("name"));
@@ -691,7 +676,7 @@ public class AdobeConnectRecordingManager
         moveAttributes.add("sco-id", recordingId);
         moveAttributes.add("folder-id", recordingFolderId);
 
-        logger.info("Moving recording (id: " + recordingId + ") to folder (id: " + recordingFolderId + ")");
+        logger.info("Moving recording (id: " + recordingId + ") to recording folder (id: " + recordingFolderId + ")");
         // Counter for duplicate names
         int i = 0;
         // Move or rename if duplicate name (add "_X")
@@ -734,54 +719,93 @@ public class AdobeConnectRecordingManager
 
         List<String> allStoredRecordings = new ArrayList<String>();
 
+        // Get set of all managed rooms
+        Set<String> roomIds = getRoomIds();
+
+        // Iterate over all recordings
         for (Element recording : recordings) {
             String recordingId = recording.getAttributeValue("sco-id");
-            String folderId = connector.getScoInfo(recordingId).getAttributeValue("folder-id");
+            String roomId = connector.getScoInfo(recordingId).getAttributeValue("folder-id");
 
-            // Get all shongo meetings
-            AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
-            attributes.add("sco-id", connector.getMeetingsFolderId());
-            attributes.add("type", "meeting");
-            Element shongoRoomsElement = connector.request("sco-contents", attributes);
-
-            List<String> shongoRooms = new ArrayList<String>();
-            for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {
-                shongoRooms.add(sco.getAttributeValue("sco-id"));
-            }
-
-            // Skip all non-shongo rooms
-            if (!shongoRooms.contains(folderId)) {
-                //logger.debug("There is recording for non-shongo room");
+            // Process only recordings which are located in managed rooms
+            if (!roomIds.contains(roomId)) {
+                // Skip recordings which are located in not-managed rooms
                 continue;
             }
 
-            // Move if not stored yet
-            if (isRecordingStored(recordingId)) {
+            // Move recording to appropriate recording folder
+            if (moveRecordingToAppropriateRecordingFolder(recordingId, roomId)) {
                 allStoredRecordings.add(recordingId);
             }
             else {
-                Element folder = connector.getScoInfo(folderId);
-
-                if ("meeting".equals(folder.getAttributeValue("type"))) {
-                    String destinationId = (String) connector.performControllerAction(
-                            new GetRecordingFolderId(folderId));
-                    if (destinationId == null) {
-                        throw new CommandException("FolderId from GetRecordingFolderId was null.");
-                    }
-
-                    moveRecording(recordingId, destinationId);
-                    cachedMovedRecordings.add(recordingId);
-                    allStoredRecordings.add(recordingId);
-
-                    continue;
-                }
-
-                logger.warn("Recording " + recording.getChildText("name") + " (id: " + recording
-                        .getAttributeValue("sco-id") + ") for shongo room was not stored or found in any meeting.");
+                String recordingName = recording.getChildText("name");
+                logger.warn("Recording " + recordingName + " (id: " + recordingId
+                        + ") for shongo room cannot be moved to appropriate folder.");
             }
         }
 
         // Retain only existing stored recordings
         cachedMovedRecordings.retainAll(allStoredRecordings);
+    }
+
+    /**
+     * @param recordingId to be checked
+     * @throws CommandException
+     */
+    public synchronized void checkRecording(String recordingId) throws CommandException
+    {
+        String roomId = connector.getScoInfo(recordingId).getAttributeValue("folder-id");
+        Set<String> roomIds = getRoomIds();
+        if (roomIds.contains(roomId)) {
+            moveRecordingToAppropriateRecordingFolder(recordingId, roomId);
+        }
+    }
+
+    /**
+     * @return list of sco-ids of managed rooms
+     * @throws CommandException
+     */
+    private Set<String> getRoomIds() throws CommandException
+    {
+        // Get all shongo meetings
+        AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
+        attributes.add("sco-id", connector.getMeetingsFolderId());
+        attributes.add("type", "meeting");
+        Element shongoRoomsElement = connector.request("sco-contents", attributes);
+
+        Set<String> roomIds = new HashSet<String>();
+        for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {
+            roomIds.add(sco.getAttributeValue("sco-id"));
+        }
+        return roomIds;
+    }
+
+    /**
+     * @param recordingId to be moved
+     * @param roomId      where the recording is currently stored
+     * @return true when the moving is done, false otherwise
+     * @throws CommandException
+     */
+    private synchronized boolean moveRecordingToAppropriateRecordingFolder(String recordingId, String roomId)
+            throws CommandException
+    {
+        if (isRecordingStored(recordingId, null)) {
+            // Recording is already stored
+            return true;
+        }
+        else {
+            // Move is not stored and thus move it
+            Element room = connector.getScoInfo(roomId);
+            if ("meeting".equals(room.getAttributeValue("type"))) {
+                String recordingFolderId = (String) connector.performControllerAction(new GetRecordingFolderId(roomId));
+                if (recordingFolderId == null) {
+                    throw new CommandException("GetRecordingFolderId for room " + roomId + " returned null.");
+                }
+                moveRecording(recordingId, recordingFolderId);
+                cachedMovedRecordings.add(recordingId);
+                return true;
+            }
+        }
+        return false;
     }
 }

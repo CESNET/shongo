@@ -289,46 +289,57 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     @Override
     public Room getRoom(String roomId) throws CommandException
     {
-        Command cmd = new Command("conference.status");
-        cmd.setParameter("conferenceName", truncateString(roomId));
-        Map<String, Object> result = execApi(cmd);
+        Map<String, Object> conferenceStatus;
+        try {
+            Command cmd = new Command("conference.status");
+            cmd.setParameter("conferenceName", truncateString(roomId));
+            conferenceStatus = execApi(cmd);
+        }
+        catch (CommandException exception) {
+            if (exception.getMessage().equals("no such conference or auto attendant")) {
+                return null;
+            }
+            else {
+                throw exception;
+            }
+        }
 
         Room room = new Room();
-        room.setId((String) result.get("conferenceName"));
-        room.addAlias(AliasType.ROOM_NAME, (String) result.get("conferenceName"));
-        if (result.containsKey("maximumVideoPorts")) {
-            room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+        room.setId((String) conferenceStatus.get("conferenceName"));
+        room.addAlias(AliasType.ROOM_NAME, (String) conferenceStatus.get("conferenceName"));
+        if (conferenceStatus.containsKey("maximumVideoPorts")) {
+            room.setLicenseCount((Integer) conferenceStatus.get("maximumVideoPorts"));
         }
         room.addTechnology(Technology.H323);
 
-        if (result.containsKey("description") && !result.get("description").equals("")) {
-            room.setDescription((String) result.get("description"));
+        if (conferenceStatus.containsKey("description") && !conferenceStatus.get("description").equals("")) {
+            room.setDescription((String) conferenceStatus.get("description"));
         }
 
         // aliases
-        if (result.containsKey("numericId") && !result.get("numericId").equals("")) {
-            Alias numAlias = new Alias(AliasType.H323_E164, (String) result.get("numericId"));
+        if (conferenceStatus.containsKey("numericId") && !conferenceStatus.get("numericId").equals("")) {
+            Alias numAlias = new Alias(AliasType.H323_E164, (String) conferenceStatus.get("numericId"));
             room.addAlias(numAlias);
         }
 
         // layout
-        if (result.containsKey("customLayout")) {
-            room.setLayout(getRoomLayoutByLayoutIndex((Integer) result.get("customLayout")));
+        if (conferenceStatus.containsKey("customLayout")) {
+            room.setLayout(getRoomLayoutByLayoutIndex((Integer) conferenceStatus.get("customLayout")));
         }
 
         // options
         H323RoomSetting h323RoomSetting = new H323RoomSetting();
-        if (!result.get("pin").equals("")) {
-            h323RoomSetting.setPin((String) result.get("pin"));
+        if (!conferenceStatus.get("pin").equals("")) {
+            h323RoomSetting.setPin((String) conferenceStatus.get("pin"));
         }
-        h323RoomSetting.setListedPublicly(!(Boolean) result.get("private"));
-        h323RoomSetting.setAllowContent((Boolean) result.get("contentContribution"));
-        h323RoomSetting.setJoinMicrophoneDisabled((Boolean) result.get("joinAudioMuted"));
-        h323RoomSetting.setJoinVideoDisabled((Boolean) result.get("joinVideoMuted"));
-        h323RoomSetting.setRegisterWithGatekeeper((Boolean) result.get("registerWithGatekeeper"));
-        h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
-        h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
-        h323RoomSetting.setConferenceMeEnabled((Boolean) result.get("conferenceMeEnabled"));
+        h323RoomSetting.setListedPublicly(!(Boolean) conferenceStatus.get("private"));
+        h323RoomSetting.setAllowContent((Boolean) conferenceStatus.get("contentContribution"));
+        h323RoomSetting.setJoinMicrophoneDisabled((Boolean) conferenceStatus.get("joinAudioMuted"));
+        h323RoomSetting.setJoinVideoDisabled((Boolean) conferenceStatus.get("joinVideoMuted"));
+        h323RoomSetting.setRegisterWithGatekeeper((Boolean) conferenceStatus.get("registerWithGatekeeper"));
+        h323RoomSetting.setRegisterWithRegistrar((Boolean) conferenceStatus.get("registerWithSIPRegistrar"));
+        h323RoomSetting.setStartLocked((Boolean) conferenceStatus.get("startLocked"));
+        h323RoomSetting.setConferenceMeEnabled((Boolean) conferenceStatus.get("conferenceMeEnabled"));
         room.addRoomSetting(h323RoomSetting);
 
         return room;

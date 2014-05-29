@@ -108,6 +108,14 @@ public interface RecordingService
     public void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
+     * Check recording in device and move it to appropriate recording folder.
+     *
+     * @param recordingId
+     * @throws CommandException
+     */
+    public void checkRecording(String recordingId) throws CommandException;
+
+    /**
      * Check recordings in device and move them to appropriate recording folder.
      *
      * @throws CommandException

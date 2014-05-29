@@ -414,6 +414,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     }
 
     @Override
+    public void checkRecording(String recordingId) throws CommandException
+    {
+        recordingManager.checkRecording(recordingId);
+    }
+
+    @Override
     public void checkRecordings() throws CommandException
     {
         recordingManager.checkRecordings();
@@ -527,9 +533,9 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
 
         }
-        catch (RequestFailedCommandException ex) {
-            if ("no-data".equals(ex.getCode())) {
-                throw new CommandException("Room (sco-id: " + roomId + ") does not exist.", ex);
+        catch (RequestFailedCommandException exception) {
+            if ("no-data".equals(exception.getCode())) {
+                return null;
             }
         }
         return room;
@@ -1053,7 +1059,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @param attributes the map os parameters for the action
      * @return the URL to perform the action
      */
-    protected URL breezeUrl(String action, RequestAttributeList attributes) throws IOException, CommandException
+    protected URL getLoginUrl(String action, RequestAttributeList attributes) throws IOException, CommandException
     {
         if (action == null || action.isEmpty()) {
             throw new CommandException("Action of AC call cannot be empty.");
@@ -1064,7 +1070,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 queryString += '&' + entry.getKey() + '=' + entry.getValue();
             }
         }
-        return new URL("https://" + deviceAddress + "/api/xml?" + "action=" + action + queryString);
+        return new URL(deviceAddress.getUrl() + "/api/xml?" + "action=" + action + queryString);
     }
 
     protected String getConnectionSession() throws Exception
@@ -1143,7 +1149,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         URLConnection connection;
         try {
-            URL loginUrl = breezeUrl("login", loginAtributes);
+            URL loginUrl = getLoginUrl("login", loginAtributes);
             connection = loginUrl.openConnection();
             connection.connect();
 
@@ -1347,7 +1353,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 }
             }
 
-            URL url = breezeUrl(action, attributes);
+            URL url = getLoginUrl(action, attributes);
             logger.debug(String.format("Calling action %s on %s", url, deviceAddress));
 
             int retryCount = 5;

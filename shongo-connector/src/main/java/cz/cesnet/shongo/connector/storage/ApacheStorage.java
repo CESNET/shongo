@@ -50,6 +50,12 @@ public class ApacheStorage extends AbstractStorage
     }
 
     @Override
+    public boolean folderExists(String folderId)
+    {
+        return localStorageHandler.folderExists(folderId);
+    }
+
+    @Override
     public List<Folder> listFolders(String folderId, final String folderName)
     {
         return localStorageHandler.listFolders(folderId, folderName);
@@ -77,7 +83,7 @@ public class ApacheStorage extends AbstractStorage
             out.print(permissionFileContent);
         }
         catch (FileNotFoundException exception) {
-            throw new RuntimeException("File '" + permissionFileUrl + "' couldn't be written.", exception);
+            throw new RuntimeException("File '" + permissionFileUrl + "' cannot be written.", exception);
         }
         finally {
             if (out != null) {

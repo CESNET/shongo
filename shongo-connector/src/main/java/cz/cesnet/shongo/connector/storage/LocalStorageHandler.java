@@ -102,10 +102,22 @@ public class LocalStorageHandler
 
         String folderUrl = getUrlFromId(folderId);
         if (!deleteRecursive(new java.io.File(folderUrl))) {
-            throw new RuntimeException("Directory '" + folderUrl + "' couldn't be deleted.");
+            throw new RuntimeException("Directory '" + folderUrl + "' cannot be deleted.");
         }
 
         foldersBeingDeleted.remove(folderId);
+    }
+
+    /**
+     * Test if folder already exists.
+     *
+     * @param folderId folder to be tested
+     * @return {@value true} if folder exists, {@value false} otherwise
+     */
+    public boolean folderExists(String folderId)
+    {
+        String folderUrl = getUrlFromId(folderId);
+        return new java.io.File(folderUrl).exists();
     }
 
     /**
@@ -268,7 +280,7 @@ public class LocalStorageHandler
             fileOutputStream.close();
         }
         catch (IOException exception) {
-            throw new RuntimeException("File '" + fileUrl + "' couldn't be created.", exception);
+            throw new RuntimeException("File '" + fileUrl + "' cannot be created.", exception);
         }
         finally {
             filesBeingCreated.remove(file.getFileName());
@@ -298,7 +310,7 @@ public class LocalStorageHandler
         String fileUrl = getChildUrl(folderUrl, fileName);
         java.io.File file = new java.io.File(fileUrl);
         if (!file.delete()) {
-            throw new RuntimeException("File'" + fileUrl + "' couldn't be deleted.");
+            throw new RuntimeException("File'" + fileUrl + "' cannot be deleted.");
         }
     }
 

@@ -113,4 +113,14 @@ public class DeviceAddress
             return host;
         }
     }
+
+    public String getUrl()
+    {
+        if (isSsl()) {
+            return "https://" + host;
+        }
+        else {
+            return "http://" + host;
+        }
+    }
 }

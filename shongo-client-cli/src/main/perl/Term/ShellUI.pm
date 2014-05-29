@@ -441,7 +441,7 @@ sub complete_files
         # reformat filenames to be exactly as user typed
         @files = map { length($dir) ? ($dir eq '/' ? "/$_" : "$dir/$_") : $_ } @files;
     } else {
-        $self->completemsg("Couldn't read dir: $!\n");
+        $self->completemsg("Cannot read dir: $!\n");
     }
 
     return \@files;

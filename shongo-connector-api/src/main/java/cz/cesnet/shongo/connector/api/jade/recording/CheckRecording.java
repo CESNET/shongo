@@ -1,25 +1,23 @@
 package cz.cesnet.shongo.connector.api.jade.recording;
 
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Recording;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
+ * @see {@link cz.cesnet.shongo.connector.api.RecordingService#checkRecording}
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link cz.cesnet.shongo.connector.api.RecordingService#getRecording}
  */
-public class GetRecording extends ConnectorCommand<Recording>
+public class CheckRecording extends ConnectorCommand
 {
     private String recordingId;
 
-    public GetRecording()
+    public CheckRecording()
     {
     }
 
-    public GetRecording(String recordingId)
+    public CheckRecording(String recordingId)
     {
         this.recordingId = recordingId;
     }
@@ -35,14 +33,15 @@ public class GetRecording extends ConnectorCommand<Recording>
     }
 
     @Override
-    public Recording execute(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getRecording(connector).getRecording(recordingId);
+        getRecording(connector).checkRecording(recordingId);
+        return null;
     }
 
     @Override
     public String toString()
     {
-        return String.format(GetRecording.class.getSimpleName() + " (recordingId: %s)", recordingId);
+        return String.format(CheckRecording.class.getSimpleName());
     }
 }

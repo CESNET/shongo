@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.api;
 
-
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Period;
 
 /**
@@ -29,7 +29,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * Description.
      */
-    private  String description;
+    private String description;
 
     /**
      * URL to download recording.
@@ -54,7 +54,12 @@ public class Recording extends IdentifiedComplexType
     /**
      * Time of the end of the recording.
      */
-    private Period duration;
+    private Duration duration;
+
+    /**
+     * @see State
+     */
+    private State state;
 
     /**
      * @return {@link #recordingFolderId}
@@ -187,7 +192,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * @return {@link #duration}
      */
-    public Period getDuration()
+    public Duration getDuration()
     {
         return duration;
     }
@@ -195,9 +200,25 @@ public class Recording extends IdentifiedComplexType
     /**
      * @param duration sets the {@link #duration}
      */
-    public void setDuration(Period duration)
+    public void setDuration(Duration duration)
     {
         this.duration = duration;
+    }
+
+    /**
+     * @return {@link #state}
+     */
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
     }
 
     public static final String RECORDING_FOLDER_ID = "recordingFolderId";
@@ -209,6 +230,7 @@ public class Recording extends IdentifiedComplexType
     public static final String BEGIN_DATE = "beginDate";
     public static final String DURATION = "duration";
     public static final String FILENAME = "filename";
+    public static final String STATE = "state";
 
     @Override
     public DataMap toData()
@@ -216,13 +238,14 @@ public class Recording extends IdentifiedComplexType
         DataMap dataMap = super.toData();
         dataMap.set(RECORDING_FOLDER_ID, recordingFolderId);
         dataMap.set(NAME, name);
-        dataMap.set(DESCRIPTION,description);
+        dataMap.set(DESCRIPTION, description);
         dataMap.set(DOWNLOAD_URL, downloadUrl);
         dataMap.set(VIEW_URL, viewUrl);
         dataMap.set(EDITABLE_URL, editUrl);
         dataMap.set(BEGIN_DATE, beginDate);
-        dataMap.set(DURATION, duration);
-        dataMap.set(FILENAME,fileName);
+        dataMap.set(DURATION, duration.toPeriod());
+        dataMap.set(FILENAME, fileName);
+        dataMap.set(STATE, state);
         return dataMap;
     }
 
@@ -237,22 +260,51 @@ public class Recording extends IdentifiedComplexType
         viewUrl = dataMap.getString(VIEW_URL);
         editUrl = dataMap.getString(EDITABLE_URL);
         beginDate = dataMap.getDateTime(BEGIN_DATE);
-        duration = dataMap.getPeriod(DURATION);
+        duration = dataMap.getPeriod(DURATION).toStandardDuration();
         fileName = dataMap.getString(FILENAME);
+        state = dataMap.getEnum(STATE, State.class);
     }
 
     @Override
     public String toString()
     {
         return "Recording{" +
-                "name='" + name + '\'' +
+                "recordingFolderId='" + recordingFolderId + '\'' +
+                ", name='" + name + '\'' +
+                ", fileName='" + fileName + '\'' +
                 ", description='" + description + '\'' +
                 ", downloadUrl='" + downloadUrl + '\'' +
                 ", viewUrl='" + viewUrl + '\'' +
                 ", editUrl='" + editUrl + '\'' +
                 ", beginDate=" + beginDate +
                 ", duration=" + duration +
-                ", fileName=" + fileName +
+                ", state=" + state +
                 '}';
+    }
+
+    /**
+     * Available states of {@link Recording}.
+     */
+    public static enum State
+    {
+        /**
+         * Recording hasn't been started yet.
+         */
+        NOT_STARTED,
+
+        /**
+         * Recording was not processed yet. The recording isn't available for downloading yet.
+         */
+        NOT_PROCESSED,
+
+        /**
+         * Recording was processed. The recording isn't available for downloading yet.
+         */
+        PROCESSED,
+
+        /**
+         * The recording is available for downloading.
+         */
+        AVAILABLE
     }
 }

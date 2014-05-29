@@ -30,6 +30,14 @@ public interface Storage
     void deleteFolder(String folderId);
 
     /**
+     * Test if folder already exists.
+     *
+     * @param folderId folder to be tested
+     * @return {@value true} if folder exists, {@value false} otherwise
+     */
+    public boolean folderExists(String folderId);
+
+    /**
      * List folders in specified parent folder or root folders in the storage.
      *
      * @param folderId   id of the parent folder which contains requested folders which or {@code null}

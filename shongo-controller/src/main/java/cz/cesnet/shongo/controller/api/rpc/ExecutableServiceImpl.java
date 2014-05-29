@@ -696,7 +696,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             // Get and check device room
             Room deviceRoom = (Room) performDeviceCommand(deviceResource, new GetRoom(deviceRoomId));
             if (deviceRoom == null) {
-                throw new CommonReportSet.UnknownErrorException("Device room doesn't exist.");
+                throw new CommonReportSet.UnknownErrorException("Room " + deviceRoomId + " doesn't exist.");
             }
             List<ResourceRoomEndpoint> roomExecutables = entityManager.createQuery(
                     "SELECT executable FROM ResourceRoomEndpoint executable"
