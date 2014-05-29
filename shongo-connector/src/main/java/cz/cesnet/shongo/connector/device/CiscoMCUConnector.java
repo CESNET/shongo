@@ -358,8 +358,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
 
         // defaults (may be overridden by specified room options
-        cmd.setParameter("registerWithGatekeeper", Boolean.FALSE);
-        cmd.setParameter("registerWithSIPRegistrar", Boolean.FALSE);
         cmd.setParameter("private", Boolean.TRUE);
         cmd.setParameter("contentContribution", Boolean.TRUE);
         cmd.setParameter("contentTransmitResolutions", "allowAll");
