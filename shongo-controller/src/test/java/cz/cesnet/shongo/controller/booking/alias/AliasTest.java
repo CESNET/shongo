@@ -25,6 +25,35 @@ import java.util.List;
 public class AliasTest extends AbstractControllerTest
 {
     /**
+     * Test call priority of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testCallPriority() throws Exception
+    {
+        cz.cesnet.shongo.controller.booking.alias.Alias h323number =
+                new cz.cesnet.shongo.controller.booking.alias.Alias(AliasType.H323_E164, "1");
+        cz.cesnet.shongo.controller.booking.alias.Alias h323uri =
+                new cz.cesnet.shongo.controller.booking.alias.Alias(AliasType.H323_URI, "1@cesnet.cz");
+        cz.cesnet.shongo.controller.booking.alias.Alias h323Ip =
+                new cz.cesnet.shongo.controller.booking.alias.Alias(AliasType.H323_IP, "1.0.0.0 #1");
+        cz.cesnet.shongo.controller.booking.alias.Alias sipUri =
+                new cz.cesnet.shongo.controller.booking.alias.Alias(AliasType.SIP_URI, "1@cesnet.cz");
+        cz.cesnet.shongo.controller.booking.alias.Alias sipIp =
+                new cz.cesnet.shongo.controller.booking.alias.Alias(AliasType.SIP_IP, "1.0.0.0 #1");
+
+        Assert.assertTrue(h323number.hasHigherCallPriorityThan(h323uri));
+        Assert.assertTrue(h323number.hasHigherCallPriorityThan(h323Ip));
+        Assert.assertTrue(h323number.hasHigherCallPriorityThan(sipUri));
+        Assert.assertTrue(h323number.hasHigherCallPriorityThan(sipIp));
+        Assert.assertFalse(h323uri.hasHigherCallPriorityThan(h323number));
+        Assert.assertFalse(h323Ip.hasHigherCallPriorityThan(h323number));
+        Assert.assertFalse(sipUri.hasHigherCallPriorityThan(h323number));
+        Assert.assertFalse(sipIp.hasHigherCallPriorityThan(h323number));
+    }
+
+    /**
      * Test allocation of aliases.
      *
      * @throws Exception

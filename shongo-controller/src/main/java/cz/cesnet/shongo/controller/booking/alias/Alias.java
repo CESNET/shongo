@@ -98,6 +98,16 @@ public class Alias extends SimplePersistentObject implements Cloneable
         return type.getTechnology();
     }
 
+    /**
+     * @param callableAlias
+     * @return true whether this {@link Alias} has higher callable priority than given {@code callableAlias},
+     *         otherwise false
+     */
+    public boolean hasHigherCallPriorityThan(Alias callableAlias)
+    {
+        return type.compareTo(callableAlias.getType()) < 0;
+    }
+
     @Override
     public Alias clone()
     {

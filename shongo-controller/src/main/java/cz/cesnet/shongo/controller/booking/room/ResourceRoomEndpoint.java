@@ -264,8 +264,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint
         Alias callableAlias = null;
         for (Alias alias : getAliases()) {
             if (alias.isCallable()) {
-                callableAlias = alias;
-                break;
+                if (callableAlias == null || alias.hasHigherCallPriorityThan(callableAlias)) {
+                    callableAlias = alias;
+                }
             }
         }
         if (callableAlias == null) {
