@@ -40,6 +40,15 @@ module.exports = {
     },
 
     /**
+     * Configuration.
+     */
+    Configuration: {
+        controllerUrl: null,
+        controllerSsl: false,
+        controllerToken: null
+    },
+
+    /**
      * @returns {string}
      */
     getBin: function() {
@@ -728,6 +737,15 @@ module.exports = {
      */
     execClientCliCommand: function(command) {
         var clientCliBin = __dirname + "/shongo-client-cli.sh --scripting";
+        if (this.Configuration.controllerUrl != null) {
+            clientCliBin += " --connect " + this.Configuration.controllerUrl;
+        }
+        if (this.Configuration.controllerSsl) {
+            clientCliBin += " --ssl";
+        }
+        if (this.Configuration.controllerToken != null) {
+            clientCliBin += " --token " + this.Configuration.controllerToken;
+        }
         var clientCliCommand = "--cmd \"" + command.replace(/"/g, "\\\"") + "\"";
         var exec = clientCliBin + " " + clientCliCommand;
         var result = this.exec(exec);
