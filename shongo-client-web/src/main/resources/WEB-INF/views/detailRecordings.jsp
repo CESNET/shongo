@@ -84,7 +84,7 @@
                 {{roomRecording.duration}}
             </td>
             <td>
-                <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank" download>{{roomRecording.filename}}</a></span>
+                <span ng-show="roomRecording.downloadUrl"><a href="{{roomRecording.downloadUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
                 <span ng-show="roomRecording.viewUrl && roomRecording.downloadUrl == null"><a href="{{roomRecording.viewUrl}}" target="_blank">{{roomRecording.filename}}</a></span>
                 <span ng-hide="roomRecording.downloadUrl || roomRecording.viewUrl"><spring:message code="views.room.recording.pending"/></span>
             </td>
