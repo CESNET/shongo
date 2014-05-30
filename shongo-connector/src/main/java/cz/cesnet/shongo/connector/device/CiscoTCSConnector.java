@@ -390,7 +390,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                 recording = parseRecording(rootElement);
                 if (Recording.State.NOT_PROCESSED.equals(recording.getState())) {
                     // Refresh state from TCS
-                    String recordingTcsId = getRecordingTcsIdFromRecordingId(recordingId);
+                    String recordingTcsId = getRecordingTcsIdFromRecordingId(recording.getId());
                     Recording recordingTcs = getTcsRecording(recordingTcsId);
                     recording.setState(recordingTcs.getState());
                 }
