@@ -52,14 +52,12 @@
     <hotline></hotline>
     <hotline></hotline>
 
-    <!-- Design source -->
-    <design>(default)</design>
-
-    <!-- Contact email -->
-    <suggestion-email>vidcon@cesnet.cz</suggestion-email>
-
-    <!-- Parameters -->
-    <parameters>
-    </parameters>
+    <!-- Design configuration -->
+    <design>
+        <!-- Design source folder -->
+        <folder>(default)</folder>
+        <!-- Design parameters -->
+        <!--<parameters></parameters>-->
+    </design>
 
 </configuration>

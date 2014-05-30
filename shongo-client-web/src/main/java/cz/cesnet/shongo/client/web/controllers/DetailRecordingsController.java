@@ -77,12 +77,12 @@ public class DetailRecordingsController extends AbstractDetailController
             item.put("name", recording.getName());
             item.put("description", recording.getDescription());
             item.put("beginDate", dateTimeFormatter.formatDateTime(recording.getBeginDate()));
-            Period duration = recording.getDuration();
-            if (duration == null || duration.toStandardDuration().isShorterThan(Duration.standardMinutes(1))) {
+            Duration duration = recording.getDuration();
+            if (duration == null || duration.isShorterThan(Duration.standardMinutes(1))) {
                 item.put("duration", messageSource.getMessage("views.room.recording.lessThanMinute", null, locale));
             }
             else {
-                item.put("duration", dateTimeFormatter.formatRoundedDuration(duration));
+                item.put("duration", dateTimeFormatter.formatRoundedDuration(duration.toPeriod()));
             }
             item.put("downloadUrl", recording.getDownloadUrl());
             item.put("viewUrl", recording.getViewUrl());

@@ -1,10 +1,9 @@
-build: style.css
+build: desing.css
 
-style.css: .FORCE
-	lessc less/style.less css/style.css
+desing.css: .FORCE
+	lessc less/design.less css/design.css
 
 clean:
-	rm -f css/style.css
-	rm -f css/style.min.css
+	rm -f css/design.css
 
 .FORCE:

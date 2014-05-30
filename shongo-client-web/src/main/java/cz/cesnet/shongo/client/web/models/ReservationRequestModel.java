@@ -21,6 +21,7 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -711,7 +712,7 @@ public class ReservationRequestModel implements ReportModel.ContextSerializable
      */
     public ReservationRequestSummary loadPermanentRoom(CacheProvider cacheProvider)
     {
-        if (permanentRoomReservationRequestId == null) {
+        if (StringUtils.isEmpty(permanentRoomReservationRequestId)) {
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
         }
         permanentRoomReservationRequest =

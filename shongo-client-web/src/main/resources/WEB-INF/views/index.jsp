@@ -7,13 +7,7 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<p><spring:message code="views.index.welcome"/></p>
-<p><spring:message code="views.index.suggestions" arguments="${configuration.suggestionEmail}"/></p>
-
-<security:authorize access="!isAuthenticated()">
-    <tag:url var="loginUrl" value="<%= ClientWebUrl.LOGIN %>"/>
-    <p><strong><spring:message code="views.index.login" arguments="${loginUrl}"/></strong></p>
-</security:authorize>
+${mainContent}
 
 <security:authorize access="isAuthenticated()">
     <security:authentication property="principal.userId" var="userId"/>

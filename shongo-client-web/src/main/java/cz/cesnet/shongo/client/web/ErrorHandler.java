@@ -84,6 +84,12 @@ public class ErrorHandler
         response.setHeader("Content-Type", "text/html; charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
+        if (throwable instanceof org.eclipse.jetty.io.EofException) {
+            // Just log that exceptions and do not report it
+            logger.warn("Not reported exception.", throwable);
+            return null;
+        }
+
         Throwable cause = throwable;
         ModelAndView modelAndView = null;
         while (cause != null) {
@@ -281,11 +287,6 @@ public class ErrorHandler
             ModelAndView modelAndView = new ModelAndView("errorObjectInaccessible");
             modelAndView.addObject("objectId", objectInaccessibleException.getObjectId());
             return modelAndView;
-        }
-        else if (cause instanceof org.eclipse.jetty.io.EofException) {
-            // Just log that exceptions and do not report it
-            logger.warn("Not reported exception.", cause);
-            return null;
         }
         else if (cause instanceof ControllerReportSet.SecurityInvalidTokenException) {
             logger.warn("Invalid security token, redirecting to login page...", cause);

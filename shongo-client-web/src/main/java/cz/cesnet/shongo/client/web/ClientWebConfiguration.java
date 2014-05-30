@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
-import org.apache.commons.configuration.CombinedConfiguration;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.SystemConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.*;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
 import java.io.File;
@@ -312,7 +309,7 @@ public class ClientWebConfiguration extends CombinedConfiguration
      */
     public String getDesignFolder()
     {
-        String design = getString("design");
+        String design = getString("design.folder");
         if (design == null || design.equals("(default)")) {
             design = defaultDesignFolderBasePath + "/WEB-INF/default-design";
         }
@@ -323,5 +320,13 @@ public class ClientWebConfiguration extends CombinedConfiguration
             design = design.substring(0, design.length() - 1);
         }
         return design;
+    }
+
+    /**
+     * @return {@link HierarchicalConfiguration} of design parameters
+     */
+    public HierarchicalConfiguration getDesignParameters()
+    {
+        return configurationAt("design.parameters");
     }
 }

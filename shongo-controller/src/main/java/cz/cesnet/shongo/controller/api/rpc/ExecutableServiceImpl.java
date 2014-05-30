@@ -949,8 +949,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             @Override
                             public int compare(ResourceRecording o1, ResourceRecording o2)
                             {
-                                return o1.getDuration().toStandardDuration()
-                                        .compareTo(o2.getDuration().toStandardDuration());
+                                return o1.getDuration().compareTo(o2.getDuration());
                             }
                         };
                         break;

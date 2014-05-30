@@ -9,17 +9,18 @@ import cz.cesnet.shongo.client.web.support.Breadcrumb;
 import cz.cesnet.shongo.client.web.support.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.support.ReflectiveResourceBundleMessageSource;
 import cz.cesnet.shongo.client.web.support.interceptors.NavigationInterceptor;
-import cz.cesnet.shongo.controller.ControllerConnectException;
 import cz.cesnet.shongo.controller.SystemPermission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.util.DateTimeFormatter;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.NullCacheStorage;
 import freemarker.cache.SoftCacheStorage;
+import freemarker.ext.beans.BooleanModel;
+import freemarker.ext.beans.StringModel;
+import freemarker.template.*;
 import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateModelException;
+import org.apache.commons.configuration.*;
+import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.joda.time.DateTimeZone;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
@@ -41,6 +42,7 @@ import java.util.*;
 public class Design
 {
     public static final String LAYOUT_FILE_NAME = "layout.ftl";
+    public static final String MAIN_FILE_NAME = "main.ftl";
 
     /**
      * @see cz.cesnet.shongo.client.web.Cache
@@ -60,6 +62,11 @@ public class Design
     private ApplicationContext applicationContext = new ApplicationContext();
 
     /**
+     * @see ClientWebConfiguration#getDesignParameters
+     */
+    private HierarchicalConfiguration configurationParameters;
+
+    /**
      * Folder where design resources are stored.
      */
     private String resourcesFolder;
@@ -73,6 +80,11 @@ public class Design
      * Specifies whether templates should be cached.
      */
     private boolean cacheTemplates = true;
+
+    /**
+     * @see freemarker.template.ObjectWrapper
+     */
+    private ObjectWrapper templateObjectWrapper = new freemarker.template.DefaultObjectWrapper();
 
     /**
      * Template engine configuration.
@@ -92,17 +104,18 @@ public class Design
     public Design(ClientWebConfiguration configuration)
     {
         this.resourcesFolder = configuration.getDesignFolder();
+        this.configurationParameters = configuration.getDesignParameters();
 
         // Create message source
         ReflectiveResourceBundleMessageSource messageSource = new ReflectiveResourceBundleMessageSource();
-        messageSource.setBasename(resourcesFolder + "/layout");
+        messageSource.setBasename(resourcesFolder + "/design");
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setFallbackToSystemLocale(false);
         this.layoutMessageSource = messageSource;
 
         // Initialize template engine
         try {
-            templateConfiguration.setObjectWrapper(new freemarker.template.DefaultObjectWrapper());
+            templateConfiguration.setObjectWrapper(templateObjectWrapper);
 
             if (resourcesFolder.startsWith("file:")) {
                 templateConfiguration.setTemplateLoader(new FileTemplateLoader(new File(resourcesFolder.substring(5))));
@@ -198,6 +211,15 @@ public class Design
     }
 
     /**
+     * @return rendered main page content
+     */
+    public String renderTemplateMain(HttpServletRequest request)
+    {
+        Template template = getTemplate(MAIN_FILE_NAME);
+        return renderTemplate(template, new TemplateContext(request));
+    }
+
+    /**
      * @param request
      * @param head
      * @param title
@@ -238,11 +260,11 @@ public class Design
 
         protected Locale userSessionLocale;
 
-        public TemplateContext(HttpServletRequest request, UserSession userSession)
+        public TemplateContext(HttpServletRequest request)
         {
             this.baseUrl = request.getContextPath();
             this.requestUrl = (String) request.getAttribute(NavigationInterceptor.REQUEST_URL_REQUEST_ATTRIBUTE);
-            this.userSession = userSession;
+            this.userSession = UserSession.getInstance(request);
             this.userSessionLocale = userSession.getLocale();
         }
 
@@ -265,6 +287,47 @@ public class Design
         public ApplicationContext getApp()
         {
             return applicationContext;
+        }
+
+        public class ConfigurationContext implements TemplateHashModel
+        {
+            private final org.apache.commons.configuration.Configuration configuration;
+
+            public ConfigurationContext(org.apache.commons.configuration.Configuration configuration)
+            {
+                this.configuration = configuration;
+            }
+
+            @Override
+            public TemplateModel get(String key) throws TemplateModelException
+            {
+                String value = this.configuration.getString(key);
+                if (value == null) {
+                    return null;
+                }
+                else if (value.equals("true") || value.equals("false")) {
+                    return templateObjectWrapper.wrap(Boolean.valueOf(value));
+                }
+                else {
+                    return templateObjectWrapper.wrap(value);
+                }
+            }
+
+            @Override
+            public boolean isEmpty() throws TemplateModelException
+            {
+                return this.configuration.isEmpty();
+            }
+        }
+
+        private ConfigurationContext configurationContext;
+
+        public ConfigurationContext getConfiguration()
+        {
+            if (configurationContext == null) {
+                configurationContext = new ConfigurationContext(configurationParameters);
+            }
+            return configurationContext;
         }
 
         public class UrlContext
@@ -494,15 +557,10 @@ public class Design
 
         private Breadcrumb breadcrumb;
 
-        private LayoutContext(HttpServletRequest request, UserSession userSession)
+        private LayoutContext(HttpServletRequest request)
         {
-            super(request, userSession);
+            super(request);
             this.breadcrumb = (Breadcrumb) request.getAttribute("breadcrumb");
-        }
-
-        public LayoutContext(HttpServletRequest request)
-        {
-            this(request, UserSession.getInstance(request));
         }
 
         public String getHead()

@@ -85,24 +85,26 @@ Each design should be stored in own folder with name which represents the design
 
 Each folder must contain:
 
+* <code>&lt;desing-name&gt;/design.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with english translation messages
+
+* <code>&lt;desing-name&gt;/design_cs.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with czech translation messages
+
 * <code>&lt;desing-name&gt;/layout.ftl</code> - design HTML layout file with [FreeMarker](http://freemarker.org/docs/dgui_template_exp.html) syntax to retrieve variables
 
-* <code>&lt;desing-name&gt;/layout.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with english translation messages
+* <code>&lt;desing-name&gt;/main.ftl</code> - design HTML main page content
 
-* <code>&lt;desing-name&gt;/layout_cs.properties</code> - [properties file](http://en.wikipedia.org/wiki/.properties) with czech translation messages
-
-* <code>&lt;desing-name&gt;/css/style.css</code> - design CSS file
+* <code>&lt;desing-name&gt;/css/design.css</code> - design CSS file
 
 Each folder should contain:
 
 * <code>/img/icon.ico</code> - icon for web browsers (@see favicon)
 * <code>/img/apple-touch-icon.png</code> - icon for apple touch (@see apple-touch-icon)
 
-In HTML layout file <code>/layout.ftl</code> you may use:
+In design HTML files <code>/*.ftl</code> you may use:
 
 Functions:
 
-* <code>${message("&lt;message-code&gt;")}</code> - for retrieving translated messages from layout properties files
+* <code>${message("&lt;message-code&gt;")}</code> - for retrieving translated messages from design properties files
 * <code>${escapeJavaScript("&lt;code&gt;")}</code> - for escaping strings for usage in javascript string
 
 Page construction variables:
@@ -152,10 +154,11 @@ Support page variables:
 
 <pre>
 cesnet/
+cesnet/design.properties
+cesnet/design_cs.properties
 cesnet/layout.ftl
-cesnet/layout.properties
-cesnet/layout_cs.properties
-cesnet/css/style.css
+cesnet/main.ftl
+cesnet/css/design.css
 cesnet/img/icon.ico
 cesnet/img/apple-touch-icon.png
 </pre>

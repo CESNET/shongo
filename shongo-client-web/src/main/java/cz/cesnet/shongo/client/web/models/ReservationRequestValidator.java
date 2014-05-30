@@ -12,13 +12,13 @@ import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -138,7 +138,7 @@ public class ReservationRequestValidator implements Validator
         if (SpecificationType.PERMANENT_ROOM_CAPACITY.equals(specificationType)) {
             ReservationRequestModel.PeriodicityType periodicityType = reservationRequestModel.getPeriodicityType();
             if (periodicityType != null && !periodicityType.equals(ReservationRequestModel.PeriodicityType.NONE)) {
-                if (reservationRequestModel.getPermanentRoomReservationRequestId() != null) {
+                if (StringUtils.isNotEmpty(reservationRequestModel.getPermanentRoomReservationRequestId())) {
                     ReservationRequestSummary permanentRoom =
                             reservationRequestModel.loadPermanentRoom(new CacheProvider(cache, securityToken));
                     LocalDate permanentRoomEnd = permanentRoom.getEarliestSlot().getEnd().toLocalDate();
@@ -240,7 +240,7 @@ public class ReservationRequestValidator implements Validator
         if (reservationRequestModel.isRoomParticipantNotificationEnabled()) {
             if (autoFixError) {
                 String roomMeetingName = reservationRequestModel.getRoomMeetingName();
-                if (roomMeetingName == null ||!StringUtils.hasText(roomMeetingName)) {
+                if (roomMeetingName == null ||!org.springframework.util.StringUtils.hasText(roomMeetingName)) {
                     reservationRequestModel.setRoomParticipantNotificationEnabled(false);
                 }
             }
