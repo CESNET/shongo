@@ -4,8 +4,10 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ObjectRole;
+import cz.cesnet.shongo.controller.ObjectType;
 import cz.cesnet.shongo.controller.api.AllocationStateReport;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.booking.ObjectIdentifier;
 import cz.cesnet.shongo.controller.booking.request.ReservationRequest;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTimeZone;
@@ -84,8 +86,8 @@ public class AllocationFailedNotification extends AbstractReservationRequestNoti
         if (configuration.isAdministrator()) {
             String reservationRequestId = getReservationRequestId();
             if (reservationRequestId != null) {
-                titleBuilder.append("[");
-                titleBuilder.append(reservationRequestId);
+                titleBuilder.append("[failed] [req:");
+                titleBuilder.append(ObjectIdentifier.parseId(reservationRequestId, ObjectType.RESERVATION_REQUEST));
                 titleBuilder.append("] ");
             }
 
