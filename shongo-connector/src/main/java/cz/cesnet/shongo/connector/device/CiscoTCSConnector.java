@@ -41,7 +41,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -64,11 +63,6 @@ import java.util.regex.Pattern;
 public class CiscoTCSConnector extends AbstractDeviceConnector implements RecordingService
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
-
-    /**
-     * @see ConnectionState
-     */
-    private ConnectionState connectionState;
 
     /**
      * This is the user log in name, typically the user email address.
@@ -211,8 +205,6 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
         checkServerVitality();
 
-        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
-
         Thread moveRecordingThread = new Thread()
         {
             private Logger logger = LoggerFactory.getLogger(CiscoTCSConnector.class);
@@ -259,13 +251,20 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     @Override
     public ConnectionState getConnectionState()
     {
-        return connectionState;
+        try {
+            execApi(new Command("GetSystemInformation"), CONNECTION_STATE_TIMEOUT);
+            return ConnectionState.CONNECTED;
+        }
+        catch (Exception exception) {
+            logger.warn("Not connected", exception);
+            return ConnectionState.DISCONNECTED;
+        }
     }
 
     @Override
     public void disconnect() throws CommandException
     {
-        this.connectionState = ConnectionState.DISCONNECTED;
+        // Nothing to be done
     }
 
     /**
@@ -276,9 +275,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     public void checkServerVitality() throws CommandException
     {
         Command command = new Command("GetSystemInformation");
-        Element result = exec(command).getChild("GetSystemInformationResponse");
+        Element result = execApi(command).getChild("GetSystemInformationResponse");
         if (!"true".equals(result.getChild("GetSystemInformationResult").getChildText("EngineOK"))) {
-            this.connectionState = ConnectionState.DISCONNECTED;
             throw new CommandException("Server " + deviceAddress.getHost() + " is not working. Check its status.");
         }
     }
@@ -442,7 +440,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         Command command = new Command("GetCallInfo");
         command.setParameter("ConferenceID", getRecordingTcsIdFromRecordingId(recordingId));
 
-        Element result = exec(command);
+        Element result = execApi(command);
         Element callInfoElement = result.getChild("GetCallInfoResponse").getChild("GetCallInfoResult");
         return "IN_CALL".endsWith(callInfoElement.getChildText("CallState"));
     }
@@ -452,7 +450,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         Command command = new Command("AddRecordingAlias");
         command.setParameter("SourceAlias","999");
         command.setParameter("Data","<Name>123</Name<E164Alias>123</E164Alias>");
-        exec(command,true);
+        execApi(command,true);
         return null;
     }
 
@@ -461,7 +459,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         Command command = new Command("DeleteRecordingAlias");
         command.setParameter("Alias",aliasId);
 
-        exec(command);
+        execApi(command);
     } */
 
     /**
@@ -489,7 +487,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         command.setParameter("groupId", "");
         command.setParameter("isRecurring", "false");
 
-        String conferenceID = exec(command).getChild("RequestConferenceIDResponse").getChildText(
+        String conferenceID = execApi(command).getChild("RequestConferenceIDResponse").getChildText(
                 "RequestConferenceIDResult");
 
         command = new Command("Dial");
@@ -504,7 +502,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         command.setParameter("SetMetadata", true);
         command.setParameter("PIN", recordingSettings.getPin());
 
-        Element result = exec(command);
+        Element result = execApi(command);
         String recordingTcsId = result.getChild("DialResponse").getChild("DialResult").getChildText("ConferenceID");
         if (recordingTcsId == null) {
             throw new CommandException("No recordingId was returned from dialing.");
@@ -538,7 +536,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         Command command = new Command("DisconnectCall");
         command.setParameter("ConferenceID", getRecordingTcsIdFromRecordingId(recordingId));
 
-        exec(command);
+        execApi(command);
 
         // create metadata file
         String recordingTcsId = getRecordingTcsIdFromRecordingId(recordingId);
@@ -612,17 +610,28 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
     }
 
     /**
+     * Exec command with debug output to std if set in option file.
+     *
+     * @param command
+     * @return
+     * @throws CommandException
+     */
+    private Element execApi(Command command) throws CommandException
+    {
+        return execApi(command, this.requestTimeout);
+    }
+
+    /**
      * Execute command on Cisco TCS server
      *
      * @param command to execute
-     * @param debug
      * @return Document Element
      * @throws CommandException
      */
-    private synchronized Element exec(Command command, boolean debug) throws CommandException
+    private synchronized Element execApi(Command command, int timeout) throws CommandException
     {
         try {
-            HttpClient lHttpClient = new DefaultHttpClient();
+            HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient(timeout);
             while (true) {
 
                 logger.debug(String.format("Issuing command '%s' on %s", command.getCommand(), deviceAddress));
@@ -652,7 +661,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
 
                 // Protocol version should be 1.0 because of compatibility with TCS
                 lHttpPost.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_0);
-                HttpResponse authResponse = lHttpClient.execute(lHttpPost);
+                HttpResponse authResponse = httpClient.execute(lHttpPost);
 
                 // Validate that we got an HTTP 401 back
                 if (authResponse.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
@@ -685,7 +694,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         System.out.println("===================");
                         */
 
-                        final HttpResponse goodResponse = lHttpClient.execute(lHttpPost);
+                        final HttpResponse goodResponse = httpClient.execute(lHttpPost);
 
                         String resultString = EntityUtils.toString(goodResponse.getEntity());
 
@@ -704,8 +713,6 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
                         }
                         Document resultDocument = saxBuilder.build(new StringReader(removeNamespace(resultString)));
                         Element rootElement = resultDocument.getRootElement();
-
-                        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
                         Namespace envelopeNS = rootElement.getNamespace(NS_ENVELOPE);
                         Element bodyElement = rootElement.getChild("Body", envelopeNS);
                         if (goodResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -730,21 +737,8 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
             throw exception;
         }
         catch (Exception exception) {
-            this.connectionState = ConnectionState.DISCONNECTED;
             throw new CommandException("Command '" + command.getCommand() + "' issuing error", exception);
         }
-    }
-
-    /**
-     * Exec command with debug output to std if set in option file.
-     *
-     * @param command
-     * @return
-     * @throws CommandException
-     */
-    private Element exec(Command command) throws CommandException
-    {
-        return exec(command, this.debug);
     }
 
     /**
@@ -797,7 +791,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         Command command = new Command("GetConference");
         command.setParameter("ConferenceID", recordingTcsId);
         try {
-            return exec(command).getChild("GetConferenceResponse").getChild("GetConferenceResult");
+            return execApi(command).getChild("GetConferenceResponse").getChild("GetConferenceResult");
         }
         catch (FaultException exception) {
             if (exception.getFault().equals("Unknown ConferenceID")) {
@@ -845,7 +839,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         logger.debug("Deleting original recording from TCS (ID: " + recordingTcsId + ").");
         Command command = new Command("DeleteRecording");
         command.setParameter("conferenceID", recordingTcsId);
-        exec(command);
+        execApi(command);
     }
 
     /**
@@ -863,7 +857,7 @@ public class CiscoTCSConnector extends AbstractDeviceConnector implements Record
         command.setParameter("Category", "");
         command.setParameter("Sort", "DateTime");
 
-        Element result = exec(command).getChild("GetConferencesResponse");
+        Element result = execApi(command).getChild("GetConferencesResponse");
 
         ArrayList<Recording> recordings = new ArrayList<Recording>();
         for (Element recordingElement : result.getChild("GetConferencesResult").getChildren("Conference")) {

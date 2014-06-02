@@ -9,7 +9,6 @@ import cz.cesnet.shongo.connector.common.AbstractMultipointConnector;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
 import cz.cesnet.shongo.controller.api.jade.Service;
-import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -133,7 +132,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     @Override
     public ConnectionState getConnectionState()
     {
-        return this.connectionState;
+        try {
+            execApi(getActionUrl("common-info"), CONNECTION_STATE_TIMEOUT);
+            return ConnectionState.CONNECTED;
+        }
+        catch (Exception exception) {
+            logger.warn("Not connected", exception);
+            return ConnectionState.DISCONNECTED;
+        }
     }
 
     @Override
@@ -156,7 +162,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         RequestAttributeList userSearchAttributes = new RequestAttributeList();
         userSearchAttributes.add("filter-login", principalName);
-        Element principalList = request("principal-list", userSearchAttributes);
+        Element principalList = execApi("principal-list", userSearchAttributes);
 
         if (principalList.getChild("principal-list").getChild("principal") != null)
             return principalList.getChild("principal-list").getChild("principal")
@@ -170,7 +176,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         newUserAttributes.add("type", "user");
         newUserAttributes.add("has-children", "false");
 
-        Element response = request("principal-update", newUserAttributes);
+        Element response = execApi("principal-update", newUserAttributes);
         return response.getChild("principal").getAttributeValue("principal-id");
     }
 
@@ -184,7 +190,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     {
         RequestAttributeList sessionsAttributes = new RequestAttributeList();
         sessionsAttributes.add("sco-id", roomId);
-        Element sessionsResponse = request("report-meeting-sessions", sessionsAttributes);
+        Element sessionsResponse = execApi("report-meeting-sessions", sessionsAttributes);
 
         if (sessionsResponse.getChild("report-meeting-sessions").getChildren().size() == 0) {
             return;
@@ -213,7 +219,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         try {
             logger.debug("{} meeting (sco-ID: {}) session.", (state ? "Starting" : "Ending"), roomId);
-            request("meeting-roommanager-endmeeting-update", endMeetingAttributes);
+            execApi("meeting-roommanager-endmeeting-update", endMeetingAttributes);
         } catch (CommandException exception) {
             logger.warn("Failed to end/start meeting. Probably just AC error, everything should be working properly.",
                     exception);
@@ -271,7 +277,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("acl-id",roomId);
         attributes.add("filter-principal-id","public-access");
 
-        String accessMode = request("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue(
+        String accessMode = execApi("permissions-info", attributes).getChild("permissions").getChild("principal").getAttributeValue(
                 "permissions-id");
 
         AdobeConnectAccessMode adobeConnectAccessMode = AdobeConnectAccessMode.PROTECTED;
@@ -307,7 +313,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             accessModeAttributes.add("permission-id",mode.getPermissionId());
         }
 
-        request("permissions-update", accessModeAttributes);
+        execApi("permissions-update", accessModeAttributes);
     }
 
     /**
@@ -431,7 +437,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
 
-        Element response = request("sco-contents", attributes);
+        Element response = execApi("sco-contents", attributes);
 
         for (Element child : response.getChild("scos").getChildren("sco")) {
             //TODO: archive all
@@ -454,7 +460,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("sco-id", roomId);
         attributes.add("filter-name", name);
 
-        Element response = request("sco-contents", attributes);
+        Element response = execApi("sco-contents", attributes);
 
         if (response.getChild("scos").getChild("sco") != null) {
             deleteSCO(response.getChild("scos").getChild("sco").getAttributeValue("sco-id"));
@@ -473,7 +479,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("filter-type", "meeting");
 
-        Element response = request("report-bulk-objects", attributes);
+        Element response = execApi("report-bulk-objects", attributes);
 
         List<RoomSummary> meetings = new ArrayList<RoomSummary>();
 
@@ -631,7 +637,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             }
         }
 
-        request("permissions-update", userAttributes);
+        execApi("permissions-update", userAttributes);
     }
 
     /**
@@ -647,7 +653,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         permissionsAttributes.add("acl-id", ScoId);
         permissionsAttributes.add("filter-out-permission-id", "null");
 
-        return request("permissions-info", permissionsAttributes);
+        return execApi("permissions-info", permissionsAttributes);
     }
 
     protected void resetPermissions(String roomId) throws CommandException
@@ -655,7 +661,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList permissionsResetAttributes = new RequestAttributeList();
         permissionsResetAttributes.add("acl-id", roomId);
 
-        request("permissions-reset", permissionsResetAttributes);
+        execApi("permissions-reset", permissionsResetAttributes);
     }
 
     @Override
@@ -676,7 +682,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 throw new RuntimeException("Room name must be filled for the new room.");
             }
 
-            Element response = request("sco-update", attributes);
+            Element response = execApi("sco-update", attributes);
             String roomId = response.getChild("sco").getAttributeValue("sco-id");
 
             // Add room participants
@@ -703,7 +709,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
             // Set pin for room if set
             passcodeAttributes.add("value",pin);
-            request("acl-field-update",passcodeAttributes);
+            execApi("acl-field-update", passcodeAttributes);
 
             // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
             setRoomAccessMode(roomId,accessMode);
@@ -757,7 +763,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             endMeeting(roomId);
         }
 
-        request("sco-update", attributes);
+        execApi("sco-update", attributes);
 
         // Set passcode (pin), since Adobe Connect 9.0
         RequestAttributeList passcodeAttributes = new RequestAttributeList();
@@ -774,7 +780,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         // Set pin for room if set
         passcodeAttributes.add("value",pin);
-        request("acl-field-update",passcodeAttributes);
+        execApi("acl-field-update", passcodeAttributes);
 
         // Set room access mode, when null setRoomAccessMode set default value {@link AdobeConnectAccessMode.PROTECTED}
         setRoomAccessMode(roomId,accessMode);
@@ -871,7 +877,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("url-path", document.getRootElement().getChild("sco").getChild("url-path").getText());
         attributes.add("name", document.getRootElement().getChild("sco").getChild("name").getText());
 
-        request("sco-update", attributes);
+        execApi("sco-update", attributes);
     }
 
     /**
@@ -891,7 +897,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logger.debug("Fetching user-original-id by principal-id '{}'...", userPrincipalId);
             RequestAttributeList userAttributes = new RequestAttributeList();
             userAttributes.add("filter-principal-id", userPrincipalId);
-            Element userResponse = request("principal-list", userAttributes);
+            Element userResponse = execApi("principal-list", userAttributes);
 
             if (userResponse.getChild("principal-list").getChild("principal") == null) {
                 return null;
@@ -913,7 +919,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
         Element response;
         try {
-            response = request("meeting-usermanager-user-list", attributes);
+            response = execApi("meeting-usermanager-user-list", attributes);
         }
         catch (RequestFailedCommandException exception) {
             // Participant list is not available, so return empty list
@@ -1008,7 +1014,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("sco-id", roomId);
         attributes.add("user-id", roomParticipantId);
 
-        request("meeting-usermanager-remove-user", attributes);
+        execApi("meeting-usermanager-remove-user", attributes);
     }
 
     protected Element getScoInfo(String scoId) throws CommandException
@@ -1017,7 +1023,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             RequestAttributeList attributes = new RequestAttributeList();
             attributes.add("sco-id", scoId);
 
-            return request("sco-info", attributes).getChild("sco");
+            return execApi("sco-info", attributes).getChild("sco");
         } catch (RequestFailedCommandException ex) {
             if ("no-access".equals(ex.getCode()) && "denied".equals(ex.getSubCode())) {
                 throw new CommandException("SCO-ID '" + scoId + "' doesn't exist.",ex);
@@ -1033,7 +1039,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         attributes.add("sco-id",scoId);
         attributes.add("name",name);
 
-        request("sco-update",attributes);
+        execApi("sco-update", attributes);
     }
 
     protected String getScoByUrl(String url) throws CommandException
@@ -1041,7 +1047,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("url-path",url);
 
-        return request("sco-by-url",attributes).getChild("sco").getAttributeValue("sco-id");
+        return execApi("sco-by-url", attributes).getChild("sco").getAttributeValue("sco-id");
     }
 
     protected void deleteSCO(String scoId) throws CommandException
@@ -1049,7 +1055,21 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", scoId);
 
-        request("sco-delete", attributes);
+        execApi("sco-delete", attributes);
+    }
+
+    /**
+     * Retrieves the appropriate Breeze URL.
+     *
+     * @param action    the action to perform
+     * @return the URL to perform the action
+     */
+    protected String getActionUrl(String action) throws CommandException
+    {
+        if (action == null || action.isEmpty()) {
+            throw new CommandException("Action of AC call cannot be empty.");
+        }
+        return deviceAddress.getUrl() + "/api/xml?" + "action=" + action;
     }
 
     /**
@@ -1059,18 +1079,15 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * @param attributes the map os parameters for the action
      * @return the URL to perform the action
      */
-    protected URL getLoginUrl(String action, RequestAttributeList attributes) throws IOException, CommandException
+    protected String getActionUrl(String action, RequestAttributeList attributes) throws CommandException
     {
-        if (action == null || action.isEmpty()) {
-            throw new CommandException("Action of AC call cannot be empty.");
-        }
         String queryString = "";
         if (attributes != null) {
             for (Entry entry : attributes) {
                 queryString += '&' + entry.getKey() + '=' + entry.getValue();
             }
         }
-        return new URL(deviceAddress.getUrl() + "/api/xml?" + "action=" + action + queryString);
+        return getActionUrl(action) + queryString;
     }
 
     protected String getConnectionSession() throws Exception
@@ -1091,7 +1108,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
     protected String getMeetingsFolderId() throws CommandException
     {
         if (meetingsFolderId == null) {
-            Element response = request("sco-shortcuts", null);
+            Element response = execApi("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("meetings".equals(sco.getAttributeValue("type"))) {
                     // Find sco-id of meetings folder
@@ -1099,7 +1116,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
 
-                    Element shongoFolder = request("sco-contents", searchAttributes);
+                    Element shongoFolder = execApi("sco-contents", searchAttributes);
 
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
                         if (meetingsFolderName.equals(folder.getChildText("name"))) {
@@ -1117,7 +1134,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                         folderAttributes.add("name", meetingsFolderName);
                         folderAttributes.add("type", "folder");
 
-                        Element folder = request("sco-update", folderAttributes);
+                        Element folder = execApi("sco-update", folderAttributes);
 
                         meetingsFolderId = folder.getChild("sco").getAttributeValue("sco-id");
 
@@ -1141,14 +1158,14 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logout();
         }
 
-        RequestAttributeList loginAtributes = new RequestAttributeList();
-        loginAtributes.add("login", this.login);
-        loginAtributes.add("password", this.password);
+        RequestAttributeList loginAttributes = new RequestAttributeList();
+        loginAttributes.add("login", this.login);
+        loginAttributes.add("password", this.password);
 
         URLConnection connection;
         try {
-            URL loginUrl = getLoginUrl("login", loginAtributes);
-            connection = loginUrl.openConnection();
+            String loginUrl = getActionUrl("login", loginAttributes);
+            connection = new URL(loginUrl).openConnection();
             connection.connect();
 
             InputStream resultStream = connection.getInputStream();
@@ -1228,12 +1245,12 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     protected void checkAllRoomsCapacity() throws CommandException
     {
-        Element response = request("report-active-meetings",new RequestAttributeList());
+        Element response = execApi("report-active-meetings", new RequestAttributeList());
 
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", getMeetingsFolderId());
         attributes.add("type", "meeting");
-        Element shongoRoomsElement = request("sco-contents",attributes);
+        Element shongoRoomsElement = execApi("sco-contents", attributes);
 
         List<String> shongoRooms = new ArrayList<String>();
         for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {
@@ -1316,7 +1333,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
         RequestAttributeList scoInfoAttributes = new RequestAttributeList();
         scoInfoAttributes.add("sco-id",roomId);
 
-        Element response = request("meeting-usermanager-user-list", scoInfoAttributes);
+        Element response = execApi("meeting-usermanager-user-list", scoInfoAttributes);
 
         return response.getChild("meeting-usermanager-user-list").getChildren("userdetails").size();
     }
@@ -1326,7 +1343,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      */
     public void logout() throws CommandException
     {
-        request("logout", null);
+        execApi("logout", null);
         this.connectionSession = null;
     }
 
@@ -1334,12 +1351,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
      * Execute command on Adobe Connect server and returns XML response. Throws CommandException when some error on Adobe Connect server occured or some parser error occured.
      *
      * @param action     name of Adobe Connect action
-     * @param attributes atrtributes of action
+     * @param attributes attributes of action
      * @return XML action response
      * @throws CommandException
      */
-    protected Element request(String action, RequestAttributeList attributes)
-            throws CommandException
+    protected Element execApi(String action, RequestAttributeList attributes) throws CommandException
     {
         try {
             if (this.connectionSession == null) {
@@ -1351,22 +1367,16 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                 }
             }
 
-            URL url = getLoginUrl(action, attributes);
-            logger.debug(String.format("Calling action %s on %s", url, deviceAddress));
+            String actionUrl = getActionUrl(action, attributes);
+            logger.debug(String.format("Calling action %s on %s", actionUrl, deviceAddress));
 
             int retryCount = 5;
             while (retryCount > 0) {
                 // Read result from url
                 Document result;
                 try {
-                    // Send request
-                    URLConnection conn = url.openConnection();
-                    conn.setConnectTimeout(requestTimeout);
-                    conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.connectionSession);
-                    conn.connect();
-
                     // Read result
-                    InputStream resultStream = conn.getInputStream();
+                    InputStream resultStream = execApi(actionUrl, requestTimeout);
                     result = new SAXBuilder().build(resultStream);
                 }
                 catch (IOException exception) {
@@ -1390,7 +1400,7 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
                         login();
                         continue;
                     }
-                    throw new RequestFailedCommandException(url, result);
+                    throw new RequestFailedCommandException(actionUrl, result);
                 }
                 else {
                     logger.debug(String.format("Command %s succeeded on %s", action, deviceAddress));
@@ -1412,6 +1422,26 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logger.warn(String.format("Command %s has failed on %s: %s", action, deviceAddress, exception));
             throw exception;
         }
+    }
+
+    /**
+     * Execute command on Adobe Connect server and returns {@link InputStream} with response.
+     *
+     * @param actionUrl
+     * @param timeout
+     * @return response in {@link InputStream}
+     * @throws IOException
+     */
+    protected InputStream execApi(String actionUrl, int timeout) throws IOException
+    {
+        // Send request
+        URL url = new URL(actionUrl);
+        URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(timeout);
+        connection.setReadTimeout(timeout);
+        connection.setRequestProperty("Cookie", "BREEZESESSION=" + this.connectionSession);
+        connection.connect();
+        return connection.getInputStream();
     }
 
     /**
@@ -1497,11 +1527,11 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
 
     public static class RequestFailedCommandException extends CommandException
     {
-        private URL requestUrl;
+        private String requestUrl;
 
         private Document requestResult;
 
-        public RequestFailedCommandException(URL requestUrl, Document requestResult)
+        public RequestFailedCommandException(String requestUrl, Document requestResult)
         {
             this.requestUrl = requestUrl;
             this.requestResult = requestResult;

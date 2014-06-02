@@ -2,6 +2,7 @@ package cz.cesnet.shongo.ssl;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.AbstractVerifier;
@@ -109,15 +110,25 @@ public class ConfiguredSSLContext
      */
     public DefaultHttpClient createHttpClient()
     {
+        return createHttpClient(30000);
+    }
+
+    /**
+     * @return new {@link HttpClient} configured with the {@link ConfiguredSSLContext}
+     */
+    public DefaultHttpClient createHttpClient(int timeout)
+    {
         ConfiguredSSLContext configuredSSLContext = getInstance();
         SchemeRegistry registry = new SchemeRegistry();
         org.apache.http.conn.ssl.SSLSocketFactory socketFactory = new org.apache.http.conn.ssl.SSLSocketFactory(
                 configuredSSLContext.getContext(), configuredSSLContext.getHostnameVerifier());
+        registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         registry.register(new Scheme("https", 443, socketFactory));
         ClientConnectionManager connectionManager = new PoolingClientConnectionManager(registry);
         DefaultHttpClient httpClient = new DefaultHttpClient(connectionManager);
         HttpParams httpClientParams = httpClient.getParams();
-        HttpConnectionParams.setConnectionTimeout(httpClientParams, 30000);
+        HttpConnectionParams.setConnectionTimeout(httpClientParams, timeout);
+        HttpConnectionParams.setSoTimeout(httpClientParams, timeout);
         return httpClient;
     }
 

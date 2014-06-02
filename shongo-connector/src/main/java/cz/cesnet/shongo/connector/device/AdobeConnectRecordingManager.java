@@ -139,7 +139,7 @@ public class AdobeConnectRecordingManager
     private String getRecordingsFolderId() throws CommandException
     {
         if (recordingsFolderId == null) {
-            Element response = connector.request("sco-shortcuts", null);
+            Element response = connector.execApi("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if ("content".equals(sco.getAttributeValue("type"))) {
                     // Find sco-id of recordings-folder folder
@@ -147,7 +147,7 @@ public class AdobeConnectRecordingManager
                     searchAttributes.add("sco-id", sco.getAttributeValue("sco-id"));
                     searchAttributes.add("filter-is-folder", "1");
 
-                    Element shongoFolder = connector.request("sco-contents", searchAttributes);
+                    Element shongoFolder = connector.execApi("sco-contents", searchAttributes);
                     for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
                         if (recordingsFolderName.equals(folder.getChildText("name"))) {
                             recordingsFolderId = folder.getAttributeValue("sco-id");
@@ -164,7 +164,7 @@ public class AdobeConnectRecordingManager
                         folderAttributes.add("name", recordingsFolderName);
                         folderAttributes.add("type", "folder");
 
-                        Element folder = connector.request("sco-update", folderAttributes);
+                        Element folder = connector.execApi("sco-update", folderAttributes);
                         recordingsFolderId = folder.getChild("sco").getAttributeValue("sco-id");
                         logger.debug("Folder /{} for meetings created with sco-id: {}",
                                 recordingsFolderName, recordingsFolderId);
@@ -180,7 +180,7 @@ public class AdobeConnectRecordingManager
         permissionsInfoAttributes.add("acl-id", recordingsFolderId);
         permissionsInfoAttributes.add("filter-principal-id", "public-access");
 
-        String permissions = connector.request("permissions-info", permissionsInfoAttributes).getChild("permissions")
+        String permissions = connector.execApi("permissions-info", permissionsInfoAttributes).getChild("permissions")
                 .getChild("principal").getAttributeValue(
                         "permission-id");
 
@@ -190,7 +190,7 @@ public class AdobeConnectRecordingManager
             permissionsUpdateAttributes.add("principal-id", "public-access");
             permissionsUpdateAttributes.add("permission-id", "denied");
 
-            connector.request("permissions-update", permissionsUpdateAttributes);
+            connector.execApi("permissions-update", permissionsUpdateAttributes);
         }
 
         return recordingsFolderId;
@@ -209,7 +209,7 @@ public class AdobeConnectRecordingManager
                 AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
                 attributes.add("sco-id", getRecordingsFolderId());
                 attributes.add("filter-name", URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8"));
-                Element recFolders = connector.request("sco-contents", attributes);
+                Element recFolders = connector.execApi("sco-contents", attributes);
                 if (recFolders.getChild("scos").getChildren().size() == 0) {
                     recordingFolderName = URLEncoder.encode(recordingFolderName + " " + suffix, "UTF8");
                     break;
@@ -227,7 +227,7 @@ public class AdobeConnectRecordingManager
         folderAttributes.add("name", recordingFolderName);
         folderAttributes.add("type", "folder");
 
-        Element folder = connector.request("sco-update", folderAttributes);
+        Element folder = connector.execApi("sco-update", folderAttributes);
         String recordingId = folder.getChild("sco").getAttributeValue("sco-id");
 
         if (recordingFolder.getUserPermissions().size() > 0) {
@@ -279,7 +279,7 @@ public class AdobeConnectRecordingManager
 
         }
 
-        connector.request("permissions-update", userAttributes);
+        connector.execApi("permissions-update", userAttributes);
     }
 
     /**
@@ -302,7 +302,7 @@ public class AdobeConnectRecordingManager
         attributes.add("filter-icon", "archive");
         attributes.add("filter-out-date-end", "null");
 
-        Element response = connector.request("sco-contents", attributes);
+        Element response = connector.execApi("sco-contents", attributes);
         for (Element resultRecording : response.getChild("scos").getChildren()) {
             recordingList.add(parseRecording(resultRecording));
         }
@@ -329,7 +329,7 @@ public class AdobeConnectRecordingManager
         attributes.add("sco-id", scoId);
         attributes.add("filter-icon", "archive");
         attributes.add("filter-date-end", "null");
-        Element response = connector.request("sco-contents", attributes);
+        Element response = connector.execApi("sco-contents", attributes);
         Element resultRecording = response.getChild("scos").getChild("sco");
         if (resultRecording == null) {
             return null;
@@ -362,7 +362,7 @@ public class AdobeConnectRecordingManager
 
         // throw exception if recording is not ready = no participants in the room
         try {
-            connector.request("meeting-recorder-activity-update", attributes);
+            connector.execApi("meeting-recorder-activity-update", attributes);
         }
         catch (AdobeConnectConnector.RequestFailedCommandException exception) {
             if ("no-access".equals(exception.getCode()) && "not-available".equals(exception.getSubCode())) {
@@ -388,7 +388,7 @@ public class AdobeConnectRecordingManager
             catch (InterruptedException e) {
                 logger.debug("unexpected wakening, but nothing to worry about");
             }
-            response = connector.request("meeting-recorder-activity-info", recAttributes);
+            response = connector.execApi("meeting-recorder-activity-info", recAttributes);
 
             if (response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id") != null) {
                 break;
@@ -434,7 +434,7 @@ public class AdobeConnectRecordingManager
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("active", "false");
-        connector.request("meeting-recorder-activity-update", attributes);
+        connector.execApi("meeting-recorder-activity-update", attributes);
 
         // Move recording
         moveRecording(recordingId, recordingFolderId);
@@ -493,7 +493,7 @@ public class AdobeConnectRecordingManager
 
             logger.debug("Setting permissions for recording '{}' (sco ID: '{}').", recording.getName(),
                     recording.getId());
-            connector.request("permissions-update", userAttributes);
+            connector.execApi("permissions-update", userAttributes);
         }
     }
 
@@ -509,7 +509,7 @@ public class AdobeConnectRecordingManager
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", roomId);
         attributes.add("filter-icon", "archive");
-        List<Element> recordings = connector.request("sco-contents", attributes).getChild("scos").getChildren();
+        List<Element> recordings = connector.execApi("sco-contents", attributes).getChild("scos").getChildren();
 
         if (recordings.size() > 0) {
             String recordingFolderId = null;
@@ -641,7 +641,7 @@ public class AdobeConnectRecordingManager
 
         AdobeConnectConnector.RequestAttributeList recFoldersAttributes = new AdobeConnectConnector.RequestAttributeList();
         recFoldersAttributes.add("sco-id", getRecordingsFolderId());
-        List<Element> recFolders = connector.request("sco-contents", recFoldersAttributes)
+        List<Element> recFolders = connector.execApi("sco-contents", recFoldersAttributes)
                 .getChild("scos").getChildren();
         for (Element recFolder : recFolders) {
             if (recFolder.getAttributeValue("sco-id").equals(currentRecordingFolderId)) {
@@ -682,7 +682,7 @@ public class AdobeConnectRecordingManager
         // Move or rename if duplicate name (add "_X")
         while (true) {
             try {
-                connector.request("sco-move", moveAttributes);
+                connector.execApi("sco-move", moveAttributes);
                 break;
             }
             catch (AdobeConnectConnector.RequestFailedCommandException exception) {
@@ -714,7 +714,7 @@ public class AdobeConnectRecordingManager
         // filter out all recordings in progress
         recordingsAttributes.add("filter-out-date-end", "null");
 
-        List<Element> recordings = connector.request("report-bulk-objects", recordingsAttributes)
+        List<Element> recordings = connector.execApi("report-bulk-objects", recordingsAttributes)
                 .getChild("report-bulk-objects").getChildren();
 
         List<String> allStoredRecordings = new ArrayList<String>();
@@ -771,7 +771,7 @@ public class AdobeConnectRecordingManager
         AdobeConnectConnector.RequestAttributeList attributes = new AdobeConnectConnector.RequestAttributeList();
         attributes.add("sco-id", connector.getMeetingsFolderId());
         attributes.add("type", "meeting");
-        Element shongoRoomsElement = connector.request("sco-contents", attributes);
+        Element shongoRoomsElement = connector.execApi("sco-contents", attributes);
 
         Set<String> roomIds = new HashSet<String>();
         for (Element sco : shongoRoomsElement.getChild("scos").getChildren()) {

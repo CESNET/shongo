@@ -15,6 +15,14 @@ import org.joda.time.Duration;
  */
 abstract public class AbstractDeviceConnector extends AbstractConnector
 {
+    /**
+     * Timeout for {@link #getConnectionState} in milliseconds.
+     */
+    public static final int CONNECTION_STATE_TIMEOUT = 500;
+
+    /**
+     * Timeout option
+     */
     public static final String OPTION_TIMEOUT = "timeout";
     public static final Duration OPTION_TIMEOUT_DEFAULT = Duration.standardSeconds(30);
 

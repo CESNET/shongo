@@ -101,11 +101,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     public static final int DEFAULT_PORT = 443;
 
     /**
-     * @see ConnectionState
-     */
-    private ConnectionState connectionState;
-
-    /**
      * {@link XmlRpcClient} used for the XML-RPC API communication with the device.
      */
     private XmlRpcClient xmlRpcClient;
@@ -218,13 +213,13 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(getDeviceApiUrl());
             config.setConnectionTimeout(requestTimeout);
+            config.setReplyTimeout(requestTimeout);
             xmlRpcClient = new XmlRpcClient();
             xmlRpcClient.setConfig(config);
             xmlRpcClient.setTransportFactory(new KeepAliveTransportFactory(xmlRpcClient));
 
             // Create HttpClient for Http communication
-            httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
-            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), requestTimeout);
+            httpClient = ConfiguredSSLContext.getInstance().createHttpClient(requestTimeout);
 
             // Get and check device info
             Map<String, Object> device = execApi(new Command("device.query"));
@@ -247,15 +242,24 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
         catch (CommandException exception) {
             throw new CommandException("Error setting up connection to the device.", exception);
         }
-
-        this.connectionState = ConnectionState.LOOSELY_CONNECTED;
-
     }
 
     @Override
     public ConnectionState getConnectionState()
     {
-        return this.connectionState;
+        try {
+            synchronized (this) {
+                XmlRpcClientConfigImpl configuration = ((XmlRpcClientConfigImpl) xmlRpcClient.getConfig());
+                configuration.setReplyTimeout(CONNECTION_STATE_TIMEOUT);
+                execApi("device.query", null);
+                configuration.setReplyTimeout(requestTimeout);
+            }
+            return ConnectionState.CONNECTED;
+        }
+        catch (Exception exception) {
+            logger.warn("Not connected", exception);
+            return ConnectionState.DISCONNECTED;
+        }
     }
 
     @Override
@@ -263,7 +267,6 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     {
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
-        this.connectionState = ConnectionState.DISCONNECTED;
         xmlRpcClient = null; // just for sure the attributes are not used anymore
     }
 
@@ -872,19 +875,12 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
      * @param command a command to the device; note that some parameters may be added to the command
      * @return output of the command
      */
-    private synchronized Map<String, Object> execApi(Command command) throws CommandException
+    private Map<String, Object> execApi(Command command) throws CommandException
     {
-        command.unsetParameter("authenticationPassword");
-        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
-
-        command.setParameter("authenticationUser", authUsername);
-        command.setParameter("authenticationPassword", authPassword);
-        Object[] params = new Object[]{command.getParameters()};
-
         int retryCount = 5;
         while (retryCount > 0) {
             try {
-                return (Map<String, Object>) xmlRpcClient.execute(command.getCommand(), params);
+                return execApi(command.getCommand(), command.getParameters());
             }
             catch (XmlRpcException exception) {
                 if (isExecApiRetryPossible(exception)) {
@@ -898,6 +894,28 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             }
         }
         throw new CommandException(String.format("Command %s failed.", command));
+    }
+
+    /**
+     * Sends a command to the device. Blocks until response to the command is complete.
+     *
+     * @param command
+     * @param params
+     * @return output of the command
+     * @throws XmlRpcException
+     */
+    private synchronized Map<String, Object> execApi(String command, Map<String, Object> params) throws XmlRpcException
+    {
+        logger.debug(String.format("Issuing command '%s' on %s", command, deviceAddress));
+        HashMap<String, Object> content = new HashMap<String, Object>();
+        if (params != null) {
+            content.putAll(params);
+        }
+        content.put("authenticationUser", authUsername);
+        content.put("authenticationPassword", authPassword);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = (Map<String, Object>) xmlRpcClient.execute(command, new Object[]{content});
+        return result;
     }
 
     /**
