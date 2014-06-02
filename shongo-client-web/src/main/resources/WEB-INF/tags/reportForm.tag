@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <c:if test="${report.reCaptcha != null}">
+            <c:if test="${report.reCaptcha != null && configuration.reCaptchaConfigured}">
                 <div class="form-group">
                     <div class="col-xs-offset-2 col-xs-4">
                         <spring:hasBindErrors htmlEscape="true" name="report">

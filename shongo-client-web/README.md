@@ -52,13 +52,6 @@ Client-web configuration:
         <forwarded>true</forwarded>
     </server>
 
-##RECAPTCHA
-
-* Admin URL: https://www.google.com/recaptcha/admin/site?siteid=317126999
-* Domain Name: shongo.cz                                (This is a global key. It will work across all domains.)
-* Public Key: 6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej  (Use this in the JavaScript code that is served to your users.)
-* Private Key: 6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr (Use this when communicating between your server and our server. Be sure to keep it a secret.)
-
 ##CSS
 
 For building css it is necessary to have less compiler.

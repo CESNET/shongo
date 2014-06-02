@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
+import com.google.common.base.Strings;
+import net.tanesha.recaptcha.ReCaptcha;
 import org.apache.commons.configuration.*;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 
@@ -328,5 +330,29 @@ public class ClientWebConfiguration extends CombinedConfiguration
     public HierarchicalConfiguration getDesignParameters()
     {
         return configurationAt("design.parameters");
+    }
+
+    /**
+     * @return public key for {@link ReCaptcha}
+     */
+    public String getReCaptchaPublicKey()
+    {
+        return getString("recaptcha.public-key");
+    }
+
+    /**
+     * @return private key for {@link ReCaptcha}
+     */
+    public String getReCaptchaPrivateKey()
+    {
+        return getString("recaptcha.private-key");
+    }
+
+    /**
+     * @return true whether {@link ReCaptcha} is properly configured, false otherwise
+     */
+    public boolean isReCaptchaConfigured()
+    {
+        return !Strings.isNullOrEmpty(getReCaptchaPublicKey()) && !Strings.isNullOrEmpty(getReCaptchaPrivateKey());
     }
 }

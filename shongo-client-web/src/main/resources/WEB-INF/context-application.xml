@@ -64,8 +64,8 @@
 
     <!-- reCaptcha -->
     <bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaImpl">
-        <property name="publicKey" value="6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej"/>
-        <property name="privateKey" value="6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr"/>
+        <property name="publicKey" value="#{configuration.reCaptchaPublicKey}"/>
+        <property name="privateKey" value="#{configuration.reCaptchaPrivateKey}"/>
         <property name="includeNoscript" value="false"/>
         <property name="recaptchaServer" value="https://www.google.com/recaptcha/api"/>
     </bean>
