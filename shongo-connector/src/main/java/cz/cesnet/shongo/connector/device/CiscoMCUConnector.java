@@ -157,11 +157,16 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
     /**
      * @return URL for communication with the device via XML-RPC API
      */
-    private URL getDeviceApiUrl() throws MalformedURLException
+    private URL getDeviceApiUrl() throws CommandException
     {
         // RPC2 is a fixed path given by Cisco, see the API docs
         String protocol = (deviceAddress.isSsl() ? "https" : "http");
-        return new URL(protocol, deviceAddress.getHost(), deviceAddress.getPort(), "/RPC2");
+        try {
+            return new URL(protocol, deviceAddress.getHost(), deviceAddress.getPort(), "/RPC2");
+        }
+        catch (MalformedURLException exception) {
+            throw new CommandException("Error constructing URL of the device.", exception);
+        }
     }
 
     /**
@@ -239,11 +244,8 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
                     + "API: " + device.get("apiVersion") + ", "
                     + "build: " + device.get("buildVersion") + ")");
         }
-        catch (MalformedURLException e) {
-            throw new CommandException("Error constructing URL of the device.", e);
-        }
-        catch (CommandException e) {
-            throw new CommandException("Error setting up connection to the device.", e);
+        catch (CommandException exception) {
+            throw new CommandException("Error setting up connection to the device.", exception);
         }
 
         this.connectionState = ConnectionState.LOOSELY_CONNECTED;

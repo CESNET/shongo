@@ -12,8 +12,10 @@ use Text::Table;
 use Shongo::Common;
 use Shongo::Console;
 
-# Enumeration of status
-our $Status = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
+# Enumerations
+our $DomainStatus = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
+our $AgentState = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
+our $ConnectorState = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
 
 #
 # Populate shell by options for common management.
@@ -63,7 +65,7 @@ sub list_domains()
         push(@{$table->{'data'}}, {
             'name' => $domain->{'name'},
             'organization' => $domain->{'organization'},
-            'status' => $Status->{$domain->{'status'}}
+            'status' => $DomainStatus->{$domain->{'status'}}
         });
     }
     console_print_table($table);
@@ -79,17 +81,19 @@ sub list_connectors()
     }
     my $table = {
         'columns' => [
-            {'field' => 'agent',     'title' => 'Agent Name'},
+            {'field' => 'agent',      'title' => 'Agent Name'},
+            {'field' => 'agentState', 'title' => 'Agent State'},
             {'field' => 'resource',   'title' => 'Managed Resource'},
-            {'field' => 'status', 'title' => 'Status'}
+            {'field' => 'status',   'title' => 'Status'},
         ],
         'data' => []
     };
     foreach my $connector (@{$response}) {
         push(@{$table->{'data'}}, {
             'agent' => $connector->{'name'},
+            'agentState' => [$connector->{'agentState'}, $AgentState->{$connector->{'agentState'}}],
             'resource' => $connector->{'resourceId'},
-            'status' => [$connector->{'status'}, $Status->{$connector->{'status'}}]
+            'status' => [$connector->{'status'}->{'state'}, $ConnectorState->{$connector->{'status'}->{'state'}}]
         });
     }
     console_print_table($table);

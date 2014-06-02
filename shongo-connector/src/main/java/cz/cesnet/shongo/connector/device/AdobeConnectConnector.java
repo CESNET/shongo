@@ -1141,8 +1141,6 @@ public class AdobeConnectConnector extends AbstractMultipointConnector implement
             logout();
         }
 
-        ConfiguredSSLContext.getInstance().addAdditionalCertificates(deviceAddress.getHost());
-
         RequestAttributeList loginAtributes = new RequestAttributeList();
         loginAtributes.add("login", this.login);
         loginAtributes.add("password", this.password);

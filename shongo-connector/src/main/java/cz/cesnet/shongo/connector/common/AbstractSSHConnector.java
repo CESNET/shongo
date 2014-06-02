@@ -31,7 +31,7 @@ abstract public class AbstractSSHConnector extends AbstractDeviceConnector
     /**
      * @see ConnectionState
      */
-    private ConnectionState connectionState;
+    protected ConnectionState connectionState;
 
     /**
      * Shell channel open to the device.

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.booking.room;
 
-import com.sun.org.apache.regexp.internal.recompile;
 import cz.cesnet.shongo.ParticipantRole;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;

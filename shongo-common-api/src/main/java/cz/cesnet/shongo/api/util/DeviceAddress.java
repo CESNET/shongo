@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.api.util;
 
+import jade.content.Concept;
+
 /**
  * A utility class for holding an address of a device together with port specification.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class DeviceAddress
+public class DeviceAddress implements Concept
 {
     private final boolean ssl;
     private final String host;

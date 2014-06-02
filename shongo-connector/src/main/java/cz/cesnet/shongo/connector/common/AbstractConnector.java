@@ -9,7 +9,7 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.SimpleCommandException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
-import cz.cesnet.shongo.connector.api.ConnectorStatus;
+import cz.cesnet.shongo.api.ConnectorStatus;
 import cz.cesnet.shongo.connector.jade.ConnectorAgent;
 import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
 import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
@@ -82,7 +82,6 @@ abstract public class AbstractConnector implements CommonService
     public ConnectorStatus getStatus()
     {
         ConnectorStatus connectorStatus = new ConnectorStatus();
-        connectorStatus.setName(agent.getLocalName());
         connectorStatus.setState(ConnectorStatus.State.NOT_AVAILABLE);
         return connectorStatus;
     }

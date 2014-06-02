@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api.jade;
 
+import cz.cesnet.shongo.api.util.DeviceAddress;
 import jade.content.onto.CustomBeanOntology;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
@@ -19,8 +20,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractOntology extends CustomBeanOntology
 {
-    private static Logger logger = LoggerFactory.getLogger(AbstractOntology.class);
-
     /**
      * Constructor.
      *
@@ -38,6 +37,7 @@ public abstract class AbstractOntology extends CustomBeanOntology
             SerializableOntology.getInstance().add(serializableSchema, Period.class);
             SerializableOntology.getInstance().add(serializableSchema, Duration.class);
             SerializableOntology.getInstance().add(serializableSchema, DateTime.class);
+            SerializableOntology.getInstance().add(serializableSchema, DeviceAddress.class);
         }
         catch (OntologyException exception) {
             throw new RuntimeException("Creating the ontology failed.", exception);

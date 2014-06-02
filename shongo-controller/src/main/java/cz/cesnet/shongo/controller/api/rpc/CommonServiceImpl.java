@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.jade.PingCommand;
+import cz.cesnet.shongo.api.ConnectorStatus;
+import cz.cesnet.shongo.connector.api.jade.common.GetStatus;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerConfiguration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -117,14 +118,18 @@ public class CommonServiceImpl extends AbstractServiceImpl
             Connector connector = new Connector();
             connector.setName(agentName);
 
-            SendLocalCommand sendLocalCommand = new SendLocalCommand(agentName, new PingCommand());
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new GetStatus());
+
             controllerAgent.performLocalCommand(sendLocalCommand);
             sendLocalCommand.waitForProcessed(null);
             if (sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
-                connector.setStatus(Status.AVAILABLE);
+                ConnectorStatus connectorStatus = (ConnectorStatus) sendLocalCommand.getResult();
+                connector.setAgentState(Connector.AgentState.AVAILABLE);
+                connector.setStatus(connectorStatus);
             }
             else {
-                connector.setStatus(Status.NOT_AVAILABLE);
+                connector.setAgentState(Connector.AgentState.NOT_AVAILABLE);
+                connector.setStatus(new ConnectorStatus(ConnectorStatus.State.NOT_AVAILABLE));
             }
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
@@ -140,7 +145,8 @@ public class CommonServiceImpl extends AbstractServiceImpl
             Connector connector = new Connector();
             connector.setName(entry.getKey());
             connector.setResourceId(ObjectIdentifier.formatId(entry.getValue()));
-            connector.setStatus(Status.NOT_AVAILABLE);
+            connector.setAgentState(Connector.AgentState.NOT_AVAILABLE);
+            connector.setStatus(new ConnectorStatus(ConnectorStatus.State.NOT_AVAILABLE));
             connectorList.add(connector);
         }
 

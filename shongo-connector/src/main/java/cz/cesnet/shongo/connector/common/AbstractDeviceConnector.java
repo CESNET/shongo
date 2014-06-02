@@ -3,9 +3,9 @@ package cz.cesnet.shongo.connector.common;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.DeviceAddress;
 import cz.cesnet.shongo.connector.api.ConnectorConfiguration;
-import cz.cesnet.shongo.connector.api.ConnectorStatus;
+import cz.cesnet.shongo.api.ConnectorStatus;
 import cz.cesnet.shongo.connector.api.DeviceConfiguration;
-import cz.cesnet.shongo.connector.api.DeviceConnectorStatus;
+import cz.cesnet.shongo.api.DeviceConnectorStatus;
 import org.joda.time.Duration;
 
 /**
@@ -197,12 +197,13 @@ abstract public class AbstractDeviceConnector extends AbstractConnector
         /**
          * The connection was established but is not maintained (the communication is stateless).
          */
-
         LOOSELY_CONNECTED,
+
         /**
          * The connection is not established.
          */
         DISCONNECTED,
+
         /**
          * The connection has been lost and the connector is trying to reconnect.
          */

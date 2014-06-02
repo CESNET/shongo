@@ -243,7 +243,7 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(VIEW_URL, viewUrl);
         dataMap.set(EDITABLE_URL, editUrl);
         dataMap.set(BEGIN_DATE, beginDate);
-        dataMap.set(DURATION, duration.toPeriod());
+        dataMap.set(DURATION, duration);
         dataMap.set(FILENAME, fileName);
         dataMap.set(STATE, state);
         return dataMap;
@@ -260,7 +260,7 @@ public class Recording extends IdentifiedComplexType
         viewUrl = dataMap.getString(VIEW_URL);
         editUrl = dataMap.getString(EDITABLE_URL);
         beginDate = dataMap.getDateTime(BEGIN_DATE);
-        duration = dataMap.getPeriod(DURATION).toStandardDuration();
+        duration = dataMap.getDuration(DURATION);
         fileName = dataMap.getString(FILENAME);
         state = dataMap.getEnum(STATE, State.class);
     }

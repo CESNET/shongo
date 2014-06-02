@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.api.DeviceLoadInfo;
+import cz.cesnet.shongo.api.ConnectorStatus;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 
 import java.util.List;
 
@@ -29,7 +28,7 @@ public interface CommonService
     public void disconnect() throws CommandException;
 
     /**
-     * @return {@link ConnectorStatus}
+     * @return {@link cz.cesnet.shongo.api.ConnectorStatus}
      */
     public ConnectorStatus getStatus();
 

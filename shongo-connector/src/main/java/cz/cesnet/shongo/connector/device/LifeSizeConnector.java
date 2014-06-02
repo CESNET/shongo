@@ -212,7 +212,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
         public void run()
         {
             while (!quitRequested) {
-                if (isConnected()) {
+                if (connectionState.equals(ConnectionState.CONNECTED)) {
                     flushAsynchronousMessages();
                 }
 

@@ -1,36 +1,34 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
+
+import jade.content.Concept;
 
 /**
  * Status of connector.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ConnectorStatus
+public class ConnectorStatus extends AbstractComplexType implements Concept
 {
-    /**
-     * Connector agent name.
-     */
-    private String name;
-
     /**
      * @see State
      */
     private State state;
 
     /**
-     * @return {@link #name}
+     * Constructor.
      */
-    public String getName()
+    public ConnectorStatus()
     {
-        return name;
     }
 
     /**
-     * @param name sets the {@link #name}
+     * Constructor.
+     *
+     * @param state sets the {@link #state}
      */
-    public void setName(String name)
+    public ConnectorStatus(State state)
     {
-        this.name = name;
+        this.state = state;
     }
 
     /**
@@ -49,10 +47,27 @@ public class ConnectorStatus
         this.state = state;
     }
 
+    private static final String STATE = "state";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(STATE, state);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        state = dataMap.getEnum(STATE, State.class);
+    }
+
     @Override
     public String toString()
     {
-        return String.format("ConnectorStatus (name: %s, state: %s)", name, state);
+        return String.format("ConnectorStatus (state: %s)", state);
     }
 
     /**

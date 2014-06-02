@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.ConnectorStatus;
 import cz.cesnet.shongo.api.DataMap;
 
 /**
@@ -21,9 +22,14 @@ public class Connector extends AbstractComplexType
     private String resourceId;
 
     /**
-     * Status of the connector.
+     * @see ConnectorStatus
      */
-    private Status status;
+    private ConnectorStatus status;
+
+    /**
+     * @see cz.cesnet.shongo.controller.api.Connector.AgentState
+     */
+    private AgentState agentState;
 
     /**
      * @return {@link #name}
@@ -58,9 +64,25 @@ public class Connector extends AbstractComplexType
     }
 
     /**
+     * @return {@link #agentState}
+     */
+    public AgentState getAgentState()
+    {
+        return agentState;
+    }
+
+    /**
+     * @param agentState sets the {@link #agentState}
+     */
+    public void setAgentState(AgentState agentState)
+    {
+        this.agentState = agentState;
+    }
+
+    /**
      * @return {@link #status}
      */
-    public Status getStatus()
+    public ConnectorStatus getStatus()
     {
         return status;
     }
@@ -68,13 +90,14 @@ public class Connector extends AbstractComplexType
     /**
      * @param status sets the {@link #status}
      */
-    public void setStatus(Status status)
+    public void setStatus(ConnectorStatus status)
     {
         this.status = status;
     }
 
     private static final String NAME = "name";
     private static final String RESOURCE_ID = "resourceId";
+    private static final String AGENT_STATE = "agentState";
     private static final String STATUS = "status";
 
     @Override
@@ -83,6 +106,7 @@ public class Connector extends AbstractComplexType
         DataMap dataMap = super.toData();
         dataMap.set(NAME, name);
         dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(AGENT_STATE, agentState);
         dataMap.set(STATUS, status);
         return dataMap;
     }
@@ -93,6 +117,23 @@ public class Connector extends AbstractComplexType
         super.fromData(dataMap);
         name = dataMap.getString(NAME);
         resourceId = dataMap.getString(RESOURCE_ID);
-        status = dataMap.getEnum(STATUS, Status.class);
+        agentState = dataMap.getEnum(AGENT_STATE, AgentState.class);
+        status = dataMap.getComplexType(STATUS, ConnectorStatus.class);
+    }
+
+    /**
+     * Status of a domain.
+     */
+    public enum AgentState
+    {
+        /**
+         * Means that domain is currently available to the controller.
+         */
+        AVAILABLE,
+
+        /**
+         * Means that domain is currently not available to the controller.
+         */
+        NOT_AVAILABLE
     }
 }

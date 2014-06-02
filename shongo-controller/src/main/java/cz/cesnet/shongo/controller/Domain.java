@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.Status;
-
 /**
  * Holds information about domain for which the controller is running.
  *
@@ -114,7 +112,7 @@ public class Domain
         cz.cesnet.shongo.controller.api.Domain apiDomain = new cz.cesnet.shongo.controller.api.Domain();
         apiDomain.setName(getName());
         apiDomain.setOrganization(getOrganization());
-        apiDomain.setStatus(Status.AVAILABLE);
+        apiDomain.setStatus(cz.cesnet.shongo.controller.api.Domain.Status.AVAILABLE);
         return apiDomain;
     }
 

@@ -107,6 +107,11 @@ public class DataMap
         setNotNull(property, Converter.convertPeriodToString(period));
     }
 
+    public void set(String property, Duration duration)
+    {
+        setNotNull(property, (duration != null ? duration.toPeriod() : null));
+    }
+
     public void set(String property, Interval interval)
     {
         setNotNull(property, Converter.convertIntervalToString(interval));
@@ -271,6 +276,24 @@ public class DataMap
     public Period getPeriodRequired(String property)
     {
         return Converter.convertToPeriod(getRequired(property));
+    }
+
+    public Duration getDuration(String property)
+    {
+        Period period = Converter.convertToPeriod(data.get(property));
+        if (period == null) {
+            return null;
+        }
+        return period.toStandardDuration();
+    }
+
+    public Duration getDurationRequired(String property)
+    {
+        Period period = Converter.convertToPeriod(getRequired(property));
+        if (period == null) {
+            return null;
+        }
+        return period.toStandardDuration();
     }
 
     public Interval getInterval(String property)

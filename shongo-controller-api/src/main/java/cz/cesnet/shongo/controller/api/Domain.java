@@ -116,4 +116,21 @@ public class Domain extends AbstractComplexType
         organization = dataMap.getString(ORGANIZATION);
         status = dataMap.getEnum(STATUS, Status.class);
     }
+
+    /**
+     * Status of a domain.
+     *
+     */
+    public enum Status
+    {
+        /**
+         * Means that domain is currently available to the controller.
+         */
+        AVAILABLE,
+
+        /**
+         * Means that domain is currently not available to the controller.
+         */
+        NOT_AVAILABLE
+    }
 }
