@@ -56,6 +56,7 @@ public abstract class Endpoint extends Executable
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
+    @OrderBy("id")
     public List<Alias> getAssignedAliases()
     {
         return assignedAliases;
