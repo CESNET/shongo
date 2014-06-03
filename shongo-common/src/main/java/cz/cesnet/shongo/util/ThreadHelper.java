@@ -2,6 +2,8 @@ package cz.cesnet.shongo.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Help class for print thread info
@@ -118,6 +120,25 @@ public class ThreadHelper
         out.close();
         String threadListing = stringWriter.toString();
         System.out.println(threadListing);
+    }
+
+    /**
+     * @param name
+     * @return list of threads
+     */
+    public static List<Thread> listThreadGroup(String name)
+    {
+        List<Thread> threads = new LinkedList<Thread>();
+        ThreadGroup threadGroup = getThreadGroupByName(name, null);
+        if (threadGroup != null) {
+            int count = threadGroup.activeCount();
+            Thread threadArray[] = new Thread[count];
+            int threadCount = Thread.enumerate(threadArray);
+            for (int index = 0; index < threadCount; index++) {
+                threads.add(threadArray[index]);
+            }
+        }
+        return threads;
     }
 
     /**

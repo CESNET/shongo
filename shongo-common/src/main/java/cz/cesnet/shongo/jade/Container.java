@@ -732,7 +732,10 @@ public class Container
      */
     public static void killAllJadeThreads()
     {
-        logger.debug("Killing all JADE threads...");
+        logger.info("Killing all JADE threads...");
+        for (Thread thread : ThreadHelper.listThreadGroup("JADE")) {
+            logger.info("Active JADE Thread {}", thread.getName());
+        }
         ThreadHelper.killThreadGroup("JADE");
     }
 }

@@ -272,79 +272,86 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         super.before();
 
-        // Configure system properties
-        configureSystemProperties();
+        synchronized (AbstractControllerTest.class) {
 
-        // Create controller
-        controller = cz.cesnet.shongo.controller.Controller.create(new Controller(null)
-        {
-            @Override
-            public Container startJade()
+            // Configure system properties
+            configureSystemProperties();
+
+            // Create controller
+            controller = cz.cesnet.shongo.controller.Controller.create(new Controller(null)
             {
-                synchronized (AbstractControllerTest.class) {
-                    if (AbstractControllerTest.jadeContainer == null) {
-                        AbstractControllerTest.jadeContainer = super.startJade();
-                    }
-                    else {
-                        logger.info("Reusing JADE container...");
-                        this.jadeContainer = AbstractControllerTest.jadeContainer;
-
-                        // Add jade agent
-                        addJadeAgent(configuration.getString(ControllerConfiguration.JADE_AGENT_NAME), jadeAgent);
-                    }
-                    jadeContainer.waitForJadeAgentsToStart();
-                    return AbstractControllerTest.jadeContainer;
-                }
-            }
-
-            @Override
-            public void stop()
-            {
-                synchronized (AbstractControllerTest.class) {
-                    if (this.jadeContainer != null) {
-                        logger.info("Stopping JADE agents...");
-                        for (String agentName : new LinkedList<String>(this.jadeContainer.getAgentNames())) {
-                            this.jadeContainer.removeAgent(agentName);
+                @Override
+                public Container startJade()
+                {
+                    synchronized (AbstractControllerTest.class) {
+                        if (AbstractControllerTest.jadeContainer == null) {
+                            AbstractControllerTest.jadeContainer = super.startJade();
                         }
-                        this.jadeContainer = null;
+                        else {
+                            logger.info("Reusing JADE container...");
+                            this.jadeContainer = AbstractControllerTest.jadeContainer;
+
+                            // Add jade agent
+                            addJadeAgent(configuration.getString(ControllerConfiguration.JADE_AGENT_NAME), jadeAgent);
+                        }
+                        jadeContainer.waitForJadeAgentsToStart();
+                        return AbstractControllerTest.jadeContainer;
                     }
-                    super.stop();
                 }
-            }
-        });
-        controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
-        controller.setEntityManagerFactory(getEntityManagerFactory());
 
-        // Enable throwing internal errors
-        controller.setThrowInternalErrorsForTesting(true);
+                @Override
+                public void stop()
+                {
+                    synchronized (AbstractControllerTest.class) {
+                        if (this.jadeContainer != null) {
+                            logger.info("Stopping JADE agents...");
+                            for (String agentName : new LinkedList<String>(this.jadeContainer.getAgentNames())) {
+                                this.jadeContainer.removeAgent(agentName);
+                            }
+                            this.jadeContainer = null;
+                        }
+                        super.stop();
+                    }
+                }
+            });
+            controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
+            controller.setEntityManagerFactory(getEntityManagerFactory());
 
-        // Create authorization
-        authorization = DummyAuthorization.createInstance(controller.getConfiguration(), getEntityManagerFactory());
-        controller.setAuthorization(authorization);
+            // Enable throwing internal errors
+            controller.setThrowInternalErrorsForTesting(true);
 
-        onInit();
+            // Create authorization
+            authorization = DummyAuthorization.createInstance(controller.getConfiguration(), getEntityManagerFactory());
+            controller.setAuthorization(authorization);
 
-        // Start controller
-        logger.debug("Starting controller for " + getClass().getName() + "...");
-        controller.start();
-        controller.startRpc();
+            onInit();
 
-        // Start client
-        controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
+            // Start controller
+            logger.debug("Starting controller for " + getClass().getName() + "...");
+            controller.start();
+            controller.startRpc();
 
-        onStart();
+            // Start client
+            controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
+
+            onStart();
+        }
     }
 
     @Override
     public void after() throws Exception
     {
-        // Disable throwing internal errors
-        controller.setThrowInternalErrorsForTesting(false);
+        synchronized (AbstractControllerTest.class) {
+            // Disable throwing internal errors
+            controller.setThrowInternalErrorsForTesting(false);
 
-        controller.stop();
-        controller.destroy();
-        preprocessor.destroy();
-        scheduler.destroy();
+            controller.stop();
+            controller.destroy();
+            preprocessor.destroy();
+            scheduler.destroy();
+
+            Container.killAllJadeThreads();
+        }
 
         super.after();
     }
