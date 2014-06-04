@@ -224,8 +224,10 @@ public class CiscoMCUConnector extends AbstractMultipointConnector
             // Get and check device info
             Map<String, Object> device = execApi(new Command("device.query"));
             try {
-                Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
-                if (apiVersion < 2.9) {
+                String apiVersionString = (String) device.get("apiVersion");
+                String[] apiVersionParts = apiVersionString.split("\\.");
+                Double apiVersion = Double.valueOf(apiVersionParts[0]) + (Double.valueOf(apiVersionParts[1]) / 1000.0);
+                if (apiVersion < 2.009) {
                     throw new CommandException(String.format(
                             "Device API %.1f too old. The connector only works with API 2.9 or higher.", apiVersion));
                 }
